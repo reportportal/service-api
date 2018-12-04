@@ -75,8 +75,8 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 		if (StringUtils.isNotBlank(timeLineOption)) {
 			Optional<Period> period = Period.findByName(timeLineOption);
 			if (period.isPresent()) {
-				Map<String, ChartStatisticsContent> statistics = groupByDate(content, period.get());
-				calculateDelta(statistics, contentField);
+				Map<String, ChartStatisticsContent> statistics = maxByDate(content, period.get(), contentField);
+				calculateDelta(statistics, sort, contentField);
 				return singletonMap(RESULT, statistics);
 			}
 
@@ -85,14 +85,28 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 		return singletonMap(RESULT, content);
 	}
 
-	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, String contentField) {
-		double previousValue = Double.parseDouble(new ArrayList<>(statistics.values()).get(0).getValues().get(contentField));
-		for (ChartStatisticsContent content : statistics.values()) {
-			Map<String, String> values = content.getValues();
-			double currentValue = Double.parseDouble(values.get(contentField));
-			values.put(DELTA, String.valueOf(currentValue - previousValue));
-			previousValue = currentValue;
+	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, Sort sort, String contentField) {
+
+		if (sort.get().anyMatch(Sort.Order::isAscending)) {
+			ArrayList<String> keys = new ArrayList<>(statistics.keySet());
+			/* Last element in map */
+			Integer previous = Integer.valueOf(statistics.get(keys.get(keys.size() - 1)).getValues().get(contentField));
+			/* Iteration in reverse order */
+			for (int i = keys.size() - 1; i >= 0; i--) {
+				Integer current = Integer.valueOf(statistics.get(keys.get(i)).getValues().get(contentField));
+				statistics.get(keys.get(i)).getValues().put(DELTA, String.valueOf(current - previous));
+				previous = current;
+			}
+		} else {
+			int previousValue = Integer.valueOf(new ArrayList<>(statistics.values()).get(0).getValues().get(contentField));
+			for (ChartStatisticsContent content : statistics.values()) {
+				Map<String, String> values = content.getValues();
+				int currentValue = Integer.valueOf(values.get(contentField));
+				values.put(DELTA, String.valueOf(currentValue - previousValue));
+				previousValue = currentValue;
+			}
 		}
+
 	}
 
 	/**

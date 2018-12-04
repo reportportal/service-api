@@ -1,11 +1,15 @@
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
+import org.apache.commons.collections.MapUtils;
 import org.joda.time.DateTime;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static net.sf.jasperreports.types.date.FixedDate.DATE_PATTERN;
 
 /**
@@ -33,22 +37,43 @@ public abstract class AbstractStatisticsContentLoader {
 		switch (period) {
 			case DAY:
 				proceedDailyChart(chart, start, end, input);
-				checkList(DATE_PATTERN, input, chart);
+				groupStatistics(DATE_PATTERN, input, chart);
 				break;
 			case WEEK:
 				proceedDailyChart(chart, start, end, input);
-				checkList(DATE_PATTERN, input, chart);
+				groupStatistics(DATE_PATTERN, input, chart);
 				break;
 			case MONTH:
 				proceedMonthlyChart(chart, start, end, input);
-				checkList("yyyy-MM", input, chart);
+				groupStatistics("yyyy-MM", input, chart);
 				break;
 		}
 
 		return chart;
 	}
 
-	private void checkList(String groupingPattern, List<ChartStatisticsContent> statisticsContents,
+	protected Map<String, ChartStatisticsContent> maxByDate(List<ChartStatisticsContent> statisticsContents, Period period,
+			String contentField) {
+		final Function<ChartStatisticsContent, String> chartObjectToDate = chartObject -> new DateTime(chartObject.getStartTime().getTime())
+				.toString(DATE_PATTERN);
+		final BinaryOperator<ChartStatisticsContent> chartObjectReducer = (o1, o2) -> Integer.valueOf(o1.getValues().get(contentField)) > Integer.valueOf(o2.getValues().get(contentField)) ?
+				o1 :
+				o2;
+		final Map<String, Optional<ChartStatisticsContent>> groupByDate = statisticsContents.stream()
+				.filter(content -> MapUtils.isNotEmpty(content.getValues()) && ofNullable(content.getValues()
+						.get(contentField)).isPresent())
+				.sorted(Comparator.comparing(ChartStatisticsContent::getStartTime))
+				.collect(Collectors.groupingBy(chartObjectToDate, LinkedHashMap::new, Collectors.reducing(chartObjectReducer)));
+		final Map<String, ChartStatisticsContent> range = groupByDate(statisticsContents, period);
+		final LinkedHashMap<String, ChartStatisticsContent> result = new LinkedHashMap<>();
+		// used forEach cause aspectj compiler can't infer types properly
+		range.forEach((key, value) -> result.put(key,
+				groupByDate.getOrDefault(key, Optional.of(createChartObject(statisticsContents.get(0)))).get()
+		));
+		return result;
+	}
+
+	private void groupStatistics(String groupingPattern, List<ChartStatisticsContent> statisticsContents,
 			Map<String, ChartStatisticsContent> chart) {
 
 		Map<String, List<ChartStatisticsContent>> groupedStatistics = statisticsContents.stream()
@@ -65,7 +90,7 @@ public abstract class AbstractStatisticsContentLoader {
 					.flatMap(Collection::stream)
 					.collect(Collectors.toMap(Map.Entry::getKey,
 							Map.Entry::getValue,
-							(prev, curr) -> prev = String.valueOf(Double.parseDouble(prev) + Double.parseDouble(curr))
+							(prev, curr) -> prev = String.valueOf(Double.valueOf(prev) + Double.valueOf(curr))
 					));
 
 			content.setValues(values);

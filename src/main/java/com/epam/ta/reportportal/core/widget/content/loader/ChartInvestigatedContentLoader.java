@@ -89,12 +89,18 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 
 		investigatedStatistics.values().forEach(c -> {
 			Map<String, String> values = c.getValues();
-			values.put(TO_INVESTIGATE,
-					String.valueOf(BigDecimal.valueOf(PERCENTAGE_MULTIPLIER * Double.parseDouble(values.get(TO_INVESTIGATE)))
-							.divide(BigDecimal.valueOf(Double.parseDouble(values.get(INVESTIGATED))), 2, RoundingMode.FLOOR)
-							.doubleValue())
-			);
-			values.put(INVESTIGATED, String.valueOf(PERCENTAGE_MULTIPLIER - Double.parseDouble(values.get(TO_INVESTIGATE))));
+			BigDecimal divisor = BigDecimal.valueOf(Double.parseDouble(values.get(INVESTIGATED)));
+			if (0 != divisor.intValue()) {
+				values.put(TO_INVESTIGATE,
+						String.valueOf(BigDecimal.valueOf(PERCENTAGE_MULTIPLIER * Double.parseDouble(values.get(TO_INVESTIGATE)))
+								.divide(divisor, 2, RoundingMode.FLOOR)
+								.doubleValue())
+				);
+				values.put(INVESTIGATED, String.valueOf(PERCENTAGE_MULTIPLIER - Double.parseDouble(values.get(TO_INVESTIGATE))));
+			} else {
+				values.put(INVESTIGATED, "0");
+				values.put(TO_INVESTIGATE, "0");
+			}
 		});
 	}
 

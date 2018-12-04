@@ -90,18 +90,18 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 		if (sort.get().anyMatch(Sort.Order::isAscending)) {
 			ArrayList<String> keys = new ArrayList<>(statistics.keySet());
 			/* Last element in map */
-			Integer previous = Integer.valueOf(statistics.get(keys.get(keys.size() - 1)).getValues().get(contentField));
+			int previous = Integer.parseInt(statistics.get(keys.get(keys.size() - 1)).getValues().get(contentField));
 			/* Iteration in reverse order */
 			for (int i = keys.size() - 1; i >= 0; i--) {
-				Integer current = Integer.valueOf(statistics.get(keys.get(i)).getValues().get(contentField));
+				int current = Integer.parseInt(statistics.get(keys.get(i)).getValues().get(contentField));
 				statistics.get(keys.get(i)).getValues().put(DELTA, String.valueOf(current - previous));
 				previous = current;
 			}
 		} else {
-			int previousValue = Integer.valueOf(new ArrayList<>(statistics.values()).get(0).getValues().get(contentField));
+			int previousValue = Integer.parseInt(new ArrayList<>(statistics.values()).get(0).getValues().get(contentField));
 			for (ChartStatisticsContent content : statistics.values()) {
 				Map<String, String> values = content.getValues();
-				int currentValue = Integer.valueOf(values.get(contentField));
+				int currentValue = Integer.parseInt(values.get(contentField));
 				values.put(DELTA, String.valueOf(currentValue - previousValue));
 				previousValue = currentValue;
 			}

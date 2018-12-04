@@ -75,15 +75,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public List<String> getAttributeKeys(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	public List<String> getAttributeKeys(Long launchId, String value) {
 		return itemAttributeRepository.findKeysByLaunchIdAndValue(launchId, value);
 	}
 
 	@Override
-	public List<String> getAttributeValues(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
-		return itemAttributeRepository.findValuesByLaunchIdAndValue(launchId, value);
+	public List<String> getAttributeValues(Long launchId, String key, String value) {
+		return itemAttributeRepository.findValuesByLaunchIdAndKeyLikeValue(launchId, key, value);
 	}
 
 	@Override

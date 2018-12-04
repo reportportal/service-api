@@ -221,8 +221,7 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute keys of project launches")
 	public List<String> getAttributeKeys(@PathVariable String projectName,
-			@RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@RequestParam(value = "filter." + "cnt." + "attributeKey") String value, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getAttributeKeys(extractProjectDetails(user, normalizeId(projectName)), value);
 	}
 
@@ -231,8 +230,9 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute values of project launches")
 	public List<String> getAttributeValues(@PathVariable String projectName,
+			@RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
 			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), value);
+		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), key, value);
 	}
 
 	@Transactional(readOnly = true)

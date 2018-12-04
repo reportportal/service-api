@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
-import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
@@ -29,7 +28,6 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,15 +51,13 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/{projectName}/widget")
 public class WidgetController {
 
-	private final ICreateWidgetHandler createWidgetHandler;
-	private final IUpdateWidgetHandler updateWidgetHandler;
-	private final IGetWidgetHandler getWidgetHandler;
-	@Autowired
-	private ShareWidgetHandler shareWidgetHandler;
+	private final CreateWidgetHandler createWidgetHandler;
+	private final UpdateWidgetHandler updateWidgetHandler;
+	private final GetWidgetHandler getWidgetHandler;
 
 	@Autowired
-	public WidgetController(ICreateWidgetHandler createWidgetHandler, IUpdateWidgetHandler updateWidgetHandler,
-			IGetWidgetHandler getWidgetHandler) {
+	public WidgetController(CreateWidgetHandler createWidgetHandler, UpdateWidgetHandler updateWidgetHandler,
+			GetWidgetHandler getWidgetHandler) {
 		this.createWidgetHandler = createWidgetHandler;
 		this.updateWidgetHandler = updateWidgetHandler;
 		this.getWidgetHandler = getWidgetHandler;
@@ -117,14 +113,6 @@ public class WidgetController {
 	public Iterable<WidgetResource> getSharedWidgetsList(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			Pageable pageable) {
 		return getWidgetHandler.getSharedWidgetsList(user.getUsername(), normalizeId(projectName), pageable);
-	}
-
-	@Transactional
-	@PostMapping(value = "/shared/{widgetId}")
-	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Share widget to project")
-	public void shareWidget(@PathVariable String projectName, @PathVariable Long widgetId) {
-		shareWidgetHandler.shareWidget(projectName, widgetId);
 	}
 
 	@Transactional(readOnly = true)

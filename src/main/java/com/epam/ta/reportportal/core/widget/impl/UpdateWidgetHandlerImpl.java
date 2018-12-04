@@ -17,11 +17,12 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -46,7 +47,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.T
  * @author Pavel Bortnik
  */
 @Service
-public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
+public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
 	private WidgetRepository widgetRepository;
 
@@ -56,7 +57,11 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 
 	private ObjectMapper objectMapper;
 
-	private ShareWidgetHandler shareWidgetHandler;
+	@Autowired
+	private GetWidgetHandler getWidgetHandler;
+
+	@Autowired
+	private ReportPortalAclHandler aclHandler;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
@@ -78,15 +83,10 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 		this.objectMapper = objectMapper;
 	}
 
-	@Autowired
-	public void setShareWidgetHandler(ShareWidgetHandler shareWidgetHandler) {
-		this.shareWidgetHandler = shareWidgetHandler;
-	}
-
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = shareWidgetHandler.findById(widgetId);
+		Widget widget = getWidgetHandler.findById(widgetId);
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
 		List<UserFilter> userFilter = null;
@@ -103,6 +103,10 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
+
+		if (before.isShared() != widget.isShared()) {
+			aclHandler.updateAclObject(widget, projectDetails.getProjectId(), widget.isShared());
+		}
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(widget),

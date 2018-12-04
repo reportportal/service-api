@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * @author Ivan Nikitsenka
  */
-public class ReportPortalAclService extends JdbcMutableAclService {
+public class AclService extends JdbcMutableAclService {
 
 	private static final String IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_class', 'id'))";
 	private static final String SID_IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_sid', 'id'))";
@@ -45,7 +45,7 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 			+ "and parent.object_id_identity = ?::varchar and parent.object_id_class = ("
 			+ "select id FROM acl_class where acl_class.class = ?)";
 
-	public ReportPortalAclService(DataSource dataSource, LookupStrategy lookupStrategy, AclCache aclCache) {
+	public AclService(DataSource dataSource, LookupStrategy lookupStrategy, AclCache aclCache) {
 		super(dataSource, lookupStrategy, aclCache);
 		this.setClassIdentityQuery(IDENTITY_QUERY);
 		this.setSidIdentityQuery(SID_IDENTITY_QUERY);
@@ -59,12 +59,24 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	 * @param object to add acl.
 	 * @return {@link MutableAcl}
 	 */
-	public Optional<MutableAcl> createAcl(Object object) {
+	Optional<MutableAcl> createAcl(Object object) {
 		Optional<MutableAcl> acl = getAcl(object);
 		if (acl.isPresent()) {
 			return acl;
 		}
 		return Optional.of(createAcl(new ObjectIdentityImpl(object)));
+	}
+
+	/**
+	 * Deletes ACL of provided object.
+	 *
+	 * @param object to remove acl.
+	 */
+	void deleteAcl(Object object) {
+		Optional<MutableAcl> acl = getAcl(object);
+		if (acl.isPresent()) {
+			deleteAcl(new ObjectIdentityImpl(object), true);
+		}
 	}
 
 	/**
@@ -75,7 +87,7 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	 * @param permission permission
 	 * @return {@link MutableAcl}
 	 */
-	public Optional<MutableAcl> addPermissions(Object object, String userName, Permission permission) {
+	Optional<MutableAcl> addPermissions(Object object, String userName, Permission permission) {
 		Optional<MutableAcl> acl = getAcl(object);
 		if (!acl.isPresent() || isAceExistForUser(acl.get(), userName)) {
 			return acl;
@@ -93,20 +105,21 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	 * @param userName this user will not be allowed to read the object.
 	 * @return {@link MutableAcl}
 	 */
-	public Optional<MutableAcl> removePermissions(Object object, String userName) {
+	Optional<MutableAcl> removePermissions(Object object, String userName) {
 		Optional<MutableAcl> acl = getAcl(object);
 		if (acl.isPresent() && isAceExistForUser(acl.get(), userName)) {
 			PrincipalSid sid = new PrincipalSid(userName);
-
-			for (int i = 0; i < acl.get().getEntries().size(); i++) {
-				AccessControlEntry entry = acl.get().getEntries().get(i);
-				if (entry.getSid().equals(sid) && !entry.getSid().equals(acl.get().getOwner())) {
-					acl.get().deleteAce(i);
+			if (!acl.get().getOwner().equals(sid)) {
+				for (int i = 0; i < acl.get().getEntries().size(); i++) {
+					AccessControlEntry entry = acl.get().getEntries().get(i);
+					if (sid.equals(entry.getSid())) {
+						acl.get().deleteAce(i);
+						break;
+					}
 				}
+				updateAcl(acl.get());
+				return acl;
 			}
-
-			updateAcl(acl.get());
-			return acl;
 		}
 		return acl;
 	}
@@ -135,7 +148,7 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 	 * @param object Object
 	 * @return {@link MutableAcl}
 	 */
-	private Optional<MutableAcl> getAcl(Object object) {
+	Optional<MutableAcl> getAcl(Object object) {
 		ObjectIdentityImpl objectIdentity = new ObjectIdentityImpl(object);
 		if (retrieveObjectIdentityPrimaryKey(objectIdentity) != null) {
 			return Optional.of((MutableAcl) readAclById(objectIdentity));

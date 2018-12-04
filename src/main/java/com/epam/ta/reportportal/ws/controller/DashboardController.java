@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
-import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
-import com.epam.ta.reportportal.core.dashboard.IUpdateDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -55,13 +55,13 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/{projectName}/dashboard")
 public class DashboardController {
 
-	private final ICreateDashboardHandler createDashboardHandler;
-	private final IUpdateDashboardHandler updateDashboardHandler;
-	private final IGetDashboardHandler getDashboardHandler;
+	private final CreateDashboardHandler createDashboardHandler;
+	private final UpdateDashboardHandler updateDashboardHandler;
+	private final GetDashboardHandler getDashboardHandler;
 
 	@Autowired
-	public DashboardController(ICreateDashboardHandler createDashboardHandler, IUpdateDashboardHandler updateDashboardHandler,
-			IGetDashboardHandler getDashboardHandler) {
+	public DashboardController(CreateDashboardHandler createDashboardHandler, UpdateDashboardHandler updateDashboardHandler,
+			GetDashboardHandler getDashboardHandler) {
 		this.createDashboardHandler = createDashboardHandler;
 		this.updateDashboardHandler = updateDashboardHandler;
 		this.getDashboardHandler = getDashboardHandler;

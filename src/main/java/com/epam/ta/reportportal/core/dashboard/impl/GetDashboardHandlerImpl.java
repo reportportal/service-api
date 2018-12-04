@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
-import com.epam.ta.reportportal.core.dashboard.IGetDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -39,7 +39,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJ
  * @author Pavel Bortnik
  */
 @Service
-public class GetDashboardHandlerImpl implements IGetDashboardHandler {
+public class GetDashboardHandlerImpl implements GetDashboardHandler {
 
 	private DashboardRepository dashboardRepository;
 

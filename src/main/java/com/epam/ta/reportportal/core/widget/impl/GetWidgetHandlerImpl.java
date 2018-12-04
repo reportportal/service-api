@@ -18,8 +18,7 @@ package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
-import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
-import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -41,23 +40,23 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
+
 /**
  * @author Pavel Bortnik
  */
 @Service
-public class GetWidgetHandlerImpl implements IGetWidgetHandler {
+public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
-
-	@Autowired
-	private ShareWidgetHandler shareWidgetHandler;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -84,8 +83,14 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 	}
 
 	@Override
+	@PostAuthorize(CAN_READ_OBJECT)
+	public Widget findById(Long widgetId) {
+		return widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+	}
+
+	@Override
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = shareWidgetHandler.findById(widgetId);
+		Widget widget = findById(widgetId);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -135,7 +140,7 @@ public class GetWidgetHandlerImpl implements IGetWidgetHandler {
 		List<UserFilter> userFilter = null;
 
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
-			userFilter = getUserFilterHandler.getFilters(previewRQ.getFilterIds().stream().toArray(Long[]::new), projectDetails, user);
+			userFilter = getUserFilterHandler.getFilters(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
 		}
 
 		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
@@ -30,7 +31,15 @@ import java.util.Map;
  *
  * @author Aliaksei_Makayed
  */
-public interface IGetWidgetHandler {
+public interface GetWidgetHandler {
+
+	/**
+	 * Get widget by id with permission check
+	 *
+	 * @param widgetId Widget id
+	 * @return Allowed widget.
+	 */
+	Widget findById(Long widgetId);
 
 	/**
 	 * Get widget by id
@@ -72,9 +81,9 @@ public interface IGetWidgetHandler {
 	/**
 	 * Get content for building preview while creating widget
 	 *
-	 * @param previewRQ   Widget parameters
+	 * @param previewRQ      Widget parameters
 	 * @param projectDetails Project name
-	 * @param user    Username
+	 * @param user           Username
 	 * @return Widget content
 	 */
 	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);

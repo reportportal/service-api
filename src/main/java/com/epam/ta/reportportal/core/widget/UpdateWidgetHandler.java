@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.dashboard;
+package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
 /**
- * @author Pavel Bortnik
+ * Update Widget handler
+ *
+ * @author Aliaksei_Makayed
  */
-public interface ICreateDashboardHandler {
+public interface UpdateWidgetHandler {
 
 	/**
-	 * Creates a new dashboard.
-	 *
-	 * @param projectDetails Project details
-	 * @param rq             Dashboard details
-	 * @param user           User
-	 * @return EntryCreatedRS
+	 * Update widget with specified id
 	 */
-	EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user);
+	OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 }

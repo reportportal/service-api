@@ -17,8 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
-import com.epam.ta.reportportal.core.dashboard.ICreateDashboardHandler;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
@@ -26,8 +25,8 @@ import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
@@ -36,13 +35,13 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
  * @author Pavel Bortnik
  */
 @Service
-public class CreateDashboardHandler implements ICreateDashboardHandler {
+public class CreateDashboardHandler implements com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler {
 
 	private DashboardRepository dashboardRepository;
 	private MessageBus messageBus;
 
 	@Autowired
-	private ReportPortalAclService aclService;
+	private ReportPortalAclHandler aclHandler;
 
 	@Autowired
 	public CreateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus) {
@@ -54,8 +53,7 @@ public class CreateDashboardHandler implements ICreateDashboardHandler {
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
 		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq).addProject(projectDetails.getProjectId()).get();
 		dashboardRepository.save(dashboard);
-		aclService.createAcl(dashboard);
-		aclService.addPermissions(dashboard, user.getUsername(), BasePermission.ADMINISTRATION);
+		aclHandler.initAclForObject(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
 		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}

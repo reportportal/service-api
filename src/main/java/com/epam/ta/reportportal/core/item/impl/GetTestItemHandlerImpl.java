@@ -76,12 +76,12 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public List<String> getAttributeKeys(Long launchId, String value) {
-		return itemAttributeRepository.findKeysByLaunchIdAndValue(launchId, value);
+		return itemAttributeRepository.findTestItemAttributeKeys(launchId, value, false);
 	}
 
 	@Override
 	public List<String> getAttributeValues(Long launchId, String key, String value) {
-		return itemAttributeRepository.findValuesByLaunchIdAndKeyLikeValue(launchId, key, value);
+		return itemAttributeRepository.findTestItemAttributeValues(launchId, key, value, false);
 	}
 
 	@Override

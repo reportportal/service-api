@@ -138,12 +138,12 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		return itemAttributeRepository.findKeysByProjectIdAndValue(projectDetails.getProjectId(), value);
+		return itemAttributeRepository.findLaunchAttributeKeys(projectDetails.getProjectId(), value, false);
 	}
 
 	@Override
 	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key, String value) {
-		return itemAttributeRepository.findValuesByProjectIdAndKeyLikeValue(projectDetails.getProjectId(), key, value);
+		return itemAttributeRepository.findLaunchAttributeValues(projectDetails.getProjectId(), key, value, false);
 	}
 
 	@Override

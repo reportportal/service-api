@@ -16,10 +16,14 @@
 
 package com.epam.ta.reportportal.auth.acl;
 
+import com.epam.ta.reportportal.dao.ShareableEntityRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.ShareableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -33,6 +37,9 @@ public class ReportPortalAclHandler {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private ShareableEntityRepository shareableEntityRepository;
+
 	/**
 	 * Initialize acl for sharable object. Give {@link BasePermission#ADMINISTRATION}
 	 * permissions to owner. If object is shared, give {@link BasePermission#READ}
@@ -43,7 +50,7 @@ public class ReportPortalAclHandler {
 	 * @param projectId Project id
 	 * @param isShared  Shared or not
 	 */
-	public void initAclForObject(Object object, String owner, Long projectId, boolean isShared) {
+	public void initAcl(Object object, String owner, Long projectId, boolean isShared) {
 		aclService.createAcl(object);
 		aclService.addPermissions(object, owner, BasePermission.ADMINISTRATION);
 		if (isShared) {
@@ -62,7 +69,7 @@ public class ReportPortalAclHandler {
 	 * @param projectId Project id
 	 * @param isShared  Shared or not
 	 */
-	public void updateAclObject(Object object, Long projectId, boolean isShared) {
+	public void updateAcl(Object object, Long projectId, boolean isShared) {
 		if (isShared) {
 			userRepository.findNamesByProject(projectId).forEach(login -> aclService.addPermissions(object, login, BasePermission.READ));
 		} else {
@@ -71,25 +78,32 @@ public class ReportPortalAclHandler {
 	}
 
 	/**
-	 * Share concrete object for concrete user
+	 * Prevent shared objects for concrete user
 	 *
-	 * @param object   Object to share
-	 * @param username User to share
+	 * @param projectId Project
+	 * @param userName  Username
 	 */
-	public void shareObject(Object object, String username) {
-		aclService.addPermissions(object, username, BasePermission.READ);
+	public void preventSharedObjects(Long projectId, String userName) {
+		List<ShareableEntity> sharedEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
+		sharedEntities.forEach(entity -> aclService.removePermissions(entity, userName));
 	}
 
 	/**
-	 * Unshare concrete object for concrete user
+	 * Permit shared objects for concrete user
 	 *
-	 * @param object   Object to share
-	 * @param username User to share
+	 * @param projectId Project
+	 * @param userName  Username
 	 */
-	public void unShareObject(Object object, String username) {
-		aclService.removePermissions(object, username);
+	public void permitSharedObjects(Long projectId, String userName) {
+		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
+		shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, BasePermission.READ));
 	}
 
+	/**
+	 * Remove ACL for object.
+	 *
+	 * @param object Object to be removed
+	 */
 	public void deleteAclForObject(Object object) {
 		aclService.deleteAcl(object);
 	}

@@ -56,7 +56,7 @@ public class CreateDashboardHandler implements com.epam.ta.reportportal.core.das
 				.addOwner(user.getUsername())
 				.get();
 		dashboardRepository.save(dashboard);
-		aclHandler.initAclForObject(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
+		aclHandler.initAcl(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
 		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
 		return new EntryCreatedRS(dashboard.getId());
 	}

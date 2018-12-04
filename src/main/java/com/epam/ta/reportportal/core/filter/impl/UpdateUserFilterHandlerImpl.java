@@ -60,7 +60,7 @@ public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 		UserFilter updated = new UserFilterBuilder(userFilter).addUpdateFilterRQ(updateRQ).get();
 
 		if (before.isShared() != updated.isShared()) {
-			aclHandler.updateAclObject(updated, projectDetails.getProjectId(), updated.isShared());
+			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
 		}
 
 		messageBus.publishActivity(new FilterUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(updated), user.getUserId()));

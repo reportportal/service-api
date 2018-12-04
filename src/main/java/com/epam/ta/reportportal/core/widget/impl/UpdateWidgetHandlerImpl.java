@@ -105,7 +105,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		widgetRepository.save(widget);
 
 		if (before.isShared() != widget.isShared()) {
-			aclHandler.updateAclObject(widget, projectDetails.getProjectId(), widget.isShared());
+			aclHandler.updateAcl(widget, projectDetails.getProjectId(), widget.isShared());
 		}
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,

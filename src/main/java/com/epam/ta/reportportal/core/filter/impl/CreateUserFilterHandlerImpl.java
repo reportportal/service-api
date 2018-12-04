@@ -60,7 +60,7 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 				.addOwner(user.getUsername())
 				.get();
 		userFilterRepository.save(filter);
-		aclHandler.initAclForObject(filter,
+		aclHandler.initAcl(filter,
 				user.getUsername(),
 				projectDetails.getProjectId(),
 				BooleanUtils.isTrue(createFilterRQ.getShare())

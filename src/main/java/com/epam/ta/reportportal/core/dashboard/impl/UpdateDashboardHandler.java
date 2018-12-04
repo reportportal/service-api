@@ -79,7 +79,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 		dashboardRepository.save(dashboard);
 
 		if (before.isShared() != dashboard.isShared()) {
-			aclHandler.updateAclObject(dashboard, projectDetails.getProjectId(), dashboard.isShared());
+			aclHandler.updateAcl(dashboard, projectDetails.getProjectId(), dashboard.isShared());
 		}
 
 		messageBus.publishActivity(new DashboardUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));

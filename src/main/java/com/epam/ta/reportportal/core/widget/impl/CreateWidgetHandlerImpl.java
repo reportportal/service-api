@@ -84,7 +84,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 				.get();
 		widgetRepository.save(widget);
 
-		aclHandler.initAclForObject(widget,
+		aclHandler.initAcl(widget,
 				user.getUsername(),
 				projectDetails.getProjectId(),
 				BooleanUtils.isTrue(createWidgetRQ.getShare())

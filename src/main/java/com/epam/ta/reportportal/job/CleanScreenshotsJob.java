@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -61,8 +62,7 @@ public class CleanScreenshotsJob implements Job {
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong attachmentsCount = new AtomicLong(0);
@@ -97,7 +97,9 @@ public class CleanScreenshotsJob implements Job {
 				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
 				.findFirst()
 				.ifPresent(pa -> {
-					Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue()).getDays());
+					Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue())
+							.orElseThrow(() -> new ReportPortalException("Incorrect keep screenshots delay period: " + pa.getValue()))
+							.getDays());
 					if (!period.isZero()) {
 						logCleaner.removeProjectAttachments(project, period, attachmentsCount, thumbnailsCount);
 					}

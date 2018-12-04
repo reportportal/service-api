@@ -19,28 +19,38 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.TIMELINE;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.INVESTIGATED;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.PERCENTAGE_MULTIPLIER;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.TO_INVESTIGATE;
 import static java.util.Collections.singletonMap;
 
 /**
  * @author Pavel Bortnik
  */
 @Service
-public class ChartInvestigatedContentLoader implements LoadContentStrategy {
+public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoader implements LoadContentStrategy {
 
 	@Autowired
 	private WidgetContentRepository widgetContentRepository;
@@ -55,7 +65,43 @@ public class ChartInvestigatedContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		return singletonMap(RESULT, widgetContentRepository.investigatedStatistics(filter, sort, limit));
+		String timeLineOption = WidgetOptionUtil.getValueByKey(TIMELINE, widgetOptions);
+
+		if (StringUtils.isNotBlank(timeLineOption)) {
+			Optional<Period> period = Period.findByName(timeLineOption);
+			if (period.isPresent()) {
+				Map<String, ChartStatisticsContent> statistics = groupByDate(widgetContentRepository.timelineInvestigatedStatistics(filter,
+						sort,
+						limit
+				), period.get());
+				calculateInvestigatedPercentage(statistics);
+				return singletonMap(RESULT, statistics);
+			}
+
+		}
+
+		List<ChartStatisticsContent> content = widgetContentRepository.investigatedStatistics(filter, sort, limit);
+
+		return singletonMap(RESULT, content);
+	}
+
+	private void calculateInvestigatedPercentage(Map<String, ChartStatisticsContent> investigatedStatistics) {
+
+		investigatedStatistics.values().forEach(c -> {
+			Map<String, String> values = c.getValues();
+			BigDecimal divisor = BigDecimal.valueOf(Double.parseDouble(values.get(INVESTIGATED)));
+			if (0 != divisor.intValue()) {
+				values.put(TO_INVESTIGATE,
+						String.valueOf(BigDecimal.valueOf(PERCENTAGE_MULTIPLIER * Double.parseDouble(values.get(TO_INVESTIGATE)))
+								.divide(divisor, 2, RoundingMode.FLOOR)
+								.doubleValue())
+				);
+				values.put(INVESTIGATED, String.valueOf(PERCENTAGE_MULTIPLIER - Double.parseDouble(values.get(TO_INVESTIGATE))));
+			} else {
+				values.put(INVESTIGATED, "0");
+				values.put(TO_INVESTIGATE, "0");
+			}
+		});
 	}
 
 	/**

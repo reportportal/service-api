@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -103,9 +104,10 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 		return filter.withCondition(new FilterCondition(
 				Condition.EQUALS,
 				false,
-				String.valueOf(launchRepository.findLatestByNameAndFilter(launchName, filter)
+				String.valueOf(launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getId()), CRITERIA_LAUNCH_ID
+						.getId()),
+				CRITERIA_LAUNCH_ID
 		));
 	}
 

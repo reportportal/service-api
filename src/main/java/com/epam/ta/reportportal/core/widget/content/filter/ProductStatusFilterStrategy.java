@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -31,10 +30,9 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
 		Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
 		Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet()).forEach(f -> {
-			Filter filter = GROUP_FILTERS.apply(Sets.newHashSet(
-					new Filter(f.getId(), f.getTargetClass().getClassObject(), Sets.newLinkedHashSet(f.getFilterCondition())),
-					buildDefaultFilter(widget, projectId)
-			));
+			Filter filter = new Filter(f.getId(), f.getTargetClass().getClassObject(), Sets.newLinkedHashSet(f.getFilterCondition()));
+			filter.withConditions(buildDefaultFilter(widget, projectId).getFilterConditions());
+
 			Optional<Set<FilterSort>> filterSorts = ofNullable(f.getFilterSorts());
 
 			Sort sort = Sort.by(filterSorts.map(fs -> fs.stream()
@@ -47,7 +45,8 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 	}
 
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
-		return new Filter(Launch.class,
+		return new Filter(
+				Launch.class,
 				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
 		);
 	}

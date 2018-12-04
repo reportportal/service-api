@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.OverallStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,12 +56,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 		validateContentFields(contentFields);
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		List<LaunchesStatisticsContent> content = widgetContentRepository.overallStatisticsContent(filter,
-				sort,
-				contentFields,
-				latestMode,
-				limit
-		);
+		OverallStatisticsContent content = widgetContentRepository.overallStatisticsContent(filter, sort, contentFields, latestMode, limit);
 		return Collections.singletonMap(RESULT, content);
 	}
 

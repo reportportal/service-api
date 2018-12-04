@@ -56,7 +56,7 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		PassingRateStatisticsResult result = widgetContentRepository.passingRateStatistics(filter, sort, limit);
+		PassingRateStatisticsResult result = widgetContentRepository.summaryPassingRateStatistics(filter, sort, limit);
 		return singletonMap(RESULT, result);
 	}
 

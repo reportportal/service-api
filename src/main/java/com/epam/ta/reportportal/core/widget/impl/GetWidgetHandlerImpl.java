@@ -140,7 +140,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		List<UserFilter> userFilter = null;
 
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
-			userFilter = getUserFilterHandler.getFilters(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
+			userFilter = getUserFilterHandler.getFiltersById(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
 		}
 
 		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)

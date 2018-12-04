@@ -18,12 +18,11 @@ package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
 
 /**
  * Get dashboard handler.
@@ -43,24 +42,22 @@ public interface GetDashboardHandler {
 	Dashboard getDashboard(Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
-	 * Get all dashboards.
+	 * Get permitted projects for concrete user for concrete project
 	 *
 	 * @param projectDetails Project details
 	 * @param user           User
-	 * @return dashboards
-	 * @throws ReportPortalException
+	 * @return Page of permitted dashboard resources
 	 */
-	List<Dashboard> getAllDashboards(ProjectDetails projectDetails, ReportPortalUser user);
+	Iterable<DashboardResource> getPermitted(ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
 
 	/**
-	 * Get dashboards names shared for current project.
-	 * Result map:<br>
-	 * <li>key - dashboard id,
-	 * <li>value - dashboard name
+	 * Get shared dashboards entities for current project.
 	 *
-	 * @param projectName
+	 * @param projectDetails Project
+	 * @param pageable       Pageable
+	 * @param filter         Filter
+	 * @param user           User
 	 * @return {@link Iterable}
-	 * @throws ReportPortalException
 	 */
-	Iterable<SharedEntity> getSharedDashboardsNames(String ownerName, String projectName, Pageable pageable);
+	Iterable<SharedEntity> getSharedDashboardsNames(ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
 }

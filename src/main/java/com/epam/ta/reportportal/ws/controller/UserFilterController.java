@@ -98,7 +98,7 @@ public class UserFilterController {
 	@ApiOperation("Get permitted (own and shared) filters")
 	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getPermittedFilters(projectName, pageable, filter, user);
+		return getFilterHandler.getPermitted(projectName, pageable, filter, user);
 	}
 
 	// filter/own
@@ -108,7 +108,7 @@ public class UserFilterController {
 	@ApiOperation("Get all filters for specified user who own them")
 	public Iterable<UserFilterResource> getOwnFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getOwnFilters(projectName, pageable, filter, user);
+		return getFilterHandler.getOwn(projectName, pageable, filter, user);
 	}
 
 	// filter/shared
@@ -118,7 +118,7 @@ public class UserFilterController {
 	@ApiOperation("Get all available shared filters (except own shared filters)")
 	public Iterable<UserFilterResource> getSharedFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getSharedFilters(projectName, pageable, filter, user);
+		return getFilterHandler.getShared(projectName, pageable, filter, user);
 	}
 
 	@Transactional
@@ -154,7 +154,7 @@ public class UserFilterController {
 	@ApiOperation("Get list of specified user filters")
 	public List<UserFilterResource> getUserFilters(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		List<UserFilter> filters = getFilterHandler.getFilters(ids, extractProjectDetails(user, projectName), user);
+		List<UserFilter> filters = getFilterHandler.getFiltersById(ids, extractProjectDetails(user, projectName), user);
 		return filters.stream().map(UserFilterConverter.TO_FILTER_RESOURCE).collect(Collectors.toList());
 	}
 

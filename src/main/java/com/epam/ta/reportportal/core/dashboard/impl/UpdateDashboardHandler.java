@@ -91,6 +91,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 			ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
 		Widget widget = getWidgetHandler.findById(rq.getObjectModel().getWidgetId());
+
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getObjectModel(), dashboard, widget);
 		dashboard.addWidget(dashboardWidget);
 		dashboardRepository.save(dashboard);
@@ -103,9 +104,12 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
 		Widget widget = getWidgetHandler.findById(widgetId);
+
 		boolean isRemoved = dashboard.getDashboardWidgets()
 				.removeIf(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()));
+
 		expect(isRemoved, Predicate.isEqual(true)).verify(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId);
+
 		widget.getDashboardWidgets().removeIf(dashboardWidget -> dashboard.getId().equals(dashboardWidget.getId().getDashboardId()));
 		dashboardRepository.save(dashboard);
 		return new OperationCompletionRS(

@@ -66,7 +66,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getPermittedFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+	public Iterable<UserFilterResource> getPermitted(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
 		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
 		Page<UserFilter> permitted = filterRepository.getPermitted(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
@@ -76,7 +76,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getOwnFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+	public Iterable<UserFilterResource> getOwn(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
 		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
 		Page<UserFilter> filters = filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
@@ -86,7 +86,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getSharedFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+	public Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
 		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
 		Page<UserFilter> filters = filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
@@ -102,7 +102,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	@Override
 	@PostFilter(CAN_READ_OBJECT_FILTER)
-	public List<UserFilter> getFilters(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
+	public List<UserFilter> getFiltersById(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findAllById(Lists.newArrayList(ids));
 	}
 }

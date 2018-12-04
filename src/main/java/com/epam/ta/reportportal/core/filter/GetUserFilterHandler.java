@@ -51,7 +51,7 @@ public interface GetUserFilterHandler {
 	 * @param user        Report Portal User
 	 * @return {@link Iterable}
 	 */
-	Iterable<UserFilterResource> getPermittedFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<UserFilterResource> getPermitted(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
 
 	/**
 	 * Get own {@link UserFilterResource} objects
@@ -62,7 +62,7 @@ public interface GetUserFilterHandler {
 	 * @param user        Report Portal User
 	 * @return {@link Iterable}
 	 */
-	Iterable<UserFilterResource> getOwnFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<UserFilterResource> getOwn(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
 
 	/**
 	 * Get shared {@link UserFilterResource} objects
@@ -73,7 +73,7 @@ public interface GetUserFilterHandler {
 	 * @param user        Report Portal User
 	 * @return {@link Iterable}
 	 */
-	Iterable<UserFilterResource> getSharedFilters(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user);
 
 	/**
 	 * Get all {@link com.epam.ta.reportportal.entity.filter.UserFilter}'s names
@@ -95,5 +95,5 @@ public interface GetUserFilterHandler {
 	 * @param user           Report Portal user
 	 * @return Found filters
 	 */
-	List<UserFilter> getFilters(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

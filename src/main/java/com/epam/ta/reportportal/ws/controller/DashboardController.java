@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -29,6 +31,8 @@ import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -37,10 +41,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
@@ -79,10 +79,10 @@ public class DashboardController {
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(OK)
-	@ApiOperation("Get all dashboard resources for specified project")
-	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		List<Dashboard> allDashboards = getDashboardHandler.getAllDashboards(extractProjectDetails(user, projectName), user);
-		return allDashboards.stream().map(DashboardConverter.TO_RESOURCE).collect(Collectors.toList());
+	@ApiOperation("Get all permitted dashboard resources for specified project")
+	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getDashboardHandler.getPermitted(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional
@@ -125,8 +125,9 @@ public class DashboardController {
 	@GetMapping(value = "/shared")
 	@ResponseStatus(OK)
 	@ApiOperation("Get names of shared dashboards from specified project")
-	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, Principal principal, Pageable pageable) {
-		return null;
+	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getDashboardHandler.getSharedDashboardsNames(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 }

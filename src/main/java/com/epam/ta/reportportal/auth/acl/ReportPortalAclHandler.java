@@ -70,6 +70,26 @@ public class ReportPortalAclHandler {
 		}
 	}
 
+	/**
+	 * Share concrete object for concrete user
+	 *
+	 * @param object   Object to share
+	 * @param username User to share
+	 */
+	public void shareObject(Object object, String username) {
+		aclService.addPermissions(object, username, BasePermission.READ);
+	}
+
+	/**
+	 * Unshare concrete object for concrete user
+	 *
+	 * @param object   Object to share
+	 * @param username User to share
+	 */
+	public void unShareObject(Object object, String username) {
+		aclService.removePermissions(object, username);
+	}
+
 	public void deleteAclForObject(Object object) {
 		aclService.deleteAcl(object);
 	}

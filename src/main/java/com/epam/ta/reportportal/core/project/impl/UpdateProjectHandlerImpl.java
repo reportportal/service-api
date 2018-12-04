@@ -17,15 +17,14 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.ta.reportportal.dao.UserPreferenceRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
+import com.epam.ta.reportportal.entity.ShareableEntity;
 import com.epam.ta.reportportal.entity.enums.*;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -84,6 +83,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final Map<String, IntegrationService> integrationServiceMapping;
 
 	private final EmailIntegrationService emailIntegrationService;
+
+	@Autowired
+	private ShareableEntityRepository shareableEntityRepository;
+
+	@Autowired
+	private ReportPortalAclHandler aclHandler;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
@@ -167,6 +172,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		projectUserRepository.deleteAll(unassignUsers);
 		emailIntegrationService.excludeProjectRecipients(unassignUsers, project);
 		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
+
+		List<ShareableEntity> sharedEntities = shareableEntityRepository.findAllByProjectIdAndShared(project.getId(), true);
+		sharedEntities.forEach(entity -> unassignUsersRQ.getUsernames().forEach(username -> aclHandler.unShareObject(entity, username)));
+
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
 						+ project.getName() + "'");
@@ -207,6 +216,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			projectUser.setProject(project);
 			project.getUsers().add(projectUser);
 		});
+
+		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(project.getId(), true);
+		shareableEntities.forEach(entity -> assignUsersRQ.getUserNames()
+				.forEach((username, role) -> aclHandler.shareObject(entity, username)));
+
 		return new OperationCompletionRS(
 				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
 						+ project.getName() + "'");

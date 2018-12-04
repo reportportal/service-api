@@ -174,7 +174,9 @@ class DemoDashboardsService {
 
 			return dashboardWidget;
 		}).forEach(dashboard::addWidget);
-		dashboard.setProjectId(projectId);
+		Project project = new Project();
+		project.setId(projectId);
+		dashboard.setProject(project);
 
 		dashboard.setCreationDate(LocalDateTime.now());
 		return dashboardRepository.save(dashboard);

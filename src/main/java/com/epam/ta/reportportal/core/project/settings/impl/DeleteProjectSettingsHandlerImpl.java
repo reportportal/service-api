@@ -110,7 +110,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		project.getProjectIssueTypes().remove(type);
 		projectRepository.save(project);
 
-		widgetRepository.findAllByProject(projectDetails.getProjectId())
+		widgetRepository.findAllByProjectId(projectDetails.getProjectId())
 				.stream()
 				.filter(widget -> LAUNCHES_TABLE.getType().equals(widget.getWidgetType()) || STATISTIC_TREND.getType()
 						.equals(widget.getWidgetType()))

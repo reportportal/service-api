@@ -45,7 +45,7 @@ public final class DashboardConverter {
 		DashboardActivityResource resource = new DashboardActivityResource();
 		resource.setId(dashboard.getId());
 		resource.setName(dashboard.getName());
-		resource.setProjectId(dashboard.getProjectId());
+		resource.setProjectId(dashboard.getProject().getId());
 		resource.setDescription(dashboard.getDescription());
 		//		resource.setShared(dashboard.getShared);
 		return resource;

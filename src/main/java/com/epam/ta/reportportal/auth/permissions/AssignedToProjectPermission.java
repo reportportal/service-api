@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.auth.permissions;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -61,9 +60,9 @@ class AssignedToProjectPermission implements Permission {
 		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
 		ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
 		BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
-		ProjectRole role = rpUser.getProjectDetails().get(targetDomainObject.toString()).getProjectRole();
+		ReportPortalUser.ProjectDetails projectDetails = rpUser.getProjectDetails().get(targetDomainObject.toString());
 
-		return role != null;
+		return projectDetails != null;
 	}
 
 	private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList, String project) {

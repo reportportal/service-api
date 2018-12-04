@@ -117,6 +117,11 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		return this;
 	}
 
+	public UserFilterBuilder addOwner(String owner) {
+		userFilter.setOwner(owner);
+		return this;
+	}
+
 	@Override
 	public UserFilter get() {
 		return userFilter;

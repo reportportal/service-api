@@ -55,10 +55,12 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 	@Override
 	public EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ).addProject(projectDetails.getProjectId()).get();
+		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ)
+				.addProject(projectDetails.getProjectId())
+				.addOwner(user.getUsername())
+				.get();
 		userFilterRepository.save(filter);
-		aclHandler.initAclForObject(
-				filter,
+		aclHandler.initAclForObject(filter,
 				user.getUsername(),
 				projectDetails.getProjectId(),
 				BooleanUtils.isTrue(createFilterRQ.getShare())

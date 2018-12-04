@@ -80,10 +80,11 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())
 				.addFilters(userFilter)
+				.addOwner(user.getUsername())
 				.get();
 		widgetRepository.save(widget);
-		aclHandler.initAclForObject(
-				widget,
+
+		aclHandler.initAclForObject(widget,
 				user.getUsername(),
 				projectDetails.getProjectId(),
 				BooleanUtils.isTrue(createWidgetRQ.getShare())

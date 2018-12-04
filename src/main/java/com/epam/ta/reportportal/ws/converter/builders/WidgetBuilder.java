@@ -48,6 +48,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 
 	public WidgetBuilder addWidgetRq(WidgetRQ widgetRQ) {
 		widget.setName(widgetRQ.getName());
+		ofNullable(widgetRQ.getShare()).ifPresent(it -> widget.setShared(it));
 
 		WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
 		Map<String, Object> options = ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
@@ -89,6 +90,11 @@ public class WidgetBuilder implements Supplier<Widget> {
 
 	public WidgetBuilder addFilters(Iterable<UserFilter> userFilters) {
 		ofNullable(userFilters).ifPresent(it -> widget.setFilters(Sets.newHashSet(it)));
+		return this;
+	}
+
+	public WidgetBuilder addOwner(String owner) {
+		widget.setOwner(owner);
 		return this;
 	}
 

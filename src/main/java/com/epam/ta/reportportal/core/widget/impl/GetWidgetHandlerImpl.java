@@ -17,15 +17,16 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -33,12 +34,12 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
 
 /**
  * @author Pavel Bortnik
@@ -59,13 +61,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
 	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
 	private WidgetRepository widgetRepository;
-
-	@Autowired
-	private UserFilterRepository filterRepository;
 
 	@Autowired
 	private GetUserFilterHandler getUserFilterHandler;
@@ -105,33 +101,6 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	public Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable) {
-
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-
-		return widgetRepository.getSharedWidgetNames(userName, project.getId(), pageable);
-	}
-
-	@Override
-	public Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-
-		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
-				.apply(widgetRepository.getSharedWidgetsList(userName, project.getId(), pageable));
-	}
-
-	@Override
-	public List<String> getWidgetNames(String projectName, String userName) {
-
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-
-		return widgetRepository.getWidgetNames(userName, project.getId());
-	}
-
-	@Override
 	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		WidgetType widgetType = WidgetType.findByName(previewRQ.getContentParameters().getWidgetType())
@@ -151,11 +120,32 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	public Iterable<WidgetResource> searchSharedWidgets(String term, String username, String projectName, Pageable pageable) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+	public Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user) {
+		Page<Widget> own = widgetRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername());
+		return PagedResourcesAssembler.pageConverter().apply(own.map(Widget::getName));
+	}
 
-		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE)
-				.apply(widgetRepository.searchSharedWidgets(term, username, project.getId(), pageable));
+	@Override
+	public Iterable<WidgetResource> getShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user) {
+		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
+				pageable,
+				user.getUsername()
+		);
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);
+	}
+
+	@Override
+	public Iterable<WidgetResource> searchShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user, String term) {
+		Filter updatedFilter = filter.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_NAME))
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_DESCRIPTION))
+				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_OWNER));
+		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(updatedFilter, projectDetails.getProjectId()),
+				pageable,
+				user.getUsername()
+		);
+		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);
 	}
 }

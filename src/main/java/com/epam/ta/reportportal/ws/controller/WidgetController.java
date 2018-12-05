@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
@@ -38,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
@@ -107,27 +106,28 @@ public class WidgetController {
 	@GetMapping(value = "/names/all")
 	@ResponseStatus(OK)
 	@ApiOperation("Load all widget names which belong to a user")
-	public List<String> getWidgetNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getOwnWidgetNames(extractProjectDetails(user, projectName), pageable, filter, user);
+	public Iterable<Object> getWidgetNames(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
+			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getOwnNames(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/shared")
 	@ResponseStatus(OK)
 	@ApiOperation("Load shared widgets")
-	public Iterable<WidgetResource> getSharedWidgetsList(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			Pageable pageable) {
-		return getWidgetHandler.getSharedWidgetsList(user.getUsername(), normalizeId(projectName), pageable);
+	public Iterable<WidgetResource> getShared(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
+			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getShared(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/shared/search")
 	@ResponseStatus(OK)
 	@ApiOperation("Search shared widgets by name")
-	public Iterable<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user, Pageable pageable) {
-		return getWidgetHandler.searchSharedWidgets(term, user.getUsername(), normalizeId(projectName), pageable);
+	public Iterable<WidgetResource> searchShared(@RequestParam("term") String term, @PathVariable String projectName,
+			@SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.searchShared(extractProjectDetails(user, projectName), pageable, filter, user, term);
 	}
 
 }

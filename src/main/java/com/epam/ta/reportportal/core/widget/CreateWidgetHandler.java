@@ -22,9 +22,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Create widget handler
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
 @Transactional
 public interface CreateWidgetHandler {

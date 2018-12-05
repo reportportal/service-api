@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -80,8 +79,8 @@ public class DashboardController {
 	@GetMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Get all permitted dashboard resources for specified project")
-	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
+			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getDashboardHandler.getPermitted(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
@@ -125,8 +124,8 @@ public class DashboardController {
 	@GetMapping(value = "/shared")
 	@ResponseStatus(OK)
 	@ApiOperation("Get names of shared dashboards from specified project")
-	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
+			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
 		return getDashboardHandler.getSharedDashboardsNames(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 

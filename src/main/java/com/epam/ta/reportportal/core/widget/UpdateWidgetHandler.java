@@ -21,9 +21,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
 /**
- * Update Widget handler
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
 public interface UpdateWidgetHandler {
 

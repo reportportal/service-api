@@ -19,18 +19,14 @@ package com.epam.ta.reportportal.core.widget;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Map;
 
 /**
- * Get Widget handler
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
 public interface GetWidgetHandler {
 
@@ -53,33 +49,6 @@ public interface GetWidgetHandler {
 	WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
-	 * Get names of shared widgets for specified used(only shared not owned)
-	 *
-	 * @param userName
-	 * @param projectName
-	 * @return
-	 */
-	Iterable<SharedEntity> getSharedWidgetNames(String userName, String projectName, Pageable pageable);
-
-	/**
-	 * Get list of shared widget for specified project
-	 *
-	 * @param userName
-	 * @param projectName
-	 * @return
-	 */
-	Iterable<WidgetResource> getSharedWidgetsList(String userName, String projectName, Pageable pageable);
-
-	/**
-	 * Get list of widget names for specified user
-	 *
-	 * @param userName
-	 * @param projectName
-	 * @return
-	 */
-	List<String> getWidgetNames(String projectName, String userName);
-
-	/**
 	 * Get content for building preview while creating widget
 	 *
 	 * @param previewRQ      Widget parameters
@@ -90,15 +59,6 @@ public interface GetWidgetHandler {
 	Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
-	 * Get list of widgets that contains search criteria
-	 *
-	 * @param term        Search criteria
-	 * @param projectName Project name
-	 * @return List of widgets
-	 */
-	Iterable<WidgetResource> searchSharedWidgets(String term, String username, String projectName, Pageable pageable);
-
-	/**
 	 * Get widget names that belong to user
 	 *
 	 * @param projectDetails Project details
@@ -107,5 +67,31 @@ public interface GetWidgetHandler {
 	 * @param user           User
 	 * @return List of widget names
 	 */
-	List<String> getOwnWidgetNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<Object> getOwnNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+
+	/**
+	 * Get shared widgets for user
+	 *
+	 * @param projectDetails Project details
+	 * @param pageable       Paging
+	 * @param filter         Filter
+	 * @param user           User
+	 * @return Page of shared widget resources
+	 */
+	Iterable<WidgetResource> getShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user);
+
+	/**
+	 * Get shared widgets for user that contains a provided term
+	 * in name, description or owner
+	 *
+	 * @param projectDetails Project details
+	 * @param pageable       Paging
+	 * @param filter         Filter
+	 * @param user           User
+	 * @param term           Search term
+	 * @return Page of shared widget resources
+	 */
+	Iterable<WidgetResource> searchShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user, String term);
 }

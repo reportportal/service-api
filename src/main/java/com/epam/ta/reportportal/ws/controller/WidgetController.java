@@ -17,14 +17,18 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -66,6 +70,7 @@ public class WidgetController {
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
+	@ApiOperation("Create a new widget")
 	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
 		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);
@@ -80,6 +85,15 @@ public class WidgetController {
 		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
 	}
 
+	@Transactional(readOnly = true)
+	@PostMapping(value = "/preview")
+	@ResponseStatus(OK)
+	@ApiOperation("Get widget preview")
+	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidgetPreview(previewRQ, extractProjectDetails(user, normalizeId(projectName)), user);
+	}
+
 	@Transactional
 	@PutMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
@@ -90,20 +104,12 @@ public class WidgetController {
 	}
 
 	@Transactional(readOnly = true)
-	@PostMapping(value = "/preview")
-	@ResponseStatus(OK)
-	@ApiOperation("Get widget preview")
-	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetPreview(previewRQ, extractProjectDetails(user, normalizeId(projectName)), user);
-	}
-
-	@Transactional(readOnly = true)
 	@GetMapping(value = "/names/all")
 	@ResponseStatus(OK)
 	@ApiOperation("Load all widget names which belong to a user")
-	public List<String> getWidgetNames(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetNames(normalizeId(projectName), user.getUsername());
+	public List<String> getWidgetNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getOwnWidgetNames(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)

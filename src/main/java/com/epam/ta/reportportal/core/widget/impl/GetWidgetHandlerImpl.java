@@ -134,25 +134,18 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-
-		previewRQ.getContentParameters().getWidgetType();
-
+		WidgetType widgetType = WidgetType.findByName(previewRQ.getContentParameters().getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						"Unsupported widget type {}" + previewRQ.getContentParameters().getWidgetType()
+				));
 		List<UserFilter> userFilter = null;
-
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
 			userFilter = getUserFilterHandler.getFiltersById(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
 		}
-
 		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)
 				.addProject(projectDetails.getProjectId())
 				.addFilters(userFilter)
 				.get();
-
-		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-						"Unsupported widget type {}" + widget.getWidgetType()
-				));
-
 		return buildFilterStrategyMapping.get(widgetType)
 				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 	}

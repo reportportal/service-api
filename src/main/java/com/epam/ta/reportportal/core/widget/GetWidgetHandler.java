@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
@@ -96,4 +97,15 @@ public interface GetWidgetHandler {
 	 * @return List of widgets
 	 */
 	Iterable<WidgetResource> searchSharedWidgets(String term, String username, String projectName, Pageable pageable);
+
+	/**
+	 * Get widget names that belong to user
+	 *
+	 * @param projectDetails Project details
+	 * @param pageable       Paging
+	 * @param filter         Filter
+	 * @param user           User
+	 * @return List of widget names
+	 */
+	List<String> getOwnWidgetNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
 }

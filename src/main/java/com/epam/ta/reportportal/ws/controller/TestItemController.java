@@ -172,7 +172,7 @@ public class TestItemController {
 	@ApiOperation("Get all unique attribute keys of specified launch")
 	public List<String> getAttributeKeys(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "attributeKey") String value) {
-		return getTestItemHandler.getAttributeKeys(id, value, extractProjectDetails(user, projectName), user);
+		return getTestItemHandler.getAttributeKeys(id, value);
 	}
 
 	@Transactional(readOnly = true)
@@ -180,8 +180,9 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute values of specified launch")
 	public List<String> getAttributeValues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "attributeValue") String value) {
-		return getTestItemHandler.getAttributeValues(id, value, extractProjectDetails(user, projectName), user);
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
+			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value) {
+		return getTestItemHandler.getAttributeValues(id, key, value);
 	}
 
 	@Transactional

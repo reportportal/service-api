@@ -94,7 +94,7 @@ public interface GetLaunchHandler {
 	 * @param value          Tag prefix to be searched
 	 * @return List of found tags
 	 */
-	List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String value);
+	List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key, String value);
 
 	/**
 	 * Get launch names of specified project (auto-complete functionality)

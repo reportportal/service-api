@@ -117,7 +117,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		if(BooleanUtils.toBoolean(rq.isRetry())) {
+		if (BooleanUtils.toBoolean(rq.isRetry())) {
 			testItemRepository.handleRetries(item.getItemId());
 		}
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());

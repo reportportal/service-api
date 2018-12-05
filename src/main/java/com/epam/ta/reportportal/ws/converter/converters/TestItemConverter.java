@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
@@ -75,16 +76,19 @@ public final class TestItemConverter {
 		TestItemActivityResource resource = new TestItemActivityResource();
 		resource.setId(testItem.getLaunch().getProjectId());
 		resource.setName(testItem.getName());
-		resource.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
-		resource.setIgnoreAnalyzer(testItem.getItemResults().getIssue().getIgnoreAnalyzer());
-		resource.setIssueDescription(testItem.getItemResults().getIssue().getIssueDescription());
-		resource.setIssueTypeLongName(testItem.getItemResults().getIssue().getIssueType().getLongName());
-		resource.setTickets(testItem.getItemResults()
-				.getIssue()
-				.getTickets()
-				.stream()
-				.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
-				.collect(Collectors.joining(",")));
+		resource.setProjectId(testItem.getLaunch().getProjectId());
+		resource.setStatus(testItem.getItemResults().getStatus().name());
+		IssueEntity issue = testItem.getItemResults().getIssue();
+		if (issue != null) {
+			resource.setAutoAnalyzed(issue.getAutoAnalyzed());
+			resource.setIgnoreAnalyzer(issue.getIgnoreAnalyzer());
+			resource.setIssueDescription(issue.getIssueDescription());
+			resource.setIssueTypeLongName(issue.getIssueType().getLongName());
+			resource.setTickets(issue.getTickets()
+					.stream()
+					.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
+					.collect(Collectors.joining(",")));
+		}
 		return resource;
 	};
 }

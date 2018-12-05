@@ -137,13 +137,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
 					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issueEntity.setIssueType(issueType);
+					issueEntity.setIssueId(testItem.getItemId());
+					testItemResults.setIssue(issueEntity);
 				}
 			} else {
 				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 				issueEntity.setIssueType(toInvestigate);
+				issueEntity.setIssueId(testItem.getItemId());
+				testItemResults.setIssue(issueEntity);
 			}
-			issueEntity.setIssueId(testItem.getItemId());
-			testItemResults.setIssue(issueEntity);
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
 		return testItemResults;
@@ -157,7 +159,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, Set<ItemAttributeResource> attributes,  boolean hasChildren) {
+	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
+			Set<ItemAttributeResource> attributes, boolean hasChildren) {
 		Launch launch;
 		if (ofNullable(testItem.getRetryOf()).isPresent()) {
 			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())

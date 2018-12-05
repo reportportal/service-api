@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
+import com.epam.ta.reportportal.core.item.StatusChangeTestItemHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -50,7 +51,6 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -79,38 +79,26 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	private IntegrationRepository integrationRepository;
+	private final IntegrationRepository integrationRepository;
 
-	private TicketRepository ticketRepository;
+	private final TicketRepository ticketRepository;
 
-	private IssueTypeHandler issueTypeHandler;
+	private final IssueTypeHandler issueTypeHandler;
 
-	private MessageBus messageBus;
+	private final StatusChangeTestItemHandler statusChangeTestItemHandler;
 
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
+	private final MessageBus messageBus;
+
+	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
+			TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, StatusChangeTestItemHandler statusChangeTestItemHandler,
+			MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setIssueTypeHandler(IssueTypeHandler issueTypeHandler) {
-		this.issueTypeHandler = issueTypeHandler;
-	}
-
-	@Autowired
-	public void setBugTrackingSystemRepository(IntegrationRepository integrationRepository) {
 		this.integrationRepository = integrationRepository;
-	}
-
-	@Autowired
-	public void setTicketRepository(TicketRepository ticketRepository) {
 		this.ticketRepository = ticketRepository;
-	}
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
+		this.issueTypeHandler = issueTypeHandler;
+		this.statusChangeTestItemHandler = statusChangeTestItemHandler;
 		this.messageBus = messageBus;
 	}
 
@@ -158,7 +146,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(!errors.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		events.forEach(e -> messageBus.publishActivity(e));
+		events.forEach(messageBus::publishActivity);
 		return updated;
 	}
 
@@ -173,8 +161,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		Optional<StatusEnum> statusEnum = StatusEnum.fromValue(rq.getStatus());
 
 		if (statusEnum.isPresent()) {
-			testItem.getItemResults().setIssue(null);
-			testItem.getItemResults().setStatus(statusEnum.get());
+			statusChangeTestItemHandler.changeStatus(testItem, statusEnum.get(), user, projectDetails);
 		}
 
 		validate(projectDetails, user, testItem);
@@ -354,5 +341,4 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				)
 		).verify();
 	}
-
 }

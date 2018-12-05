@@ -32,7 +32,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
@@ -138,12 +138,12 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		return itemAttributeRepository.findKeysByProjectIdAndValue(projectDetails.getProjectId(), value);
+		return itemAttributeRepository.findLaunchAttributeKeys(projectDetails.getProjectId(), value, false);
 	}
 
 	@Override
-	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		return itemAttributeRepository.findValuesByProjectIdAndValue(projectDetails.getProjectId(), value);
+	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key, String value) {
+		return itemAttributeRepository.findLaunchAttributeValues(projectDetails.getProjectId(), key, value, false);
 	}
 
 	@Override
@@ -184,7 +184,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails,
+	public Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails,
 			Long[] ids) {
 
 		List<String> contentFields = Lists.newArrayList(DEFECTS_AUTOMATION_BUG_TOTAL,
@@ -207,7 +207,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 				.withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), PROJECT_ID))
 				.build();
 
-		List<LaunchesStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,
+		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,
 				contentFields,
 				Sort.unsorted(),
 				ids.length

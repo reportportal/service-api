@@ -78,8 +78,7 @@ public class WidgetConfig implements ApplicationContextAware {
 
 	@Bean("buildFilterStrategy")
 	public Map<WidgetType, BuildFilterStrategy> buildFilterStrategy() {
-		return ImmutableMap.<WidgetType, BuildFilterStrategy>builder().put(
-				WidgetType.OLD_LINE_CHART,
+		return ImmutableMap.<WidgetType, BuildFilterStrategy>builder().put(WidgetType.OLD_LINE_CHART,
 				(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 		)
 				.put(WidgetType.INVESTIGATED_TREND, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"))

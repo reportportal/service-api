@@ -1,19 +1,17 @@
 /*
+ * Copyright 2018 EPAM Systems
  *
- *  Copyright (C) 2018 EPAM Systems
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.item.impl.merge.strategy;
@@ -39,6 +37,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -113,6 +112,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.addUser(userId)
 				.addEndTime(endTime)
 				.get();
+
+		launch.setAttributes(launches.stream().map(Launch::getAttributes).flatMap(Set::stream).collect(Collectors.toSet()));
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		return launch;

@@ -168,8 +168,12 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 				.filter(entry -> entry.getKey().startsWith(ANALYTICS_CONFIG_PREFIX))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-		ServerSettings analyticsDetails = ofNullable(serverAnalyticsDetails.get(analyticsType)).orElseGet(ServerSettings::new);
-		analyticsDetails.setKey(analyticsType);
+		String formattedAnalyticsType = analyticsType.startsWith(ANALYTICS_CONFIG_PREFIX) ?
+				analyticsType :
+				ANALYTICS_CONFIG_PREFIX + analyticsType;
+
+		ServerSettings analyticsDetails = ofNullable(serverAnalyticsDetails.get(formattedAnalyticsType)).orElseGet(ServerSettings::new);
+		analyticsDetails.setKey(formattedAnalyticsType);
 		analyticsDetails.setValue(String.valueOf((ofNullable(analyticsResource.getEnabled()).orElse(false))));
 
 		serverSettingsRepository.save(analyticsDetails);

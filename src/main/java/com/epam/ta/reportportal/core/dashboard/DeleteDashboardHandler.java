@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.widget;
+package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import org.springframework.transaction.annotation.Transactional;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
- * Create widget handler
- *
- * @author Aliaksei_Makayed
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-@Transactional
-public interface ICreateWidgetHandler {
+public interface DeleteDashboardHandler {
 
 	/**
-	 * Creates a new widget
+	 * Delete {@link com.epam.ta.reportportal.entity.dashboard.Dashboard} instance with specified id
 	 *
-	 * @param createWidgetRQ Widget details
+	 * @param dashboardId    Dashboard id
 	 * @param projectDetails Project details
 	 * @param user           User
-	 * @return EntryCreatedRS
+	 * @return {@link OperationCompletionRS}
 	 */
-	EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 }

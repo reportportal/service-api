@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 @Service
 public class ServerSettingsService {
 
@@ -20,7 +22,8 @@ public class ServerSettingsService {
 	}
 
 	public Map<String, String> findAllSettings() {
-		return serverSettingsRepository.streamAll().collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue));
+		return serverSettingsRepository.streamAll()
+				.collect(Collectors.toMap(ServerSettings::getKey, s -> ofNullable(s.getValue()).orElse("")));
 	}
 
 	public void save(Map<String, String> settings) {

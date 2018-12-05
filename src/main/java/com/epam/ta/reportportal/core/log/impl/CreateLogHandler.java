@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static java.util.Optional.ofNullable;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -83,11 +84,13 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
 
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectDetails.getProjectId(), file);
-		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
+		ofNullable(file).ifPresent(f -> {
+			Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectDetails.getProjectId(), file);
+			maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
-			log.setAttachment(maybeBinaryDataMetaInfo.get().getFileId());
-			log.setContentType(file.getContentType());
+				log.setAttachment(maybeBinaryDataMetaInfo.get().getFileId());
+				log.setContentType(file.getContentType());
+			});
 		});
 
 		logRepository.save(log);

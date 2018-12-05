@@ -17,11 +17,15 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
+import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -36,17 +40,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
 /**
  * @author Pavel Bortnik
  */
 @Service
-public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
+public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
 	private WidgetRepository widgetRepository;
 
@@ -56,7 +64,11 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 
 	private ObjectMapper objectMapper;
 
-	private ShareWidgetHandler shareWidgetHandler;
+	@Autowired
+	private GetWidgetHandler getWidgetHandler;
+
+	@Autowired
+	private ReportPortalAclHandler aclHandler;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {
@@ -78,31 +90,21 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 		this.objectMapper = objectMapper;
 	}
 
-	@Autowired
-	public void setShareWidgetHandler(ShareWidgetHandler shareWidgetHandler) {
-		this.shareWidgetHandler = shareWidgetHandler;
-	}
-
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = shareWidgetHandler.findById(widgetId);
+		Widget widget = getWidgetHandler.findById(widgetId);
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
-		List<UserFilter> userFilter = null;
-		List<Long> filterIds = updateRQ.getFilterIds();
-
-		//TODO check if this statement could be replaced by loop filter search
-		if (CollectionUtils.isNotEmpty(filterIds)) {
-			userFilter = filterRepository.findAllById(filterIds);
-			//					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, updateRQ.getFilterId()));
-
-		}
-
+		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 		String widgetOptionsBefore = parseWidgetOptions(widget);
 
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
+
+		if (before.isShared() != widget.isShared()) {
+			aclHandler.updateAcl(widget, projectDetails.getProjectId(), widget.isShared());
+		}
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(widget),
@@ -111,6 +113,19 @@ public class UpdateWidgetHandlerImpl implements IUpdateWidgetHandler {
 				user.getUserId()
 		));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+	}
+
+	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
+		if (CollectionUtils.isNotEmpty(filterIds)) {
+			Filter defaultFilter = new Filter(UserFilter.class,
+					Condition.IN,
+					false,
+					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
+					CRITERIA_ID
+			);
+			return filterRepository.getPermitted(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged(), username).getContent();
+		}
+		return Collections.emptyList();
 	}
 
 	private String parseWidgetOptions(Widget widget) {

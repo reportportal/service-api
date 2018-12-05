@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,7 +18,10 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.filter.*;
+import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
@@ -60,18 +63,14 @@ public class UserFilterController {
 	private final GetUserFilterHandler getFilterHandler;
 	private final IDeleteUserFilterHandler deleteFilterHandler;
 	private final IUpdateUserFilterHandler updateUserFilterHandler;
-	private ShareUserFilterHandler shareFilterHandler;
 
 	@Autowired
 	public UserFilterController(ICreateUserFilterHandler createFilterHandler, GetUserFilterHandler getFilterHandler,
-			IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler,
-			ShareUserFilterHandler shareFilterHandler) {
-
+			IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler) {
 		this.createFilterHandler = createFilterHandler;
 		this.getFilterHandler = getFilterHandler;
 		this.deleteFilterHandler = deleteFilterHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
-		this.shareFilterHandler = shareFilterHandler;
 	}
 
 	@Transactional
@@ -89,18 +88,17 @@ public class UserFilterController {
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		UserFilter filter = getFilterHandler
-			.getFilter(filterId, extractProjectDetails(user, projectName), user);
+		UserFilter filter = getFilterHandler.getFilter(filterId, extractProjectDetails(user, projectName), user);
 		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get all filters")
+	@ApiOperation("Get permitted (own and shared) filters")
 	public Iterable<UserFilterResource> getAllFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
 			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return shareFilterHandler.getAllFilters(projectName, pageable, filter, user);
+		return getFilterHandler.getPermitted(projectName, pageable, filter, user);
 	}
 
 	// filter/own
@@ -109,8 +107,8 @@ public class UserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all filters for specified user who own them")
 	public Iterable<UserFilterResource> getOwnFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-		@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getFilterHandler.getOwnFilters(projectName, pageable, filter, user);
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getFilterHandler.getOwn(projectName, pageable, filter, user);
 	}
 
 	// filter/shared
@@ -119,8 +117,8 @@ public class UserFilterController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all available shared filters (except own shared filters)")
 	public Iterable<UserFilterResource> getSharedFilters(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
-		@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return shareFilterHandler.getSharedFilters(projectName, pageable, filter, user);
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getFilterHandler.getShared(projectName, pageable, filter, user);
 	}
 
 	@Transactional
@@ -156,7 +154,7 @@ public class UserFilterController {
 	@ApiOperation("Get list of specified user filters")
 	public List<UserFilterResource> getUserFilters(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		List<UserFilter> filters = getFilterHandler.getFilters(ids, extractProjectDetails(user, projectName), user);
+		List<UserFilter> filters = getFilterHandler.getFiltersById(ids, extractProjectDetails(user, projectName), user);
 		return filters.stream().map(UserFilterConverter.TO_FILTER_RESOURCE).collect(Collectors.toList());
 	}
 

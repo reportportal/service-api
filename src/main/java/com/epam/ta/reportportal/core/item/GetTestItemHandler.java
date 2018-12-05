@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,7 +60,7 @@ public interface GetTestItemHandler {
 	 * @param value    part of the {@link com.epam.ta.reportportal.entity.ItemAttribute#key} to search
 	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#key}
 	 */
-	List<String> getAttributeKeys(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	List<String> getAttributeKeys(Long launchId, String value);
 
 	/**
 	 * Get specified attribute values
@@ -69,7 +69,7 @@ public interface GetTestItemHandler {
 	 * @param value    part of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value} to search
 	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value}
 	 */
-	List<String> getAttributeValues(Long launchId, String value, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	List<String> getAttributeValues(Long launchId, String key, String value);
 
 	/**
 	 * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}

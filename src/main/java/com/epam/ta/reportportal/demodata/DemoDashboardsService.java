@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
@@ -38,6 +39,7 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -55,8 +57,8 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 class DemoDashboardsService {
-	static final String D_NAME = "DEMO DASHBOARD";
-	static final String F_NAME = "DEMO_FILTER";
+	private static final String D_NAME = "DEMO DASHBOARD";
+	private static final String F_NAME = "DEMO_FILTER";
 	private final UserFilterRepository userFilterRepository;
 	private final DashboardRepository dashboardRepository;
 	private final WidgetRepository widgetRepository;
@@ -115,14 +117,14 @@ class DemoDashboardsService {
 	}
 
 	UserFilter createDemoFilter(String filterName, ReportPortalUser user, Long projectId) {
-		List<UserFilter> existedFilterList = userFilterRepository.findByFilter(Filter.builder()
+		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
 						.withCondition(Condition.EQUALS)
 						.withSearchCriteria("name")
 						.withValue(filterName)
 						.build())
-				.build());
+				.build(), projectId), Pageable.unpaged(), user.getUsername()).getContent();
 
 		expect(existedFilterList.size(), Predicate.isEqual(0)).verify(RESOURCE_ALREADY_EXISTS, filterName);
 
@@ -172,21 +174,11 @@ class DemoDashboardsService {
 
 			return dashboardWidget;
 		}).forEach(dashboard::addWidget);
-		dashboard.setProjectId(projectId);
+		Project project = new Project();
+		project.setId(projectId);
+		dashboard.setProject(project);
 
 		dashboard.setCreationDate(LocalDateTime.now());
 		return dashboardRepository.save(dashboard);
 	}
-
-	/*
-	private static Acl acl(String user, String project) {
-		Acl acl = new Acl();
-		acl.setOwnerUserId(user);
-		AclEntry aclEntry = new AclEntry();
-		aclEntry.setPermissions(singleton(READ));
-		aclEntry.setProjectId(project);
-		acl.setEntries(singleton(aclEntry));
-		return acl;
-	}
-	*/
 }

@@ -20,31 +20,37 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
+import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.CasesTrendContent;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.TIMELINE;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.EXECUTIONS_TOTAL_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DELTA;
 import static java.util.Collections.singletonMap;
 
 /**
  * @author Pavel Bortnik
  */
 @Service
-public class CasesTrendContentLoader implements LoadContentStrategy {
+public class CasesTrendContentLoader extends AbstractStatisticsContentLoader implements LoadContentStrategy {
 
 	@Autowired
 	private WidgetContentRepository widgetContentRepository;
@@ -61,9 +67,46 @@ public class CasesTrendContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		List<CasesTrendContent> result = widgetContentRepository.casesTrendStatistics(filter, contentFields.get(0), sort, limit);
+		String contentField = contentFields.get(0);
+		List<ChartStatisticsContent> content = widgetContentRepository.casesTrendStatistics(filter, contentField, sort, limit);
 
-		return singletonMap(RESULT, result);
+		String timeLineOption = WidgetOptionUtil.getValueByKey(TIMELINE, widgetOptions);
+
+		if (StringUtils.isNotBlank(timeLineOption)) {
+			Optional<Period> period = Period.findByName(timeLineOption);
+			if (period.isPresent()) {
+				Map<String, ChartStatisticsContent> statistics = maxByDate(content, period.get(), contentField);
+				calculateDelta(statistics, sort, contentField);
+				return singletonMap(RESULT, statistics);
+			}
+
+		}
+
+		return singletonMap(RESULT, content);
+	}
+
+	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, Sort sort, String contentField) {
+
+		if (sort.get().anyMatch(Sort.Order::isAscending)) {
+			ArrayList<String> keys = new ArrayList<>(statistics.keySet());
+			/* Last element in map */
+			int previous = Integer.parseInt(statistics.get(keys.get(keys.size() - 1)).getValues().get(contentField));
+			/* Iteration in reverse order */
+			for (int i = keys.size() - 1; i >= 0; i--) {
+				int current = Integer.parseInt(statistics.get(keys.get(i)).getValues().get(contentField));
+				statistics.get(keys.get(i)).getValues().put(DELTA, String.valueOf(current - previous));
+				previous = current;
+			}
+		} else {
+			int previousValue = Integer.parseInt(new ArrayList<>(statistics.values()).get(0).getValues().get(contentField));
+			for (ChartStatisticsContent content : statistics.values()) {
+				Map<String, String> values = content.getValues();
+				int currentValue = Integer.parseInt(values.get(contentField));
+				values.put(DELTA, String.valueOf(currentValue - previousValue));
+				previousValue = currentValue;
+			}
+		}
+
 	}
 
 	/**

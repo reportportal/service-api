@@ -110,7 +110,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 		testItem.getItemResults().setStatus(providedStatus);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findAttributeByLaunchIdAndValue(testItem.getLaunch()
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunch()
 				.getId(), SKIPPED_ISSUE_KEY, true);
 
 		if (FAILED.equals(providedStatus) || (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent()
@@ -133,7 +133,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		StatusEnum oldParentStatus = testItem.getParent().getItemResults().getStatus();
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findAttributeByLaunchIdAndValue(testItem.getLaunch()
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunch()
 				.getId(), SKIPPED_ISSUE_KEY, true);
 
 		testItem.getItemResults().setStatus(providedStatus);
@@ -153,7 +153,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		);
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findAttributeByLaunchIdAndValue(testItem.getLaunch()
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunch()
 				.getId(), SKIPPED_ISSUE_KEY, true);
 
 		if (SKIPPED.equals(providedStatus)) {

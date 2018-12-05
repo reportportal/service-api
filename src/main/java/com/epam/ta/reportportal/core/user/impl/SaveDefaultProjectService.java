@@ -124,6 +124,7 @@ public class SaveDefaultProjectService {
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
+			exp.printStackTrace();
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 

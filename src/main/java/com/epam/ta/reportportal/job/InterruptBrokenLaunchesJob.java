@@ -136,7 +136,6 @@ public class InterruptBrokenLaunchesJob implements Job {
 							});
 						} catch (Exception ex) {
 							//do nothing
-							ex.printStackTrace();
 						}
 
 					});

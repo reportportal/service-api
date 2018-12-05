@@ -80,8 +80,8 @@ public interface GetUserFilterHandler {
 	 *
 	 * @param projectDetails Project details
 	 * @param user           Report Portal user
-	 * @param pageable		 Page request
-	 * @param filter		 Filter representation
+	 * @param pageable       Page request
+	 * @param filter         Filter representation
 	 * @param isShared       Is shared
 	 * @return List of {@link SharedEntity}
 	 */

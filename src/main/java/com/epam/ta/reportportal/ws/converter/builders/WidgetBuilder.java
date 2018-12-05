@@ -57,7 +57,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widgetOptions.setOptions(options);
 		widget.setWidgetOptions(widgetOptions);
 
-		widget.setWidgetType(widgetRQ.getContentParameters().getWidgetType());
+		widget.setWidgetType(widgetRQ.getWidgetType());
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
 
 		widget.getContentFields().clear();
@@ -73,7 +73,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widgetOptions.setOptions(options);
 		widget.setWidgetOptions(widgetOptions);
 
-		widget.setWidgetType(previewRQ.getContentParameters().getWidgetType());
+		widget.setWidgetType(previewRQ.getWidgetType());
 		widget.setItemsCount(previewRQ.getContentParameters().getItemsCount());
 
 		widget.getContentFields().clear();

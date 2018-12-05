@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.springframework.data.domain.Pageable;
@@ -94,7 +94,7 @@ public interface GetLaunchHandler {
 	 * @param value          Tag prefix to be searched
 	 * @return List of found tags
 	 */
-	List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String value);
+	List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key, String value);
 
 	/**
 	 * Get launch names of specified project (auto-complete functionality)
@@ -123,7 +123,7 @@ public interface GetLaunchHandler {
 	 * @return Response Data
 	 * //
 	 */
-	Map<String, List<LaunchesStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+	Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
 
 	/**
 	 * Get statuses of specified launches

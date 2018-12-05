@@ -40,8 +40,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LOGIN;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.singletonMap;
@@ -74,7 +74,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		validateContentFields(contentFields);
 
-		String login = WidgetOptionUtil.getValueByKey(LOGIN, widgetOptions);
+		String login = WidgetOptionUtil.getValueByKey(USER, widgetOptions);
 		User user = userRepository.findByLogin(login)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
 
@@ -82,7 +82,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), LOGIN))
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), USER))
 				.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, contentFields), "action"));
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
@@ -119,8 +119,8 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 * @param widgetOptions Map of stored widget options.
 	 */
 	private void validateWidgetOptions(WidgetOptions widgetOptions) {
-		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LOGIN, widgetOptions), StringUtils::isNotBlank)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LOGIN + " should be specified for widget.");
+		BusinessRule.expect(WidgetOptionUtil.getValueByKey(USER, widgetOptions), StringUtils::isNotBlank)
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, USER + " should be specified for widget.");
 	}
 
 }

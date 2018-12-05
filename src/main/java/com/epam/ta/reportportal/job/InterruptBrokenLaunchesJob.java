@@ -79,7 +79,8 @@ public class InterruptBrokenLaunchesJob implements Job {
 	@Transactional
 	public void execute(JobExecutionContext context) {
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
 				pageable
 		), projects -> projects.forEach(project -> {
 			project.getProjectAttributes()
@@ -88,7 +89,8 @@ public class InterruptBrokenLaunchesJob implements Job {
 					.findFirst()
 					.ifPresent(pa -> {
 						Duration maxDuration = ofHours(InterruptionJobDelay.findByName(pa.getValue())
-								.orElseThrow(() -> new ReportPortalException("Incorrect launch interruption delay period: " + pa.getValue()))
+								.orElseThrow(() -> new ReportPortalException(
+										"Incorrect launch interruption delay period: " + pa.getValue()))
 								.getPeriod());
 						try (Stream<Long> ids = launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
 								StatusEnum.IN_PROGRESS,
@@ -131,7 +133,6 @@ public class InterruptBrokenLaunchesJob implements Job {
 							});
 						} catch (Exception ex) {
 							//do nothing
-							ex.printStackTrace();
 						}
 
 					});

@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.core.jasper.ReportFormat;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.widget.content.LaunchesStatisticsContent;
+import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -221,8 +221,7 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute keys of project launches")
 	public List<String> getAttributeKeys(@PathVariable String projectName,
-			@RequestParam(value = "filter." + "cnt." + "attributeKey") String value,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@RequestParam(value = "filter." + "cnt." + "attributeKey") String value, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getAttributeKeys(extractProjectDetails(user, normalizeId(projectName)), value);
 	}
 
@@ -231,8 +230,9 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute values of project launches")
 	public List<String> getAttributeValues(@PathVariable String projectName,
+			@RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
 			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), value);
+		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), key, value);
 	}
 
 	@Transactional(readOnly = true)
@@ -258,7 +258,7 @@ public class LaunchController {
 	@GetMapping(value = "/compare")
 	@ResponseStatus(OK)
 	@ApiOperation("Compare launches")
-	public Map<String, List<LaunchesStatisticsContent>> compareLaunches(@PathVariable String projectName,
+	public Map<String, List<ChartStatisticsContent>> compareLaunches(@PathVariable String projectName,
 			@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLaunchesComparisonInfo(extractProjectDetails(user, normalizeId(projectName)), ids);
 	}

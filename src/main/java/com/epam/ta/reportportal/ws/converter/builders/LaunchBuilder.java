@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 import java.util.Date;
 import java.util.Optional;
@@ -81,18 +80,17 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
-		Set<ItemAttribute> newTags = Sets.newHashSet(launch.getAttributes());
 		ItemAttribute itemAttribute = new ItemAttribute();
 		itemAttribute.setKey(attributeResource.getKey());
 		itemAttribute.setValue(attributeResource.getValue());
 		itemAttribute.setSystem(attributeResource.isSystem());
 		itemAttribute.setLaunch(launch);
-		launch.setAttributes(newTags);
+		launch.getAttributes().add(itemAttribute);
 		return this;
 	}
 
 	public LaunchBuilder addAttributes(Set<ItemAttributeResource> attributes) {
-		ofNullable(attributes).ifPresent(it -> launch.setAttributes(it.stream().map(val -> {
+		ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
 			ItemAttribute itemAttribute = new ItemAttribute();
 			itemAttribute.setValue(val.getValue());
 			itemAttribute.setKey(val.getKey());

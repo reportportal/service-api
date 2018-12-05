@@ -62,7 +62,8 @@ public class CleanScreenshotsJob implements Job {
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong attachmentsCount = new AtomicLong(0);

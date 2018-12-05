@@ -84,7 +84,8 @@ public class CleanLogsJob implements Job {
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong removedLogsCount = new AtomicLong(0);

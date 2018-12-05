@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -39,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT_FILTER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
@@ -58,18 +59,39 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	@PostAuthorize(CAN_READ_OBJECT)
-	public UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails,
-		ReportPortalUser user) {
+	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
+	public UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findById(filterId)
-			.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
 	}
 
 	@Override
-	public Iterable<UserFilterResource> getOwnFilters(String projectName, Pageable pageable,
-		Filter filter, ReportPortalUser user) {
+	public Iterable<UserFilterResource> getPermitted(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
 		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
-		Page<UserFilter> filters = filterRepository.getOwnFilters(projectDetails.getProjectId(), filter, pageable, user.getUsername());
+		Page<UserFilter> permitted = filterRepository.getPermitted(ProjectFilter.of(filter, projectDetails.getProjectId()),
+				pageable,
+				user.getUsername()
+		);
+		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(permitted);
+	}
+
+	@Override
+	public Iterable<UserFilterResource> getOwn(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		Page<UserFilter> filters = filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()),
+				pageable,
+				user.getUsername()
+		);
+		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(filters);
+	}
+
+	@Override
+	public Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
+		ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		Page<UserFilter> filters = filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
+				pageable,
+				user.getUsername()
+		);
 		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_FILTER_RESOURCE).apply(filters);
 	}
 
@@ -80,7 +102,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	@Override
 	@PostFilter(CAN_READ_OBJECT_FILTER)
-	public List<UserFilter> getFilters(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
+	public List<UserFilter> getFiltersById(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findAllById(Lists.newArrayList(ids));
 	}
 }

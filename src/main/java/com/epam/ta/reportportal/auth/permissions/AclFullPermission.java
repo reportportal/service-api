@@ -22,15 +22,18 @@ import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ */
 @Component
-@LookupPermission({ "aclReadPermission" })
-public class AclReadPermission implements Permission {
+@LookupPermission({ "aclFullPermission" })
+public class AclFullPermission implements Permission {
 
 	@Autowired
 	public AclPermissionEvaluator aclPermissionEvaluator;
 
 	@Override
 	public boolean isAllowed(Authentication authentication, Object targetDomainObject) {
-		return aclPermissionEvaluator.hasPermission(authentication, targetDomainObject, BasePermission.READ);
+		return aclPermissionEvaluator.hasPermission(authentication, targetDomainObject, BasePermission.ADMINISTRATION);
 	}
 }

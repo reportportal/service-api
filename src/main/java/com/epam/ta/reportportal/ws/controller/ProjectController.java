@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.filter.ShareUserFilterHandler;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
@@ -69,7 +68,6 @@ public class ProjectController {
 	private final CreateProjectHandler createProjectHandler;
 	private final UpdateProjectHandler updateProjectHandler;
 	private final DeleteProjectHandler deleteProjectHandler;
-	private final ShareUserFilterHandler shareFilterHandler;
 	private final GetUserHandler getUserHandler;
 	private final GetPreferenceHandler getPreference;
 	private final UpdatePreferenceHandler updatePreference;
@@ -77,14 +75,12 @@ public class ProjectController {
 	@Autowired
 	public ProjectController(GetProjectHandler projectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
-			ShareUserFilterHandler shareFilterHandler, GetUserHandler getUserHandler, GetPreferenceHandler getPreference,
-			UpdatePreferenceHandler updatePreference) {
+			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference) {
 		this.projectHandler = projectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
 		this.updateProjectHandler = updateProjectHandler;
 		this.deleteProjectHandler = deleteProjectHandler;
-		this.shareFilterHandler = shareFilterHandler;
 		this.getUserHandler = getUserHandler;
 		this.getPreference = getPreference;
 		this.updatePreference = updatePreference;
@@ -289,11 +285,4 @@ public class ProjectController {
 		return projectHandler.getAllProjectNames();
 	}
 
-	@Transactional
-	@PostMapping(value = "/{projectName}/shared/{filterId}")
-	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Share user filter to project")
-	public void shareFilter(@PathVariable String projectName, @PathVariable Long filterId) {
-		shareFilterHandler.shareFilter(projectName, filterId);
-	}
 }

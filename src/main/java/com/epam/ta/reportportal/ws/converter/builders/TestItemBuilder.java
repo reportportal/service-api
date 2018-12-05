@@ -64,7 +64,6 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
 
 		testItem.setItemResults(testItemResults);
-		testItemResults.setTestItem(testItem);
 
 		addDescription(rq.getDescription());
 		addAttributes(rq.getAttributes());

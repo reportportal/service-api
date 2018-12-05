@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 
@@ -45,11 +46,14 @@ public class DashboardBuilder implements Supplier<Dashboard> {
 	public DashboardBuilder addDashboardRq(CreateDashboardRQ rq) {
 		dashboard.setName(rq.getName());
 		dashboard.setDescription(rq.getDescription());
+		ofNullable(rq.getShare()).ifPresent(it -> dashboard.setShared(it));
 		return this;
 	}
 
 	public DashboardBuilder addProject(Long projectId) {
-		dashboard.setProjectId(projectId);
+		Project project = new Project();
+		project.setId(projectId);
+		dashboard.setProject(project);
 		return this;
 	}
 
@@ -72,6 +76,11 @@ public class DashboardBuilder implements Supplier<Dashboard> {
 						});
 			}
 		});
+		return this;
+	}
+
+	public DashboardBuilder addOwner(String owner) {
+		dashboard.setOwner(owner);
 		return this;
 	}
 

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 
@@ -32,12 +33,23 @@ public final class DashboardConverter {
 		//static only
 	}
 
+	public static final Function<Dashboard, SharedEntity> TO_SHARED_ENTITY = dashboard -> {
+		SharedEntity sharedEntity = new SharedEntity();
+		sharedEntity.setId(String.valueOf(dashboard.getId()));
+		sharedEntity.setName(dashboard.getName());
+		sharedEntity.setDescription(dashboard.getDescription());
+		sharedEntity.setOwner(dashboard.getOwner());
+		return sharedEntity;
+	};
+
 	public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
 		DashboardResource resource = new DashboardResource();
 		resource.setDashboardId(dashboard.getId());
 		resource.setName(dashboard.getName());
 		resource.setDescription(dashboard.getDescription());
 		resource.setWidgets(dashboard.getDashboardWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL).collect(Collectors.toList()));
+		resource.setOwner(dashboard.getOwner());
+		resource.setShare(dashboard.isShared());
 		return resource;
 	};
 
@@ -45,9 +57,9 @@ public final class DashboardConverter {
 		DashboardActivityResource resource = new DashboardActivityResource();
 		resource.setId(dashboard.getId());
 		resource.setName(dashboard.getName());
-		resource.setProjectId(dashboard.getProjectId());
+		resource.setProjectId(dashboard.getProject().getId());
 		resource.setDescription(dashboard.getDescription());
-		//		resource.setShared(dashboard.getShared);
+		resource.setShared(dashboard.isShared());
 		return resource;
 	};
 

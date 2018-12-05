@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,27 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.widget.ICreateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.IGetWidgetHandler;
-import com.epam.ta.reportportal.core.widget.IUpdateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.ShareWidgetHandler;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
+import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.epam.ta.reportportal.ws.resolver.FilterFor;
+import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
@@ -53,15 +54,13 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/{projectName}/widget")
 public class WidgetController {
 
-	private final ICreateWidgetHandler createWidgetHandler;
-	private final IUpdateWidgetHandler updateWidgetHandler;
-	private final IGetWidgetHandler getWidgetHandler;
-	@Autowired
-	private ShareWidgetHandler shareWidgetHandler;
+	private final CreateWidgetHandler createWidgetHandler;
+	private final UpdateWidgetHandler updateWidgetHandler;
+	private final GetWidgetHandler getWidgetHandler;
 
 	@Autowired
-	public WidgetController(ICreateWidgetHandler createWidgetHandler, IUpdateWidgetHandler updateWidgetHandler,
-			IGetWidgetHandler getWidgetHandler) {
+	public WidgetController(CreateWidgetHandler createWidgetHandler, UpdateWidgetHandler updateWidgetHandler,
+			GetWidgetHandler getWidgetHandler) {
 		this.createWidgetHandler = createWidgetHandler;
 		this.updateWidgetHandler = updateWidgetHandler;
 		this.getWidgetHandler = getWidgetHandler;
@@ -70,6 +69,7 @@ public class WidgetController {
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
+	@ApiOperation("Create a new widget")
 	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
 		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);
@@ -84,6 +84,15 @@ public class WidgetController {
 		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
 	}
 
+	@Transactional(readOnly = true)
+	@PostMapping(value = "/preview")
+	@ResponseStatus(OK)
+	@ApiOperation("Get widget preview")
+	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidgetPreview(previewRQ, extractProjectDetails(user, normalizeId(projectName)), user);
+	}
+
 	@Transactional
 	@PutMapping(value = "/{widgetId}")
 	@ResponseStatus(OK)
@@ -94,46 +103,31 @@ public class WidgetController {
 	}
 
 	@Transactional(readOnly = true)
-	@PostMapping(value = "/preview")
-	@ResponseStatus(OK)
-	@ApiOperation("Get widget preview")
-	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetPreview(previewRQ, extractProjectDetails(user, normalizeId(projectName)), user);
-	}
-
-	@Transactional(readOnly = true)
 	@GetMapping(value = "/names/all")
 	@ResponseStatus(OK)
 	@ApiOperation("Load all widget names which belong to a user")
-	public List<String> getWidgetNames(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetNames(normalizeId(projectName), user.getUsername());
+	public Iterable<Object> getWidgetNames(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
+			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getOwnNames(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/shared")
 	@ResponseStatus(OK)
 	@ApiOperation("Load shared widgets")
-	public Iterable<WidgetResource> getSharedWidgetsList(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			Pageable pageable) {
-		return getWidgetHandler.getSharedWidgetsList(user.getUsername(), normalizeId(projectName), pageable);
-	}
-
-	@Transactional
-	@PostMapping(value = "/shared/{widgetId}")
-	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Share widget to project")
-	public void shareWidget(@PathVariable String projectName, @PathVariable Long widgetId) {
-		shareWidgetHandler.shareWidget(projectName, widgetId);
+	public Iterable<WidgetResource> getShared(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
+			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getShared(extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/shared/search")
 	@ResponseStatus(OK)
 	@ApiOperation("Search shared widgets by name")
-	public Iterable<WidgetResource> searchSharedWidgets(@RequestParam("term") String term, @PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user, Pageable pageable) {
-		return getWidgetHandler.searchSharedWidgets(term, user.getUsername(), normalizeId(projectName), pageable);
+	public Iterable<WidgetResource> searchShared(@RequestParam("term") String term, @PathVariable String projectName,
+			@SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.searchShared(extractProjectDetails(user, projectName), pageable, filter, user, term);
 	}
 
 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,20 +17,24 @@
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Update Widget handler
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
-public interface IUpdateWidgetHandler {
+@Transactional
+public interface CreateWidgetHandler {
 
 	/**
-	 * Update widget with specified id
+	 * Creates a new widget
+	 *
+	 * @param createWidgetRQ Widget details
+	 * @param projectDetails Project details
+	 * @param user           User
+	 * @return EntryCreatedRS
 	 */
-	OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+	EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 }

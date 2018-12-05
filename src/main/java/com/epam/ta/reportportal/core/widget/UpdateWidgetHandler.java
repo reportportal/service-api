@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,24 +16,19 @@
 
 package com.epam.ta.reportportal.core.widget;
 
-import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 
-public interface ShareWidgetHandler {
-
-	/**
-	 * Share widget to project
-	 *
-	 * @param projectName
-	 * @param widgetId
-	 * @return list of all shared widgets for the project
-	 */
-	void shareWidget(String projectName, Long widgetId);
+/**
+ * @author Pavel Bortnik
+ */
+public interface UpdateWidgetHandler {
 
 	/**
-	 * Find widget
-	 *
-	 * @param widgetId
-	 * @return widget
+	 * Update widget with specified id
 	 */
-	Widget findById(Long widgetId);
+	OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
+
 }

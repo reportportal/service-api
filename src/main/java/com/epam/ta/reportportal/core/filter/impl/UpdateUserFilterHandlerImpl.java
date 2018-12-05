@@ -17,11 +17,11 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
-import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
@@ -39,15 +39,15 @@ import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConvert
 @Service
 public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 
-	private final UserFilterRepository userFilterRepository;
 	private final GetUserFilterHandler getFilterHandler;
+
+	@Autowired
+	private ReportPortalAclHandler aclHandler;
 
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus,
-			GetUserFilterHandler getFilterHandler) {
-		this.userFilterRepository = userFilterRepository;
+	public UpdateUserFilterHandlerImpl(MessageBus messageBus, GetUserFilterHandler getFilterHandler) {
 		this.messageBus = messageBus;
 		this.getFilterHandler = getFilterHandler;
 	}
@@ -58,6 +58,11 @@ public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 		UserFilter userFilter = getFilterHandler.getFilter(userFilterId, projectDetails, user);
 		UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
 		UserFilter updated = new UserFilterBuilder(userFilter).addUpdateFilterRQ(updateRQ).get();
+
+		if (before.isShared() != updated.isShared()) {
+			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
+		}
+
 		messageBus.publishActivity(new FilterUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(updated), user.getUserId()));
 		return new OperationCompletionRS("User filter with ID = '" + updated.getId() + "' successfully updated.");
 	}

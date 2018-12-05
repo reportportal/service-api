@@ -17,14 +17,12 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.ProjectUserRepository;
-import com.epam.ta.reportportal.dao.UserPreferenceRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.*;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -84,6 +82,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final Map<String, IntegrationService> integrationServiceMapping;
 
 	private final EmailIntegrationService emailIntegrationService;
+
+	@Autowired
+	private ShareableEntityRepository shareableEntityRepository;
+
+	@Autowired
+	private ReportPortalAclHandler aclHandler;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
@@ -162,11 +166,13 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			project.getUsers().remove(projectUser);
 			userForUnassign.getProjects().remove(projectUser);
 			unassignUsers.add(projectUser);
+			aclHandler.preventSharedObjects(project.getId(), username);
 		});
 
 		projectUserRepository.deleteAll(unassignUsers);
 		emailIntegrationService.excludeProjectRecipients(unassignUsers, project);
 		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
+
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
 						+ project.getName() + "'");
@@ -206,7 +212,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			projectUser.setUser(modifyingUser);
 			projectUser.setProject(project);
 			project.getUsers().add(projectUser);
+			aclHandler.permitSharedObjects(project.getId(), name);
 		});
+
 		return new OperationCompletionRS(
 				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
 						+ project.getName() + "'");
@@ -305,4 +313,5 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
 	}
+
 }

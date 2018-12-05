@@ -18,43 +18,42 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
+import com.epam.ta.reportportal.core.events.activity.DashboardDeletedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
-import org.apache.commons.lang3.BooleanUtils;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
- * @author Pavel Bortnik
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class CreateDashboardHandler implements com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler {
+public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
+
+	@Autowired
+	private GetDashboardHandler getDashboardHandler;
 
 	@Autowired
 	private DashboardRepository dashboardRepository;
 
 	@Autowired
-	private MessageBus messageBus;
-
-	@Autowired
 	private ReportPortalAclHandler aclHandler;
 
+	@Autowired
+	private MessageBus messageBus;
+
 	@Override
-	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
-		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq)
-				.addProject(projectDetails.getProjectId())
-				.addOwner(user.getUsername())
-				.get();
-		dashboardRepository.save(dashboard);
-		aclHandler.initAcl(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
-		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
-		return new EntryCreatedRS(dashboard.getId());
+	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
+		dashboardRepository.delete(dashboard);
+		aclHandler.deleteAclForObject(dashboard);
+		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
+		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
 	}
 }

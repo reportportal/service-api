@@ -49,7 +49,7 @@ public final class ServerSettingsConverter {
 		expect(serverSettings, CollectionUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
 		Map<String, String> settings = serverSettings.stream()
 				.filter(s -> s.getKey().startsWith(EMAIL_CONFIG_PREFIX))
-				.collect(toMap(ServerSettings::getKey, ServerSettings::getValue, (prev, curr) -> prev));
+				.collect(toMap(ServerSettings::getKey, entry -> ofNullable(entry.getValue()).orElse(""), (prev, curr) -> prev));
 		ServerSettingsResource resource = new ServerSettingsResource();
 		resource.setActive(BooleanUtils.toBoolean(settings.get(ServerSettingsEnum.ENABLED.getAttribute())));
 

@@ -175,7 +175,7 @@ public class EmailService extends JavaMailSenderImpl {
 		Optional<Map<String, Integer>> pb = ofNullable(statistics.entrySet().stream().filter(entry -> {
 			Pattern pattern = Pattern.compile(regex);
 			return pattern.matcher(entry.getKey()).matches();
-		}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+		}).collect(Collectors.toMap(Map.Entry::getKey, entry -> ofNullable(entry.getValue()).orElse(0), (prev, curr) -> prev)));
 
 		pb.ifPresent(stats -> email.put(statisticsName, stats));
 	}

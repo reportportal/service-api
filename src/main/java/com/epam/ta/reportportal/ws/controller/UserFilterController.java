@@ -134,9 +134,10 @@ public class UserFilterController {
 	@GetMapping(value = "/names")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available filter names")
-	public Iterable<SharedEntity> getAllFiltersNames(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public Iterable<SharedEntity> getAllFiltersNames(@PathVariable String projectName, @SortFor(UserFilter.class) Pageable pageable,
+			@FilterFor(UserFilter.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam(value = "share", defaultValue = "false", required = false) boolean isShared) {
-		return getFilterHandler.getFiltersNames(extractProjectDetails(user, projectName), user, isShared);
+		return getFilterHandler.getFiltersNames(extractProjectDetails(user, projectName), pageable, filter, user, isShared);
 	}
 
 	@Transactional

@@ -176,12 +176,12 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 
-		LaunchModeEnum.findByName(mode)
+		LaunchModeEnum launchMode = LaunchModeEnum.findByName(mode)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
 						formattedSupplier("Mode - {} doesn't exist.", mode)
 				));
 
-		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
+		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, launchMode.name());
 	}
 
 	@Override

@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -184,8 +185,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails,
-			Long[] ids) {
+	public Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 
 		List<String> contentFields = Lists.newArrayList(DEFECTS_AUTOMATION_BUG_TOTAL,
 				DEFECTS_NO_DEFECT_TOTAL,
@@ -200,8 +200,10 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Filter filter = Filter.builder()
 				.withTarget(Launch.class)
 				.withCondition(new FilterCondition(Condition.IN,
-						false, Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")), ID
-				)).withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), PROJECT_ID))
+						false,
+						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
+						CRITERIA_ID
+				)).withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), CRITERIA_PROJECT_ID))
 				.build();
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,

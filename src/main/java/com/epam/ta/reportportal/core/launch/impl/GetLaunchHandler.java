@@ -132,6 +132,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 */
 	@Override
 	public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
+		validateModeConditions(filter);
 		filter = addLaunchCommonCriteria(DEBUG, filter, projectDetails.getProjectId());
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);

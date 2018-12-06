@@ -34,11 +34,9 @@ public final class DashboardConverter {
 	}
 
 	public static final Function<Dashboard, SharedEntity> TO_SHARED_ENTITY = dashboard -> {
-		SharedEntity sharedEntity = new SharedEntity();
-		sharedEntity.setId(String.valueOf(dashboard.getId()));
+		SharedEntity sharedEntity = SharedEntityConverter.TO_SHARED_ENTITY.apply(dashboard);
 		sharedEntity.setName(dashboard.getName());
 		sharedEntity.setDescription(dashboard.getDescription());
-		sharedEntity.setOwner(dashboard.getOwner());
 		return sharedEntity;
 	};
 

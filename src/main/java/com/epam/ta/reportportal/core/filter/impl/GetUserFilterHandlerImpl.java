@@ -96,8 +96,12 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	public Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean isShared) {
-		throw new UnsupportedOperationException("Not implemented until acl logic");
+	public Iterable<SharedEntity> getFiltersNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user, boolean isShared) {
+		Page<UserFilter> filters = isShared ?
+				filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername()) :
+				filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable, user.getUsername());
+		return PagedResourcesAssembler.pageConverter(UserFilterConverter.TO_SHARED_ENTITY).apply(filters);
 	}
 
 	@Override

@@ -96,8 +96,8 @@ public class Swagger2Configuration {
 				buildVersion,
 				null,
 				new Contact("Support", null, "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-				"GPLv3",
-				"https://www.gnu.org/licenses/licenses.html#GPL",
+				"Apache 2.0",
+				"http://www.apache.org/licenses/LICENSE-2.0",
 				Collections.emptyList()
 		);
 

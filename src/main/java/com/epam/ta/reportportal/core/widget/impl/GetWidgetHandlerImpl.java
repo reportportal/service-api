@@ -103,9 +103,9 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		WidgetType widgetType = WidgetType.findByName(previewRQ.getContentParameters().getWidgetType())
+		WidgetType widgetType = WidgetType.findByName(previewRQ.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-						"Unsupported widget type {}" + previewRQ.getContentParameters().getWidgetType()
+						"Unsupported widget type {}" + previewRQ.getWidgetType()
 				));
 		List<UserFilter> userFilter = null;
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {

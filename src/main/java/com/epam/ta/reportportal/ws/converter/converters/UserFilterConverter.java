@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
@@ -41,6 +42,13 @@ public final class UserFilterConverter {
 	private UserFilterConverter() {
 		//static only
 	}
+
+	public static final Function<UserFilter, SharedEntity> TO_SHARED_ENTITY = filter -> {
+		SharedEntity sharedEntity = SharedEntityConverter.TO_SHARED_ENTITY.apply(filter);
+		sharedEntity.setName(filter.getName());
+		sharedEntity.setDescription(filter.getDescription());
+		return sharedEntity;
+	};
 
 	public static final Function<Set<UserFilter>, List<UserFilterResource>> FILTER_SET_TO_FILTER_RESOURCE = filters -> filters.stream()
 			.map(UserFilterConverter::buildFilterResource)

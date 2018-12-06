@@ -57,7 +57,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		userFilter.setDescription(rq.getDescription());
 		userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType()));
 		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
-		addFilterConditions(rq.getEntities());
+		addFilterConditions(rq.getConditions());
 		addSelectionParameters(rq.getOrders());
 		return this;
 	}
@@ -67,7 +67,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		ofNullable(rq.getDescription()).ifPresent(it -> userFilter.setDescription(it));
 		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
 		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
-		addFilterConditions(rq.getEntities());
+		addFilterConditions(rq.getConditions());
 		addSelectionParameters(rq.getOrders());
 		return this;
 	}

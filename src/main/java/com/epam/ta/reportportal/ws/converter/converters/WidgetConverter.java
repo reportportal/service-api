@@ -50,6 +50,7 @@ public class WidgetConverter {
 		WidgetResource widgetResource = new WidgetResource();
 		widgetResource.setWidgetId(widget.getId());
 		widgetResource.setName(widget.getName());
+		widgetResource.setWidgetType(widget.getWidgetType());
 		widgetResource.setDescription(widget.getDescription());
 		ofNullable(widget.getFilters()).ifPresent(filter -> widgetResource.setAppliedFilters(UserFilterConverter.FILTER_SET_TO_FILTER_RESOURCE
 				.apply(filter)));
@@ -57,7 +58,6 @@ public class WidgetConverter {
 		contentParameters.setItemsCount(widget.getItemsCount());
 		ofNullable(widget.getWidgetOptions()).ifPresent(wo -> contentParameters.setWidgetOptions(wo.getOptions()));
 		contentParameters.setContentFields(Lists.newArrayList(widget.getContentFields()));
-		contentParameters.setWidgetType(widget.getWidgetType());
 		widgetResource.setContentParameters(contentParameters);
 		return widgetResource;
 	};

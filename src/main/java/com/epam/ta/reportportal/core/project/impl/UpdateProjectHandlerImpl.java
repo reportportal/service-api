@@ -42,9 +42,9 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -287,7 +287,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		}
 	}
 
-	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project) {
+	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
 		ofNullable(configuration).ifPresent(config -> {
 			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
 				verifyProjectAttributes(attributes);

@@ -127,7 +127,8 @@ public class DashboardController {
 	@GetMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified dashboard by ID for specified project")
-	public DashboardResource getDashboard(@PathVariable Long dashboardId, @AuthenticationPrincipal ReportPortalUser user) {
+	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}

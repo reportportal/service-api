@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -27,12 +28,15 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
+import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -42,6 +46,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -49,7 +54,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_TAG;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.RESOURCE_ALREADY_EXISTS;
@@ -57,22 +63,40 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 class DemoDashboardsService {
-	private static final String D_NAME = "DEMO DASHBOARD";
-	private static final String F_NAME = "DEMO_FILTER";
+
+	private static final String DASHBOARD_NAME = "DEMO DASHBOARD";
+	private static final String FILTER_NAME = "DEMO_FILTER";
+	private static final boolean SHARED = true;
+	private static int WIDGET_MAX_HEIGHT = 6;
+	private static int WIDGET_MIN_HEIGHT = 4;
+	private static int WIDGET_MAX_WIDTH = 12;
+	private static int WIDGET_MIN_WIDTH = 4;
+	private static int WIDGET_MAX_X_POS = 7;
+	private static int WIDGET_MAX_Y_POS = 18;
+
 	private final UserFilterRepository userFilterRepository;
+
 	private final DashboardRepository dashboardRepository;
+
 	private final WidgetRepository widgetRepository;
+
 	private final ProjectRepository projectRepository;
+
+	private final ReportPortalAclHandler aclHandler;
+
 	private final ObjectMapper objectMapper;
+
 	private Resource resource;
 
 	@Autowired
-	DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
-			WidgetRepository widgetRepository, ProjectRepository projectRepository, ObjectMapper objectMapper) {
+	public DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
+			WidgetRepository widgetRepository, ProjectRepository projectRepository, ReportPortalAclHandler aclHandler,
+			ObjectMapper objectMapper) {
 		this.userFilterRepository = userFilterRepository;
 		this.dashboardRepository = dashboardRepository;
 		this.widgetRepository = widgetRepository;
 		this.projectRepository = projectRepository;
+		this.aclHandler = aclHandler;
 		this.objectMapper = objectMapper;
 	}
 
@@ -81,70 +105,66 @@ class DemoDashboardsService {
 		this.resource = resource;
 	}
 
-	Dashboard generate(DemoDataRq rq, ReportPortalUser user, Long projectId) {
-		UserFilter filter = createDemoFilter(F_NAME, user, projectId);
+	@Transactional
+	public Dashboard generate(ReportPortalUser user, Long projectId) {
+		Project project = projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+
+		UserFilter filter = createDemoFilter(FILTER_NAME, user, project);
 		List<Widget> widgets = createWidgets(user, projectId, filter);
-		return createDemoDashboard(widgets, user, projectId, D_NAME);
+		return createDemoDashboard(widgets, user, project, DASHBOARD_NAME);
 	}
 
-	List<Widget> createWidgets(ReportPortalUser user, Long projectId, UserFilter filter) {
+	private List<Widget> createWidgets(ReportPortalUser user, Long projectId, UserFilter filter) {
 		try {
-			TypeReference<List<Widget>> type = new TypeReference<List<Widget>>() {
+			TypeReference<List<WidgetRQ>> type = new TypeReference<List<WidgetRQ>>() {
 			};
 
-			/*
-			List<Widget> existingWidgets = widgetRepository.findByProjectAndUser(projectDetails, user);
-			If exists throw exception
-			*/
-
-			Project project = projectRepository.findById(projectId)
-					.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
-
-			List<Widget> widgets = ((List<Widget>) objectMapper.readValue(resource.getURL(), type)).stream().map(it -> {
-				it.setProject(project);
-				it.setFilters(Sets.newHashSet(filter));
-				//				it.setWidgetType();
-				String name = it.getName();
-				//				checkUniqueName(name, existingWidgets);
-				it.setName(name);
-				return it;
-			}).collect(toList());
+			List<Widget> widgets = ((List<WidgetRQ>) objectMapper.readValue(resource.getURL(), type)).stream()
+					.map(it -> new WidgetBuilder().addWidgetRq(it)
+							.addFilters(Sets.newHashSet(filter))
+							.addProject(projectId)
+							.addOwner(user.getUsername())
+							.get())
+					.collect(toList());
 			widgetRepository.saveAll(widgets);
+			widgets.forEach(it -> aclHandler.initAcl(it, user.getUsername(), projectId, it.isShared()));
 			return widgets;
 		} catch (IOException e) {
 			throw new ReportPortalException("Unable to load demo_widgets.json. " + e.getMessage(), e);
 		}
 	}
 
-	UserFilter createDemoFilter(String filterName, ReportPortalUser user, Long projectId) {
+	private UserFilter createDemoFilter(String filterName, ReportPortalUser user, Project project) {
 		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
-						.withCondition(Condition.EQUALS)
-						.withSearchCriteria("name")
+						.withCondition(Condition.EQUALS).withSearchCriteria(CRITERIA_NAME)
 						.withValue(filterName)
-						.build())
-				.build(), projectId), Pageable.unpaged(), user.getUsername()).getContent();
+						.build()).build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
 
 		expect(existedFilterList.size(), Predicate.isEqual(0)).verify(RESOURCE_ALREADY_EXISTS, filterName);
-
-		Project project = projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
 
 		UserFilter userFilter = new UserFilter();
 		userFilter.setName(filterName);
 		userFilter.setTargetClass(ObjectType.Launch);
 		userFilter.setProject(project);
-		userFilter.setFilterCondition(Sets.newHashSet(new FilterCondition(Condition.HAS, false, "demo", CRITERIA_LAUNCH_TAG)));
+		userFilter.setFilterCondition(Sets.newHashSet(new FilterCondition(Condition.HAS, false, "demo", CRITERIA_ITEM_ATTRIBUTE_VALUE)));
 
 		FilterSort filterSort = new FilterSort();
 		filterSort.setDirection(Sort.Direction.DESC);
-		filterSort.setField("start_time");
+		filterSort.setField("launch.start_time");
 		userFilter.setFilterSorts(Sets.newHashSet(filterSort));
 
-		return userFilterRepository.save(userFilter);
+		userFilter.setOwner(user.getUsername());
+		userFilter.setShared(true);
+
+		userFilterRepository.save(userFilter);
+		aclHandler.initAcl(userFilter, user.getUsername(), project.getId(), SHARED);
+
+		return userFilter;
 	}
 
-	Dashboard createDemoDashboard(List<Widget> widgets, ReportPortalUser user, Long projectId, String name) {
+	private Dashboard createDemoDashboard(List<Widget> widgets, ReportPortalUser user, Project project, String name) {
 		/*
 		Dashboard existing = dashboardRepository.findOneByUserProject(user, projectDetails, name);
 		expect(existing, isNull()).verify(RESOURCE_ALREADY_EXISTS, name);
@@ -152,33 +172,37 @@ class DemoDashboardsService {
 
 		Dashboard dashboard = new Dashboard();
 		dashboard.setName(name);
+		dashboard.setProject(project);
+		dashboard.setCreationDate(LocalDateTime.now());
+		dashboard.setOwner(user.getUsername());
+		dashboard.setShared(SHARED);
+
+		dashboardRepository.save(dashboard);
 
 		widgets.stream().map(widget -> {
 			DashboardWidget dashboardWidget = new DashboardWidget();
-
-			Random rand = new Random();
-			int maxHeight = 6;
-			int minHeight = 4;
-			int maxWidth = 12;
-			int minWidth = 4;
-			int maxXpos = 7;
-			int maxYpos = 18;
+			dashboardWidget.setId(new DashboardWidgetId(dashboard.getId(), widget.getId()));
 
 			dashboardWidget.setDashboard(dashboard);
 			dashboardWidget.setWidget(widget);
 			dashboardWidget.setWidgetName(widget.getName());
-			dashboardWidget.setHeight(rand.nextInt(maxHeight - minHeight + 1) + minHeight);
-			dashboardWidget.setWidth(rand.nextInt(maxWidth - minWidth + 1) - minWidth);
-			dashboardWidget.setPositionX(rand.nextInt(maxXpos));
-			dashboardWidget.setPositionY(rand.nextInt(maxYpos));
+			dashboardWidget.setHeight(getRandomBetween(WIDGET_MIN_HEIGHT, WIDGET_MAX_HEIGHT));
+			dashboardWidget.setWidth(getRandomBetween(WIDGET_MIN_WIDTH, WIDGET_MAX_WIDTH));
+			dashboardWidget.setPositionX(getRandomBetween(0, WIDGET_MAX_X_POS));
+			dashboardWidget.setPositionY(getRandomBetween(0, WIDGET_MAX_Y_POS));
 
 			return dashboardWidget;
 		}).forEach(dashboard::addWidget);
-		Project project = new Project();
-		project.setId(projectId);
-		dashboard.setProject(project);
 
-		dashboard.setCreationDate(LocalDateTime.now());
-		return dashboardRepository.save(dashboard);
+		dashboardRepository.save(dashboard);
+		aclHandler.initAcl(dashboard, user.getUsername(), project.getId(), SHARED);
+
+		return dashboard;
+	}
+
+	private int getRandomBetween(int min, int max) {
+		Random random = new Random();
+		return random.ints(min, (max + 1)).findFirst().getAsInt();
+
 	}
 }

@@ -17,13 +17,18 @@
 package com.epam.ta.reportportal.demodata;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.demodata.model.DemoDataRq;
+import com.epam.ta.reportportal.demodata.model.DemoDataRs;
+import com.epam.ta.reportportal.demodata.service.DemoDataService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
@@ -31,6 +36,7 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
  */
 @RestController
 @RequestMapping("/demo/{projectName}")
+@PreAuthorize(PROJECT_MANAGER)
 class DemoDataController {
 
 	private final DemoDataService demoDataService;
@@ -41,7 +47,6 @@ class DemoDataController {
 	}
 
 	@PostMapping
-	//	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation(value = "generate")
 	@ApiIgnore
 	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,

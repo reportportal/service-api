@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class Constants {
+class Constants {
 
 	private Constants() {
 		//static only

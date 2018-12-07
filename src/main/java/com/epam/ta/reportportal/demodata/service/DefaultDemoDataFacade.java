@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.demodata.model.DemoDataRq;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,10 +32,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static com.epam.ta.reportportal.demodata.Constants.NAME;
-import static com.epam.ta.reportportal.demodata.Constants.STORY_PROBABILITY;
+import static com.epam.ta.reportportal.demodata.service.Constants.NAME;
+import static com.epam.ta.reportportal.demodata.service.Constants.STORY_PROBABILITY;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 import static java.util.stream.Collectors.toList;
@@ -43,7 +47,9 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class DefaultDemoDataFacade implements DemoDataFacade {
 
-	private final DemoDataCommonService demoDataCommonService;
+	private final DemoDataLaunchService demoDataLaunchService;
+
+	private final DemoDataTestItemService demoDataTestItemService;
 
 	private final DemoLogsService demoLogsService;
 
@@ -55,9 +61,10 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private Resource resource;
 
 	@Autowired
-	public DefaultDemoDataFacade(DemoDataCommonService demoDataCommonService, DemoLogsService demoLogsService,
-			TestItemRepository testItemRepository, ObjectMapper objectMapper) {
-		this.demoDataCommonService = demoDataCommonService;
+	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoDataTestItemService demoDataTestItemService,
+			DemoLogsService demoLogsService, TestItemRepository testItemRepository, ObjectMapper objectMapper) {
+		this.demoDataLaunchService = demoDataLaunchService;
+		this.demoDataTestItemService = demoDataTestItemService;
 		this.demoLogsService = demoLogsService;
 		this.testItemRepository = testItemRepository;
 		this.objectMapper = objectMapper;
@@ -78,101 +85,69 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private List<Long> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			Long launchId = demoDataCommonService.startLaunch(NAME, i, user, projectDetails);
+			Long launchId = demoDataLaunchService.startLaunch(NAME, i, user, projectDetails);
 			generateSuites(suitesStructure, i, launchId, user, projectDetails);
-			demoDataCommonService.finishLaunch(launchId, user, projectDetails);
+			demoDataLaunchService.finishLaunch(launchId, user, projectDetails);
 			return launchId;
 		}).collect(toList());
 	}
 
-	private List<Long> generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, Long launchId, ReportPortalUser user,
+	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, Long launchId, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
-		return suitesStructure.entrySet().stream().limit(i + 1).map(suites -> {
-			Long suiteItemId = demoDataCommonService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
-			suites.getValue().entrySet().forEach(tests -> {
-				Long testItemId = demoDataCommonService.startTestItem(suiteItemId, launchId, tests.getKey(), TEST, user, projectDetails);
-				String beforeClassStatus = "";
+		suitesStructure.entrySet().stream().limit(i + 1).forEach(suites -> {
+			Long suiteItemId = demoDataTestItemService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
+			suites.getValue().forEach((key, value) -> {
+				Long testItemId = demoDataTestItemService.startTestItem(suiteItemId, launchId, key, TEST, user, projectDetails);
+				Optional<StatusEnum> beforeClassStatus = Optional.empty();
 				boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				if (isGenerateClass) {
-					Long beforeClassId = demoDataCommonService.startTestItem(
-							testItemId,
-							launchId,
-							"beforeClass",
-							BEFORE_CLASS,
-							user,
-							projectDetails
-					);
-					beforeClassStatus = status();
-					demoDataCommonService.finishTestItem(beforeClassId, beforeClassStatus, user, projectDetails);
+					beforeClassStatus = Optional.of(status());
+					generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_CLASS, beforeClassStatus.get());
 				}
 				boolean isGenerateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				boolean isGenerateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
-				tests.getValue().stream().limit(i + 1).forEach(name -> {
+				value.stream().limit(i + 1).forEach(name -> {
 					if (isGenerateBeforeMethod) {
-						demoDataCommonService.finishTestItem(
-								demoDataCommonService.startTestItem(
-										testItemId,
-										launchId,
-										"beforeMethod",
-										BEFORE_METHOD,
-										user,
-										projectDetails
-								),
-								status(),
-								user,
-								projectDetails
-						);
+						generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_METHOD, status());
 					}
-					Long stepId = demoDataCommonService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
-					String status = status();
+					Long stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
+					StatusEnum status = status();
 					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status);
-					demoDataCommonService.finishTestItem(stepId, status, user, projectDetails);
+					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
-						demoDataCommonService.finishTestItem(
-								demoDataCommonService.startTestItem(
-										testItemId,
-										launchId,
-										"afterMethod",
-										AFTER_METHOD,
-										user,
-										projectDetails
-								),
-								status(),
-								user,
-								projectDetails
-						);
+						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());
 					}
 				});
 				if (isGenerateClass) {
-					Long afterClassId = demoDataCommonService.startTestItem(
-							testItemId,
-							launchId,
-							"afterClass",
-							AFTER_CLASS,
-							user,
-							projectDetails
-					);
-					demoDataCommonService.finishTestItem(afterClassId, status(), user, projectDetails);
+					generateStepItem(testItemId, launchId, user, projectDetails, AFTER_CLASS, status());
 				}
-				demoDataCommonService.finishTestItem(
-						testItemId,
-						!beforeClassStatus.isEmpty() ? beforeClassStatus : "FAILED",
-						user,
-						projectDetails
-				);
+				demoDataTestItemService.finishTestItem(testItemId, beforeClassStatus.orElse(StatusEnum.FAILED), user, projectDetails);
 			});
-			demoDataCommonService.finishRootItem(suiteItemId, user, projectDetails);
-			return suiteItemId;
-		}).collect(toList());
+			demoDataTestItemService.finishRootItem(suiteItemId, user, projectDetails);
+		});
 	}
 
-	String status() {
+	private void generateStepItem(Long parentId, Long launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+			TestItemTypeEnum type, StatusEnum status) {
+
+		Long beforeMethodId = demoDataTestItemService.startTestItem(parentId,
+				launchId,
+				type.name().toLowerCase(),
+				type,
+				user,
+				projectDetails
+		);
+		demoDataTestItemService.finishTestItem(beforeMethodId, status, user, projectDetails);
+
+	}
+
+	private StatusEnum status() {
 		int STATUS_PROBABILITY = 15;
 		if (ContentUtils.getWithProbability(STATUS_PROBABILITY)) {
-			return SKIPPED.name();
+			return SKIPPED;
 		} else if (ContentUtils.getWithProbability(2 * STATUS_PROBABILITY)) {
-			return FAILED.name();
+			return FAILED;
 		}
-		return PASSED.name();
+		return PASSED;
 	}
 }

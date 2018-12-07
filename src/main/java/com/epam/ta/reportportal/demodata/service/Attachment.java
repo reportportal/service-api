@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 import org.springframework.core.io.ClassPathResource;
 

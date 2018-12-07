@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
 
@@ -80,13 +81,19 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
-	public Widget findById(Long widgetId) {
+	public Widget getPermitted(Long widgetId) {
+		return widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+	}
+
+	@Override
+	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
+	public Widget getAdministrated(Long widgetId) {
 		return widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
 	}
 
 	@Override
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = findById(widgetId);
+		Widget widget = getPermitted(widgetId);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,

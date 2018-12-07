@@ -32,14 +32,20 @@ import org.springframework.data.domain.Pageable;
 public interface GetDashboardHandler {
 
 	/**
-	 * Get dashboard by id
+	 * Get dashboard on which use have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
 	 *
 	 * @param dashboardId    Dashboard id
-	 * @param projectDetails Project details
-	 * @param user           User
 	 * @return dashboard
 	 */
-	Dashboard getDashboard(Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user);
+	Dashboard getPermitted(Long dashboardId);
+
+	/**
+	 * Get dashboard on which use have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
+	 *
+	 * @param dashboardId    Dashboard id
+	 * @return dashboard
+	 */
+	Dashboard getAdministrated(Long dashboardId);
 
 	/**
 	 * Get permitted projects for concrete user for concrete project

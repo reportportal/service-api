@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
 
 /**
@@ -52,7 +53,14 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
 
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
-	public Dashboard getDashboard(Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
+	public Dashboard getPermitted(Long dashboardId) {
+		return dashboardRepository.findById(dashboardId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND, dashboardId));
+	}
+
+	@Override
+	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
+	public Dashboard getAdministrated(Long dashboardId) {
 		return dashboardRepository.findById(dashboardId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND, dashboardId));
 	}

@@ -31,12 +31,20 @@ import java.util.Map;
 public interface GetWidgetHandler {
 
 	/**
-	 * Get widget by id with permission check
+	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
 	 *
 	 * @param widgetId Widget id
 	 * @return Allowed widget.
 	 */
-	Widget findById(Long widgetId);
+	Widget getPermitted(Long widgetId);
+
+	/**
+	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
+	 *
+	 * @param widgetId Widget id
+	 * @return Allowed widget.
+	 */
+	Widget getAdministrated(Long widgetId);
 
 	/**
 	 * Get widget by id

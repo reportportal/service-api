@@ -72,7 +72,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
 		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
@@ -89,8 +89,8 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
-		Widget widget = getWidgetHandler.findById(rq.getObjectModel().getWidgetId());
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		Widget widget = getWidgetHandler.getPermitted(rq.getObjectModel().getWidgetId());
 
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getObjectModel(), dashboard, widget);
 		dashboard.addWidget(dashboardWidget);
@@ -102,8 +102,8 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 
 	@Override
 	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
-		Widget widget = getWidgetHandler.findById(widgetId);
+		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
+		Widget widget = getWidgetHandler.getPermitted(widgetId);
 
 		boolean isRemoved = dashboard.getDashboardWidgets()
 				.removeIf(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()));

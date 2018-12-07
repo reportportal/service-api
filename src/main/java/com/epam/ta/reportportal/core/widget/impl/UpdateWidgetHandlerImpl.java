@@ -93,7 +93,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = getWidgetHandler.findById(widgetId);
+		Widget widget = getWidgetHandler.getAdministrated(widgetId);
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
 		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());

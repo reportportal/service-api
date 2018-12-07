@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
@@ -57,13 +58,15 @@ public class DashboardController {
 	private final CreateDashboardHandler createDashboardHandler;
 	private final UpdateDashboardHandler updateDashboardHandler;
 	private final GetDashboardHandler getDashboardHandler;
+	private final DeleteDashboardHandler deleteDashboardHandler;
 
 	@Autowired
 	public DashboardController(CreateDashboardHandler createDashboardHandler, UpdateDashboardHandler updateDashboardHandler,
-			GetDashboardHandler getDashboardHandler) {
+			GetDashboardHandler getDashboardHandler, DeleteDashboardHandler deleteDashboardHandler) {
 		this.createDashboardHandler = createDashboardHandler;
 		this.updateDashboardHandler = updateDashboardHandler;
 		this.getDashboardHandler = getDashboardHandler;
+		this.deleteDashboardHandler = deleteDashboardHandler;
 	}
 
 	@Transactional
@@ -112,12 +115,21 @@ public class DashboardController {
 	}
 
 	@Transactional
+	@DeleteMapping(value = "/{dashboardId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Delete specified dashboard by ID for specified project")
+	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteDashboardHandler.deleteDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+	}
+
+	@Transactional
 	@GetMapping(value = "/{dashboardId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+		Dashboard dashboard = getDashboardHandler.getPermittedDashboard(dashboardId, extractProjectDetails(user, projectName), user);
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
 

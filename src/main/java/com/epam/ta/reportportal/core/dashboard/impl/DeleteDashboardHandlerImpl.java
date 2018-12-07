@@ -50,7 +50,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 
 	@Override
 	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getDashboard(dashboardId, projectDetails, user);
+		Dashboard dashboard = getDashboardHandler.getAdministratedDashboard(dashboardId, projectDetails, user);
 		dashboardRepository.delete(dashboard);
 		aclHandler.deleteAclForObject(dashboard);
 		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));

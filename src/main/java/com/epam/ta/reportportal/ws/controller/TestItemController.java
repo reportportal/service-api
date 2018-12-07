@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
@@ -28,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
@@ -43,6 +45,9 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_KEY;
+import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -119,12 +124,12 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID) Long launchId,
 			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Filter predefinedFilter,
 			@SortFor(TestItem.class) Pageable pageable) {
 		return getTestItemHandler.getTestItems(new Filter(filter, predefinedFilter),
 				pageable,
-				extractProjectDetails(user, projectName),
-				user
+				extractProjectDetails(user, projectName), user, launchId
 		);
 	}
 
@@ -171,7 +176,9 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute keys of specified launch")
 	public List<String> getAttributeKeys(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "cnt." + "attributeKey") String value) {
+			@RequestParam(value = "launch") Long id,
+			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY)
+					String value) {
 		return getTestItemHandler.getAttributeKeys(id, value);
 	}
 
@@ -180,7 +187,8 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute values of specified launch")
 	public List<String> getAttributeValues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "launch") Long id, @RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT
+			+ CRITERIA_ITEM_ATTRIBUTE_VALUE, required = false) String key,
 			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value) {
 		return getTestItemHandler.getAttributeValues(id, key, value);
 	}

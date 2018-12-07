@@ -20,8 +20,10 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
@@ -36,6 +38,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+
 /**
  * GET operations for {@link TestItem}<br>
  * Default implementation
@@ -46,6 +53,8 @@ import java.util.stream.Collectors;
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
 
+	private final LaunchRepository launchRepository;
+
 	private final TestItemRepository testItemRepository;
 
 	private final ItemAttributeRepository itemAttributeRepository;
@@ -53,8 +62,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	private final TestItemResourceAssembler itemResourceAssembler;
 
 	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			TestItemResourceAssembler itemResourceAssembler) {
+	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler) {
+		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
@@ -69,7 +79,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+			ReportPortalUser user, Long launchId) {
+		validate(launchId, projectDetails.getProjectId());
 		Page<TestItem> testItemPage = testItemRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(itemResourceAssembler::toResource).apply(testItemPage);
 	}
@@ -88,5 +99,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<TestItem> testItems = testItemRepository.findAllById(Arrays.asList(ids));
 		return testItems.stream().map(itemResourceAssembler::toResource).collect(Collectors.toList());
+	}
+
+	private void validate(Long launchId, Long projectId) {
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		expect(launch.getProjectId(), equalTo(projectId)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launch.getId(), projectId)
+		);
 	}
 }

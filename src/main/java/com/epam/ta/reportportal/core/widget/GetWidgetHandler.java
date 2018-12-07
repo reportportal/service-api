@@ -36,7 +36,7 @@ public interface GetWidgetHandler {
 	 * @param widgetId Widget id
 	 * @return Allowed widget.
 	 */
-	Widget findPermittedById(Long widgetId);
+	Widget getPermitted(Long widgetId);
 
 	/**
 	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
@@ -44,7 +44,7 @@ public interface GetWidgetHandler {
 	 * @param widgetId Widget id
 	 * @return Allowed widget.
 	 */
-	Widget findAdministratedById(Long widgetId);
+	Widget getAdministrated(Long widgetId);
 
 	/**
 	 * Get widget by id

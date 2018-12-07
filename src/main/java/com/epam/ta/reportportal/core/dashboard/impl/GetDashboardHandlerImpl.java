@@ -53,14 +53,14 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
 
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
-	public Dashboard getPermittedDashboard(Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
+	public Dashboard getPermitted(Long dashboardId) {
 		return dashboardRepository.findById(dashboardId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND, dashboardId));
 	}
 
 	@Override
 	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
-	public Dashboard getAdministratedDashboard(Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
+	public Dashboard getAdministrated(Long dashboardId) {
 		return dashboardRepository.findById(dashboardId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND, dashboardId));
 	}

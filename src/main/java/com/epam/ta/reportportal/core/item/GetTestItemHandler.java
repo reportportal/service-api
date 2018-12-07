@@ -51,7 +51,7 @@ public interface GetTestItemHandler {
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+			ReportPortalUser user, Long launchId);
 
 	/**
 	 * Get specified attribute keys

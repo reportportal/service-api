@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -131,6 +132,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 */
 	@Override
 	public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
+		validateModeConditions(filter);
 		filter = addLaunchCommonCriteria(DEBUG, filter, projectDetails.getProjectId());
 		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
@@ -166,7 +168,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		expect(value.length() > 2, it -> Objects.equals(it, true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
-		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEFAULT.toString());
+		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEFAULT.name());
 	}
 
 	@Override
@@ -175,17 +177,16 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 
-		LaunchModeEnum.findByName(mode)
+		LaunchModeEnum launchMode = LaunchModeEnum.findByName(mode)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
 						formattedSupplier("Mode - {} doesn't exist.", mode)
 				));
 
-		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, mode);
+		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, launchMode.name());
 	}
 
 	@Override
-	public Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails,
-			Long[] ids) {
+	public Map<String, List<ChartStatisticsContent>> getLaunchesComparisonInfo(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 
 		List<String> contentFields = Lists.newArrayList(DEFECTS_AUTOMATION_BUG_TOTAL,
 				DEFECTS_NO_DEFECT_TOTAL,
@@ -202,9 +203,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 				.withCondition(new FilterCondition(Condition.IN,
 						false,
 						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
-						ID
-				))
-				.withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), PROJECT_ID))
+						CRITERIA_ID
+				)).withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), CRITERIA_PROJECT_ID))
 				.build();
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,

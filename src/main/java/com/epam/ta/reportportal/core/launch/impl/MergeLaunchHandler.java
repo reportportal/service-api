@@ -111,7 +111,6 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 		launchRepository.save(newLaunch);
 		launchRepository.deleteAll(launchesList);
-		launchRepository.refresh(newLaunch);
 
 		//		logIndexer.indexLogs(newLaunch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), newLaunch.getId()));
 

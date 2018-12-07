@@ -56,7 +56,7 @@ public class ReportPortalAclHandler {
 		if (isShared) {
 			userRepository.findNamesByProject(projectId)
 					.stream()
-					.filter(it -> it.equalsIgnoreCase(owner))
+					.filter(it -> !it.equalsIgnoreCase(owner))
 					.forEach(login -> aclService.addPermissions(object, login, BasePermission.READ));
 		}
 	}

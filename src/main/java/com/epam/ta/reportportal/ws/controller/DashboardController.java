@@ -89,7 +89,7 @@ public class DashboardController {
 
 	@Transactional
 	@PutMapping("/{dashboardId}/add")
-	@ResponseStatus(CREATED)
+	@ResponseStatus(OK)
 	@ApiOperation("Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {

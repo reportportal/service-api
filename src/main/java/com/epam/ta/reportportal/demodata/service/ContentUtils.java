@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
@@ -57,7 +57,7 @@ final class ContentUtils {
 	}
 
 	static Set<ItemAttributeResource> getAttributesInRange(int limit) {
-		List<Pair<String, String>> content = readAttributes("demo/content/tags.txt");
+		List<Pair<String, String>> content = readAttributes("demo/content/attributes.txt");
 		int fromIndex = random.nextInt(content.size() - limit);
 		return content.subList(fromIndex, fromIndex + limit).stream().map(it -> {
 			if (it.getValue().isEmpty()) {
@@ -81,11 +81,6 @@ final class ContentUtils {
 
 	static String getTestDescription() {
 		List<String> content = readToList("demo/content/test-description.txt");
-		return content.get(random.nextInt(content.size()));
-	}
-
-	static String getDefectDescription(String issueType) {
-		List<String> content = readToList("demo/content/defects.txt");
 		return content.get(random.nextInt(content.size()));
 	}
 

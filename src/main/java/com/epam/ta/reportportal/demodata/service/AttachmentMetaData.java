@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 /**
  * @author Ihar Kahadouski
@@ -35,11 +35,11 @@ public class AttachmentMetaData {
 		return path;
 	}
 
-	public String getThumbnailPath() {
+	String getThumbnailPath() {
 		return thumbnailPath;
 	}
 
-	public boolean isImage() {
+	boolean isImage() {
 		return null == thumbnailPath;
 	}
 

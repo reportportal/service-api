@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.reportportal.commons.Thumbnailator;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -62,7 +63,7 @@ class DemoLogsService {
 		this.thumbnailator = thumbnailator;
 	}
 
-	List<Log> generateDemoLogs(TestItem testItem, String status) {
+	void generateDemoLogs(TestItem testItem, StatusEnum status) {
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
 		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
 			Log log = new Log();
@@ -75,7 +76,7 @@ class DemoLogsService {
 			log.setLogMessage(ContentUtils.getLogMessage());
 			return log;
 		}).collect(toList());
-		if (FAILED.name().equals(status)) {
+		if (FAILED.equals(status)) {
 			List<String> errors = ContentUtils.getErrorLogs();
 			logs.addAll(errors.stream().map(msg -> {
 				Log log = new Log();
@@ -87,7 +88,7 @@ class DemoLogsService {
 				return log;
 			}).collect(toList()));
 		}
-		return logRepository.saveAll(logs);
+		logRepository.saveAll(logs);
 	}
 
 	private void attachFile(Log log) {

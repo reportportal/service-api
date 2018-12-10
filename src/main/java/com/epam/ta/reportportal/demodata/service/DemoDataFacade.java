@@ -14,37 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 
 import java.util.List;
 
 /**
- * @author Ihar Kahadouski
+ * @author Pavel Bortnik
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class DemoDataRs {
-
-	@JsonProperty
-	private List<Long> dashboards;
-	@JsonProperty
-	private List<Long> launches;
-
-	public List<Long> getDashboards() {
-		return dashboards;
-	}
-
-	public void setDashboards(List<Long> dashboards) {
-		this.dashboards = dashboards;
-	}
-
-	public List<Long> getLaunches() {
-		return launches;
-	}
-
-	public void setLaunches(List<Long> launches) {
-		this.launches = launches;
-	}
+public interface DemoDataFacade {
+	/**
+	 * Generates demo launches
+	 *
+	 * @param demoDataRq
+	 * @param user
+	 * @param projectDetails
+	 * @return {@link List} of generated launch ids
+	 */
+	List<Long> generateDemoLaunches(DemoDataRq demoDataRq, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 }

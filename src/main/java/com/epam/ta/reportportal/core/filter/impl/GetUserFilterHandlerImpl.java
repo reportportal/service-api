@@ -62,7 +62,11 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
 	public UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findById(filterId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId, user.getUsername()));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND,
+						filterId,
+						projectDetails.getProjectId(),
+						user.getUsername()
+				));
 	}
 
 	@Override

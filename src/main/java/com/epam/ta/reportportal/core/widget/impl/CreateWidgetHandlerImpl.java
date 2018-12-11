@@ -81,11 +81,11 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 
-		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(createWidgetRQ.getName(),
+		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(
+				createWidgetRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
-				.verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
+		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
 
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())

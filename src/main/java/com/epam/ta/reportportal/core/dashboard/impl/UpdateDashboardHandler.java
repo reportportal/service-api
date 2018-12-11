@@ -59,14 +59,13 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	private ReportPortalAclHandler aclHandler;
 
 	@Autowired
-	public void setDashboardRepository(DashboardRepository dashboardRepository, GetDashboardHandler getDashboardHandler) {
+	public UpdateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus, GetDashboardHandler getDashboardHandler,
+			GetWidgetHandler getWidgetHandler, ReportPortalAclHandler aclHandler) {
 		this.dashboardRepository = dashboardRepository;
-		this.getDashboardHandler = getDashboardHandler;
-	}
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
 		this.messageBus = messageBus;
+		this.getDashboardHandler = getDashboardHandler;
+		this.getWidgetHandler = getWidgetHandler;
+		this.aclHandler = aclHandler;
 	}
 
 	@Override
@@ -105,15 +104,23 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
 		Widget widget = getWidgetHandler.getPermitted(widgetId);
 
+		if (user.getUsername().equalsIgnoreCase(widget.getOwner())) {
+			widget.getDashboardWidgets()
+					.forEach(dash -> dash.getDashboard()
+							.getDashboardWidgets()
+							.removeIf(widg -> widg.getId().getWidgetId().equals(widgetId)));
+			widget.getDashboardWidgets().clear();
+
+			return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
+		}
+
 		boolean isRemoved = dashboard.getDashboardWidgets()
 				.removeIf(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()));
-
 		expect(isRemoved, Predicate.isEqual(true)).verify(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId);
-
 		widget.getDashboardWidgets().removeIf(dashboardWidget -> dashboard.getId().equals(dashboardWidget.getId().getDashboardId()));
-		dashboardRepository.save(dashboard);
+
 		return new OperationCompletionRS(
-				"Widget with ID = '" + widget.getId() + "' was successfully removed to the dashboard with ID = '" + dashboard.getId()
+				"Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
 						+ "'");
 	}
 

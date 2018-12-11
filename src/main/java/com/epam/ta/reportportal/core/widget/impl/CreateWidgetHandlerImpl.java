@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 
@@ -80,11 +81,11 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 
-		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(
-				createWidgetRQ.getName(),
+		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(createWidgetRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
+		), BooleanUtils::isFalse)
+				.verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
 
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())
@@ -99,14 +100,15 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
 		if (CollectionUtils.isNotEmpty(filterIds)) {
-			Filter defaultFilter = new Filter(
-					UserFilter.class,
-					Condition.IN,
-					false,
-					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),
-					CRITERIA_ID
-			);
-			return filterRepository.getPermitted(ProjectFilter.of(defaultFilter, projectId), Pageable.unpaged(), username).getContent();
+			String ids = filterIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+			Filter defaultFilter = new Filter(UserFilter.class, Condition.IN, false, ids, CRITERIA_ID);
+			List<UserFilter> userFilters = filterRepository.getPermitted(ProjectFilter.of(defaultFilter, projectId),
+					Pageable.unpaged(),
+					username
+			).getContent();
+			BusinessRule.expect(userFilters, not(List::isEmpty))
+					.verify(ErrorType.BAD_REQUEST_ERROR, "Could not find one or more filters with ids: {}", ids);
+			return userFilters;
 		}
 		return Collections.emptyList();
 	}

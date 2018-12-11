@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -77,6 +79,13 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 	@Override
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
+
+		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(
+				createWidgetRQ.getName(),
+				user.getUsername(),
+				projectDetails.getProjectId()
+		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
+
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())
 				.addFilters(userFilter)
@@ -90,8 +99,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
 		if (CollectionUtils.isNotEmpty(filterIds)) {
-			Filter defaultFilter = new Filter(
-					UserFilter.class,
+			Filter defaultFilter = new Filter(UserFilter.class,
 					Condition.IN,
 					false,
 					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.demodata;
+package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.demodata.model.DemoDataRq;
+import com.epam.ta.reportportal.demodata.model.DemoDataRs;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,12 +41,12 @@ public class DemoDataService {
 		this.demoDataFacade = demoDataFacade;
 	}
 
-	public DemoDataRs generate(DemoDataRq rq, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public DemoDataRs generate(DemoDataRq demoDataRq, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
-		final List<Long> launches = demoDataFacade.generateDemoLaunches(rq, user, projectDetails);
+		final List<Long> launches = demoDataFacade.generateDemoLaunches(demoDataRq, user, projectDetails);
 		demoDataRs.setLaunches(launches);
-		if (rq.isCreateDashboard()) {
-			Dashboard demoDashboard = demoDashboardsService.generate(rq, user, projectDetails.getProjectId());
+		if (demoDataRq.isCreateDashboard()) {
+			Dashboard demoDashboard = demoDashboardsService.generate(user, projectDetails.getProjectId());
 			demoDataRs.setDashboards(Collections.singletonList(demoDashboard.getId()));
 		}
 

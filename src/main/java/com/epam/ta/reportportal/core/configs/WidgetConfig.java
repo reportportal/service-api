@@ -94,7 +94,7 @@ public class WidgetConfig implements ApplicationContextAware {
 				)
 				//		.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
 				.put(WidgetType.PRODUCT_STATUS, (ProductStatusFilterStrategy) applicationContext.getBean("productStatusFilterStrategy"))
-				.put(WidgetType.UNIQUE_BUG_TABLE, (TestItemFilterStrategy) applicationContext.getBean("testItemFilterStrategy"))
+				.put(WidgetType.UNIQUE_BUG_TABLE, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"))
 				.put(WidgetType.ACTIVITY, (ActivityFilterStrategy) applicationContext.getBean("activityFilterStrategy"))
 				.put(WidgetType.LAUNCHES_COMPARISON_CHART,
 						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")

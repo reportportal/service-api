@@ -115,7 +115,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:a384d74'
+        compile 'com.github.reportportal:commons-dao:457b063'
         compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:bd45a1ce'
         compile('com.github.reportportal:commons:71d4aca')
@@ -180,10 +180,11 @@ dependencies {
     compile 'org.apache.tika:tika-core'
     compile 'org.apache.tika:tika-parsers'
 
-    compile 'net.sf.jasperreports:jasperreports:6.3.1'
+    compile group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.7.0'
+    
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
     //higher than 3.14 since 3.15 contains breaking API changes
-    compile 'org.apache.poi:poi:3.14'
+    compile group: 'org.apache.poi', name: 'poi', version: '3.17'
 
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'

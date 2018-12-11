@@ -1,46 +1,31 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-/*
- * This file is part of Report Portal.
+ * Copyright 2018 EPAM Systems
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.core.jasper;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -49,12 +34,27 @@ import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.export.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
+import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.jasper.ExportUtils.durationToShortDHMS;
+import static com.epam.ta.reportportal.core.jasper.ExportUtils.getStatisticsCounter;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Jasper Reports provider. Basic implementation of
@@ -88,55 +88,51 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 	/* Data sets */
 	private final static String TEST_ITEMS = "TEST_ITEMS";
 
-//	private final LaunchRepository launchRepository;
-//	private final UserRepository userRepository;
-//	private final JasperReportRender reportRender;
-//	private final JasperDataProvider dataProvider;
+	private final LaunchRepository launchRepository;
+	private final UserRepository userRepository;
+	private final JasperReportRender reportRender;
+	private final JasperDataProvider dataProvider;
 
-//	@Autowired
-//	public GetJasperReportHandler(JasperReportRender reportRender, UserRepository userRepository, JasperDataProvider dataProvider,
-//			LaunchRepository launchRepository) {
-//		this.reportRender = com.google.common.base.Preconditions.checkNotNull(reportRender);
-//		this.userRepository = com.google.common.base.Preconditions.checkNotNull(userRepository);
-//		this.dataProvider = com.google.common.base.Preconditions.checkNotNull(dataProvider);
-//		this.launchRepository = com.google.common.base.Preconditions.checkNotNull(launchRepository);
-//	}
+	@Autowired
+	public GetJasperReportHandler(JasperReportRender reportRender, UserRepository userRepository, JasperDataProvider dataProvider,
+			LaunchRepository launchRepository) {
+		this.reportRender = checkNotNull(reportRender);
+		this.userRepository = checkNotNull(userRepository);
+		this.dataProvider = checkNotNull(dataProvider);
+		this.launchRepository = checkNotNull(launchRepository);
+	}
 
 	@Override
 	public JasperPrint getLaunchDetails(Long launchId, ReportPortalUser user) {
-//		Launch launch = launchRepository.findOne(launchId);
-//		BusinessRule.expect(launch, Predicates.notNull()).verify(ErrorType.LAUNCH_NOT_FOUND, launchId);
-//		BusinessRule.expect(launch, Predicates.not(Preconditions.IN_PROGRESS))
-//				.verify(ErrorType.FORBIDDEN_OPERATION,
-//						Suppliers.formattedSupplier("Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
-//				);
-//		User user = userRepository.findOne(username);
-//		BusinessRule.expect(user, Predicates.notNull()).verify(ErrorType.USER_NOT_FOUND, username);
-//		Map<String, Object> params = processLaunchParams(launch);
-//		User owner = userRepository.findOne(launch.getUserRef());
-//		/* Check if launch owner still in system if not - setup principal */
-//		if (null != owner) {
-//			params.put(OWNER, owner.getFullName());
-//		} else {
-//			params.put(OWNER, user.getFullName());
-//		}
-//		params.put(TEST_ITEMS, dataProvider.getReportSource(launch));
-//		return reportRender.generateReportPrint(params, new JREmptyDataSource());
-		throw new UnsupportedOperationException("Reporting is not implemented.");
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+		expect(launch.getStatus(), not(statusIn(IN_PROGRESS))).verify(ErrorType.FORBIDDEN_OPERATION,
+				Suppliers.formattedSupplier("Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
+		);
+		String userFullName = userRepository.findById(user.getUserId())
+				.map(User::getFullName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
+		Map<String, Object> params = processLaunchParams(launch);
+		Optional<String> owner = userRepository.findById(launch.getUser().getId()).map(User::getFullName);
+
+		/* Check if launch owner still in system if not - setup principal */
+		params.put(OWNER, owner.orElse(userFullName));
+
+		params.put(TEST_ITEMS, dataProvider.getReportSource(launchId));
+		return reportRender.generateReportPrint(params, new JREmptyDataSource());
 	}
 
 	@SuppressWarnings("OptionalGetWithoutIsPresent")
 	@Override
 	public ReportFormat getReportFormat(String view) {
 		Optional<ReportFormat> format = ReportFormat.findByName(view);
-		BusinessRule.expect(format, Preconditions.IS_PRESENT)
-				.verify(ErrorType.BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Unexpected report format: {}", view));
-		return format.get();
+		return format.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+				Suppliers.formattedSupplier("Unexpected report format: {}", view)
+		));
 	}
 
 	@Override
 	public void writeReport(ReportFormat format, OutputStream outputStream, JasperPrint jasperPrint) throws IOException {
-
 		try {
 			switch (format) {
 				case PDF:
@@ -182,49 +178,33 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 		}
 	}
 
-	/**
-	 * Format launch duration from long to human readable format.
-	 *
-	 * @param duration - input duration as long value
-	 * @return String - formatted output
-	 */
-	private static String millisToShortDHMS(long duration) {
-		String res;
-		long days = TimeUnit.MILLISECONDS.toDays(duration);
-		long hours = TimeUnit.MILLISECONDS.toHours(duration) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(duration));
-		long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration));
-		long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration));
-		if (days == 0) {
-			res = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-		} else {
-			res = String.format("%dd%02d:%02d:%02d", days, hours, minutes, seconds);
-		}
-		return res;
-	}
+	private Map<String, Object> processLaunchParams(Launch launch) {
+		Map<String, Object> params = new HashMap<>();
 
-//	private Map<String, Object> processLaunchParams(Launch launch) {
-//		Map<String, Object> params = new HashMap<>();
-//
-//		params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
-//		params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
-//		params.put(LAUNCH_TAGS, launch.getTags());
-//
-//						/* Possible NPE for IN_PROGRESS launches */
-//		params.put(DURATION, millisToShortDHMS(launch.getEndTime().getTime() - launch.getStartTime().getTime()));
-//
-//		ExecutionCounter exec = launch.getStatistics().getExecutionCounter();
-//		params.put(TOTAL, exec.getTotal());
-//		params.put(PASSED, exec.getPassed());
-//		params.put(FAILED, exec.getFailed());
-//		params.put(SKIPPED, exec.getSkipped());
-//
-//		IssueCounter issue = launch.getStatistics().getIssueCounter();
-//		params.put(AB, issue.getAutomationBugTotal());
-//		params.put(PB, issue.getProductBugTotal());
-//		params.put(SI, issue.getSystemIssueTotal());
-//		params.put(ND, issue.getNoDefectTotal());
-//		params.put(TI, issue.getToInvestigateTotal());
-//
-//		return params;
-//	}
+		params.put(LAUNCH_NAME, launch.getName() + " #" + launch.getNumber());
+		params.put(LAUNCH_DESC, launch.getDescription() == null ? "" : launch.getDescription());
+		params.put(LAUNCH_TAGS,
+				launch.getAttributes()
+						.stream()
+						.map(it -> it.getKey() == null ? it.getValue() : it.getKey().concat(it.getValue()))
+						.collect(Collectors.toList())
+		);
+
+		/* Possible NPE for IN_PROGRESS launches */
+		params.put(DURATION, durationToShortDHMS(Duration.between(launch.getStartTime(), launch.getEndTime())));
+
+		Set<Statistics> statistics = launch.getStatistics();
+		params.put(TOTAL, getStatisticsCounter(statistics, EXECUTIONS_TOTAL));
+		params.put(PASSED, getStatisticsCounter(statistics, EXECUTIONS_PASSED));
+		params.put(FAILED, getStatisticsCounter(statistics, EXECUTIONS_FAILED));
+		params.put(SKIPPED, getStatisticsCounter(statistics, EXECUTIONS_SKIPPED));
+
+		params.put(AB, getStatisticsCounter(statistics, DEFECTS_AUTOMATION_BUG_TOTAL));
+		params.put(PB, getStatisticsCounter(statistics, DEFECTS_PRODUCT_BUG_TOTAL));
+		params.put(SI, getStatisticsCounter(statistics, DEFECTS_SYSTEM_ISSUE_TOTAL));
+		params.put(ND, getStatisticsCounter(statistics, DEFECTS_NO_DEFECT_TOTAL));
+		params.put(TI, getStatisticsCounter(statistics, DEFECTS_TO_INVESTIGATE_TOTAL));
+
+		return params;
+	}
 }

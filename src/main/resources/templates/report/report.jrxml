@@ -47,6 +47,7 @@
         <field name="name" class="java.lang.String">
             <fieldDescription><![CDATA[]]></fieldDescription>
         </field>
+        <field name="duration" class="java.lang.Double"/>
         <field name="status" class="java.lang.String"/>
         <field name="total" class="java.lang.Integer"/>
         <field name="passed" class="java.lang.Integer"/>
@@ -516,6 +517,27 @@
                                     <font fontName="Noto Sans" size="9"/>
                                 </textElement>
                                 <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="70" uuid="4c3f0fac-1fb3-467d-81a7-36b9b2d84302">
+                        <property name="com.jaspersoft.studio.components.table.model.column.name" value="Column13"/>
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="70" height="30" uuid="3fe70789-6869-4b8d-bf21-be0fc66b623e"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font fontName="Noto Sans" size="9" isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[Duration (sec)]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="20">
+                            <textField>
+                                <reportElement x="0" y="0" width="70" height="20" uuid="ba201ea1-3041-4d50-b546-d3b9a4ce5543"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font fontName="Noto Sans" size="9"/>
+                                </textElement>
+                                <textFieldExpression><![CDATA[$F{duration}]]></textFieldExpression>
                             </textField>
                         </jr:detailCell>
                     </jr:column>

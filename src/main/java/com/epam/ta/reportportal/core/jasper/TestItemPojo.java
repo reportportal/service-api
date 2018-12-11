@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2018 EPAM Systems
  *
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.epam.ta.reportportal.core.jasper;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -22,10 +20,11 @@ import com.epam.ta.reportportal.entity.statistics.Statistics;
 
 import java.time.Duration;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
+import static com.epam.ta.reportportal.core.jasper.ExportUtils.adjustName;
+import static com.epam.ta.reportportal.core.jasper.ExportUtils.getStatisticsCounter;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static java.util.Optional.ofNullable;
 
@@ -59,7 +58,7 @@ public class TestItemPojo {
 
 		Optional<String> description = ofNullable(input.getDescription()).map(it -> "\r\n" + " ITEM DESCRIPTION: " + it);
 
-		this.name = input.getName() + description.orElse(EMPTY_STRING) + issueDescription.orElse(EMPTY_STRING);
+		this.name = adjustName(input) + description.orElse(EMPTY_STRING) + issueDescription.orElse(EMPTY_STRING);
 		this.status = input.getItemResults().getStatus().name();
 
 		this.duration = Duration.between(input.getStartTime(), input.getItemResults().getEndTime()).toMillis()
@@ -67,23 +66,16 @@ public class TestItemPojo {
 
 		Set<Statistics> statistics = input.getItemResults().getStatistics();
 
-		this.total = getStatisticsCounter(statistics, EXECUTIONS_TOTAL).orElse(0);
-		this.passed = getStatisticsCounter(statistics, EXECUTIONS_PASSED).orElse(0);
-		this.failed = getStatisticsCounter(statistics, EXECUTIONS_FAILED).orElse(0);
-		this.skipped = getStatisticsCounter(statistics, EXECUTIONS_SKIPPED).orElse(0);
+		this.total = getStatisticsCounter(statistics, EXECUTIONS_TOTAL);
+		this.passed = getStatisticsCounter(statistics, EXECUTIONS_PASSED);
+		this.failed = getStatisticsCounter(statistics, EXECUTIONS_FAILED);
+		this.skipped = getStatisticsCounter(statistics, EXECUTIONS_SKIPPED);
 
-		this.automationBug = getStatisticsCounter(statistics, DEFECTS_AUTOMATION_BUG_TOTAL).orElse(0);
-		this.productBug = getStatisticsCounter(statistics, DEFECTS_PRODUCT_BUG_TOTAL).orElse(0);
-		this.systemIssue = getStatisticsCounter(statistics, DEFECTS_SYSTEM_ISSUE_TOTAL).orElse(0);
-		this.noDefect = getStatisticsCounter(statistics, DEFECTS_NO_DEFECT_TOTAL).orElse(0);
-		this.toInvestigate = getStatisticsCounter(statistics, DEFECTS_TO_INVESTIGATE_TOTAL).orElse(0);
-	}
-
-	private OptionalInt getStatisticsCounter(Set<Statistics> statistics, String statisticsFieldName) {
-		return statistics.stream()
-				.filter(it -> it.getStatisticsField().getName().equals(statisticsFieldName))
-				.mapToInt(Statistics::getCounter)
-				.findAny();
+		this.automationBug = getStatisticsCounter(statistics, DEFECTS_AUTOMATION_BUG_TOTAL);
+		this.productBug = getStatisticsCounter(statistics, DEFECTS_PRODUCT_BUG_TOTAL);
+		this.systemIssue = getStatisticsCounter(statistics, DEFECTS_SYSTEM_ISSUE_TOTAL);
+		this.noDefect = getStatisticsCounter(statistics, DEFECTS_NO_DEFECT_TOTAL);
+		this.toInvestigate = getStatisticsCounter(statistics, DEFECTS_TO_INVESTIGATE_TOTAL);
 	}
 
 	public void setType(String value) {

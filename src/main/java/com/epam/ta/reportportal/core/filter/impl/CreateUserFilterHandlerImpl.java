@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
@@ -25,6 +26,7 @@ import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,16 +57,19 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 	@Override
 	public EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
+
+		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(
+				createFilterRQ.getName(),
+				user.getUsername(),
+				projectDetails.getProjectId()
+		), BooleanUtils::isFalse).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName());
+
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())
 				.addOwner(user.getUsername())
 				.get();
 		userFilterRepository.save(filter);
-		aclHandler.initAcl(filter,
-				user.getUsername(),
-				projectDetails.getProjectId(),
-				BooleanUtils.isTrue(createFilterRQ.getShare())
-		);
+		aclHandler.initAcl(filter, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createFilterRQ.getShare()));
 		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId()));
 		return new EntryCreatedRS(filter.getId());
 	}

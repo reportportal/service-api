@@ -138,9 +138,11 @@ class DemoDashboardsService {
 		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
-						.withCondition(Condition.EQUALS).withSearchCriteria(CRITERIA_NAME)
+						.withCondition(Condition.EQUALS)
+						.withSearchCriteria(CRITERIA_NAME)
 						.withValue(filterName)
-						.build()).build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
+						.build())
+				.build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
 
 		expect(existedFilterList.size(), Predicate.isEqual(0)).verify(RESOURCE_ALREADY_EXISTS, filterName);
 

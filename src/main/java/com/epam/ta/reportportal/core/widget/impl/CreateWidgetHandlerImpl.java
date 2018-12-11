@@ -99,7 +99,8 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {
 		if (CollectionUtils.isNotEmpty(filterIds)) {
-			Filter defaultFilter = new Filter(UserFilter.class,
+			Filter defaultFilter = new Filter(
+					UserFilter.class,
 					Condition.IN,
 					false,
 					filterIds.stream().map(String::valueOf).collect(Collectors.joining(",")),

@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
  */
 class ExportUtils {
 	private static final String SHIFT_PREFIX = "    ";
+	static final String COMMENT_PREFIX = "\r\n" + " DEFECT COMMENT: ";
+	static final String DESCRIPTION_PREFIX = "\r\n" + " ITEM DESCRIPTION: ";
 
 	static int getStatisticsCounter(Set<Statistics> statistics, String statisticsFieldName) {
 		return statistics.stream()

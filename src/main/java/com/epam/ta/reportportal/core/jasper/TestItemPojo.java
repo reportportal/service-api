@@ -23,8 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
-import static com.epam.ta.reportportal.core.jasper.ExportUtils.adjustName;
-import static com.epam.ta.reportportal.core.jasper.ExportUtils.getStatisticsCounter;
+import static com.epam.ta.reportportal.core.jasper.ExportUtils.*;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static java.util.Optional.ofNullable;
 
@@ -52,11 +51,10 @@ public class TestItemPojo {
 		this.type = input.getType().name();
 		Optional<String> issueDescription = Optional.empty();
 		if (input.getItemResults().getIssue() != null) {
-			issueDescription = ofNullable(input.getItemResults().getIssue().getIssueDescription()).map(it -> "\r\n" + " DEFECT COMMENT: "
-					+ it);
+			issueDescription = ofNullable(input.getItemResults().getIssue().getIssueDescription()).map(it -> COMMENT_PREFIX + it);
 		}
 
-		Optional<String> description = ofNullable(input.getDescription()).map(it -> "\r\n" + " ITEM DESCRIPTION: " + it);
+		Optional<String> description = ofNullable(input.getDescription()).map(it -> DESCRIPTION_PREFIX + it);
 
 		this.name = adjustName(input) + description.orElse(EMPTY_STRING) + issueDescription.orElse(EMPTY_STRING);
 		this.status = input.getItemResults().getStatus().name();

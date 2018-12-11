@@ -125,10 +125,10 @@ public class GetJasperReportHandler implements IGetJasperReportHandler {
 	@SuppressWarnings("OptionalGetWithoutIsPresent")
 	@Override
 	public ReportFormat getReportFormat(String view) {
-		Optional<ReportFormat> format = ReportFormat.findByName(view);
-		return format.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-				Suppliers.formattedSupplier("Unexpected report format: {}", view)
-		));
+		return ReportFormat.findByName(view)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("Unexpected report format: {}", view)
+				));
 	}
 
 	@Override

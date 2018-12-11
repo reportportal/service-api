@@ -20,10 +20,10 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
+import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,22 +39,24 @@ public class DeleteUserFilterHandlerImpl implements IDeleteUserFilterHandler {
 
 	private final UserFilterRepository userFilterRepository;
 
+	private final GetUserFilterHandler getFilterHandler;
+
 	private final MessageBus messageBus;
 
 	private final ReportPortalAclHandler aclHandler;
 
 	@Autowired
-	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, MessageBus messageBus,
-			ReportPortalAclHandler aclHandler) {
+	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, GetUserFilterHandler getFilterHandler,
+			MessageBus messageBus, ReportPortalAclHandler aclHandler) {
 		this.userFilterRepository = userFilterRepository;
+		this.getFilterHandler = getFilterHandler;
 		this.messageBus = messageBus;
 		this.aclHandler = aclHandler;
 	}
 
 	@Override
 	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(USER_FILTER_NOT_FOUND, id, projectDetails.getProjectId(), user.getUserId()));
+		UserFilter userFilter = getFilterHandler.getFilter(id, projectDetails, user);
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				id,
 				projectDetails.getProjectId(),

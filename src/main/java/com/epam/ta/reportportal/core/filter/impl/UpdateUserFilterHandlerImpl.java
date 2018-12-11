@@ -20,10 +20,9 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
+import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
-import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -43,16 +42,16 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 @Service
 public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 
-	private final UserFilterRepository userFilterRepository;
+	private final GetUserFilterHandler getUserFilterHandler;
 
 	private final ReportPortalAclHandler aclHandler;
 
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(UserFilterRepository userFilterRepository, ReportPortalAclHandler aclHandler,
+	public UpdateUserFilterHandlerImpl(GetUserFilterHandler getUserFilterHandler, ReportPortalAclHandler aclHandler,
 			MessageBus messageBus) {
-		this.userFilterRepository = userFilterRepository;
+		this.getUserFilterHandler = getUserFilterHandler;
 		this.aclHandler = aclHandler;
 		this.messageBus = messageBus;
 	}
@@ -60,12 +59,7 @@ public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 	@Override
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = userFilterRepository.findById(userFilterId)
-				.orElseThrow(() -> new ReportPortalException(USER_FILTER_NOT_FOUND,
-						userFilterId,
-						projectDetails.getProjectId(),
-						user.getUserId()
-				));
+		UserFilter userFilter = getUserFilterHandler.getFilter(userFilterId, projectDetails, user);
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				userFilterId,
 				projectDetails.getProjectId(),

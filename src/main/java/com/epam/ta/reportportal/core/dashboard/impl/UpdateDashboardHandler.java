@@ -104,13 +104,16 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
 		Widget widget = getWidgetHandler.getPermitted(widgetId);
 
+		/*
+		 *	if user is an owner of the widget - remove it from all dashboards
+		 */
 		if (user.getUsername().equalsIgnoreCase(widget.getOwner())) {
 			widget.getDashboardWidgets()
 					.forEach(dash -> dash.getDashboard()
 							.getDashboardWidgets()
 							.removeIf(widg -> widg.getId().getWidgetId().equals(widgetId)));
 			widget.getDashboardWidgets().clear();
-
+			aclHandler.deleteAclForObject(widget);
 			return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
 		}
 

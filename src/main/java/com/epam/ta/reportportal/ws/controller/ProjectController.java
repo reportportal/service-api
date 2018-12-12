@@ -258,7 +258,7 @@ public class ProjectController {
 	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getProjectInfo(ProjectExtractor.extractProjectDetails(user, projectName), interval);
+		return projectInfoHandler.getProjectInfo(projectName, interval);
 	}
 
 	@Transactional(readOnly = true)

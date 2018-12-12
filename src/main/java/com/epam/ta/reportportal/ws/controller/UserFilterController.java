@@ -79,7 +79,7 @@ public class UserFilterController {
 	@ApiOperation("Create user filter")
 	public EntryCreatedRS createFilter(@PathVariable String projectName, @RequestBody @Validated CreateUserFilterRQ createFilterRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createFilterHandler.createFilter(createFilterRQ, extractProjectDetails(user, projectName), user);
+		return createFilterHandler.createFilter(createFilterRQ, projectName, user);
 	}
 
 	@Transactional(readOnly = true)

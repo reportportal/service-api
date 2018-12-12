@@ -55,7 +55,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public class EmailService extends JavaMailSenderImpl {
 
-	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
+	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
 	private static final String URL_FORMAT = "%s/launches/all";
 	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
@@ -101,8 +101,8 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @param url        ReportPortal URL
 	 * @param launch     Launch
 	 */
-	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch) {
-		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
+	public void sendLaunchFinishNotification(final String[] recipients, final String url, final String projectName, final Launch launch) {
+		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, projectName.toUpperCase(), launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);

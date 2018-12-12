@@ -204,7 +204,7 @@ public class LaunchFinishedEventHandler {
 						.build()
 						.toUriString();
 
-				emailService.sendLaunchFinishNotification(recipientsArray, basicURL, launch);
+				emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project.getName(), launch);
 			} catch (Exception e) {
 				LOGGER.error("Unable to send email. Error: \n{}", e);
 			}

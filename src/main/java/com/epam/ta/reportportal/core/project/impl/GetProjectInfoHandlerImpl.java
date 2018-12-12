@@ -105,7 +105,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
 
-		ProjectInfoResource projectInfoResource = ProjectConverter.TO_PROJECT_INFO_RESOURCE.apply(projectRepository.findProjectInfoFromDate(project.getId(),
+		ProjectInfoResource projectInfoResource = ProjectConverter.TO_PROJECT_INFO_RESOURCE.apply(projectRepository.findProjectInfoFromDate(
+				project.getId(),
 				getStartIntervalDate(infoInterval),
 				Mode.DEFAULT.name()
 		));
@@ -190,8 +191,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
-				new FilterCondition(GREATER_THAN_OR_EQUALS,
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
+						GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE

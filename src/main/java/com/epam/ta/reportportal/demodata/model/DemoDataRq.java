@@ -25,8 +25,8 @@ public class DemoDataRq {
 	@JsonProperty(defaultValue = "10")
 	private int launchesQuantity = 10;
 
-	@JsonProperty(defaultValue = "false")
-	private boolean isCreateDashboard = false;
+	@JsonProperty(defaultValue = "true")
+	private boolean isCreateDashboard = true;
 
 	public boolean isCreateDashboard() {
 		return isCreateDashboard;

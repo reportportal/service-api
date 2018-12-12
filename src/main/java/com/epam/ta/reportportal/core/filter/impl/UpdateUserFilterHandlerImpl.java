@@ -33,29 +33,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Predicate;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 
 @Service
 public class UpdateUserFilterHandlerImpl implements IUpdateUserFilterHandler {
 
-	private final GetUserFilterHandler getFilterHandler;
+	private final GetUserFilterHandler getUserFilterHandler;
 
-	@Autowired
-	private ReportPortalAclHandler aclHandler;
+	private final ReportPortalAclHandler aclHandler;
 
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(MessageBus messageBus, GetUserFilterHandler getFilterHandler) {
+	public UpdateUserFilterHandlerImpl(GetUserFilterHandler getUserFilterHandler, ReportPortalAclHandler aclHandler,
+			MessageBus messageBus) {
+		this.getUserFilterHandler = getUserFilterHandler;
+		this.aclHandler = aclHandler;
 		this.messageBus = messageBus;
-		this.getFilterHandler = getFilterHandler;
 	}
 
 	@Override
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = getFilterHandler.getFilter(userFilterId, projectDetails, user);
+		UserFilter userFilter = getUserFilterHandler.getFilter(userFilterId, projectDetails, user);
+		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
+				userFilterId,
+				projectDetails.getProjectId(),
+				user.getUserId()
+		);
 		UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
 		UserFilter updated = new UserFilterBuilder(userFilter).addUpdateFilterRQ(updateRQ).get();
 

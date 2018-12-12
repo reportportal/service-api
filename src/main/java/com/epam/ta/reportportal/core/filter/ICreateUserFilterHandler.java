@@ -31,9 +31,9 @@ public interface ICreateUserFilterHandler {
 	 * Creates new filter
 	 *
 	 * @param createFilterRQ
-	 * @param projectDetails
+	 * @param projectName
 	 * @param user
 	 * @return EntryCreatedRS
 	 */
-	EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user);
 }

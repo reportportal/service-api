@@ -15,7 +15,8 @@ COPY . ./
 RUN ./gradlew build
 
 RUN mkdir -p /usr/src/reportportal/plugins
-RUN curl -o /usr/src/reportportal/plugins/jira-bts.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
+RUN curl -o /usr/src/reportportal/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
+RUN curl -o /usr/src/reportportal/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
 
 FROM openjdk:8-jre-slim
 
@@ -36,7 +37,8 @@ exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
 VOLUME /tmp
 
 RUN mkdir plugins
-COPY --from=builder /usr/src/reportportal/plugins/jira-bts.jar ./plugins/jira-bts.jar
+COPY --from=builder /usr/src/reportportal/plugins/JIRA.jar ./plugins/JIRA.jar
+COPY --from=builder /usr/src/reportportal/plugins/RALLY.jar ./plugins/RALLY.jar
 
 COPY --from=builder /usr/src/reportportal/build/libs/service-api.jar ./app.jar
 

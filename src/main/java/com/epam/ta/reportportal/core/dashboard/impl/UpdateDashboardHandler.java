@@ -108,13 +108,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 		 *	if user is an owner of the widget - remove it from all dashboards
 		 */
 		if (user.getUsername().equalsIgnoreCase(widget.getOwner())) {
-			widget.getDashboardWidgets()
-					.forEach(dash -> dash.getDashboard()
-							.getDashboardWidgets()
-							.removeIf(widg -> widg.getId().getWidgetId().equals(widgetId)));
-			widget.getDashboardWidgets().clear();
-			aclHandler.deleteAclForObject(widget);
-			return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
+			return deleteWidget(widgetId, widget);
 		}
 
 		boolean isRemoved = dashboard.getDashboardWidgets()
@@ -125,6 +119,24 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 		return new OperationCompletionRS(
 				"Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
 						+ "'");
+	}
+
+	/**
+	 * Totally remove the widget from all dashboards
+	 *
+	 * @param widgetId Widget id
+	 * @param widget   Widget
+	 * @return OperationCompletionRS
+	 */
+	private OperationCompletionRS deleteWidget(Long widgetId, Widget widget) {
+		widget.getDashboardWidgets()
+				.forEach(widgetDashboard -> widgetDashboard.getDashboard()
+						.getDashboardWidgets()
+						.removeIf(dashboardWidget -> dashboardWidget.getId().getWidgetId().equals(widgetId)));
+		widget.getDashboardWidgets().clear();
+		aclHandler.deleteAclForObject(widget);
+		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
+
 	}
 
 }

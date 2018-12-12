@@ -52,11 +52,10 @@ public interface GetProjectInfoHandler {
 	 * Get widget data content for specified project by specified
 	 * {@link InfoInterval} and {@link com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget}
 	 *
-	 * @param projectDetails Project id
-	 * @param interval       Interval
-	 * @param widgetCode     Project Info Widget code
+	 * @param projectName Project name
+	 * @param interval    Interval
+	 * @param widgetCode  Project Info Widget code
 	 * @return
 	 */
-	Map<String, ?> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
-			String widgetCode);
+	Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval, String widgetCode);
 }

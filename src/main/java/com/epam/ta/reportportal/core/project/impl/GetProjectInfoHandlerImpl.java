@@ -116,11 +116,13 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	}
 
 	@Override
-	public Map<String, ?> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval, String widgetCode) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval, String widgetCode) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+
 		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
+
 		ProjectInfoWidget widgetType = ProjectInfoWidget.findByCode(widgetCode)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, widgetCode));
 
@@ -145,10 +147,10 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				result = dataConverter.getLaunchesIssues(launches, infoInterval);
 				break;
 			case ACTIVITIES:
-				result = getActivities(projectDetails.getProjectId(), infoInterval);
+				result = getActivities(project.getId(), infoInterval);
 				break;
 			case LAST_LAUNCH:
-				result = getLastLaunchStatistics(projectDetails.getProjectId());
+				result = getLastLaunchStatistics(project.getId());
 				break;
 			default:
 				// empty result
@@ -184,8 +186,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
-						GREATER_THAN_OR_EQUALS,
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
+				new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE

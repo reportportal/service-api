@@ -105,7 +105,10 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		expect(launch.getProjectId(), equalTo(projectId)).verify(
 				ErrorType.FORBIDDEN_OPERATION,
-				formattedSupplier("Specified launch with id '{}' not referenced to specified project '{}'", launch.getId(), projectId)
+				formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
+						launch.getId(),
+						projectId
+				)
 		);
 	}
 }

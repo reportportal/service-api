@@ -41,7 +41,7 @@ public class JasperDataProvider {
 
 	List<TestItemPojo> getReportSource(Long launchId) {
 		/* Get launch referred test items with SORT! */
-		return testItemRepository.findTestItemsByLaunchIdOrderByStartTime(launchId)
+		return testItemRepository.findTestItemsByLaunchIdOrderByStartTimeAsc(launchId)
 				.stream()
 				.map(TestItemPojo::new)
 				.collect(Collectors.toList());

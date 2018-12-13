@@ -11,3 +11,9 @@ rp:
     api-address: http://rabbitmq:rabbitmq@localhost:15672/api
   db:
     url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: info

@@ -97,7 +97,10 @@ public class ProjectInfoWidgetDataConverter {
 						investigated + extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, one.getStatistics()) + extractStatisticsCount(
 								DEFECTS_SYSTEM_ISSUE_TOTAL,
 								one.getStatistics()
-						) + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
+						) + extractStatisticsCount(
+								DEFECTS_AUTOMATION_BUG_TOTAL,
+								one.getStatistics()
+						);
 				toInvestigate = toInvestigate + extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, one.getStatistics());
 			}
 			if ((investigated + toInvestigate) > 0) {
@@ -272,7 +275,7 @@ public class ProjectInfoWidgetDataConverter {
 				default:
 					key = formattedDate(criteria, localDate);
 					if (prevDate != null) {
-						while (!formattedDate(criteria, prevDate).equals(formattedDate(criteria, localDate))) {
+						while (prevDate.isBefore(localDate)) {
 							if (!result.containsKey(formattedDate(criteria, prevDate))) {
 								result.put(formattedDate(criteria, prevDate), new ArrayList<>());
 							}

@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * @author Ivan Nikitsenka
  */
-public class AclService extends JdbcMutableAclService {
+public class ReportPortalAclService extends JdbcMutableAclService {
 
 	private static final String IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_class', 'id'))";
 	private static final String SID_IDENTITY_QUERY = "select currval(pg_get_serial_sequence('acl_sid', 'id'))";
@@ -45,7 +45,7 @@ public class AclService extends JdbcMutableAclService {
 			+ "and parent.object_id_identity = ?::varchar and parent.object_id_class = ("
 			+ "select id FROM acl_class where acl_class.class = ?)";
 
-	public AclService(DataSource dataSource, LookupStrategy lookupStrategy, AclCache aclCache) {
+	public ReportPortalAclService(DataSource dataSource, LookupStrategy lookupStrategy, AclCache aclCache) {
 		super(dataSource, lookupStrategy, aclCache);
 		this.setClassIdentityQuery(IDENTITY_QUERY);
 		this.setSidIdentityQuery(SID_IDENTITY_QUERY);

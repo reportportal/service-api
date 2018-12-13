@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
@@ -40,14 +40,14 @@ import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConvert
 @Service
 public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 
-	private final ReportPortalAclHandler aclHandler;
+	private final ShareableObjectsHandler aclHandler;
 
 	private final UserFilterRepository userFilterRepository;
 
 	private final MessageBus messageBus;
 
 	@Autowired
-	public CreateUserFilterHandlerImpl(ReportPortalAclHandler aclHandler, UserFilterRepository userFilterRepository,
+	public CreateUserFilterHandlerImpl(ShareableObjectsHandler aclHandler, UserFilterRepository userFilterRepository,
 			MessageBus messageBus) {
 		this.aclHandler = aclHandler;
 		this.userFilterRepository = userFilterRepository;

@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
@@ -56,11 +56,11 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 
 	private GetWidgetHandler getWidgetHandler;
 
-	private ReportPortalAclHandler aclHandler;
+	private ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public UpdateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus, GetDashboardHandler getDashboardHandler,
-			GetWidgetHandler getWidgetHandler, ReportPortalAclHandler aclHandler) {
+			GetWidgetHandler getWidgetHandler, ShareableObjectsHandler aclHandler) {
 		this.dashboardRepository = dashboardRepository;
 		this.messageBus = messageBus;
 		this.getDashboardHandler = getDashboardHandler;

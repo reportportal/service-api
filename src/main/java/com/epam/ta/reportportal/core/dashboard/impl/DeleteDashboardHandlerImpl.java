@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -43,7 +43,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private DashboardRepository dashboardRepository;
 
 	@Autowired
-	private ReportPortalAclHandler aclHandler;
+	private ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	private MessageBus messageBus;

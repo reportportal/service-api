@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
@@ -43,11 +43,11 @@ public class DeleteUserFilterHandlerImpl implements IDeleteUserFilterHandler {
 
 	private final MessageBus messageBus;
 
-	private final ReportPortalAclHandler aclHandler;
+	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, GetUserFilterHandler getFilterHandler,
-			MessageBus messageBus, ReportPortalAclHandler aclHandler) {
+			MessageBus messageBus, ShareableObjectsHandler aclHandler) {
 		this.userFilterRepository = userFilterRepository;
 		this.getFilterHandler = getFilterHandler;
 		this.messageBus = messageBus;

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
@@ -68,7 +68,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	private GetWidgetHandler getWidgetHandler;
 
 	@Autowired
-	private ReportPortalAclHandler aclHandler;
+	private ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public void setWidgetRepository(WidgetRepository widgetRepository) {

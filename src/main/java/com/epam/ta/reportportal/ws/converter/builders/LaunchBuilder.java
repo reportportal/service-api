@@ -41,6 +41,9 @@ import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
 
+	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 1024;
+	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
+
 	private Launch launch;
 
 	public LaunchBuilder() {
@@ -65,7 +68,10 @@ public class LaunchBuilder implements Supplier<Launch> {
 
 	public LaunchBuilder addDescription(String description) {
 		//launch description length limitation is 1024 symbols
-		ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(), 0, 1024)));
+		ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
+				DESCRIPTION_START_SYMBOL_INDEX,
+				LAUNCH_DESCRIPTION_LENGTH_LIMIT
+		)));
 		return this;
 	}
 

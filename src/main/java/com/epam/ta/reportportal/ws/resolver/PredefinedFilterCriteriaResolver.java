@@ -52,7 +52,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 	 * parameters (some of them may not be related to filtering), we have to
 	 * introduce this
 	 */
-	public static final String FILTER_PARAMETER_NAME = "predefined_filter";
+	public static final String FILTER_PARAMETER_NAME = "predefinedFilter";
 
 	/**
 	 * Returns TRUE only for {@link List} marked with {@link FilterFor}

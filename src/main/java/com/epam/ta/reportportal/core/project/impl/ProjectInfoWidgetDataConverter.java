@@ -97,10 +97,7 @@ public class ProjectInfoWidgetDataConverter {
 						investigated + extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, one.getStatistics()) + extractStatisticsCount(
 								DEFECTS_SYSTEM_ISSUE_TOTAL,
 								one.getStatistics()
-						) + extractStatisticsCount(
-								DEFECTS_AUTOMATION_BUG_TOTAL,
-								one.getStatistics()
-						);
+						) + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
 				toInvestigate = toInvestigate + extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, one.getStatistics());
 			}
 			if ((investigated + toInvestigate) > 0) {

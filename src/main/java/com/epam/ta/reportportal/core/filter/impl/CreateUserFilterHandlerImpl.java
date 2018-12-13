@@ -32,6 +32,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 
 /**
@@ -55,14 +56,15 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 	}
 
 	@Override
-	public EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	public EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user) {
 
-		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(
-				createFilterRQ.getName(),
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+
+		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName());
+		), BooleanUtils::isFalse)
+				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())

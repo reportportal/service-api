@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.project;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
@@ -42,21 +41,20 @@ public interface GetProjectInfoHandler {
 	/**
 	 * Get project info
 	 *
-	 * @param projectDetails Project details
-	 * @param interval       Interval
+	 * @param projectName Project name
+	 * @param interval    Interval
 	 * @return Project info resource
 	 */
-	ProjectInfoResource getProjectInfo(ReportPortalUser.ProjectDetails projectDetails, String interval);
+	ProjectInfoResource getProjectInfo(String projectName, String interval);
 
 	/**
 	 * Get widget data content for specified project by specified
 	 * {@link InfoInterval} and {@link com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget}
 	 *
-	 * @param projectDetails Project id
-	 * @param interval       Interval
-	 * @param widgetCode     Project Info Widget code
+	 * @param projectName Project name
+	 * @param interval    Interval
+	 * @param widgetCode  Project Info Widget code
 	 * @return
 	 */
-	Map<String, ?> getProjectInfoWidgetContent(ReportPortalUser.ProjectDetails projectDetails, String interval,
-			String widgetCode);
+	Map<String, ?> getProjectInfoWidgetContent(String projectName, String interval, String widgetCode);
 }

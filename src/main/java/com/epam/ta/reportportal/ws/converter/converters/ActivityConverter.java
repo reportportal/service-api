@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.ws.model.ActivityResource;
 import java.util.function.Function;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -40,7 +41,7 @@ public final class ActivityConverter {
 		resource.setActionType(activity.getAction());
 		resource.setProjectRef(activity.getProjectId().toString());
 		resource.setUserRef(activity.getUserId().toString());
-		resource.setLoggedObjectRef(activity.getObjectId().toString());
+		ofNullable(activity.getObjectId()).ifPresent(id -> resource.setLoggedObjectRef(id.toString()));
 		resource.setDetails(activity.getDetails());
 		return resource;
 	};

@@ -89,7 +89,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		Date endTime = ofNullable(mergeLaunchesRQ.getEndTime()).orElse(EntityUtils.TO_DATE.apply(launches.stream()
 				.max(Comparator.comparing(Launch::getEndTime))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
-				.getStartTime()));
+				.getEndTime()));
 		expect(endTime, time -> !time.before(startTime)).verify(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME);
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();

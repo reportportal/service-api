@@ -67,7 +67,6 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addDescription(String description) {
-		//launch description length limitation is 1024 symbols
 		ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
 				DESCRIPTION_START_SYMBOL_INDEX,
 				LAUNCH_DESCRIPTION_LENGTH_LIMIT

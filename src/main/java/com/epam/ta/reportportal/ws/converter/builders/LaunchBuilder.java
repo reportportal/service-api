@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 import java.util.Optional;
@@ -39,6 +40,9 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
+
+	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 1024;
+	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
 
 	private Launch launch;
 
@@ -63,7 +67,10 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addDescription(String description) {
-		ofNullable(description).ifPresent(it -> launch.setDescription(it.trim()));
+		ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
+				DESCRIPTION_START_SYMBOL_INDEX,
+				LAUNCH_DESCRIPTION_LENGTH_LIMIT
+		)));
 		return this;
 	}
 

@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.Condition.*;
@@ -109,6 +111,17 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				getStartIntervalDate(infoInterval),
 				Mode.DEFAULT.name()
 		));
+
+		Map<String, Integer> launchesPerUserMapping = launchRepository.countLaunchesGroupedByOwner(project.getId(),
+				LaunchModeEnum.DEFAULT.toString(),
+				getStartIntervalDate(infoInterval)
+		);
+
+		projectInfoResource.setLaunchesPerUser(launchesPerUserMapping.entrySet()
+				.stream()
+				.map(e -> new LaunchesPerUser(e.getKey(), e.getValue()))
+				.collect(Collectors.toList()));
+
 		if (projectInfoResource.getLaunchesQuantity() != 0) {
 			formatter.setRoundingMode(RoundingMode.HALF_UP);
 			double value = projectInfoResource.getLaunchesQuantity() / (infoInterval.getCount() * WEEKS_IN_MONTH);

@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -90,7 +89,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findById(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
 		validate(user, projectDetails, rq, launch);
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
 		testItemRepository.save(item);
 
 		item.setPath(String.valueOf(item.getItemId()));
@@ -111,7 +110,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		validate(rq, parentItem);
 
 		//TODO retries
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addLaunch(launch).addParent(parentItem).get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
+				.addAttributes(rq.getAttributes())
+				.addLaunch(launch)
+				.addParent(parentItem)
+				.get();
 		testItemRepository.save(item);
 		item.setPath(parentItem.getPath() + "." + item.getItemId());
 		if (null == item.getUniqueId()) {
@@ -142,8 +145,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.getStartTime(),
 				launch.getId()
 		);
-
-		validateAttributes(rq.getAttributes());
 	}
 
 	/**
@@ -167,7 +168,5 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
-
-		validateAttributes(rq.getAttributes());
 	}
 }

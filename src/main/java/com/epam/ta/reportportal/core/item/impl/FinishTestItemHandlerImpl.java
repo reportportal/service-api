@@ -43,7 +43,6 @@ import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
@@ -180,7 +179,5 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 				testItem.getItemId()
 		));
-
-		validateAttributes(attributes);
 	}
 }

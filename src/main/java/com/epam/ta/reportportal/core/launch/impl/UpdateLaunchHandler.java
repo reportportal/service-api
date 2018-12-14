@@ -83,8 +83,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		validate(launch, user, projectDetails, rq.getMode());
 		validateAttributes(rq.getAttributes());
 		launch = new LaunchBuilder(launch).addMode(rq.getMode())
-				.addDescription(rq.getDescription())
-				.addAttributes(rq.getAttributes())
+				.addDescription(rq.getDescription()).overwriteAttributes(rq.getAttributes())
 				.get();
 		//reindexLogs(launch);
 		launchRepository.save(launch);

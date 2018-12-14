@@ -35,10 +35,9 @@ public class AttributesValidator {
 
 	public static void validateAttributes(Set<ItemAttributeResource> attributes) {
 		if (attributes != null && !attributes.isEmpty()) {
-			attributes.forEach(it -> {
-				boolean test = it.getKey() != null || it.getValue() != null;
-				expect(test, Predicate.isEqual(true)).verify(BAD_REQUEST_ERROR, "Attribute key or value have to be not empty");
-			});
+			attributes.forEach(it -> expect(it.isSystem(), Predicate.isEqual(false)).verify(BAD_REQUEST_ERROR,
+					"System attributes is not applicable here"
+			));
 		}
 	}
 }

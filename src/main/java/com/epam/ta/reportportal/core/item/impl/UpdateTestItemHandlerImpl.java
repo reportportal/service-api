@@ -165,7 +165,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		}
 
 		validate(projectDetails, user, testItem);
-		testItem = new TestItemBuilder(testItem).addAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
+		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
 	}

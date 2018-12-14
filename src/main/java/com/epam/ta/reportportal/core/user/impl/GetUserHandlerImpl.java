@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.base.Preconditions;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
@@ -123,10 +124,10 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public YesNoRS validateInfo(String username, String email) {
 		if (null != username) {
 			Optional<User> user = userRepository.findByLogin(EntityUtils.normalizeId(username));
-			return null != user ? new YesNoRS(true) : new YesNoRS(false);
+			return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
 		} else if (null != email) {
 			Optional<User> user = userRepository.findByEmail(EntityUtils.normalizeId(email));
-			return null != user ? new YesNoRS(true) : new YesNoRS(false);
+			return user.isPresent() ? new YesNoRS(true) : new YesNoRS(false);
 		}
 		return new YesNoRS(false);
 	}
@@ -153,13 +154,12 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 	@Override
 	public Iterable<UserResource> searchUsers(String term, Pageable pageable) {
-		//		Filter filter = Filter.builder()
-		//				.withTarget(User.class)
-		//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
-		//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
-		//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
-		//				.build();
-		//		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
-		throw new ReportPortalException("Unsupported operation");
+		Filter filter = Filter.builder()
+				.withTarget(User.class)
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_USER))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_FULL_NAME))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_EMAIL))
+				.build();
+		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
 	}
 }

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -82,7 +82,7 @@ class DemoDashboardsService {
 
 	private final ProjectRepository projectRepository;
 
-	private final ReportPortalAclHandler aclHandler;
+	private final ShareableObjectsHandler aclHandler;
 
 	private final ObjectMapper objectMapper;
 
@@ -90,7 +90,7 @@ class DemoDashboardsService {
 
 	@Autowired
 	public DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
-			WidgetRepository widgetRepository, ProjectRepository projectRepository, ReportPortalAclHandler aclHandler,
+			WidgetRepository widgetRepository, ProjectRepository projectRepository, ShareableObjectsHandler aclHandler,
 			ObjectMapper objectMapper) {
 		this.userFilterRepository = userFilterRepository;
 		this.dashboardRepository = dashboardRepository;

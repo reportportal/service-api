@@ -16,24 +16,28 @@
 
 package com.epam.ta.reportportal.core.filter;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 
 /**
- * Create filter handler
- *
- * @author Aliaksei_Makayed
+ * @author Andrei Varabyeu
  */
-public interface ICreateUserFilterHandler {
+public abstract class PredefinedFilterBuilder {
 
-	/**
-	 * Creates new filter
-	 *
-	 * @param createFilterRQ
-	 * @param projectName
-	 * @param user
-	 * @return EntryCreatedRS
-	 */
-	EntryCreatedRS createFilter(CreateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user);
+	public Queryable buildFilter(String[] params) {
+		checkParams(params);
+		return build(params);
+	}
+
+	abstract protected Queryable build(String[] params);
+
+	protected void checkParams(String[] params) {
+		//empty by default
+	}
+
+	protected Exception incorrectParamsException(String message) {
+		throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, message);
+	}
+
 }

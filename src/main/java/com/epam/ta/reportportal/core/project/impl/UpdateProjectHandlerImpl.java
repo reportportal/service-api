@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
@@ -87,7 +87,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private ShareableEntityRepository shareableEntityRepository;
 
 	@Autowired
-	private ReportPortalAclHandler aclHandler;
+	private ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,

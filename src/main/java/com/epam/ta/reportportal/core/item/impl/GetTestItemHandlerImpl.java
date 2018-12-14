@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -78,7 +78,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+	public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Long launchId) {
 		validate(launchId, projectDetails.getProjectId());
 		Page<TestItem> testItemPage = testItemRepository.findByFilter(filter, pageable);
@@ -103,8 +103,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private void validate(Long launchId, Long projectId) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		expect(launch.getProjectId(), equalTo(projectId)).verify(
-				ErrorType.FORBIDDEN_OPERATION,
+		expect(launch.getProjectId(), equalTo(projectId)).verify(ErrorType.FORBIDDEN_OPERATION,
 				formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
 						launch.getId(),
 						projectId

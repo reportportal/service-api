@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
@@ -44,7 +44,7 @@ public class CreateDashboardHandler implements com.epam.ta.reportportal.core.das
 	private MessageBus messageBus;
 
 	@Autowired
-	private ReportPortalAclHandler aclHandler;
+	private ShareableObjectsHandler aclHandler;
 
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {

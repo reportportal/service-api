@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +51,7 @@ public interface GetTestItemHandler {
 	 * @param user           {@link ReportPortalUser}
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
-	Iterable<TestItemResource> getTestItems(Filter filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Long launchId);
 
 	/**

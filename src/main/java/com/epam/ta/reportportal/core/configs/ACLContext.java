@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.auth.acl.AclService;
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -65,8 +65,8 @@ public class ACLContext {
     }
 
     @Bean
-    public AclService aclService() {
-        return new AclService(dataSource,lookupStrategy(), aclCache());
+    public ReportPortalAclService aclService() {
+        return new ReportPortalAclService(dataSource,lookupStrategy(), aclCache());
     }
 
     @Bean

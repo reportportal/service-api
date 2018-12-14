@@ -53,28 +53,21 @@ import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.T
 @Service
 public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
-	private WidgetRepository widgetRepository;
+	private final WidgetRepository widgetRepository;
 
-	private UserFilterRepository filterRepository;
+	private final UserFilterRepository filterRepository;
 
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
+
+	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	private ShareableObjectsHandler aclHandler;
-
-	@Autowired
-	public void setWidgetRepository(WidgetRepository widgetRepository) {
+	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
+			ShareableObjectsHandler aclHandler) {
 		this.widgetRepository = widgetRepository;
-	}
-
-	@Autowired
-	public void setUserFilterRepository(UserFilterRepository filterRepository) {
 		this.filterRepository = filterRepository;
-	}
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
 		this.messageBus = messageBus;
+		this.aclHandler = aclHandler;
 	}
 
 	@Override

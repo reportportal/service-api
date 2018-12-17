@@ -29,10 +29,10 @@ import java.util.List;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class ReportPortalAclHandler {
+public class ShareableObjectsHandler {
 
 	@Autowired
-	private AclService aclService;
+	private ReportPortalAclService aclService;
 
 	@Autowired
 	private UserRepository userRepository;

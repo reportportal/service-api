@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.acl.ReportPortalAclHandler;
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
@@ -53,28 +53,21 @@ import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.T
 @Service
 public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
-	private WidgetRepository widgetRepository;
+	private final WidgetRepository widgetRepository;
 
-	private UserFilterRepository filterRepository;
+	private final UserFilterRepository filterRepository;
 
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
+
+	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	private ReportPortalAclHandler aclHandler;
-
-	@Autowired
-	public void setWidgetRepository(WidgetRepository widgetRepository) {
+	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
+			ShareableObjectsHandler aclHandler) {
 		this.widgetRepository = widgetRepository;
-	}
-
-	@Autowired
-	public void setUserFilterRepository(UserFilterRepository filterRepository) {
 		this.filterRepository = filterRepository;
-	}
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
 		this.messageBus = messageBus;
+		this.aclHandler = aclHandler;
 	}
 
 	@Override

@@ -126,7 +126,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
 		argumentResolvers.add(new ActiveUserWebArgumentResolver());
 		argumentResolvers.add(new FilterCriteriaResolver());
-		//		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
+		argumentResolvers.add(new PredefinedFilterCriteriaResolver());
 	}
 
 	@Override

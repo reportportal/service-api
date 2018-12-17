@@ -225,14 +225,4 @@ public class UserController {
 		return getUserHandler.getUserProjects(userName);
 	}
 
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/search")
-	@ResponseStatus(OK)
-	@ApiIgnore
-	@PreAuthorize(ADMIN_ONLY)
-	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, @SortFor(User.class) Pageable pageable,
-			@FilterFor(User.class) Queryable queryable, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return getUserHandler.searchUsers(queryable, pageable);
-	}
-
 }

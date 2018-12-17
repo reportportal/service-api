@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
@@ -84,18 +85,18 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
-		ItemAttribute itemAttribute = new ItemAttribute();
-		itemAttribute.setKey(attributeResource.getKey());
-		itemAttribute.setValue(attributeResource.getValue());
-		itemAttribute.setSystem(attributeResource.isSystem());
+		ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
 		itemAttribute.setLaunch(launch);
 		launch.getAttributes().add(itemAttribute);
 		return this;
 	}
 
 	public LaunchBuilder addAttributes(Set<ItemAttributeResource> attributes) {
-		ofNullable(attributes).ifPresent(it -> launch.getAttributes()
-				.addAll(it.stream().map(this::fromResource).collect(Collectors.toSet())));
+		ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setLaunch(launch);
+			return itemAttribute;
+		}).collect(Collectors.toSet())));
 		return this;
 	}
 
@@ -104,7 +105,11 @@ public class LaunchBuilder implements Supplier<Launch> {
 				.stream()
 				.filter(ItemAttribute::isSystem)
 				.collect(Collectors.toSet()));
-		ofNullable(attributes).ifPresent(it -> it.stream().map(this::fromResource).forEach(overwrittenAttributes::add));
+		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setLaunch(launch);
+			return itemAttribute;
+		}).forEach(overwrittenAttributes::add));
 		launch.setAttributes(overwrittenAttributes);
 		return this;
 	}
@@ -127,14 +132,5 @@ public class LaunchBuilder implements Supplier<Launch> {
 	@Override
 	public Launch get() {
 		return launch;
-	}
-
-	private ItemAttribute fromResource(ItemAttributeResource val) {
-		ItemAttribute itemAttribute = new ItemAttribute();
-		itemAttribute.setKey(val.getKey());
-		itemAttribute.setValue(val.getValue());
-		itemAttribute.setSystem(val.isSystem());
-		itemAttribute.setLaunch(launch);
-		return itemAttribute;
 	}
 }

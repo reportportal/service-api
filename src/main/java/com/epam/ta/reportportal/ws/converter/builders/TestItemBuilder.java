@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
 
@@ -103,8 +104,11 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addAttributes(Set<ItemAttributeResource> attributes) {
-		ofNullable(attributes).ifPresent(it -> testItem.getAttributes()
-				.addAll(it.stream().map(this::fromResource).collect(Collectors.toSet())));
+		ofNullable(attributes).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setTestItem(testItem);
+			return itemAttribute;
+		}).collect(Collectors.toSet())));
 		return this;
 	}
 
@@ -113,7 +117,11 @@ public class TestItemBuilder implements Supplier<TestItem> {
 				.stream()
 				.filter(ItemAttribute::isSystem)
 				.collect(Collectors.toSet()));
-		ofNullable(attributes).ifPresent(it -> it.stream().map(this::fromResource).forEach(overwrittenAttributes::add));
+		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setTestItem(testItem);
+			return itemAttribute;
+		}).forEach(overwrittenAttributes::add));
 		testItem.setAttributes(overwrittenAttributes);
 		return this;
 	}
@@ -149,14 +157,5 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	@Override
 	public TestItem get() {
 		return this.testItem;
-	}
-
-	private ItemAttribute fromResource(ItemAttributeResource val) {
-		ItemAttribute itemAttribute = new ItemAttribute();
-		itemAttribute.setKey(val.getKey());
-		itemAttribute.setValue(val.getValue());
-		itemAttribute.setSystem(val.isSystem());
-		itemAttribute.setTestItem(testItem);
-		return itemAttribute;
 	}
 }

@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.PredefinedFilters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -72,12 +73,12 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 		List<Queryable> filterConditions = webRequest.getParameterMap()
 				.entrySet()
 				.stream()
-				.filter(parameter -> FILTER_PARAMETER_NAME.equals(parameter.getKey()))
+				.filter(parameter -> StringUtils.contains(parameter.getKey(), FILTER_PARAMETER_NAME))
 				.map(parameter -> {
 					BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
 
-					String filterName = parameter.getValue()[0];
+					String filterName = parameter.getKey().split("\\.")[1];
 
 					BusinessRule.expect(PredefinedFilters.hasFilter(filterName), Predicate.isEqual(true))
 							.verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");

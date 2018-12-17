@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.Status;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.user.User;
 import com.google.common.collect.ImmutableMap;
 import org.jooq.Operator;
 
@@ -31,6 +32,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TYPE;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
 
 /**
  * Holder for predefined quires
@@ -55,6 +58,7 @@ public final class PredefinedFilters {
 
 	//@formatter:off
 	private static final Map<String, PredefinedFilterBuilder> FILTERS = ImmutableMap.<String, PredefinedFilterBuilder>builder()
+			// Search items according to predefined conditions
 			.put("collapsed", new PredefinedFilterBuilder() {
 				@Override
 				public Queryable build(String[] params) {
@@ -65,7 +69,18 @@ public final class PredefinedFilters {
 						.withCondition(new FilterCondition(Operator.OR, Condition.EXISTS, false, "true", CRITERIA_ISSUE_TYPE))
 						.build();
 				}
-			}).build();
+			})
+			// Search users predefined filter
+			.put("users", new PredefinedFilterBuilder() {
+				@Override
+				public Queryable build(String[] params) {
+					return Filter.builder()
+								.withTarget(User.class)
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_USER))
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_FULL_NAME))
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_EMAIL))
+								.build();
+    }}).build();
 	//@formatter:on
 
 	public static boolean hasFilter(String name) {

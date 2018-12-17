@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
@@ -161,8 +163,8 @@ public class UserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
 	public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser currentUser) {
-		return getUserHandler.getAllUsers(filter, pageable);
+			@FilterFor(User.class) Queryable queryable, @AuthenticationPrincipal ReportPortalUser currentUser) {
+		return getUserHandler.getAllUsers(new CompositeFilter(filter, queryable), pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -228,9 +230,9 @@ public class UserController {
 	@ResponseStatus(OK)
 	@ApiIgnore
 	@PreAuthorize(ADMIN_ONLY)
-	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser currentUser) {
-		return getUserHandler.searchUsers(term, pageable);
+	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, @SortFor(User.class) Pageable pageable,
+			@FilterFor(User.class) Queryable queryable, @AuthenticationPrincipal ReportPortalUser currentUser) {
+		return getUserHandler.searchUsers(queryable, pageable);
 	}
 
 }

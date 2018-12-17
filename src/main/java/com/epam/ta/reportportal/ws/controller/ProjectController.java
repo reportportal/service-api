@@ -269,7 +269,8 @@ public class ProjectController {
 	public Map<String, ?> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getProjectInfoWidgetContent(projectName,
+		return projectInfoHandler.getProjectInfoWidgetContent(
+				projectName,
 				interval,
 				widgetCode
 		);

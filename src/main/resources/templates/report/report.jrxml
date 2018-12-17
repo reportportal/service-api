@@ -47,6 +47,7 @@
         <field name="name" class="java.lang.String">
             <fieldDescription><![CDATA[]]></fieldDescription>
         </field>
+        <field name="duration" class="java.lang.Double"/>
         <field name="status" class="java.lang.String"/>
         <field name="total" class="java.lang.Integer"/>
         <field name="passed" class="java.lang.Integer"/>
@@ -498,11 +499,11 @@
                             </textField>
                         </jr:detailCell>
                     </jr:column>
-                    <jr:column width="259" uuid="44a6a309-83bd-4546-b0cd-b10728e874dd">
+                    <jr:column width="209" uuid="44a6a309-83bd-4546-b0cd-b10728e874dd">
                         <property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
                         <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
                             <staticText>
-                                <reportElement x="0" y="0" width="259" height="30" uuid="ca534fe2-78f2-44f6-9b03-9bc32970c178"/>
+                                <reportElement x="0" y="0" width="209" height="30" uuid="ca534fe2-78f2-44f6-9b03-9bc32970c178"/>
                                 <textElement textAlignment="Center" verticalAlignment="Middle">
                                     <font fontName="Noto Sans" size="9" isBold="true"/>
                                 </textElement>
@@ -511,11 +512,32 @@
                         </jr:columnHeader>
                         <jr:detailCell style="Table_TD" height="20">
                             <textField isStretchWithOverflow="true">
-                                <reportElement x="0" y="0" width="259" height="20" uuid="1ed705a6-1478-4fa5-82d0-f626e5aa6f7e"/>
+                                <reportElement x="0" y="0" width="209" height="20" uuid="1ed705a6-1478-4fa5-82d0-f626e5aa6f7e"/>
                                 <textElement verticalAlignment="Middle">
                                     <font fontName="Noto Sans" size="9"/>
                                 </textElement>
                                 <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="50" uuid="4c3f0fac-1fb3-467d-81a7-36b9b2d84302">
+                        <property name="com.jaspersoft.studio.components.table.model.column.name" value="Column13"/>
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="50" height="30" uuid="3fe70789-6869-4b8d-bf21-be0fc66b623e"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font fontName="Noto Sans" size="9" isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[Duration (sec)]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="20">
+                            <textField>
+                                <reportElement x="0" y="0" width="50" height="20" uuid="ba201ea1-3041-4d50-b546-d3b9a4ce5543"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font fontName="Noto Sans" size="9"/>
+                                </textElement>
+                                <textFieldExpression><![CDATA[$F{duration}]]></textFieldExpression>
                             </textField>
                         </jr:detailCell>
                     </jr:column>

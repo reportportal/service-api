@@ -60,11 +60,11 @@ public class CreateUserFilterHandlerImpl implements ICreateUserFilterHandler {
 
 		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, projectName);
 
-		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
+		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(
+				createFilterRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
-				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
+		), BooleanUtils::isFalse).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addCreateRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())

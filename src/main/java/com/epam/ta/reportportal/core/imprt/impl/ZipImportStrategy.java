@@ -63,7 +63,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		Long savedLaunchId = null;
 		try (ZipFile zipFile = new ZipFile(zip)) {
-			Long launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf(ZIP_EXTENSION)));
+			Long launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)));
 			savedLaunchId = launchId;
 			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
 				XunitParseJob job = xmlParseJobProvider.get()

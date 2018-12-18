@@ -45,4 +45,8 @@ public final class Permissions {
 	public static final String CAN_ADMINISTRATE_OBJECT = "hasPermission(returnObject, 'aclFullPermission') || hasRole('ADMINISTRATOR')";
 
 	public static final String CAN_READ_OBJECT = "hasPermission(returnObject, 'aclReadPermission')" + " || " + CAN_ADMINISTRATE_OBJECT;
+
+	public static final String CAN_ADMINISTRATE_OBJECT_FILTER = "hasPermission(filterObject, 'aclFullPermission') || hasRole('ADMINISTRATOR')";
+
+	public static final String CAN_READ_OBJECT_FILTER = "hasPermission(filterObject, 'aclReadPermission')" + " || " + CAN_ADMINISTRATE_OBJECT_FILTER;
 }

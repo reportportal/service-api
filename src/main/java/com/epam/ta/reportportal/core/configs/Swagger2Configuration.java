@@ -52,9 +52,13 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Predicates.not;
@@ -209,7 +213,8 @@ public class Swagger2Configuration {
 					.parameterType("query")
 					.name("filter.eq." + criteriaHolder.getFilterCriteria())
 					.allowMultiple(true)
-					.modelRef(factory.apply(resolver.resolve(criteriaHolder.getDataType())))
+					.modelRef(factory.apply(resolver.resolve(
+							criteriaHolder.getDataType() == Timestamp.class ? Date.class : criteriaHolder.getDataType())))
 					.description("Filters by '" + criteriaHolder.getFilterCriteria() + "'")
 					.build();
 		}

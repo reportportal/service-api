@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_CHILDREN;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -35,9 +36,10 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 public class TestItemFilterStrategy extends AbstractStatisticsFilterStrategy {
 	@Override
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
-		return new Filter(
-				TestItem.class,
-				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
+		return new Filter(TestItem.class,
+				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
+						new FilterCondition(Condition.EQUALS, false, String.valueOf(false), CRITERIA_HAS_CHILDREN)
+				)
 		);
 	}
 }

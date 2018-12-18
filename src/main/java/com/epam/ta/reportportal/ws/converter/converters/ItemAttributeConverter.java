@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.util;
+package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 
-import java.util.Set;
-import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import java.util.function.Function;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class AttributesValidator {
+public class ItemAttributeConverter {
 
-	private AttributesValidator() {
+	private ItemAttributeConverter() {
 		//static only
 	}
 
-	public static void validateAttributes(Set<ItemAttributeResource> attributes) {
-		if (attributes != null && !attributes.isEmpty()) {
-			attributes.forEach(it -> expect(it.isSystem(), Predicate.isEqual(false)).verify(BAD_REQUEST_ERROR,
-					"System attributes is not applicable here"
-			));
-		}
-	}
+	public static final Function<ItemAttributeResource, ItemAttribute> FROM_RESOURCE = it -> {
+		ItemAttribute itemAttribute = new ItemAttribute();
+		itemAttribute.setKey(it.getKey());
+		itemAttribute.setValue(it.getValue());
+		itemAttribute.setSystem(it.isSystem());
+		return itemAttribute;
+	};
 }

@@ -28,15 +28,14 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
@@ -61,7 +60,6 @@ public class LaunchBuilder implements Supplier<Launch> {
 		launch.setStatus(StatusEnum.IN_PROGRESS);
 		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		addDescription(request.getDescription());
-		addAttributes(request.getAttributes());
 		ofNullable(request.getMode()).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(request.getMode().name())));
 		return this;
 	}
@@ -87,10 +85,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
-		ItemAttribute itemAttribute = new ItemAttribute();
-		itemAttribute.setKey(attributeResource.getKey());
-		itemAttribute.setValue(attributeResource.getValue());
-		itemAttribute.setSystem(attributeResource.isSystem());
+		ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
 		itemAttribute.setLaunch(launch);
 		launch.getAttributes().add(itemAttribute);
 		return this;
@@ -98,13 +93,24 @@ public class LaunchBuilder implements Supplier<Launch> {
 
 	public LaunchBuilder addAttributes(Set<ItemAttributeResource> attributes) {
 		ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
-			ItemAttribute itemAttribute = new ItemAttribute();
-			itemAttribute.setValue(val.getValue());
-			itemAttribute.setKey(val.getKey());
-			itemAttribute.setSystem(val.isSystem());
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 			itemAttribute.setLaunch(launch);
 			return itemAttribute;
 		}).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+		final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(launch.getAttributes()
+				.stream()
+				.filter(ItemAttribute::isSystem)
+				.collect(Collectors.toSet()));
+		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setLaunch(launch);
+			return itemAttribute;
+		}).forEach(overwrittenAttributes::add));
+		launch.setAttributes(overwrittenAttributes);
 		return this;
 	}
 

@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -77,7 +78,10 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 
 		LatestLaunchContent latestLaunchContent = new LatestLaunchContent(launch);
 
-		List<FlakyCasesTableContent> flakyCasesTableContent = widgetRepository.flakyCasesStatistics(filter, limit);
+		List<FlakyCasesTableContent> flakyCasesTableContent = widgetRepository.flakyCasesStatistics(filter,
+				BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions)),
+				limit
+		);
 
 		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, latestLaunchContent).put(FLAKY, flakyCasesTableContent).build();
 	}

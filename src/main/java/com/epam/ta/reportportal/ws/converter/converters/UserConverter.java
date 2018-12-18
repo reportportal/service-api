@@ -52,7 +52,7 @@ public final class UserConverter {
 		resource.setAccountType(user.getUserType().toString());
 		resource.setUserRole(user.getRole().toString());
 		resource.setIsLoaded(UserType.UPSA != user.getUserType());
-		resource.setMetadata(user.getMetadata());
+		resource.setMetadata(user.getMetadata().getMetadata());
 
 		if (null != user.getProjects()) {
 			List<ProjectUser> projects = Lists.newArrayList(user.getProjects());

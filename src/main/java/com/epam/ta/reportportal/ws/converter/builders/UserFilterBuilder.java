@@ -80,15 +80,16 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 */
 	public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
 		userFilter.getFilterCondition().clear();
-		userFilter.getFilterCondition()
-				.addAll(conditions.stream()
+		ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition()
+				.addAll(c.stream()
 						.map(entity -> FilterCondition.builder()
 								.withSearchCriteria(entity.getFilteringField())
 								.withValue(entity.getValue())
 								.withCondition(Condition.findByMarker(entity.getCondition())
 										.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, entity.getCondition())))
 								.build())
-						.collect(toList()));
+						.collect(toList())));
+
 		return this;
 	}
 
@@ -101,12 +102,12 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 */
 	public UserFilterBuilder addSelectionParameters(List<Order> orders) {
 		userFilter.getFilterSorts().clear();
-		orders.forEach(order -> {
+		ofNullable(orders).ifPresent(o -> o.forEach(order -> {
 			FilterSort filterSort = new FilterSort();
 			filterSort.setField(order.getSortingColumnName());
 			filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);
 			userFilter.getFilterSorts().add(filterSort);
-		});
+		}));
 		return this;
 	}
 

@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT_FILTER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
@@ -109,7 +109,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	}
 
 	@Override
-	@PostFilter(CAN_READ_OBJECT)
+	@PostFilter(CAN_READ_OBJECT_FILTER)
 	public List<UserFilter> getFiltersById(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findAllById(Lists.newArrayList(ids));
 	}

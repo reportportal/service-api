@@ -56,7 +56,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		Long savedLaunchId = null;
 		try (InputStream xmlStream = new FileInputStream(xml)) {
-			Long launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf(XML_EXTENSION)));
+			Long launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)));
 			savedLaunchId = launchId;
 			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
 			ParseResults parseResults = job.call();

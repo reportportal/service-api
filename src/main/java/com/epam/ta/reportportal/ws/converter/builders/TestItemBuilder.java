@@ -29,16 +29,16 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Optional.ofNullable;
 
@@ -67,7 +67,6 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setItemResults(testItemResults);
 
 		addDescription(rq.getDescription());
-		addAttributes(rq.getAttributes());
 		addParameters(rq.getParameters());
 		addType(rq.getType());
 		return this;
@@ -85,9 +84,9 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addType(String typeValue) {
-		TestItemTypeEnum type = TestItemTypeEnum.fromValue(typeValue);
-		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
-		testItem.setType(type);
+		Optional<TestItemTypeEnum> type = TestItemTypeEnum.fromValue(typeValue);
+		BusinessRule.expect(type, Optional::isPresent).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
+		testItem.setType(type.get());
 		return this;
 	}
 
@@ -101,15 +100,26 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addAttributes(Set<ItemAttributeResource> tags) {
-		ofNullable(tags).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
-			ItemAttribute itemAttribute = new ItemAttribute();
-			itemAttribute.setKey(val.getKey());
-			itemAttribute.setValue(val.getValue());
-			itemAttribute.setSystem(val.isSystem());
+	public TestItemBuilder addAttributes(Set<ItemAttributeResource> attributes) {
+		ofNullable(attributes).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 			itemAttribute.setTestItem(testItem);
 			return itemAttribute;
 		}).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public TestItemBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+		final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(testItem.getAttributes()
+				.stream()
+				.filter(ItemAttribute::isSystem)
+				.collect(Collectors.toSet()));
+		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setTestItem(testItem);
+			return itemAttribute;
+		}).forEach(overwrittenAttributes::add));
+		testItem.setAttributes(overwrittenAttributes);
 		return this;
 	}
 
@@ -145,5 +155,4 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	public TestItem get() {
 		return this.testItem;
 	}
-
 }

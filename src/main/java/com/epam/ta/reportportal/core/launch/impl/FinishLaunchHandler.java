@@ -50,7 +50,6 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
@@ -186,8 +185,6 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 				launch.getStartTime(),
 				launch.getId()
 		);
-
-		validateAttributes(finishExecutionRQ.getAttributes());
 	}
 
 	/**

@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 /**
@@ -56,9 +55,8 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	@Transactional
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		validateRoles(user, projectDetails, startLaunchRQ);
-		validateAttributes(startLaunchRQ.getAttributes());
 
-		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
+		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ).addAttributes(startLaunchRQ.getAttributes())
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.get();

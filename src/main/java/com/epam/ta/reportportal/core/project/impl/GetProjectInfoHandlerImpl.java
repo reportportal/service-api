@@ -112,12 +112,12 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				Mode.DEFAULT.name()
 		));
 
-		Map<String, Integer> launchesPerUserMapping = launchRepository.countLaunchesGroupedByOwner(project.getId(),
+		Map<String, Integer> countPerUser = launchRepository.countLaunchesGroupedByOwner(project.getId(),
 				LaunchModeEnum.DEFAULT.toString(),
 				getStartIntervalDate(infoInterval)
 		);
 
-		projectInfoResource.setLaunchesPerUser(launchesPerUserMapping.entrySet()
+		projectInfoResource.setLaunchesPerUser(countPerUser.entrySet()
 				.stream()
 				.map(e -> new LaunchesPerUser(e.getKey(), e.getValue()))
 				.collect(Collectors.toList()));

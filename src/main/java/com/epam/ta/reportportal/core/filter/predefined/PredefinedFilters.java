@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.Status;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.google.common.collect.ImmutableMap;
 import org.jooq.Operator;
@@ -31,11 +32,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ORGANIZATION;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
-import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType.COLLAPSED;
-import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType.USERS;
+import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType.*;
 
 /**
  * Holder for predefined quires
@@ -60,7 +62,6 @@ public final class PredefinedFilters {
 
 	//@formatter:off
 	private static final Map<PredefinedFilterType, PredefinedFilterBuilder> FILTERS = ImmutableMap.<PredefinedFilterType, PredefinedFilterBuilder>builder()
-			// Search items according to predefined conditions
 			.put(COLLAPSED, new PredefinedFilterBuilder() {
 				@Override
 				public Queryable build(String[] params) {
@@ -72,7 +73,6 @@ public final class PredefinedFilters {
 						.build();
 				}
 			})
-			// Search users predefined filter
 			.put(USERS, new PredefinedFilterBuilder() {
 				@Override
 				public Queryable build(String[] params) {
@@ -82,7 +82,19 @@ public final class PredefinedFilters {
 								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_FULL_NAME))
 								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_EMAIL))
 								.build();
-    }}).build();
+				}
+			})
+			.put(PROJECTS, new PredefinedFilterBuilder() {
+				@Override
+				public Queryable build(String[] params) {
+					return Filter.builder()
+								.withTarget(Project.class)
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_PROJECT_NAME))
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_ORGANIZATION))
+								.build();
+				}
+			})
+			.build();
 	//@formatter:on
 
 	public static boolean hasFilter(PredefinedFilterType type) {

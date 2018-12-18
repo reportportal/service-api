@@ -79,11 +79,12 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
 
 					String filterName = parameter.getKey().split("\\.")[1];
+					String[] filterParameters = parameter.getValue()[0].split(",");
 
 					BusinessRule.expect(PredefinedFilters.hasFilter(filterName), Predicate.isEqual(true))
 							.verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");
 
-					final Queryable queryable = PredefinedFilters.buildFilter(filterName, parameter.getValue());
+					final Queryable queryable = PredefinedFilters.buildFilter(filterName, filterParameters);
 					BusinessRule.expect(queryable.getTarget().getClazz(), Predicate.isEqual(domainModelType))
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter target class type");
 

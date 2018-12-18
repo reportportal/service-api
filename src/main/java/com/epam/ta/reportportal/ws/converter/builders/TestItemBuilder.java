@@ -34,10 +34,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -87,9 +84,9 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addType(String typeValue) {
-		TestItemTypeEnum type = TestItemTypeEnum.fromValue(typeValue);
-		BusinessRule.expect(type, Objects::nonNull).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
-		testItem.setType(type);
+		Optional<TestItemTypeEnum> type = TestItemTypeEnum.fromValue(typeValue);
+		BusinessRule.expect(type, Optional::isPresent).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
+		testItem.setType(type.get());
 		return this;
 	}
 

@@ -39,6 +39,10 @@ import java.util.function.Function;
  */
 public final class UserConverter {
 
+	private UserConverter() {
+		//static only
+	}
+
 	public static final Function<User, UserResource> TO_RESOURCE = user -> {
 		UserResource resource = new UserResource();
 		resource.setUserId(user.getLogin());
@@ -48,6 +52,7 @@ public final class UserConverter {
 		resource.setAccountType(user.getUserType().toString());
 		resource.setUserRole(user.getRole().toString());
 		resource.setIsLoaded(UserType.UPSA != user.getUserType());
+		resource.setMetadata(user.getMetadata());
 
 		if (null != user.getProjects()) {
 			List<ProjectUser> projects = Lists.newArrayList(user.getProjects());
@@ -79,9 +84,5 @@ public final class UserConverter {
 		resource.setFullName(user.getFullName());
 		return resource;
 	};
-
-	private UserConverter() {
-		//static only
-	}
 
 }

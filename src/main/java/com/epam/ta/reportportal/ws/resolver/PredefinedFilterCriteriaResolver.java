@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.PredefinedFilters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -53,7 +52,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 	 * parameters (some of them may not be related to filtering), we have to
 	 * introduce this
 	 */
-	public static final String FILTER_PARAMETER_NAME = "predefinedFilter";
+	public static final String PREDEFINED_FILTER_PREFIX = "predefinedFilter.";
 
 	/**
 	 * Returns TRUE only for {@link List} marked with {@link FilterFor}
@@ -73,7 +72,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 		List<Queryable> filterConditions = webRequest.getParameterMap()
 				.entrySet()
 				.stream()
-				.filter(parameter -> StringUtils.contains(parameter.getKey(), FILTER_PARAMETER_NAME))
+				.filter(parameter -> parameter.getKey().startsWith(PREDEFINED_FILTER_PREFIX))
 				.map(parameter -> {
 					BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");

@@ -49,7 +49,7 @@ public final class ProjectConverter {
 		Preconditions.checkNotNull(project);
 		ProjectInfoResource resource = new ProjectInfoResource();
 		resource.setUsersQuantity(project.getUsersQuantity());
-		resource.setLaunchesQuantity(project.getLaunchesQuantity().longValue());
+		resource.setLaunchesQuantity(project.getLaunchesQuantity());
 		resource.setProjectId(project.getId());
 		resource.setProjectName(project.getName());
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));

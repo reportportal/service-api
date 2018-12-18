@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.filter;
+package com.epam.ta.reportportal.core.filter.predefined;
 
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TYPE;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
+import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType.COLLAPSED;
+import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType.USERS;
 
 /**
  * Holder for predefined quires
@@ -57,9 +59,9 @@ public final class PredefinedFilters {
 	}).collect(Collectors.toList());
 
 	//@formatter:off
-	private static final Map<String, PredefinedFilterBuilder> FILTERS = ImmutableMap.<String, PredefinedFilterBuilder>builder()
+	private static final Map<PredefinedFilterType, PredefinedFilterBuilder> FILTERS = ImmutableMap.<PredefinedFilterType, PredefinedFilterBuilder>builder()
 			// Search items according to predefined conditions
-			.put("collapsed", new PredefinedFilterBuilder() {
+			.put(COLLAPSED, new PredefinedFilterBuilder() {
 				@Override
 				public Queryable build(String[] params) {
 					return Filter.builder()
@@ -71,7 +73,7 @@ public final class PredefinedFilters {
 				}
 			})
 			// Search users predefined filter
-			.put("users", new PredefinedFilterBuilder() {
+			.put(USERS, new PredefinedFilterBuilder() {
 				@Override
 				public Queryable build(String[] params) {
 					return Filter.builder()
@@ -83,12 +85,12 @@ public final class PredefinedFilters {
     }}).build();
 	//@formatter:on
 
-	public static boolean hasFilter(String name) {
-		return FILTERS.containsKey(name);
+	public static boolean hasFilter(PredefinedFilterType type) {
+		return FILTERS.containsKey(type);
 	}
 
-	public static Queryable buildFilter(String name, String[] params) {
-		final PredefinedFilterBuilder builder = FILTERS.get(name);
+	public static Queryable buildFilter(PredefinedFilterType type, String[] params) {
+		final PredefinedFilterBuilder builder = FILTERS.get(type);
 		return builder.buildFilter(params);
 	}
 

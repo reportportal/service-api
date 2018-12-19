@@ -31,5 +31,5 @@ public interface GetIntegrationHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return {@link IntegrationResource}
 	 */
-	IntegrationResource getIntegrationByID(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	IntegrationResource getIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 }

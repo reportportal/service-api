@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
+
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -42,6 +44,7 @@ public class StatisticsUtils {
 
 	public static Stream<String> defaultStatisticsFileds() {
 		return Stream.concat(Arrays.stream(TestItemIssueGroup.values())
+				.filter(value -> !value.getIssueCounterField().equalsIgnoreCase(NOT_ISSUE_FLAG.getIssueCounterField()))
 				.map(value -> "statistics$defects$" + value.getIssueCounterField() + "$" + value.getLocator()), Stream.of(
 				"statistics$executions$total",
 				"statistics$executions$passed",

@@ -200,7 +200,7 @@ public class Swagger2Configuration {
 
 					List<Parameter> defaultParams = Lists.newArrayList();
 					if (filterClass.value() == TestItem.class || filterClass.value() == Launch.class) {
-						defaultParams = StatisticsUtils.defaultStatisticsFileds()
+						defaultParams = StatisticsUtils.defaultStatisticsFields()
 								.map(it -> buildParameters(parameterContext, factory, it))
 								.collect(Collectors.toList());
 					}

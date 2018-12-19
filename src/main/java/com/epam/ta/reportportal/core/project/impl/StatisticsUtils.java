@@ -30,6 +30,11 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE
  */
 public class StatisticsUtils {
 
+	private static final String TOTAL = "statistics$executions$total";
+	private static final String PASSED = "statistics$executions$passed";
+	private static final String SKIPPED = "statistics$executions$skipped";
+	private static final String FAILED = "statistics$executions$failed";
+
 	private StatisticsUtils() {
 		//static only
 	}
@@ -42,15 +47,13 @@ public class StatisticsUtils {
 				.getCounter();
 	}
 
-	public static Stream<String> defaultStatisticsFileds() {
-		return Stream.concat(Arrays.stream(TestItemIssueGroup.values())
-				.filter(value -> !value.getIssueCounterField().equalsIgnoreCase(NOT_ISSUE_FLAG.getIssueCounterField()))
-				.map(value -> "statistics$defects$" + value.getIssueCounterField() + "$" + value.getLocator()), Stream.of(
-				"statistics$executions$total",
-				"statistics$executions$passed",
-				"statistics$executions$skipped",
-				"statistics$executions$failed"
-		));
+	public static Stream<String> defaultStatisticsFields() {
+		return Stream.concat(
+				Arrays.stream(TestItemIssueGroup.values())
+						.filter(value -> !value.getIssueCounterField().equalsIgnoreCase(NOT_ISSUE_FLAG.getIssueCounterField()))
+						.map(value -> "statistics$defects$" + value.getIssueCounterField() + "$" + value.getLocator()),
+				Stream.of(TOTAL, PASSED, SKIPPED, FAILED)
+		);
 	}
 
 }

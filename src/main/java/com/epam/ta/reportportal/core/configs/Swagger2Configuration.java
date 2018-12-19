@@ -20,10 +20,14 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
+import com.epam.ta.reportportal.core.project.impl.StatisticsUtils;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -49,10 +53,13 @@ import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.paths.RelativePathProvider;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.UiConfiguration;
+import springfox.documentation.swagger.web.UiConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
+import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -129,7 +136,7 @@ public class Swagger2Configuration {
 
 	@Bean
 	public UiConfiguration uiConfig() {
-		return new UiConfiguration(null);
+		return UiConfigurationBuilder.builder().build();
 	}
 
 	@Component
@@ -190,6 +197,14 @@ public class Swagger2Configuration {
 
 				} else if (filterType.equals(resolvedType)) {
 					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
+
+					List<Parameter> defaultParams = Lists.newArrayList();
+					if (filterClass.value() == TestItem.class || filterClass.value() == Launch.class) {
+						defaultParams = StatisticsUtils.defaultStatisticsFields()
+								.map(it -> buildParameters(parameterContext, factory, it))
+								.collect(Collectors.toList());
+					}
+
 					List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value()).getCriteriaHolders();
 					List<Parameter> params = criteriaList.stream()
 							.map(it -> buildParameters(parameterContext, factory, it))
@@ -198,6 +213,8 @@ public class Swagger2Configuration {
 									.getType()
 									.toCharArray()[0])))
 							.collect(Collectors.toList());
+
+					params.addAll(defaultParams);
 					context.operationBuilder().parameters(params);
 				}
 			}
@@ -209,8 +226,20 @@ public class Swagger2Configuration {
 					.parameterType("query")
 					.name("filter.eq." + criteriaHolder.getFilterCriteria())
 					.allowMultiple(true)
-					.modelRef(factory.apply(resolver.resolve(criteriaHolder.getDataType())))
+					.modelRef(factory.apply(resolver.resolve(
+							criteriaHolder.getDataType() == Timestamp.class ? Date.class : criteriaHolder.getDataType())))
 					.description("Filters by '" + criteriaHolder.getFilterCriteria() + "'")
+					.build();
+		}
+
+		private Parameter buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
+				String parameter) {
+			return parameterContext.parameterBuilder()
+					.parameterType("query")
+					.name("filter.eq." + parameter)
+					.allowMultiple(true)
+					.modelRef(factory.apply(resolver.resolve(Long.class)))
+					.description("Filters by '" + parameter + "'")
 					.build();
 		}
 

@@ -41,7 +41,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofHours;
 
@@ -143,7 +143,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
 		return Filter.builder()
 				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_ATTRIBUTE_NAME))
+				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_PROJECT_ATTRIBUTE_NAME))
 				.build();
 	}
 

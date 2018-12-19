@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -84,8 +84,7 @@ public class CleanLogsJob implements Job {
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong removedLogsCount = new AtomicLong(0);
@@ -120,7 +119,11 @@ public class CleanLogsJob implements Job {
 	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
 		return Filter.builder()
 				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_ATTRIBUTE_NAME))
+				.withCondition(new FilterCondition(Condition.EQUALS,
+						false,
+						projectAttributeEnum.getAttribute(),
+						CRITERIA_PROJECT_ATTRIBUTE_NAME
+				))
 				.build();
 	}
 

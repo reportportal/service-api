@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -88,7 +88,7 @@ public class CleanScreenshotsJob implements Job {
 	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
 		return Filter.builder()
 				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_ATTRIBUTE_NAME))
+				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_PROJECT_ATTRIBUTE_NAME))
 				.build();
 	}
 

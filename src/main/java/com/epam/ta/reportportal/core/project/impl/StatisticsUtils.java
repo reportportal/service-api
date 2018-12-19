@@ -16,9 +16,12 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -35,6 +38,16 @@ public class StatisticsUtils {
 				.findFirst()
 				.orElse(new Statistics())
 				.getCounter();
+	}
+
+	public static Stream<String> defaultStatisticsFileds() {
+		return Stream.concat(Arrays.stream(TestItemIssueGroup.values())
+				.map(value -> "statistics$defects$" + value.getIssueCounterField() + "$" + value.getLocator()), Stream.of(
+				"statistics$executions$total",
+				"statistics$executions$passed",
+				"statistics$executions$skipped",
+				"statistics$executions$failed"
+		));
 	}
 
 }

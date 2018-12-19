@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ public class LogBuilder implements Supplier<Log> {
 	}
 
 	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
-		log.setLogLevel(LogLevel.toLevelOrUnknown(createLogRQ.getLevel()).toInt());
+		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
 		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
 		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
 		return this;

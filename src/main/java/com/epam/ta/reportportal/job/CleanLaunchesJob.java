@@ -126,7 +126,11 @@ public class CleanLaunchesJob implements Job {
 	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
 		return Filter.builder()
 				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS, false, projectAttributeEnum.getAttribute(), CRITERIA_PROJECT_ATTRIBUTE_NAME))
+				.withCondition(new FilterCondition(Condition.EQUALS,
+						false,
+						projectAttributeEnum.getAttribute(),
+						CRITERIA_PROJECT_ATTRIBUTE_NAME
+				))
 				.build();
 	}
 

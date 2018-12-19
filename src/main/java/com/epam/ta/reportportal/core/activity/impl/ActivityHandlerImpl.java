@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JActivityEntityEnum;
 import com.epam.ta.reportportal.jooq.tables.JActivity;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
@@ -100,7 +99,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
 		Sort sortByCreationDateDesc = new Sort(Sort.Direction.DESC, JActivity.ACTIVITY.CREATION_DATE.getQualifiedName().toString());
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID));
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, JActivityEntityEnum.ITEM.name(), CRITERIA_ENTITY));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, Activity.ActivityEntityType.ITEM.getValue(), CRITERIA_ENTITY));
 
 		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)

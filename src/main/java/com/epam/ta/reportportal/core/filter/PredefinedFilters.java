@@ -60,7 +60,7 @@ public final class PredefinedFilters {
 				public Queryable build(String[] params) {
 					return Filter.builder()
 						.withTarget(TestItem.class)
-						.withCondition(new FilterCondition(Operator.OR, Condition.EQUALS, false, Status.FAILED.name(), CRITERIA_TI_STATUS))
+						.withCondition(new FilterCondition(Operator.OR, Condition.EQUALS, false, Status.FAILED.name(), CRITERIA_STATUS))
 						.withCondition(new FilterCondition(Operator.OR, Condition.IN, true, HAS_METHOD_OR_CLASS.stream().map(Enum::name).collect(Collectors.joining(",")), CRITERIA_TYPE))
 						.withCondition(new FilterCondition(Operator.OR, Condition.EXISTS, false, "true", CRITERIA_ISSUE_TYPE))
 						.build();

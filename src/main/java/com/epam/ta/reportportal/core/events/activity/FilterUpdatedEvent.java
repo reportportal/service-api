@@ -22,8 +22,7 @@ import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 
 import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_FILTER;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processDescription;
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processName;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.FILTER;
 
 /**
@@ -60,6 +59,7 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> 
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())
 				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
+				.addHistoryField(processShared(getBefore().isShared(), getAfter().isShared()))
 				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
 				.get();
 	}

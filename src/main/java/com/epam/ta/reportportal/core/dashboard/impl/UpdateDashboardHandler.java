@@ -89,9 +89,9 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
-		Widget widget = getWidgetHandler.getPermitted(rq.getObjectModel().getWidgetId());
+		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId());
 
-		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getObjectModel(), dashboard, widget);
+		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget);
 		dashboard.addWidget(dashboardWidget);
 		dashboardRepository.save(dashboard);
 		return new OperationCompletionRS(

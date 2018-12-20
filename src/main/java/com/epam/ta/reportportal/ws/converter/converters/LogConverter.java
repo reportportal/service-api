@@ -27,7 +27,7 @@ public final class LogConverter {
 		Preconditions.checkNotNull(model);
 
 		LogResource resource = new LogResource();
-		resource.setIdLog(String.valueOf(model.getId()));
+		resource.setId(model.getId());
 		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
 		resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
 

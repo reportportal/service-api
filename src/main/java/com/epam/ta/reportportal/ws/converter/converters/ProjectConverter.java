@@ -99,6 +99,7 @@ public final class ProjectConverter {
 
 	static final Function<IssueType, IssueSubTypeResource> TO_SUBTYPE_RESOURCE = issueType -> {
 		IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
+		issueSubTypeResource.setId(issueType.getId());
 		issueSubTypeResource.setLocator(issueType.getLocator());
 		issueSubTypeResource.setColor(issueType.getHexColor());
 		issueSubTypeResource.setLongName(issueType.getLongName());

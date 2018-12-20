@@ -66,6 +66,7 @@ class DemoDashboardsService {
 
 	private static final String DASHBOARD_NAME = "DEMO DASHBOARD";
 	private static final String FILTER_NAME = "DEMO_FILTER";
+	private static final String START_TIME_SORTING = "startTime";
 	private static final boolean SHARED = true;
 	private static int WIDGET_MAX_HEIGHT = 6;
 	private static int WIDGET_MIN_HEIGHT = 4;
@@ -154,7 +155,7 @@ class DemoDashboardsService {
 
 		FilterSort filterSort = new FilterSort();
 		filterSort.setDirection(Sort.Direction.DESC);
-		filterSort.setField("launch.start_time");
+		filterSort.setField(START_TIME_SORTING);
 		userFilter.setFilterSorts(Sets.newHashSet(filterSort));
 
 		userFilter.setOwner(user.getUsername());

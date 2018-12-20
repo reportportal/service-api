@@ -42,7 +42,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 		this.integrationRepository = integrationRepository;
 	}
 
-	public IntegrationResource getIntegrationByID(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
+	public IntegrationResource getIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
 
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));

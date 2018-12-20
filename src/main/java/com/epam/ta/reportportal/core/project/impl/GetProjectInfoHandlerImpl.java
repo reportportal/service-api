@@ -121,7 +121,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 		Map<String, Integer> countPerUser = launchRepository.countLaunchesGroupedByOwner(project.getId(),
 				LaunchModeEnum.DEFAULT.toString(),
-				getStartIntervalDateInMillis(infoInterval)
+				getStartIntervalDate(infoInterval)
 		);
 
 		projectInfoResource.setLaunchesPerUser(countPerUser.entrySet()
@@ -151,7 +151,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, widgetCode));
 
 		List<Launch> launches = launchRepository.findByProjectIdAndStartTimeGreaterThanAndMode(project.getId(),
-				getStartIntervalDateInMillis(infoInterval),
+				getStartIntervalDate(infoInterval),
 				LaunchModeEnum.DEFAULT
 		);
 
@@ -197,7 +197,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	 * @param interval Back interval
 	 * @return Now minus interval
 	 */
-	private static LocalDateTime getStartIntervalDateInMillis(InfoInterval interval) {
+	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
 		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
 	}
 
@@ -214,7 +214,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
 				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
-						String.valueOf(getStartIntervalDateInMillis(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
+						String.valueOf(getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
 						CRITERIA_PROJECT_CREATION_DATE
 				))
 				.build();
@@ -232,7 +232,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
 				new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
-						String.valueOf(Timestamp.valueOf(getStartIntervalDateInMillis(infoInterval)).getTime()),
+						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE
 				)
 		));

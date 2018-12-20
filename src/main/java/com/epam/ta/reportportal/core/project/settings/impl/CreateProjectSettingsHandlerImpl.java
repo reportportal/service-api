@@ -30,9 +30,9 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +87,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 	}
 
 	@Override
-	public EntryCreatedRS createProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	public IssueSubTypeCreatedRS createProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			CreateIssueSubTypeRQ rq) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
@@ -136,7 +136,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				});
 
 		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType), project.getId(), user.getUserId()));
-		return new EntryCreatedRS(subType.getId());
+		return new IssueSubTypeCreatedRS(subType.getId(), subType.getLocator());
 	}
 
 	private static String shortUUID() {

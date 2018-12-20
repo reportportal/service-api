@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.project.settings;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -33,6 +33,6 @@ public interface CreateProjectSettingsHandler {
 	 * @param rq
 	 * @return EntryCreatedRS
 	 */
-	EntryCreatedRS createProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	IssueSubTypeCreatedRS createProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			CreateIssueSubTypeRQ rq);
 }

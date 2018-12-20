@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -39,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -49,6 +51,7 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -58,6 +61,8 @@ import static com.epam.ta.reportportal.commons.querygen.Condition.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_CREATION_DATE;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
 import static com.epam.ta.reportportal.core.events.activity.ActivityAction.*;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
@@ -95,7 +100,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
 		return PagedResourcesAssembler.pageConverter(ProjectConverter.TO_PROJECT_INFO_RESOURCE)
-				.apply(projectRepository.findProjectInfoByFilter(filter, pageable, Mode.DEFAULT.name()));
+				.apply(projectRepository.findProjectInfoByFilter(filter, pageable));
 	}
 
 	@Override
@@ -107,15 +112,16 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
 
-		ProjectInfoResource projectInfoResource = ProjectConverter.TO_PROJECT_INFO_RESOURCE.apply(projectRepository.findProjectInfoFromDate(
-				project.getId(),
-				getStartIntervalDate(infoInterval),
-				Mode.DEFAULT.name()
-		));
+		Filter filter = projectInfoFilter(project, infoInterval);
+
+		Page<ProjectInfo> result = projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
+		ProjectInfoResource projectInfoResource = ProjectConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
 
 		Map<String, Integer> countPerUser = launchRepository.countLaunchesGroupedByOwner(project.getId(),
 				LaunchModeEnum.DEFAULT.toString(),
-				getStartIntervalDate(infoInterval)
+				getStartIntervalDateInMillis(infoInterval)
 		);
 
 		projectInfoResource.setLaunchesPerUser(countPerUser.entrySet()
@@ -145,7 +151,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, widgetCode));
 
 		List<Launch> launches = launchRepository.findByProjectIdAndStartTimeGreaterThanAndMode(project.getId(),
-				getStartIntervalDate(infoInterval),
+				getStartIntervalDateInMillis(infoInterval),
 				LaunchModeEnum.DEFAULT
 		);
 
@@ -191,8 +197,27 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	 * @param interval Back interval
 	 * @return Now minus interval
 	 */
-	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
+	private static LocalDateTime getStartIntervalDateInMillis(InfoInterval interval) {
 		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
+	}
+
+	/**
+	 * Filter that gets project info from selected date.
+	 *
+	 * @param project      Project
+	 * @param infoInterval Date interval
+	 * @return {@link Filter}
+	 */
+	private static Filter projectInfoFilter(Project project, InfoInterval infoInterval) {
+		return Filter.builder()
+				.withTarget(ProjectInfo.class)
+				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
+				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
+						false,
+						String.valueOf(getStartIntervalDateInMillis(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
+						CRITERIA_PROJECT_CREATION_DATE
+				))
+				.build();
 	}
 
 	private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
@@ -204,10 +229,10 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
-						GREATER_THAN_OR_EQUALS,
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
+				new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
-						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
+						String.valueOf(Timestamp.valueOf(getStartIntervalDateInMillis(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE
 				)
 		));

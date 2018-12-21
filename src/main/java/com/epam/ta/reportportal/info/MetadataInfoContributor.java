@@ -15,7 +15,7 @@
  */
 package com.epam.ta.reportportal.info;
 
-import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.enums.ActivityEventType;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.google.common.collect.ImmutableMap;

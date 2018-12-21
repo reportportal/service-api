@@ -1,8 +1,8 @@
 package com.epam.ta.reportportal.store;
 
 import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import org.assertj.core.api.Assertions;
 import org.junit.Ignore;
 import org.junit.Test;

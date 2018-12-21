@@ -72,7 +72,8 @@ public class ProjectSettingsController {
 	@ResponseStatus(CREATED)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Creation of custom project specific issue sub-type")
-	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectName, @RequestBody @Validated CreateIssueSubTypeRQ request,
+	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectName,
+			@RequestBody @Validated CreateIssueSubTypeRQ request,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createHandler.createProjectIssueSubType(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, request);
 	}

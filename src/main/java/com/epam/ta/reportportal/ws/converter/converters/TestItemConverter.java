@@ -74,7 +74,7 @@ public final class TestItemConverter {
 
 	public static final Function<TestItem, TestItemActivityResource> TO_ACTIVITY_RESOURCE = testItem -> {
 		TestItemActivityResource resource = new TestItemActivityResource();
-		resource.setId(testItem.getLaunch().getProjectId());
+		resource.setId(testItem.getItemId());
 		resource.setName(testItem.getName());
 		resource.setProjectId(testItem.getLaunch().getProjectId());
 		resource.setStatus(testItem.getItemResults().getStatus().name());

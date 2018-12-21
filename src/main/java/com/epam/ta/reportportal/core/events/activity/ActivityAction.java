@@ -23,38 +23,37 @@ import java.util.Optional;
  */
 public enum ActivityAction {
 
-	CREATE_DASHBOARD("create_dashboard"),
-	UPDATE_DASHBOARD("update_dashboard"),
-	DELETE_DASHBOARD("delete_dashboard"),
-	CREATE_WIDGET("create_widget"),
-	UPDATE_WIDGET("update_widget"),
-	DELETE_WIDGET("delete_widget"),
-	CREATE_FILTER("create_filter"),
-	UPDATE_FILTER("update_filter"),
-	DELETE_FILTER("delete_filter"),
-	ANALYZE_ITEM("analyze_item"),
-	CREATE_DEFECT("create_defect"),
-	UPDATE_DEFECT("update_defect"),
-	DELETE_DEFECT("delete_defect"),
-	CREATE_BTS("create_bts"),
-	UPDATE_BTS("update_bts"),
-	DELETE_BTS("delete_bts"),
-	START_LAUNCH("start_launch"),
-	FINISH_LAUNCH("finish_launch"),
-	DELETE_LAUNCH("delete_launch"),
-	UPDATE_PROJECT("update_project"),
-	UPDATE_ANALYZER("update_analyzer"),
-	POST_ISSUE("post_issue"),
-	LINK_ISSUE("link_issue"),
-	LINK_ISSUE_AA("link_issue_aa"),
-	UNLINK_ISSUE("unlink_issue"),
-	UPDATE_ITEM("update_item"),
-	CREATE_USER("create_user"),
-	DELETE_INDEX("delete_index"),
-	GENERATE_INDEX("generate_index"),
-	START_IMPORT("start_import"),
-	FINISH_IMPORT("finish_import"),
-	DELETE_EXTERNAL_SYSTEM("delete_external_system");
+	CREATE_DASHBOARD("createDashboard"),
+	UPDATE_DASHBOARD("updateDashboard"),
+	DELETE_DASHBOARD("deleteDashboard"),
+	CREATE_WIDGET("createWidget"),
+	UPDATE_WIDGET("updateWidget"),
+	DELETE_WIDGET("deleteWidget"),
+	CREATE_FILTER("createFilter"),
+	UPDATE_FILTER("updateFilter"),
+	DELETE_FILTER("deleteFilter"),
+	ANALYZE_ITEM("analyzeItem"),
+	CREATE_DEFECT("createDefect"),
+	UPDATE_DEFECT("updateDefect"),
+	DELETE_DEFECT("deleteDefect"),
+	CREATE_BTS("createBts"),
+	UPDATE_BTS("updateBts"),
+	DELETE_BTS("deleteBts"),
+	START_LAUNCH("startLaunch"),
+	FINISH_LAUNCH("finishLaunch"),
+	DELETE_LAUNCH("deleteLaunch"),
+	UPDATE_PROJECT("updateProject"),
+	UPDATE_ANALYZER("updateAnalyzer"),
+	POST_ISSUE("postIssue"),
+	LINK_ISSUE("linkIssue"),
+	LINK_ISSUE_AA("linkIssueAa"),
+	UNLINK_ISSUE("unlinkIssue"),
+	UPDATE_ITEM("updateItem"),
+	CREATE_USER("createUser"),
+	DELETE_INDEX("deleteIndex"),
+	GENERATE_INDEX("generateIndex"),
+	START_IMPORT("startImport"),
+	FINISH_IMPORT("finishImport");
 
 	private String value;
 
@@ -67,6 +66,6 @@ public enum ActivityAction {
 	}
 
 	public static Optional<ActivityAction> fromString(String string) {
-		return Optional.ofNullable(string).flatMap(str -> Arrays.stream(values()).filter(it -> it.value.equals(str)).findAny());
+		return Optional.ofNullable(string).flatMap(str -> Arrays.stream(values()).filter(it -> it.value.equalsIgnoreCase(str)).findAny());
 	}
 }

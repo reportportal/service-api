@@ -98,7 +98,8 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteIntegration(integrationId,
+		return deleteIntegrationHandler.deleteIntegration(
+				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);
@@ -120,8 +121,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS updateIntegration(@Validated @RequestBody UpdateIntegrationRQ request, @PathVariable String projectName,
 			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateIntegrationHandler.updateIntegration(request,
-				integrationId,
+		return updateIntegrationHandler.updateIntegration(request, integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);
@@ -134,8 +134,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
 			@RequestBody @Validated UpdateIntegrationRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateIntegrationHandler.integrationConnect(updateRQ,
-				integrationId,
+		return updateIntegrationHandler.integrationConnect(updateRQ, integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
 	}
@@ -147,8 +146,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public List<PostFormField> getSetOfIntegrationSystemFields(@RequestParam(value = "issueType") String issuetype,
 			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getSubmitTicketFields(issuetype,
-				integrationId,
+		return getTicketHandler.getSubmitTicketFields(issuetype, integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
 	}

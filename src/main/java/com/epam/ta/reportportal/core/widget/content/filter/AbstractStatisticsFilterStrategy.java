@@ -17,15 +17,12 @@
 package com.epam.ta.reportportal.core.widget.content.filter;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -57,30 +54,18 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
 		Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
-		Set<UserFilter> filters = Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet());
+		Set<UserFilter> userFilters = Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet());
 		Filter defaultFilter = buildDefaultFilter(widget, projectId);
 		Optional.ofNullable(defaultFilter).ifPresent(f -> filterSortMap.put(defaultFilter, Sort.unsorted()));
-
-		filters.forEach(f -> {
-			Filter filter = new Filter(f.getId(), f.getTargetClass().getClassObject(), Sets.newHashSet(f.getFilterCondition()));
-
-			Optional<Set<FilterSort>> filterSorts = ofNullable(f.getFilterSorts());
-			Sort sort = Sort.by(filterSorts.map(fs -> {
-
-				Map<String, String> sortingCriteria = filter.getTarget()
-						.getCriteriaHolders()
-						.stream()
-						.collect(Collectors.toMap(CriteriaHolder::getFilterCriteria, CriteriaHolder::getQueryCriteria));
-
-				return fs.stream()
-						.map(s -> new Sort.Order(s.getDirection(),
-								ofNullable(sortingCriteria.get(s.getField())).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-										sortingCriteria.get(s.getField())
-								))
-						))
-						.collect(Collectors.toList());
-
-			}).orElseGet(Collections::emptyList));
+		userFilters.forEach(userFilter -> {
+			Filter filter = new Filter(userFilter.getId(),
+					userFilter.getTargetClass().getClassObject(),
+					Sets.newHashSet(userFilter.getFilterCondition())
+			);
+			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
+			Sort sort = Sort.by((Sort.Order) filterSorts.map(filterSort -> filterSort.stream()
+					.map(s -> Sort.by(s.getDirection(), s.getField()))
+					.collect(Collectors.toList())).orElseGet(Collections::emptyList));
 			filterSortMap.put(filter, sort);
 		});
 

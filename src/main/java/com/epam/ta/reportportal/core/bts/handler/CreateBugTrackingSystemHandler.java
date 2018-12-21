@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateBugTrackingSystemRQ;
 
 /**
  * Basic interface for {@link} realization
@@ -26,14 +26,14 @@ import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
-public interface CreateIntegrationHandler {
+public interface CreateBugTrackingSystemHandler {
 
 	/**
 	 * Create {@link com.epam.ta.reportportal.entity.integration.Integration} entry method
 	 *
-	 * @param createRQ       Request Data
+	 * @param createRequest       Request Data
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Response Data
 	 */
-	EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	EntryCreatedRS createBugTrackingSystem(CreateBugTrackingSystemRQ createRequest, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

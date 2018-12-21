@@ -20,7 +20,7 @@ import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.bts.handler.CreateIntegrationHandler;
+import com.epam.ta.reportportal.core.bts.handler.CreateBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -34,7 +34,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.BugTrackingSystemBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.CreateBugTrackingSystemRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConver
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 @Service
-public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
+public class CreateBugTrackingSystemHandlerImpl implements CreateBugTrackingSystemHandler {
 
 	private final BasicTextEncryptor simpleEncryptor;
 
@@ -66,7 +66,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public CreateIntegrationHandlerImpl(BasicTextEncryptor simpleEncryptor, IntegrationRepository integrationRepository,
+	public CreateBugTrackingSystemHandlerImpl(BasicTextEncryptor simpleEncryptor, IntegrationRepository integrationRepository,
 			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository, PluginBox pluginBox,
 			MessageBus messageBus) {
 		this.simpleEncryptor = simpleEncryptor;
@@ -77,36 +77,35 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		this.messageBus = messageBus;
 	}
 
-	public EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails,
+	public EntryCreatedRS createBugTrackingSystem(CreateBugTrackingSystemRQ createRequest, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 
-		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRQ.getExternalSystemType());
+		Optional<IntegrationType> type = integrationTypeRepository.findByName(createRequest.getSystemType());
 		expect(type, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Integration type '{}' was not found.", createRQ.getExternalSystemType())
+				Suppliers.formattedSupplier("Integration type '{}' was not found.", createRequest.getSystemType())
 		);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "with id = " + projectDetails.getProjectId()));
 
-		Integration integration = new BugTrackingSystemBuilder().addUrl(createRQ.getUrl())
+		Integration integration = new BugTrackingSystemBuilder().addUrl(createRequest.getUrl())
 				.addIntegrationType(type.get())
-				.addBugTrackingProject(createRQ.getProject())
+				.addBugTrackingProject(createRequest.getProject())
 				.addProject(project)
-				.addUsername(createRQ.getUsername())
-				.addPassword(simpleEncryptor.encrypt(createRQ.getPassword()))
-				.addAuthType(createRQ.getExternalSystemAuth())
-				.addAuthKey(createRQ.getAccessKey())
+				.addUsername(createRequest.getUsername())
+				.addPassword(simpleEncryptor.encrypt(createRequest.getPassword()))
+				.addAuthType(createRequest.getSystemAuth())
+				.addAuthKey(createRequest.getAccessKey())
 				.get();
 
 		checkUnique(integration, projectDetails.getProjectId());
 
-		Optional<BtsExtension> extenstion = pluginBox.getInstance(createRQ.getExternalSystemType(), BtsExtension.class);
-		expect(extenstion, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", createRQ.getExternalSystemType())
+		Optional<BtsExtension> extension = pluginBox.getInstance(createRequest.getSystemType(), BtsExtension.class);
+		expect(extension, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", createRequest.getSystemType())
 		);
 
-		expect(extenstion.get().connectionTest(integration), BooleanUtils::isTrue).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extension.get().connectionTest(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Connection refused."
 		);
 

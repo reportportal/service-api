@@ -16,7 +16,7 @@
  *
  */
 
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
@@ -31,5 +31,7 @@ public interface GetIntegrationHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return {@link IntegrationResource}
 	 */
-	IntegrationResource getIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	
+	IntegrationResource getGlobalIntegrationById(Long integrationId);
 }

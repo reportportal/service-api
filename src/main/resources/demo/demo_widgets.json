@@ -199,7 +199,8 @@
       "contentFields": [
       ],
       "widgetOptions": {
-        "launchNameFilter": "Demo Api Tests"
+        "launchNameFilter": "Demo Api Tests",
+        "viewMode": "pie"
       }
     }
   },

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.filter;
+package com.epam.ta.reportportal.core.filter.predefined;
 
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.exception.ReportPortalException;

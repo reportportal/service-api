@@ -45,14 +45,18 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 	@Override
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {
 		Map<Filter, Sort> filterSortMap = Maps.newLinkedHashMap();
-		Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet()).forEach(f -> {
-			Filter filter = new Filter(f.getId(), f.getTargetClass().getClassObject(), Sets.newLinkedHashSet(f.getFilterCondition()));
+		Optional.ofNullable(widget.getFilters()).orElse(Collections.emptySet()).forEach(userFilter -> {
+			Filter filter = new Filter(
+					userFilter.getId(),
+					userFilter.getTargetClass().getClassObject(),
+					Sets.newLinkedHashSet(userFilter.getFilterCondition())
+			);
 			filter.withConditions(buildDefaultFilter(widget, projectId).getFilterConditions());
 
-			Optional<Set<FilterSort>> filterSorts = ofNullable(f.getFilterSorts());
+			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
 
-			Sort sort = Sort.by(filterSorts.map(fs -> fs.stream()
-					.map(s -> new Sort.Order(s.getDirection(), s.getField()))
+			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream()
+					.map(order -> new Sort.Order(order.getDirection(), order.getField()))
 					.collect(Collectors.toList())).orElseGet(Collections::emptyList));
 
 			filterSortMap.put(filter, sort);

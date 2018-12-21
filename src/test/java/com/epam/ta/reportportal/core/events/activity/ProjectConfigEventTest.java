@@ -46,7 +46,7 @@ public class ProjectConfigEventTest {
 
 	private static final Pair<String, String> KEEP_LOGS = Pair.of("1 month", "3 month");
 	private static final Pair<String, String> KEEP_SCREENSHOTS = Pair.of("2 weeks", "3 weeks");
-	private static final Pair<String, String> KEEP_LAUNCHES = Pair.of("1", "2");
+	private static final Pair<String, String> INTERRUPT_JOB_TIME = Pair.of("1 day", "1 week");
 
 	@Test
 	public void analyzerConfigUpdate() {
@@ -78,12 +78,12 @@ public class ProjectConfigEventTest {
 	@Test
 	public void projectConfigUpdate() {
 		final Activity actual = new ProjectUpdatedEvent(
-				getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(), KEEP_SCREENSHOTS.getLeft(), KEEP_LAUNCHES.getLeft())),
-				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), KEEP_LAUNCHES.getRight())),
+				getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(), KEEP_SCREENSHOTS.getLeft(), INTERRUPT_JOB_TIME.getLeft())),
+				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())),
 				USER_ID
 		).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_PROJECT);
-		expected.getDetails().setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, KEEP_LAUNCHES));
+		expected.getDetails().setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));
 		assertActivity(expected, actual);
 	}
 
@@ -107,11 +107,11 @@ public class ProjectConfigEventTest {
 		return result;
 	}
 
-	private static Map<String, String> getProjectConfig(String keepLogs, String keepScreenshots, String keepLaunches) {
+	private static Map<String, String> getProjectConfig(String keepLogs, String keepScreenshots, String interruptJobTime) {
 		HashMap<String, String> result = new HashMap<>();
 		result.put(ProjectAttributeEnum.KEEP_LOGS.getAttribute(), keepLogs);
 		result.put(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute(), keepScreenshots);
-		result.put(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute(), keepLaunches);
+		result.put(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute(), interruptJobTime);
 		return result;
 	}
 
@@ -144,13 +144,16 @@ public class ProjectConfigEventTest {
 	}
 
 	private static List<HistoryField> getProjectConfigHistory(Pair<String, String> keepLogs, Pair<String, String> keepScreenshots,
-			Pair<String, String> keepLaunches) {
+			Pair<String, String> interruptJobTime) {
 		return Lists.newArrayList(HistoryField.of(ProjectAttributeEnum.KEEP_LOGS.getAttribute(), keepLogs.getLeft(), keepLogs.getRight()),
 				HistoryField.of(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute(),
 						keepScreenshots.getLeft(),
 						keepScreenshots.getRight()
 				),
-				HistoryField.of(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute(), keepLaunches.getLeft(), keepLaunches.getRight())
+				HistoryField.of(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute(),
+						interruptJobTime.getLeft(),
+						interruptJobTime.getRight()
+				)
 		);
 	}
 

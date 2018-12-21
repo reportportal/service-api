@@ -55,7 +55,7 @@ public class DefectTypeEventsTest {
 
 	private static IssueTypeActivityResource getIssueType() {
 		IssueTypeActivityResource issueType = new IssueTypeActivityResource();
-		issueType.setId(1L);
+		issueType.setId(OBJECT_ID);
 		issueType.setLongName(LONG_NAME);
 		return issueType;
 	}
@@ -65,7 +65,7 @@ public class DefectTypeEventsTest {
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.DEFECT_TYPE);
 		activity.setUserId(USER_ID);
-		activity.setProjectId(1L);
+		activity.setProjectId(PROJECT_ID);
 		activity.setObjectId(OBJECT_ID);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails(name));

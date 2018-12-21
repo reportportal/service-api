@@ -74,8 +74,8 @@ public class ActivityDetailsUtilTest {
 
 	private HistoryField getExpected(String field) {
 		if ("share".equals(field)) {
-			return HistoryField.of(field, OLD_VALUE, NEW_VALUE);
+			return HistoryField.of(field, "false", "true");
 		}
-		return HistoryField.of(field, "false", "true");
+		return HistoryField.of(field, OLD_VALUE, NEW_VALUE);
 	}
 }

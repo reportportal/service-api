@@ -44,6 +44,10 @@ class ActivityTestHelper {
 	static final String ITEMS_COUNT_FIELD = "itemsCount";
 	static final String CONTENT_FIELDS_FIELD = "contentFields";
 	static final String WIDGET_OPTIONS_FIELD = "widgetOptions";
+	static final String TICKET_ID_FIELD = "ticketId";
+	public static final String COMMENT_FIELD = "comment";
+	public static final String ISSUE_TYPE_FIELD = "issueType";
+	public static final String IGNORE_ANALYZER_FIELD = "ignoreAnalyzer";
 
 	static void assertActivity(Activity expected, Activity actual) {
 		assertThat(actual).isEqualToIgnoringGivenFields(expected, "details", "createdAt");

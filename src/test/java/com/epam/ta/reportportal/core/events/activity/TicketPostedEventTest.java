@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.entity.Activity;
 import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -32,54 +33,57 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ItemIssueTypeDefinedEventTest {
+public class TicketPostedEventTest {
+
+	private static final String EXISTED_TICKETS = "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
+	private static final String NEW_TICKET_ID = "125";
+	private static final String NEW_TICKET_URL = "http:/example.com/ticket/125";
 
 	@Test
 	public void toActivity() {
-		final Activity actual = new ItemIssueTypeDefinedEvent(getTestItem(OLD_NAME, OLD_DESCRIPTION, true),
-				getTestItem(NEW_NAME, NEW_DESCRIPTION, false),
-				USER_ID
-		).toActivity();
+		final Activity actual = new TicketPostedEvent(getTicket(), USER_ID, getTestItem()).toActivity();
 		final Activity expected = getExpectedActivity();
-		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(OLD_DESCRIPTION, NEW_DESCRIPTION),
-						Pair.of(OLD_NAME, NEW_NAME),
-						Pair.of("true", "false")
-				));
 		assertActivity(expected, actual);
 	}
 
-	private static TestItemActivityResource getTestItem(String name, String description, boolean ignoreAnalyzer) {
+	private static Ticket getTicket() {
+		Ticket ticket = new Ticket();
+		ticket.setId(TicketPostedEventTest.NEW_TICKET_ID);
+		ticket.setTicketUrl(TicketPostedEventTest.NEW_TICKET_URL);
+		ticket.setStatus("status");
+		ticket.setSummary("summary");
+		return ticket;
+	}
+
+	private static TestItemActivityResource getTestItem() {
 		TestItemActivityResource testItem = new TestItemActivityResource();
 		testItem.setProjectId(PROJECT_ID);
 		testItem.setStatus("FAILED");
-		testItem.setIssueTypeLongName(name);
-		testItem.setIssueDescription(description);
-		testItem.setIgnoreAnalyzer(ignoreAnalyzer);
-		testItem.setAutoAnalyzed(false);
-		testItem.setName("name");
+		testItem.setIssueTypeLongName("Product Bug");
+		testItem.setIssueDescription("Description");
+		testItem.setIgnoreAnalyzer(false);
+		testItem.setAutoAnalyzed(true);
+		testItem.setName(NEW_NAME);
 		testItem.setId(OBJECT_ID);
-		testItem.setTickets("1:http:/example.com/ticket/1,2:http:/example.com/ticket/2");
+		testItem.setTickets(TicketPostedEventTest.EXISTED_TICKETS);
 		return testItem;
 	}
 
 	private static Activity getExpectedActivity() {
 		Activity activity = new Activity();
-		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE);
+		activity.setAction(ActivityAction.POST_ISSUE.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
 		activity.setUserId(USER_ID);
 		activity.setProjectId(PROJECT_ID);
 		activity.setObjectId(OBJECT_ID);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("name"));
+		activity.setDetails(new ActivityDetails(NEW_NAME));
+		activity.getDetails()
+				.setHistory(getExpectedHistory(Pair.of(EXISTED_TICKETS, EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));
 		return activity;
 	}
 
-	private static List<HistoryField> getExpectedHistory(Pair<String, String> description, Pair<String, String> issueType,
-			Pair<String, String> ignoreAnalyzer) {
-		return Lists.newArrayList(HistoryField.of(COMMENT_FIELD, description.getLeft(), description.getRight()),
-				HistoryField.of(ISSUE_TYPE_FIELD, issueType.getLeft(), issueType.getRight()),
-				HistoryField.of(IGNORE_ANALYZER_FIELD, ignoreAnalyzer.getLeft(), ignoreAnalyzer.getRight())
-		);
+	private static List<HistoryField> getExpectedHistory(Pair<String, String> tickets) {
+		return Lists.newArrayList(HistoryField.of(TICKET_ID_FIELD, tickets.getLeft(), tickets.getRight()));
 	}
 }

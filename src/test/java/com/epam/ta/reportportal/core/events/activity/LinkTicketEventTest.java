@@ -21,65 +21,55 @@ import com.epam.ta.reportportal.entity.ActivityDetails;
 import com.epam.ta.reportportal.entity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ItemIssueTypeDefinedEventTest {
+public class LinkTicketEventTest {
+
+	private static final String EXISTED_TICKETS = "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
+	private static final String LINKED_TICKET = "125:http:/example.com/ticket/125";
 
 	@Test
 	public void toActivity() {
-		final Activity actual = new ItemIssueTypeDefinedEvent(getTestItem(OLD_NAME, OLD_DESCRIPTION, true),
-				getTestItem(NEW_NAME, NEW_DESCRIPTION, false),
+		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS),
+				getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET),
 				USER_ID
 		).toActivity();
 		final Activity expected = getExpectedActivity();
-		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(OLD_DESCRIPTION, NEW_DESCRIPTION),
-						Pair.of(OLD_NAME, NEW_NAME),
-						Pair.of("true", "false")
-				));
 		assertActivity(expected, actual);
 	}
 
-	private static TestItemActivityResource getTestItem(String name, String description, boolean ignoreAnalyzer) {
+	private static TestItemActivityResource getTestItem(String tickets) {
 		TestItemActivityResource testItem = new TestItemActivityResource();
 		testItem.setProjectId(PROJECT_ID);
 		testItem.setStatus("FAILED");
-		testItem.setIssueTypeLongName(name);
-		testItem.setIssueDescription(description);
-		testItem.setIgnoreAnalyzer(ignoreAnalyzer);
+		testItem.setIssueTypeLongName("issueTypeName");
+		testItem.setIssueDescription("desc");
+		testItem.setIgnoreAnalyzer(false);
 		testItem.setAutoAnalyzed(false);
 		testItem.setName("name");
 		testItem.setId(OBJECT_ID);
-		testItem.setTickets("1:http:/example.com/ticket/1,2:http:/example.com/ticket/2");
+		testItem.setTickets(tickets);
 		return testItem;
 	}
 
 	private static Activity getExpectedActivity() {
 		Activity activity = new Activity();
-		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE);
+		activity.setAction(ActivityAction.LINK_ISSUE.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
 		activity.setUserId(USER_ID);
 		activity.setProjectId(PROJECT_ID);
 		activity.setObjectId(OBJECT_ID);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails("name"));
+		activity.getDetails()
+				.setHistory(Lists.newArrayList(HistoryField.of(TICKET_ID_FIELD, EXISTED_TICKETS, EXISTED_TICKETS + "," + LINKED_TICKET)));
 		return activity;
-	}
-
-	private static List<HistoryField> getExpectedHistory(Pair<String, String> description, Pair<String, String> issueType,
-			Pair<String, String> ignoreAnalyzer) {
-		return Lists.newArrayList(HistoryField.of(COMMENT_FIELD, description.getLeft(), description.getRight()),
-				HistoryField.of(ISSUE_TYPE_FIELD, issueType.getLeft(), issueType.getRight()),
-				HistoryField.of(IGNORE_ANALYZER_FIELD, ignoreAnalyzer.getLeft(), ignoreAnalyzer.getRight())
-		);
 	}
 }

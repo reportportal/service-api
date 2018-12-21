@@ -18,8 +18,10 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
@@ -246,8 +248,9 @@ public class ProjectController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
-			@SortFor(ProjectInfo.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getAllProjectsInfo(filter, pageable);
+			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return projectInfoHandler.getAllProjectsInfo(new CompositeFilter(filter, predefinedFilter), pageable);
 	}
 
 	@Transactional(readOnly = true)

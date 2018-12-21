@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.google.common.collect.ImmutableMap;
 import org.jooq.Operator;
@@ -88,7 +88,7 @@ public final class PredefinedFilters {
 				@Override
 				public Queryable build(String[] params) {
 					return Filter.builder()
-								.withTarget(Project.class)
+								.withTarget(ProjectInfo.class)
 								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_PROJECT_NAME))
 								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_PROJECT_ORGANIZATION))
 								.build();

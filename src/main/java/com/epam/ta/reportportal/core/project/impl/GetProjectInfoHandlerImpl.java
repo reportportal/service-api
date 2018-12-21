@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.events.activity.ActivityAction;
 import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
@@ -98,7 +99,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	}
 
 	@Override
-	public Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable) {
+	public Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
 		return PagedResourcesAssembler.pageConverter(ProjectConverter.TO_PROJECT_INFO_RESOURCE)
 				.apply(projectRepository.findProjectInfoByFilter(filter, pageable));
 	}

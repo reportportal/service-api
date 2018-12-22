@@ -19,9 +19,8 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.ICreateUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IUpdateUserFilterHandler;
+import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
@@ -29,7 +28,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -59,15 +57,13 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 @RequestMapping("/{projectName}/filter")
 public class UserFilterController {
 
-	private final ICreateUserFilterHandler createFilterHandler;
 	private final GetUserFilterHandler getFilterHandler;
 	private final IDeleteUserFilterHandler deleteFilterHandler;
-	private final IUpdateUserFilterHandler updateUserFilterHandler;
+	private final UpdateUserFilterHandler updateUserFilterHandler;
 
 	@Autowired
-	public UserFilterController(ICreateUserFilterHandler createFilterHandler, GetUserFilterHandler getFilterHandler,
-			IDeleteUserFilterHandler deleteFilterHandler, IUpdateUserFilterHandler updateUserFilterHandler) {
-		this.createFilterHandler = createFilterHandler;
+	public UserFilterController(GetUserFilterHandler getFilterHandler, IDeleteUserFilterHandler deleteFilterHandler,
+			UpdateUserFilterHandler updateUserFilterHandler) {
 		this.getFilterHandler = getFilterHandler;
 		this.deleteFilterHandler = deleteFilterHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
@@ -77,9 +73,9 @@ public class UserFilterController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create user filter")
-	public EntryCreatedRS createFilter(@PathVariable String projectName, @RequestBody @Validated CreateUserFilterRQ createFilterRQ,
+	public EntryCreatedRS createFilter(@PathVariable String projectName, @RequestBody @Validated UpdateUserFilterRQ createFilterRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createFilterHandler.createFilter(createFilterRQ, projectName, user);
+		return updateUserFilterHandler.createFilter(createFilterRQ, projectName, user);
 	}
 
 	@Transactional(readOnly = true)

@@ -34,8 +34,10 @@ import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,13 +122,18 @@ class DemoDashboardsService {
 			TypeReference<List<WidgetRQ>> type = new TypeReference<List<WidgetRQ>>() {
 			};
 
-			List<Widget> widgets = ((List<WidgetRQ>) objectMapper.readValue(resource.getURL(), type)).stream()
-					.map(it -> new WidgetBuilder().addWidgetRq(it)
-							.addFilters(Sets.newHashSet(filter))
-							.addProject(projectId)
-							.addOwner(user.getUsername())
-							.get())
-					.collect(toList());
+			List<Widget> widgets = ((List<WidgetRQ>) objectMapper.readValue(resource.getURL(), type)).stream().map(it -> {
+				final WidgetBuilder widgetBuilder = new WidgetBuilder().addWidgetRq(it).addProject(projectId).addOwner(user.getUsername());
+				final WidgetType widgetType = WidgetType.findByName(it.getWidgetType())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_TO_CREATE_WIDGET,
+								"Widget type '" + it.getWidgetType() + "' does not exists"
+						));
+				if (!WidgetType.FLAKY_TEST_CASES.equals(widgetType) || !WidgetType.PASSING_RATE_PER_LAUNCH.equals(widgetType)
+						|| !WidgetType.TOP_TEST_CASES.equals(widgetType) || !WidgetType.ACTIVITY.equals(widgetType)) {
+					widgetBuilder.addFilters(Sets.newHashSet(filter));
+				}
+				return widgetBuilder.get();
+			}).collect(toList());
 			widgetRepository.saveAll(widgets);
 			widgets.forEach(it -> aclHandler.initAcl(it, user.getUsername(), projectId, it.isShared()));
 			return widgets;

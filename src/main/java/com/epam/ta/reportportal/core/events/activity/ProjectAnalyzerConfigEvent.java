@@ -17,16 +17,16 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.HistoryField;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
 import java.util.Map;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_ANALYZER;
-import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.PROJECT;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ANALYZER;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
 
 /**

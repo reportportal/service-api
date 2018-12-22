@@ -16,12 +16,12 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.CREATE_DASHBOARD;
-import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.DASHBOARD;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.DASHBOARD;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DASHBOARD;
 
 /**
  * @author pavel_bortnik

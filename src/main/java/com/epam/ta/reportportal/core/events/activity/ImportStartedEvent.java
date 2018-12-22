@@ -17,11 +17,11 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.START_IMPORT;
-import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.IMPORT;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.IMPORT;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.START_IMPORT;
 
 /**
  * @author Pavel Bortnik

@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -16,16 +16,16 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import com.google.common.base.Strings;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.POST_ISSUE;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
-import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.TICKET;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.POST_ISSUE;
 
 /**
  * @author Andrei Varabyeu

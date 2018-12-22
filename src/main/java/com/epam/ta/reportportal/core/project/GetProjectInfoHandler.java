@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +36,7 @@ public interface GetProjectInfoHandler {
 	 *
 	 * @return
 	 */
-	Iterable<ProjectInfoResource> getAllProjectsInfo(Filter filter, Pageable pageable);
+	Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable);
 
 	/**
 	 * Get project info

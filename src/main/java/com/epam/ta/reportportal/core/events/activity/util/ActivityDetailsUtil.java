@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.events.activity.util;
  * @author Ihar Kahadouski
  */
 
-import com.epam.ta.reportportal.entity.HistoryField;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.google.common.base.Strings;
 
 import java.util.Optional;

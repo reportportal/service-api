@@ -16,27 +16,27 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.activity.ActivityHandler;
-import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.epam.ta.reportportal.ws.model.Page;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
+ import com.epam.ta.reportportal.auth.ReportPortalUser;
+ import com.epam.ta.reportportal.commons.EntityUtils;
+ import com.epam.ta.reportportal.commons.querygen.Filter;
+ import com.epam.ta.reportportal.core.activity.ActivityHandler;
+ import com.epam.ta.reportportal.entity.activity.Activity;
+ import com.epam.ta.reportportal.util.ProjectExtractor;
+ import com.epam.ta.reportportal.ws.model.ActivityResource;
+ import com.epam.ta.reportportal.ws.model.Page;
+ import com.epam.ta.reportportal.ws.resolver.FilterFor;
+ import com.epam.ta.reportportal.ws.resolver.SortFor;
+ import io.swagger.annotations.ApiOperation;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.data.domain.Pageable;
+ import org.springframework.security.access.prepost.PreAuthorize;
+ import org.springframework.security.core.annotation.AuthenticationPrincipal;
+ import org.springframework.transaction.annotation.Transactional;
+ import org.springframework.web.bind.annotation.*;
+ import springfox.documentation.annotations.ApiIgnore;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static org.springframework.http.HttpStatus.OK;
+ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+ import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Ihar_Kahadouski

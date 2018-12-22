@@ -14,20 +14,31 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.core.filter.predefined;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
- * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public interface GetIntegrationHandler {
+public enum PredefinedFilterType {
 
-	/**
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @return {@link IntegrationResource}
-	 */
-	IntegrationResource getIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	COLLAPSED("collapsed"),
+	USERS("users"),
+	PROJECTS("projects");
+
+	private String type;
+
+	PredefinedFilterType(String type) {
+		this.type = type;
+	}
+
+	public static Optional<PredefinedFilterType> fromString(String value) {
+		return Arrays.stream(PredefinedFilterType.values()).filter(it -> it.getType().equalsIgnoreCase(value)).findFirst();
+	}
+
+	public String getType() {
+		return type;
+	}
 }

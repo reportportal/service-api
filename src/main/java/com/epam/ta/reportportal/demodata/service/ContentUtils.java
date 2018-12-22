@@ -60,8 +60,8 @@ final class ContentUtils {
 		List<Pair<String, String>> content = readAttributes("demo/content/attributes.txt");
 		int fromIndex = random.nextInt(content.size() - limit);
 		return content.subList(fromIndex, fromIndex + limit).stream().map(it -> {
-			if (it.getValue().isEmpty()) {
-				return new ItemAttributeResource(it.getKey(), null);
+			if (it.getKey().isEmpty()) {
+				return new ItemAttributeResource(null, it.getValue());
 			} else {
 				return new ItemAttributeResource(it.getKey(), it.getValue());
 			}
@@ -159,7 +159,7 @@ final class ContentUtils {
 				if (it.contains(":")) {
 					return Pair.of(it.split(":")[0], it.split(":")[1]);
 				} else {
-					return Pair.of(it, "");
+					return Pair.of("", it);
 				}
 			}).collect(Collectors.toList());
 		} catch (IOException e) {

@@ -55,6 +55,7 @@ public final class ProjectConverter {
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
 		resource.setLastRun(Optional.ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
 		resource.setEntryType(project.getProjectType());
+		resource.setOrganization(project.getOrganization());
 		return resource;
 	};
 
@@ -94,11 +95,13 @@ public final class ProjectConverter {
 				.collect(Collectors.toList()));
 
 		projectResource.setConfiguration(projectConfiguration);
+		projectResource.setOrganization(project.getOrganization());
 		return projectResource;
 	};
 
 	static final Function<IssueType, IssueSubTypeResource> TO_SUBTYPE_RESOURCE = issueType -> {
 		IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
+		issueSubTypeResource.setId(issueType.getId());
 		issueSubTypeResource.setLocator(issueType.getLocator());
 		issueSubTypeResource.setColor(issueType.getHexColor());
 		issueSubTypeResource.setLongName(issueType.getLongName());

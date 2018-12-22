@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.filter;
+package com.epam.ta.reportportal.core.filter.predefined;
 
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
+import com.epam.ta.reportportal.entity.user.User;
 import com.google.common.collect.ImmutableMap;
 import org.jooq.Operator;
 
@@ -30,7 +32,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ORGANIZATION;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_TYPE;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
+import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType.*;
 
 /**
  * Holder for predefined quires
@@ -54,8 +61,8 @@ public final class PredefinedFilters {
 	}).collect(Collectors.toList());
 
 	//@formatter:off
-	private static final Map<String, PredefinedFilterBuilder> FILTERS = ImmutableMap.<String, PredefinedFilterBuilder>builder()
-			.put("collapsed", new PredefinedFilterBuilder() {
+	private static final Map<PredefinedFilterType, PredefinedFilterBuilder> FILTERS = ImmutableMap.<PredefinedFilterType, PredefinedFilterBuilder>builder()
+			.put(COLLAPSED, new PredefinedFilterBuilder() {
 				@Override
 				public Queryable build(String[] params) {
 					return Filter.builder()
@@ -65,15 +72,37 @@ public final class PredefinedFilters {
 						.withCondition(new FilterCondition(Operator.OR, Condition.EXISTS, false, "true", CRITERIA_ISSUE_TYPE))
 						.build();
 				}
-			}).build();
+			})
+			.put(USERS, new PredefinedFilterBuilder() {
+				@Override
+				public Queryable build(String[] params) {
+					return Filter.builder()
+								.withTarget(User.class)
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_USER))
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_FULL_NAME))
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_EMAIL))
+								.build();
+				}
+			})
+			.put(PROJECTS, new PredefinedFilterBuilder() {
+				@Override
+				public Queryable build(String[] params) {
+					return Filter.builder()
+								.withTarget(ProjectInfo.class)
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_PROJECT_NAME))
+								.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, params[0], CRITERIA_PROJECT_ORGANIZATION))
+								.build();
+				}
+			})
+			.build();
 	//@formatter:on
 
-	public static boolean hasFilter(String name) {
-		return FILTERS.containsKey(name);
+	public static boolean hasFilter(PredefinedFilterType type) {
+		return FILTERS.containsKey(type);
 	}
 
-	public static Queryable buildFilter(String name, String[] params) {
-		final PredefinedFilterBuilder builder = FILTERS.get(name);
+	public static Queryable buildFilter(PredefinedFilterType type, String[] params) {
+		final PredefinedFilterBuilder builder = FILTERS.get(type);
 		return builder.buildFilter(params);
 	}
 

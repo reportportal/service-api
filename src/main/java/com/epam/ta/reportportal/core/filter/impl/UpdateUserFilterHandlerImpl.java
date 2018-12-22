@@ -95,6 +95,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	@Override
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		validateFilterRq(updateRQ);
 		UserFilter userFilter = getUserFilterHandler.getFilter(userFilterId, projectDetails, user);
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				userFilterId,

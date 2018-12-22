@@ -17,12 +17,14 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationDeletedEvent;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,25 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 	public DeleteIntegrationHandlerImpl(IntegrationRepository integrationRepository, MessageBus messageBus) {
 		this.integrationRepository = integrationRepository;
 		this.messageBus = messageBus;
+	}
+
+	@Override
+	public OperationCompletionRS deleteIntegration(Long integrationId) {
+		Integration integration = integrationRepository.getGlobalIntegrationById(integrationId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+		integrationRepository.deleteAllByTypeIntegrationGroup(integration.getType().getIntegrationGroup());
+
+		return new OperationCompletionRS(Suppliers.formattedSupplier("Integrations with type = {} have been successfully removed",
+				integration.getType().getIntegrationGroup()
+		).get());
+	}
+
+	@Override
+	public OperationCompletionRS deleteAllIntegrations() {
+		integrationRepository.deleteAllInBatch();
+
+		return new OperationCompletionRS("All integrations have been successfully removed.");
 	}
 
 	@Override

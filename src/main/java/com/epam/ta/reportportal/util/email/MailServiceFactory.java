@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.ServerSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.mchange.lang.IntegerUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -35,6 +36,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static java.util.Optional.ofNullable;
 
 /**
  * Factory for {@link EmailService}
@@ -67,7 +69,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	private Optional<EmailService> getEmailService(Integration emailIntegration, List<ServerSettings> serverSettings) {
-		return getEmailService(serverSettings).flatMap(service -> {
+		return getEmailService(null).flatMap(service -> {
 			if (null != emailIntegration && emailIntegration.isEnabled()) {
 				service.setFrom((String) emailIntegration.getParams().getParams().get(FROM_ADDRESS));
 			}
@@ -78,39 +80,45 @@ public class MailServiceFactory {
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param serverSettings Server-level configuration
+	 * @param integration Email {@link Integration}
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(List<ServerSettings> serverSettings) {
+	public Optional<EmailService> getEmailService(Integration integration) {
 
-		Map<String, String> config = serverSettings.stream()
-				.collect(HashMap::new, (map, settings) -> map.put(settings.getKey(), settings.getValue()), HashMap::putAll);
+		Map<String, Object> config = integration.getParams().getParams();
 
-		if (MapUtils.isNotEmpty(config) && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.ENABLED.getAttribute()))) {
+		if (MapUtils.isNotEmpty(config) && integration.isEnabled()) {
 
-			boolean authRequired = BooleanUtils.toBoolean(config.get(ServerSettingsEnum.AUTH_ENABLED.getAttribute()));
+			boolean authRequired = ofNullable(config.get(ServerSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
+					String.valueOf(e))).orElse(false);
 
 			Properties javaMailProperties = new Properties();
 			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
 			javaMailProperties.put("mail.smtp.auth", authRequired);
 			javaMailProperties.put("mail.smtp.starttls.enable",
-					authRequired && BooleanUtils.toBoolean(config.get(ServerSettingsEnum.STAR_TLS_ENABLED.getAttribute()))
+					authRequired
+							&& ofNullable(config.get(ServerSettingsEnum.STAR_TLS_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
+							String.valueOf(e))).orElse(false)
 			);
 
-			if (BooleanUtils.toBoolean(ServerSettingsEnum.SSL_ENABLED.getAttribute())) {
+			if (ofNullable(config.get(ServerSettingsEnum.SSL_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(String.valueOf(e)))
+					.orElse(false)) {
 				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
 			}
 
 			EmailService service = new EmailService(javaMailProperties);
 			service.setTemplateEngine(templateEngine);
-			service.setHost(config.get(ServerSettingsEnum.HOST.getAttribute()));
-			service.setPort(Integer.parseInt(config.get(ServerSettingsEnum.PORT.getAttribute())));
-			service.setProtocol(config.get(ServerSettingsEnum.PROTOCOL.getAttribute()));
-			service.setFrom(config.get(ServerSettingsEnum.FROM.getAttribute()));
+
+			ServerSettingsEnum.HOST.getAttribute(config).ifPresent(service::setHost);
+			service.setPort(ofNullable(config.get(ServerSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
+					25
+			)).orElse(25));
+			ServerSettingsEnum.PROTOCOL.getAttribute(config).ifPresent(service::setProtocol);
+			ServerSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFrom);
 			if (authRequired) {
-				service.setUsername(config.get(ServerSettingsEnum.USERNAME.getAttribute()));
-				service.setPassword(encryptor.decrypt(config.get(ServerSettingsEnum.PASSWORD.getAttribute())));
+				ServerSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setUsername);
+				ServerSettingsEnum.PASSWORD.getAttribute(config).ifPresent(password -> service.setPassword(encryptor.decrypt(password)));
 			}
 			return Optional.of(service);
 
@@ -125,7 +133,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
-		return getEmailService(settingsRepository.findAll());
+		return getEmailService(null);
 	}
 
 	/**
@@ -144,8 +152,7 @@ public class MailServiceFactory {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
-		EmailService emailService = getEmailService(
-				integration,
+		EmailService emailService = getEmailService(integration,
 				settingsRepository.findAll()
 		).orElseThrow(() -> emailConfigurationFail(null));
 
@@ -162,7 +169,7 @@ public class MailServiceFactory {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(boolean checkConnection) {
-		EmailService emailService = getEmailService(settingsRepository.findAll()).orElseThrow(() -> emailConfigurationFail(null));
+		EmailService emailService = getEmailService(null).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);

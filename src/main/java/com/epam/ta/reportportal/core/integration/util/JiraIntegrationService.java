@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.util.property.JiraProperties;
@@ -36,7 +37,7 @@ public class JiraIntegrationService implements IntegrationService {
 	}
 
 	@Override
-	public Integration createIntegration(String integrationName, Map<String, Object> integrationParams) {
+	public Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams) {
 
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
@@ -79,5 +80,11 @@ public class JiraIntegrationService implements IntegrationService {
 		integration.setType(integrationType);
 
 		return integration;
+	}
+
+	@Override
+	public Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
+			Map<String, Object> integrationParams) {
+		return null;
 	}
 }

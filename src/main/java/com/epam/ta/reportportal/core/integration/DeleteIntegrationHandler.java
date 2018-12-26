@@ -28,7 +28,7 @@ public interface DeleteIntegrationHandler {
 	 * @param integrationId Integration id
 	 * @return Response data
 	 */
-	OperationCompletionRS deleteIntegration(Long integrationId);
+	OperationCompletionRS deleteGlobalIntegration(Long integrationId);
 
 	/**
 	 * @return Response data

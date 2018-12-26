@@ -23,9 +23,13 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -42,9 +46,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 
@@ -58,10 +60,14 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final UserRepository userRepository;
 
+	private final IntegrationRepository integrationRepository;
+
 	@Autowired
-	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository) {
+	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
+			IntegrationRepository integrationRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
+		this.integrationRepository = integrationRepository;
 	}
 
 	@Override
@@ -82,8 +88,24 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public ProjectResource getProject(String projectName) {
-		return ProjectConverter.TO_PROJECT_RESOURCE.apply(projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName)));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		Arrays.stream(ReportPortalIntegrationEnum.values()).forEach(integration -> {
+			Optional<IntegrationType> integrationType = project.getIntegrations()
+					.stream()
+					.map(Integration::getType)
+					.filter(type -> type.getName().equalsIgnoreCase(integration.name()))
+					.findFirst();
+
+			if(!integrationType.isPresent()) {
+				Integration globalIntegration = integrationRepository.getAllGlobalIntegrationsByType(integration)
+			}
+		});
+
+		project.getIntegrations().stream().map(Integration::getType).filter(it -> it.ge)
+
+		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}
 
 	@Override
@@ -96,12 +118,10 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
 		);
-		Filter filter = Filter.builder()
-				.withTarget(User.class)
+		Filter filter = Filter.builder().withTarget(User.class)
 				//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
 				//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME))
 				//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL))

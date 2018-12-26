@@ -52,7 +52,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteIntegration(Long integrationId) {
+	public OperationCompletionRS deleteGlobalIntegration(Long integrationId) {
 		Integration integration = integrationRepository.getGlobalIntegrationById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
@@ -80,7 +80,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 		integrationRepository.delete(integration);
 
 		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
-		return new OperationCompletionRS("ExternalSystem with ID = '" + integrationId + "' is successfully deleted.");
+		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' have been successfully deleted.");
 	}
 
 	@Override
@@ -93,6 +93,6 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 				.map(TO_ACTIVITY_RESOURCE)
 				.forEach(it -> messageBus.publishActivity(new IntegrationDeletedEvent(it, user.getUserId())));
 		return new OperationCompletionRS(
-				"All ExternalSystems for project with id ='" + projectDetails.getProjectId() + "' successfully removed");
+				"All integrations for project with id ='" + projectDetails.getProjectId() + "' have been successfully deleted");
 	}
 }

@@ -4,7 +4,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
-import com.epam.ta.reportportal.core.integration.UpdateIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
@@ -30,14 +30,14 @@ public class IntegrationController {
 
 	private final DeleteIntegrationHandler deleteIntegrationHandler;
 	private final GetIntegrationHandler getIntegrationHandler;
-	private final UpdateIntegrationHandler updateIntegrationHandler;
+	private final CreateIntegrationHandler createIntegrationHandler;
 
 	@Autowired
 	public IntegrationController(DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
-			UpdateIntegrationHandler updateIntegrationHandler) {
+			CreateIntegrationHandler createIntegrationHandler) {
 		this.deleteIntegrationHandler = deleteIntegrationHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
-		this.updateIntegrationHandler = updateIntegrationHandler;
+		this.createIntegrationHandler = createIntegrationHandler;
 	}
 
 	@Transactional
@@ -45,10 +45,22 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create or update global Report Portal integration instance")
 	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS createIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
+	public OperationCompletionRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
 
-		return updateIntegrationHandler.updateIntegration(updateRequest);
+		return createIntegrationHandler.createGlobalIntegration(updateRequest);
+
+	}
+
+	@Transactional
+	@RequestMapping(value = "/{projectName}", method = { RequestMethod.POST, RequestMethod.PUT })
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Create or update global Report Portal integration instance")
+	@PreAuthorize(PROJECT_MANAGER)
+	public OperationCompletionRS createProjectIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
+			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+
+		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), updateRequest);
 
 	}
 
@@ -67,8 +79,8 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete integration instance")
 	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS deleteIntegration(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteIntegration(integrationId);
+	public OperationCompletionRS deleteGlobalIntegration(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteIntegrationHandler.deleteGlobalIntegration(integrationId);
 	}
 
 	@Transactional
@@ -115,28 +127,4 @@ public class IntegrationController {
 		return deleteIntegrationHandler.deleteProjectIntegrations(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user);
 	}
 
-	///////////////EMAIL SERVER////////////
-	///////////////EMAIL SERVER////////////
-	///////////////EMAIL SERVER////////////
-	///////////////EMAIL SERVER////////////
-	///////////////EMAIL SERVER////////////
-
-	//	@Transactional(readOnly = true)
-	//	@GetMapping(value = "/email")
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation(value = "Get server email settings")
-	//	@PreAuthorize(ADMIN_ONLY)
-	//	public ServerSettingsResource getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
-	//		return serverHandler.getServerSettings();
-	//	}
-	//
-	//
-	//	@Transactional
-	//	@DeleteMapping(value = "/email")
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation(value = "Delete email settings for specified profile")
-	//	@PreAuthorize(ADMIN_ONLY)
-	//	public OperationCompletionRS deleteEmailSettings(@AuthenticationPrincipal ReportPortalUser user) {
-	//		return serverHandler.deleteEmailSettings();
-	//	}
 }

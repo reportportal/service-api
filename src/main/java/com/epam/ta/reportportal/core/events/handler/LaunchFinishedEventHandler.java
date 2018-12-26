@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
+import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -23,17 +24,14 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.entity.project.email.LaunchStatsRule;
-import com.epam.ta.reportportal.entity.project.email.SendCaseType;
+import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -46,16 +44,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
-import static com.epam.ta.reportportal.entity.project.email.SendCaseType.RECIPIENTS;
-import static com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil.EMAIL;
-import static com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil.getRuleValues;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -92,9 +86,7 @@ public class LaunchFinishedEventHandler {
 		}
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
-		Integration emailIntegration = EmailIntegrationUtil.getEmailIntegration(project)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, EmailIntegrationUtil.EMAIL));
-		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
+		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(project.getProjectAttributes());
 
 		emailService.ifPresent(it -> sendEmail(launch, project, it));
 
@@ -105,11 +97,11 @@ public class LaunchFinishedEventHandler {
 	 * @return success rate of provided launch in %
 	 */
 	private static double getSuccessRate(Launch launch) {
-		Double ti = extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()).doubleValue();
-		Double pb = extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, launch.getStatistics()).doubleValue();
-		Double si = extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, launch.getStatistics()).doubleValue();
-		Double ab = extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, launch.getStatistics()).doubleValue();
-		Double total = extractStatisticsCount(EXECUTIONS_TOTAL, launch.getStatistics()).doubleValue();
+		double ti = extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()).doubleValue();
+		double pb = extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, launch.getStatistics()).doubleValue();
+		double si = extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, launch.getStatistics()).doubleValue();
+		double ab = extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, launch.getStatistics()).doubleValue();
+		double total = extractStatisticsCount(EXECUTIONS_TOTAL, launch.getStatistics()).doubleValue();
 		return total == 0 ? total : (ti + pb + si + ab) / total;
 	}
 
@@ -118,7 +110,7 @@ public class LaunchFinishedEventHandler {
 	 * @param option SendCase option
 	 * @return TRUE of success rate is enough for notification
 	 */
-	static boolean isSuccessRateEnough(Launch launch, LaunchStatsRule option) {
+	static boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
 			case ALWAYS:
 				return true;
@@ -140,10 +132,12 @@ public class LaunchFinishedEventHandler {
 	/**
 	 * Validate matching of finished launch name and project settings for emailing
 	 *
-	 * @param launch Launch to be evaluated
+	 * @param launch  Launch to be evaluated
+	 * @param oneCase Mail case
 	 * @return TRUE if launch name matched
 	 */
-	static boolean isLaunchNameMatched(Launch launch, List<String> configuredNames) {
+	static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
+		Set<String> configuredNames = oneCase.getLaunchNames();
 		return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(launch.getName());
 	}
 
@@ -154,11 +148,12 @@ public class LaunchFinishedEventHandler {
 	 * @return TRUE if tags matched
 	 */
 	@VisibleForTesting
-	static boolean isTagsMatched(Launch launch, List<String> tags) {
-		return !(null != tags && !tags.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
-				.stream().map(ItemAttribute::getValue)
+	static boolean isAttributesMathced(Launch launch, Set<String> attributes) {
+		return !(null != attributes && !attributes.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
+				.stream()
+				.map(ItemAttribute::getKey)
 				.collect(toList())
-				.containsAll(tags);
+				.containsAll(attributes);
 	}
 
 	/**
@@ -170,48 +165,32 @@ public class LaunchFinishedEventHandler {
 	 */
 	private void sendEmail(Launch launch, Project project, EmailService emailService) {
 
-		Integration emailIntegration = EmailIntegrationUtil.getEmailIntegration(project)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, EMAIL));
+		project.getEmailCases().forEach(ec -> {
+			SendCase sendCase = ec.getSendCase();
+			boolean successRate = isSuccessRateEnough(launch, sendCase);
+			boolean matchedNames = isLaunchNameMatched(launch, ec);
+			boolean matchedTags = isAttributesMathced(launch, ec.getLaunchAttributes());
 
-		EmailIntegrationUtil.getEmailRules(emailIntegration.getParams().getParams())
-				.forEach(rule -> sendEmailWithRule(rule, launch, project, emailService));
-	}
+			Set<String> recipients = ec.getRecipients();
+			if (successRate && matchedNames && matchedTags) {
+				String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
+				try {
+					/* Update with static Util resources provider */
+					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
+							.replacePath(String.format("/#%s", project.getName()))
+							.build()
+							.toUriString();
 
-	/**
-	 * Try to send email for concrete rule
-	 *
-	 * @param rule         Rule that used to send email
-	 * @param launch       Launch to be used
-	 * @param project      Project
-	 * @param emailService Mail Service
-	 */
-	private void sendEmailWithRule(Map<String, Object> rule, Launch launch, Project project, EmailService emailService) {
-
-		LaunchStatsRule option = LaunchStatsRule.findByName(EmailIntegrationUtil.getLaunchStatsValue(rule))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-
-		boolean successRate = isSuccessRateEnough(launch, option);
-		boolean matchedNames = isLaunchNameMatched(launch, getRuleValues(rule, SendCaseType.LAUNCH_NAME_RULE));
-		boolean matchedTags = isTagsMatched(launch, getRuleValues(rule, SendCaseType.LAUNCH_TAG_RULE));
-
-		List<String> recipients = getRuleValues(rule, RECIPIENTS);
-		if (successRate && matchedNames && matchedTags) {
-			String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
-			try {
-				/* Update with static Util resources provider */
-				String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-						.replacePath(String.format("/#%s", project.getName()))
-						.build()
-						.toUriString();
-
-				emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project.getName(), launch);
-			} catch (Exception e) {
-				LOGGER.error("Unable to send email. Error: \n{}", e);
+					emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project.getName(), launch);
+				} catch (Exception e) {
+					LOGGER.error("Unable to send email. Error: \n{}", e);
+				}
 			}
-		}
+		});
+
 	}
 
-	private String[] findRecipients(String owner, List<String> recipients) {
+	private String[] findRecipients(String owner, Set<String> recipients) {
 		return recipients.stream().map(recipient -> {
 			if (recipient.contains("@")) {
 				return recipient;

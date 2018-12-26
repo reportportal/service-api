@@ -31,9 +31,9 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -109,13 +109,16 @@ public class ProjectController {
 	}
 
 	@Transactional
-	@PutMapping("/{projectName}/integration")
+	@PutMapping("/{projectName}/emailconfig")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	@ApiOperation("Update project integration configuration")
-	public OperationCompletionRS updateProjectIntegration(@PathVariable String projectName,
-			@RequestBody @Validated UpdateIntegrationRQ updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateIntegration(ProjectExtractor.extractProjectDetails(user, projectName), user, updateProjectRQ);
+	@ApiOperation("Update project email configuration")
+	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
+			@RequestBody @Validated ProjectEmailConfigDTO updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.updateProjectEmailConfig(ProjectExtractor.extractProjectDetails(user, projectName),
+				user,
+				updateProjectRQ
+		);
 	}
 
 	@Transactional

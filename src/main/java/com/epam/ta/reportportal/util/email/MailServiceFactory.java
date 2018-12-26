@@ -19,7 +19,9 @@ import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.ServerSettingsEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -35,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static java.util.Optional.ofNullable;
 
 /**
  * Factory for {@link EmailService}
@@ -62,14 +65,23 @@ public class MailServiceFactory {
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param emailIntegration Project configuration attributes
-	 * @param serverSettings   Server-level configuration
+	 * @param projectAttributes Project configuration attributes
+	 * @param serverSettings    Server-level configuration
 	 * @return Built email service
 	 */
-	private Optional<EmailService> getEmailService(Integration emailIntegration, List<ServerSettings> serverSettings) {
+	private Optional<EmailService> getEmailService(Set<ProjectAttribute> projectAttributes, List<ServerSettings> serverSettings) {
+
+		Map<String, String> configuration = ProjectUtils.getConfigParameters(projectAttributes);
+
 		return getEmailService(serverSettings).flatMap(service -> {
-			if (null != emailIntegration && emailIntegration.isEnabled()) {
-				service.setFrom((String) emailIntegration.getParams().getParams().get(FROM_ADDRESS));
+			// if there is server email config, let's check project config
+			if (MapUtils.isNotEmpty(configuration)) {
+				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
+				if (BooleanUtils.toBoolean(configuration.get(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))) {
+					//update of present on project level
+					ofNullable(configuration.get(ProjectAttributeEnum.EMAIL_FROM.getAttribute())).ifPresent(service::setFrom);
+				}
+
 			}
 			return Optional.of(service);
 		});
@@ -133,8 +145,8 @@ public class MailServiceFactory {
 	 *
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getDefaultEmailService(Integration integration) {
-		return getEmailService(integration, settingsRepository.findAll());
+	public Optional<EmailService> getDefaultEmailService(Set<ProjectAttribute> projectAttributes) {
+		return getEmailService(projectAttributes, settingsRepository.findAll());
 	}
 
 	/**
@@ -143,9 +155,8 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
-		EmailService emailService = getEmailService(
-				integration,
+	public EmailService getDefaultEmailService(Set<ProjectAttribute> projectAttributes, boolean checkConnection) {
+		EmailService emailService = getEmailService(projectAttributes,
 				settingsRepository.findAll()
 		).orElseThrow(() -> emailConfigurationFail(null));
 

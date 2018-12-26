@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
@@ -59,17 +58,13 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 	private final IssueTypeRepository issueTypeRepository;
 
-	private final EmailIntegrationService emailIntegrationService;
-
 	@Autowired
 	public CreateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
-			EmailIntegrationService emailIntegrationService) {
+			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.attributeRepository = attributeRepository;
 		this.issueTypeRepository = issueTypeRepository;
-		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	@Override
@@ -100,7 +95,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		project.setProjectType(projectType);
 
 		project.setProjectAttributes(projectAttributes);
-		emailIntegrationService.setDefaultEmailConfiguration(project);
+		ProjectUtils.setDefaultEmailConfiguration(project);
 
 		ProjectUser projectUser = new ProjectUser().withProject(project)
 				.withUser(userRepository.findById(user.getUserId())

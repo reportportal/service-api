@@ -19,10 +19,10 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 
 /**
  * Update {@link com.epam.ta.reportportal.entity.project.Project} request handler
@@ -51,8 +51,8 @@ public interface UpdateProjectHandler {
 	 * @param user            User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateIntegration(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			UpdateIntegrationRQ updateProjectRQ);
+	OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			ProjectEmailConfigDTO updateProjectRQ);
 
 	/**
 	 * Un-assign specified user from project

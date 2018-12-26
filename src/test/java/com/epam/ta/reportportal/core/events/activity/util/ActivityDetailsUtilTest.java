@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.activity.util;
 
-import com.epam.ta.reportportal.entity.HistoryField;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import org.junit.Test;
 
 import java.util.Optional;

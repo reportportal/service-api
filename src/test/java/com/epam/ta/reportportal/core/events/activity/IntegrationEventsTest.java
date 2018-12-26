@@ -16,8 +16,9 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import org.junit.Test;
 

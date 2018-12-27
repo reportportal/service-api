@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
@@ -52,17 +51,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 		this.userFilter = userFilter;
 	}
 
-	public UserFilterBuilder addCreateRq(CreateUserFilterRQ rq) {
-		userFilter.setName(rq.getName());
-		userFilter.setDescription(rq.getDescription());
-		userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType()));
-		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
-		addFilterConditions(rq.getConditions());
-		addSelectionParameters(rq.getOrders());
-		return this;
-	}
-
-	public UserFilterBuilder addUpdateFilterRQ(UpdateUserFilterRQ rq) {
+	public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
 		ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
 		ofNullable(rq.getDescription()).ifPresent(it -> userFilter.setDescription(it));
 		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));

@@ -51,7 +51,7 @@ public class StatisticsUtils {
 		return Stream.concat(
 				Arrays.stream(TestItemIssueGroup.values())
 						.filter(value -> !value.getIssueCounterField().equalsIgnoreCase(NOT_ISSUE_FLAG.getIssueCounterField()))
-						.map(value -> "statistics$defects$" + value.getIssueCounterField() + "$" + value.getLocator()),
+						.map(value -> "statistics$defects$" + value.getValue().toLowerCase() + "$" + value.getLocator()),
 				Stream.of(TOTAL, PASSED, SKIPPED, FAILED)
 		);
 	}

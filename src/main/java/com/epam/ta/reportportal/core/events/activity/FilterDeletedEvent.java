@@ -17,12 +17,12 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.DELETE_FILTER;
-import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.FILTER;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.FILTER;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_FILTER;
 
 /**
  * @author pavel_bortnik

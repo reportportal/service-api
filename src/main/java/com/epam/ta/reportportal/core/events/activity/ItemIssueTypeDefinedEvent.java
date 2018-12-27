@@ -16,17 +16,17 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
-import com.epam.ta.reportportal.entity.Activity;
-import com.epam.ta.reportportal.entity.HistoryField;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.ANALYZE_ITEM;
-import static com.epam.ta.reportportal.core.events.activity.ActivityAction.UPDATE_ITEM;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
-import static com.epam.ta.reportportal.entity.Activity.ActivityEntityType.ITEM_ISSUE;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM_ISSUE;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.ANALYZE_ITEM;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
 
 /**
  * @author Andrei Varabyeu

@@ -20,7 +20,8 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.filter.PredefinedFilters;
+import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
+import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -30,6 +31,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -52,7 +54,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 	 * parameters (some of them may not be related to filtering), we have to
 	 * introduce this
 	 */
-	public static final String FILTER_PARAMETER_NAME = "predefinedFilter";
+	public static final String PREDEFINED_FILTER_PREFIX = "predefinedFilter.";
 
 	/**
 	 * Returns TRUE only for {@link List} marked with {@link FilterFor}
@@ -72,17 +74,22 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 		List<Queryable> filterConditions = webRequest.getParameterMap()
 				.entrySet()
 				.stream()
-				.filter(parameter -> FILTER_PARAMETER_NAME.equals(parameter.getKey()))
+				.filter(parameter -> parameter.getKey().startsWith(PREDEFINED_FILTER_PREFIX))
 				.map(parameter -> {
 					BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");
 
-					String filterName = parameter.getValue()[0];
+					String filterName = parameter.getKey().split("\\.")[1];
+					String[] filterParameters = parameter.getValue()[0].split(",");
 
-					BusinessRule.expect(PredefinedFilters.hasFilter(filterName), Predicate.isEqual(true))
+					Optional<PredefinedFilterType> predefinedFilterType = PredefinedFilterType.fromString(filterName);
+					BusinessRule.expect(predefinedFilterType, Optional::isPresent)
+							.verify(ErrorType.BAD_REQUEST_ERROR, "Incorrect predefined filter type " + filterName);
+
+					BusinessRule.expect(PredefinedFilters.hasFilter(predefinedFilterType.get()), Predicate.isEqual(true))
 							.verify(ErrorType.INCORRECT_REQUEST, "Unknown filter '" + filterName + "'");
 
-					final Queryable queryable = PredefinedFilters.buildFilter(filterName, parameter.getValue());
+					final Queryable queryable = PredefinedFilters.buildFilter(predefinedFilterType.get(), filterParameters);
 					BusinessRule.expect(queryable.getTarget().getClazz(), Predicate.isEqual(domainModelType))
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter target class type");
 

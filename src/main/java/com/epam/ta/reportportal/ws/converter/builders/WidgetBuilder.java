@@ -50,12 +50,13 @@ public class WidgetBuilder implements Supplier<Widget> {
 		widget.setName(widgetRQ.getName());
 		ofNullable(widgetRQ.getShare()).ifPresent(it -> widget.setShared(it));
 
-		WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
-		Map<String, Object> options = ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
-		options.putAll(widgetRQ.getContentParameters().getWidgetOptions());
-
-		widgetOptions.setOptions(options);
-		widget.setWidgetOptions(widgetOptions);
+		ofNullable(widgetRQ.getContentParameters().getWidgetOptions()).ifPresent(wo -> {
+			WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
+			Map<String, Object> options = ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
+			options.putAll(wo);
+			widgetOptions.setOptions(options);
+			widget.setWidgetOptions(widgetOptions);
+		});
 
 		widget.setWidgetType(widgetRQ.getWidgetType());
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());

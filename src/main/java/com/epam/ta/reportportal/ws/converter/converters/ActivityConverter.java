@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.entity.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 
 import java.util.function.Function;

@@ -18,13 +18,15 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -245,9 +247,10 @@ public class ProjectController {
 	@GetMapping(value = "/list")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
-	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(Project.class) Filter filter,
-			@SortFor(Project.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getAllProjectsInfo(filter, pageable);
+	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
+			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return projectInfoHandler.getAllProjectsInfo(new CompositeFilter(filter, predefinedFilter), pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -269,11 +272,7 @@ public class ProjectController {
 	public Map<String, ?> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getProjectInfoWidgetContent(
-				projectName,
-				interval,
-				widgetCode
-		);
+		return projectInfoHandler.getProjectInfoWidgetContent(projectName, interval, widgetCode);
 	}
 
 	@Transactional(readOnly = true)

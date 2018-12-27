@@ -56,7 +56,7 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
 
 			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream()
-					.map(order -> new Sort.Order(order.getDirection(), order.getField()))
+					.map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
 					.collect(Collectors.toList())).orElseGet(Collections::emptyList));
 
 			filterSortMap.put(filter, sort);

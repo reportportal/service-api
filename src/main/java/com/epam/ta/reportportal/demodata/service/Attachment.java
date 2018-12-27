@@ -35,7 +35,9 @@ public enum Attachment {
 	TXT("demo/attachments/plain.txt", TEXT_PLAIN_VALUE),
 	ZIP("demo/attachments/demo.zip", "application/zip"),
 	JSON("demo/demo_widgets.json", APPLICATION_JSON_VALUE),
-	PNG("demo/attachments/img.png", IMAGE_PNG_VALUE);
+	PNG("demo/attachments/img.png", IMAGE_PNG_VALUE),
+	XML("demo/attachments/xml.xml", APPLICATION_XML_VALUE),
+	HAR("demo/attachments/har.har", APPLICATION_JSON_VALUE);
 
 	Attachment(String resource, String contentType) {
 		this.resource = resource;

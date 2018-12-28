@@ -22,8 +22,10 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -86,6 +88,13 @@ public class LaunchFinishedEventHandler {
 		}
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
+
+		Integration emailIntegration = project.getIntegrations()
+				.stream()
+				.filter(i -> IntegrationGroupEnum.NOTIFICATION.equals(i.getType().getIntegrationGroup()))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND));
+
 		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(project.getProjectAttributes());
 
 		emailService.ifPresent(it -> sendEmail(launch, project, it));

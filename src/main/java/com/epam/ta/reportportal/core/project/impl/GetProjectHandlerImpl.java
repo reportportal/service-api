@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -46,7 +45,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 
@@ -91,19 +93,15 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		Arrays.stream(ReportPortalIntegrationEnum.values()).forEach(integration -> {
-			Optional<IntegrationType> integrationType = project.getIntegrations()
-					.stream()
-					.map(Integration::getType)
-					.filter(type -> type.getName().equalsIgnoreCase(integration.name()))
-					.findFirst();
+		List<Long> integrationTypeIds = project.getIntegrations()
+				.stream()
+				.map(Integration::getType)
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
 
-			if(!integrationType.isPresent()) {
-				Integration globalIntegration = integrationRepository.getAllGlobalIntegrationsByType(integration)
-			}
-		});
+		List<Integration> globalIntegrations = integrationRepository.getAllMissedGlobalIntegrations(integrationTypeIds);
 
-		project.getIntegrations().stream().map(Integration::getType).filter(it -> it.ge)
+		project.getIntegrations().addAll(globalIntegrations);
 
 		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}

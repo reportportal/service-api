@@ -46,10 +46,12 @@ public class JiraIntegrationService implements IntegrationService {
 						Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationName).get()
 				));
 
-		AuthType authType = AuthType.findByName(JiraProperties.AUTH_TYPE.getParam(integrationParams)
+		String authName = JiraProperties.AUTH_TYPE.getParam(integrationParams)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						"No auth property provided for Jira integration"
-				)));
+				));
+		AuthType authType = AuthType.findByName(authName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
 
 		if (AuthType.BASIC.equals(authType)) {
 			expect(JiraProperties.USER_NAME.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,

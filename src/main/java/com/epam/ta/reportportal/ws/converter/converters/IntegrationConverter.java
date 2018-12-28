@@ -23,8 +23,9 @@ import com.epam.ta.reportportal.ws.model.integration.AuthFlowEnum;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 
-import java.util.Optional;
 import java.util.function.Function;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -36,16 +37,16 @@ public final class IntegrationConverter {
 		resource.setId(integration.getId());
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
-		resource.setProjectId(integration.getProject().getId());
-		Optional.ofNullable(integration.getParams()).ifPresent(it -> resource.setIntegrationParams(it.getParams()));
+		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
+		ofNullable(integration.getParams()).ifPresent(it -> resource.setIntegrationParams(it.getParams()));
 
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());
 		type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
 		type.setGroupType(integration.getType().getIntegrationGroup().name());
-		Optional.ofNullable(integration.getType().getDetails()).ifPresent(it -> type.setDetails(it.getDetails()));
-		Optional.ofNullable(integration.getType().getAuthFlow()).ifPresent(it -> type.setAuthFlow(AuthFlowEnum.valueOf(it.name())));
+		ofNullable(integration.getType().getDetails()).ifPresent(it -> type.setDetails(it.getDetails()));
+		ofNullable(integration.getType().getAuthFlow()).ifPresent(it -> type.setAuthFlow(AuthFlowEnum.valueOf(it.name())));
 		resource.setIntegrationType(type);
 
 		return resource;

@@ -6,8 +6,10 @@ import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -29,12 +31,16 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 
+	private final ProjectRepository projectRepository;
+
 	@Autowired
 	public CreateIntegrationHandlerImpl(Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping,
-			IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository) {
+			IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
+			ProjectRepository projectRepository) {
 		this.integrationServiceMapping = integrationServiceMapping;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
@@ -65,6 +71,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	public OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails,
 			UpdateIntegrationRQ updateRequest) {
 
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
 		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
 
@@ -72,6 +81,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.createProjectIntegration(updateRequest.getIntegrationName(), projectDetails, updateRequest.getIntegrationParams());
 
 		integration.setEnabled(updateRequest.getEnabled());
+
+		integration.setProject(project);
 
 		integrationRepository.save(integration);
 

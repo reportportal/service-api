@@ -74,11 +74,11 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 
-		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(
-				createWidgetRQ.getName(),
+		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(createWidgetRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
+		), BooleanUtils::isFalse)
+				.verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
 
 		Widget widget = new WidgetBuilder().addWidgetRq(createWidgetRQ)
 				.addProject(projectDetails.getProjectId())
@@ -99,8 +99,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 					Pageable.unpaged(),
 					username
 			).getContent();
-			BusinessRule.expect(userFilters, not(List::isEmpty))
-					.verify(ErrorType.BAD_REQUEST_ERROR, "Could not find one or more filters with ids: {}", ids);
+			BusinessRule.expect(userFilters, not(List::isEmpty)).verify(ErrorType.USER_FILTER_NOT_FOUND, filterIds, projectId, username);
 			return userFilters;
 		}
 		return Collections.emptyList();

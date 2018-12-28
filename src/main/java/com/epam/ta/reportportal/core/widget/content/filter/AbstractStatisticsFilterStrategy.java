@@ -64,8 +64,7 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 					Sets.newHashSet(userFilter.getFilterCondition())
 			);
 			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
-			Sort sort = Sort.by((Sort.Order) filterSorts.map(filterSort -> filterSort.stream()
-					.map(s -> Sort.by(s.getDirection(), s.getField()))
+			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream().map(s -> new Sort.Order(s.getDirection(), s.getField()))
 					.collect(Collectors.toList())).orElseGet(Collections::emptyList));
 			filterSortMap.put(filter, sort);
 		});

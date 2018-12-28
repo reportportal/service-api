@@ -37,7 +37,10 @@ public enum Attachment {
 	JSON("demo/demo_widgets.json", APPLICATION_JSON_VALUE),
 	PNG("demo/attachments/img.png", IMAGE_PNG_VALUE),
 	XML("demo/attachments/xml.xml", APPLICATION_XML_VALUE),
-	HAR("demo/attachments/har.har", APPLICATION_JSON_VALUE);
+	HAR("demo/attachments/har.har", "application/har+json"),
+	GZ("demo/attachments/gz.gz", "application/gzip"),
+	RAR("demo/attachments/rar.rar", "application/x-rar-compressed"),
+	TAR("demo/attachments/tar.tar", "application/tar");
 
 	Attachment(String resource, String contentType) {
 		this.resource = resource;

@@ -36,42 +36,48 @@ import javax.sql.DataSource;
 @EnableAutoConfiguration
 public class ACLContext {
 
-    @Autowired
-    DataSource dataSource;
+	@Autowired
+	DataSource dataSource;
 
-    @Bean
-    public SpringCacheBasedAclCache aclCache() {
-        return new SpringCacheBasedAclCache(coffeinCache(), permissionGrantingStrategy(), aclAuthorizationStrategy());
-    }
+	@Bean
+	public SpringCacheBasedAclCache aclCache() {
+		return new SpringCacheBasedAclCache(coffeinCache(), permissionGrantingStrategy(), aclAuthorizationStrategy());
+	}
 
-    @Bean
-    public CaffeineCache coffeinCache(){
-        return new CaffeineCache("aclCache", Caffeine.newBuilder().build());
-    }
+	@Bean
+	public CaffeineCache coffeinCache() {
+		return new CaffeineCache("aclCache", Caffeine.newBuilder().build());
+	}
 
-    @Bean
-    public PermissionGrantingStrategy permissionGrantingStrategy() {
-        return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
-    }
+	@Bean
+	public PermissionGrantingStrategy permissionGrantingStrategy() {
+		return new DefaultPermissionGrantingStrategy(new ConsoleAuditLogger());
+	}
 
-    @Bean
-    public AclAuthorizationStrategy aclAuthorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority("ROLE_ADMIN"));
-    }
+	@Bean
+	public AclAuthorizationStrategy aclAuthorizationStrategy() {
+		return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority("ROLE_ADMIN"));
+	}
 
-    @Bean
-    public LookupStrategy lookupStrategy() {
-        return new BasicLookupStrategy(dataSource, aclCache(), aclAuthorizationStrategy(), new ConsoleAuditLogger());
-    }
+	@Bean
+	public LookupStrategy lookupStrategy() {
+		BasicLookupStrategy lookupStrategy = new BasicLookupStrategy(dataSource,
+				aclCache(),
+				aclAuthorizationStrategy(),
+				new ConsoleAuditLogger()
+		);
+		lookupStrategy.setAclClassIdSupported(true);
+		return lookupStrategy;
+	}
 
-    @Bean
-    public ReportPortalAclService aclService() {
-        return new ReportPortalAclService(dataSource,lookupStrategy(), aclCache());
-    }
+	@Bean
+	public ReportPortalAclService aclService() {
+		return new ReportPortalAclService(dataSource, lookupStrategy(), aclCache());
+	}
 
-    @Bean
-    public AclPermissionEvaluator aclPermissionEvaluator(){
-        return new AclPermissionEvaluator(aclService());
-    }
+	@Bean
+	public AclPermissionEvaluator aclPermissionEvaluator() {
+		return new AclPermissionEvaluator(aclService());
+	}
 
 }

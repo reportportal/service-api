@@ -64,16 +64,16 @@ public class UserController {
 
 	private final EditUserHandler editUserMessageHandler;
 
-	private final DeleteUserHandler deleteUserMessageHandler;
+	private final DeleteUserHandler deleteUserHandler;
 
 	private final GetUserHandler getUserHandler;
 
 	@Autowired
 	public UserController(CreateUserHandler createUserMessageHandler, EditUserHandler editUserMessageHandler,
-			DeleteUserHandler deleteUserMessageHandler, GetUserHandler getUserHandler) {
+			DeleteUserHandler deleteUserHandler, GetUserHandler getUserHandler) {
 		this.createUserMessageHandler = createUserMessageHandler;
 		this.editUserMessageHandler = editUserMessageHandler;
-		this.deleteUserMessageHandler = deleteUserMessageHandler;
+		this.deleteUserHandler = deleteUserHandler;
 		this.getUserHandler = getUserHandler;
 	}
 
@@ -129,7 +129,7 @@ public class UserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
 	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return deleteUserMessageHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
+		return deleteUserHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
 	}
 
 	@Transactional

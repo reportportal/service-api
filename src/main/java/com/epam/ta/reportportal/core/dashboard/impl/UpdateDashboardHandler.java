@@ -24,9 +24,12 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
+import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.DashboardBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -37,9 +40,6 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
 /**
@@ -48,7 +48,13 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
 @Service
 public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler {
 
+	@Autowired
+	private DashboardWidgetRepository dashboardWidgetRepository;
+
 	private DashboardRepository dashboardRepository;
+
+	@Autowired
+	private WidgetRepository widgetRepository;
 
 	private MessageBus messageBus;
 
@@ -90,10 +96,8 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 			ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
 		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId());
-
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget);
-		dashboard.addWidget(dashboardWidget);
-		dashboardRepository.save(dashboard);
+		dashboardWidgetRepository.save(dashboardWidget);
 		return new OperationCompletionRS(
 				"Widget with ID = '" + widget.getId() + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");
 
@@ -106,15 +110,19 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 
 		/*
 		 *	if user is an owner of the widget - remove it from all dashboards
+		 *	should be replaced with copy
 		 */
 		if (user.getUsername().equalsIgnoreCase(widget.getOwner())) {
-			return deleteWidget(widgetId, widget);
+			return deleteWidget(widget);
 		}
 
-		boolean isRemoved = dashboard.getDashboardWidgets()
-				.removeIf(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()));
-		expect(isRemoved, Predicate.isEqual(true)).verify(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId);
-		widget.getDashboardWidgets().removeIf(dashboardWidget -> dashboard.getId().equals(dashboardWidget.getId().getDashboardId()));
+		DashboardWidget toRemove = dashboard.getDashboardWidgets()
+				.stream()
+				.filter(dashboardWidget -> widget.getId().equals(dashboardWidget.getId().getWidgetId()))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_DASHBOARD, widgetId, dashboardId));
+
+		dashboardWidgetRepository.delete(toRemove);
 
 		return new OperationCompletionRS(
 				"Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
@@ -124,19 +132,14 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	/**
 	 * Totally remove the widget from all dashboards
 	 *
-	 * @param widgetId Widget id
-	 * @param widget   Widget
+	 * @param widget Widget
 	 * @return OperationCompletionRS
 	 */
-	private OperationCompletionRS deleteWidget(Long widgetId, Widget widget) {
-		widget.getDashboardWidgets()
-				.forEach(widgetDashboard -> widgetDashboard.getDashboard()
-						.getDashboardWidgets()
-						.removeIf(dashboardWidget -> dashboardWidget.getId().getWidgetId().equals(widgetId)));
-		widget.getDashboardWidgets().clear();
+	private OperationCompletionRS deleteWidget(Widget widget) {
+		dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
+		widgetRepository.delete(widget);
 		aclHandler.deleteAclForObject(widget);
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' was successfully deleted from the system.");
-
 	}
 
 }

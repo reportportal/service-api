@@ -51,6 +51,7 @@ public class ReportPortalAclService extends JdbcMutableAclService {
 		this.setSidIdentityQuery(SID_IDENTITY_QUERY);
 		this.setObjectIdentityPrimaryKeyQuery(OBJECT_IDENTITY_PRIMARY_KEY_QUERY);
 		this.setFindChildrenQuery(FIND_CHILDREN_QUERY);
+		this.setAclClassIdSupported(true);
 	}
 
 	/**

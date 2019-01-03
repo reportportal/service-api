@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +88,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
-		return singletonMap(RESULT, activityContents);
+		return activityContents.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, activityContents);
 	}
 
 	/**

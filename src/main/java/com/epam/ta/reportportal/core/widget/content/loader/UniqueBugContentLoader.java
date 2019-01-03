@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.UniqueBugContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +61,12 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		return singletonMap(
-				RESULT,
-				widgetRepository.uniqueBugStatistics(filter, sort, WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions), limit)
+		final Map<String, List<UniqueBugContent>> content = widgetRepository.uniqueBugStatistics(filter,
+				sort,
+				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
+				limit
 		);
+		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

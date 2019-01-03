@@ -176,11 +176,6 @@ class DemoDashboardsService {
 	}
 
 	private Dashboard createDemoDashboard(List<Widget> widgets, ReportPortalUser user, Project project, String name) {
-		/*
-		Dashboard existing = dashboardRepository.findOneByUserProject(user, projectDetails, name);
-		expect(existing, isNull()).verify(RESOURCE_ALREADY_EXISTS, name);
-		*/
-
 		Dashboard dashboard = new Dashboard();
 		dashboard.setName(name);
 		dashboard.setProject(project);
@@ -206,9 +201,7 @@ class DemoDashboardsService {
 			return dashboardWidget;
 		}).forEach(dashboard::addWidget);
 
-		dashboardRepository.save(dashboard);
 		aclHandler.initAcl(dashboard, user.getUsername(), project.getId(), SHARED);
-
 		return dashboard;
 	}
 

@@ -22,10 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
-import com.epam.ta.reportportal.dao.DashboardRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserFilterRepository;
-import com.epam.ta.reportportal.dao.WidgetRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
@@ -81,6 +78,8 @@ class DemoDashboardsService {
 
 	private final DashboardRepository dashboardRepository;
 
+	private final DashboardWidgetRepository dashboardWidgetRepository;
+
 	private final WidgetRepository widgetRepository;
 
 	private final ProjectRepository projectRepository;
@@ -91,17 +90,19 @@ class DemoDashboardsService {
 
 	private Resource resource;
 
-	@Autowired
 	public DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
-			WidgetRepository widgetRepository, ProjectRepository projectRepository, ShareableObjectsHandler aclHandler,
-			ObjectMapper objectMapper) {
+			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository, ProjectRepository projectRepository,
+			ShareableObjectsHandler aclHandler, ObjectMapper objectMapper) {
 		this.userFilterRepository = userFilterRepository;
 		this.dashboardRepository = dashboardRepository;
+		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
 		this.projectRepository = projectRepository;
 		this.aclHandler = aclHandler;
 		this.objectMapper = objectMapper;
 	}
+
+	@Autowired
 
 	@Value("classpath:demo/demo_widgets.json")
 	public void setResource(Resource resource) {
@@ -201,6 +202,7 @@ class DemoDashboardsService {
 			dashboardWidget.setPositionX(getRandomBetween(0, WIDGET_MAX_X_POS));
 			dashboardWidget.setPositionY(getRandomBetween(0, WIDGET_MAX_Y_POS));
 
+			dashboardWidgetRepository.save(dashboardWidget);
 			return dashboardWidget;
 		}).forEach(dashboard::addWidget);
 

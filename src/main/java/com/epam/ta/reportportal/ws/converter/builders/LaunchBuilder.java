@@ -101,16 +101,18 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
-		final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(launch.getAttributes()
-				.stream()
-				.filter(ItemAttribute::isSystem)
-				.collect(Collectors.toSet()));
-		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
-			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-			itemAttribute.setLaunch(launch);
-			return itemAttribute;
-		}).forEach(overwrittenAttributes::add));
-		launch.setAttributes(overwrittenAttributes);
+		if (attributes != null) {
+			final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(launch.getAttributes()
+					.stream()
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet()));
+			attributes.stream().map(val -> {
+				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+				itemAttribute.setLaunch(launch);
+				return itemAttribute;
+			}).forEach(overwrittenAttributes::add);
+			launch.setAttributes(overwrittenAttributes);
+		}
 		return this;
 	}
 

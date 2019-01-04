@@ -113,16 +113,18 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
-		final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(testItem.getAttributes()
-				.stream()
-				.filter(ItemAttribute::isSystem)
-				.collect(Collectors.toSet()));
-		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
-			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-			itemAttribute.setTestItem(testItem);
-			return itemAttribute;
-		}).forEach(overwrittenAttributes::add));
-		testItem.setAttributes(overwrittenAttributes);
+		if (attributes != null) {
+			final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(testItem.getAttributes()
+					.stream()
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet()));
+			attributes.stream().map(val -> {
+				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+				itemAttribute.setTestItem(testItem);
+				return itemAttribute;
+			}).forEach(overwrittenAttributes::add);
+			testItem.setAttributes(overwrittenAttributes);
+		}
 		return this;
 	}
 

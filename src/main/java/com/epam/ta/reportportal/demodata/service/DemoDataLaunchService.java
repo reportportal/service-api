@@ -77,7 +77,8 @@ public class DemoDataLaunchService {
 
 	@Transactional
 	public void finishLaunch(Long launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
 		if (testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
 			testItemRepository.interruptInProgressItems(launchId);

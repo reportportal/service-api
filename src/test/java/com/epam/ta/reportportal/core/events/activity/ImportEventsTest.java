@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -34,24 +34,24 @@ public class ImportEventsTest {
 
 	@Test
 	public void started() {
-		final Activity actual = new ImportStartedEvent(PROJECT_ID, USER_ID, FILE_NAME).toActivity();
+		final Activity actual = new ImportStartedEvent(3L, 1L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.START_IMPORT);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void finished() {
-		final Activity actual = new ImportFinishedEvent(PROJECT_ID, USER_ID, FILE_NAME).toActivity();
+		final Activity actual = new ImportFinishedEvent(3L, 1L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_IMPORT);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static Activity getExpectedActivity(ActivityAction action) {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails(ImportEventsTest.FILE_NAME));
 		return activity;

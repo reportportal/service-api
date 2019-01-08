@@ -28,7 +28,8 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -37,29 +38,35 @@ public class ItemIssueTypeDefinedEventTest {
 
 	@Test
 	public void toActivity() {
-		final Activity actual = new ItemIssueTypeDefinedEvent(getTestItem(OLD_NAME, OLD_DESCRIPTION, true),
-				getTestItem(NEW_NAME, NEW_DESCRIPTION, false),
-				USER_ID
+		final boolean oldIgnoreAnalyzer = true;
+		final String oldName = "oldName";
+		final String oldDescription = "oldDescription";
+		final boolean newIgnoreAnalyzer = false;
+		final String newDescription = "newDescription";
+		final String newName = "newName";
+
+		final Activity actual = new ItemIssueTypeDefinedEvent(getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
+				getTestItem(newName, newDescription, newIgnoreAnalyzer),
+				1L
 		).toActivity();
 		final Activity expected = getExpectedActivity();
-		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(OLD_DESCRIPTION, NEW_DESCRIPTION),
-						Pair.of(OLD_NAME, NEW_NAME),
-						Pair.of("true", "false")
-				));
-		assertActivity(expected, actual);
+		expected.getDetails().setHistory(getExpectedHistory(Pair.of(oldDescription, newDescription),
+				Pair.of(oldName, newName),
+				Pair.of(String.valueOf(oldIgnoreAnalyzer), String.valueOf(newIgnoreAnalyzer))
+		));
+		checkActivity(expected, actual);
 	}
 
 	private static TestItemActivityResource getTestItem(String name, String description, boolean ignoreAnalyzer) {
 		TestItemActivityResource testItem = new TestItemActivityResource();
-		testItem.setProjectId(PROJECT_ID);
+		testItem.setProjectId(3L);
 		testItem.setStatus("FAILED");
 		testItem.setIssueTypeLongName(name);
 		testItem.setIssueDescription(description);
 		testItem.setIgnoreAnalyzer(ignoreAnalyzer);
 		testItem.setAutoAnalyzed(false);
 		testItem.setName("name");
-		testItem.setId(OBJECT_ID);
+		testItem.setId(2L);
 		testItem.setTickets("1:http:/example.com/ticket/1,2:http:/example.com/ticket/2");
 		return testItem;
 	}
@@ -68,9 +75,9 @@ public class ItemIssueTypeDefinedEventTest {
 		Activity activity = new Activity();
 		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails("name"));
 		return activity;
@@ -78,9 +85,9 @@ public class ItemIssueTypeDefinedEventTest {
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> description, Pair<String, String> issueType,
 			Pair<String, String> ignoreAnalyzer) {
-		return Lists.newArrayList(HistoryField.of(COMMENT_FIELD, description.getLeft(), description.getRight()),
-				HistoryField.of(ISSUE_TYPE_FIELD, issueType.getLeft(), issueType.getRight()),
-				HistoryField.of(IGNORE_ANALYZER_FIELD, ignoreAnalyzer.getLeft(), ignoreAnalyzer.getRight())
+		return Lists.newArrayList(HistoryField.of(COMMENT, description.getLeft(), description.getRight()),
+				HistoryField.of(ISSUE_TYPE, issueType.getLeft(), issueType.getRight()),
+				HistoryField.of(IGNORE_ANALYZER, ignoreAnalyzer.getLeft(), ignoreAnalyzer.getRight())
 		);
 	}
 }

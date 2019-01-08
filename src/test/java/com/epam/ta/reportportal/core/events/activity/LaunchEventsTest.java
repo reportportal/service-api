@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -33,37 +33,41 @@ public class LaunchEventsTest {
 
 	@Test
 	public void started() {
-		final Activity actual = new LaunchStartedEvent(getLaunch(NEW_NAME), USER_ID).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.START_LAUNCH, NEW_NAME);
-		assertActivity(expected, actual);
+		final String name = "name";
+		final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.START_LAUNCH, name);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void finished() {
-		final Activity actual = new LaunchFinishedEvent(getLaunch(NEW_NAME), USER_ID).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, NEW_NAME);
-		assertActivity(expected, actual);
+		final String name = "name";
+		final Activity actual = new LaunchFinishedEvent(getLaunch(name), 1L).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void forceFinished() {
-		final Activity actual = new LaunchFinishForcedEvent(getLaunch(NEW_NAME), USER_ID).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, NEW_NAME);
-		assertActivity(expected, actual);
+		final String name = "name";
+		final Activity actual = new LaunchFinishForcedEvent(getLaunch(name), 1L).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void deleted() {
-		final Activity actual = new LaunchDeletedEvent(getLaunch(OLD_NAME), USER_ID).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.DELETE_LAUNCH, OLD_NAME);
-		assertActivity(expected, actual);
+		final String name = "name";
+		final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.DELETE_LAUNCH, name);
+		checkActivity(expected, actual);
 	}
 
 	private static LaunchActivityResource getLaunch(String name) {
 		LaunchActivityResource launch = new LaunchActivityResource();
-		launch.setId(OBJECT_ID);
+		launch.setId(2L);
 		launch.setName(name);
-		launch.setProjectId(PROJECT_ID);
+		launch.setProjectId(3L);
 		return launch;
 	}
 
@@ -71,9 +75,9 @@ public class LaunchEventsTest {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails(name));
 		return activity;

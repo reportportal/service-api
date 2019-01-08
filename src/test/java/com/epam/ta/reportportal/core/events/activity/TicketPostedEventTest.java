@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
@@ -29,7 +30,7 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -42,9 +43,9 @@ public class TicketPostedEventTest {
 
 	@Test
 	public void toActivity() {
-		final Activity actual = new TicketPostedEvent(getTicket(), USER_ID, getTestItem()).toActivity();
+		final Activity actual = new TicketPostedEvent(getTicket(), 1L, getTestItem()).toActivity();
 		final Activity expected = getExpectedActivity();
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static Ticket getTicket() {
@@ -58,14 +59,14 @@ public class TicketPostedEventTest {
 
 	private static TestItemActivityResource getTestItem() {
 		TestItemActivityResource testItem = new TestItemActivityResource();
-		testItem.setProjectId(PROJECT_ID);
+		testItem.setProjectId(3L);
 		testItem.setStatus("FAILED");
 		testItem.setIssueTypeLongName("Product Bug");
 		testItem.setIssueDescription("Description");
 		testItem.setIgnoreAnalyzer(false);
 		testItem.setAutoAnalyzed(true);
-		testItem.setName(NEW_NAME);
-		testItem.setId(OBJECT_ID);
+		testItem.setName("name");
+		testItem.setId(2L);
 		testItem.setTickets(TicketPostedEventTest.EXISTED_TICKETS);
 		return testItem;
 	}
@@ -74,17 +75,17 @@ public class TicketPostedEventTest {
 		Activity activity = new Activity();
 		activity.setAction(ActivityAction.POST_ISSUE.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(NEW_NAME));
+		activity.setDetails(new ActivityDetails("name"));
 		activity.getDetails()
 				.setHistory(getExpectedHistory(Pair.of(EXISTED_TICKETS, EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));
 		return activity;
 	}
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> tickets) {
-		return Lists.newArrayList(HistoryField.of(TICKET_ID_FIELD, tickets.getLeft(), tickets.getRight()));
+		return Lists.newArrayList(HistoryField.of(ActivityDetailsUtil.TICKET_ID, tickets.getLeft(), tickets.getRight()));
 	}
 }

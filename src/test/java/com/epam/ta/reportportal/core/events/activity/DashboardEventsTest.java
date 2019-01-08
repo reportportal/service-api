@@ -28,7 +28,8 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -37,40 +38,51 @@ public class DashboardEventsTest {
 
 	@Test
 	public void created() {
-		final Activity actual = new DashboardCreatedEvent(getTestDashboard(NEW_NAME, NEW_SHARED, NEW_DESCRIPTION), USER_ID).toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.CREATE_DASHBOARD, NEW_NAME);
-		assertActivity(actual, expected);
+		final String name = "name";
+
+		final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"), 1L).toActivity();
+		final Activity expected = getExpectedDashboardActivity(ActivityAction.CREATE_DASHBOARD, name);
+		checkActivity(actual, expected);
 	}
 
 	@Test
 	public void deleted() {
-		final Activity actual = new DashboardDeletedEvent(getTestDashboard(OLD_NAME, OLD_SHARED, OLD_DESCRIPTION), USER_ID).toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.DELETE_DASHBOARD, OLD_NAME);
-		assertActivity(actual, expected);
+		final String name = "name";
+
+		final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"), 1L).toActivity();
+		final Activity expected = getExpectedDashboardActivity(ActivityAction.DELETE_DASHBOARD, name);
+		checkActivity(actual, expected);
 	}
 
 	@Test
 	public void updated() {
-		final Activity actual = new DashboardUpdatedEvent(getTestDashboard(OLD_NAME, OLD_SHARED, OLD_DESCRIPTION),
-				getTestDashboard(NEW_NAME, NEW_SHARED, NEW_DESCRIPTION),
-				USER_ID
+		final String oldName = "oldName";
+		final boolean oldShared = true;
+		final String oldDescription = "oldDescription";
+		final String newName = "newName";
+		final boolean newShared = false;
+		final String newDescription = "newDescription";
+
+		final Activity actual = new DashboardUpdatedEvent(getTestDashboard(oldName, oldShared, oldDescription),
+				getTestDashboard(newName, newShared, newDescription),
+				1L
 		).toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD, NEW_NAME);
+		final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD, newName);
 		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(OLD_NAME, NEW_NAME),
-						Pair.of(OLD_SHARED, NEW_SHARED),
-						Pair.of(OLD_DESCRIPTION, NEW_DESCRIPTION)
+				.setHistory(getExpectedHistory(Pair.of(oldName, newName),
+						Pair.of(oldShared, newShared),
+						Pair.of(oldDescription, newDescription)
 				));
-		assertActivity(actual, expected);
+		checkActivity(actual, expected);
 	}
 
 	private static DashboardActivityResource getTestDashboard(String name, boolean shared, String description) {
 		DashboardActivityResource dashboard = new DashboardActivityResource();
 		dashboard.setShared(shared);
 		dashboard.setDescription(description);
-		dashboard.setProjectId(PROJECT_ID);
+		dashboard.setProjectId(3L);
 		dashboard.setName(name);
-		dashboard.setId(OBJECT_ID);
+		dashboard.setId(2L);
 		return dashboard;
 	}
 
@@ -78,9 +90,9 @@ public class DashboardEventsTest {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails(name));
 		return activity;
@@ -88,9 +100,9 @@ public class DashboardEventsTest {
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,
 			Pair<String, String> description) {
-		return Lists.newArrayList(HistoryField.of(NAME_FIELD, name.getLeft(), name.getRight()),
-				HistoryField.of(SHARE_FIELD, shared.getLeft().toString(), shared.getRight().toString()),
-				HistoryField.of(DESCRIPTION_FIELD, description.getLeft(), description.getRight())
+		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
+				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
+				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
 		);
 	}
 

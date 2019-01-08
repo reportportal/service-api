@@ -26,7 +26,8 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -39,23 +40,22 @@ public class LinkTicketEventTest {
 	@Test
 	public void toActivity() {
 		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS),
-				getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET),
-				USER_ID
+				getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET), 1L
 		).toActivity();
 		final Activity expected = getExpectedActivity();
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static TestItemActivityResource getTestItem(String tickets) {
 		TestItemActivityResource testItem = new TestItemActivityResource();
-		testItem.setProjectId(PROJECT_ID);
+		testItem.setProjectId(3L);
 		testItem.setStatus("FAILED");
 		testItem.setIssueTypeLongName("issueTypeName");
 		testItem.setIssueDescription("desc");
 		testItem.setIgnoreAnalyzer(false);
 		testItem.setAutoAnalyzed(false);
 		testItem.setName("name");
-		testItem.setId(OBJECT_ID);
+		testItem.setId(2L);
 		testItem.setTickets(tickets);
 		return testItem;
 	}
@@ -64,13 +64,13 @@ public class LinkTicketEventTest {
 		Activity activity = new Activity();
 		activity.setAction(ActivityAction.LINK_ISSUE.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails("name"));
 		activity.getDetails()
-				.setHistory(Lists.newArrayList(HistoryField.of(TICKET_ID_FIELD, EXISTED_TICKETS, EXISTED_TICKETS + "," + LINKED_TICKET)));
+				.setHistory(Lists.newArrayList(HistoryField.of(TICKET_ID, EXISTED_TICKETS, EXISTED_TICKETS + "," + LINKED_TICKET)));
 		return activity;
 	}
 }

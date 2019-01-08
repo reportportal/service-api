@@ -24,42 +24,40 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class IntegrationEventsTest {
 
-	private static final String TYPE_NAME = "VK";
-
 	@Test
 	public void created() {
-		final Activity actual = new IntegrationCreatedEvent(getIntegration(), USER_ID).toActivity();
+		final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.CREATE_BTS);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void deleted() {
-		final Activity actual = new IntegrationDeletedEvent(getIntegration(), USER_ID).toActivity();
+		final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_BTS);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void updated() {
-		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), USER_ID).toActivity();
+		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_BTS);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static IntegrationActivityResource getIntegration() {
 		IntegrationActivityResource integration = new IntegrationActivityResource();
-		integration.setId(OBJECT_ID);
-		integration.setProjectId(PROJECT_ID);
-		integration.setTypeName(TYPE_NAME);
-		integration.setProjectName(PROJECT_NAME);
+		integration.setId(2L);
+		integration.setProjectId(3L);
+		integration.setTypeName("type");
+		integration.setProjectName("test_project");
 		return integration;
 	}
 
@@ -67,11 +65,11 @@ public class IntegrationEventsTest {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(TYPE_NAME + ":" + PROJECT_NAME));
+		activity.setDetails(new ActivityDetails("type:test_project"));
 		return activity;
 	}
 }

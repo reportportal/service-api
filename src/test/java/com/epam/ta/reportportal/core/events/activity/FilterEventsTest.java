@@ -28,7 +28,8 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -37,37 +38,45 @@ public class FilterEventsTest {
 
 	@Test
 	public void created() {
-		final Activity actual = new FilterCreatedEvent(getUserFilter(NEW_NAME, NEW_SHARED, NEW_DESCRIPTION), USER_ID).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.CREATE_FILTER, NEW_NAME);
-		assertActivity(expected, actual);
+		final String name = "name";
+		final Activity actual = new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.CREATE_FILTER, name);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void deleted() {
-		final Activity actual = new FilterDeletedEvent(getUserFilter(OLD_NAME, OLD_SHARED, OLD_DESCRIPTION), USER_ID).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.DELETE_FILTER, OLD_NAME);
-		assertActivity(expected, actual);
+		final String name = "name";
+		final Activity actual = new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.DELETE_FILTER, name);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void updated() {
-		final Activity actual = new FilterUpdatedEvent(getUserFilter(OLD_NAME, OLD_SHARED, OLD_DESCRIPTION),
-				getUserFilter(NEW_NAME, NEW_SHARED, NEW_DESCRIPTION),
-				USER_ID
+		final String oldName = "oldName";
+		final boolean oldShared = false;
+		final String oldDescription = "oldDescription";
+		final String newName = "newName";
+		final boolean newShared = true;
+		final String newDescription = "newDescription";
+		final Activity actual = new FilterUpdatedEvent(getUserFilter(oldName, oldShared, oldDescription),
+				getUserFilter(newName, newShared, newDescription),
+				1L
 		).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_FILTER, NEW_NAME);
+		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_FILTER, newName);
 		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(OLD_NAME, NEW_NAME),
-						Pair.of(OLD_SHARED, NEW_SHARED),
-						Pair.of(OLD_DESCRIPTION, NEW_DESCRIPTION)
+				.setHistory(getExpectedHistory(Pair.of(oldName, newName),
+						Pair.of(oldShared, newShared),
+						Pair.of(oldDescription, newDescription)
 				));
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static UserFilterActivityResource getUserFilter(String name, boolean shared, String description) {
 		UserFilterActivityResource userFilter = new UserFilterActivityResource();
-		userFilter.setId(OBJECT_ID);
-		userFilter.setProjectId(PROJECT_ID);
+		userFilter.setId(2L);
+		userFilter.setProjectId(3L);
 		userFilter.setName(name);
 		userFilter.setShared(shared);
 		userFilter.setDescription(description);
@@ -78,9 +87,9 @@ public class FilterEventsTest {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.FILTER);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
 		activity.setDetails(new ActivityDetails(name));
 		return activity;
@@ -88,9 +97,9 @@ public class FilterEventsTest {
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,
 			Pair<String, String> description) {
-		return Lists.newArrayList(HistoryField.of(NAME_FIELD, name.getLeft(), name.getRight()),
-				HistoryField.of(SHARE_FIELD, shared.getLeft().toString(), shared.getRight().toString()),
-				HistoryField.of(DESCRIPTION_FIELD, description.getLeft(), description.getRight())
+		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
+				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
+				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight())
 		);
 	}
 }

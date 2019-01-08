@@ -24,28 +24,26 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class UserCreatedEventTest {
 
-	private static final String FULL_NAME = "Jaja Juja";
-
 	@Test
 	public void toActivity() {
-		final Activity actual = new UserCreatedEvent(getUser(), USER_ID).toActivity();
+		final Activity actual = new UserCreatedEvent(getUser(), 1L).toActivity();
 		final Activity expected = getExpectedActivity();
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 
 	}
 
 	private static UserActivityResource getUser() {
 		UserActivityResource user = new UserActivityResource();
-		user.setId(OBJECT_ID);
-		user.setFullName(FULL_NAME);
-		user.setDefaultProjectId(PROJECT_ID);
+		user.setId(2L);
+		user.setFullName("Jaja Juja");
+		user.setDefaultProjectId(3L);
 		return user;
 	}
 
@@ -53,11 +51,11 @@ public class UserCreatedEventTest {
 		Activity activity = new Activity();
 		activity.setAction(ActivityAction.CREATE_USER.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.USER);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(OBJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(FULL_NAME));
+		activity.setDetails(new ActivityDetails("Jaja Juja"));
 		return activity;
 	}
 }

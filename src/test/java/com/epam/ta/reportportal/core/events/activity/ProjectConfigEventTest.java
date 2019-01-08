@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -63,7 +63,7 @@ public class ProjectConfigEventTest {
 				MIN_SHOULD_MATCH.getRight(),
 				NUMBER_OF_LOG_LINES.getRight(),
 				AUTO_ANALYZED_ENABLED.getRight()
-		)), USER_ID).toActivity();
+		)), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_ANALYZER);
 		expected.getDetails()
 				.setHistory(getAnalyzerConfigHistory(ANALYZER_MODE,
@@ -73,25 +73,24 @@ public class ProjectConfigEventTest {
 						NUMBER_OF_LOG_LINES,
 						AUTO_ANALYZED_ENABLED
 				));
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void projectConfigUpdate() {
 		final Activity actual = new ProjectUpdatedEvent(
 				getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(), KEEP_SCREENSHOTS.getLeft(), INTERRUPT_JOB_TIME.getLeft())),
-				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())),
-				USER_ID
+				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())), 1L
 		).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_PROJECT);
 		expected.getDetails().setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static ProjectAttributesActivityResource getProjectAttributes(Map<String, String> config) {
 		ProjectAttributesActivityResource resource = new ProjectAttributesActivityResource();
-		resource.setProjectName(PROJECT_NAME);
-		resource.setProjectId(PROJECT_ID);
+		resource.setProjectName("test_project");
+		resource.setProjectId(3L);
 		resource.setConfig(config);
 		return resource;
 	}
@@ -120,11 +119,11 @@ public class ProjectConfigEventTest {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(PROJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(3L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(PROJECT_NAME));
+		activity.setDetails(new ActivityDetails("test_project"));
 		return activity;
 	}
 

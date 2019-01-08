@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.*;
+import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -32,27 +32,27 @@ public class ProjectIndexEventTest {
 
 	@Test
 	public void generate() {
-		final Activity actual = new ProjectIndexEvent(PROJECT_ID, PROJECT_NAME, USER_ID, true).toActivity();
+		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, true).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.GENERATE_INDEX);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	@Test
 	public void delete() {
-		final Activity actual = new ProjectIndexEvent(PROJECT_ID, PROJECT_NAME, USER_ID, false).toActivity();
+		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, false).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_INDEX);
-		assertActivity(expected, actual);
+		checkActivity(expected, actual);
 	}
 
 	private static Activity getExpectedActivity(ActivityAction action) {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT);
-		activity.setUserId(USER_ID);
-		activity.setProjectId(PROJECT_ID);
-		activity.setObjectId(PROJECT_ID);
+		activity.setUserId(1L);
+		activity.setProjectId(3L);
+		activity.setObjectId(3L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(PROJECT_NAME));
+		activity.setDetails(new ActivityDetails("test_project"));
 		return activity;
 	}
 }

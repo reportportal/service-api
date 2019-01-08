@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -36,11 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -75,16 +77,24 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		validateContentFields(contentFields);
 
-		String login = WidgetOptionUtil.getValueByKey(USER, widgetOptions);
-		User user = userRepository.findByLogin(login)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + login + " was not found"));
+		final List<String> logins = Arrays.stream(WidgetOptionUtil.getValueByKey(USER, widgetOptions).split(","))
+				.map(String::trim)
+				.collect(Collectors.toList());
+		logins.forEach(it -> userRepository.findByLogin(it)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + it + " was not found")));
+
+		final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get("actionType");
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, user.getLogin(), USER))
-				.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, contentFields), "action"));
+		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, logins), USER))
+				.withCondition(new FilterCondition(Condition.IN,
+						false,
+						String.join(CONTENT_FIELDS_DELIMITER, actionTypes),
+						CRITERIA_ACTION
+				));
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 

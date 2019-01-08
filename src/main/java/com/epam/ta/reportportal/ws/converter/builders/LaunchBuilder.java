@@ -28,10 +28,12 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -102,10 +104,9 @@ public class LaunchBuilder implements Supplier<Launch> {
 
 	public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
 		if (attributes != null) {
-			final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(launch.getAttributes()
+			final Set<ItemAttribute> overwrittenAttributes = launch.getAttributes()
 					.stream()
-					.filter(ItemAttribute::isSystem)
-					.collect(Collectors.toSet()));
+					.filter(ItemAttribute::isSystem).collect(Collectors.toSet());
 			attributes.stream().map(val -> {
 				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 				itemAttribute.setLaunch(launch);

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
@@ -35,8 +51,7 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public Long startRootItem(String rootItemName, Long launchId, TestItemTypeEnum type, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
+	public Long startRootItem(String rootItemName, Long launchId, TestItemTypeEnum type, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setName(rootItemName);
@@ -59,8 +74,7 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public Long startTestItem(Long rootItemId, Long launchId, String name, TestItemTypeEnum type, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
+	public Long startTestItem(Long rootItemId, Long launchId, String name, TestItemTypeEnum type, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
@@ -92,8 +106,7 @@ public class DemoDataTestItemService {
 	}
 
 	private boolean hasChildren(TestItemTypeEnum testItemType) {
-		return !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS
-				|| testItemType == AFTER_METHOD);
+		return !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS || testItemType == AFTER_METHOD);
 	}
 
 	private Issue issueType() {

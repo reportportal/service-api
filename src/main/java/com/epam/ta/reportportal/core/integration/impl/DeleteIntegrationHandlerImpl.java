@@ -56,7 +56,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
-		integrationRepository.deleteAllByTypeIntegrationGroup(integration.getType().getIntegrationGroup());
+		integrationRepository.deleteAllByTypeId(integration.getType().getId());
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Integrations with type = {} have been successfully removed",
 				integration.getType().getIntegrationGroup()

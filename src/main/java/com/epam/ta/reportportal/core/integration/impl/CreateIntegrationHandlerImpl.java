@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -72,12 +71,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integrationRepository.save(integration);
 
-		IntegrationType integrationType = integrationTypeRepository.findByIntegrationGroup(integration.getType().getIntegrationGroup())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND,
-						"Unknown integration group - " + integration.getType().getIntegrationGroup()
-				));
-
-		integrationRepository.updateEnabledStateByIntegrationTypeId(updateRequest.getEnabled(), integrationType.getId());
+		integrationRepository.updateEnabledStateByIntegrationTypeId(updateRequest.getEnabled(), integration.getType().getId());
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 

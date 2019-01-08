@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
@@ -6,7 +22,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.ServerSettingsEnum;
+import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -67,7 +83,7 @@ public class EmailServerIntegrationService implements IntegrationService {
 				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationName).get()
 		));
 
-		Integration integration = retrieveIntegration(integrationRepository.getAllGlobalIntegrationsByType(integrationType));
+		Integration integration = retrieveIntegration(integrationRepository.findAllGlobalByType(integrationType));
 
 		integration.setParams(new IntegrationParams(integrationParams));
 		integration.setType(integrationType);
@@ -106,7 +122,7 @@ public class EmailServerIntegrationService implements IntegrationService {
 
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
-		int port = ofNullable(integrationParams.get(ServerSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
+		int port = ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
 				25
 		)).orElse(25);
 
@@ -114,22 +130,22 @@ public class EmailServerIntegrationService implements IntegrationService {
 			BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
 		}
 
-		integrationParams.put(ServerSettingsEnum.PORT.getAttribute(), port);
+		integrationParams.put(EmailSettingsEnum.PORT.getAttribute(), port);
 
-		if (!ServerSettingsEnum.PROTOCOL.getAttribute(integrationParams).isPresent()) {
-			integrationParams.put(ServerSettingsEnum.PROTOCOL.getAttribute(), "smtp");
+		if (!EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams).isPresent()) {
+			integrationParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), "smtp");
 		}
 
-		if (ofNullable(integrationParams.get(ServerSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(String.valueOf(
+		if (ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(String.valueOf(
 				e))).orElse(false)) {
-			ServerSettingsEnum.PASSWORD.getAttribute(integrationParams)
-					.ifPresent(password -> integrationParams.put(ServerSettingsEnum.PASSWORD.getAttribute(),
+			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
+					.ifPresent(password -> integrationParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
 							basicTextEncryptor.encrypt(password)
 					));
 		} else {
 			/* Auto-drop values on switched-off authentication */
-			integrationParams.put(ServerSettingsEnum.USERNAME.getAttribute(), null);
-			integrationParams.put(ServerSettingsEnum.PASSWORD.getAttribute(), null);
+			integrationParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
+			integrationParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
 		}
 	}
 

@@ -53,7 +53,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 	@Override
 	public OperationCompletionRS deleteGlobalIntegration(Long integrationId) {
-		Integration integration = integrationRepository.getGlobalIntegrationById(integrationId)
+		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
 		integrationRepository.deleteAllByTypeIntegrationGroup(integration.getType().getIntegrationGroup());
@@ -80,7 +80,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 		integrationRepository.delete(integration);
 
 		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
-		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' have been successfully deleted.");
+		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' has been successfully deleted.");
 	}
 
 	@Override

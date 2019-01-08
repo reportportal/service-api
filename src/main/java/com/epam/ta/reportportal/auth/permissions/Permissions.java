@@ -35,8 +35,7 @@ public final class Permissions {
 
 	public static final String ASSIGNED_TO_PROJECT = "hasPermission(#projectName.toLowerCase(), 'isAssignedToProject')";
 
-	public static final String PROJECT_MANAGER =
-			"hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')" + " && " + ASSIGNED_TO_PROJECT;
+	public static final String PROJECT_MANAGER = "hasPermission(#projectName.toLowerCase(), 'projectManagerPermission')";
 
 	public static final String NOT_CUSTOMER = "hasPermission(#projectName.toLowerCase(), 'notCustomerPermission')";
 

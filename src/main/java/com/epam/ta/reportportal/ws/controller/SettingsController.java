@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
+import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,5 +55,13 @@ public class SettingsController {
 	public OperationCompletionRS saveAnalyticsSettings(@RequestBody @Validated AnalyticsResource request,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return serverHandler.saveAnalyticsSettings(request);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation(value = "Get server settings")
+	public ServerSettingsResource getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
+		return serverHandler.getServerSettings();
 	}
 }

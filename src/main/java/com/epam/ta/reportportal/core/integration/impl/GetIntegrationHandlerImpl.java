@@ -51,7 +51,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	@Override
 	public IntegrationResource getGlobalIntegrationById(Long integrationId) {
-		Integration integration = integrationRepository.getGlobalIntegrationById(integrationId)
+		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
 		return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);

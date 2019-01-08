@@ -19,10 +19,9 @@ package com.epam.ta.reportportal.core.admin;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
@@ -33,8 +32,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_CONFIG_PREFIX;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
@@ -66,17 +63,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 	@Override
 	public ServerSettingsResource getServerSettings() {
-		return null;
-	}
-
-	@Override
-	public OperationCompletionRS saveEmailSettings(ServerEmailResource request) {
-		return null;
-	}
-
-	@Override
-	public OperationCompletionRS deleteEmailSettings() {
-		return null;
+		return ServerSettingsConverter.TO_RESOURCE.apply(serverSettingsRepository.findAll());
 	}
 
 	@Override
@@ -101,19 +88,5 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
 	private Map<String, ServerSettings> findServerSettings() {
 		return serverSettingsRepository.findAll().stream().collect(toMap(ServerSettings::getKey, s -> s, (prev, curr) -> prev));
-	}
-
-	private void updateServerSettings(Map<String, ServerSettings> serverSettings, String settingsName, String value) {
-		expect(serverSettings, notNull()).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
-		serverSettings.put(settingsName, buildServerSettings(serverSettings.get(settingsName), settingsName, value));
-	}
-
-	private ServerSettings buildServerSettings(ServerSettings serverSettings, String settingsName, String value) {
-		if (ofNullable(serverSettings).isPresent()) {
-			serverSettings.setValue(value);
-		} else {
-			serverSettings = new ServerSettings(settingsName, value);
-		}
-		return serverSettings;
 	}
 }

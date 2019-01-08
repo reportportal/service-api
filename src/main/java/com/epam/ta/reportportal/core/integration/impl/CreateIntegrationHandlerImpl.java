@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
@@ -61,9 +77,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 						"Unknown integration group - " + integration.getType().getIntegrationGroup()
 				));
 
-		integrationRepository.updateIntegrationGroupEnabledState(updateRequest.getEnabled(), integrationType.getId());
+		integrationRepository.updateEnabledStateByIntegrationTypeId(updateRequest.getEnabled(), integrationType.getId());
 
-		return new OperationCompletionRS("Email integration with id = " + integration.getId() + " has been successfully created.");
+		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 
 	}
 
@@ -86,7 +102,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integrationRepository.save(integration);
 
-		return new OperationCompletionRS("Email integration with id = " + integration.getId() + " has been successfully created.");
+		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 	}
 
 }

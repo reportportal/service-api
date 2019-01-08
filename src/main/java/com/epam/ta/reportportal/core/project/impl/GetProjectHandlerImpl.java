@@ -101,7 +101,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 				.map(IntegrationType::getId)
 				.collect(Collectors.toList());
 
-		List<Integration> globalIntegrations = integrationRepository.getAllMissedGlobalIntegrations(integrationTypeIds);
+		List<Integration> globalIntegrations = integrationRepository.findAllGlobalNotInIntegrationTypeIds(integrationTypeIds);
 
 		project.getIntegrations().addAll(globalIntegrations);
 

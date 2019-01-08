@@ -119,7 +119,7 @@ public class CreateBugTrackingSystemHandlerImpl implements CreateBugTrackingSyst
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
 		String btsProject = (String) BtsConstants.PROJECT.getParam(integration.getParams())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
-		expect(integrationRepository.selectProjectBtsIntegrationByUrlAndLinkedProject(url, btsProject, projectId),
+		expect(integrationRepository.findProjectBtsByUrlAndLinkedProject(url, btsProject, projectId),
 				not(isPresent())
 		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, url + " & " + btsProject);
 	}

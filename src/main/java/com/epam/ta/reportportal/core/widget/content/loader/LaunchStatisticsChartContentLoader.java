@@ -20,25 +20,21 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
-import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.TIMELINE;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
@@ -48,7 +44,7 @@ import static java.util.Collections.singletonMap;
  * @author Pavel Bortnik
  */
 @Service
-public class LaunchStatisticsChartContentLoader extends AbstractStatisticsContentLoader implements LoadContentStrategy {
+public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
 
 	@Autowired
 	private WidgetContentRepository widgetContentRepository;
@@ -66,15 +62,6 @@ public class LaunchStatisticsChartContentLoader extends AbstractStatisticsConten
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		List<ChartStatisticsContent> content = widgetContentRepository.launchStatistics(filter, contentFields, sort, limit);
-
-		String timeLineOption = WidgetOptionUtil.getValueByKey(TIMELINE, widgetOptions);
-		if (StringUtils.isNotBlank(timeLineOption)) {
-			Optional<Period> period = Period.findByName(timeLineOption);
-			if (period.isPresent()) {
-				return groupByDate(content, period.get());
-			}
-
-		}
 
 		return singletonMap(RESULT, content);
 	}

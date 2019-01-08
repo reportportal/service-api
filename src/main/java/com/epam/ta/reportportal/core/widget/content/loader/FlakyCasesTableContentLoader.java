@@ -46,6 +46,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -78,8 +79,10 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 
 		LatestLaunchContent latestLaunchContent = new LatestLaunchContent(launch);
 
-		List<FlakyCasesTableContent> flakyCasesTableContent = widgetRepository.flakyCasesStatistics(filter,
-				BooleanUtils.toBoolean(WidgetOptionUtil.getValueByKey(INCLUDE_METHODS, widgetOptions)),
+		List<FlakyCasesTableContent> flakyCasesTableContent = widgetRepository.flakyCasesStatistics(
+				filter,
+				ofNullable(widgetOptions.getOptions().get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v)))
+						.orElse(false),
 				limit
 		);
 

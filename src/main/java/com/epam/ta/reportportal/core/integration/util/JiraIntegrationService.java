@@ -16,10 +16,14 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.reportportal.extension.bugtracking.BtsConstants;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.util.property.JiraProperties;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
@@ -29,13 +33,17 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
@@ -47,9 +55,19 @@ public class JiraIntegrationService implements IntegrationService {
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 
+	private final IntegrationRepository integrationRepository;
+
+	private final PluginBox pluginBox;
+
+	private final BasicTextEncryptor basicTextEncryptor;
+
 	@Autowired
-	public JiraIntegrationService(IntegrationTypeRepository integrationTypeRepository) {
+	public JiraIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
+			PluginBox pluginBox, BasicTextEncryptor basicTextEncryptor) {
 		this.integrationTypeRepository = integrationTypeRepository;
+		this.integrationRepository = integrationRepository;
+		this.pluginBox = pluginBox;
+		this.basicTextEncryptor = basicTextEncryptor;
 	}
 
 	@Override
@@ -76,6 +94,11 @@ public class JiraIntegrationService implements IntegrationService {
 			expect(JiraProperties.PASSWORD.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
 					"Password value cannot be NULL"
 			);
+
+			integrationParams.put(JiraProperties.PASSWORD.getName(),
+					basicTextEncryptor.encrypt(JiraProperties.PASSWORD.getParam(integrationParams).get())
+			);
+
 		} else if (AuthType.OAUTH.equals(authType)) {
 			expect(JiraProperties.OAUTH_ACCESS_KEY.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
 					"AccessKey value cannot be NULL"
@@ -97,12 +120,36 @@ public class JiraIntegrationService implements IntegrationService {
 		integration.setParams(new IntegrationParams(integrationParams));
 		integration.setType(integrationType);
 
+		Optional<BtsExtension> extension = pluginBox.getInstance(integrationType.getName(), BtsExtension.class);
+		expect(extension, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integrationType.getName())
+		);
+
+		expect(extension.get().connectionTest(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Connection refused."
+		);
+
+		integrationRepository.save(integration);
+
 		return integration;
 	}
 
 	@Override
 	public Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
 			Map<String, Object> integrationParams) {
+
+		//checkUnique(integration, projectDetails.getId());
+
 		return null;
+	}
+
+	private void checkUnique(Integration integration, Long projectId) {
+		String url = (String) BtsConstants.URL.getParam(integration.getParams())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
+		String btsProject = (String) BtsConstants.PROJECT.getParam(integration.getParams())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
+		expect(integrationRepository.findProjectBtsByUrlAndLinkedProject(url, btsProject, projectId),
+				not(isPresent())
+		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, url + " & " + btsProject);
 	}
 }

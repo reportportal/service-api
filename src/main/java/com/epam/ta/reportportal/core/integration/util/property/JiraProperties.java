@@ -37,6 +37,10 @@ public enum JiraProperties {
 		this.name = name;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	public Optional<String> getParam(Map<String, Object> params) {
 		return Optional.ofNullable(params.get(this.name)).map(o -> (String) o);
 	}

@@ -18,10 +18,14 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.bts.handler.*;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
+import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
+import com.epam.ta.reportportal.core.bts.handler.UpdateBugTrackingSystemHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateBugTrackingSystemRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,28 +56,13 @@ public class BugTrackingSystemController {
 	private final CreateTicketHandler createTicketHandler;
 	private final GetTicketHandler getTicketHandler;
 	private final UpdateBugTrackingSystemHandler updateBugTrackingSystemHandler;
-	private final CreateBugTrackingSystemHandler createBugTrackingSystemHandler;
 
 	@Autowired
 	public BugTrackingSystemController(CreateTicketHandler createTicketHandler, GetTicketHandler getTicketHandler,
-			UpdateBugTrackingSystemHandler updateBugTrackingSystemHandler, CreateBugTrackingSystemHandler createBugTrackingSystemHandler) {
+			UpdateBugTrackingSystemHandler updateBugTrackingSystemHandler) {
 		this.createTicketHandler = createTicketHandler;
 		this.getTicketHandler = getTicketHandler;
 		this.updateBugTrackingSystemHandler = updateBugTrackingSystemHandler;
-		this.createBugTrackingSystemHandler = createBugTrackingSystemHandler;
-	}
-
-	@Transactional
-	@PostMapping(consumes = { APPLICATION_JSON_VALUE })
-	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Create integration instance")
-	@PreAuthorize(PROJECT_MANAGER)
-	public EntryCreatedRS createIntegrationInstance(@Validated @RequestBody CreateBugTrackingSystemRQ createRQ, @PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createBugTrackingSystemHandler.createBugTrackingSystem(createRQ,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
-				user
-		);
 	}
 
 	@Transactional
@@ -81,8 +70,8 @@ public class BugTrackingSystemController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS updateIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest, @PathVariable String projectName,
-			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS updateIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
+			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateBugTrackingSystemHandler.updateBugTrackingSystem(updateRequest,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
@@ -137,8 +126,7 @@ public class BugTrackingSystemController {
 	@ApiOperation("Post ticket to the bts integration")
 	public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ, @PathVariable String projectName,
 			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return createTicketHandler.createIssue(
-				ticketRQ,
+		return createTicketHandler.createIssue(ticketRQ,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user

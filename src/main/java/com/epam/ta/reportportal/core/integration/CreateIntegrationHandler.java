@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
  */
 public interface CreateIntegrationHandler {
 
-	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest);
+	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest, ReportPortalUser user);
 
-	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest);
+	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest, ReportPortalUser user);
 }

@@ -64,7 +64,7 @@ public class IntegrationController {
 	public OperationCompletionRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
 
-		return createIntegrationHandler.createGlobalIntegration(updateRequest);
+		return createIntegrationHandler.createGlobalIntegration(updateRequest, user);
 
 	}
 
@@ -76,7 +76,7 @@ public class IntegrationController {
 	public OperationCompletionRS createProjectIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 
-		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), updateRequest);
+		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), updateRequest, user);
 
 	}
 
@@ -134,7 +134,7 @@ public class IntegrationController {
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/{projectName}/clear")
+	@DeleteMapping(value = "/{projectName}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all integrations assigned to specified project")
 	@PreAuthorize(PROJECT_MANAGER)

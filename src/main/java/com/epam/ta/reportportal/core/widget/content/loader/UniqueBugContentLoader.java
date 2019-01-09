@@ -54,18 +54,16 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
-
 		validateWidgetOptions(widgetOptions);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		final Map<String, List<UniqueBugContent>> content = widgetRepository.uniqueBugStatistics(filter,
-				sort,
-				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
-				limit
-		);
+		boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+
+		final Map<String, List<UniqueBugContent>> content = widgetRepository.uniqueBugStatistics(filter, sort, latestMode, limit);
+
 		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 

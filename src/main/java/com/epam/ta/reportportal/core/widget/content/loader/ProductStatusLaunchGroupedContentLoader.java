@@ -63,11 +63,13 @@ public class ProductStatusLaunchGroupedContentLoader implements ProductStatusCon
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
+		boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+
 		final List<ProductStatusStatisticsContent> content = widgetContentRepository.productStatusGroupedByLaunchesStatistics(filter,
 				contentFields,
 				tags,
 				sort,
-				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
+				latestMode,
 				limit
 		);
 		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);

@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.widget.util;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.Map;
 
@@ -60,8 +62,9 @@ public final class WidgetOptionUtil {
 		return (Map<String, String>) value;
 	}
 
-	public static boolean containsKey(String key, WidgetOptions widgetOptions) {
+	public static boolean getBooleanByKey(String key, WidgetOptions widgetOptions) {
 
-		return ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(o -> o.containsKey(key)).orElse(false)).orElse(false);
+		return ofNullable(widgetOptions).map(wo -> MapUtils.isNotEmpty(wo.getOptions()) && ofNullable(wo.getOptions()
+				.get(key)).map(v -> BooleanUtils.toBoolean(String.valueOf(v))).orElse(false)).orElse(false);
 	}
 }

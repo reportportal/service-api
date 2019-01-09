@@ -59,11 +59,10 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter,
-				sort,
-				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
-				limit
-		);
+		boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+
+		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, sort, latestMode, limit);
+
 		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
 	}
 

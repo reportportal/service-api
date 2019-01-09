@@ -52,10 +52,14 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
 
-		boolean latestMode = WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions);
 		validateContentFields(contentFields);
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
+
+		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+
+		boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+
 		OverallStatisticsContent content = widgetContentRepository.overallStatisticsContent(filter, sort, contentFields, latestMode, limit);
 
 		return singletonMap(RESULT, content);

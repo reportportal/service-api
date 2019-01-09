@@ -71,14 +71,13 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMap);
-
 		validateWidgetOptions(widgetOptions);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMap.keySet());
-
 		filter = updateFilter(filter, widgetOptions);
 
 		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(filter);
+
 		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 

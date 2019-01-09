@@ -61,9 +61,7 @@ public final class WidgetOptionUtil {
 	}
 
 	public static boolean containsKey(String key, WidgetOptions widgetOptions) {
-		expect(widgetOptions, notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
-		expect(widgetOptions.getOptions(), notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
 
-		return widgetOptions.getOptions().containsKey(key);
+		return ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(o -> o.containsKey(key)).orElse(false)).orElse(false);
 	}
 }

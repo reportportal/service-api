@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +37,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Pavel Bortnik
@@ -57,7 +57,8 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		OverallStatisticsContent content = widgetContentRepository.overallStatisticsContent(filter, sort, contentFields, latestMode, limit);
-		return Collections.singletonMap(RESULT, content);
+
+		return singletonMap(RESULT, content);
 	}
 
 	/**

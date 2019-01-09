@@ -63,7 +63,7 @@ public class BugTrendChartContentLoader implements LoadContentStrategy {
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		List<ChartStatisticsContent> result = widgetContentRepository.bugTrendStatistics(filter, contentFields, sort, limit);
-		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
+		return result.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, result);
 	}
 
 	/**

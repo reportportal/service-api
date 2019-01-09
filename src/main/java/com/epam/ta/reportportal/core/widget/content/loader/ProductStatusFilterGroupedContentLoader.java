@@ -66,7 +66,8 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 				latestMode,
 				limit
 		);
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+
+		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	/**

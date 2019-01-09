@@ -58,7 +58,8 @@ public class NotPassedTestsContentLoader implements LoadContentStrategy {
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		List<NotPassedCasesContent> result = widgetContentRepository.notPassedCasesStatistics(filter, sort, limit);
-		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
+
+		return result.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, result);
 	}
 
 	/**

@@ -98,7 +98,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
-		return activityContents.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, activityContents);
+		return activityContents.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, activityContents);
 	}
 
 	/**

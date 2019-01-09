@@ -81,7 +81,7 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 
 		List<ChartStatisticsContent> content = widgetContentRepository.investigatedStatistics(filter, sort, limit);
 
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	private void calculateInvestigatedPercentage(Map<String, ChartStatisticsContent> investigatedStatistics) {

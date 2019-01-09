@@ -63,7 +63,7 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 
 		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, sort, latestMode, limit);
 
-		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
+		return result.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, result);
 	}
 
 	/**

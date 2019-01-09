@@ -78,7 +78,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 		));
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
-		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
+		return result.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, result);
 	}
 
 	/**

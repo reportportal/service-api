@@ -79,7 +79,7 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 
 		}
 
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, Sort sort, String contentField) {

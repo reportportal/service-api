@@ -64,7 +64,7 @@ public class LaunchExecutionAndIssueStatisticsContentLoader implements LoadConte
 
 		List<ChartStatisticsContent> content = widgetContentRepository.launchStatistics(filter, contentFields, sort, limit);
 
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	/**

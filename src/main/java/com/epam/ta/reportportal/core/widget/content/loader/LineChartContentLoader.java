@@ -74,12 +74,12 @@ public class LineChartContentLoader extends AbstractStatisticsContentLoader impl
 		if (StringUtils.isNotBlank(timeLineOption)) {
 			Optional<AbstractStatisticsContentLoader.Period> period = AbstractStatisticsContentLoader.Period.findByName(timeLineOption);
 			if (period.isPresent()) {
-				return CollectionUtils.isEmpty(content) ? Collections.emptyMap() : groupByDate(content, period.get());
+				return CollectionUtils.isEmpty(content) ? singletonMap(RESULT, Collections.emptyList()) : groupByDate(content, period.get());
 			}
 
 		}
 
-		return CollectionUtils.isEmpty(content) ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return CollectionUtils.isEmpty(content) ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	/**

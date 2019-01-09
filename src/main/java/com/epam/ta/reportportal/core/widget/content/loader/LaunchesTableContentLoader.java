@@ -62,7 +62,7 @@ public class LaunchesTableContentLoader implements LoadContentStrategy {
 
 		List<LaunchesTableContent> content = widgetContentRepository.launchesTableStatistics(filter, contentFields, sort, limit);
 
-		return CollectionUtils.isEmpty(content) ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return CollectionUtils.isEmpty(content) ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	/**

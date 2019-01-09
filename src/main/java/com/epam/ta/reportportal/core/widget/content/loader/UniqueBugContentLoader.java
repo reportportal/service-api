@@ -63,7 +63,7 @@ public class UniqueBugContentLoader implements LoadContentStrategy {
 
 		final Map<String, List<UniqueBugContent>> content = widgetRepository.uniqueBugStatistics(filter, sort, latestMode, limit);
 
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
 	}
 
 	/**

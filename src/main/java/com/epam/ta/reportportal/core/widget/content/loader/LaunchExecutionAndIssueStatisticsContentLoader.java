@@ -45,7 +45,7 @@ import static java.util.Collections.singletonMap;
  * @author Pavel Bortnik
  */
 @Service
-public class LaunchStatisticsChartContentLoader implements LoadContentStrategy {
+public class LaunchExecutionAndIssueStatisticsContentLoader implements LoadContentStrategy {
 
 	@Autowired
 	private WidgetContentRepository widgetContentRepository;

@@ -59,7 +59,7 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.OLD_LINE_CHART, applicationContext.getBean(LineChartContentLoader.class))
 				.put(WidgetType.INVESTIGATED_TREND, applicationContext.getBean(ChartInvestigatedContentLoader.class))
 				.put(WidgetType.STATISTIC_TREND, applicationContext.getBean(LineChartContentLoader.class))
-				.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(LaunchStatisticsChartContentLoader.class))
+				.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(LaunchExecutionAndIssueStatisticsContentLoader.class))
 				.put(WidgetType.CASES_TREND, applicationContext.getBean(CasesTrendContentLoader.class))
 				.put(WidgetType.NOT_PASSED, applicationContext.getBean(NotPassedTestsContentLoader.class))
 				.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(UniqueBugContentLoader.class))

@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
 				limit
 		);
-		return singletonMap(RESULT, result);
+		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
 	}
 
 	/**

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.MostTimeConsumingTestCasesContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -76,7 +78,8 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 
 		filter = updateFilter(filter, widgetOptions);
 
-		return singletonMap(RESULT, widgetContentRepository.mostTimeConsumingTestCasesStatistics(filter));
+		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(filter);
+		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

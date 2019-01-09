@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.entity.widget.content.ProductStatusStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -55,14 +57,13 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		validateContentFields(contentFields);
 
-		return singletonMap(RESULT,
-				widgetContentRepository.productStatusGroupedByFilterStatistics(filterSortMapping,
-						contentFields,
-						tags,
-						WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
-						limit
-				)
+		final Map<String, List<ProductStatusStatisticsContent>> content = widgetContentRepository.productStatusGroupedByFilterStatistics(filterSortMapping,
+				contentFields,
+				tags,
+				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
+				limit
 		);
+		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

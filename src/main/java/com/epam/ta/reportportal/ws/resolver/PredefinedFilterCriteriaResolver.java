@@ -72,9 +72,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 		Class<?> domainModelType = methodParameter.getParameterAnnotation(FilterFor.class).value();
 
 		List<Queryable> filterConditions = webRequest.getParameterMap()
-				.entrySet()
-				.stream()
-				.filter(parameter -> parameter.getKey().startsWith(PREDEFINED_FILTER_PREFIX))
+				.entrySet().stream().filter(parameter -> parameter.getKey().startsWith(PREDEFINED_FILTER_PREFIX))
 				.map(parameter -> {
 					BusinessRule.expect(parameter.getValue(), v -> null != v && v.length == 1)
 							.verify(ErrorType.INCORRECT_REQUEST, "Incorrect filter value");

@@ -32,10 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -82,7 +79,7 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 
 		}
 
-		return singletonMap(RESULT, content);
+		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 
 	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, Sort sort, String contentField) {

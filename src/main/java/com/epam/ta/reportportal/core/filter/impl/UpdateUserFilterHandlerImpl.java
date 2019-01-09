@@ -86,6 +86,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 				.addProject(projectDetails.getProjectId())
 				.addOwner(user.getUsername())
 				.get();
+
 		userFilterRepository.save(filter);
 		aclHandler.initAcl(filter, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createFilterRQ.getShare()));
 		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId()));
@@ -138,10 +139,14 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		//filter conditions validation
 		updateFilerRq.getConditions()
 				.forEach(filter -> BusinessRule.expect(filterTarget.getCriteriaByFilter(filter.getFilteringField()), Optional::isPresent)
-						.verify(ErrorType.INCORRECT_FILTER_PARAMETERS, filter.getFilteringField()));
+						.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+								"Unable to find filtering field '" + filter.getFilteringField() + "'"
+						));
 		//order conditions validation
 		updateFilerRq.getOrders()
 				.forEach(order -> BusinessRule.expect(filterTarget.getCriteriaByFilter(order.getSortingColumnName()), Optional::isPresent)
-						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getSortingColumnName()));
+						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS,
+								"Unable to find sort parameter '" + order.getSortingColumnName() + "'"
+						));
 	}
 }

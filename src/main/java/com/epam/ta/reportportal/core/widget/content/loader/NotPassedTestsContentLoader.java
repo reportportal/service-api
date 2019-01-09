@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class NotPassedTestsContentLoader implements LoadContentStrategy {
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		List<NotPassedCasesContent> result = widgetContentRepository.notPassedCasesStatistics(filter, sort, limit);
-		return singletonMap(RESULT, result);
+		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
 	}
 
 	/**

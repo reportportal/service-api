@@ -29,12 +29,10 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -113,16 +111,17 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
-		final HashSet<ItemAttribute> overwrittenAttributes = Sets.newHashSet(testItem.getAttributes()
-				.stream()
-				.filter(ItemAttribute::isSystem)
-				.collect(Collectors.toSet()));
-		ofNullable(attributes).ifPresent(it -> it.stream().map(val -> {
-			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
-			itemAttribute.setTestItem(testItem);
-			return itemAttribute;
-		}).forEach(overwrittenAttributes::add));
-		testItem.setAttributes(overwrittenAttributes);
+		if (attributes != null) {
+			final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
+					.stream()
+					.filter(ItemAttribute::isSystem).collect(Collectors.toSet());
+			attributes.stream().map(val -> {
+				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+				itemAttribute.setTestItem(testItem);
+				return itemAttribute;
+			}).forEach(overwrittenAttributes::add);
+			testItem.setAttributes(overwrittenAttributes);
+		}
 		return this;
 	}
 

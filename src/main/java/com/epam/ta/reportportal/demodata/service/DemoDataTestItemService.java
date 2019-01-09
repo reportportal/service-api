@@ -51,7 +51,8 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public Long startRootItem(String rootItemName, Long launchId, TestItemTypeEnum type, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public Long startRootItem(String rootItemName, Long launchId, TestItemTypeEnum type, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setName(rootItemName);
@@ -74,7 +75,8 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public Long startTestItem(Long rootItemId, Long launchId, String name, TestItemTypeEnum type, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public Long startTestItem(Long rootItemId, Long launchId, String name, TestItemTypeEnum type, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
@@ -106,7 +108,8 @@ public class DemoDataTestItemService {
 	}
 
 	private boolean hasChildren(TestItemTypeEnum testItemType) {
-		return !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS || testItemType == AFTER_METHOD);
+		return !(testItemType == STEP || testItemType == BEFORE_CLASS || testItemType == BEFORE_METHOD || testItemType == AFTER_CLASS
+				|| testItemType == AFTER_METHOD);
 	}
 
 	private Issue issueType() {

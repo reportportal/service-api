@@ -128,12 +128,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				formattedSupplier("Username '{}' consists only of special characters", newUsername)
 		);
 
-
-
 		String email = EntityUtils.normalizeId(request.getEmail());
-		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-		expect(userRepository.findByEmail(email).isPresent(), equalTo(false)).verify(
-				USER_ALREADY_EXISTS,
+		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, formattedSupplier("email = '{}'", email));
+		expect(userRepository.findByEmail(email).isPresent(), equalTo(false)).verify(USER_ALREADY_EXISTS,
 				formattedSupplier("email = '{}'", email)
 		);
 

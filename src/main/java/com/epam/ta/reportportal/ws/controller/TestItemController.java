@@ -64,19 +64,17 @@ public class TestItemController {
 	private final UpdateTestItemHandler updateTestItemHandler;
 	private final GetTestItemHandler getTestItemHandler;
 	private final TestItemsHistoryHandler testItemsHistoryHandler;
-	private final MergeTestItemHandler mergeTestItemHandler;
 
 	@Autowired
 	public TestItemController(StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
 			FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
-			TestItemsHistoryHandler testItemsHistoryHandler, MergeTestItemHandler mergeTestItemHandler) {
+			TestItemsHistoryHandler testItemsHistoryHandler) {
 		this.startTestItemHandler = startTestItemHandler;
 		this.deleteTestItemHandler = deleteTestItemHandler;
 		this.finishTestItemHandler = finishTestItemHandler;
 		this.updateTestItemHandler = updateTestItemHandler;
 		this.getTestItemHandler = getTestItemHandler;
 		this.testItemsHistoryHandler = testItemsHistoryHandler;
-		this.mergeTestItemHandler = mergeTestItemHandler;
 	}
 
 	@Transactional

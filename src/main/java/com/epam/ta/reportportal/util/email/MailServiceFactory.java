@@ -16,11 +16,16 @@
 package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.ta.reportportal.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.mchange.lang.IntegerUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -33,8 +38,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
 
@@ -52,13 +62,16 @@ public class MailServiceFactory {
 
 	private final TemplateEngine templateEngine;
 	private final BasicTextEncryptor encryptor;
-	private final ServerSettingsRepository settingsRepository;
+	private final IntegrationRepository integrationRepository;
+	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor, ServerSettingsRepository settingsRepository) {
+	public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor, IntegrationRepository integrationRepository,
+			IntegrationTypeRepository integrationTypeRepository) {
 		this.templateEngine = templateEngine;
 		this.encryptor = encryptor;
-		this.settingsRepository = settingsRepository;
+		this.integrationRepository = integrationRepository;
+		this.integrationTypeRepository = integrationTypeRepository;
 	}
 
 	/**
@@ -69,7 +82,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	private Optional<EmailService> getEmailService(Integration emailIntegration, List<ServerSettings> serverSettings) {
-		return getEmailService(null).flatMap(service -> {
+		return getEmailService(emailIntegration).flatMap(service -> {
 			if (null != emailIntegration && emailIntegration.isEnabled()) {
 				service.setFrom((String) emailIntegration.getParams().getParams().get(FROM_ADDRESS));
 			}
@@ -84,6 +97,12 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getEmailService(Integration integration) {
+
+		BusinessRule.expect(integration, notNull()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Integration should be not null.");
+
+		if (!integration.isEnabled()) {
+			return Optional.empty();
+		}
 
 		Map<String, Object> config = integration.getParams().getParams();
 
@@ -133,7 +152,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
-		return getEmailService(null);
+		return ofNullable(getDefaultEmailService(true));
 	}
 
 	/**
@@ -142,7 +161,9 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService(Integration integration) {
-		return getEmailService(integration, settingsRepository.findAll());
+
+		return getEmailService(integration);
+
 	}
 
 	/**
@@ -152,14 +173,15 @@ public class MailServiceFactory {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
-		EmailService emailService = getEmailService(integration,
-				settingsRepository.findAll()
-		).orElseThrow(() -> emailConfigurationFail(null));
+
+		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);
 		}
+
 		return emailService;
+
 	}
 
 	/**
@@ -169,7 +191,26 @@ public class MailServiceFactory {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(boolean checkConnection) {
-		EmailService emailService = getEmailService(null).orElseThrow(() -> emailConfigurationFail(null));
+
+		List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION)
+				.stream()
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
+
+		//TODO implement project integration retrieving
+		Integration integration = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(1L, integrationTypeIds)
+				.stream()
+				.filter(Integration::isEnabled)
+				.findFirst()
+				.orElseGet(() -> integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+						.stream()
+						.filter(Integration::isEnabled)
+						.findFirst()
+						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+								"Enabled email integration has not been found."
+						)));
+
+		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);

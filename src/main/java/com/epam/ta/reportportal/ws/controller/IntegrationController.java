@@ -100,7 +100,7 @@ public class IntegrationController {
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/clear")
+	@DeleteMapping(value = "/all")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all integrations assigned to specified project")
 	@PreAuthorize(ADMIN_ONLY)
@@ -134,7 +134,7 @@ public class IntegrationController {
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/{projectName}")
+	@DeleteMapping(value = "/{projectName}/all")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all integrations assigned to specified project")
 	@PreAuthorize(PROJECT_MANAGER)

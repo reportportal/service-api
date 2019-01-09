@@ -20,17 +20,21 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.UploadPluginHandler;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
@@ -46,14 +50,25 @@ public class IntegrationController {
 
 	private final DeleteIntegrationHandler deleteIntegrationHandler;
 	private final GetIntegrationHandler getIntegrationHandler;
+	private final UploadPluginHandler uploadPluginHandler;
 	private final CreateIntegrationHandler createIntegrationHandler;
 
 	@Autowired
 	public IntegrationController(DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
-			CreateIntegrationHandler createIntegrationHandler) {
+			UploadPluginHandler uploadPluginHandler, CreateIntegrationHandler createIntegrationHandler) {
 		this.deleteIntegrationHandler = deleteIntegrationHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
+		this.uploadPluginHandler = uploadPluginHandler;
 		this.createIntegrationHandler = createIntegrationHandler;
+	}
+
+	@Transactional
+	@PostMapping(value = "/plugin", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiOperation("Upload new Report Portal plugin")
+	@PreAuthorize(ADMIN_ONLY)
+	public EntryCreatedRS uploadPlugin(@RequestParam("file") MultipartFile pluginFile, @AuthenticationPrincipal ReportPortalUser user) {
+		return uploadPluginHandler.uploadPlugin(pluginFile);
 	}
 
 	@Transactional

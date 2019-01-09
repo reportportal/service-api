@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.integration.util.property;
 
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -24,9 +26,19 @@ import java.util.Optional;
  */
 public enum ReportPortalIntegrationEnum {
 
-	JIRA,
-	RALLY,
-	EMAIL;
+	JIRA(IntegrationGroupEnum.BTS),
+	RALLY(IntegrationGroupEnum.BTS),
+	EMAIL(IntegrationGroupEnum.NOTIFICATION);
+
+	private IntegrationGroupEnum integrationGroup;
+
+	ReportPortalIntegrationEnum(IntegrationGroupEnum integrationGroup) {
+		this.integrationGroup = integrationGroup;
+	}
+
+	public IntegrationGroupEnum getIntegrationGroup() {
+		return integrationGroup;
+	}
 
 	public static Optional<ReportPortalIntegrationEnum> findByName(String name) {
 		return Arrays.stream(ReportPortalIntegrationEnum.values())

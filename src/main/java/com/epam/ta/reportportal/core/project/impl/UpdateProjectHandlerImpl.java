@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.*;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
@@ -125,11 +124,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		Project before = SerializationUtils.clone(project);
 
-		ofNullable(updateProjectRQ.getFrom()).ifPresent(from -> expect(isEmailValid(updateProjectRQ.getFrom()), equalTo(true)).verify(BAD_REQUEST_ERROR,
-				formattedSupplier("Provided FROM value '{}' is invalid", updateProjectRQ.getFrom())
-		));
-
-		updateEmailAttributes(project.getProjectAttributes(), updateProjectRQ.getEmailEnabled(), updateProjectRQ.getFrom());
 		updateEmailCases(project, updateProjectRQ.getEmailCases());
 
 		try {
@@ -359,17 +353,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			ofNullable(config.getEmailConfig()).ifPresent(emailConfig -> updateProjectEmailConfig(projectDetails, user, emailConfig));
 		});
 
-	}
-
-	private void updateEmailAttributes(Set<ProjectAttribute> projectAttributes, Boolean emailEnabled, String from) {
-		projectAttributes.forEach(attribute -> {
-			if (attribute.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute())) {
-				attribute.setValue(String.valueOf(BooleanUtils.isTrue(emailEnabled)));
-			}
-			if (attribute.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_FROM.getAttribute())) {
-				attribute.setValue(from);
-			}
-		});
 	}
 
 	private void updateEmailCases(Project project, List<EmailSenderCaseDTO> cases) {

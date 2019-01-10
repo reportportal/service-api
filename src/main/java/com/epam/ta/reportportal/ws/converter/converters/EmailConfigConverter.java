@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -11,7 +10,6 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -29,15 +27,6 @@ public final class EmailConfigConverter {
 
 	public final static BiFunction<Set<ProjectAttribute>, Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = (pa, es) -> {
 		ProjectEmailConfigDTO dto = new ProjectEmailConfigDTO();
-		pa.stream()
-				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_FROM.getAttribute()))
-				.findFirst()
-				.ifPresent(it -> dto.setFrom(it.getValue()));
-
-		pa.stream()
-				.filter(attr -> attr.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.EMAIL_ENABLED.getAttribute()))
-				.findFirst()
-				.ifPresent(it -> dto.setEmailEnabled(BooleanUtils.toBoolean(it.getValue())));
 
 		dto.setEmailCases(es.stream().map(EmailConfigConverter.TO_CASE_RESOURCE).collect(Collectors.toList()));
 

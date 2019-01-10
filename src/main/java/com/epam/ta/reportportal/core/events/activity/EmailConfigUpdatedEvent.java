@@ -13,9 +13,8 @@ import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.EMAIL_ENABLED;
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.EMAIL_FROM;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMAIL_CASES;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_FIELD;
 
 /**
  * @author Andrei Varabyeu
@@ -54,18 +53,6 @@ public class EmailConfigUpdatedEvent extends BeforeEvent<Project> implements Act
 		Map<String, String> configParameters = ProjectUtils.getConfigParameters(getBefore().getProjectAttributes());
 
 		/*
-		 * Has EmailEnabled trigger been updated?
-		 */
-		boolean isEmailOptionChanged = configuration.getEmailEnabled() != null && !configuration.getEmailEnabled()
-				.equals(Boolean.valueOf(configParameters.get(EMAIL_ENABLED.getAttribute())));
-
-		/*
-		 * Request contains From field update and it not equal for stored project one
-		 */
-		boolean isEmailFromChanged = null != configuration.getFrom() && !configuration.getFrom()
-				.equalsIgnoreCase(configParameters.get(EMAIL_FROM.getAttribute()));
-
-		/*
 		 * Request contains EmailCases block and its not equal for stored project one
 		 */
 		ProjectEmailConfigDTO builtProjectEmailConfig = EmailConfigConverter.TO_RESOURCE.apply(project.getProjectAttributes(),
@@ -75,22 +62,8 @@ public class EmailConfigUpdatedEvent extends BeforeEvent<Project> implements Act
 		boolean isEmailCasesChanged =
 				null != configuration.getEmailCases() && !configuration.getEmailCases().equals(builtProjectEmailConfig.getEmailCases());
 
-		if (isEmailOptionChanged) {
-			details.addHistoryField(HistoryField.of(EMAIL_STATUS,
-					configParameters.get(EMAIL_ENABLED.getAttribute()),
-					String.valueOf(configuration.getEmailEnabled())
-			));
-		}
-
 		if (isEmailCasesChanged) {
 			details.addHistoryField(HistoryField.of(EMAIL_CASES, EMPTY_FIELD, EMPTY_FIELD));
-		}
-
-		if (isEmailFromChanged) {
-			details.addHistoryField(HistoryField.of(EMAIL_FROM.getAttribute(),
-					configParameters.get(EMAIL_FROM.getAttribute()),
-					configuration.getFrom()
-			));
 		}
 
 	}

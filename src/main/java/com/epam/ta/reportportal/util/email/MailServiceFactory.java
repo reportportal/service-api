@@ -20,14 +20,9 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
-import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.entity.ServerSettingsEnum;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.mchange.lang.IntegerUtils;
@@ -76,22 +71,6 @@ public class MailServiceFactory {
 		this.encryptor = encryptor;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
-	}
-
-	/**
-	 * Build mail service based on provided configs
-	 *
-	 * @param emailIntegration Project configuration attributes
-	 * @param serverSettings   Server-level configuration
-	 * @return Built email service
-	 */
-	private Optional<EmailService> getEmailService(Integration emailIntegration, List<ServerSettings> serverSettings) {
-		return getEmailService(emailIntegration).flatMap(service -> {
-			if (null != emailIntegration && emailIntegration.isEnabled()) {
-				service.setFrom((String) emailIntegration.getParams().getParams().get(FROM_ADDRESS));
-			}
-			return Optional.of(service);
-		});
 	}
 
 	/**
@@ -201,18 +180,13 @@ public class MailServiceFactory {
 				.map(IntegrationType::getId)
 				.collect(Collectors.toList());
 
-		//TODO implement project integration retrieving
-		Integration integration = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(1L, integrationTypeIds)
+		Integration integration = integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
 				.stream()
 				.filter(Integration::isEnabled)
 				.findFirst()
-				.orElseGet(() -> integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-						.stream()
-						.filter(Integration::isEnabled)
-						.findFirst()
-						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-								"Enabled email integration has not been found."
-						)));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Enabled email integration has not been found."
+				));
 
 		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 

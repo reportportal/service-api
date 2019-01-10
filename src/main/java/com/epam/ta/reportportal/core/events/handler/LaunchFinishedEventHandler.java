@@ -18,14 +18,13 @@ package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -46,9 +45,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
@@ -64,6 +65,12 @@ public class LaunchFinishedEventHandler {
 
 	@Autowired
 	private ProjectRepository projectRepository;
+
+	@Autowired
+	private IntegrationRepository integrationRepository;
+
+	@Autowired
+	private IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
 	private MailServiceFactory mailServiceFactory;
@@ -89,13 +96,24 @@ public class LaunchFinishedEventHandler {
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
+		List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION)
+				.stream()
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
+
 		Integration emailIntegration = project.getIntegrations()
 				.stream()
-				.filter(i -> IntegrationGroupEnum.NOTIFICATION.equals(i.getType().getIntegrationGroup()))
+				.filter(i -> IntegrationGroupEnum.NOTIFICATION.equals(i.getType().getIntegrationGroup()) && i.isEnabled())
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND));
+				.orElseGet(() -> integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+						.stream()
+						.filter(Integration::isEnabled)
+						.findFirst()
+						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+								"Enabled email integration has not been found."
+						)));
 
-		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(project.getProjectAttributes());
+		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
 		emailService.ifPresent(it -> sendEmail(launch, project, it));
 

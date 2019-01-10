@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.MergeTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
@@ -65,19 +64,17 @@ public class TestItemController {
 	private final UpdateTestItemHandler updateTestItemHandler;
 	private final GetTestItemHandler getTestItemHandler;
 	private final TestItemsHistoryHandler testItemsHistoryHandler;
-	private final MergeTestItemHandler mergeTestItemHandler;
 
 	@Autowired
 	public TestItemController(StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
 			FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
-			TestItemsHistoryHandler testItemsHistoryHandler, MergeTestItemHandler mergeTestItemHandler) {
+			TestItemsHistoryHandler testItemsHistoryHandler) {
 		this.startTestItemHandler = startTestItemHandler;
 		this.deleteTestItemHandler = deleteTestItemHandler;
 		this.finishTestItemHandler = finishTestItemHandler;
 		this.updateTestItemHandler = updateTestItemHandler;
 		this.getTestItemHandler = getTestItemHandler;
 		this.testItemsHistoryHandler = testItemsHistoryHandler;
-		this.mergeTestItemHandler = mergeTestItemHandler;
 	}
 
 	@Transactional
@@ -231,14 +228,5 @@ public class TestItemController {
 	public List<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam(value = "ids") Long[] ids) {
 		return getTestItemHandler.getTestItems(ids, extractProjectDetails(user, projectName), user);
-	}
-
-	@Transactional
-	@PutMapping("/{item}/merge")
-	@ResponseStatus(OK)
-	@ApiOperation("Merge test item")
-	public OperationCompletionRS mergeTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long item, @RequestBody @Validated MergeTestItemRQ rq) {
-		return mergeTestItemHandler.mergeTestItem(extractProjectDetails(user, projectName), item, rq, user.getUsername());
 	}
 }

@@ -99,8 +99,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 					Pageable.unpaged(),
 					username
 			).getContent();
-			BusinessRule.expect(userFilters, not(List::isEmpty))
-					.verify(ErrorType.BAD_REQUEST_ERROR, "Could not find one or more filters with ids: {}", ids);
+			BusinessRule.expect(userFilters, not(List::isEmpty)).verify(ErrorType.USER_FILTER_NOT_FOUND, filterIds, projectId, username);
 			return userFilters;
 		}
 		return Collections.emptyList();

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -112,7 +112,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					}
 					Long stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
 					StatusEnum status = status();
-					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status);
+					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status, projectDetails.getProjectId());
 					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
 						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());

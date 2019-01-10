@@ -30,17 +30,14 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -145,10 +142,13 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
 		);
 
-		launch = new LaunchBuilder(launch).addDescription(ofNullable(launch.getDescription()).orElse("").concat(LAUNCH_STOP_DESCRIPTION))
+		launch = new LaunchBuilder(launch).addDescription(ofNullable(finishLaunchRQ.getDescription()).orElse(ofNullable(launch.getDescription())
+				.orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
 				.addStatus(ofNullable(finishLaunchRQ.getStatus()).orElse(STOPPED.name()))
+				.addEndTime(ofNullable(finishLaunchRQ.getEndTime()).orElse(new Date()))
+				.addAttributes(finishLaunchRQ.getAttributes())
+				.addAttribute(new ItemAttributeResource("status", "stopped"))
 				.get();
-		launch.setEndTime(LocalDateTime.now());
 
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);

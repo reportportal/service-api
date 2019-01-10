@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,22 +16,22 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.reportportal.commons.Thumbnailator;
+import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.filesystem.DataStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 
@@ -41,13 +41,14 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 class DemoLogsService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DemoLogsService.class);
+
 	private SplittableRandom random;
 
 	private LogRepository logRepository;
 
-	private DataStore dataStore;
-
-	private Thumbnailator thumbnailator;
+	private DataStoreService dataStoreService;
 
 	private static final int MIN_LOGS_COUNT = 5;
 
@@ -56,21 +57,20 @@ class DemoLogsService {
 	private static final int BINARY_CONTENT_PROBABILITY = 20;
 
 	@Autowired
-	public DemoLogsService(LogRepository logRepository, DataStore dataStore, Thumbnailator thumbnailator) {
+	public DemoLogsService(LogRepository logRepository, DataStoreService dataStoreService) {
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
-		this.dataStore = dataStore;
-		this.thumbnailator = thumbnailator;
+		this.dataStoreService = dataStoreService;
 	}
 
-	void generateDemoLogs(TestItem testItem, StatusEnum status) {
+	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId) {
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
 		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
 			Log log = new Log();
 			log.setLogLevel(logLevel().toInt());
 			log.setLogTime(LocalDateTime.now());
 			if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-				attachFile(log);
+				attachFile(log, projectId);
 			}
 			log.setTestItem(testItem);
 			log.setLogMessage(ContentUtils.getLogMessage());
@@ -84,43 +84,28 @@ class DemoLogsService {
 				log.setLogTime(LocalDateTime.now());
 				log.setTestItem(testItem);
 				log.setLogMessage(msg);
-				attachFile(log);
+				attachFile(log, projectId);
 				return log;
 			}).collect(toList()));
 		}
 		logRepository.saveAll(logs);
 	}
 
-	private void attachFile(Log log) {
-		AttachmentMetaData attachmentMetaData = saveAttachment();
-		log.setAttachment(attachmentMetaData.getPath());
-		if (attachmentMetaData.isImage()) {
-			log.setAttachmentThumbnail(attachmentMetaData.getThumbnailPath());
-		}
+	private void attachFile(Log log, Long projectId) {
+		saveAttachment(projectId).ifPresent(it -> {
+			log.setAttachment(it.getFileId());
+			log.setAttachmentThumbnail(it.getThumbnailFileId());
+		});
 	}
 
-	private AttachmentMetaData saveAttachment() {
+	private Optional<BinaryDataMetaInfo> saveAttachment(Long projectId) {
+		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			Attachment attachment = randomAttachment();
-			String filePath = saveResource(attachment.getResource());
-			if (attachment.equals(Attachment.PNG)) {
-				InputStream thumbnail = thumbnailator.createThumbnail(attachment.getResource().getInputStream());
-				String thumbnailFileName = AttachmentMetaData.THUMBNAIL_PREFIX + "-" + attachment.getResource().getFilename();
-				String thumbnailPath = dataStore.save(thumbnailFileName, thumbnail);
-				return AttachmentMetaData.of(filePath, thumbnailPath);
-			}
-			return AttachmentMetaData.of(filePath);
+			return dataStoreService.save(projectId, attachment.getResource().getFile());
 		} catch (IOException e) {
-			throw new ReportPortalException("Unable to save binary data", e);
+			LOGGER.error("Cannot attach file: ", e);
 		}
-	}
-
-	private String saveResource(ClassPathResource resource) throws IOException {
-		return dataStore.save(resource.getFilename(), resource.getInputStream());
-	}
-
-	private Attachment randomAttachment() {
-		return Attachment.values()[random.nextInt(Attachment.values().length)];
+		return Optional.empty();
 	}
 
 	private LogLevel logLevel() {

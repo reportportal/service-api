@@ -60,6 +60,7 @@ public class DashboardBuilder implements Supplier<Dashboard> {
 	public DashboardBuilder addUpdateRq(UpdateDashboardRQ rq) {
 		Optional.ofNullable(rq.getName()).ifPresent(name -> dashboard.setName(name));
 		Optional.ofNullable(rq.getDescription()).ifPresent(description -> dashboard.setDescription(description));
+		Optional.ofNullable(rq.getShare()).ifPresent(share -> dashboard.setShared(share));
 		Optional.ofNullable(rq.getWidgets()).ifPresent(widgets -> {
 			for (DashboardWidget dashboardWidget : dashboard.getDashboardWidgets()) {
 				widgets.stream()

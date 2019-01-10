@@ -23,10 +23,18 @@ import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardDeletedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
+import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
 
@@ -43,6 +51,12 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private DashboardRepository dashboardRepository;
 
 	@Autowired
+	private DashboardWidgetRepository dashboardWidgetRepository;
+
+	@Autowired
+	private WidgetRepository widgetRepository;
+
+	@Autowired
 	private ShareableObjectsHandler aclHandler;
 
 	@Autowired
@@ -51,8 +65,25 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	@Override
 	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
-		dashboardRepository.delete(dashboard);
+
+		List<Widget> ownedWidgets = dashboard.getDashboardWidgets()
+				.stream()
+				.map(DashboardWidget::getWidget)
+				.filter(widget -> widget.getOwner().equalsIgnoreCase(user.getUsername()))
+				.collect(Collectors.toList());
+
+		Set<DashboardWidget> dashboardWidgets = ownedWidgets.stream()
+				.flatMap(it -> it.getDashboardWidgets().stream())
+				.collect(Collectors.toSet());
+		dashboardWidgets.addAll(dashboard.getDashboardWidgets());
+
 		aclHandler.deleteAclForObject(dashboard);
+		ownedWidgets.forEach(it -> aclHandler.deleteAclForObject(it));
+
+		dashboardWidgetRepository.deleteAll(dashboardWidgets);
+		dashboardRepository.delete(dashboard);
+		widgetRepository.deleteAll(ownedWidgets);
+
 		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
 		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
 	}

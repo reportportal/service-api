@@ -46,7 +46,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 
@@ -121,6 +125,12 @@ public class EmailServerIntegrationService implements IntegrationService {
 	private void updateIntegrationParams(Map<String, Object> integrationParams) {
 
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
+
+		Optional<String> fromAttribute = EmailSettingsEnum.FROM.getAttribute(integrationParams);
+
+		fromAttribute.ifPresent(from -> expect(isEmailValid(from), equalTo(true)).verify(BAD_REQUEST_ERROR,
+				Suppliers.formattedSupplier("Provided FROM value '{}' is invalid", fromAttribute.get())
+		));
 
 		int port = ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
 				25

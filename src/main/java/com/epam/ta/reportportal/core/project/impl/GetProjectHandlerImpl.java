@@ -24,8 +24,11 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -36,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,8 +49,10 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
 
 /**
  * @author Pavel Bortnik
@@ -58,10 +64,14 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final UserRepository userRepository;
 
+	private final IntegrationRepository integrationRepository;
+
 	@Autowired
-	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository) {
+	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
+			IntegrationRepository integrationRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
+		this.integrationRepository = integrationRepository;
 	}
 
 	@Override
@@ -82,8 +92,20 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public ProjectResource getProject(String projectName) {
-		return ProjectConverter.TO_PROJECT_RESOURCE.apply(projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName)));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		List<Long> integrationTypeIds = project.getIntegrations()
+				.stream()
+				.map(Integration::getType)
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
+
+		List<Integration> globalIntegrations = integrationRepository.findAllGlobalNotInIntegrationTypeIds(integrationTypeIds);
+
+		project.getIntegrations().addAll(globalIntegrations);
+
+		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}
 
 	@Override
@@ -102,9 +124,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 		);
 		Filter filter = Filter.builder()
 				.withTarget(User.class)
-				//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
-				//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME))
-				//				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL))
 				.build();
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
 	}

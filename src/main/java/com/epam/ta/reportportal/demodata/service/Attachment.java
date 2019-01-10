@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,12 @@ public enum Attachment {
 	TXT("demo/attachments/plain.txt", TEXT_PLAIN_VALUE),
 	ZIP("demo/attachments/demo.zip", "application/zip"),
 	JSON("demo/demo_widgets.json", APPLICATION_JSON_VALUE),
-	PNG("demo/attachments/img.png", IMAGE_PNG_VALUE);
+	PNG("demo/attachments/img.png", IMAGE_PNG_VALUE),
+	XML("demo/attachments/xml.xml", APPLICATION_XML_VALUE),
+	HAR("demo/attachments/har.har", "application/har+json"),
+	GZ("demo/attachments/gz.gz", "application/gzip"),
+	RAR("demo/attachments/rar.rar", "application/x-rar-compressed"),
+	TAR("demo/attachments/tar.tar", "application/tar");
 
 	Attachment(String resource, String contentType) {
 		this.resource = resource;

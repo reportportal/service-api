@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,7 +81,7 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 
 		List<ChartStatisticsContent> content = widgetContentRepository.investigatedStatistics(filter, sort, limit);
 
-		return singletonMap(RESULT, content);
+		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
 	}
 
 	private void calculateInvestigatedPercentage(Map<String, ChartStatisticsContent> investigatedStatistics) {

@@ -40,11 +40,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -111,11 +113,10 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
-		launch.setAttributes(ofNullable(mergeLaunchesRQ.getAttributes()).map(attr -> attr.stream()
-				.map(a -> new ItemAttribute(a.getKey(), a.getValue(), a.isSystem())))
-				.orElse(launches.stream().flatMap(l -> l.getAttributes().stream()))
+		ofNullable(mergeLaunchesRQ.getAttributes()).ifPresent(it -> launch.setAttributes(it.stream()
+				.map(attr -> new ItemAttribute(attr.getKey(), attr.getValue(), attr.isSystem()))
 				.peek(attr -> attr.setLaunch(launch))
-				.collect(toSet()));
+				.collect(Collectors.toSet())));
 		return launch;
 	}
 

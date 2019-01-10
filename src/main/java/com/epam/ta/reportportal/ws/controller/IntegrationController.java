@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
-import com.epam.ta.reportportal.core.integration.UploadPluginHandler;
+import com.epam.ta.reportportal.core.integration.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -50,15 +50,15 @@ public class IntegrationController {
 
 	private final DeleteIntegrationHandler deleteIntegrationHandler;
 	private final GetIntegrationHandler getIntegrationHandler;
-	private final UploadPluginHandler uploadPluginHandler;
+	private final CreatePluginHandler createPluginHandler;
 	private final CreateIntegrationHandler createIntegrationHandler;
 
 	@Autowired
 	public IntegrationController(DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
-			UploadPluginHandler uploadPluginHandler, CreateIntegrationHandler createIntegrationHandler) {
+			CreatePluginHandler createPluginHandler, CreateIntegrationHandler createIntegrationHandler) {
 		this.deleteIntegrationHandler = deleteIntegrationHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
-		this.uploadPluginHandler = uploadPluginHandler;
+		this.createPluginHandler = createPluginHandler;
 		this.createIntegrationHandler = createIntegrationHandler;
 	}
 
@@ -68,7 +68,7 @@ public class IntegrationController {
 	@ApiOperation("Upload new Report Portal plugin")
 	@PreAuthorize(ADMIN_ONLY)
 	public EntryCreatedRS uploadPlugin(@RequestParam("file") MultipartFile pluginFile, @AuthenticationPrincipal ReportPortalUser user) {
-		return uploadPluginHandler.uploadPlugin(pluginFile);
+		return createPluginHandler.uploadPlugin(pluginFile);
 	}
 
 	@Transactional

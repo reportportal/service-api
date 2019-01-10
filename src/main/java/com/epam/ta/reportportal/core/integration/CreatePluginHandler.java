@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface UploadPluginHandler {
+public interface CreatePluginHandler {
 
 	EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
 }

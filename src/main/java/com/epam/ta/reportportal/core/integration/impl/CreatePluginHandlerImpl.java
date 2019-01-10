@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.integration.impl;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.UploadPluginHandler;
+import com.epam.ta.reportportal.core.integration.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -37,7 +37,7 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class UploadPluginHandlerImpl implements UploadPluginHandler {
+public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	public static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
 
@@ -51,7 +51,7 @@ public class UploadPluginHandlerImpl implements UploadPluginHandler {
 	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public UploadPluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder,
+	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder,
 			IntegrationTypeRepository integrationTypeRepository) {
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;

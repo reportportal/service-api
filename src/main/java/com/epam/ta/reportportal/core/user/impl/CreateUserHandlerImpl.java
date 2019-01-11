@@ -47,6 +47,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -341,17 +342,28 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				.map(IntegrationType::getId)
 				.collect(Collectors.toList());
 
-		return integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectId, integrationTypeIds)
-				.stream()
-				.filter(Integration::isEnabled)
-				.findFirst()
-				.orElseGet(() -> integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-						.stream()
-						.filter(Integration::isEnabled)
-						.findFirst()
-						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-								"Enabled email integration has not been found."
-						)));
+		List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectId, integrationTypeIds);
+
+		if (!CollectionUtils.isEmpty(integrations)) {
+
+			return integrations.stream()
+					.filter(Integration::isEnabled)
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+							"Enabled project email integration has not been found."
+					));
+
+		} else {
+
+			return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+					.stream()
+					.filter(Integration::isEnabled)
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+							"Enabled global email integration has not been found."
+					));
+		}
+
 	}
 
 }

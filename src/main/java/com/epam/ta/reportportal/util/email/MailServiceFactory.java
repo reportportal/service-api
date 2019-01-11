@@ -172,7 +172,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
+	public EmailService getEmailService(Integration integration, boolean checkConnection) {
 
 		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 
@@ -197,18 +197,13 @@ public class MailServiceFactory {
 				.map(IntegrationType::getId)
 				.collect(Collectors.toList());
 
-		//TODO implement project integration retrieving
-		Integration integration = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(1L, integrationTypeIds)
+		Integration integration = integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
 				.stream()
 				.filter(Integration::isEnabled)
 				.findFirst()
-				.orElseGet(() -> integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-						.stream()
-						.filter(Integration::isEnabled)
-						.findFirst()
-						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-								"Enabled email integration has not been found."
-						)));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Enabled email integration has not been found."
+				));
 
 		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 

@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.imprt;
  * @author Anton Machulski
  */
 public class FileExtensionConstant {
+	
+	//TODO return '.zip' and '.xml' 
 	public static final String ZIP_EXTENSION = "zip";
 	public static final String XML_EXTENSION = "xml";
 }

@@ -115,7 +115,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		//				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
 		//		));
 		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> new LaunchDeletedEvent(r, user.getUserId()));
+		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId())));
 		return new DeleteLaunchesRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 				notFound,
 				exceptions.stream().map(ex -> {

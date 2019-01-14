@@ -44,12 +44,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static freemarker.template.utility.Collections12.singletonMap;
 
 /**
  * @author Pavel Bortnik
@@ -60,6 +64,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
+
+	private Set<WidgetType> unfilteredWidgetTypes;
 
 	@Autowired
 	private WidgetRepository widgetRepository;
@@ -77,6 +83,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Qualifier("contentLoader")
 	public void setLoadContentStrategy(Map<WidgetType, LoadContentStrategy> loadContentStrategy) {
 		this.loadContentStrategy = loadContentStrategy;
+	}
+
+	@Autowired
+	@Qualifier("unfilteredWidgetTypes")
+	public void setUnfilteredWidgetTypes(Set<WidgetType> unfilteredWidgetTypes) {
+		this.unfilteredWidgetTypes = unfilteredWidgetTypes;
 	}
 
 	@Override
@@ -100,8 +112,15 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
-		Map<String, ?> content = buildFilterStrategyMapping.get(widgetType)
-				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+		Map<String, ?> content;
+
+		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
+			content = singletonMap(RESULT, Collections.emptyList());
+		} else {
+			content = buildFilterStrategyMapping.get(widgetType)
+					.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+		}
+
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
 		resource.setContent(content);
 		return resource;
@@ -110,18 +129,26 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	public Map<String, ?> getWidgetPreview(WidgetPreviewRQ previewRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
+
 		WidgetType widgetType = WidgetType.findByName(previewRQ.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
 						"Unsupported widget type {}" + previewRQ.getWidgetType()
 				));
+
 		List<UserFilter> userFilter = null;
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
 			userFilter = getUserFilterHandler.getFiltersById(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
 		}
+
+		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(userFilter)) {
+			return singletonMap(RESULT, Collections.emptyList());
+		}
+
 		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)
 				.addProject(projectDetails.getProjectId())
 				.addFilters(userFilter)
 				.get();
+
 		return buildFilterStrategyMapping.get(widgetType)
 				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
 	}

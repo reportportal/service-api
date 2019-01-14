@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,11 +31,9 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
+import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -49,12 +47,9 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.AuthenticatedVoter;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
@@ -67,11 +62,7 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Spring's Security Configuration
@@ -113,12 +104,13 @@ class SecurityConfiguration {
 		@Autowired
 		private PermissionEvaluator permissionEvaluator;
 
+		@Autowired
+		private DatabaseUserDetailsService userDetailsService;
 
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
 		}
-
 
 		@Bean
 		public TokenStore tokenStore() {
@@ -129,9 +121,14 @@ class SecurityConfiguration {
 		public JwtAccessTokenConverter accessTokenConverter() {
 			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
 			converter.setSigningKey("123");
+
 			DefaultAccessTokenConverter converter1 = new DefaultAccessTokenConverter();
-			converter1.setUserTokenConverter(new ReportPortalAuthenticationConverter());
+			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
+			defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
+			converter1.setUserTokenConverter(defaultUserAuthenticationConverter);
+
 			converter.setAccessTokenConverter(converter1);
+
 			return converter;
 		}
 
@@ -143,7 +140,6 @@ class SecurityConfiguration {
 			defaultTokenServices.setSupportRefreshToken(true);
 			return defaultTokenServices;
 		}
-
 
 		@Bean
 		public static RoleHierarchy userRoleHierarchy() {
@@ -192,59 +188,6 @@ class SecurityConfiguration {
 					.disable();
 		}
 
-	}
-
-
-	static class ReportPortalAuthenticationConverter extends DefaultUserAuthenticationConverter {
-		@Override
-		public Map<String, ?> convertUserAuthentication(Authentication authentication) {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> claims = (Map<String, Object>) super.convertUserAuthentication(authentication);
-			ReportPortalUser principal = (ReportPortalUser) authentication.getPrincipal();
-			claims.put("userId", principal.getUserId());
-			claims.put("userRole", principal.getUserRole());
-			claims.put("projects", principal.getProjectDetails());
-			return claims;
-		}
-
-		@Override
-		public Authentication extractAuthentication(Map<String, ?> map) {
-			Authentication auth = super.extractAuthentication(map);
-			if (null != auth) {
-				UsernamePasswordAuthenticationToken user = ((UsernamePasswordAuthenticationToken) auth);
-				Collection<GrantedAuthority> authorities = user.getAuthorities();
-
-				Long userId = map.containsKey("userId") ? parseId(map.get("userId")) : null;
-				UserRole userRole = map.containsKey("userRole") ? UserRole.valueOf(map.get("userRole").toString()) : null;
-				Map<String, Map> projects = map.containsKey("projects") ? (Map) map.get("projects") : Collections.emptyMap();
-
-				Map<String, ReportPortalUser.ProjectDetails> collect = projects.entrySet()
-						.stream()
-						.collect(Collectors.toMap(Map.Entry::getKey,
-								e -> new ReportPortalUser.ProjectDetails(parseId(e.getValue().get("projectId")),
-										ProjectRole.valueOf((String) e.getValue().get("projectRole"))
-								)
-						));
-
-				return new UsernamePasswordAuthenticationToken(new ReportPortalUser(user.getName(),
-						"N/A",
-						authorities,
-						userId,
-						userRole,
-						collect
-				), user.getCredentials(), authorities);
-			}
-
-			return null;
-
-		}
-
-		private Long parseId(Object id) {
-			if (id instanceof Integer) {
-				return Long.valueOf((Integer) id);
-			}
-			return (Long) id;
-		}
 	}
 }
 

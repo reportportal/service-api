@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
@@ -116,6 +117,16 @@ public class ProjectController {
 	public OperationCompletionRS updateProjectIntegration(@PathVariable String projectName,
 			@RequestBody @Validated UpdateIntegrationRQ updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateIntegration(ProjectExtractor.extractProjectDetails(user, projectName), user, updateProjectRQ);
+	}
+
+	@Transactional
+	@DeleteMapping
+	@ResponseStatus(OK)
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
+	public Iterable<OperationCompletionRS> deleteProject(@RequestBody @Validated BulkRQ<DeleteProjectRQ> deleteProjectsBulkRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProjects(deleteProjectsBulkRQ);
 	}
 
 	@Transactional

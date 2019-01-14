@@ -47,8 +47,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	public OperationCompletionRS deleteProject(String projectName) {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-		projectRepository.delete(project);
-		return new OperationCompletionRS("Project with name = '" + projectName + "' is successfully deleted.");
+		projectRepository.deleteById(project.getId());
+		return new OperationCompletionRS("Project with name = '" + projectName + "' has been successfully deleted.");
 	}
 
 	@Override

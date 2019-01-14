@@ -82,6 +82,9 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get(ACTION_TYPE);
 
+		BusinessRule.expect(actionTypes, CollectionUtils::isNotEmpty)
+				.verify(ErrorType.BAD_REQUEST_ERROR, "At least 1 action type should be provided.");
+
 		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes), CRITERIA_ACTION));
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);

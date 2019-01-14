@@ -38,6 +38,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -63,7 +64,7 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 
 		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, sort, latestMode, limit);
 
-		return result.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, result);
+		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
 	}
 
 	/**

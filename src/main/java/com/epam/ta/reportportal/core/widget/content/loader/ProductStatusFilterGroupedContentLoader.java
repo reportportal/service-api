@@ -37,6 +37,7 @@ import java.util.Map;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -67,7 +68,7 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 				limit
 		);
 
-		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
+		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

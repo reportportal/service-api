@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +47,8 @@ import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters.
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.content.loader.ActivityContentLoader.CONTENT_FIELDS_DELIMITER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.*;
+import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.STEP;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
@@ -78,7 +78,7 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 
 		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(filter);
 
-		return content.isEmpty() ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
+		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

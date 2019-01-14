@@ -44,6 +44,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
@@ -79,7 +80,7 @@ public class LineChartContentLoader extends AbstractStatisticsContentLoader impl
 
 		}
 
-		return CollectionUtils.isEmpty(content) ? singletonMap(RESULT, Collections.emptyList()) : singletonMap(RESULT, content);
+		return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.DeleteLaunchesRS;
 import com.google.common.collect.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,21 +55,16 @@ import static java.util.Arrays.stream;
 @Service
 public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
 
-	private MessageBus messageBus;
+	private final LaunchRepository launchRepository;
 
-	private LaunchRepository launchRepository;
+	private final MessageBus messageBus;
 
-	//	private ILogIndexer logIndexer;
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
+	public DeleteLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus) {
+		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 	}
 
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
+	//	private ILogIndexer logIndexer;
 
 	//	@Autowired
 	//	public void setLogIndexer(ILogIndexer logIndexer) {
@@ -144,7 +138,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		);
 		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
 			/* Only PROJECT_MANAGER roles could delete launches */
-			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED, launch.getId());
+			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
 		}
 	}
 }

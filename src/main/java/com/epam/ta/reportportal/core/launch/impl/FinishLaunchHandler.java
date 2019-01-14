@@ -70,17 +70,16 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private final TestItemRepository testItemRepository;
 	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
-
-	@Autowired
 	private AfterLaunchFinishedHandler afterLaunchFinishedHandler;
 
 	@Autowired
 	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher) {
+			ApplicationEventPublisher eventPublisher, AfterLaunchFinishedHandler afterLaunchFinishedHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
+		this.afterLaunchFinishedHandler = afterLaunchFinishedHandler;
 	}
 
 	@Override

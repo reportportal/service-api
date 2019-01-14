@@ -182,7 +182,7 @@ public class LaunchController {
 	@ApiOperation("Get specified launch")
 	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)), user.getUsername());
+		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
 	}
 
 	@Transactional(readOnly = true)

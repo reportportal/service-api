@@ -30,8 +30,6 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -50,7 +48,6 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
@@ -94,9 +91,9 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, String username) {
+	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		validate(launch, projectDetails, username);
+		validate(launch, projectDetails);
 		return TO_RESOURCE.apply(launch);
 	}
 
@@ -165,7 +162,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		expect(value.length() > 2, it -> Objects.equals(it, true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, equalTo(true)).verify(
+				INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
 		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEFAULT.name());
@@ -173,7 +171,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode) {
-		expect(value.length() > 2, Predicates.equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, equalTo(true)).verify(
+				INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 
@@ -227,19 +226,11 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 *
 	 * @param launch         {@link Launch}
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param username       User name
 	 */
-	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, String username) {
+	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 		if (launch.getMode() == LaunchModeEnum.DEBUG) {
-			Project project = projectRepository.findById(launch.getProjectId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-							"Project with id = " + launch.getProjectId() + " not found"
-					));
-			ProjectUser userConfig = ProjectUtils.findUserConfigByLogin(project, username);
-
-			expect(userConfig, notNull()).verify(ErrorType.ACCESS_DENIED);
-			expect(userConfig.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
+			expect(projectDetails.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
 	}
 

@@ -26,6 +26,7 @@ public final class ContentLoaderConstants {
 	public static final String LATEST_LAUNCH = "latestLaunch";
 	public static final String LAUNCH_NAME_FIELD = "launchNameFilter";
 	public static final String USER = "user";
+	public static final String ACTION_TYPE = "actionType";
 	public static final String PREFIX = "prefix";
 	public static final String ITEM_TYPE = "type";
 	public static final String INCLUDE_METHODS = "includeMethods";

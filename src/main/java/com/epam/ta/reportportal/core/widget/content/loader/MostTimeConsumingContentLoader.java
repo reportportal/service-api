@@ -25,27 +25,32 @@ import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.MostTimeConsumingTestCasesContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters.HAS_METHOD_OR_CLASS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.content.loader.ActivityContentLoader.CONTENT_FIELDS_DELIMITER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.*;
+import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.STEP;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -66,15 +71,14 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMap);
-
 		validateWidgetOptions(widgetOptions);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMap.keySet());
-
 		filter = updateFilter(filter, widgetOptions);
 
 		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(filter);
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+
+		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**
@@ -99,7 +103,11 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 
 	private Filter updateFilter(Filter filter, WidgetOptions widgetOptions) {
 		filter = updateFilterWithLatestLaunchId(filter, WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions));
-		filter = updateFilterWithTestItemTypes(filter, WidgetOptionUtil.containsKey(INCLUDE_METHODS, widgetOptions));
+		filter = updateFilterWithTestItemTypes(
+				filter,
+				ofNullable(widgetOptions.getOptions().get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v)))
+						.orElse(false)
+		);
 		return filter;
 	}
 
@@ -130,7 +138,10 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 		return filter.withCondition(new FilterCondition(
 				Condition.IN,
 				false,
-				String.join(CONTENT_FIELDS_DELIMITER, STEP.getLiteral(), BEFORE_METHOD.getLiteral(), AFTER_METHOD.getLiteral()),
+				String.join(
+						CONTENT_FIELDS_DELIMITER,
+						HAS_METHOD_OR_CLASS.stream().map(TestItemTypeEnum::name).collect(Collectors.toList())
+				),
 				ITEM_TYPE
 		));
 	}

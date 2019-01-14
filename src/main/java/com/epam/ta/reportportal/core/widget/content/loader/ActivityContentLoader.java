@@ -36,7 +36,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +46,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -98,7 +98,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
-		return activityContents.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, activityContents);
+		return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
 	}
 
 	/**

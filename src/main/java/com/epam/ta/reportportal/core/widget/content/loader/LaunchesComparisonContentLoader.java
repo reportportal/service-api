@@ -45,6 +45,7 @@ import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConst
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.NAME;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -78,7 +79,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 		));
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
-		return result.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, result);
+		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
 	}
 
 	/**

@@ -20,10 +20,15 @@ import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.project.DeleteProjectRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -49,5 +54,15 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	@Override
 	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
 		return null;
+	}
+
+	@Override
+	public List<OperationCompletionRS> deleteProjects(BulkRQ<DeleteProjectRQ> deleteProjectBulkRQ) {
+		return deleteProjectBulkRQ.getEntities()
+				.values()
+				.stream()
+				.map(DeleteProjectRQ::getProjectName)
+				.map(this::deleteProject)
+				.collect(Collectors.toList());
 	}
 }

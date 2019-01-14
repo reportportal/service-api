@@ -77,7 +77,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	@Override
 	public UserResource getUser(String username, ReportPortalUser loggedInUser) {
 
-		//todo validate permissions
 		User user = userRepository.findByLogin(username.toLowerCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
 		return UserConverter.TO_RESOURCE.apply(user);

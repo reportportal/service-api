@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -46,6 +47,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
@@ -83,9 +85,20 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public ProjectResource getProject(String projectName) {
-		return ProjectConverter.TO_PROJECT_RESOURCE.apply(projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName)));
+	public ProjectResource getProject(String projectName, ReportPortalUser user) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		Optional<ProjectUser> projectUser = project.getUsers()
+				.stream()
+				.filter(it -> it.getId().getUserId().equals(user.getUserId()))
+				.findAny();
+
+		BusinessRule.expect(projectUser, Optional::isPresent)
+				.verify(ErrorType.PROJECT_DOESNT_CONTAIN_USER, projectName, user.getUsername());
+
+		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}
 
 	@Override
@@ -98,8 +111,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
 		);
 		Filter filter = Filter.builder()

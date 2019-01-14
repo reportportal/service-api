@@ -54,9 +54,10 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	@Override
 	@Transactional
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
-		validateRoles(user, projectDetails, startLaunchRQ);
+		validateRoles(projectDetails, startLaunchRQ);
 
-		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ).addAttributes(startLaunchRQ.getAttributes())
+		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
+				.addAttributes(startLaunchRQ.getAttributes())
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.get();
@@ -72,13 +73,13 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	}
 
 	/**
-	 * Validate {@link ReportPortalUser} credentials
+	 * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role can't report
+	 * launches in a debug mode.
 	 *
-	 * @param user           {@link ReportPortalUser}
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @param startLaunchRQ  {@link StartLaunchRQ}
 	 */
-	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
+	private void validateRoles(ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		if (startLaunchRQ.getMode() == Mode.DEBUG && projectDetails.getProjectRole() == ProjectRole.CUSTOMER) {
 			throw new ReportPortalException(ErrorType.ACCESS_DENIED);
 		}

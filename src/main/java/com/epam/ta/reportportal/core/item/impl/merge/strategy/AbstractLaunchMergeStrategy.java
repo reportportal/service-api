@@ -34,16 +34,15 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.google.common.collect.Sets;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -113,10 +112,29 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
-		ofNullable(mergeLaunchesRQ.getAttributes()).ifPresent(it -> launch.setAttributes(it.stream()
-				.map(attr -> new ItemAttribute(attr.getKey(), attr.getValue(), attr.isSystem()))
-				.peek(attr -> attr.setLaunch(launch))
-				.collect(Collectors.toSet())));
+		Set<ItemAttribute> resultAttributes = Sets.newHashSet();
+
+		if (mergeLaunchesRQ.getAttributes() == null) {
+			resultAttributes.addAll(launches.stream()
+					.map(Launch::getAttributes)
+					.flatMap(Collection::stream)
+					.peek(it -> it.setLaunch(launch))
+					.collect(Collectors.toSet()));
+		} else {
+			resultAttributes.addAll(launches.stream()
+					.map(Launch::getAttributes)
+					.flatMap(Collection::stream)
+					.filter(ItemAttribute::isSystem)
+					.peek(it -> it.setLaunch(launch))
+					.collect(Collectors.toSet()));
+			ofNullable(mergeLaunchesRQ.getAttributes()).ifPresent(it -> resultAttributes.addAll(it.stream()
+					.filter(attr -> !attr.isSystem())
+					.map(FROM_RESOURCE)
+					.peek(attr -> attr.setLaunch(launch))
+					.collect(Collectors.toSet())));
+		}
+		launch.setAttributes(resultAttributes);
+
 		return launch;
 	}
 

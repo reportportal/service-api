@@ -125,11 +125,14 @@
     "contentParameters": {
       "itemsCount": 10,
       "contentFields": [
-        "CREATE_LAUNCH",
-        "CREATE_ITEM"
       ],
       "widgetOptions": {
-        "user": "default"
+        "user": "default",
+        "actionType": [
+          "createLaunch",
+          "createWidget",
+          "updateDashboard"
+        ]
       }
     }
   },

@@ -31,7 +31,9 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -39,6 +41,7 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.base.Preconditions;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -66,18 +69,20 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final PersonalProjectService personalProjectService;
+
 	@Autowired
 	public GetUserHandlerImpl(UserRepository userRepo, UserCreationBidRepository userCreationBidRepository,
-			ProjectRepository projectRepository) {
+			ProjectRepository projectRepository, PersonalProjectService personalProjectService) {
 		this.userRepository = Preconditions.checkNotNull(userRepo);
 		this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
 		this.projectRepository = projectRepository;
+		this.personalProjectService = personalProjectService;
 	}
 
 	@Override
 	public UserResource getUser(String username, ReportPortalUser loggedInUser) {
 
-		//todo validate permissions
 		User user = userRepository.findByLogin(username.toLowerCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
 		return UserConverter.TO_RESOURCE.apply(user);
@@ -86,7 +91,15 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	@Override
 	public UserResource getUser(ReportPortalUser loggedInUser) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
+
+		if (user.getUserType() != UserType.UPSA && user.getDefaultProject() == null && CollectionUtils.isEmpty(user.getProjects())) {
+			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
+
+			user.setDefaultProject(personalProject);
+			personalProject.getUsers().stream().findFirst().ifPresent(projectUser -> user.getProjects().add(projectUser));
+		}
+
 		return UserConverter.TO_RESOURCE.apply(user);
 	}
 

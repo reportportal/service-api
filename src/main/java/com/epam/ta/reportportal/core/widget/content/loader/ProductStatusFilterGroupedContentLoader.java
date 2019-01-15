@@ -37,6 +37,7 @@ import java.util.Map;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -49,7 +50,8 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 
@@ -57,13 +59,16 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		validateContentFields(contentFields);
 
+		boolean latestMode = WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions);
+
 		final Map<String, List<ProductStatusStatisticsContent>> content = widgetContentRepository.productStatusGroupedByFilterStatistics(filterSortMapping,
 				contentFields,
 				tags,
-				WidgetOptionUtil.containsKey(LATEST_OPTION, widgetOptions),
+				latestMode,
 				limit
 		);
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+
+		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

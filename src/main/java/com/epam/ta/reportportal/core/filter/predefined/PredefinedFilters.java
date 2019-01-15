@@ -55,7 +55,7 @@ public final class PredefinedFilters {
 	 * query is supposed to be used for.
 	 * TODO Incompatible with free structure tree and BDD-like structure
 	 */
-	private static final Collection<TestItemTypeEnum> HAS_METHOD_OR_CLASS = Arrays.stream(TestItemTypeEnum.values()).filter(it -> {
+	public static final Collection<TestItemTypeEnum> HAS_METHOD_OR_CLASS = Arrays.stream(TestItemTypeEnum.values()).filter(it -> {
 		String name = it.name();
 		return name.contains("METHOD") || name.contains("CLASS");
 	}).collect(Collectors.toList());

@@ -93,9 +93,9 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getTypeRef()));
 
 		IssueType exist = issueTypes.stream()
-				.filter(issueType -> issueType.getLocator().equalsIgnoreCase(issueSubTypeRQ.getId()))
+				.filter(issueType -> issueType.getLocator().equalsIgnoreCase(issueSubTypeRQ.getLocator()))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getId()));
+				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, issueSubTypeRQ.getLocator()));
 
 		expect(exist.getIssueGroup().getTestItemIssueGroup().equals(expectedGroup), equalTo(true)).verify(
 				FORBIDDEN_OPERATION,

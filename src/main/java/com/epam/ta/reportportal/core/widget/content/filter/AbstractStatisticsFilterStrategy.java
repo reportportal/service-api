@@ -45,8 +45,7 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
 		Map<Filter, Sort> filterSortMap = buildFilterSortMap(widget, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(
-				Lists.newArrayList(widget.getContentFields()),
+		return loadContentStrategy.loadContent(Lists.newArrayList(widget.getContentFields()),
 				filterSortMap,
 				widget.getWidgetOptions(),
 				widget.getItemsCount()
@@ -64,7 +63,8 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 					Sets.newHashSet(userFilter.getFilterCondition())
 			);
 			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
-			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream().map(s -> new Sort.Order(s.getDirection(), s.getField()))
+			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream()
+					.map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
 					.collect(Collectors.toList())).orElseGet(Collections::emptyList));
 			filterSortMap.put(filter, sort);
 		});

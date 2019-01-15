@@ -41,6 +41,7 @@ import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConst
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.DELTA;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -79,7 +80,7 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 
 		}
 
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, Sort sort, String contentField) {

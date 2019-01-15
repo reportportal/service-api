@@ -43,6 +43,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -81,7 +82,7 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 
 		List<ChartStatisticsContent> content = widgetContentRepository.investigatedStatistics(filter, sort, limit);
 
-		return content.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, content);
+		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	private void calculateInvestigatedPercentage(Map<String, ChartStatisticsContent> investigatedStatistics) {

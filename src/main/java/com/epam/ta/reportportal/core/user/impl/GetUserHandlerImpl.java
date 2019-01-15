@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
+import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -92,7 +93,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 
-		if (user.getDefaultProject() == null && CollectionUtils.isEmpty(user.getProjects())) {
+		if (user.getUserType() != UserType.UPSA && user.getDefaultProject() == null && CollectionUtils.isEmpty(user.getProjects())) {
 			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
 
 			user.setDefaultProject(personalProject);

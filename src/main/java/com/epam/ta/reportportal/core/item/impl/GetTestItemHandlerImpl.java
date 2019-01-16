@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,8 +43,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_TEST_ITEM_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
@@ -108,15 +107,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<TestItem> items;
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			Filter filter = new Filter(TestItem.class, Sets.newHashSet(
-					new FilterCondition(Condition.IN,
-							false,
-							Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")),
-							CRITERIA_TEST_ITEM_ID
-					),
-					new FilterCondition(Condition.EQUALS, false, String.valueOf(projectDetails.getProjectId()), CRITERIA_PROJECT_ID)
-			));
-			items = testItemRepository.findByFilter(filter);
+			items = testItemRepository.findByFilter(Filter.builder()
+					.withTarget(TestItem.class)
+					.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+					.withCondition(FilterCondition.builder()
+							.withSearchCriteria(CRITERIA_ID)
+							.withCondition(Condition.IN)
+							.withValue(Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
+							.build())
+					.build());
 		} else {
 			items = testItemRepository.findAllById(Arrays.asList(ids));
 		}

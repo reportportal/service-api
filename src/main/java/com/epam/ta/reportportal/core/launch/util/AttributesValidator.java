@@ -19,10 +19,9 @@ package com.epam.ta.reportportal.core.launch.util;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -35,9 +34,10 @@ public class AttributesValidator {
 
 	public static void validateAttributes(Set<ItemAttributeResource> attributes) {
 		if (attributes != null && !attributes.isEmpty()) {
-			attributes.forEach(it -> expect(it.isSystem(), Predicate.isEqual(false)).verify(BAD_REQUEST_ERROR,
+			expect(attributes.stream().filter(ItemAttributeResource::isSystem).findAny(), it -> !it.isPresent()).verify(
+					FORBIDDEN_OPERATION,
 					"System attributes is not applicable here"
-			));
+			);
 		}
 	}
 }

@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
@@ -58,11 +58,11 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 public class UserFilterController {
 
 	private final GetUserFilterHandler getFilterHandler;
-	private final IDeleteUserFilterHandler deleteFilterHandler;
+	private final DeleteUserFilterHandler deleteFilterHandler;
 	private final UpdateUserFilterHandler updateUserFilterHandler;
 
 	@Autowired
-	public UserFilterController(GetUserFilterHandler getFilterHandler, IDeleteUserFilterHandler deleteFilterHandler,
+	public UserFilterController(GetUserFilterHandler getFilterHandler, DeleteUserFilterHandler deleteFilterHandler,
 			UpdateUserFilterHandler updateUserFilterHandler) {
 		this.getFilterHandler = getFilterHandler;
 		this.deleteFilterHandler = deleteFilterHandler;

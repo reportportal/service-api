@@ -22,16 +22,19 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
+import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -39,21 +42,24 @@ import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.OutputStream;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
+import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.querygen.Condition.EQUALS;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
@@ -63,6 +69,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
@@ -83,14 +90,21 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;
 	private final WidgetContentRepository widgetContentRepository;
+	private final UserRepository userRepository;
+	private final JasperDataProvider dataProvider;
+	private final GetJasperReportHandler<Launch> jasperReportHandler;
 
 	@Autowired
 	public GetLaunchHandler(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
-			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository) {
+			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository, UserRepository userRepository,
+			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler) {
 		this.launchRepository = launchRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
 		this.widgetContentRepository = widgetContentRepository;
+		this.userRepository = userRepository;
+		this.dataProvider = Preconditions.checkNotNull(dataProvider);
+		this.jasperReportHandler = jasperReportHandler;
 	}
 
 	@Override
@@ -204,7 +218,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 						false,
 						Arrays.stream(ids).map(String::valueOf).collect(Collectors.joining(",")),
 						CRITERIA_ID
-				)).withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), CRITERIA_PROJECT_ID))
+				))
+				.withCondition(new FilterCondition(EQUALS, false, String.valueOf(projectDetails.getProjectId()), CRITERIA_PROJECT_ID))
 				.build();
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter,
@@ -220,6 +235,29 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	@Override
 	public Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids) {
 		return launchRepository.getStatuses(projectDetails.getProjectId(), ids);
+	}
+
+	@Override
+	public void exportLaunch(Long launchId, ReportFormat reportFormat, OutputStream outputStream, ReportPortalUser user) {
+
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+		expect(launch.getStatus(), not(statusIn(IN_PROGRESS))).verify(ErrorType.FORBIDDEN_OPERATION,
+				Suppliers.formattedSupplier("Launch '{}' has IN_PROGRESS status. Impossible to export such elements.", launchId)
+		);
+
+		String userFullName = userRepository.findById(user.getUserId())
+				.map(User::getFullName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUserId()));
+
+		Map<String, Object> params = jasperReportHandler.convertParams(launch);
+
+		fillWithAdditionalParams(params, launch, userFullName);
+
+		JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(params, new JREmptyDataSource());
+
+		jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
+
 	}
 
 	/**
@@ -251,8 +289,11 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 */
 	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, Long projectId) {
 
-		List<FilterCondition> filterConditions = Lists.newArrayList(
-				new FilterCondition(EQUALS, false, mode.toString(), CRITERIA_LAUNCH_MODE),
+		List<FilterCondition> filterConditions = Lists.newArrayList(new FilterCondition(EQUALS,
+						false,
+						mode.toString(),
+						CRITERIA_LAUNCH_MODE
+				),
 				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID)
 		);
 
@@ -268,6 +309,16 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		expect(filter.getFilterConditions().stream().anyMatch(HAS_ANY_MODE), equalTo(false)).verify(INCORRECT_FILTER_PARAMETERS,
 				"Filters for 'mode' aren't applicable for project's launches."
 		);
+	}
+
+	private void fillWithAdditionalParams(Map<String, Object> params, Launch launch, String userFullName) {
+
+		Optional<String> owner = userRepository.findById(launch.getUser().getId()).map(User::getFullName);
+
+		/* Check if launch owner still in system if not - setup principal */
+		params.put(LaunchReportConstants.OWNER, owner.orElse(userFullName));
+
+		params.put(LaunchReportConstants.TEST_ITEMS, dataProvider.getTestItemsOfLaunch(launch));
 	}
 
 }

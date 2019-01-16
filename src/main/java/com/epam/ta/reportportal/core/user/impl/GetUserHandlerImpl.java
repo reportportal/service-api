@@ -22,10 +22,12 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -41,14 +43,21 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.base.Preconditions;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_EXPIRED;
@@ -71,13 +80,17 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 	private final PersonalProjectService personalProjectService;
 
+	private final GetJasperReportHandler<User> jasperReportHandler;
+
 	@Autowired
 	public GetUserHandlerImpl(UserRepository userRepo, UserCreationBidRepository userCreationBidRepository,
-			ProjectRepository projectRepository, PersonalProjectService personalProjectService) {
+			ProjectRepository projectRepository, PersonalProjectService personalProjectService,
+			@Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
 		this.userRepository = Preconditions.checkNotNull(userRepo);
 		this.userCreationBidRepository = Preconditions.checkNotNull(userCreationBidRepository);
 		this.projectRepository = projectRepository;
 		this.personalProjectService = personalProjectService;
+		this.jasperReportHandler = jasperReportHandler;
 	}
 
 	@Override
@@ -163,6 +176,20 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable) {
 		final Page<User> users = userRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
+	}
+
+	@Override
+	public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable) {
+		final List<User> users = userRepository.findByFilter(filter, pageable).getContent();
+
+		List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
+
+		JRDataSource jrDataSource = new JRBeanCollectionDataSource(data);
+
+		//don't provide any params to not overwrite params from the Jasper template
+		JasperPrint jasperPrint = jasperReportHandler.getJasperPrint(null, jrDataSource);
+
+		jasperReportHandler.writeReport(reportFormat, outputStream, jasperPrint);
 	}
 
 }

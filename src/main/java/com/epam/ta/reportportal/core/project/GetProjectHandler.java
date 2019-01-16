@@ -18,11 +18,14 @@ package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -78,6 +81,16 @@ public interface GetProjectHandler {
 	 * @return All project names
 	 */
 	List<String> getAllProjectNames();
+
+	/**
+	 * Export Projects info according to the {@link ReportFormat} type
+	 *
+	 * @param reportFormat {@link ReportFormat}
+	 * @param filter       {@link Filter}
+	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
+	 * @param pageable     {@link Pageable}
+	 */
+	void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream, Pageable pageable);
 
 	Map<String, Boolean> getAnalyzerIndexingStatus();
 }

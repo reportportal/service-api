@@ -75,8 +75,7 @@ public class UpdateTestItemHandlerImplTest {
 	@Test
 	public void updateTestItemWithSystemAttributes() {
 		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(
-				"Error in handled Request. Please, check specified parameters: ''attributes' - unable to update system attributes'");
+		thrown.expectMessage("Forbidden operation. System attributes is not applicable here");
 
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 		when(repository.findById(1L)).thenReturn(Optional.of(new TestItem()));

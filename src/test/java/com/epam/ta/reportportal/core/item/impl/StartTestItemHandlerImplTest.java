@@ -75,8 +75,10 @@ public class StartTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
+		final StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchId(1L);
 
-		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), new StartTestItemRQ());
+		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq);
 	}
 
 	@Test

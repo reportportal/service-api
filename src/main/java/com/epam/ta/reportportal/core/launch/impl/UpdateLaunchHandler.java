@@ -17,13 +17,22 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.AnalyzeMode;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -32,13 +41,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -52,27 +62,21 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 	private LaunchRepository launchRepository;
 
-	//	private IssuesAnalyzer analyzerService;
+	private TestItemRepository testItemRepository;
+
+	private ProjectRepository projectRepository;
+
+	private IssuesAnalyzer analyzerService;
 	//
 	//	private ILogIndexer logIndexer;
 
-	//	@Autowired
-	//	//@Qualifier("autoAnalyzeTaskExecutor")
-	//	private TaskExecutor taskExecutor;
-
-	//	@Autowired
-	//	public void setAnalyzerService(IssuesAnalyzer analyzerService) {
-	//		this.analyzerService = analyzerService;
-	//	}
-	//
-	//	@Autowired
-	//	public void setLogIndexer(ILogIndexer logIndexer) {
-	//		this.logIndexer = logIndexer;
-	//	}
-
 	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
+	public UpdateLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ProjectRepository projectRepository, IssuesAnalyzer analyzerService) {
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.projectRepository = projectRepository;
+		this.analyzerService = analyzerService;
 	}
 
 	@Override
@@ -83,7 +87,8 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		validate(launch, user, projectDetails, rq.getMode());
 		validateAttributes(rq.getAttributes());
 		launch = new LaunchBuilder(launch).addMode(rq.getMode())
-				.addDescription(rq.getDescription()).overwriteAttributes(rq.getAttributes())
+				.addDescription(rq.getDescription())
+				.overwriteAttributes(rq.getAttributes())
 				.get();
 		//reindexLogs(launch);
 		launchRepository.save(launch);
@@ -102,28 +107,28 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 	@Override
 	public OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, Long launchId) {
-		//		//		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(
-		//		//				ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer services are deployed.");
-		//
-		//		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		//
-		//		/* Do not process debug launches */
-		//		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
-		//
-		//		//TODO Refactor with new uat
-		//		//				expect(launch.getProjectRef(), equalTo(projectName)).verify(FORBIDDEN_OPERATION,
-		//		//						Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectName)
-		//		//				);
-		//		//				Project project = projectRepository.findOne(projectName);
-		//		//				expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
-		//
-		//		List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(
-		//				launchId, TestItemIssueType.TO_INVESTIGATE.getLocator());
-		//
-		//		//taskExecutor.execute(() -> analyzerService.analyze(launch, toInvestigate));
-		//
-		//		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
-		throw new UnsupportedOperationException("Auto-analyzer starting is not implemented.");
+
+		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer services are deployed."
+		);
+
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+
+		/* Do not process debug launches */
+		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
+
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectDetails.getProjectId())
+		);
+
+		List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(launchId, TO_INVESTIGATE.getLocator());
+
+		analyzerService.analyze(launch, project, toInvestigate, AnalyzeMode.ALL_LAUNCHES);
+
+		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 
 	//	/**

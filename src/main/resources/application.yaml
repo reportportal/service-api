@@ -52,10 +52,25 @@ springfox:
 ##########################################
 rp:
   amqp:
-    addresses: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-    api-address: http://rabbitmq:rabbitmq@rabbitmq:15672/api
+    addresses: amqp://${rp.amqp.user}:${rp.amqp.password}@${rp.amqp.host}:${rp.amqp.port}
+    api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
+
+    host: rabbitmq
+    port: 5672
+    user: rabbitmq
+    pass: rabbitmq
+
+    apiport: 15672
+    apiuser: rabbitmq
+    apipass: rabbitmq
+
   db:
-    url: jdbc:postgresql://postgres:5432/reportportal?user=rpuser&password=rppass
+    url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/reportportal?user${rp.db.user}=&password=${rp.db.pass}
+    host: postgresql
+    port: 5432
+    user: rpuser
+    pass: rppass
+
   upload:
     maxUploadSize: 128MB
     maxFileSize: 64MB

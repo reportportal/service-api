@@ -53,7 +53,6 @@ public final class WidgetOptionUtil {
 		return (String) value.orElse(null);
 	}
 
-	@Nullable
 	public static Map<String, String> getMapByKey(String key, WidgetOptions widgetOptions) {
 
 		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))

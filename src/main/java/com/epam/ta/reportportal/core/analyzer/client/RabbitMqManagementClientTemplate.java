@@ -20,38 +20,36 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.amqp.core.Exchange;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.EXCHANGE_PRIORITY;
+import static java.util.Comparator.comparingInt;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class RabbitMqManagementClientTemplate implements RabbitMqManagementClient {
 
-	public static final String ANALYZER_VHOST_NAME = "analyzer";
-
 	private final RabbitManagementTemplate template;
 
 	public RabbitMqManagementClientTemplate(RabbitManagementTemplate template) {
 		this.template = template;
 		try {
-			template.getClient().createVhost(ANALYZER_VHOST_NAME);
+			template.getClient().createVhost(ANALYZER_KEY);
 		} catch (JsonProcessingException e) {
 			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Unable to create RabbitMq virtual host");
 		}
 	}
 
 	public List<Exchange> getAnalyzerExchanges() {
-		return template.getExchanges(ANALYZER_VHOST_NAME)
+		return template.getExchanges(ANALYZER_KEY)
 				.stream()
-				.filter(it -> it.getArguments().get(ANALYZER_VHOST_NAME) != null)
+				.filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
+				.sorted(comparingInt(EXCHANGE_PRIORITY))
 				.collect(Collectors.toList());
-	}
-
-	public Queue getAnalyzerQueue(String name) {
-		return template.getQueue(ANALYZER_VHOST_NAME, name);
 	}
 }

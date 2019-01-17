@@ -1,5 +1,9 @@
 package com.epam.ta.reportportal.core.plugin;
 
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
+
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,5 +41,13 @@ public interface PluginBox {
 	 * @return Optional of plugin by given type
 	 */
 	<T> Optional<T> getInstance(Class<T> type);
+
+	PluginState startUpPlugin(String pluginId);
+
+	String loadPlugin(Path path);
+
+	boolean unloadPlugin(String pluginId);
+
+	Optional<PluginWrapper> getPluginById(String id);
 
 }

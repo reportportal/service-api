@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 
 /**
@@ -34,21 +33,6 @@ public interface ServerAdminHandler {
 	 * @return {@link ServerSettingsResource}
 	 */
 	ServerSettingsResource getServerSettings();
-
-	/**
-	 * Update email settings
-	 *
-	 * @param request {@link ServerSettingsResource}
-	 * @return Operation results
-	 */
-	OperationCompletionRS saveEmailSettings(ServerEmailResource request);
-
-	/**
-	 * Delete email settings
-	 *
-	 * @return Operation results
-	 */
-	OperationCompletionRS deleteEmailSettings();
 
 	/**
 	 * Update analytics settings

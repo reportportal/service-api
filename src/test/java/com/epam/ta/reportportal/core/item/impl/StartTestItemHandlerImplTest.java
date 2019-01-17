@@ -89,8 +89,12 @@ public class StartTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
 		startTestItemRQ.setLaunchId(1L);
+		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		when(launchRepository.findById(1L)).thenReturn(Optional.of(getLaunch(2L, StatusEnum.IN_PROGRESS)));
+		final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
+		launch.setStartTime(LocalDateTime.now().minusHours(1));
+		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+
 
 		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ);
 	}

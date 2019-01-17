@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,11 +35,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
+
+import static com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate.ANALYZER_VHOST_NAME;
 
 /**
  * @author Pavel Bortnik
@@ -87,7 +90,7 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public MessageBus messageBus(@Autowired AmqpTemplate amqpTemplate) {
+	public MessageBus messageBus(@Autowired @Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
 		return new MessageBusImpl(amqpTemplate);
 	}
 
@@ -115,6 +118,32 @@ public class RabbitMqConfiguration {
 		factory.setConcurrentConsumers(3);
 		factory.setMaxConcurrentConsumers(10);
 		return factory;
+	}
+
+	@Bean(name = "rabbitTemplate")
+	public RabbitTemplate rabbitTemplate(@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+		rabbitTemplate.setMessageConverter(jsonMessageConverter());
+		return rabbitTemplate;
+	}
+
+	@Bean(name = "analyzerConnectionFactory")
+	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
+		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
+		factory.setVirtualHost(ANALYZER_VHOST_NAME);
+		return factory;
+	}
+
+	@Bean(name = "analyzerRabbitTemplate")
+	public RabbitTemplate asyncRabbitTemplate(@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+		rabbitTemplate.setMessageConverter(jsonMessageConverter());
+		return rabbitTemplate;
+	}
+
+	@Bean
+	public AsyncRabbitTemplate asyncAmqpTemplate(@Autowired @Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
+		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
 	@Bean
@@ -247,19 +276,6 @@ public class RabbitMqConfiguration {
 		return new Queue(QUEUE_QUERY_RQ);
 	}
 
-	@Bean
-	public RabbitTemplate amqpTemplate(@Autowired ConnectionFactory connectionFactory) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(jsonMessageConverter());
-		return rabbitTemplate;
-	}
-
-	@Bean
-	public AsyncRabbitTemplate asyncAmqpTemplate(@Autowired RabbitTemplate rabbitTemplate) {
-		return new AsyncRabbitTemplate(rabbitTemplate);
-	}
-
-
 	public class RabbitConstants {
 
 		private RabbitConstants() {
@@ -290,6 +306,5 @@ public class RabbitMqConfiguration {
 			}
 		}
 	}
-
 
 }

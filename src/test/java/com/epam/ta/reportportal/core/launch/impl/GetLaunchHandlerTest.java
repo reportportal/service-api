@@ -30,8 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getReportPortalUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,10 +60,10 @@ public class GetLaunchHandlerTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You do not have enough permissions.");
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 2L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 2L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
-		handler.getLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"));
+		handler.getLaunch(1L, extractProjectDetails(rpUser, "test_project"));
 	}
 
 	@Test
@@ -71,18 +71,18 @@ public class GetLaunchHandlerTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You do not have enough permissions.");
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
 
-		handler.getLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"));
+		handler.getLaunch(1L, extractProjectDetails(rpUser, "test_project"));
 	}
 
 	@Test
 	public void getLaunchNamesIncorrectInput() {
 		thrown.expect(ReportPortalException.class);
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		handler.getLaunchNames(extractProjectDetails(rpUser, "superadmin_personal"), "qw");
+		handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), "qw");
 	}
 }

@@ -44,8 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getReportPortalUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -77,11 +77,11 @@ public class FinishLaunchHandlerTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final Launch launch = handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		final Launch launch = handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		assertNotNull(launch);
 		assertNotEquals(StatusEnum.IN_PROGRESS, launch.getStatus());
@@ -92,19 +92,17 @@ public class FinishLaunchHandlerTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
 		final FinishLaunchRS finishLaunchRS = handler.finishLaunch(1L,
-				finishExecutionRQ,
-				extractProjectDetails(rpUser, "superadmin_personal"),
-				rpUser,
-				LaunchLinkGenerator.LinkParams.of("http", "example.com", "superadmin_personal")
+				finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
+				rpUser, LaunchLinkGenerator.LinkParams.of("http", "example.com", "test_project")
 		);
 
 		assertNotNull(finishLaunchRS);
-		assertEquals("http://example.com/ui/#superadmin_personal/launches/all/1", finishLaunchRS.getLink());
+		assertEquals("http://example.com/ui/#test_project/launches/all/1", finishLaunchRS.getLink());
 	}
 
 	@Test
@@ -112,13 +110,12 @@ public class FinishLaunchHandlerTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
 		final OperationCompletionRS response = handler.stopLaunch(1L,
-				finishExecutionRQ,
-				extractProjectDetails(rpUser, "superadmin_personal"),
+				finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
 				rpUser
 		);
 		assertNotNull(response);
@@ -136,14 +133,11 @@ public class FinishLaunchHandlerTest {
 		BulkRQ<FinishExecutionRQ> bulkRq = new BulkRQ<>();
 		bulkRq.setEntities(entities);
 
-		ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final List<OperationCompletionRS> response = handler.stopLaunch(bulkRq,
-				extractProjectDetails(rpUser, "superadmin_personal"),
-				rpUser
-		);
+		final List<OperationCompletionRS> response = handler.stopLaunch(bulkRq, extractProjectDetails(rpUser, "test_project"), rpUser);
 		assertNotNull(response);
 		assertEquals(1, response.size());
 	}
@@ -155,11 +149,11 @@ public class FinishLaunchHandlerTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 	}
 
 	@Test
@@ -169,11 +163,11 @@ public class FinishLaunchHandlerTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().minusHours(5).atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 	}
 
 	@Test
@@ -184,10 +178,10 @@ public class FinishLaunchHandlerTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getReportPortalUser("now owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final ReportPortalUser rpUser = getRpUser("now owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 	}
 }

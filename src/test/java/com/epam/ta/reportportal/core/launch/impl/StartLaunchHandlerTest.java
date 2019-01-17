@@ -34,8 +34,8 @@ import org.junit.rules.ExpectedException;
 
 import java.util.Date;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getReportPortalUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -59,7 +59,7 @@ public class StartLaunchHandlerTest {
 
 	@Test
 	public void startLaunch() {
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(new Date());
@@ -67,8 +67,7 @@ public class StartLaunchHandlerTest {
 
 		when(launchRepository.save(any(Launch.class))).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
 
-		final StartLaunchRS startLaunchRS = startLaunchHandler.startLaunch(rpUser,
-				extractProjectDetails(rpUser, "superadmin_personal"),
+		final StartLaunchRS startLaunchRS = startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
 				startLaunchRQ
 		);
 
@@ -80,14 +79,14 @@ public class StartLaunchHandlerTest {
 	@Test
 	public void accessDeniedForCustomerRoleAndDebugMode() {
 		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions.");
+		thrown.expectMessage("Forbidden operation.");
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setMode(Mode.DEBUG);
 
-		startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "superadmin_personal"), startLaunchRQ);
+		startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"), startLaunchRQ);
 	}
 }

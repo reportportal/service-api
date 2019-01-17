@@ -29,8 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getReportPortalUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,10 +52,10 @@ public class UpdateLaunchHandlerTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You do not have enough permissions.");
 
-		final ReportPortalUser rpUser = getReportPortalUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		handler.updateLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"), rpUser, new UpdateLaunchRQ());
+		handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, new UpdateLaunchRQ());
 	}
 
 	@Test
@@ -63,11 +63,11 @@ public class UpdateLaunchHandlerTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You do not have enough permissions.");
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 		final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
 		updateLaunchRQ.setMode(Mode.DEBUG);
 
-		handler.updateLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"), rpUser, updateLaunchRQ);
+		handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, updateLaunchRQ);
 	}
 }

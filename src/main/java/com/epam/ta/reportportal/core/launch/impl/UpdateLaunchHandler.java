@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -153,9 +153,11 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		if (projectDetails.getProjectRole() == ProjectRole.CUSTOMER && null != mode) {
 			expect(mode, equalTo(Mode.DEFAULT)).verify(ACCESS_DENIED);
 		}
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUser().getLogin(), user.getUsername())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED);
+			}
 		}
 	}
 

@@ -16,20 +16,12 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserRole;
-import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -39,20 +31,6 @@ public class LaunchTestUtil {
 
 	private LaunchTestUtil() {
 		//static only
-	}
-
-	@NotNull
-	static ReportPortalUser getReportPortalUser(String login, UserRole userRole, ProjectRole projectRole, Long projectId) {
-		Map<String, ReportPortalUser.ProjectDetails> detailsMap = new HashMap<>();
-		detailsMap.put("superadmin_personal", new ReportPortalUser.ProjectDetails(projectId, projectRole));
-
-		return new ReportPortalUser(login,
-				"test",
-				Sets.newHashSet(new SimpleGrantedAuthority(userRole.getAuthority())),
-				1L,
-				userRole,
-				detailsMap
-		);
 	}
 
 	static Optional<Launch> getLaunch(StatusEnum status, LaunchModeEnum mode) {

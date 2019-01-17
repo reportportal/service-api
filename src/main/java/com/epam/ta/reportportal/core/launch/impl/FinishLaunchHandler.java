@@ -39,8 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -95,7 +95,13 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 			testItemRepository.interruptInProgressItems(launchId);
 		}
 
-		launch = new LaunchBuilder(launch).addDescription(finishLaunchRQ.getDescription()).addAttributes(finishLaunchRQ.getAttributes())
+		final String desc = launch.getDescription() != null ?
+				finishLaunchRQ.getDescription() != null ?
+						launch.getDescription().concat(" " + finishLaunchRQ.getDescription()) :
+						launch.getDescription() :
+				null;
+
+		launch = new LaunchBuilder(launch).addDescription(desc).addAttributes(finishLaunchRQ.getAttributes())
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
@@ -136,10 +142,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
-
-		expect(launch.getStatus(), statusIn(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
-		);
+		validate(launch, finishLaunchRQ);
 
 		launch = new LaunchBuilder(launch).addDescription(ofNullable(finishLaunchRQ.getDescription()).orElse(ofNullable(launch.getDescription())
 				.orElse("")).concat(LAUNCH_STOP_DESCRIPTION))
@@ -194,9 +197,13 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(launch.getUser().getLogin(), user.getUsername())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
+						"You are not launch owner."
+				);
+			}
 		}
 	}
 

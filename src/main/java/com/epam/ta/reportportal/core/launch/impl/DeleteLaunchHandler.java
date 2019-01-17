@@ -32,8 +32,8 @@ import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -129,16 +129,19 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
-				FORBIDDEN_OPERATION,
-				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
-		);
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
 		);
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
+			);
 			/* Only PROJECT_MANAGER roles could delete launches */
-			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
+						"You are not launch owner."
+				);
+			}
 		}
 	}
 }

@@ -28,8 +28,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getReportPortalUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,10 +52,10 @@ public class DeleteLaunchHandlerTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You do not have enough permissions.");
 
-		final ReportPortalUser rpUser = getReportPortalUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		handler.deleteLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 	}
 
 	@Test
@@ -63,20 +63,20 @@ public class DeleteLaunchHandlerTest {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("Forbidden operation. Target launch '1' not under specified project '2'");
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.USER, ProjectRole.MEMBER, 2L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 2L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		handler.deleteLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 	}
 
 	@Test
 	public void deleteLaunchInProgressStatus() {
 		thrown.expect(ReportPortalException.class);
 
-		final ReportPortalUser rpUser = getReportPortalUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		handler.deleteLaunch(1L, extractProjectDetails(rpUser, "superadmin_personal"), rpUser);
+		handler.deleteLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 	}
 
 }

@@ -99,14 +99,12 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
-
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
 						"Project with name: " + projectName + " not found"
 				));
 
-		filter.withCondition(new FilterCondition(EQUALS, false, String.valueOf(project.getId()), PROJECT_ID));
-		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
 		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
 	}
@@ -118,7 +116,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		filter = addLaunchCommonCriteria(DEFAULT, filter, projectDetails.getProjectId());
+		filter = addLaunchCommonCriteria(DEFAULT, filter);
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
@@ -130,8 +128,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	@Override
 	public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 		validateModeConditions(filter);
-		filter = addLaunchCommonCriteria(DEBUG, filter, projectDetails.getProjectId());
-		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
+		filter = addLaunchCommonCriteria(DEBUG, filter);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
@@ -154,7 +152,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		filter = addLaunchCommonCriteria(DEFAULT, filter, projectDetails.getProjectId());
+		filter = addLaunchCommonCriteria(DEFAULT, filter);
 
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
@@ -240,14 +238,9 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 * @param filter Filter to update
 	 * @return Updated filter
 	 */
-	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, Long projectId) {
-
-		List<FilterCondition> filterConditions = Lists.newArrayList(
-				new FilterCondition(EQUALS, false, mode.toString(), CRITERIA_LAUNCH_MODE),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID)
-		);
-
-		return ofNullable(filter).orElseGet(() -> new Filter(Launch.class, Sets.newHashSet())).withConditions(filterConditions);
+	private Filter addLaunchCommonCriteria(Mode mode, Filter filter) {
+		return ofNullable(filter).orElseGet(() -> new Filter(Launch.class, Sets.newHashSet()))
+				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, mode.name()).build());
 	}
 
 	/**

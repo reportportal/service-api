@@ -17,7 +17,7 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${rp.db.url}
+    url: jdbc:postgresql://${rp.db.url}:${rp.db.port}/reportportal?user${rp.db.user}=&password=${rp.db.pass}
   jpa:
     properties:
       hibernate:
@@ -28,7 +28,8 @@ spring:
       ddl-auto: none
 
   rabbitmq:
-    addresses: ${rp.amqp.addresses}
+    addresses: amqp://${rp.amqp.user}:${rp.amqp.password}@${rp.amqp.address}:${rp.amqp.port}
+    apiaddress: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.apiaddress}:{rp.amqp.apiport}/api 
 logging:
   level:
     #    org.springframework.context.support: warn
@@ -52,10 +53,19 @@ springfox:
 ##########################################
 rp:
   amqp:
-    addresses: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-    api-address: http://rabbitmq:rabbitmq@rabbitmq:15672/api
+    address: rabbitmq
+    port: 5672
+    user: rabbitmq
+    pass: rabbitmq
+    apiaddress: rabbitmq-management
+    apiport: 15672
+    apiuser: rabbitmq
+    apipass: rabbitmq
   db:
-    url: jdbc:postgresql://postgres:5432/reportportal?user=rpuser&password=rppass
+    url: postgresql
+    port: 5432
+    user: rpuser
+    pass: rppass
   upload:
     maxUploadSize: 128MB
     maxFileSize: 64MB

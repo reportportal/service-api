@@ -75,7 +75,7 @@ public class RabbitMqConfiguration {
 	private ObjectMapper objectMapper;
 
 	@Bean
-	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
+	public RabbitMqManagementClient managementTemplate(@Value("${spring.rabbitmq.apiaddress}") String address) {
 		return new RabbitMqManagementClientTemplate(new RabbitManagementTemplate(address));
 	}
 
@@ -97,7 +97,7 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public ConnectionFactory connectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
+	public ConnectionFactory connectionFactory(@Value("${spring.rabbitmq.addresses}") URI addresses) {
 		return new CachingConnectionFactory(addresses);
 	}
 

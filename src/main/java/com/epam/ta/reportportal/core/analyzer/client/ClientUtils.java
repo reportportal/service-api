@@ -30,7 +30,7 @@ public final class ClientUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientUtils.class);
 
-	static final String ANALYZER_KEY = "analyzer";
+	public static final String ANALYZER_KEY = "analyzer";
 	static final String ANALYZER_PRIORITY = "analyzer_priority";
 	static final String ANALYZER_INDEX = "analyzer_index";
 

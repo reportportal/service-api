@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
 
-import static com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate.ANALYZER_VHOST_NAME;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
 
 /**
  * @author Pavel Bortnik
@@ -130,7 +130,7 @@ public class RabbitMqConfiguration {
 	@Bean(name = "analyzerConnectionFactory")
 	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
 		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
-		factory.setVirtualHost(ANALYZER_VHOST_NAME);
+		factory.setVirtualHost(ANALYZER_KEY);
 		return factory;
 	}
 

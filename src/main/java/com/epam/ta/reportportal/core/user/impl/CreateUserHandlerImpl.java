@@ -22,10 +22,10 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
-import com.epam.ta.reportportal.dao.UserCreationBidRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.*;
@@ -47,6 +47,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -55,6 +56,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -92,11 +94,16 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final SaveDefaultProjectService saveDefaultProjectService;
 
+	private final IntegrationTypeRepository integrationTypeRepository;
+
+	private final IntegrationRepository integrationRepository;
+
 	@Autowired
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService) {
+			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, IntegrationTypeRepository integrationTypeRepository,
+			IntegrationRepository integrationRepository) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.personalProjectService = personalProjectService;
@@ -105,6 +112,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		this.restorePasswordBidRepository = restorePasswordBidRepository;
 		this.messageBus = messageBus;
 		this.saveDefaultProjectService = saveDefaultProjectService;
+		this.integrationTypeRepository = integrationTypeRepository;
+		this.integrationRepository = integrationRepository;
 	}
 
 	@Override
@@ -142,7 +151,15 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	@Override
 	public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser, String emailURL) {
-		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
+
+		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
+
+		Integration integration = findEnabledIntegrationByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
+				IntegrationGroupEnum.NOTIFICATION
+		);
+
+		EmailService emailService = emailServiceFactory.getEmailService(integration, true);
 
 		User creator = userRepository.findByLogin(loggedInUser.getUsername()).orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
 
@@ -150,19 +167,15 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
 		Optional<User> emailUser = userRepository.findByEmail(request.getEmail());
-		//TODO replace with more convenient expression
+
 		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
 				formattedSupplier("email={}", request.getEmail())
 		);
 
-		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
-
 		ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
 		List<Project> projects = projectRepository.findUserProjects(loggedInUser.getUsername());
 
-		//TODO change validation
-		expect(defaultProject, not(in(projects))).verify(ACCESS_DENIED);
+		expect(defaultProject, in(projects)).verify(ACCESS_DENIED);
 
 		ProjectRole role = forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole()));
 
@@ -319,6 +332,38 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	public YesNoRS isResetPasswordBidExist(String uuid) {
 		Optional<RestorePasswordBid> bid = restorePasswordBidRepository.findById(uuid);
 		return new YesNoRS(bid.isPresent());
+	}
+
+	private Integration findEnabledIntegrationByProjectIdOrGlobalAndIntegrationGroup(Long projectId,
+			IntegrationGroupEnum integrationGroup) {
+
+		List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(integrationGroup)
+				.stream()
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
+
+		List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectId, integrationTypeIds);
+
+		if (!CollectionUtils.isEmpty(integrations)) {
+
+			return integrations.stream()
+					.filter(Integration::isEnabled)
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+							"Enabled project email integration has not been found."
+					));
+
+		} else {
+
+			return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+					.stream()
+					.filter(Integration::isEnabled)
+					.findFirst()
+					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+							"Enabled global email integration has not been found."
+					));
+		}
+
 	}
 
 }

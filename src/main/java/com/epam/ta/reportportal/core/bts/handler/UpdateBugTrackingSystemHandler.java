@@ -18,37 +18,37 @@ package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.UpdateBugTrackingSystemRQ;
 
 /**
- * Basic interface for {@link com.epam.ta.reportportal.core.bts.handler.impl.UpdateIntegrationHandlerImpl}
+ * Basic interface for {@link com.epam.ta.reportportal.core.bts.handler.impl.UpdateBugTrackingSystemHandlerImpl}
  *
  * @author Andrei_Ramanchuk
  * @author Pavel Bortnik
  */
-public interface UpdateIntegrationHandler {
+public interface UpdateBugTrackingSystemHandler {
 
 	/**
 	 * Update method for {@link com.epam.ta.reportportal.entity.integration.Integration} entity
 	 *
-	 * @param request        Request Data
-	 * @param integrationId  Integration id
+	 * @param updateRequest        Request Data
+	 * @param integrationId  BugTrackingSystem id
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateIntegration(UpdateIntegrationRQ request, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
+	OperationCompletionRS updateBugTrackingSystem(UpdateBugTrackingSystemRQ updateRequest, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**
-	 * Validate connection of provided Integration configuration
+	 * Validate connection of provided BugTrackingSystem configuration
 	 *
-	 * @param updateRQ       Request Data
-	 * @param integrationId  Integration id
+	 * @param updateRequest       Request Data
+	 * @param integrationId  BugTrackingSystem id
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS integrationConnect(UpdateIntegrationRQ updateRQ, Long integrationId,
+	OperationCompletionRS integrationConnect(UpdateBugTrackingSystemRQ updateRequest, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails);
 
 }

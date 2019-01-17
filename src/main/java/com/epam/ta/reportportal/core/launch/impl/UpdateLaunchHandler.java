@@ -161,12 +161,8 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		}
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			if (!Objects.equals(launch.getUser().getLogin(), user.getUsername())) {
-				/*
-				 * Only PROJECT_MANAGER roles could move launches
-				 * to/from DEBUG mode
-				 */
-				expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED);
 			}
 		}
 	}

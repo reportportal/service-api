@@ -115,7 +115,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		Map<String, ?> content;
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
-			content = singletonMap(RESULT, Collections.emptyList());
+			content = Collections.emptyMap();
 		} else {
 			content = buildFilterStrategyMapping.get(widgetType)
 					.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);

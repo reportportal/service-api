@@ -16,21 +16,17 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -41,8 +37,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
-
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
 
 /**
  * @author Pavel Bortnik
@@ -76,11 +70,6 @@ public class RabbitMqConfiguration {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-
-	@Bean
-	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
-		return new RabbitMqManagementClientTemplate(new RabbitManagementTemplate(address));
-	}
 
 	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {
@@ -125,25 +114,6 @@ public class RabbitMqConfiguration {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(jsonMessageConverter());
 		return rabbitTemplate;
-	}
-
-	@Bean(name = "analyzerConnectionFactory")
-	public ConnectionFactory analyzerConnectionFactory(@Value("${rp.amqp.addresses}") URI addresses) {
-		CachingConnectionFactory factory = new CachingConnectionFactory(addresses);
-		factory.setVirtualHost(ANALYZER_KEY);
-		return factory;
-	}
-
-	@Bean(name = "analyzerRabbitTemplate")
-	public RabbitTemplate asyncRabbitTemplate(@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(jsonMessageConverter());
-		return rabbitTemplate;
-	}
-
-	@Bean
-	public AsyncRabbitTemplate asyncAmqpTemplate(@Autowired @Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
-		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
 	@Bean

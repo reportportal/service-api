@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.client;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.rabbitmq.http.client.domain.QueueInfo;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 
@@ -40,6 +41,7 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
 		this.template = template;
 		try {
 			template.getClient().createVhost(ANALYZER_KEY);
+			template.getClient().declareQueue(ANALYZER_KEY, "analyzer.reply", new QueueInfo(true, false, false));
 		} catch (JsonProcessingException e) {
 			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Unable to create RabbitMq virtual host");
 		}

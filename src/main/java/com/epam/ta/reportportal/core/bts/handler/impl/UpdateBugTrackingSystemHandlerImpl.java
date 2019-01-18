@@ -150,7 +150,9 @@ public class UpdateBugTrackingSystemHandlerImpl implements UpdateBugTrackingSyst
 		Integration integration = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
-		Integration details = new BugTrackingSystemBuilder().addUrl(updateRequest.getUrl()).addBugTrackingProject(updateRequest.getProject()).get();
+		Integration details = new BugTrackingSystemBuilder().addUrl(updateRequest.getUrl())
+				.addBugTrackingProject(updateRequest.getProject())
+				.get();
 
 		Optional<BtsExtension> extension = pluginBox.getInstance(details.getType().getName(), BtsExtension.class);
 

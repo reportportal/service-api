@@ -97,8 +97,10 @@ public class FinishLaunchHandlerTest {
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
 		final FinishLaunchRS finishLaunchRS = handler.finishLaunch(1L,
-				finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
-				rpUser, LaunchLinkGenerator.LinkParams.of("http", "example.com", "test_project")
+				finishExecutionRQ,
+				extractProjectDetails(rpUser, "test_project"),
+				rpUser,
+				LaunchLinkGenerator.LinkParams.of("http", "example.com", "test_project")
 		);
 
 		assertNotNull(finishLaunchRS);
@@ -114,8 +116,7 @@ public class FinishLaunchHandlerTest {
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final OperationCompletionRS response = handler.stopLaunch(1L,
-				finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
+		final OperationCompletionRS response = handler.stopLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
 				rpUser
 		);
 		assertNotNull(response);

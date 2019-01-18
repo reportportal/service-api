@@ -28,5 +28,6 @@ public interface IntegrationService {
 
 	Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams);
 
-	Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails, Map<String, Object> integrationParams);
+	Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
+			Map<String, Object> integrationParams);
 }

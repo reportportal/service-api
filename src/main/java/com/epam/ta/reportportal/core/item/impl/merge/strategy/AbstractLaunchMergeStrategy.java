@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -96,11 +97,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream()
-				.map(Launch::getDescription)
-				.collect(joining("\n"))));
-		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
-				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
+		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream().map(Launch::getDescription).collect(joining("\n"))));
+		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse("Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)
 				.addProject(projectId)
@@ -111,31 +109,40 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
+		mergeAttributes(mergeLaunchesRQ.getAttributes(), launches, launch);
+		return launch;
+	}
 
-		Set<ItemAttribute> resultAttributes = Sets.newHashSet();
+	/**
+	 * Merges launches attributes. Collect all system attributes from existed launches
+	 * and all unique not system attributes from request(if preset, or from exited launches if not) to resulted launch.
+	 *
+	 * @param attributesFromRq {@link Set} of attributes from request
+	 * @param launchesToMerge  {@link List} of {@link Launch} to be merged
+	 * @param resultedLaunch   {@link Launch} - result of merge
+	 */
 
-		if (mergeLaunchesRQ.getAttributes() == null) {
-			resultAttributes.addAll(launches.stream()
+	private void mergeAttributes(Set<ItemAttributeResource> attributesFromRq, List<Launch> launchesToMerge, Launch resultedLaunch) {
+		Set<ItemAttribute> mergedAttributes = Sets.newHashSet();
+
+		if (attributesFromRq == null) {
+			mergedAttributes.addAll(launchesToMerge.stream()
 					.map(Launch::getAttributes)
-					.flatMap(Collection::stream)
-					.peek(it -> it.setLaunch(launch))
+					.flatMap(Collection::stream).peek(it -> it.setLaunch(resultedLaunch))
 					.collect(Collectors.toSet()));
 		} else {
-			resultAttributes.addAll(launches.stream()
+			mergedAttributes.addAll(launchesToMerge.stream()
 					.map(Launch::getAttributes)
 					.flatMap(Collection::stream)
-					.filter(ItemAttribute::isSystem)
-					.peek(it -> it.setLaunch(launch))
+					.filter(ItemAttribute::isSystem).peek(it -> it.setLaunch(resultedLaunch))
 					.collect(Collectors.toSet()));
-			ofNullable(mergeLaunchesRQ.getAttributes()).ifPresent(it -> resultAttributes.addAll(it.stream()
+			mergedAttributes.addAll(attributesFromRq.stream()
 					.filter(attr -> !attr.isSystem())
 					.map(FROM_RESOURCE)
-					.peek(attr -> attr.setLaunch(launch))
-					.collect(Collectors.toSet())));
+					.peek(attr -> attr.setLaunch(resultedLaunch))
+					.collect(Collectors.toSet()));
 		}
-		launch.setAttributes(resultAttributes);
-
-		return launch;
+		resultedLaunch.setAttributes(mergedAttributes);
 	}
 
 	/**

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.ta.reportportal.core.imprt;
+
+package com.epam.ta.reportportal.core.integration;
 
 /**
- * @author Anton Machulski
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class FileExtensionConstant {
-	
-	//TODO return '.zip' and '.xml' 
-	public static final String ZIP_EXTENSION = "zip";
-	public static final String XML_EXTENSION = "xml";
+public interface UpdatePluginHandler {
+
+
 }

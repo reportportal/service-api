@@ -1,9 +1,10 @@
 package com.epam.ta.reportportal.core.plugin;
 
 import com.google.common.util.concurrent.AbstractIdleService;
-import com.google.common.util.concurrent.AbstractScheduledService;
-import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,6 +38,26 @@ public class PluginManager extends AbstractIdleService implements PluginBox {
 
 	@Override
 	public <T> Optional<T> getInstance(Class<T> type) {
+		return Optional.empty();
+	}
+
+	@Override
+	public PluginState startUpPlugin(String pluginId) {
+		return null;
+	}
+
+	@Override
+	public String loadPlugin(Path path) {
+		return null;
+	}
+
+	@Override
+	public boolean unloadPlugin(String pluginId) {
+		return false;
+	}
+
+	@Override
+	public Optional<PluginWrapper> getPluginById(String id) {
 		return Optional.empty();
 	}
 

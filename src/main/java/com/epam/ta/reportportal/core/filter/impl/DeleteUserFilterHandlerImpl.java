@@ -20,8 +20,8 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
+import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
-import com.epam.ta.reportportal.core.filter.IDeleteUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -35,7 +35,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConvert
 import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 
 @Service
-public class DeleteUserFilterHandlerImpl implements IDeleteUserFilterHandler {
+public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
 	private final UserFilterRepository userFilterRepository;
 

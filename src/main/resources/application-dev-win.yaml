@@ -10,3 +10,8 @@ rp:
     url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
   plugins:
     path: plugins
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug

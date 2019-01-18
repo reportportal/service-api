@@ -26,12 +26,12 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,8 +57,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private UniqueIdGenerator identifierGenerator;
 
-	private RabbitTemplate rabbitTemplate;
-
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
@@ -77,11 +75,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Autowired
 	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
 		this.identifierGenerator = identifierGenerator;
-	}
-
-	@Autowired
-	public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
-		this.rabbitTemplate = rabbitTemplate;
 	}
 
 	@Override
@@ -136,7 +129,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * @param launch         {@link Launch}
 	 */
 	private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Launch launch) {
-		expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
+		}
 		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);

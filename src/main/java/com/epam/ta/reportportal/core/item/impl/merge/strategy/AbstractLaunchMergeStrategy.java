@@ -31,19 +31,19 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.google.common.collect.Sets;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -97,11 +97,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream()
-				.map(Launch::getDescription)
-				.collect(joining("\n"))));
-		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
-				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
+		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream().map(Launch::getDescription).collect(joining("\n"))));
+		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse("Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)
 				.addProject(projectId)
@@ -112,12 +109,40 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
-
-		ofNullable(mergeLaunchesRQ.getAttributes()).ifPresent(it -> launch.setAttributes(it.stream()
-				.map(attr -> new ItemAttribute(attr.getKey(), attr.getValue(), attr.isSystem()))
-				.peek(attr -> attr.setLaunch(launch))
-				.collect(Collectors.toSet())));
+		mergeAttributes(mergeLaunchesRQ.getAttributes(), launches, launch);
 		return launch;
+	}
+
+	/**
+	 * Merges launches attributes. Collect all system attributes from existed launches
+	 * and all unique not system attributes from request(if preset, or from exited launches if not) to resulted launch.
+	 *
+	 * @param attributesFromRq {@link Set} of attributes from request
+	 * @param launchesToMerge  {@link List} of {@link Launch} to be merged
+	 * @param resultedLaunch   {@link Launch} - result of merge
+	 */
+
+	private void mergeAttributes(Set<ItemAttributeResource> attributesFromRq, List<Launch> launchesToMerge, Launch resultedLaunch) {
+		Set<ItemAttribute> mergedAttributes = Sets.newHashSet();
+
+		if (attributesFromRq == null) {
+			mergedAttributes.addAll(launchesToMerge.stream()
+					.map(Launch::getAttributes)
+					.flatMap(Collection::stream).peek(it -> it.setLaunch(resultedLaunch))
+					.collect(Collectors.toSet()));
+		} else {
+			mergedAttributes.addAll(launchesToMerge.stream()
+					.map(Launch::getAttributes)
+					.flatMap(Collection::stream)
+					.filter(ItemAttribute::isSystem).peek(it -> it.setLaunch(resultedLaunch))
+					.collect(Collectors.toSet()));
+			mergedAttributes.addAll(attributesFromRq.stream()
+					.filter(attr -> !attr.isSystem())
+					.map(FROM_RESOURCE)
+					.peek(attr -> attr.setLaunch(resultedLaunch))
+					.collect(Collectors.toSet()));
+		}
+		resultedLaunch.setAttributes(mergedAttributes);
 	}
 
 	/**

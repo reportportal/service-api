@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.bts.handler.impl;
+package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.bts.handler.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -40,10 +40,20 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 		this.integrationRepository = integrationRepository;
 	}
 
-	public IntegrationResource getIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
+	@Override
+	public IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
 
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+		return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
+
+	}
+
+	@Override
+	public IntegrationResource getGlobalIntegrationById(Long integrationId) {
+		Integration integration = integrationRepository.findGlobalById(integrationId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
 		return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
 	}
 }

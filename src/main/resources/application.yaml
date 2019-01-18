@@ -66,7 +66,7 @@ rp:
 
   db:
     url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/reportportal?user${rp.db.user}=&password=${rp.db.pass}
-    host: postgresql
+    host: postgres
     port: 5432
     user: rpuser
     pass: rppass

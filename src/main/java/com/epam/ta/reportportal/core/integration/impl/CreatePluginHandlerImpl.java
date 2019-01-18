@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.reportportal.extension.common.ExtensionPoint;
@@ -52,8 +68,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder,
-			IntegrationTypeRepository integrationTypeRepository) {
+	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder, IntegrationTypeRepository integrationTypeRepository) {
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
 		this.integrationTypeRepository = integrationTypeRepository;
@@ -63,8 +78,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	public EntryCreatedRS uploadPlugin(MultipartFile pluginFile) {
 
 		String newPluginFileName = pluginFile.getOriginalFilename();
-		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
+		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
 		final String pluginsTempPath = pluginsRootPath + PLUGIN_TEMP_DIRECTORY;
 
@@ -112,8 +126,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 				oldPlugin.ifPresent(this::reloadOldPlugin);
 
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId)
-								.get()
+						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId).get()
 				);
 			}
 
@@ -218,11 +231,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 						Suppliers.formattedSupplier("Plugin with id = {} has not been found.", newPluginId).get()
 				));
 
-		return newPlugin.getPluginManager()
-				.getExtensionClasses(newPluginId)
-				.stream()
-				.map(ExtensionPoint::findByExtension)
-				.anyMatch(Optional::isPresent);
+		return newPlugin.getPluginManager().getExtensionClasses(newPluginId).stream().map(ExtensionPoint::findByExtension).anyMatch(Optional::isPresent);
 	}
 
 	private Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginName) {
@@ -250,8 +259,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			if (!oldPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginName).equals(oldPlugin.get().getPluginPath())) {
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with the different plugin type", newPluginName)
-								.get()
+						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with the different plugin type", newPluginName).get()
 				);
 			}
 		}

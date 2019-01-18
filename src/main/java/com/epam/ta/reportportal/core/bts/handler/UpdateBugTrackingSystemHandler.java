@@ -37,7 +37,8 @@ public interface UpdateBugTrackingSystemHandler {
 	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateBugTrackingSystem(UpdateBugTrackingSystemRQ updateRequest, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
+	OperationCompletionRS updateBugTrackingSystem(UpdateBugTrackingSystemRQ updateRequest, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**

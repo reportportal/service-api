@@ -30,6 +30,6 @@ public interface GetIntegrationHandler {
 	 * @return {@link IntegrationResource}
 	 */
 	IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
-	
+
 	IntegrationResource getGlobalIntegrationById(Long integrationId);
 }

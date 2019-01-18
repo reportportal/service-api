@@ -93,7 +93,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, StatusChangeTestItemHandler statusChangeTestItemHandler,
+	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
+			TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, StatusChangeTestItemHandler statusChangeTestItemHandler,
 			MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
 		this.integrationRepository = integrationRepository;

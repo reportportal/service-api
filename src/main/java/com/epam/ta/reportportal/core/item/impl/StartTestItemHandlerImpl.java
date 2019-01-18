@@ -129,6 +129,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * @param launch         {@link Launch}
 	 */
 	private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Launch launch) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
+		}
 		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
 		);
@@ -137,9 +140,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.getStartTime(),
 				launch.getId()
 		);
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
-		}
 	}
 
 	/**

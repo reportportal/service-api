@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
@@ -109,15 +111,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<TestItem> items;
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			items = testItemRepository.findByFilter(Filter.builder()
-					.withTarget(TestItem.class)
-					.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
-					.withCondition(FilterCondition.builder()
-							.withSearchCriteria(CRITERIA_ID)
-							.withCondition(Condition.IN)
-							.withValue(Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
-							.build())
-					.build());
+			items = testItemRepository.findByFilter(getItemsFilter(ids, projectDetails));
 		} else {
 			items = testItemRepository.findAllById(Arrays.asList(ids));
 		}
@@ -137,5 +131,20 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 					Predicate.isEqual(false)
 			).verify(ACCESS_DENIED);
 		}
+	}
+
+	private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {
+		final Filter filter = Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_ID)
+						.withCondition(Condition.IN)
+						.withValue(Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
+						.build())
+				.build();
+		return projectDetails.getProjectRole() != ProjectRole.OPERATOR ?
+				filter :
+				filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
 	}
 }

@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerEmailResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,31 +48,6 @@ public class SettingsController {
 		this.serverHandler = serverHandler;
 	}
 
-	@Transactional(readOnly = true)
-	@GetMapping
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Get server email settings")
-	public ServerSettingsResource getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
-		return serverHandler.getServerSettings();
-	}
-
-	@Transactional
-	@RequestMapping(value = "/email", method = { RequestMethod.POST, RequestMethod.PUT })
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Set server email settings")
-	public OperationCompletionRS saveEmailSettings(@RequestBody @Validated ServerEmailResource request,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return serverHandler.saveEmailSettings(request);
-	}
-
-	@Transactional
-	@DeleteMapping(value = "/email")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation(value = "Delete email settings for specified profile")
-	public OperationCompletionRS deleteEmailSettings(@AuthenticationPrincipal ReportPortalUser user) {
-		return serverHandler.deleteEmailSettings();
-	}
-
 	@Transactional
 	@RequestMapping(value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST })
 	@ResponseStatus(HttpStatus.OK)
@@ -81,5 +55,13 @@ public class SettingsController {
 	public OperationCompletionRS saveAnalyticsSettings(@RequestBody @Validated AnalyticsResource request,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return serverHandler.saveAnalyticsSettings(request);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation(value = "Get server settings")
+	public ServerSettingsResource getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
+		return serverHandler.getServerSettings();
 	}
 }

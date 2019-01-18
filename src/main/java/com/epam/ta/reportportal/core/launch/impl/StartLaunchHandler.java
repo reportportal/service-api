@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -32,6 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.function.Predicate;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
 /**
@@ -61,7 +63,7 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.get();
-		launchRepository.save(launch);
+		launch = launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
@@ -80,8 +82,9 @@ class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLa
 	 * @param startLaunchRQ  {@link StartLaunchRQ}
 	 */
 	private void validateRoles(ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
-		if (startLaunchRQ.getMode() == Mode.DEBUG && projectDetails.getProjectRole() == ProjectRole.CUSTOMER) {
-			throw new ReportPortalException(ErrorType.ACCESS_DENIED);
-		}
+		expect(
+				startLaunchRQ.getMode() == Mode.DEBUG && projectDetails.getProjectRole() == ProjectRole.CUSTOMER,
+				Predicate.isEqual(false)
+		).verify(ErrorType.FORBIDDEN_OPERATION);
 	}
 }

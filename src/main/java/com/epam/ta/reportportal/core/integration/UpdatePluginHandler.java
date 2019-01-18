@@ -21,5 +21,4 @@ package com.epam.ta.reportportal.core.integration;
  */
 public interface UpdatePluginHandler {
 
-
 }

@@ -67,7 +67,8 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteria
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -213,7 +214,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		return Filter.builder()
 				.withTarget(ProjectInfo.class)
 				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
-				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
+				.withCondition(new FilterCondition(
+						GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
 						CRITERIA_PROJECT_CREATION_DATE
@@ -230,8 +232,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
-				new FilterCondition(GREATER_THAN_OR_EQUALS,
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
+						GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE

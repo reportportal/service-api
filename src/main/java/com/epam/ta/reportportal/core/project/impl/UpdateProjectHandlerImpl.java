@@ -35,12 +35,12 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
-import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
@@ -61,12 +61,8 @@ import static com.epam.ta.reportportal.commons.SendCase.findByName;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
-import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -284,16 +280,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
-		ofNullable(configuration).ifPresent(config -> {
-			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
-				verifyProjectAttributes(attributes);
-				attributes.forEach((attribute, value) -> project.getProjectAttributes()
-						.stream()
-						.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
-						.findFirst()
-						.ifPresent(attr -> attr.setValue(value)));
-			});
-		});
+		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
+			verifyProjectAttributes(attributes);
+			attributes.forEach((attribute, value) -> project.getProjectAttributes()
+					.stream()
+					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
+					.findFirst()
+					.ifPresent(attr -> attr.setValue(value)));
+		}));
 	}
 
 	private void verifyProjectAttributes(Map<String, String> attributes) {
@@ -310,51 +304,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
 	}
 
-	private void validateRecipient(Project project, String recipient) {
-		expect(recipient, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", recipient));
-		if (recipient.contains("@")) {
-			expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
-					formattedSupplier("Provided recipient email '{}' is invalid", recipient)
-			);
-		} else {
-			final String login = recipient.trim();
-			expect(MIN_LOGIN_LENGTH <= login.length() && login.length() <= MAX_LOGIN_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
-					"Acceptable login length  [" + MIN_LOGIN_LENGTH + ".." + MAX_LOGIN_LENGTH + "]"
-			);
-			if (!getOwner().equals(login)) {
-				expect(ProjectUtils.doesHaveUser(project, login.toLowerCase()), equalTo(true)).verify(USER_NOT_FOUND,
-						login,
-						String.format("User not found in project %s", project.getId())
-				);
-			}
-		}
-	}
-
-	private void validateLaunchName(String name) {
-		expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
-				"Launch name values cannot be empty. Please specify it or not include in request."
-		);
-		expect(name.length() <= MAX_NAME_LENGTH, equalTo(true)).verify(BAD_REQUEST_ERROR,
-				formattedSupplier("One of provided launch names '{}' is too long. Acceptable name length is [1..256]", name)
-		);
-	}
-
-	private void updateProjectConfiguration(ProjectConfiguration configuration, Project project,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		ofNullable(configuration).ifPresent(config -> {
-			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
-				verifyProjectAttributes(attributes);
-				attributes.forEach((attribute, value) -> project.getProjectAttributes()
-						.stream()
-						.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
-						.findFirst()
-						.ifPresent(attr -> attr.setValue(value)));
-			});
-			ofNullable(config.getEmailConfig()).ifPresent(emailConfig -> updateProjectEmailConfig(projectDetails, user, emailConfig));
-		});
-
-	}
-
 	private void updateEmailCases(Project project, List<EmailSenderCaseDTO> cases) {
 
 		expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
@@ -365,25 +314,20 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
 			);
 			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-				validateRecipient(project, it);
+				EmailRulesValidator.validateRecipient(project, it);
 				return it.trim();
 			}).distinct().collect(toList()));
 
-			if (null != sendCase.getLaunchNames()) {
-				sendCase.setLaunchNames(sendCase.getLaunchNames().stream().map(name -> {
-					validateLaunchName(name);
-					return name.trim();
-				}).distinct().collect(toList()));
-			}
+			ofNullable(sendCase.getLaunchNames()).ifPresent(launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
+				EmailRulesValidator.validateLaunchName(name);
+				return name.trim();
+			}).distinct().collect(toList())));
 
-			if (null != sendCase.getTags()) {
-				sendCase.setTags(sendCase.getTags().stream().map(tag -> {
-					expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
-							"Tags' values cannot be empty. Please specify them or do not include in a request."
-					);
-					return tag.trim();
-				}).distinct().collect(toList()));
-			}
+			ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().map(attribute -> {
+				EmailRulesValidator.validateLaunchAttribute(attribute);
+				return attribute.trim();
+			}).distinct().collect(toList())));
+
 		});
 
 		/* If project email settings */

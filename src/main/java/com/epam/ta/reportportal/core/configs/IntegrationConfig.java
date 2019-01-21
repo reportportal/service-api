@@ -46,9 +46,7 @@ public class IntegrationConfig implements ApplicationContextAware {
 	public Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping() {
 		return ImmutableMap.<ReportPortalIntegrationEnum, IntegrationService>builder().put(ReportPortalIntegrationEnum.JIRA,
 				applicationContext.getBean(JiraIntegrationService.class)
-		)
-				.put(ReportPortalIntegrationEnum.EMAIL, applicationContext.getBean(EmailServerIntegrationService.class))
-				.build();
+		).put(ReportPortalIntegrationEnum.EMAIL, applicationContext.getBean(EmailServerIntegrationService.class)).build();
 
 	}
 }

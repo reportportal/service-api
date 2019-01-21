@@ -22,9 +22,11 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 
+import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 
@@ -37,29 +39,31 @@ public final class WidgetOptionUtil {
 		//static only
 	}
 
+	@Nullable
 	public static String getValueByKey(String key, WidgetOptions widgetOptions) {
-		expect(widgetOptions, notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
-		expect(widgetOptions.getOptions(), notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
-		Object value = widgetOptions.getOptions().get(key);
-		ofNullable(value).ifPresent(v -> expect(v, String.class::isInstance).verify(
+
+		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
+				.orElse(null));
+
+		value.ifPresent(v -> expect(v, String.class::isInstance).verify(
 				ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. String expected.", key)
 		));
 
-		return (String) value;
+		return (String) value.orElse(null);
 	}
 
 	public static Map<String, String> getMapByKey(String key, WidgetOptions widgetOptions) {
-		expect(widgetOptions, notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
-		expect(widgetOptions.getOptions(), notNull()).verify(ErrorType.OBJECT_RETRIEVAL_ERROR, "Widget options should be not null.");
 
-		Object value = widgetOptions.getOptions().get(key);
-		ofNullable(value).ifPresent(v -> expect(v, Map.class::isInstance).verify(
+		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
+				.orElse(null));
+
+		value.ifPresent(v -> expect(v, Map.class::isInstance).verify(
 				ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. Map expected.", key)
 		));
 
-		return (Map<String, String>) value;
+		return (Map<String, String>) value.orElseGet(Collections::emptyMap);
 	}
 
 	public static boolean getBooleanByKey(String key, WidgetOptions widgetOptions) {

@@ -130,7 +130,8 @@ public class IntegrationController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public IntegrationResource getProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getIntegrationHandler.getProjectIntegrationById(integrationId,
+		return getIntegrationHandler.getProjectIntegrationById(
+				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
 	}
@@ -142,7 +143,8 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
+		return deleteIntegrationHandler.deleteProjectIntegration(
+				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);

@@ -29,7 +29,6 @@ public class PluginManager extends AbstractIdleService implements PluginBox {
 
 	private List<PluginBox> pluginBoxes;
 
-
 	public PluginManager(List<PluginBox> pluginBoxes) {
 		this.pluginBoxes = pluginBoxes;
 	}

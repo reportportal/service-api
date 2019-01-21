@@ -68,8 +68,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder,
-			IntegrationTypeRepository integrationTypeRepository) {
+	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder, IntegrationTypeRepository integrationTypeRepository) {
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
 		this.integrationTypeRepository = integrationTypeRepository;
@@ -79,8 +78,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	public EntryCreatedRS uploadPlugin(MultipartFile pluginFile) {
 
 		String newPluginFileName = pluginFile.getOriginalFilename();
-		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
+		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
 		final String pluginsTempPath = pluginsRootPath + PLUGIN_TEMP_DIRECTORY;
 
@@ -128,8 +126,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 				oldPlugin.ifPresent(this::reloadOldPlugin);
 
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId)
-								.get()
+						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId).get()
 				);
 			}
 
@@ -234,11 +231,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 						Suppliers.formattedSupplier("Plugin with id = {} has not been found.", newPluginId).get()
 				));
 
-		return newPlugin.getPluginManager()
-				.getExtensionClasses(newPluginId)
-				.stream()
-				.map(ExtensionPoint::findByExtension)
-				.anyMatch(Optional::isPresent);
+		return newPlugin.getPluginManager().getExtensionClasses(newPluginId).stream().map(ExtensionPoint::findByExtension).anyMatch(Optional::isPresent);
 	}
 
 	private Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginName) {
@@ -266,8 +259,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			if (!oldPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginName).equals(oldPlugin.get().getPluginPath())) {
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with the different plugin type", newPluginName)
-								.get()
+						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with the different plugin type", newPluginName).get()
 				);
 			}
 		}

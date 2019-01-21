@@ -52,7 +52,7 @@ springfox:
 ##########################################
 rp:
   amqp:
-    addresses: amqp://${rp.amqp.user}:${rp.amqp.password}@${rp.amqp.host}:${rp.amqp.port}
+    addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
 
     host: rabbitmq
@@ -65,8 +65,9 @@ rp:
     apipass: rabbitmq
 
   db:
-    url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/reportportal?user${rp.db.user}=&password=${rp.db.pass}
-    host: postgresql
+    url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}?user=${rp.db.user}&password=${rp.db.pass}
+    name: reportportal
+    host: postgres
     port: 5432
     user: rpuser
     pass: rppass

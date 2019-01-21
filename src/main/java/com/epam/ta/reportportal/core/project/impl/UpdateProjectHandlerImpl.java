@@ -310,7 +310,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
 	}
 
-	void validateRecipient(Project project, String recipient) {
+	private void validateRecipient(Project project, String recipient) {
 		expect(recipient, notNull()).verify(BAD_REQUEST_ERROR, formattedSupplier("Provided recipient email '{}' is invalid", recipient));
 		if (recipient.contains("@")) {
 			expect(isEmailValid(recipient), equalTo(true)).verify(BAD_REQUEST_ERROR,
@@ -330,7 +330,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		}
 	}
 
-	void validateLaunchName(String name) {
+	private void validateLaunchName(String name) {
 		expect(isNullOrEmpty(name), equalTo(false)).verify(BAD_REQUEST_ERROR,
 				"Launch name values cannot be empty. Please specify it or not include in request."
 		);
@@ -379,7 +379,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			if (null != sendCase.getTags()) {
 				sendCase.setTags(sendCase.getTags().stream().map(tag -> {
 					expect(isNullOrEmpty(tag), equalTo(false)).verify(BAD_REQUEST_ERROR,
-							"Tags values cannot be empty. Please specify it or not include in request."
+							"Tags' values cannot be empty. Please specify them or do not include in a request."
 					);
 					return tag.trim();
 				}).distinct().collect(toList()));

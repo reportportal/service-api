@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.CreateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 
 /**
- * Basic interface for {@link} realization
- *
- * @author Andrei_Ramanchuk
- * @author Pavel Bortnik
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface CreateIntegrationHandler {
 
-	/**
-	 * Create {@link com.epam.ta.reportportal.entity.integration.Integration} entry method
-	 *
-	 * @param createRQ       Request Data
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @return Response Data
-	 */
-	EntryCreatedRS createIntegration(CreateIntegrationRQ createRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest, ReportPortalUser user);
+
+	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
+			ReportPortalUser user);
 }

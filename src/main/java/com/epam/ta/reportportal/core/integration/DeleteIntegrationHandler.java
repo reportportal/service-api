@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.bts.handler;
+package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -25,16 +25,28 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 public interface DeleteIntegrationHandler {
 
 	/**
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
+	 * @param integrationId Integration id
 	 * @return Response data
 	 */
-	OperationCompletionRS deleteIntegration(Long integrationId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	OperationCompletionRS deleteGlobalIntegration(Long integrationId);
+
+	/**
+	 * @return Response data
+	 */
+	OperationCompletionRS deleteAllIntegrations();
+
+	/**
+	 * @param integrationId  Integration id
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link com.epam.ta.reportportal.auth.ReportPortalUser}
+	 * @return Response data
+	 */
+	OperationCompletionRS deleteProjectIntegration(Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 	/**
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
+	 * @param user           {@link com.epam.ta.reportportal.auth.ReportPortalUser}
 	 * @return Response data
 	 */
 	OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);

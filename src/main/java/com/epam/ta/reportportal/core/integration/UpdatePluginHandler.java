@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.bts.handler;
-
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+package com.epam.ta.reportportal.core.integration;
 
 /**
- * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface GetIntegrationHandler {
+public interface UpdatePluginHandler {
 
-	/**
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @return {@link IntegrationResource}
-	 */
-	IntegrationResource getIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 }

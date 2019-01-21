@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.plugin;
 
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
@@ -6,11 +22,14 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractScheduledService;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +71,26 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	}
 
 	@Override
+	public PluginState startUpPlugin(String pluginId) {
+		return null;
+	}
+
+	@Override
+	public String loadPlugin(Path path) {
+		return null;
+	}
+
+	@Override
+	public boolean unloadPlugin(String pluginId) {
+		return false;
+	}
+
+	@Override
+	public Optional<PluginWrapper> getPluginById(String id) {
+		return Optional.empty();
+	}
+
+	@Override
 	protected void runOneIteration() {
 		try {
 			this.messageBus.publish(
@@ -72,7 +111,7 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 
 	@RabbitListener(queues = "#{ @pluginsPongQueue.name }")
 	void fulfillPluginsList(@Payload Plugin plugin) {
-//		this.plugins.put(plugin.getType(), plugin);
+		//		this.plugins.put(plugin.getType(), plugin);
 	}
 
 }

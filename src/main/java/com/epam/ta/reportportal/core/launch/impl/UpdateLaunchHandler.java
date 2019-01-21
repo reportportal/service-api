@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -71,7 +71,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	//	}
 
 	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
+	public UpdateLaunchHandler(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
 	}
 
@@ -82,8 +82,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
 		validateAttributes(rq.getAttributes());
-		launch = new LaunchBuilder(launch).addMode(rq.getMode())
-				.addDescription(rq.getDescription()).overwriteAttributes(rq.getAttributes())
+		launch = new LaunchBuilder(launch).addMode(rq.getMode()).addDescription(rq.getDescription()).overwriteAttributes(rq.getAttributes())
 				.get();
 		//reindexLogs(launch);
 		launchRepository.save(launch);
@@ -156,12 +155,8 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 		}
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			if (!Objects.equals(launch.getUser().getLogin(), user.getUsername())) {
-				/*
-				 * Only PROJECT_MANAGER roles could move launches
-				 * to/from DEBUG mode
-				 */
-				expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED);
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED);
 			}
 		}
 	}

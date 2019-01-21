@@ -1,28 +1,25 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -39,21 +36,23 @@ public class AnalyzerStatusCache {
 	private static final int CACHE_ITEM_LIVE = 100;
 	private static final int MAXIMUM_SIZE = 10000;
 
-	private Cache<Long, String> analyzerStatus;
+	private Cache<Long, Long> analyzerStatus;
+	private static final Logger LOGGER = LogManager.getLogger(AnalyzerStatusCache.class.getSimpleName());
 
 	public AnalyzerStatusCache() {
 		analyzerStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
 	}
 
-	public void analyzeStarted(Long launchId, String projectName) {
-		analyzerStatus.put(launchId, projectName);
+	public void analyzeStarted(Long launchId, Long projectId) {
+		analyzerStatus.put(launchId, projectId);
 	}
 
 	public void analyzeFinished(Long launchId) {
+		LOGGER.error("I am invalidating analyzer status cache");
 		analyzerStatus.invalidate(launchId);
 	}
 
-	public Cache<Long, String> getAnalyzerStatus() {
+	public Cache<Long, Long> getAnalyzerStatus() {
 		return analyzerStatus;
 	}
 }

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
-import org.springframework.amqp.core.Exchange;
+import com.rabbitmq.http.client.domain.ExchangeInfo;
 
 import java.util.List;
 
@@ -25,6 +25,6 @@ import java.util.List;
  */
 public interface RabbitMqManagementClient {
 
-	List<Exchange> getAnalyzerExchanges();
+	List<ExchangeInfo> getAnalyzerExchangesInfo();
 
 }

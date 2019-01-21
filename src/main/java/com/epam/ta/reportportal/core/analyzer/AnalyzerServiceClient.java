@@ -65,7 +65,7 @@ public interface AnalyzerServiceClient {
 	 * @param rq Launch
 	 * @return Analyzed Launch
 	 */
-	CompletableFuture<Map<String, List<AnalyzedItemRs>>> analyze(IndexLaunch rq);
+	Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq);
 
 	/**
 	 * Remove documents with specified ids from index

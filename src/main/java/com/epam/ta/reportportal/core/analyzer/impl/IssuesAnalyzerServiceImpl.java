@@ -1,22 +1,17 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.impl;
@@ -28,37 +23,41 @@ import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
-import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
+import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
-import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.SerializationUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
+import static freemarker.template.utility.StringUtil.emptyToNull;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -81,11 +80,16 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 
 	private final IssueTypeRepository issueTypeRepository;
 
+	@Autowired
+	private IssueTypeHandler issueTypeHandler;
+
 	private final TestItemRepository testItemRepository;
 
 	private final MessageBus messageBus;
 
 	private final LogIndexer logIndexer;
+
+	private static final Logger LOGGER = LogManager.getLogger(com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient.class.getSimpleName());
 
 	@Autowired
 	public IssuesAnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServiceClient,
@@ -100,27 +104,41 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 		this.logIndexer = logIndexer;
 	}
 
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
 	@Override
-	public void analyze(Launch launch, Project project, List<TestItem> testItems, AnalyzeMode mode) {
+	@Transactional
+	public Runnable analyze(Launch launch, AnalyzerConfig analyzerConfig) {
+		return () -> new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				runAnalyzer(launch, analyzerConfig);
+			}
+		});
+	}
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void runAnalyzer(Launch launch, AnalyzerConfig analyzerConfig) {
 		if (launch != null) {
 			try {
-				analyzerStatusCache.analyzeStarted(launch.getId(), project.getName());
-				List<IndexTestItem> indexTestItems = prepareItems(testItems);
-				IndexLaunch rqLaunch = prepareLaunch(indexTestItems, launch, project, mode);
-				analyzerServiceClient.analyze(rqLaunch).thenAcceptAsync(map -> {
-					if (!MapUtils.isEmpty(map)) {
-						List<TestItem> updatedItems = map.entrySet()
-								.stream()
-								.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), testItems, launch.getProjectId()).stream())
-								.collect(toList());
-						testItemRepository.saveAll(updatedItems);
-						logIndexer.indexLogs(launch.getId(), updatedItems);
-					}
-				});
+				analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
+				List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(launch.getId(), TO_INVESTIGATE.getLocator());
+				List<IndexTestItem> indexTestItems = prepareItems(toInvestigate);
+				IndexLaunch rqLaunch = prepareLaunch(indexTestItems, launch, launch.getProjectId(), analyzerConfig);
+				Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServiceClient.analyze(rqLaunch);
+				if (!MapUtils.isEmpty(analyzedMap)) {
+					List<TestItem> updatedItems = analyzedMap.entrySet()
+							.stream()
+							.flatMap(it -> updateTestItems(it.getKey(), it.getValue(), toInvestigate, launch.getProjectId()).stream())
+							.collect(toList());
+					//						logIndexer.indexLogs(launch.getId(), updatedItems);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			} finally {
 				analyzerStatusCache.analyzeFinished(launch.getId());
 			}
-
 		}
 	}
 
@@ -147,16 +165,15 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 				.collect(Collectors.toList());
 	}
 
-	private IndexLaunch prepareLaunch(List<IndexTestItem> rqTestItems, Launch launch, Project project, AnalyzeMode analyzeMode) {
+	private IndexLaunch prepareLaunch(List<IndexTestItem> rqTestItems, Launch launch, Long projectId, AnalyzerConfig analyzerConfig) {
 		if (!rqTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
 			rqLaunch.setLaunchId(launch.getId());
 			rqLaunch.setLaunchName(launch.getName());
-			rqLaunch.setProjectId(project.getId());
+			rqLaunch.setProjectId(projectId);
 
-			AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 			//uses provided analyze mode because it could be run with another mode from launch view
-			analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
+			//			analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
 			rqLaunch.setAnalyzerConfig(analyzerConfig);
 			rqLaunch.setTestItems(rqTestItems);
@@ -173,48 +190,39 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	 * @return List of updated items
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, Long projectId) {
-		final Map<TestItemActivityResource, TestItemActivityResource> forEvents = new HashMap<>();
-		final Map<String, TestItemResource> relevantItemIdMap = new HashMap<>();
 
-		List<TestItem> beforeUpdate = new ArrayList<>(rs.size());
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
-				beforeUpdate.add(SerializationUtils.clone(testItem));
-
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
-
-				IssueEntity issueEntity = new IssueEntity();
-				issueEntity.setIssueType(issueTypeRepository.findById(analyzed.getIssueTypeId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, analyzed.getIssueTypeId())));
-				issueEntity.setAutoAnalyzed(true);
-				issueEntity.setIgnoreAnalyzer(testItem.getItemResults().getIssue().getIgnoreAnalyzer());
-
-				ofNullable(analyzed.getRelevantItemId()).ifPresent(relevantItemId -> fromRelevantItem(issueEntity, relevantItemId));
-				IssueDefinition issueDefinition = createIssueDefinition(testItem.getItemId(), issueEntity);
-
-				TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(testItemRepository.findById(analyzed.getItemId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, analyzed.getItemId())));
-				relevantItemIdMap.put(String.valueOf(testItem.getItemId()), testItemResource);
-				testItem.getItemResults().setIssue(issueEntity);
-				forEvents.put(before, TO_ACTIVITY_RESOURCE.apply(testItem));
+				updateTestItemIssue(projectId, analyzed, testItem);
+				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem);
+				//				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance));
+				//				messageBus.publishActivity(new LinkTicketEvent(before, after, analyzerInstance));
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
-		//		eventPublisher.publishEvent(new ItemIssueTypeDefined(forEvents, analyzerInstance, project, relevantItemIdMap));
-		//		eventPublisher.publishEvent(new TicketAttachedEvent(beforeUpdate, updatedItems, analyzerInstance, project, relevantItemIdMap));
-		forEvents.forEach((key, value) -> {
-			messageBus.publishActivity(new ItemIssueTypeDefinedEvent(key, value, 100L));
-			messageBus.publishActivity(new LinkTicketEvent(key, value, 100L));
-		});
 		return updatedItems;
 	}
 
-	private IssueDefinition createIssueDefinition(Long id, IssueEntity issue) {
-		IssueDefinition issueDefinition = new IssueDefinition();
-		issueDefinition.setId(id);
-		issueDefinition.setIssue(IssueConverter.TO_MODEL.apply(issue));
-		return issueDefinition;
+	/**
+	 * Updates issue for a specified test item
+	 *
+	 * @param projectId - Project id
+	 * @param rs        - Response from an analyzer
+	 * @param testItem  - Test item to be updated
+	 * @return Updated issue entity
+	 */
+	private IssueEntity updateTestItemIssue(Long projectId, AnalyzedItemRs rs, TestItem testItem) {
+		IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, rs.getLocator());
+		IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
+				.addIgnoreFlag(testItem.getItemResults().getIssue().getIgnoreAnalyzer())
+				.addAutoAnalyzedFlag(true)
+				.get();
+		issueEntity.setIssueId(testItem.getItemId());
+		testItem.getItemResults().setIssue(issueEntity);
+		ofNullable(rs.getRelevantItemId()).ifPresent(relevantItemId -> updateIssueFromRelevantItem(issueEntity, relevantItemId));
+		return issueEntity;
 	}
 
 	/**
@@ -223,13 +231,14 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	 * @param issue          Issue to update
 	 * @param relevantItemId Relevant item id
 	 */
-	private void fromRelevantItem(IssueEntity issue, Long relevantItemId) {
+	private void updateIssueFromRelevantItem(IssueEntity issue, Long relevantItemId) {
 		TestItem relevantItem = testItemRepository.findById(relevantItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, relevantItemId));
 		if (relevantItem.getItemResults().getIssue() != null) {
 			issue.setIssueDescription(emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getItemResults()
 					.getIssue()
 					.getIssueDescription())));
+			//TODO add external issues
 			//issue.setExternalSystemIssues(Optional.ofNullable(relevantItem.getIssue().getExternalSystemIssues()).orElse(emptySet()));
 		}
 	}

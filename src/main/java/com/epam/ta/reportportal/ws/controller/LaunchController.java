@@ -117,8 +117,7 @@ public class LaunchController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(
-				launchId,
+		return finishLaunchMessageHandler.finishLaunch(launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,

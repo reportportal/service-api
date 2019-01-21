@@ -18,14 +18,13 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,7 +48,16 @@ public class AnalyzerRabbitMqConfiguration {
 
 	@Bean
 	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
-		return new RabbitMqManagementClientTemplate(new RabbitManagementTemplate(address));
+		Client rabbitClient;
+		try {
+			rabbitClient = new Client(address);
+		} catch (Exception e) {
+			throw new ReportPortalException(
+					ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR,
+					"Cannot create a HTTP rabbit client instance. Incorrect api address " + address
+			);
+		}
+		return new RabbitMqManagementClientTemplate(rabbitClient);
 	}
 
 	@Bean(name = "analyzerConnectionFactory")
@@ -62,17 +70,8 @@ public class AnalyzerRabbitMqConfiguration {
 	@Bean(name = "analyzerRabbitTemplate")
 	public RabbitTemplate analyzerRabbitTemplate(@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+		rabbitTemplate.setMessageConverter(messageConverter);
 		return rabbitTemplate;
-	}
-
-	@Bean
-	public AsyncRabbitTemplate asyncAmqpTemplate(@Autowired @Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate,
-			@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
-		container.setQueueNames("analyzer.reply");
-		container.setMessageConverter(messageConverter);
-		return new AsyncRabbitTemplate(rabbitTemplate, container);
 	}
 
 }

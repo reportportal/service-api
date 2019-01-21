@@ -22,9 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -36,16 +34,20 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
@@ -66,6 +68,8 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private ProjectRepository projectRepository;
 
 	private IssuesAnalyzer analyzerService;
+
+	private Logger LOGGER = LogManager.getLogger(this.getClass().getSimpleName());
 	//
 	//	private ILogIndexer logIndexer;
 
@@ -123,10 +127,11 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.", launchId, projectDetails.getProjectId())
 		);
 
-		List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(launchId, TO_INVESTIGATE.getLocator());
+		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 
-		analyzerService.analyze(launch, project, toInvestigate, AnalyzeMode.ALL_LAUNCHES);
+		CompletableFuture.runAsync(analyzerService.analyze(launch, analyzerConfig));
 
+		LOGGER.error("I am returning response from analyzer service");
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launchId + "' started.");
 	}
 

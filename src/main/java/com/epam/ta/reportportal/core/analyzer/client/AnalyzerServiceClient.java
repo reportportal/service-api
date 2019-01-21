@@ -20,30 +20,28 @@ import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.CleanIndexRq;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.springframework.amqp.core.Exchange;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import com.rabbitmq.http.client.domain.ExchangeInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_SUPPORT_INDEX;
 import static java.util.stream.Collectors.toList;
 
 @Service
 public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient {
+
+	private static final Logger LOGGER = LogManager.getLogger(AnalyzerServiceClient.class.getSimpleName());
 
 	private static final String INDEX_ROUTE = "index";
 	private static final String ANALYZE_ROUTE = "analyze";
@@ -52,62 +50,73 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
-	private final AsyncRabbitTemplate asyncRabbitTemplate;
-
 	private final RabbitTemplate rabbitTemplate;
 
 	@Autowired
-	public AnalyzerServiceClient(RabbitMqManagementClient rabbitMqManagementClient, AsyncRabbitTemplate asyncRabbitTemplate,
+	public AnalyzerServiceClient(RabbitMqManagementClient rabbitMqManagementClient,
 			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
 		this.rabbitMqManagementClient = rabbitMqManagementClient;
-		this.asyncRabbitTemplate = asyncRabbitTemplate;
 		this.rabbitTemplate = rabbitTemplate;
 	}
 
 	@Override
 	public boolean hasClients() {
-		return rabbitMqManagementClient.getAnalyzerExchanges().size() != 0;
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo().size() != 0;
 	}
 
 	@Override
 	public List<CompletableFuture<IndexRs>> index(List<IndexLaunch> rq) {
-		return rabbitMqManagementClient.getAnalyzerExchanges()
-				.stream()
-				.filter(DOES_SUPPORT_INDEX)
-				.flatMap(exchange -> rq.stream()
-						.map(indexLaunch -> asyncRabbitTemplate.<IndexRs>convertSendAndReceive(exchange.getName(),
-								INDEX_ROUTE,
-								indexLaunch
-						)))
-				.map(future -> {
-					CompletableFuture<IndexRs> indexed = new CompletableFuture<>();
-					future.addCallback(indexedLaunchCallback(indexed));
-					return indexed;
-				})
-				.collect(Collectors.toList());
+		return null;
+		//		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
+		//				.stream()
+		//				.filter(DOES_SUPPORT_INDEX)
+		//				.flatMap(exchange -> rq.stream()
+		//						.map(indexLaunch -> asyncRabbitTemplate.<IndexRs>convertSendAndReceive(exchange.getName(),
+		//								INDEX_ROUTE,
+		//								indexLaunch
+		//						)))
+		//				.map(future -> {
+		//					CompletableFuture<IndexRs> indexed = new CompletableFuture<>();
+		//					future.addCallback(indexedLaunchCallback(indexed));
+		//					return indexed;
+		//				})
+		//				.collect(Collectors.toList());
 	}
 
 	@Override
-	public CompletableFuture<Map<String, List<AnalyzedItemRs>>> analyze(IndexLaunch rq) {
-		return CompletableFuture.supplyAsync(() -> {
-			List<Exchange> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchanges();
-			Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
-			analyzerExchanges.forEach(exchange -> analyze(rq, resultMap, exchange));
-			return resultMap;
-		});
+	public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
+		LOGGER.error("I am in async supplier!!");
+		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo();
+		Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
+		analyzerExchanges.forEach(exchange -> analyze(rq, resultMap, exchange));
+		LOGGER.error("I am returning result map size of " + resultMap.size());
+		return resultMap;
 	}
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
-		rabbitMqManagementClient.getAnalyzerExchanges()
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
 
 	}
 
 	@Override
 	public void deleteIndex(Long index) {
-		rabbitMqManagementClient.getAnalyzerExchanges()
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DELETE_ROUTE, index));
+	}
+
+	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
+		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
+				ANALYZE_ROUTE,
+				rq,
+				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
+				}
+		);
+		if (!CollectionUtils.isEmpty(result)) {
+			resultMap.put((String) exchangeInfo.getArguments().getOrDefault(ANALYZER_KEY, exchangeInfo.getName()), result);
+			removeAnalyzedFromRq(rq, result);
+		}
 	}
 
 	/**
@@ -121,45 +130,4 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 		rq.getTestItems().removeIf(it -> analyzedItemIds.contains(it.getTestItemId()));
 	}
 
-	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, Exchange exchange) {
-		AsyncRabbitTemplate.RabbitConverterFuture<List<AnalyzedItemRs>> analyzed = asyncRabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-				ANALYZE_ROUTE,
-				rq,
-				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
-				}
-		);
-		analyzed.addCallback(analysedItemsCallback(rq, resultMap, exchange));
-	}
-
-	private ListenableFutureCallback<List<AnalyzedItemRs>> analysedItemsCallback(IndexLaunch rq,
-			Map<String, List<AnalyzedItemRs>> resultMap, Exchange exchange) {
-		return new ListenableFutureCallback<List<AnalyzedItemRs>>() {
-			@Override
-			public void onFailure(Throwable ex) {
-				throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Cannot analyze " + rq);
-			}
-
-			@Override
-			public void onSuccess(List<AnalyzedItemRs> result) {
-				if (!CollectionUtils.isEmpty(result)) {
-					resultMap.put((String) exchange.getArguments().getOrDefault(ANALYZER_KEY, exchange.getName()), result);
-					removeAnalyzedFromRq(rq, result);
-				}
-			}
-		};
-	}
-
-	private ListenableFutureCallback<IndexRs> indexedLaunchCallback(CompletableFuture<IndexRs> indexed) {
-		return new ListenableFutureCallback<IndexRs>() {
-			@Override
-			public void onFailure(Throwable ex) {
-				indexed.completeExceptionally(ex);
-			}
-
-			@Override
-			public void onSuccess(IndexRs result) {
-				indexed.complete(result);
-			}
-		};
-	}
 }

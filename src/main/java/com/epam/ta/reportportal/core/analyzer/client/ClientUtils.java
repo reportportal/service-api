@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.client;
 
+import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Exchange;
 
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -37,7 +37,7 @@ public final class ClientUtils {
 	/**
 	 * Comparing by client service priority
 	 */
-	static final ToIntFunction<Exchange> EXCHANGE_PRIORITY = it -> {
+	static final ToIntFunction<ExchangeInfo> EXCHANGE_PRIORITY = it -> {
 		try {
 			return Integer.parseInt((String) it.getArguments().get(ANALYZER_PRIORITY));
 		} catch (Exception e) {
@@ -55,7 +55,7 @@ public final class ClientUtils {
 	 * Checks if service support items indexing. <code>false</code>
 	 * by default
 	 */
-	static final Predicate<Exchange> DOES_SUPPORT_INDEX = it -> {
+	static final Predicate<ExchangeInfo> DOES_SUPPORT_INDEX = it -> {
 		try {
 			return Boolean.valueOf((String) it.getArguments().get(ANALYZER_INDEX));
 		} catch (Exception e) {

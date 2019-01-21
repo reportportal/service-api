@@ -25,9 +25,12 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
@@ -72,12 +75,16 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final GetJasperReportHandler<Project> jasperReportHandler;
 
+	private final IntegrationRepository integrationRepository;
+
 	@Autowired
 	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler) {
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler,
+			IntegrationRepository integrationRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.jasperReportHandler = jasperReportHandler;
+		this.integrationRepository = integrationRepository;
 	}
 
 	@Override
@@ -109,6 +116,16 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 		BusinessRule.expect(projectUser, Optional::isPresent)
 				.verify(ErrorType.PROJECT_DOESNT_CONTAIN_USER, projectName, user.getUsername());
+
+		List<Long> integrationTypeIds = project.getIntegrations()
+				.stream()
+				.map(Integration::getType)
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
+
+		List<Integration> globalIntegrations = integrationRepository.findAllGlobalNotInIntegrationTypeIds(integrationTypeIds);
+
+		project.getIntegrations().addAll(globalIntegrations);
 
 		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}

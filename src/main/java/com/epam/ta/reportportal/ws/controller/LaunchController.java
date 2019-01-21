@@ -71,7 +71,6 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @RequestMapping("/{projectName}/launch")
-@PreAuthorize(ALLOWED_TO_REPORT)
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -127,6 +126,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/{launchId}/stop")
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch for specified project")
 	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
@@ -140,6 +140,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/stop")
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
@@ -149,6 +150,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/{launchId}/update")
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launch for specified project")
 	public OperationCompletionRS updateLaunch(@PathVariable String projectName, @PathVariable Long launchId,
@@ -158,6 +160,7 @@ public class LaunchController {
 
 	@Transactional
 	@PutMapping("/update")
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
 	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
@@ -167,6 +170,7 @@ public class LaunchController {
 
 	@Transactional
 	@DeleteMapping("/{launchId}")
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launch by ID")
 	public OperationCompletionRS deleteLaunch(@PathVariable String projectName, @PathVariable Long launchId,
@@ -180,7 +184,7 @@ public class LaunchController {
 	@ApiOperation("Get specified launch")
 	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)), user.getUsername());
+		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
 	}
 
 	@Transactional(readOnly = true)
@@ -263,6 +267,7 @@ public class LaunchController {
 
 	@Transactional
 	@PostMapping("/merge")
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Merge set of specified launches in common one")
 	public LaunchResource mergeLaunches(@PathVariable String projectName,
@@ -313,6 +318,7 @@ public class LaunchController {
 
 	@Transactional
 	@DeleteMapping
+	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
 	public DeleteLaunchesRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,

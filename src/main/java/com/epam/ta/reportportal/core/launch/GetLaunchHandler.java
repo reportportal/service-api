@@ -44,10 +44,9 @@ public interface GetLaunchHandler {
 	 *
 	 * @param launchId       Launch id
 	 * @param projectDetails Project Details
-	 * @param username       User name
 	 * @return
 	 */
-	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, String username);
+	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Get Launch resource by specified Name (for Jenkins Plugin)

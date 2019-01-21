@@ -54,6 +54,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -108,22 +111,20 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, String username) {
+	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		validate(launch, projectDetails, username);
+		validate(launch, projectDetails);
 		return TO_RESOURCE.apply(launch);
 	}
 
 	@Override
 	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
-
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
 						"Project with name: " + projectName + " not found"
 				));
 
-		filter.withCondition(new FilterCondition(EQUALS, false, String.valueOf(project.getId()), PROJECT_ID));
-		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
 		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
 	}
@@ -135,7 +136,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		filter = addLaunchCommonCriteria(DEFAULT, filter, projectDetails.getProjectId());
+		filter = addLaunchCommonCriteria(DEFAULT, filter);
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
@@ -147,8 +148,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	@Override
 	public Iterable<LaunchResource> getDebugLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 		validateModeConditions(filter);
-		filter = addLaunchCommonCriteria(DEBUG, filter, projectDetails.getProjectId());
-		Page<Launch> launches = launchRepository.findByFilter(filter, pageable);
+		filter = addLaunchCommonCriteria(DEBUG, filter);
+		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
 	}
 
@@ -171,7 +172,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		filter = addLaunchCommonCriteria(DEFAULT, filter, projectDetails.getProjectId());
+		filter = addLaunchCommonCriteria(DEFAULT, filter);
 
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
@@ -179,7 +180,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		expect(value.length() > 2, it -> Objects.equals(it, true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, equalTo(true)).verify(
+				INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
 		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEFAULT.name());
@@ -187,7 +189,8 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode) {
-		expect(value.length() > 2, Predicates.equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, equalTo(true)).verify(
+				INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 
@@ -265,19 +268,11 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 *
 	 * @param launch         {@link Launch}
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param username       User name
 	 */
-	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, String username) {
+	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 		if (launch.getMode() == LaunchModeEnum.DEBUG) {
-			Project project = projectRepository.findById(launch.getProjectId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-							"Project with id = " + launch.getProjectId() + " not found"
-					));
-			ProjectUser userConfig = ProjectUtils.findUserConfigByLogin(project, username);
-
-			expect(userConfig, notNull()).verify(ErrorType.ACCESS_DENIED);
-			expect(userConfig.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
+			expect(projectDetails.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
 	}
 
@@ -287,17 +282,9 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	 * @param filter Filter to update
 	 * @return Updated filter
 	 */
-	private Filter addLaunchCommonCriteria(Mode mode, Filter filter, Long projectId) {
-
-		List<FilterCondition> filterConditions = Lists.newArrayList(new FilterCondition(EQUALS,
-						false,
-						mode.toString(),
-						CRITERIA_LAUNCH_MODE
-				),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID)
-		);
-
-		return ofNullable(filter).orElseGet(() -> new Filter(Launch.class, Sets.newHashSet())).withConditions(filterConditions);
+	private Filter addLaunchCommonCriteria(Mode mode, Filter filter) {
+		return ofNullable(filter).orElseGet(() -> new Filter(Launch.class, Sets.newHashSet()))
+				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, mode.name()).build());
 	}
 
 	/**

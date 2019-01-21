@@ -1,9 +1,26 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.plugin;
 
 import com.google.common.util.concurrent.AbstractIdleService;
-import com.google.common.util.concurrent.AbstractScheduledService;
-import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,7 +28,6 @@ import java.util.stream.Collectors;
 public class PluginManager extends AbstractIdleService implements PluginBox {
 
 	private List<PluginBox> pluginBoxes;
-
 
 	public PluginManager(List<PluginBox> pluginBoxes) {
 		this.pluginBoxes = pluginBoxes;
@@ -37,6 +53,26 @@ public class PluginManager extends AbstractIdleService implements PluginBox {
 
 	@Override
 	public <T> Optional<T> getInstance(Class<T> type) {
+		return Optional.empty();
+	}
+
+	@Override
+	public PluginState startUpPlugin(String pluginId) {
+		return null;
+	}
+
+	@Override
+	public String loadPlugin(Path path) {
+		return null;
+	}
+
+	@Override
+	public boolean unloadPlugin(String pluginId) {
+		return false;
+	}
+
+	@Override
+	public Optional<PluginWrapper> getPluginById(String id) {
 		return Optional.empty();
 	}
 

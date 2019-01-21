@@ -18,13 +18,14 @@ package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -45,11 +46,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
@@ -63,26 +62,29 @@ public class LaunchFinishedEventHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchFinishedEventHandler.class);
 
-	@Autowired
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
+
+	private final GetIntegrationHandler getIntegrationHandler;
+
+	private final MailServiceFactory mailServiceFactory;
+
+	private final UserRepository userRepository;
+
+	private final LaunchRepository launchRepository;
+
+	private final Provider<HttpServletRequest> currentRequest;
 
 	@Autowired
-	private IntegrationRepository integrationRepository;
-
-	@Autowired
-	private IntegrationTypeRepository integrationTypeRepository;
-
-	@Autowired
-	private MailServiceFactory mailServiceFactory;
-
-	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private Provider<HttpServletRequest> currentRequest;
+	public LaunchFinishedEventHandler(ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler,
+			MailServiceFactory mailServiceFactory, UserRepository userRepository, LaunchRepository launchRepository,
+			Provider<HttpServletRequest> currentRequest) {
+		this.projectRepository = projectRepository;
+		this.getIntegrationHandler = getIntegrationHandler;
+		this.mailServiceFactory = mailServiceFactory;
+		this.userRepository = userRepository;
+		this.launchRepository = launchRepository;
+		this.currentRequest = currentRequest;
+	}
 
 	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
@@ -96,26 +98,9 @@ public class LaunchFinishedEventHandler {
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
-		List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION)
-				.stream()
-				.map(IntegrationType::getId)
-				.collect(Collectors.toList());
-
-		Integration emailIntegration = project.getIntegrations()
-				.stream()
-				.filter(i -> IntegrationGroupEnum.NOTIFICATION.equals(i.getType().getIntegrationGroup()) && i.isEnabled())
-				.findFirst()
-				.orElseGet(() -> integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-						.stream()
-						.filter(Integration::isEnabled)
-						.findFirst()
-						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-								"Enabled email integration has not been found."
-						)));
-
-		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
-
-		emailService.ifPresent(it -> sendEmail(launch, project, it));
+		getIntegrationHandler.findEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(), IntegrationGroupEnum.NOTIFICATION)
+				.ifPresent(emailIntegration -> mailServiceFactory.getDefaultEmailService(emailIntegration)
+						.ifPresent(it -> sendEmail(launch, project, it)));
 
 	}
 
@@ -137,7 +122,7 @@ public class LaunchFinishedEventHandler {
 	 * @param option SendCase option
 	 * @return TRUE of success rate is enough for notification
 	 */
-	static boolean isSuccessRateEnough(Launch launch, SendCase option) {
+	private static boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
 			case ALWAYS:
 				return true;
@@ -163,7 +148,7 @@ public class LaunchFinishedEventHandler {
 	 * @param oneCase Mail case
 	 * @return TRUE if launch name matched
 	 */
-	static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
+	private static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
 		Set<String> configuredNames = oneCase.getLaunchNames();
 		return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(launch.getName());
 	}
@@ -175,7 +160,7 @@ public class LaunchFinishedEventHandler {
 	 * @return TRUE if tags matched
 	 */
 	@VisibleForTesting
-	static boolean isAttributesMathced(Launch launch, Set<String> attributes) {
+	private static boolean isAttributesMatched(Launch launch, Set<String> attributes) {
 		return !(null != attributes && !attributes.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
 				.stream()
 				.map(ItemAttribute::getKey)
@@ -196,7 +181,7 @@ public class LaunchFinishedEventHandler {
 			SendCase sendCase = ec.getSendCase();
 			boolean successRate = isSuccessRateEnough(launch, sendCase);
 			boolean matchedNames = isLaunchNameMatched(launch, ec);
-			boolean matchedTags = isAttributesMathced(launch, ec.getLaunchAttributes());
+			boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributes());
 
 			Set<String> recipients = ec.getRecipients();
 			if (successRate && matchedNames && matchedTags) {

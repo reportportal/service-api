@@ -37,7 +37,7 @@ public final class EmailConfigConverter {
 		Preconditions.checkNotNull(model);
 		EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
 		resource.setLaunchNames(Lists.newArrayList(model.getLaunchNames()));
-		resource.setTags(Lists.newArrayList(model.getLaunchAttributes()));
+		resource.setAttributes(Lists.newArrayList(model.getLaunchAttributes()));
 		resource.setSendCase(model.getSendCase().getCaseString());
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
 		return resource;
@@ -45,7 +45,7 @@ public final class EmailConfigConverter {
 
 	public final static Function<EmailSenderCaseDTO, EmailSenderCase> TO_CASE_MODEL = resource -> {
 		EmailSenderCase emailSenderCase = new EmailSenderCase();
-		emailSenderCase.setLaunchAttributes(Sets.newHashSet(resource.getTags()));
+		emailSenderCase.setLaunchAttributes(Sets.newHashSet(resource.getAttributes()));
 		emailSenderCase.setLaunchNames(Sets.newHashSet(resource.getLaunchNames()));
 		emailSenderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
 		emailSenderCase.setSendCase(SendCase.findByName(resource.getSendCase())

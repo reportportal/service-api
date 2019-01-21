@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -38,16 +37,9 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.MapUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -74,14 +66,11 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 
 	private final AnalyzerStatusCache analyzerStatusCache;
 
-	private final AnalyzerServiceClient analyzerServiceClient;
+	private final AnalyzerServiceClient analyzerServicesClient;
 
 	private final LogRepository logRepository;
 
-	private final IssueTypeRepository issueTypeRepository;
-
-	@Autowired
-	private IssueTypeHandler issueTypeHandler;
+	private final IssueTypeHandler issueTypeHandler;
 
 	private final TestItemRepository testItemRepository;
 
@@ -89,44 +78,33 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 
 	private final LogIndexer logIndexer;
 
-	private static final Logger LOGGER = LogManager.getLogger(com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient.class.getSimpleName());
-
 	@Autowired
-	public IssuesAnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServiceClient,
-			LogRepository logRepository, IssueTypeRepository issueTypeRepository, TestItemRepository testItemRepository,
-			MessageBus messageBus, LogIndexer logIndexer) {
+	public IssuesAnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServicesClient,
+			LogRepository logRepository, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository, MessageBus messageBus,
+			LogIndexer logIndexer) {
 		this.analyzerStatusCache = analyzerStatusCache;
-		this.analyzerServiceClient = analyzerServiceClient;
+		this.analyzerServicesClient = analyzerServicesClient;
 		this.logRepository = logRepository;
-		this.issueTypeRepository = issueTypeRepository;
+		this.issueTypeHandler = issueTypeHandler;
 		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 	}
 
-	@Autowired
-	private PlatformTransactionManager transactionManager;
-
 	@Override
-	@Transactional
 	public Runnable analyze(Launch launch, AnalyzerConfig analyzerConfig) {
-		return () -> new TransactionTemplate(transactionManager).execute(new TransactionCallbackWithoutResult() {
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status) {
-				runAnalyzer(launch, analyzerConfig);
-			}
-		});
+		return () -> runAnalyzers(launch, analyzerConfig);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void runAnalyzer(Launch launch, AnalyzerConfig analyzerConfig) {
+	@Transactional
+	public void runAnalyzers(Launch launch, AnalyzerConfig analyzerConfig) {
 		if (launch != null) {
 			try {
 				analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
 				List<TestItem> toInvestigate = testItemRepository.selectItemsInIssueByLaunch(launch.getId(), TO_INVESTIGATE.getLocator());
 				List<IndexTestItem> indexTestItems = prepareItems(toInvestigate);
 				IndexLaunch rqLaunch = prepareLaunch(indexTestItems, launch, launch.getProjectId(), analyzerConfig);
-				Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServiceClient.analyze(rqLaunch);
+				Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rqLaunch);
 				if (!MapUtils.isEmpty(analyzedMap)) {
 					List<TestItem> updatedItems = analyzedMap.entrySet()
 							.stream()
@@ -144,7 +122,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 
 	@Override
 	public boolean hasAnalyzers() {
-		return analyzerServiceClient.hasClients();
+		return analyzerServicesClient.hasClients();
 	}
 
 	/**
@@ -190,13 +168,13 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	 * @return List of updated items
 	 */
 	private List<TestItem> updateTestItems(String analyzerInstance, List<AnalyzedItemRs> rs, List<TestItem> testItems, Long projectId) {
-
 		List<TestItem> updatedItems = rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
 				updateTestItemIssue(projectId, analyzed, testItem);
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem);
+				testItemRepository.save(testItem);
 				//				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance));
 				//				messageBus.publishActivity(new LinkTicketEvent(before, after, analyzerInstance));
 			});

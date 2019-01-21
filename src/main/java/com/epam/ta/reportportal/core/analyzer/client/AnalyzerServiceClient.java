@@ -27,6 +27,7 @@ import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -121,9 +122,11 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 	}
 
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, Exchange exchange) {
-		AsyncRabbitTemplate.RabbitConverterFuture<List<AnalyzedItemRs>> analyzed = asyncRabbitTemplate.convertSendAndReceive(exchange.getName(),
+		AsyncRabbitTemplate.RabbitConverterFuture<List<AnalyzedItemRs>> analyzed = asyncRabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
 				ANALYZE_ROUTE,
-				rq
+				rq,
+				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
+				}
 		);
 		analyzed.addCallback(analysedItemsCallback(rq, resultMap, exchange));
 	}

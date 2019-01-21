@@ -92,14 +92,15 @@ class DemoLogsService {
 	}
 
 	private void attachFile(Log log, Long projectId) {
-		saveAttachment(projectId).ifPresent(it -> {
+		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
+		saveAttachment(projectId, attachment).ifPresent(it -> {
 			log.setAttachment(it.getFileId());
 			log.setAttachmentThumbnail(it.getThumbnailFileId());
+			log.setContentType(attachment.getContentType());
 		});
 	}
 
-	private Optional<BinaryDataMetaInfo> saveAttachment(Long projectId) {
-		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
+	private Optional<BinaryDataMetaInfo> saveAttachment(Long projectId, Attachment attachment) {
 		try {
 			return dataStoreService.save(
 					projectId,

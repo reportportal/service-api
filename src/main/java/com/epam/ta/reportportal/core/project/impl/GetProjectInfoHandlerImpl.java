@@ -67,7 +67,8 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteria
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -238,12 +239,9 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 						CRITERIA_CREATION_DATE
 				)
 		));
-		List<Activity> activities = activityRepository.findByFilter(filter, PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC,
-				filter.getTarget()
-						.getCriteriaByFilter(CRITERIA_CREATION_DATE)
-						.orElseThrow(() -> new ReportPortalException(UNCLASSIFIED_REPORT_PORTAL_ERROR))
-						.getQueryCriteria()
-		))).getContent();
+		List<Activity> activities = activityRepository.findByFilter(filter,
+				PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE))
+		).getContent();
 
 		return Collections.singletonMap(RESULT, activities.stream().map(TO_RESOURCE).collect(toList()));
 	}

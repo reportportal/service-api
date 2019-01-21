@@ -20,8 +20,6 @@ import com.epam.ta.reportportal.commons.MoreCollectors;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.collect.Lists;
@@ -29,8 +27,9 @@ import com.google.common.collect.Lists;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Converts user from database to resource
@@ -65,13 +64,10 @@ public final class UserConverter {
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						return assignedProject;
 					}));
-			resource.setDefaultProject(user.getProjects()
-					.stream()
-					.filter(it -> Objects.equals(it.getProject().getId(), user.getDefaultProject().getId()))
-					.findFirst()
-					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND))
-					.getProject()
-					.getName());
+			ofNullable(user.getDefaultProject()).ifPresent(project -> {
+				resource.setDefaultProject(project.getName());
+			});
+
 			resource.setAssignedProjects(userProjects);
 		}
 		return resource;

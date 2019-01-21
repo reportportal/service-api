@@ -29,12 +29,11 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.DeleteLaunchesRS;
 import com.google.common.collect.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -56,21 +55,16 @@ import static java.util.Arrays.stream;
 @Service
 public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
 
-	private MessageBus messageBus;
+	private final LaunchRepository launchRepository;
 
-	private LaunchRepository launchRepository;
+	private final MessageBus messageBus;
 
-	//	private ILogIndexer logIndexer;
-
-	@Autowired
-	public void setMessageBus(MessageBus messageBus) {
+	public DeleteLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus) {
+		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 	}
 
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
+	//	private ILogIndexer logIndexer;
 
 	//	@Autowired
 	//	public void setLogIndexer(ILogIndexer logIndexer) {
@@ -115,7 +109,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 		//				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
 		//		));
 		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> new LaunchDeletedEvent(r, user.getUserId()));
+		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId())));
 		return new DeleteLaunchesRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 				notFound,
 				exceptions.stream().map(ex -> {
@@ -135,16 +129,19 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
-				FORBIDDEN_OPERATION,
-				formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
-		);
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
 		);
-		if (user.getUserRole() != UserRole.ADMINISTRATOR && !Objects.equals(user.getUsername(), launch.getUser().getLogin())) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
+			);
 			/* Only PROJECT_MANAGER roles could delete launches */
-			expect(projectDetails.getProjectRole(), equalTo(PROJECT_MANAGER)).verify(ACCESS_DENIED, launch.getId());
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
+						"You are not launch owner."
+				);
+			}
 		}
 	}
 }

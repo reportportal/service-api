@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.reportportal.extension.common.ExtensionPoint;
@@ -8,15 +24,16 @@ import com.epam.ta.reportportal.core.integration.util.property.ReportPortalInteg
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginException;
 import org.pf4j.PluginWrapper;
-import org.pf4j.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,8 +68,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder,
-			IntegrationTypeRepository integrationTypeRepository) {
+	public CreatePluginHandlerImpl(PluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder, IntegrationTypeRepository integrationTypeRepository) {
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
 		this.integrationTypeRepository = integrationTypeRepository;
@@ -61,16 +77,15 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	@Override
 	public EntryCreatedRS uploadPlugin(MultipartFile pluginFile) {
 
-		String pluginFileName = pluginFile.getOriginalFilename();
+		String newPluginFileName = pluginFile.getOriginalFilename();
+		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
-		BusinessRule.expect(pluginFileName, StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
+		final String pluginsTempPath = pluginsRootPath + PLUGIN_TEMP_DIRECTORY;
 
-		String pluginsTempPath = pluginsRootPath + PLUGIN_TEMP_DIRECTORY;
 		createTempPluginsFolderIfNotExists(pluginsTempPath);
+		resolveExtensionAndUploadTempPlugin(pluginFile, pluginsTempPath);
 
-		Path newPluginTempPath = Paths.get(pluginsTempPath, pluginFileName);
-		uploadTempPlugin(pluginFile, newPluginTempPath);
-
+		Path newPluginTempPath = Paths.get(pluginsTempPath, newPluginFileName);
 		String pluginId = extractPluginId(newPluginTempPath);
 
 		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(pluginId)
@@ -78,66 +93,46 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 						Suppliers.formattedSupplier("Unknown integration type - {} ", pluginId).get()
 				));
 
-		Optional<PluginWrapper> oldPlugin = pluginBox.getPluginById(pluginId);
-
-		oldPlugin.ifPresent(p -> {
-
-			if (!pluginBox.unloadPlugin(p.getPluginId())) {
-				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
-						Suppliers.formattedSupplier("Failed to stop old plugin with id = {}", p.getPluginId()).get()
-				);
-			}
-
-			integrationTypeRepository.deleteByName(p.getPluginId());
-		});
+		Optional<PluginWrapper> oldPlugin = retrieveOldPlugin(pluginId, newPluginFileName);
 
 		String newPluginId = pluginBox.loadPlugin(newPluginTempPath);
 
+		pluginBox.startUpPlugin(newPluginId);
+
 		if (ofNullable(newPluginId).isPresent()) {
 
-			if (!validateNewPlugin(newPluginId)) {
+			if (!validateNewPluginExtensionClasses(newPluginId)) {
 
 				pluginBox.unloadPlugin(newPluginId);
 				oldPlugin.ifPresent(this::reloadOldPlugin);
 				deleteTempPlugin(newPluginTempPath);
 
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("New plugin with id = {} is not valid.")
+						Suppliers.formattedSupplier("New plugin with id = {} doesn't have mandatory extension classes.")
 				);
 
 			}
 
 			pluginBox.unloadPlugin(newPluginId);
 
-			oldPlugin.ifPresent(p -> {
-				try {
-					Files.deleteIfExists(p.getPluginPath());
-				} catch (IOException e) {
-					reloadOldPlugin(p);
-
-					throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
-							Suppliers.formattedSupplier("Unable to delete the old plugin file with id = {}", p.getPluginId()).get()
-					);
-				}
-			});
-
 			try {
-				org.apache.commons.io.FileUtils.copyFile(new File(pluginsTempPath, pluginFileName),
-						new File(pluginsRootPath, pluginFileName)
+
+				org.apache.commons.io.FileUtils.copyFile(new File(pluginsTempPath, newPluginFileName),
+						new File(pluginsRootPath, newPluginFileName)
 				);
+
 			} catch (IOException e) {
 
 				oldPlugin.ifPresent(this::reloadOldPlugin);
 
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId)
-								.get()
+						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId).get()
 				);
 			}
 
-			deleteTempPlugin(newPluginTempPath);
+			oldPlugin.ifPresent(p -> deleteOldPlugin(p, newPluginFileName));
 
-			String newLoadedPluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginFileName));
+			String newLoadedPluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, newPluginFileName));
 			pluginBox.startUpPlugin(newLoadedPluginId);
 
 			IntegrationType integrationType = new IntegrationType();
@@ -147,6 +142,8 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			integrationTypeRepository.save(integrationType);
 
+			deleteTempPlugin(newPluginTempPath);
+
 			return new EntryCreatedRS(integrationType.getId());
 
 		} else {
@@ -154,7 +151,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			oldPlugin.ifPresent(this::reloadOldPlugin);
 
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("Failed to load new plugin from file = {}", pluginFileName).get()
+					Suppliers.formattedSupplier("Failed to load new plugin from file = {}", newPluginFileName).get()
 			);
 		}
 
@@ -173,7 +170,24 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		}
 	}
 
-	private void uploadTempPlugin(MultipartFile pluginFile, Path pluginPath) {
+	/**
+	 * Resolve file type and upload it to the temporary plugins directory.
+	 * If successful returns file extension
+	 *
+	 * @param pluginFile Plugin file to upload
+	 * @return {@link PluginFileExtension#extension}
+	 */
+	private String resolveExtensionAndUploadTempPlugin(MultipartFile pluginFile, String pluginsTempPath) {
+
+		String resolvedExtension = FilenameUtils.getExtension(pluginFile.getOriginalFilename());
+
+		PluginFileExtension pluginFileExtension = PluginFileExtension.findByExtension("." + resolvedExtension)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
+				));
+
+		Path pluginPath = Paths.get(pluginsTempPath, pluginFile.getOriginalFilename());
+
 		try {
 
 			Files.copy(pluginFile.getInputStream(), pluginPath, StandardCopyOption.REPLACE_EXISTING);
@@ -186,15 +200,8 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			);
 		}
 
-		if (!FileUtils.isJarFile(pluginPath) && !FileUtils.isZipFile(pluginPath)) {
-			try {
-				Files.deleteIfExists(pluginPath);
-			} catch (IOException e) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"An error occurred during removing - " + pluginFile.getOriginalFilename()
-				);
-			}
-		}
+		return pluginFileExtension.getExtension();
+
 	}
 
 	private String extractPluginId(Path pluginPath) {
@@ -212,21 +219,65 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private void reloadOldPlugin(PluginWrapper oldPlugin) {
 		pluginBox.startUpPlugin(ofNullable(pluginBox.loadPlugin(oldPlugin.getPluginPath())).orElseThrow(() -> new ReportPortalException(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION)));
+				ErrorType.PLUGIN_UPLOAD_ERROR,
+				Suppliers.formattedSupplier("Unable to load old plugin with id = '{}", oldPlugin.getPluginId()).get()
+		)));
 	}
 
-	private boolean validateNewPlugin(String newPluginId) {
+	private boolean validateNewPluginExtensionClasses(String newPluginId) {
 
 		PluginWrapper newPlugin = pluginBox.getPluginById(newPluginId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Plugin with id = {} has not been found.").get()
+						Suppliers.formattedSupplier("Plugin with id = {} has not been found.", newPluginId).get()
 				));
 
-		return newPlugin.getPluginManager()
-				.getExtensionClasses(newPluginId)
-				.stream()
-				.map(ExtensionPoint::findByExtension)
-				.anyMatch(Optional::isPresent);
+		return newPlugin.getPluginManager().getExtensionClasses(newPluginId).stream().map(ExtensionPoint::findByExtension).anyMatch(Optional::isPresent);
+	}
+
+	private Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginName) {
+
+		Optional<PluginWrapper> oldPlugin = pluginBox.getPluginById(newPluginId);
+
+		oldPlugin.ifPresent(p -> {
+
+			if (!pluginBox.unloadPlugin(p.getPluginId())) {
+				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
+						Suppliers.formattedSupplier("Failed to stop old plugin with id = {}", p.getPluginId()).get()
+				);
+			}
+
+			integrationTypeRepository.deleteByName(p.getPluginId());
+		});
+
+		validateNewPluginFile(oldPlugin, newPluginName);
+
+		return oldPlugin;
+	}
+
+	private void validateNewPluginFile(Optional<PluginWrapper> oldPlugin, String newPluginName) {
+		if (new File(pluginsRootPath, newPluginName).exists()) {
+
+			if (!oldPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginName).equals(oldPlugin.get().getPluginPath())) {
+				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with the different plugin type", newPluginName).get()
+				);
+			}
+		}
+	}
+
+	private void deleteOldPlugin(PluginWrapper pluginWrapper, String newPluginFileName) {
+		if (!pluginWrapper.getPluginPath().equals(Paths.get(pluginsRootPath, newPluginFileName))) {
+			try {
+				Files.deleteIfExists(pluginWrapper.getPluginPath());
+			} catch (IOException e) {
+
+				reloadOldPlugin(pluginWrapper);
+
+				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
+						Suppliers.formattedSupplier("Unable to delete the old plugin file with id = {}", pluginWrapper.getPluginId()).get()
+				);
+			}
+		}
 	}
 
 	private void deleteTempPlugin(Path tempPluginPath) {
@@ -235,11 +286,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			Files.deleteIfExists(tempPluginPath);
 
 		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
-					Suppliers.formattedSupplier("Unable to delete the new plugin file from the directory = {}",
-							tempPluginPath.getParent().toString()
-					)
-			);
+			//error during temp plugin is not crucial, temp files cleaning will be delegated to //TODO impl Quartz job to clean temp files
 		}
 	}
 }

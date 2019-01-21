@@ -87,8 +87,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails,
-			UpdateIntegrationRQ updateRequest, ReportPortalUser user) {
+	public OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
+			ReportPortalUser user) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));

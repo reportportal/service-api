@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
@@ -122,6 +123,16 @@ public class ProjectController {
 	}
 
 	@Transactional
+	@DeleteMapping
+	@ResponseStatus(OK)
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
+	public Iterable<OperationCompletionRS> deleteProject(@RequestBody @Validated BulkRQ<DeleteProjectRQ> deleteProjectsBulkRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProjects(deleteProjectsBulkRQ);
+	}
+
+	@Transactional
 	@DeleteMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
@@ -162,7 +173,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProject(EntityUtils.normalizeId(projectName));
+		return projectHandler.getProject(EntityUtils.normalizeId(projectName), user);
 	}
 
 	@Transactional

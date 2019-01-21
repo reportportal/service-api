@@ -56,7 +56,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
-		integrationRepository.deleteAllByTypeId(integration.getType().getId());
+		integrationRepository.deleteById(integration.getId());
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Integrations with type = {} have been successfully removed",
 				integration.getType().getIntegrationGroup()
@@ -77,7 +77,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 
-		integrationRepository.delete(integration);
+		integrationRepository.deleteById(integration.getId());
 
 		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' has been successfully deleted.");
@@ -87,7 +87,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 	public OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Integration> integrations = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
 		if (!CollectionUtils.isEmpty(integrations)) {
-			integrationRepository.deleteAll(integrations);
+			integrationRepository.deleteInBatch(integrations);
 		}
 		integrations.stream()
 				.map(TO_ACTIVITY_RESOURCE)

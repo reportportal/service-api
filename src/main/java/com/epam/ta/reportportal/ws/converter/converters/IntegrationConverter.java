@@ -55,8 +55,10 @@ public final class IntegrationConverter {
 	public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE = integration -> {
 		IntegrationActivityResource resource = new IntegrationActivityResource();
 		resource.setId(integration.getId());
-		resource.setProjectId(integration.getProject().getId());
-		resource.setProjectName(integration.getProject().getName());
+		ofNullable(integration.getProject()).ifPresent(p -> {
+			resource.setProjectId(p.getId());
+			resource.setProjectName(p.getName());
+		});
 		resource.setTypeName(integration.getType().getName());
 		return resource;
 	};

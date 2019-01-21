@@ -30,14 +30,12 @@ import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -84,12 +82,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		verifyTestItem(user,
-				testItem,
-				fromValue(finishExecutionRQ.getStatus()),
-				finishExecutionRQ.getAttributes(),
-				testItem.isHasChildren()
-		);
+		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());
 
 		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(),
 				testItem,
@@ -158,8 +151,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
-			Set<ItemAttributeResource> attributes, boolean hasChildren) {
+	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
 		Launch launch;
 		if (ofNullable(testItem.getRetryOf()).isPresent()) {
 			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())

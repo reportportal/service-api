@@ -51,6 +51,7 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -58,14 +59,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -91,6 +92,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final MessageBus messageBus;
 
+	@Autowired
 	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
 			TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, StatusChangeTestItemHandler statusChangeTestItemHandler,
 			MessageBus messageBus) {
@@ -157,14 +159,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
 		validateAttributes(rq.getAttributes());
+		validate(projectDetails, user, testItem);
 
 		Optional<StatusEnum> statusEnum = StatusEnum.fromValue(rq.getStatus());
-
 		if (statusEnum.isPresent()) {
+			expect(testItem.getItemResults().getStatus(), not(equalTo(StatusEnum.IN_PROGRESS))).verify(BAD_REQUEST_ERROR,
+					"Unable to change status on not finished test item"
+			);
 			statusChangeTestItemHandler.changeStatus(testItem, statusEnum.get(), user, projectDetails);
 		}
-
-		validate(projectDetails, user, testItem);
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
 		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
@@ -267,13 +270,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem       Test Item
 	 */
 	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
-		Launch launch = testItem.getLaunch();
+		Launch launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ErrorType.ACCESS_DENIED,
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
+					ACCESS_DENIED,
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(ErrorType.ACCESS_DENIED,
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(
+						ACCESS_DENIED,
 						"You are not a launch owner."
 				);
 			}

@@ -155,7 +155,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public EmailService getDefaultEmailService(Integration integration, boolean checkConnection) {
+	public EmailService getEmailService(Integration integration, boolean checkConnection) {
 
 		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 

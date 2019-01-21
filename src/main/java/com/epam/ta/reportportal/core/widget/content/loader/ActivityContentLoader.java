@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
@@ -30,24 +29,24 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -73,32 +72,24 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		validateFilterSortMapping(filterSortMapping);
 
-		validateWidgetOptions(widgetOptions);
-
 		validateContentFields(contentFields);
-
-		final List<String> logins = Arrays.stream(WidgetOptionUtil.getValueByKey(USER, widgetOptions).split(","))
-				.map(String::trim)
-				.collect(Collectors.toList());
-		logins.forEach(it -> userRepository.findByLogin(it)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, "User with login " + it + " was not found")));
-
-		final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get("actionType");
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, logins), USER))
-				.withCondition(new FilterCondition(Condition.IN,
-						false,
-						String.join(CONTENT_FIELDS_DELIMITER, actionTypes),
-						CRITERIA_ACTION
-				));
+		ofNullable(widgetOptions).ifPresent(wo -> modifyFilterWithUserCriteria(filter, wo));
+
+		final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get(ACTION_TYPE);
+
+		BusinessRule.expect(actionTypes, CollectionUtils::isNotEmpty)
+				.verify(ErrorType.BAD_REQUEST_ERROR, "At least 1 action type should be provided.");
+
+		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes), CRITERIA_ACTION));
 
 		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
-		return activityContents.isEmpty() ? Collections.emptyMap() : singletonMap(RESULT, activityContents);
+		return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
 	}
 
 	/**
@@ -125,13 +116,26 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	}
 
 	/**
-	 * Validate provided widget options. For current widget user login should be specified for activity tracking.
+	 * Add username criteria for the filter if there are any username options in the {@link WidgetOptions#options}
 	 *
-	 * @param widgetOptions Map of stored widget options.
+	 * @param filter        {@link Filter}
+	 * @param widgetOptions {@link WidgetOptions}
 	 */
-	private void validateWidgetOptions(WidgetOptions widgetOptions) {
-		BusinessRule.expect(WidgetOptionUtil.getValueByKey(USER, widgetOptions), StringUtils::isNotBlank)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, USER + " should be specified for widget.");
+	private void modifyFilterWithUserCriteria(Filter filter, WidgetOptions widgetOptions) {
+
+		ofNullable(widgetOptions.getOptions()).ifPresent(wo -> ofNullable(wo.get(USER)).ifPresent(users -> {
+			Set<String> usernameCriteria = Arrays.stream(String.valueOf(users).split(CONTENT_FIELDS_DELIMITER))
+					.map(String::trim)
+					.collect(Collectors.toSet());
+
+			usernameCriteria.forEach(username -> userRepository.findByLogin(username)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
+							"User with login " + username + " was not found"
+					)));
+
+			filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, usernameCriteria), USER));
+
+		}));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.project.DeleteProjectRQ;
+
+import java.util.List;
 
 /**
  * Delete {@link com.epam.ta.reportportal.entity.project.Project} request handler
@@ -42,4 +46,12 @@ public interface DeleteProjectHandler {
 	 * @param username    User name
 	 */
 	OperationCompletionRS deleteProjectIndex(String projectName, String username);
+
+	/**
+	 * Bulk delete projects operation.
+	 *
+	 * @param deleteProjectBulkRQ Bulk request
+	 * @return The {@link List} of the {@link OperationCompletionRS}
+	 */
+	List<OperationCompletionRS> deleteProjects(BulkRQ<DeleteProjectRQ> deleteProjectBulkRQ);
 }

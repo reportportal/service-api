@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusCon
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Configuration related to widgets.
@@ -59,7 +61,7 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.OLD_LINE_CHART, applicationContext.getBean(LineChartContentLoader.class))
 				.put(WidgetType.INVESTIGATED_TREND, applicationContext.getBean(ChartInvestigatedContentLoader.class))
 				.put(WidgetType.STATISTIC_TREND, applicationContext.getBean(LineChartContentLoader.class))
-				.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(LaunchStatisticsChartContentLoader.class))
+				.put(WidgetType.LAUNCH_STATISTICS, applicationContext.getBean(LaunchExecutionAndIssueStatisticsContentLoader.class))
 				.put(WidgetType.CASES_TREND, applicationContext.getBean(CasesTrendContentLoader.class))
 				.put(WidgetType.NOT_PASSED, applicationContext.getBean(NotPassedTestsContentLoader.class))
 				.put(WidgetType.UNIQUE_BUG_TABLE, applicationContext.getBean(UniqueBugContentLoader.class))
@@ -127,6 +129,16 @@ public class WidgetConfig implements ApplicationContextAware {
 		)
 				.put(InfoInterval.THREE_MONTHS, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_WEEK)
 				.put(InfoInterval.SIX_MONTHS, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_WEEK)
+				.build();
+	}
+
+	@Bean("unfilteredWidgetTypes")
+	public Set<WidgetType> unfilteredWidgetTypes() {
+		return ImmutableSet.<WidgetType>builder().add(WidgetType.ACTIVITY)
+				.add(WidgetType.TOP_TEST_CASES)
+				.add(WidgetType.PASSING_RATE_PER_LAUNCH)
+				.add(WidgetType.MOST_TIME_CONSUMING)
+				.add(WidgetType.FLAKY_TEST_CASES)
 				.build();
 	}
 

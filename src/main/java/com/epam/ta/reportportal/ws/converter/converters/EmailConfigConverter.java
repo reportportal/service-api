@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -12,9 +11,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -25,10 +25,12 @@ public final class EmailConfigConverter {
 		//static only
 	}
 
-	public final static BiFunction<Set<ProjectAttribute>, Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = (pa, es) -> {
+	public final static Function<Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = es -> {
 		ProjectEmailConfigDTO dto = new ProjectEmailConfigDTO();
 
-		dto.setEmailCases(es.stream().map(EmailConfigConverter.TO_CASE_RESOURCE).collect(Collectors.toList()));
+		ofNullable(es).ifPresent(senderCases -> dto.setEmailCases(senderCases.stream()
+				.map(EmailConfigConverter.TO_CASE_RESOURCE)
+				.collect(Collectors.toList())));
 
 		return dto;
 	};

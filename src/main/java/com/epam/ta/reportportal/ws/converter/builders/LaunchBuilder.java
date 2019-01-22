@@ -62,11 +62,8 @@ public class LaunchBuilder implements Supplier<Launch> {
 		launch.setStatus(StatusEnum.IN_PROGRESS);
 		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		addDescription(request.getDescription());
-		if (request.getMode() != null) {
-			launch.setMode(LaunchModeEnum.findByName(request.getMode().name()).orElse(LaunchModeEnum.DEFAULT));
-		} else {
-			launch.setMode(LaunchModeEnum.DEFAULT);
-		}
+		launch.setMode(LaunchModeEnum.findByName(ofNullable(request.getMode()).map(Enum::name).orElse(LaunchModeEnum.DEFAULT.name()))
+				.orElse(LaunchModeEnum.DEFAULT));
 		return this;
 	}
 
@@ -109,7 +106,9 @@ public class LaunchBuilder implements Supplier<Launch> {
 	public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
 		if (attributes != null) {
 			final Set<ItemAttribute> overwrittenAttributes = launch.getAttributes()
-					.stream().filter(ItemAttribute::isSystem).collect(Collectors.toSet());
+					.stream()
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet());
 			attributes.stream().map(val -> {
 				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 				itemAttribute.setLaunch(launch);

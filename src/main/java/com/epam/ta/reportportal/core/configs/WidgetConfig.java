@@ -73,7 +73,7 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.TOP_TEST_CASES, applicationContext.getBean(TopTestCasesContentLoader.class))
 				.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRatePerLaunchContentLoader.class))
 				.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(ProductStatusContentLoaderManager.class))
-				//		.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class));
+				.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class))
 				.put(WidgetType.MOST_TIME_CONSUMING, applicationContext.getBean(MostTimeConsumingContentLoader.class))
 				.build();
 	}
@@ -94,7 +94,7 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.PASSING_RATE_SUMMARY,
 						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 				)
-				//		.put(WidgetType.CUMULATIVE, applicationContext.getBean(GeneralStatisticsFilterStrategy.class));
+				.put(WidgetType.CUMULATIVE, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"))
 				.put(WidgetType.PRODUCT_STATUS, (ProductStatusFilterStrategy) applicationContext.getBean("productStatusFilterStrategy"))
 				.put(WidgetType.UNIQUE_BUG_TABLE, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"))
 				.put(WidgetType.ACTIVITY, (ActivityFilterStrategy) applicationContext.getBean("activityFilterStrategy"))

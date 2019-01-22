@@ -19,11 +19,14 @@ package com.epam.ta.reportportal.core.user;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -85,4 +88,14 @@ public interface GetUserHandler {
 	 * @return Page of {@link UserResource}
 	 */
 	Iterable<UserResource> getAllUsers(Queryable filter, Pageable pageable);
+
+	/**
+	 * Export Users info according to the {@link ReportFormat} type
+	 *
+	 * @param reportFormat {@link ReportFormat}
+	 * @param filter       {@link Filter}
+	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
+	 * @param pageable     {@link Pageable}
+	 */
+	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable);
 }

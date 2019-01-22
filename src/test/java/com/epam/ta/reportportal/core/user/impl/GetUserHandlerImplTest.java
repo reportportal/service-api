@@ -75,9 +75,4 @@ public class GetUserHandlerImplTest {
 
 		handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L));
 	}
-
-	@Test
-	public void name() {
-
-	}
 }

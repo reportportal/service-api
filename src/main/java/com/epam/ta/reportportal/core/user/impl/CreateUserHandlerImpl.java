@@ -120,9 +120,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	@Override
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser creator, String basicUrl) {
 		User administrator = userRepository.findByLogin(creator.getUsername())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-						Suppliers.formattedSupplier("Administrator with login - {} was not found.", creator.getUsername())
-				));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, creator.getUsername()));
 
 		expect(administrator.getRole(), equalTo(UserRole.ADMINISTRATOR)).verify(ACCESS_DENIED,
 				Suppliers.formattedSupplier("Only administrator can create new user. Your role is - {}", administrator.getRole())
@@ -234,7 +232,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		// synchronized (this)
 		Project defaultProject = projectRepository.findByName(bid.getDefaultProject().getName())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, bid.getDefaultProject()));
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, bid.getDefaultProject().getName()));
 
 		// populate field from existing bid record
 		request.setDefaultProject(bid.getDefaultProject().getName());

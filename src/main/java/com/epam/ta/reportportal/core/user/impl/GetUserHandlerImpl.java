@@ -84,7 +84,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public UserResource getUser(String username, ReportPortalUser loggedInUser) {
 
 		User user = userRepository.findByLogin(username.toLowerCase())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 		return UserConverter.TO_RESOURCE.apply(user);
 	}
 

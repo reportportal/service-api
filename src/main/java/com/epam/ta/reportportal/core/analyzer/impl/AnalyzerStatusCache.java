@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -37,7 +35,6 @@ public class AnalyzerStatusCache {
 	private static final int MAXIMUM_SIZE = 10000;
 
 	private Cache<Long, Long> analyzerStatus;
-	private static final Logger LOGGER = LogManager.getLogger(AnalyzerStatusCache.class.getSimpleName());
 
 	public AnalyzerStatusCache() {
 		analyzerStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
@@ -48,7 +45,6 @@ public class AnalyzerStatusCache {
 	}
 
 	public void analyzeFinished(Long launchId) {
-		LOGGER.error("I am invalidating analyzer status cache");
 		analyzerStatus.invalidate(launchId);
 	}
 

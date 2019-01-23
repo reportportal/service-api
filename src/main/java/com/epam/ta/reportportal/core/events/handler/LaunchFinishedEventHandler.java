@@ -16,14 +16,20 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
+import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -35,7 +41,10 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.util.integration.email.EmailIntegrationUtil;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
@@ -79,24 +89,52 @@ public class LaunchFinishedEventHandler {
 	private LaunchRepository launchRepository;
 
 	@Autowired
+	private LogIndexer logIndexer;
+
+	@Autowired
+	private IssuesAnalyzer issuesAnalyzer;
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
 	private Provider<HttpServletRequest> currentRequest;
 
 	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
-		//TODO: retries and analyzer handlers should be added according to existed logic.
-
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
+
 		if (LaunchModeEnum.DEBUG == launch.getMode()) {
 			return;
 		}
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
+
+		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+		logIndexer.indexLogs(Lists.newArrayList(launch.getId()), analyzerConfig);
+
 		Integration emailIntegration = EmailIntegrationUtil.getEmailIntegration(project)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, EmailIntegrationUtil.EMAIL));
 		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
-		emailService.ifPresent(it -> sendEmail(launch, project, it));
+		if (!BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
+			emailService.ifPresent(it -> sendEmail(launch, project, it));
+			return;
+		}
+
+		if (issuesAnalyzer.hasAnalyzers()) {
+			List<Long> testItems = testItemRepository.selectItemsInIssueByLaunch(launch.getId(),
+					TestItemIssueGroup.TO_INVESTIGATE.getLocator()
+			).stream().map(TestItem::getItemId).collect(toList());
+			CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch, testItems, analyzerConfig);
+
+			analyze.thenAccept(res -> {
+				Launch updatedLanch = launchRepository.findById(launch.getId())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
+				emailService.ifPresent(it -> sendEmail(updatedLanch, project, it));
+			});
+		}
 
 	}
 
@@ -156,7 +194,8 @@ public class LaunchFinishedEventHandler {
 	@VisibleForTesting
 	static boolean isTagsMatched(Launch launch, List<String> tags) {
 		return !(null != tags && !tags.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
-				.stream().map(ItemAttribute::getValue)
+				.stream()
+				.map(ItemAttribute::getValue)
 				.collect(toList())
 				.containsAll(tags);
 	}

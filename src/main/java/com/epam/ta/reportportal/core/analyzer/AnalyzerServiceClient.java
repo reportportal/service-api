@@ -18,11 +18,9 @@ package com.epam.ta.reportportal.core.analyzer;
 
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Rabbit client for all log indexing/analysis services. Such services are those that have
@@ -54,10 +52,10 @@ public interface AnalyzerServiceClient {
 	/**
 	 * Index list of launches
 	 *
-	 * @param rq Launch
-	 * @return Indexing result
+	 * @param rq Launches
+	 * @return Count of indexed test items
 	 */
-	List<CompletableFuture<IndexRs>> index(List<IndexLaunch> rq);
+	Long index(List<IndexLaunch> rq);
 
 	/**
 	 * Analyze launch

@@ -31,6 +31,8 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 
 	private Long attachedBy;
 
+	private String nameAttachedBy;
+
 	public LinkTicketEvent() {
 	}
 
@@ -43,6 +45,17 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 		this.attachedBy = attachedBy;
 	}
 
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String nameAttachedBy) {
+		super(before, after);
+		this.nameAttachedBy = nameAttachedBy;
+	}
+
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy, String nameAttachedBy) {
+		super(before, after);
+		this.attachedBy = attachedBy;
+		this.nameAttachedBy = nameAttachedBy;
+	}
+
 	public Long getAttachedBy() {
 		return attachedBy;
 	}
@@ -53,6 +66,7 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
 				.addActivityEntityType(TICKET)
 				.addUserId(attachedBy)
+				.addUserName(nameAttachedBy)
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId());

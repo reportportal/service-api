@@ -33,9 +33,9 @@ import org.springframework.util.CollectionUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_SUPPORT_INDEX;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -65,31 +65,26 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 	}
 
 	@Override
-	public List<CompletableFuture<IndexRs>> index(List<IndexLaunch> rq) {
-		return null;
-		//		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
-		//				.stream()
-		//				.filter(DOES_SUPPORT_INDEX)
-		//				.flatMap(exchange -> rq.stream()
-		//						.map(indexLaunch -> asyncRabbitTemplate.<IndexRs>convertSendAndReceive(exchange.getName(),
-		//								INDEX_ROUTE,
-		//								indexLaunch
-		//						)))
-		//				.map(future -> {
-		//					CompletableFuture<IndexRs> indexed = new CompletableFuture<>();
-		//					future.addCallback(indexedLaunchCallback(indexed));
-		//					return indexed;
-		//				})
-		//				.collect(Collectors.toList());
+	public Long index(List<IndexLaunch> rq) {
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.flatMap(exchange -> rq.stream()
+						.map(indexLaunch -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+								INDEX_ROUTE,
+								indexLaunch,
+								new ParameterizedTypeReference<IndexRs>() {
+								}
+						)))
+				.mapToLong(it -> it.getItems().size())
+				.sum();
 	}
 
 	@Override
 	public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
-		LOGGER.error("I am in async supplier!!");
 		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo();
 		Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
 		analyzerExchanges.forEach(exchange -> analyze(rq, resultMap, exchange));
-		LOGGER.error("I am returning result map size of " + resultMap.size());
 		return resultMap;
 	}
 

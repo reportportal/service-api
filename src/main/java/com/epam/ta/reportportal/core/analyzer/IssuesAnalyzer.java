@@ -19,6 +19,9 @@ package com.epam.ta.reportportal.core.analyzer;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Service for issue type analysis based on historical data.
  *
@@ -32,9 +35,10 @@ public interface IssuesAnalyzer {
 	 * Indexes investigated issues as well.
 	 *
 	 * @param launch         - Initial launch for history
+	 * @param testItemIds    - Prepared ids of test item for analyzing
 	 * @param analyzerConfig - Analyze mode
 	 */
-	Runnable analyze(Launch launch, AnalyzerConfig analyzerConfig);
+	CompletableFuture<Void> analyze(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
 
 	/**
 	 * Checks if any analyzer is available

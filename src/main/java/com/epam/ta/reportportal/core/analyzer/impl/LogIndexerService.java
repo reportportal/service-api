@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,34 +22,29 @@ import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
-import static java.util.stream.Collectors.summarizingLong;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -67,64 +62,36 @@ public class LogIndexerService implements LogIndexer {
 
 	private final LogRepository logRepository;
 
-	private final ProjectRepository projectRepository;
-
-	private final MailServiceFactory mailServiceFactory;
-
 	@Autowired
 	public LogIndexerService(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			AnalyzerServiceClient analyzerServiceClient, LogRepository logRepository, ProjectRepository projectRepository,
-			MailServiceFactory mailServiceFactory) {
+			AnalyzerServiceClient analyzerServiceClient, LogRepository logRepository) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.logRepository = logRepository;
-		this.projectRepository = projectRepository;
-		this.mailServiceFactory = mailServiceFactory;
 	}
 
 	@Override
 	public void indexLog(Log log) {
-		IndexLaunch rq = createRqLaunch(log);
-		if (rq != null) {
-			analyzerServiceClient.index(Collections.singletonList(rq));
-		}
+		CompletableFuture.runAsync(() -> {
+			IndexLaunch rq = createRqLaunch(log);
+			if (rq != null) {
+				analyzerServiceClient.index(Collections.singletonList(rq));
+			}
+		});
 	}
 
 	@Override
-	public CompletableFuture<Long> indexLogs(Long launchId, List<TestItem> testItems) {
-		CompletableFuture<Long> result = new CompletableFuture<>();
-		Launch launch = launchRepository.findById(launchId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
-			if (!CollectionUtils.isEmpty(rqTestItems)) {
-				IndexLaunch rqLaunch = new IndexLaunch();
-				rqLaunch.setLaunchId(launchId);
-				rqLaunch.setLaunchName(launch.getName());
-				rqLaunch.setProjectId(launch.getProjectId());
-				Project project = projectRepository.findById(launch.getProjectId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
-				rqLaunch.setAnalyzerConfig(getAnalyzerConfig(project));
-				rqLaunch.setTestItems(rqTestItems);
-
-				result.complete(analyzerServiceClient.index(Collections.singletonList(rqLaunch))
-						.stream()
-						.collect(summarizingLong(f -> f.exceptionally(ex -> {
-							result.completeExceptionally(ex);
-							throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
-						}).join().getItems().size()))
-						.getSum());
-
-				/*CompletableFuture.allOf(results.stream().toArray((IntFunction<CompletableFuture<IndexRs>[]>) CompletableFuture[]::new))
-						.thenApply(() -> results.stream().flatMap(f -> f.join().getItems().stream().collect(summ)));*/
-
-				return result;
-
+	public CompletableFuture<Long> indexLogs(List<Long> launchIds, AnalyzerConfig analyzerConfig) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				List<IndexLaunch> indexLaunches = prepareLaunches(launchIds, analyzerConfig);
+				return analyzerServiceClient.index(indexLaunches);
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				throw new ReportPortalException(e.getMessage());
 			}
-		}
-		result.complete(0L);
-		return result;
+		});
 	}
 
 	@Override
@@ -134,25 +101,7 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
-		analyzerServiceClient.cleanIndex(index, ids);
-	}
-
-	@Override
-	public void indexProjectData(Project project, User user) {
-		List<Long> launchIds = launchRepository.findLaunchIdsByProjectId(project.getId());
-		List<CompletableFuture<Long>> result = new ArrayList<>();
-		launchIds.forEach(id -> {
-			List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(id, TestItemIssueGroup.TO_INVESTIGATE.getValue());
-			result.add(indexLogs(id, testItemRepository.findAllById(itemIds)));
-		});
-		long sum = result.stream().mapToLong(f -> {
-			try {
-				return f.get();
-			} catch (InterruptedException | ExecutionException e) {
-				throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR);
-			}
-		}).sum();
-		mailServiceFactory.getDefaultEmailService(true).sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), sum);
+		CompletableFuture.runAsync(() -> analyzerServiceClient.cleanIndex(index, ids));
 	}
 
 	/**
@@ -192,6 +141,36 @@ public class LogIndexerService implements LogIndexer {
 	 */
 	private boolean isLevelSuitable(Log log) {
 		return null != log && null != log.getLogLevel() && log.getLogLevel() >= LogLevel.ERROR.toInt();
+	}
+
+	/**
+	 * Prepare launches for indexing
+	 *
+	 * @param launchIds      - Launches id to be prepared
+	 * @param analyzerConfig - Analyzer config
+	 * @return List of prepared launches for indexing
+	 */
+	private List<IndexLaunch> prepareLaunches(List<Long> launchIds, AnalyzerConfig analyzerConfig) {
+		return launchIds.stream().map(launchId -> {
+			Launch launch = launchRepository.findById(launchId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+			if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
+				List<TestItem> testItems = testItemRepository.selectIdsNotInIssueByLaunch(launchId,
+						TestItemIssueGroup.TO_INVESTIGATE.getValue()
+				);
+				List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
+				if (!CollectionUtils.isEmpty(rqTestItems)) {
+					IndexLaunch rqLaunch = new IndexLaunch();
+					rqLaunch.setLaunchId(launchId);
+					rqLaunch.setLaunchName(launch.getName());
+					rqLaunch.setProjectId(launch.getProjectId());
+					rqLaunch.setAnalyzerConfig(analyzerConfig);
+					rqLaunch.setTestItems(rqTestItems);
+					return rqLaunch;
+				}
+			}
+			return null;
+		}).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
 	/**

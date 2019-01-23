@@ -99,6 +99,11 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	}
 
 	@Override
+	public boolean hasAnalyzers() {
+		return analyzerServicesClient.hasClients();
+	}
+
+	@Override
 	public CompletableFuture<Void> analyze(Launch launch, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.runAsync(() -> runAnalyzers(launch, itemIds, analyzerConfig));
 	}
@@ -108,16 +113,12 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 		if (launch != null) {
 			try {
 				analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
+
 				List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
-				List<IndexTestItem> indexTestItems = prepareItems(toAnalyze);
-				IndexLaunch rqLaunch = prepareLaunch(indexTestItems, launch, launch.getProjectId(), analyzerConfig);
-				Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rqLaunch);
-				if (!MapUtils.isEmpty(analyzedMap)) {
-					analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
-					logIndexer.indexLogs(Collections.singletonList(launch.getId()), analyzerConfig);
-				}
+				Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
+				rqLaunch.ifPresent(rq -> analyzeLaunch(launch, analyzerConfig, toAnalyze, rq));
+
 			} catch (Exception e) {
-				//messageBus.sendErrorMessageToUI
 				LOGGER.error(e.getMessage(), e);
 			} finally {
 				analyzerStatusCache.analyzeFinished(launch.getId());
@@ -125,9 +126,26 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 		}
 	}
 
-	@Override
-	public boolean hasAnalyzers() {
-		return analyzerServicesClient.hasClients();
+	/**
+	 * Create an {@link IndexLaunch} object to be sent to analyzers
+	 *
+	 * @param launch         Launch to be created from
+	 * @param analyzerConfig Analyzer config
+	 * @param toAnalyze      Items to be analyzed
+	 * @return Optional of {@link IndexLaunch}
+	 */
+	private Optional<IndexLaunch> prepareLaunch(Launch launch, AnalyzerConfig analyzerConfig, List<TestItem> toAnalyze) {
+		List<IndexTestItem> indexTestItems = prepareItems(toAnalyze);
+		if (!indexTestItems.isEmpty()) {
+			IndexLaunch rqLaunch = new IndexLaunch();
+			rqLaunch.setLaunchId(launch.getId());
+			rqLaunch.setLaunchName(launch.getName());
+			rqLaunch.setProjectId(launch.getProjectId());
+			rqLaunch.setAnalyzerConfig(analyzerConfig);
+			rqLaunch.setTestItems(indexTestItems);
+			return Optional.of(rqLaunch);
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -148,17 +166,20 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 				.collect(Collectors.toList());
 	}
 
-	private IndexLaunch prepareLaunch(List<IndexTestItem> rqTestItems, Launch launch, Long projectId, AnalyzerConfig analyzerConfig) {
-		if (!rqTestItems.isEmpty()) {
-			IndexLaunch rqLaunch = new IndexLaunch();
-			rqLaunch.setLaunchId(launch.getId());
-			rqLaunch.setLaunchName(launch.getName());
-			rqLaunch.setProjectId(projectId);
-			rqLaunch.setAnalyzerConfig(analyzerConfig);
-			rqLaunch.setTestItems(rqTestItems);
-			return rqLaunch;
+	/**
+	 * Run analyzing for a concrete launch
+	 *
+	 * @param launch         Launch
+	 * @param analyzerConfig Analyze config
+	 * @param toAnalyze      Items to analyze
+	 * @param rq             Prepared rq for sending to analyzers
+	 */
+	private void analyzeLaunch(Launch launch, AnalyzerConfig analyzerConfig, List<TestItem> toAnalyze, IndexLaunch rq) {
+		Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
+		if (!MapUtils.isEmpty(analyzedMap)) {
+			analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
+			logIndexer.indexLogs(Collections.singletonList(launch.getId()), analyzerConfig);
 		}
-		return null;
 	}
 
 	/**
@@ -222,8 +243,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 			issue.setIssueDescription(emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getItemResults()
 					.getIssue()
 					.getIssueDescription())));
-			//TODO add external issues
-			//issue.setExternalSystemIssues(Optional.ofNullable(relevantItem.getIssue().getExternalSystemIssues()).orElse(emptySet()));
+			issue.setTickets(relevantItem.getItemResults().getIssue().getTickets());
 		}
 	}
 }

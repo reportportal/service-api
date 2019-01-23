@@ -57,7 +57,7 @@ public final class ClientUtils {
 	 */
 	static final Predicate<ExchangeInfo> DOES_SUPPORT_INDEX = it -> {
 		try {
-			return Boolean.valueOf((String) it.getArguments().get(ANALYZER_INDEX));
+			return (Boolean) it.getArguments().get(ANALYZER_INDEX);
 		} catch (Exception e) {
 			LOGGER.warn(
 					"Incorrect specification of tag '{}' for service '{}'. Using 'false' as default value.",

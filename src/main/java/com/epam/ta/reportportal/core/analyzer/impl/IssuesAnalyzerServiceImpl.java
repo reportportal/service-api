@@ -172,9 +172,15 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 		return rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
+
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+				before.setProjectId(projectId);
+
 				updateTestItemIssue(projectId, analyzed, testItem);
+
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem);
+				after.setProjectId(projectId);
+
 				testItemRepository.save(testItem);
 				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance));
 				messageBus.publishActivity(new LinkTicketEvent(before, after, analyzerInstance));

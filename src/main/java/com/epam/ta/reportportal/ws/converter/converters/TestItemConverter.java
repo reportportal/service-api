@@ -76,7 +76,6 @@ public final class TestItemConverter {
 		TestItemActivityResource resource = new TestItemActivityResource();
 		resource.setId(testItem.getItemId());
 		resource.setName(testItem.getName());
-		resource.setProjectId(testItem.getLaunch().getProjectId());
 		resource.setStatus(testItem.getItemResults().getStatus().name());
 		IssueEntity issue = testItem.getItemResults().getIssue();
 		if (issue != null) {

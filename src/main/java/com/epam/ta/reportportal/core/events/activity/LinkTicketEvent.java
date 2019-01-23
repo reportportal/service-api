@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.google.common.base.Strings;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
@@ -74,6 +75,10 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 		if (getAfter() != null) {
 			String oldValue = getBefore().getTickets();
 			String newValue = getAfter().getTickets();
+			//no changes with tickets
+			if (Strings.isNullOrEmpty(oldValue) && newValue.isEmpty() || oldValue.equalsIgnoreCase(newValue)) {
+				return null;
+			}
 			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)) {
 				if (oldValue.length() > newValue.length()) {
 					builder.addAction(UNLINK_ISSUE);

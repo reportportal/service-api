@@ -56,6 +56,14 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		this.postedByName = postedByName;
 	}
 
+	public String getPostedByName() {
+		return postedByName;
+	}
+
+	public void setPostedByName(String postedByName) {
+		this.postedByName = postedByName;
+	}
+
 	public Long getPostedBy() {
 		return postedBy;
 	}
@@ -70,7 +78,7 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
 				.addActivityEntityType(ITEM_ISSUE)
 				.addUserId(postedBy)
-
+				.addUserName(postedByName)
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

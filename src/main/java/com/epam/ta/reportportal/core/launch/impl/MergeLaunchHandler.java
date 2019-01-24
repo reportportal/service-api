@@ -62,13 +62,16 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 	private final LaunchMergeFactory launchMergeFactory;
 
+	private final LaunchConverter launchConverter;
+
 	@Autowired
 	public MergeLaunchHandler(LaunchRepository launchRepository, UserRepository userRepository, ProjectRepository projectRepository,
-			LaunchMergeFactory launchMergeFactory) {
+			LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter) {
 		this.launchRepository = launchRepository;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.launchMergeFactory = launchMergeFactory;
+		this.launchConverter = launchConverter;
 	}
 
 	//	@Autowired
@@ -111,7 +114,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 		//		logIndexer.indexLogs(newLaunch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), newLaunch.getId()));
 
-		return LaunchConverter.TO_RESOURCE.apply(newLaunch);
+		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}
 
 	/**

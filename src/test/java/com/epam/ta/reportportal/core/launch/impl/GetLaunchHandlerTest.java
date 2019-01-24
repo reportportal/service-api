@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -49,6 +50,7 @@ public class GetLaunchHandlerTest {
 	private UserRepository userRepository = mock(UserRepository.class);
 	private JasperDataProvider jasperDataProvider = mock(JasperDataProvider.class);
 	private GetJasperReportHandler<Launch> getJasperReportHandler = mock(LaunchJasperReportHandler.class);
+	private LaunchConverter launchConverter = mock(LaunchConverter.class);
 
 	private GetLaunchHandler handler = new GetLaunchHandler(
 			launchRepository,
@@ -57,7 +59,8 @@ public class GetLaunchHandlerTest {
 			widgetContentRepository,
 			userRepository,
 			jasperDataProvider,
-			getJasperReportHandler
+			getJasperReportHandler,
+			launchConverter
 	);
 
 	@Rule

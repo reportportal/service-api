@@ -22,15 +22,20 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.preference.GetPreferenceHandler;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
@@ -40,7 +45,9 @@ import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,6 +57,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +76,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/project")
 public class ProjectController {
 
-	private final GetProjectHandler projectHandler;
+	private final GetProjectHandler getProjectHandler;
 	private final GetProjectInfoHandler projectInfoHandler;
 	private final CreateProjectHandler createProjectHandler;
 	private final UpdateProjectHandler updateProjectHandler;
@@ -74,12 +84,14 @@ public class ProjectController {
 	private final GetUserHandler getUserHandler;
 	private final GetPreferenceHandler getPreference;
 	private final UpdatePreferenceHandler updatePreference;
+	private final GetJasperReportHandler<Project> jasperReportHandler;
 
 	@Autowired
-	public ProjectController(GetProjectHandler projectHandler, GetProjectInfoHandler projectInfoHandler,
+	public ProjectController(GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
-			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference) {
-		this.projectHandler = projectHandler;
+			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference,
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler) {
+		this.getProjectHandler = getProjectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
 		this.updateProjectHandler = updateProjectHandler;
@@ -87,6 +99,7 @@ public class ProjectController {
 		this.getUserHandler = getUserHandler;
 		this.getPreference = getPreference;
 		this.updatePreference = updatePreference;
+		this.jasperReportHandler = jasperReportHandler;
 	}
 
 	@Transactional
@@ -162,7 +175,7 @@ public class ProjectController {
 	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+		return getProjectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -170,7 +183,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getProject(EntityUtils.normalizeId(projectName), user);
+		return getProjectHandler.getProject(EntityUtils.normalizeId(projectName), user);
 	}
 
 	@Transactional
@@ -211,7 +224,7 @@ public class ProjectController {
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getUserNames(ProjectExtractor.extractProjectDetails(user, projectName), normalizeId(value));
+		return getProjectHandler.getUserNames(ProjectExtractor.extractProjectDetails(user, projectName), normalizeId(value));
 	}
 
 	@Transactional(readOnly = true)
@@ -222,7 +235,7 @@ public class ProjectController {
 	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		ProjectExtractor.extractProjectDetails(user, projectName);
-		return projectHandler.getUserNames(term, pageable);
+		return getProjectHandler.getUserNames(term, pageable);
 	}
 
 	@Transactional
@@ -265,6 +278,32 @@ public class ProjectController {
 	}
 
 	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
+	@GetMapping(value = "/export")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public void exportProjects(
+			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+			@FilterFor(Project.class) Filter filter, @SortFor(ProjectInfo.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+
+		ReportFormat format = jasperReportHandler.getReportFormat(view);
+		response.setContentType(format.getContentType());
+
+		response.setHeader(
+				com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
+				String.format("attachment; filename=RP_PROJECTS_%s_Report.%s", format.name(), format.getValue())
+		);
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			getProjectHandler.exportProjects(format, filter, outputStream, pageable);
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
+		}
+
+	}
+
+	@Transactional(readOnly = true)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/list/{projectName}")
 	@ResponseStatus(HttpStatus.OK)
@@ -293,7 +332,7 @@ public class ProjectController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
-		return projectHandler.getAllProjectNames();
+		return getProjectHandler.getAllProjectNames();
 	}
 
 }

@@ -18,24 +18,22 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
-import com.epam.ta.reportportal.core.jasper.IGetJasperReportHandler;
-import com.epam.ta.reportportal.core.jasper.ReportFormat;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.launch.*;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.Page;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,6 +47,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -81,13 +80,13 @@ public class LaunchController {
 	private final UpdateLaunchHandler updateLaunchHandler;
 	private final MergeLaunchHandler mergeLaunchesHandler;
 	private final ImportLaunchHandler importLaunchHandler;
-	private final IGetJasperReportHandler getJasperHandler;
+	private final GetJasperReportHandler<Launch> getJasperHandler;
 
 	@Autowired
 	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
 			DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
 			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler, ImportLaunchHandler importLaunchHandler,
-			IGetJasperReportHandler getJasperHandler) {
+			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
 		this.createLaunchMessageHandler = createLaunchMessageHandler;
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
 		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
@@ -301,14 +300,20 @@ public class LaunchController {
 	@ApiOperation(value = "Export specified launch", notes = "Only following formats are supported: pdf (by default), xls, html.")
 	public void getLaunchReport(@PathVariable String projectName, @PathVariable Long launchId,
 			@ApiParam(allowableValues = "pdf, xls, html") @RequestParam(value = "view", required = false, defaultValue = "pdf") String view,
-			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) throws IOException {
-		JasperPrint jasperPrint = getJasperHandler.getLaunchDetails(launchId, user);
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+
 		ReportFormat format = getJasperHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
+
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-				String.format("attachment; filename=RP_%s_Report.%s", format.name(), format.getValue())
+				String.format("attachment; filename=RP_LAUNCH_%s_Report.%s", format.name(), format.getValue())
 		);
-		getJasperHandler.writeReport(format, response.getOutputStream(), jasperPrint);
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			getLaunchMessageHandler.exportLaunch(launchId, format, outputStream, user);
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
+		}
 	}
 
 	@Transactional

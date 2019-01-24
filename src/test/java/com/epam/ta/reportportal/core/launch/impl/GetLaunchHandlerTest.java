@@ -17,12 +17,13 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.impl.LaunchJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -45,11 +46,18 @@ public class GetLaunchHandlerTest {
 	private ItemAttributeRepository itemAttributeRepository = mock(ItemAttributeRepository.class);
 	private ProjectRepository projectRepository = mock(ProjectRepository.class);
 	private WidgetContentRepository widgetContentRepository = mock(WidgetContentRepository.class);
+	private UserRepository userRepository = mock(UserRepository.class);
+	private JasperDataProvider jasperDataProvider = mock(JasperDataProvider.class);
+	private GetJasperReportHandler<Launch> getJasperReportHandler = mock(LaunchJasperReportHandler.class);
 
-	private GetLaunchHandler handler = new GetLaunchHandler(launchRepository,
+	private GetLaunchHandler handler = new GetLaunchHandler(
+			launchRepository,
 			itemAttributeRepository,
 			projectRepository,
-			widgetContentRepository
+			widgetContentRepository,
+			userRepository,
+			jasperDataProvider,
+			getJasperReportHandler
 	);
 
 	@Rule

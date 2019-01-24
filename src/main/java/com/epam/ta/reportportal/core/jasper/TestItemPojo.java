@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.EMPTY_STRING;
-import static com.epam.ta.reportportal.core.jasper.ExportUtils.*;
+import static com.epam.ta.reportportal.core.jasper.util.ExportUtils.*;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static java.util.Optional.ofNullable;
 

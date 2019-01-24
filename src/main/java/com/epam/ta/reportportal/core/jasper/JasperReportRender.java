@@ -15,6 +15,8 @@
  */
 package com.epam.ta.reportportal.core.jasper;
 
+import com.epam.ta.reportportal.entity.jasper.ReportType;
+import com.google.common.collect.ImmutableMap;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
@@ -39,26 +41,43 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Performance improvements. Load JasperReport only once since it is immutable
  */
 @Service("jasperRender")
-class JasperReportRender {
+public class JasperReportRender {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JasperReportRender.class);
-	private static final String REPORT_JRXML_TEMPLATE = "classpath:/templates/report/report.jrxml";
 
-	private JasperReport jasperReport;
+	private static final String PROJECTS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/projects.jrxml";
+	private static final String USERS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/users.jrxml";
+	private static final String LAUNCH_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/report.jrxml";
+	private static final Map<ReportType, String> reportTypeTemplatePathMapping = ImmutableMap.<ReportType, String>builder().put(ReportType.PROJECT,
+			PROJECTS_REPORT_JRXML_TEMPLATE
+	)
+			.put(ReportType.USER, USERS_REPORT_JRXML_TEMPLATE)
+			.put(ReportType.LAUNCH, LAUNCH_REPORT_JRXML_TEMPLATE)
+			.build();
+
+	private final Map<ReportType, JasperReport> reportTemplatesMapping;
 
 	@Autowired
 	public JasperReportRender(ResourceLoader resourceLoader) throws JRException, IOException {
-		Resource reportTemplate = resourceLoader.getResource(REPORT_JRXML_TEMPLATE);
-		checkArgument(reportTemplate.exists());
-		InputStream inputStream = reportTemplate.getInputStream();
-		JasperDesign jasperDesign = JRXmlLoader.load(inputStream);
-		this.jasperReport = JasperCompileManager.compileReport(jasperDesign);
+
+		ImmutableMap.Builder<ReportType, JasperReport> reportTypeJasperReportBuilder = ImmutableMap.builder();
+
+		for (Map.Entry<ReportType, String> entry : reportTypeTemplatePathMapping.entrySet()) {
+			Resource reportTemplate = resourceLoader.getResource(entry.getValue());
+			checkArgument(reportTemplate.exists());
+			InputStream inputStream = reportTemplate.getInputStream();
+
+			JasperDesign jasperDesign = JRXmlLoader.load(inputStream);
+			reportTypeJasperReportBuilder.put(entry.getKey(), JasperCompileManager.compileReport(jasperDesign));
+		}
+
+		reportTemplatesMapping = reportTypeJasperReportBuilder.build();
 
 	}
 
-	JasperPrint generateReportPrint(Map<String, Object> params, JRDataSource datasource) {
+	public JasperPrint generateReportPrint(ReportType reportType, Map<String, Object> params, JRDataSource datasource) {
 		try {
-			return JasperFillManager.fillReport(jasperReport, params, datasource);
+			return JasperFillManager.fillReport(reportTemplatesMapping.get(reportType), params, datasource);
 		} catch (JRException e) {
 			LOGGER.error("Unable to generate Report", e);
 			return new JasperPrint();

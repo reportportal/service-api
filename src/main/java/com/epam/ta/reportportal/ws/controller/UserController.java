@@ -21,12 +21,16 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ModelViews;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
@@ -36,7 +40,9 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +54,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 
@@ -68,13 +77,17 @@ public class UserController {
 
 	private final GetUserHandler getUserHandler;
 
+	private final GetJasperReportHandler<User> jasperReportHandler;
+
 	@Autowired
 	public UserController(CreateUserHandler createUserMessageHandler, EditUserHandler editUserMessageHandler,
-			DeleteUserHandler deleteUserHandler, GetUserHandler getUserHandler) {
+			DeleteUserHandler deleteUserHandler, GetUserHandler getUserHandler,
+			@Qualifier("userJasperReportHandler") GetJasperReportHandler<User> jasperReportHandler) {
 		this.createUserMessageHandler = createUserMessageHandler;
 		this.editUserMessageHandler = editUserMessageHandler;
 		this.deleteUserHandler = deleteUserHandler;
 		this.getUserHandler = getUserHandler;
+		this.jasperReportHandler = jasperReportHandler;
 	}
 
 	@PostMapping
@@ -223,6 +236,29 @@ public class UserController {
 	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUserProjects(userName);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/export")
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation(value = "Exports information about all users", notes = "Allowable only for users with administrator role")
+	public void export(@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
+			@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
+			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletResponse response) {
+
+		ReportFormat format = jasperReportHandler.getReportFormat(view);
+		response.setContentType(format.getContentType());
+
+		response.setHeader(
+				com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
+				String.format("attachment; filename=RP_USERS_%s_Report.%s", format.name(), format.getValue())
+		);
+
+		try (OutputStream outputStream = response.getOutputStream()) {
+			getUserHandler.exportUsers(format, outputStream, new CompositeFilter(filter, queryable), pageable);
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
+		}
 	}
 
 }

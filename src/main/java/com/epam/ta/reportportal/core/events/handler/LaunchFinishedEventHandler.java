@@ -19,17 +19,16 @@ package com.epam.ta.reportportal.core.events.handler;
 import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -89,16 +88,16 @@ public class LaunchFinishedEventHandler {
 	private LaunchRepository launchRepository;
 
 	@Autowired
-	private LogIndexer logIndexer;
+	private Provider<HttpServletRequest> currentRequest;
+
+	@Autowired
+	private AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
 	private IssuesAnalyzer issuesAnalyzer;
 
 	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private Provider<HttpServletRequest> currentRequest;
+	private LogIndexer logIndexer;
 
 	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
@@ -124,15 +123,15 @@ public class LaunchFinishedEventHandler {
 		}
 
 		if (issuesAnalyzer.hasAnalyzers()) {
-			List<Long> testItems = testItemRepository.selectItemsInIssueByLaunch(launch.getId(),
-					TestItemIssueGroup.TO_INVESTIGATE.getLocator()
-			).stream().map(TestItem::getItemId).collect(toList());
+			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
+					.collectItems(project.getId(), launch.getId(), null);
+
 			CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch, testItems, analyzerConfig);
 
 			analyze.thenAccept(res -> {
-				Launch updatedLanch = launchRepository.findById(launch.getId())
+				Launch updatedLaunch = launchRepository.findById(launch.getId())
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
-				emailService.ifPresent(it -> sendEmail(updatedLanch, project, it));
+				emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
 			});
 		}
 

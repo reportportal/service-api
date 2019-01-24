@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -27,6 +28,8 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -40,9 +43,11 @@ import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -89,6 +94,8 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	@Override
 	public OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateLaunchRQ rq) {
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
@@ -97,7 +104,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.addDescription(rq.getDescription())
 				.overwriteAttributes(rq.getAttributes())
 				.get();
-		//		reindexLogs(launch);
+		reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
 		launchRepository.save(launch);
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
@@ -168,24 +175,24 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.collect(toList());
 	}
 
-	//	/**
-	//	 * If launch mode has changed - reindex items
-	//	 *
-	//	 * @param launch Update launch
-	//	 */
-	//	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig) {
-	//		List<TestItem> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(),
-	//				TestItemIssueGroup.TO_INVESTIGATE.getLocator()
-	//		);
-	//		if (!CollectionUtils.isEmpty(itemIds)) {
-	//			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
-	//
-	//				logIndexer.cleanIndex(launch.getName(), itemIds);
-	//			} else {
-	//				logIndexer.indexLogs(launch.getId(), testItemRepository.findAllById(itemIds));
-	//			}
-	//		}
-	//	}
+	/**
+	 * If launch mode has changed - reindex items
+	 *
+	 * @param launch Update launch
+	 */
+	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig, Long projectId) {
+		List<Long> items = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getLocator())
+				.stream()
+				.map(TestItem::getItemId)
+				.collect(toList());
+		if (!CollectionUtils.isEmpty(items)) {
+			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
+				logIndexer.cleanIndex(projectId, items);
+			} else {
+				logIndexer.indexLogs(Collections.singletonList(launch.getId()), analyzerConfig);
+			}
+		}
+	}
 
 	/**
 	 * Valide {@link ReportPortalUser} credentials

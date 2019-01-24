@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.configs;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
@@ -31,7 +30,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Andrei Varabyeu
  */
 @Configuration
-@ComponentScan("com.epam.ta.reportportal.job")
 public class JobsConfiguration {
 
 	@Bean

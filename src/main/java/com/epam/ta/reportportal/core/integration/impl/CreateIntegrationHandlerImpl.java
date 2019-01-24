@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -48,25 +47,21 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 	private final IntegrationRepository integrationRepository;
 
-	private final IntegrationTypeRepository integrationTypeRepository;
-
 	private final ProjectRepository projectRepository;
 
 	private final MessageBus messageBus;
 
 	@Autowired
 	public CreateIntegrationHandlerImpl(Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping,
-			IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
-			ProjectRepository projectRepository, MessageBus messageBus) {
+			IntegrationRepository integrationRepository, ProjectRepository projectRepository, MessageBus messageBus) {
 		this.integrationServiceMapping = integrationServiceMapping;
 		this.integrationRepository = integrationRepository;
-		this.integrationTypeRepository = integrationTypeRepository;
 		this.projectRepository = projectRepository;
 		this.messageBus = messageBus;
 	}
 
 	@Override
-	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest, ReportPortalUser user) {
+	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest) {
 
 		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
@@ -79,8 +74,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		integrationRepository.save(integration);
 
 		integrationRepository.updateEnabledStateByIntegrationTypeId(updateRequest.getEnabled(), integration.getType().getId());
-
-		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 
@@ -104,6 +97,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		integration.setProject(project);
 
 		integrationRepository.save(integration);
+
+		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 	}

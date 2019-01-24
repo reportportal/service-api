@@ -62,8 +62,8 @@ public class LaunchBuilder implements Supplier<Launch> {
 		launch.setStatus(StatusEnum.IN_PROGRESS);
 		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		addDescription(request.getDescription());
-		launch.setMode(LaunchModeEnum.findByName(ofNullable(request.getMode()).map(Enum::name).orElse(LaunchModeEnum.DEFAULT.name()))
-				.orElse(LaunchModeEnum.DEFAULT));
+		LaunchModeEnum.findByName(ofNullable(request.getMode()).map(Enum::name).orElse(LaunchModeEnum.DEFAULT.name()))
+				.ifPresent(it -> launch.setMode(it));
 		return this;
 	}
 

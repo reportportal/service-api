@@ -37,6 +37,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
@@ -46,6 +47,7 @@ import java.net.URI;
  */
 @EnableRabbit
 @Configuration
+@Conditional(Conditions.NotTestCondition.class)
 public class RabbitMqConfiguration {
 
 	/**
@@ -259,7 +261,6 @@ public class RabbitMqConfiguration {
 		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
-
 	public class RabbitConstants {
 
 		private RabbitConstants() {
@@ -290,6 +291,5 @@ public class RabbitMqConfiguration {
 			}
 		}
 	}
-
 
 }

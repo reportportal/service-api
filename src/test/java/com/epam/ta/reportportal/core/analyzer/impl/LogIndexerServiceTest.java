@@ -31,15 +31,18 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static org.mockito.Matchers.eq;
@@ -106,21 +109,22 @@ public class LogIndexerServiceTest {
 	//		verifyZeroInteractions(mongoOperations, logRepository);
 	//	}
 	//
-	//	@Test
-	//	public void testIndexLogsWithNonExistentLaunchId() {
-	//		String launchId = "1";
-	//		when(launchRepository.findOne(eq(launchId))).thenReturn(null);
-	//		logIndexerService.indexLogs(launchId, createTestItems(1));
-	//		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
-	//	}
-	//
-	//	@Test
-	//	public void testIndexLogsWithoutTestItems() {
-	//		String launchId = "2";
-	//		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-	//		logIndexerService.indexLogs(launchId, Collections.emptyList());
-	//		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
-	//	}
+	@Test
+	public void testIndexLogsWithNonExistentLaunchId() {
+		Long launchId = 1L;
+		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
+		logIndexerService.indexLogs(Collections.singletonList(launchId), analyzerConfig());
+		verifyZeroInteractions(testItemRepository, logRepository, analyzerServiceClient);
+	}
+
+	@Test
+	public void testIndexLogsWithoutTestItems() {
+		Long launchId = 2L;
+		when(launchRepository.findById(launchId)).thenReturn(Optional.of(createLaunch(launchId)));
+		logIndexerService.indexLogs(Collections.singletonList(launchId), analyzerConfig());
+		verifyZeroInteractions(testItemRepository, logRepository);
+	}
+
 	//
 	//	@Test
 	//	public void testIndexLogsTestItemsWithoutLogs() {
@@ -251,6 +255,13 @@ public class LogIndexerServiceTest {
 	//		verify(analyzerServiceClient, times(0)).index(anyListOf(IndexLaunch.class));
 	//	}
 	//
+
+	private AnalyzerConfig analyzerConfig() {
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setAnalyzerMode(ALL_LAUNCHES.getValue());
+		return analyzerConfig;
+	}
+
 	private Launch createLaunch(Long id) {
 		Launch l = new Launch();
 		l.setId(id);

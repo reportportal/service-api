@@ -16,6 +16,35 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
+import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
+import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+
 /**
  * Tests for {@link LogIndexerService}
  *
@@ -23,55 +52,45 @@ package com.epam.ta.reportportal.core.analyzer.impl;
  */
 public class LogIndexerServiceTest {
 
-	//	@Mock
-	//	private AnalyzerServiceClient analyzerServiceClient;
-	//
-	//	@Mock
-	//	private LaunchRepository launchRepository;
-	//	@Mock
-	//	private TestItemRepository testItemRepository;
-	//	@Mock
-	//	private LogRepository logRepository;
-	//	@Mock
-	//	private ProjectRepository projectRepository;
-	//
-	//	@InjectMocks
-	//	private LogIndexerService logIndexerService;
-	//
-	//	@Before
-	//	public void setup() {
-	//		RetryTemplate retrier = new RetryTemplate();
-	//		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-	//		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(2L));
-	//		retrier.setRetryPolicy(timeoutRetryPolicy);
-	//		retrier.setBackOffPolicy(new FixedBackOffPolicy());
-	//		retrier.setThrowLastExceptionOnExhausted(true);
-	//
-	//		logIndexerService = new LogIndexerService();
-	//		logIndexerService.setRetrier(retrier);
-	//		MockitoAnnotations.initMocks(this);
-	//	}
+	@Mock
+	private AnalyzerServiceClient analyzerServiceClient;
+	@Mock
+	private LaunchRepository launchRepository;
+	@Mock
+	private TestItemRepository testItemRepository;
+	@Mock
+	private LogRepository logRepository;
 
-	//	@Test
-	//	public void testIndexLogWithoutTestItem() {
-	//		Log log = createLog("1");
-	//		when(testItemRepository.findOne(anyString())).thenReturn(null);
-	//		logIndexerService.indexLog(log);
-	//		verify(testItemRepository).findOne(eq(log.getTestItemRef()));
-	//		verifyZeroInteractions(mongoOperations, launchRepository, logRepository, analyzerServiceClient);
-	//	}
-	//
-	//	@Test
-	//	public void testIndexLogWithoutLaunch() {
-	//		Log log = createLog("2");
-	//		TestItem ti = createTestItem("2");
-	//		when(testItemRepository.findOne(eq(log.getTestItemRef()))).thenReturn(ti);
-	//		when(launchRepository.findOne(eq(ti.getLaunchRef()))).thenReturn(null);
-	//		logIndexerService.indexLog(log);
-	//		verify(testItemRepository).findOne(eq(log.getTestItemRef()));
-	//		verify(launchRepository).findOne(eq(ti.getLaunchRef()));
-	//		verifyZeroInteractions(mongoOperations, logRepository, analyzerServiceClient);
-	//	}
+	private LogIndexerService logIndexerService;
+
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+		logIndexerService = new LogIndexerService(testItemRepository, launchRepository, analyzerServiceClient, logRepository);
+	}
+
+	@Test
+	public void testIndexLogWithoutTestItem() {
+		Log log = createLog(1L);
+		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
+		logIndexerService.indexLog(log);
+		verify(testItemRepository).findById(eq(log.getTestItem().getItemId()));
+		verifyZeroInteractions(launchRepository, logRepository, analyzerServiceClient);
+	}
+
+	@Test
+	public void testIndexLogWithoutLaunch() {
+		Log log = createLog(2L);
+		TestItem ti = createTestItem(2L, PRODUCT_BUG);
+		log.setTestItem(ti);
+		when(testItemRepository.findById(log.getTestItem().getItemId())).thenReturn(Optional.of(ti));
+		when(launchRepository.findById(eq(ti.getLaunch().getId()))).thenReturn(null);
+		logIndexerService.indexLog(log);
+		verify(testItemRepository).findById(log.getTestItem().getItemId());
+		verify(launchRepository).findById(eq(ti.getLaunch().getId()));
+		verifyZeroInteractions(logRepository, analyzerServiceClient);
+	}
+
 	//
 	//	@Test
 	//	public void testIndexLog() {
@@ -232,84 +251,55 @@ public class LogIndexerServiceTest {
 	//		verify(analyzerServiceClient, times(0)).index(anyListOf(IndexLaunch.class));
 	//	}
 	//
-	//	private Launch createLaunch(String id) {
-	//		Launch l = new Launch();
-	//		l.setId(id);
-	//		l.setName("launch" + id);
-	//		return l;
-	//	}
-	//
-	//	private TestItem createTestItem(String id) {
-	//		TestItem ti = new TestItem();
-	//		ti.setId(id);
-	//		ti.setLaunchRef("launch" + id);
-	//		ti.setIssue(new TestItemIssue(TestItemIssueType.PRODUCT_BUG.getLocator(), null));
-	//		return ti;
-	//	}
-	//
-	//	private TestItem createToInvestigateItem(String id) {
-	//		TestItem ti = new TestItem();
-	//		ti.setId(id);
-	//		ti.setLaunchRef("launch" + id);
-	//		ti.setIssue(new TestItemIssue());
-	//		return ti;
-	//	}
-	//
-	//	private Log createLog(String id) {
-	//		Log l = new Log();
-	//		l.setId(id);
-	//		l.setTestItemRef("testItem" + id);
-	//		l.setLevel(LogLevel.ERROR);
-	//		return l;
-	//	}
-	//
-	//	private List<TestItem> createTestItems(int count) {
-	//		List<TestItem> testItems = new ArrayList<>(count);
-	//		for (int i = 0; i < count; i++) {
-	//			testItems.add(createTestItem(String.valueOf(i)));
-	//		}
-	//		return testItems;
-	//	}
-	//
-	//	private IndexRs createIndexRs(int count) {
-	//		IndexRs rs = new IndexRs();
-	//		rs.setTook(100);
-	//		rs.setErrors(false);
-	//		List<IndexRsItem> rsItems = new ArrayList<>(count);
-	//		for (int i = 0; i < count; i++) {
-	//			IndexRsItem rsItem = new IndexRsItem();
-	//			rsItem.setIndex(new IndexRsIndex());
-	//			rsItems.add(rsItem);
-	//		}
-	//		rs.setItems(rsItems);
-	//		return rs;
-	//	}
-	//
-	//	private CloseableIterator<Log> createLogIterator(int count) {
-	//		return new CloseableIterator<Log>() {
-	//			private int i = count;
-	//
-	//			@Override
-	//			public void close() {
-	//
-	//			}
-	//
-	//			@Override
-	//			public boolean hasNext() {
-	//				return i > 0;
-	//			}
-	//
-	//			@Override
-	//			public Log next() {
-	//				i--;
-	//				Log l = new Log();
-	//				String id = String.valueOf(count - i);
-	//				l.setId(id);
-	//				l.setLevel(LogLevel.ERROR);
-	//				l.setTestItemRef("testItem" + id);
-	//				return l;
-	//			}
-	//		};
-	//	}
+	private Launch createLaunch(Long id) {
+		Launch l = new Launch();
+		l.setId(id);
+		l.setName("launch" + id);
+		return l;
+	}
+
+	private TestItem createTestItem(Long id, TestItemIssueGroup issueGroup) {
+		TestItem ti = new TestItem();
+		ti.setItemId(id);
+		ti.setLaunch(new Launch(id));
+		ti.setItemResults(new TestItemResults());
+		IssueType issueType = new IssueType();
+		issueType.setLocator(issueGroup.getLocator());
+		IssueEntity issueEntity = new IssueEntity();
+		issueEntity.setIssueType(issueType);
+		issueEntity.setIgnoreAnalyzer(false);
+		ti.getItemResults().setIssue(issueEntity);
+		return ti;
+	}
+
+	private Log createLog(Long id) {
+		Log l = new Log();
+		l.setId(id);
+		l.setTestItem(new TestItem(id));
+		l.setLogLevel(LogLevel.ERROR.toInt());
+		return l;
+	}
+
+	private List<TestItem> createTestItems(int count) {
+		List<TestItem> testItems = new ArrayList<>(count);
+		for (int i = 0; i < count; i++) {
+			testItems.add(createTestItem((long) i, TO_INVESTIGATE));
+		}
+		return testItems;
+	}
+
+	private IndexRs createIndexRs(int count) {
+		IndexRs rs = new IndexRs();
+		rs.setTook(100);
+		rs.setErrors(false);
+		List<IndexRsItem> rsItems = new ArrayList<>(count);
+		for (int i = 0; i < count; i++) {
+			IndexRsItem rsItem = new IndexRsItem();
+			rsItem.setIndex(new IndexRsIndex());
+			rsItems.add(rsItem);
+		}
+		rs.setItems(rsItems);
+		return rs;
+	}
 
 }

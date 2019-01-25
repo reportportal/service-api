@@ -71,6 +71,18 @@ public final class IntegrationTestUtil {
 		return Optional.of(project);
 	}
 
+	public static IntegrationType getJiraIntegrationType() {
+
+		IntegrationType integrationType = new IntegrationType();
+
+		integrationType.setName("JIRA");
+		integrationType.setCreationDate(LocalDateTime.now());
+		integrationType.setId(1L);
+		integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
+
+		return integrationType;
+	}
+
 	private static IntegrationType getEmailIntegrationType() {
 
 		IntegrationType integrationType = new IntegrationType();

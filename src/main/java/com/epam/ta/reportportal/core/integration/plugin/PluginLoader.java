@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration;
+package com.epam.ta.reportportal.core.integration.plugin;
 
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import org.springframework.web.multipart.MultipartFile;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
+
+import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface CreatePluginHandler {
+public interface PluginLoader {
 
-	EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
+	String extractPluginId(Path pluginPath);
+
+	PluginState reloadPlugin(PluginWrapper plugin);
+
+	boolean validatePluginExtensionClasses(String pluginId);
+
+	Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginFileName);
+
+	void deleteOldPlugin(PluginWrapper oldPluginWrapper, String newPluginFileName);
 }

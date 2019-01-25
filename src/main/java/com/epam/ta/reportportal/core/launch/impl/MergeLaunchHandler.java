@@ -19,15 +19,17 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
@@ -36,8 +38,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -56,33 +58,28 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 
 	private final LaunchRepository launchRepository;
 
-	private final UserRepository userRepository;
-
 	private final ProjectRepository projectRepository;
 
 	private final LaunchMergeFactory launchMergeFactory;
 
 	private final LaunchConverter launchConverter;
 
+	private final LogIndexer logIndexer;
+
 	@Autowired
-	public MergeLaunchHandler(LaunchRepository launchRepository, UserRepository userRepository, ProjectRepository projectRepository,
-			LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter) {
+	public MergeLaunchHandler(LaunchRepository launchRepository, ProjectRepository projectRepository, LaunchMergeFactory launchMergeFactory,
+			LaunchConverter launchConverter, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
-		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.launchMergeFactory = launchMergeFactory;
 		this.launchConverter = launchConverter;
+		this.logIndexer = logIndexer;
 	}
-
-	//	@Autowired
-	//	private ILogIndexer logIndexer;
 
 	@Override
 	public LaunchResource mergeLaunches(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq) {
-		//TODO: analyzer
-		//		User user = userRepository.findByLogin(user.getLogin());
-		Optional<Project> projectOptional = projectRepository.findById(projectDetails.getProjectId());
-		expect(projectOptional, isPresent()).verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 
 		Set<Long> launchesIds = rq.getLaunches();
 
@@ -112,7 +109,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		launchRepository.save(newLaunch);
 		launchRepository.deleteAll(launchesList);
 
-		//		logIndexer.indexLogs(newLaunch.getId(), testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), newLaunch.getId()));
+		logIndexer.indexLogs(Collections.singletonList(newLaunch.getId()), AnalyzerUtils.getAnalyzerConfig(project));
 
 		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}

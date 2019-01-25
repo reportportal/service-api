@@ -39,7 +39,7 @@ public final class ClientUtils {
 	 */
 	static final ToIntFunction<ExchangeInfo> EXCHANGE_PRIORITY = it -> {
 		try {
-			return Integer.parseInt((String) it.getArguments().get(ANALYZER_PRIORITY));
+			return (int) it.getArguments().get(ANALYZER_PRIORITY);
 		} catch (Exception e) {
 			LOGGER.warn(
 					"Incorrect specification of tag '{}' for service '{}'. Using the lowest priority",

@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Sql("classpath:db/activity/activity-fill.sql")
+@Ignore
 public class ActivityControllerTest extends BaseMvcTest {
 
 	@Test

@@ -72,8 +72,8 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	public void indexLog(Log log) {
-		CompletableFuture.runAsync(() -> {
+	public CompletableFuture<Void> indexLog(Log log) {
+		return CompletableFuture.runAsync(() -> {
 			IndexLaunch rq = createRqLaunch(log);
 			if (rq != null) {
 				analyzerServiceClient.index(Collections.singletonList(rq));

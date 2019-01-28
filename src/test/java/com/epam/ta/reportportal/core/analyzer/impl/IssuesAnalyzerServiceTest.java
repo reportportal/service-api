@@ -34,10 +34,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -54,42 +51,28 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  */
 public class IssuesAnalyzerServiceTest {
 
-	@Mock
-	private AnalyzerServiceClient analyzerServiceClient;
+	private AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
-	@Mock
-	private IssueTypeHandler issueTypeHandler;
+	private IssueTypeHandler issueTypeHandler = mock(IssueTypeHandler.class);
 
-	@Mock
-	private TestItemRepository testItemRepository;
+	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
-	@Mock
-	private MessageBus messageBus;
+	private MessageBus messageBus = mock(MessageBus.class);
 
-	@Mock
-	private LogRepository logRepository;
+	private LogRepository logRepository = mock(LogRepository.class);
 
-	@Mock
-	private LogIndexer logIndexer;
+	private LogIndexer logIndexer = mock(LogIndexer.class);
 
-	@Mock
-	private AnalyzerStatusCache analyzerStatusCache;
+	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private IssuesAnalyzerServiceImpl issuesAnalyzer;
-
-	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
-		issuesAnalyzer = new IssuesAnalyzerServiceImpl(analyzerStatusCache,
-				analyzerServiceClient,
-				logRepository,
-				issueTypeHandler,
-				testItemRepository,
-				messageBus,
-				logIndexer
-		);
-		System.out.println();
-	}
+	private IssuesAnalyzerServiceImpl issuesAnalyzer = new IssuesAnalyzerServiceImpl(analyzerStatusCache,
+			analyzerServiceClient,
+			logRepository,
+			issueTypeHandler,
+			testItemRepository,
+			messageBus,
+			logIndexer
+	);
 
 	@Test
 	public void hasAnalyzers() {
@@ -113,7 +96,7 @@ public class IssuesAnalyzerServiceTest {
 		doNothing().when(analyzerStatusCache).analyzeStarted(launch.getId(), launch.getProjectId());
 		doNothing().when(analyzerStatusCache).analyzeFinished(launch.getId());
 
-		issuesAnalyzer.analyze(launch, singletonList(1L), analyzerConfig());
+		issuesAnalyzer.analyze(launch, singletonList(1L), analyzerConfig()).join();
 
 		verify(logRepository, times(1)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(singletonList(testItems.getItemId()),
 				LogLevel.ERROR.toInt()

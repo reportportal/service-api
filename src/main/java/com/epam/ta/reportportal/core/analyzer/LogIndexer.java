@@ -35,7 +35,7 @@ public interface LogIndexer {
 	 *
 	 * @param log - log
 	 */
-	void indexLog(Log log);
+	CompletableFuture<Void> indexLog(Log log);
 
 	/**
 	 * Index logs with it's level greater than

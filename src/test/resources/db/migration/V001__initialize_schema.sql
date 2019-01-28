@@ -387,7 +387,8 @@ CREATE TABLE log (
 
 CREATE TABLE activity (
   id            BIGSERIAL CONSTRAINT activity_pk PRIMARY KEY,
-  user_id       BIGINT REFERENCES users (id) ON DELETE CASCADE           NOT NULL,
+  user_id       BIGINT REFERENCES users (id) ON DELETE CASCADE,
+  username      VARCHAR,
   project_id    BIGINT REFERENCES project (id) ON DELETE CASCADE         NOT NULL,
   entity        ACTIVITY_ENTITY_ENUM                                     NOT NULL,
   action        VARCHAR(128)                                             NOT NULL,
@@ -1180,7 +1181,7 @@ BEGIN
   cur_launch_id := (SELECT launch_id FROM test_item WHERE test_item.item_id = old.issue_id);
 
   IF cur_launch_id IS NULL
-  THEN return old;
+  THEN RETURN old;
   END IF;
 
   defect_field_old_id := (SELECT DISTINCT ON (statistics_field.name) sf_id
@@ -1240,7 +1241,7 @@ BEGIN
   cur_launch_id := (SELECT launch_id FROM test_item WHERE item_id = old.result_id);
 
   IF cur_launch_id IS NULL
-  THEN return old;
+  THEN RETURN old;
   END IF;
 
   IF exists(SELECT 1 FROM test_item WHERE item_id = old.result_id
@@ -1283,9 +1284,9 @@ CREATE TRIGGER before_item_delete
 
 DO
 $$DECLARE
-  defaultProject BIGINT;
-  superadminProject BIGINT;
-  defaultId BIGINT;
+  defaultproject BIGINT;
+  superadminproject BIGINT;
+  defaultid BIGINT;
   superadmin BIGINT;
   ldap BIGINT;
   rally BIGINT;
@@ -1295,14 +1296,14 @@ BEGIN
 
     INSERT INTO server_settings (key, value) VALUES ('server.analytics.all', 'true');
     INSERT INTO server_settings (key, value) VALUES ('server.email.star_tls_enabled', 'false');
-    INSERT INTO server_settings (key, value) VALUES ('server.email.password', null);
+    INSERT INTO server_settings (key, value) VALUES ('server.email.password', NULL);
     INSERT INTO server_settings (key, value) VALUES ('server.email.port', '587');
     INSERT INTO server_settings (key, value) VALUES ('server.email.protocol', 'smtp');
     INSERT INTO server_settings (key, value) VALUES ('server.email.ssl_enabled', 'false');
     INSERT INTO server_settings (key, value) VALUES ('server.email.auth_enabled', 'false');
     INSERT INTO server_settings (key, value) VALUES ('server.email.enabled', 'true');
-    INSERT INTO server_settings (key, value) VALUES ('server.email.username', null);
-    INSERT INTO server_settings (key, value) VALUES ('server.email.host', null);
+    INSERT INTO server_settings (key, value) VALUES ('server.email.username', NULL);
+    INSERT INTO server_settings (key, value) VALUES ('server.email.host', NULL);
     INSERT INTO server_settings (key, value) VALUES ('server.analytics.asd', 'true');
 
     INSERT INTO integration_type (name, auth_flow, creation_date, group_type) VALUES ('test integration type', 'LDAP', now(), 'AUTH');
@@ -1343,50 +1344,50 @@ BEGIN
 
     -- Superadmin project and user
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('superadmin_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
-    superadminProject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
+    superadminproject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
 
     INSERT INTO users (login, password, email, role, type, default_project_id, full_name, expired, metadata)
-    VALUES ('superadmin', '5d39d85bddde885f6579f8121e11eba2', 'superadminemail@domain.com', 'ADMINISTRATOR', 'INTERNAL', superadminProject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
+    VALUES ('superadmin', '5d39d85bddde885f6579f8121e11eba2', 'superadminemail@domain.com', 'ADMINISTRATOR', 'INTERNAL', superadminproject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
     superadmin := (SELECT currval(pg_get_serial_sequence('users', 'id')));
 
-    INSERT INTO project_user (user_id, project_id, project_role) VALUES (superadmin, superadminProject, 'PROJECT_MANAGER');
+    INSERT INTO project_user (user_id, project_id, project_role) VALUES (superadmin, superadminproject, 'PROJECT_MANAGER');
 
     -- Default project and user
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('default_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
-    defaultProject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
+    defaultproject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
 
     INSERT INTO users (login, password, email, role, type, default_project_id, full_name, expired, metadata)
-    VALUES ('default', '3fde6bb0541387e4ebdadf7c2ff31123', 'defaultemail@domain.com', 'USER', 'INTERNAL', defaultProject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
-    defaultId := (SELECT currval(pg_get_serial_sequence('users', 'id')));
+    VALUES ('default', '3fde6bb0541387e4ebdadf7c2ff31123', 'defaultemail@domain.com', 'USER', 'INTERNAL', defaultproject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
+    defaultid := (SELECT currval(pg_get_serial_sequence('users', 'id')));
 
-    INSERT INTO project_user (user_id, project_id, project_role) VALUES (defaultId, defaultProject, 'PROJECT_MANAGER');
+    INSERT INTO project_user (user_id, project_id, project_role) VALUES (defaultid, defaultproject, 'PROJECT_MANAGER');
 
     -- Project configurations
 
     INSERT INTO issue_type_project (project_id, issue_type_id) VALUES
-    (superadminProject, 1), (superadminProject, 2), (superadminProject, 3), (superadminProject, 4), (superadminProject, 5),
-    (defaultProject, 1),(defaultProject, 2),(defaultProject, 3),(defaultProject, 4),(defaultProject, 5);
+    (superadminproject, 1), (superadminproject, 2), (superadminproject, 3), (superadminproject, 4), (superadminproject, 5),
+    (defaultproject, 1),(defaultproject, 2),(defaultproject, 3),(defaultproject, 4),(defaultproject, 5);
 
-    INSERT INTO integration (project_id, type, enabled, creation_date) VALUES (superadminProject, rally, FALSE, now()), (defaultProject, rally, FALSE, now());
-    INSERT INTO integration (project_id, type, enabled, creation_date) VALUES (superadminProject, jira, FALSE, now()), (defaultProject, jira, FALSE, now());
+    INSERT INTO integration (project_id, type, enabled, creation_date) VALUES (superadminproject, rally, FALSE, now()), (defaultproject, rally, FALSE, now());
+    INSERT INTO integration (project_id, type, enabled, creation_date) VALUES (superadminproject, jira, FALSE, now()), (defaultproject, jira, FALSE, now());
 
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (1, '1 day', defaultProject), (1, '1 day', superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (2, '3 months', defaultProject), (2, '3 months', superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (3, '2 weeks', defaultProject), (3, '2 weeks', superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (4, '2 weeks', defaultProject), (4, '2 weeks', superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (5, 7, defaultProject), (5, 7, superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (6, 1, defaultProject), (6, 1, superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (7, 80, defaultProject), (7, 80, superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (8, 2, defaultProject), (8, 2, superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (9, false, defaultProject), (9, false, superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (10, false, defaultProject), (10, false, superadminProject);
-    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (11, 'LAUNCH_NAME', defaultProject), (11, 'LAUNCH_NAME', superadminProject);
-
-    INSERT INTO integration (project_id, type, enabled, params)
-      VALUES (defaultProject, email, false, '{"params": {"rules": [{"recipients": ["OWNER"], "fromAddress": "Auto_EPM-RPP_Notifications@epam.com", "launchStatsRule": "always"}]}}');
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (1, '1 day', defaultproject), (1, '1 day', superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (2, '3 months', defaultproject), (2, '3 months', superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (3, '2 weeks', defaultproject), (3, '2 weeks', superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (4, '2 weeks', defaultproject), (4, '2 weeks', superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (5, 7, defaultproject), (5, 7, superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (6, 1, defaultproject), (6, 1, superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (7, 80, defaultproject), (7, 80, superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (8, 2, defaultproject), (8, 2, superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (9, FALSE, defaultproject), (9, FALSE, superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (10, FALSE, defaultproject), (10, FALSE, superadminproject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (11, 'LAUNCH_NAME', defaultproject), (11, 'LAUNCH_NAME', superadminproject);
 
     INSERT INTO integration (project_id, type, enabled, params)
-      VALUES (superadminProject, email, false, '{"params": {"rules": [{"recipients": ["OWNER"], "fromAddress": "Auto_EPM-RPP_Notifications@epam.com", "launchStatsRule": "always"}]}}');
+      VALUES (defaultproject, email, FALSE, '{"params": {"rules": [{"recipients": ["OWNER"], "fromAddress": "Auto_EPM-RPP_Notifications@epam.com", "launchStatsRule": "always"}]}}');
+
+    INSERT INTO integration (project_id, type, enabled, params)
+      VALUES (superadminproject, email, FALSE, '{"params": {"rules": [{"recipients": ["OWNER"], "fromAddress": "Auto_EPM-RPP_Notifications@epam.com", "launchStatsRule": "always"}]}}');
 
 END
 $$;

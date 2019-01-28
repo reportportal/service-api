@@ -21,6 +21,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,10 +34,12 @@ import static java.util.Comparator.comparingInt;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Component
 public class RabbitMqManagementClientTemplate implements RabbitMqManagementClient {
 
 	private final Client rabbitClient;
 
+	@Autowired
 	public RabbitMqManagementClientTemplate(Client rabbitClient) {
 		this.rabbitClient = rabbitClient;
 		try {

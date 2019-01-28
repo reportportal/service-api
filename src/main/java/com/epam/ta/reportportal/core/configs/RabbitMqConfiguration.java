@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,25 +16,22 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.amqp.rabbit.core.RabbitManagementTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -77,11 +74,6 @@ public class RabbitMqConfiguration {
 	private ObjectMapper objectMapper;
 
 	@Bean
-	public RabbitMqManagementClient managementTemplate(@Value("${rp.amqp.api-address}") String address) {
-		return new RabbitMqManagementClientTemplate(new RabbitManagementTemplate(address));
-	}
-
-	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {
 		Service service = new RabbitAwarePluginBox(messageBus).startAsync();
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> service.stopAsync().awaitTerminated()));
@@ -89,7 +81,7 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public MessageBus messageBus(@Autowired AmqpTemplate amqpTemplate) {
+	public MessageBus messageBus(@Autowired @Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
 		return new MessageBusImpl(amqpTemplate);
 	}
 
@@ -117,6 +109,13 @@ public class RabbitMqConfiguration {
 		factory.setConcurrentConsumers(3);
 		factory.setMaxConcurrentConsumers(10);
 		return factory;
+	}
+
+	@Bean(name = "rabbitTemplate")
+	public RabbitTemplate rabbitTemplate(@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+		rabbitTemplate.setMessageConverter(jsonMessageConverter());
+		return rabbitTemplate;
 	}
 
 	@Bean
@@ -247,18 +246,6 @@ public class RabbitMqConfiguration {
 	@Bean
 	public Queue queryQueue() {
 		return new Queue(QUEUE_QUERY_RQ);
-	}
-
-	@Bean
-	public RabbitTemplate amqpTemplate(@Autowired ConnectionFactory connectionFactory) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(jsonMessageConverter());
-		return rabbitTemplate;
-	}
-
-	@Bean
-	public AsyncRabbitTemplate asyncAmqpTemplate(@Autowired RabbitTemplate rabbitTemplate) {
-		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
 	public class RabbitConstants {

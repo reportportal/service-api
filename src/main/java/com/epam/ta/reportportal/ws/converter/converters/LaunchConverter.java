@@ -17,12 +17,15 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Set;
@@ -34,13 +37,13 @@ import static java.util.stream.Collectors.toSet;
 /**
  * @author Pavel Bortnik
  */
-public final class LaunchConverter {
+@Service
+public class LaunchConverter {
 
-	private LaunchConverter() {
-		//static only
-	}
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
 
-	public static final Function<Launch, LaunchResource> TO_RESOURCE = db -> {
+	public Function<Launch, LaunchResource> TO_RESOURCE = db -> {
 
 		Preconditions.checkNotNull(db);
 
@@ -54,6 +57,7 @@ public final class LaunchConverter {
 		resource.setEndTime(db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
 		resource.setAttributes(getAttributes(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
+		resource.setIsProcessing(analyzerStatusCache.getAnalyzerStatus().getIfPresent(resource.getLaunchId()) != null);
 		ofNullable(db.getUser()).ifPresent(u -> resource.setOwner(u.getLogin()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		return resource;

@@ -14,7 +14,7 @@ import org.springframework.context.annotation.*;
 @Configuration
 @EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
 @ComponentScan(value = "com.epam.ta.reportportal", excludeFilters = {
-		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.core.analyzer.*"),
+		//		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.core.analyzer.*"),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*") }, includeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SaveBinaryDataJob.class) })

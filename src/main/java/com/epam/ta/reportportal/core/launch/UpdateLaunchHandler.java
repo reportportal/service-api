@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 
 import java.util.List;
@@ -47,11 +48,13 @@ public interface UpdateLaunchHandler {
 	/**
 	 * Start launch analyzer on demand
 	 *
-	 * @param projectDetails Project Details
-	 * @param launchId       ID of launch object
+	 * @param projectDetails  Project Details
+	 * @param analyzeLaunchRQ Launch analyze rq
+	 * @param user            Report portal user
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, Long launchId);
+	OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeLaunchRQ,
+			ReportPortalUser user);
 
 	/**
 	 * Bulk launch update.

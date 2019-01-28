@@ -38,14 +38,16 @@ public class ReportPortalUserUtil {
 
 	public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole, Long projectId) {
 		Map<String, ReportPortalUser.ProjectDetails> detailsMap = new HashMap<>();
-		detailsMap.put(TEST_PROJECT_NAME, new ReportPortalUser.ProjectDetails(projectId, projectRole));
+		detailsMap.put("test_project", new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole));
 
-		return new ReportPortalUser(login,
+		return new ReportPortalUser(
+				login,
 				"test",
 				Sets.newHashSet(new SimpleGrantedAuthority(userRole.getAuthority())),
 				1L,
 				userRole,
-				detailsMap
+				detailsMap,
+				"test@email.com"
 		);
 	}
 }

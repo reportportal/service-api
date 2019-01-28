@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.client;
+package com.epam.ta.reportportal.core.analyzer.strategy;
 
-import com.rabbitmq.http.client.domain.ExchangeInfo;
-
-import java.util.List;
+import java.util.Map;
 
 /**
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * Stores {@link AnalyzeItemsMode} - {@link AnalyzeItemsCollector} mapping
+ *
+ * @author Pavel Bortnik
  */
-public interface RabbitMqManagementClient {
+public class AnalyzeCollectorFactory {
 
-	List<ExchangeInfo> getAnalyzerExchangesInfo();
+	private Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping;
 
+	public AnalyzeCollectorFactory(Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping) {
+		this.mapping = mapping;
+	}
+
+	public AnalyzeItemsCollector getCollector(AnalyzeItemsMode type) {
+		return this.mapping.get(type);
+	}
 }

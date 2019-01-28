@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +104,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		IssueType defaultGroupIssueType = issueTypeRepository.findByLocator(type.getIssueType()
 				.getIssueGroup()
 				.getTestItemIssueGroup()
-				.getLocator());
+				.getLocator()).orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, type.getIssueType()));
 		List<IssueEntity> allByIssueTypeId = issueEntityRepository.findAllByIssueTypeId(id);
 		allByIssueTypeId.forEach(issueEntity -> issueEntity.setIssueType(defaultGroupIssueType));
 

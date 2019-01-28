@@ -281,7 +281,7 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/export")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
 			@FilterFor(Project.class) Filter filter, @SortFor(ProjectInfo.class) Pageable pageable,

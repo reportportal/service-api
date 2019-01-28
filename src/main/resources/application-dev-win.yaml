@@ -4,10 +4,9 @@ rp:
   analyzer:
     url: http://localhost:8080/analyzer
   amqp:
-    addresses: amqp://rabbitmq:rabbitmq@localhost:5672
-    api-address: http://rabbitmq:rabbitmq@localhost:15672/api
+    host: localhost
   db:
-    url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
+    host: localhost
   plugins:
     path: plugins
 logging:

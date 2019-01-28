@@ -60,8 +60,6 @@ public final class TestItemConverter {
 		resource.setType(item.getType() != null ? item.getType().name() : null);
 		resource.setHasChildren(item.isHasChildren());
 
-		resource.setHasChildren(item.isHasChildren());
-
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());
 		}
@@ -76,7 +74,6 @@ public final class TestItemConverter {
 		TestItemActivityResource resource = new TestItemActivityResource();
 		resource.setId(testItem.getItemId());
 		resource.setName(testItem.getName());
-		resource.setProjectId(testItem.getLaunch().getProjectId());
 		resource.setStatus(testItem.getItemResults().getStatus().name());
 		IssueEntity issue = testItem.getItemResults().getIssue();
 		if (issue != null) {

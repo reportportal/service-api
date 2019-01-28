@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.project.impl.StatisticsUtils;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -110,7 +111,7 @@ public class Swagger2Configuration {
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Pageable.class, UserRole.class)
+                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Queryable.class, Pageable.class, UserRole.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
                 /* remove default endpoints from listing */

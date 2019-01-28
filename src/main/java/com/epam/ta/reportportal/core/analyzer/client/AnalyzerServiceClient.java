@@ -1,22 +1,17 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.client;
@@ -25,128 +20,98 @@ import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.CleanIndexRq;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.amqp.core.Exchange;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import com.rabbitmq.http.client.domain.ExchangeInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_SUPPORT_INDEX;
 import static java.util.stream.Collectors.toList;
 
 @Service
 public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient {
 
-	static final String INDEX_ROUTE = "index";
-	static final String ANALYZE_ROUTE = "analyze";
-	static final String DELETE_ROUTE = "delete";
-	static final String CLEAN_ROUTE = "clean";
+	private static final Logger LOGGER = LogManager.getLogger(AnalyzerServiceClient.class.getSimpleName());
+
+	private static final String INDEX_ROUTE = "index";
+	private static final String ANALYZE_ROUTE = "analyze";
+	private static final String DELETE_ROUTE = "delete";
+	private static final String CLEAN_ROUTE = "clean";
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
-
-	private final AsyncRabbitTemplate asyncRabbitTemplate;
 
 	private final RabbitTemplate rabbitTemplate;
 
 	@Autowired
-	public AnalyzerServiceClient(RabbitMqManagementClient rabbitMqManagementClient, AsyncRabbitTemplate asyncRabbitTemplate,
-			RabbitTemplate rabbitTemplate) {
+	public AnalyzerServiceClient(RabbitMqManagementClient rabbitMqManagementClient,
+			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
 		this.rabbitMqManagementClient = rabbitMqManagementClient;
-		this.asyncRabbitTemplate = asyncRabbitTemplate;
 		this.rabbitTemplate = rabbitTemplate;
 	}
 
 	@Override
 	public boolean hasClients() {
-		return rabbitMqManagementClient.getAnalyzerExchanges().size() != 0;
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo().size() != 0;
 	}
 
 	@Override
-	public List<CompletableFuture<IndexRs>> index(List<IndexLaunch> rq) {
-		return rabbitMqManagementClient.getAnalyzerExchanges()
+	public Long index(List<IndexLaunch> rq) {
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
+				.filter(DOES_SUPPORT_INDEX)
 				.flatMap(exchange -> rq.stream()
-						.map(indexLaunch -> asyncRabbitTemplate.<IndexRs>convertSendAndReceive(exchange.getName(),
-								rabbitMqManagementClient.getAnalyzerQueue(INDEX_ROUTE).getName(),
-								indexLaunch
+						.map(indexLaunch -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+								INDEX_ROUTE,
+								indexLaunch,
+								new ParameterizedTypeReference<IndexRs>() {
+								}
 						)))
-				.map(future -> {
-					CompletableFuture<IndexRs> f = new CompletableFuture<>();
-					future.addCallback(new ListenableFutureCallback<IndexRs>() {
-						@Override
-						public void onFailure(Throwable ex) {
-							f.completeExceptionally(ex);
-						}
-
-						@Override
-						public void onSuccess(IndexRs result) {
-							f.complete(result);
-						}
-					});
-					return f;
-				})
-				.collect(Collectors.toList());
+				.mapToLong(it -> it.getItems().size())
+				.sum();
 	}
 
 	@Override
-	public CompletableFuture<Map<String, List<AnalyzedItemRs>>> analyze(IndexLaunch rq) {
-		return CompletableFuture.supplyAsync(() -> {
-			List<Exchange> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchanges();
-			analyzerExchanges.sort(Comparator.comparing(o -> ((Integer) o.getArguments().getOrDefault("priority", 10))));
-
-			Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
-
-			analyzerExchanges.forEach(exchange -> {
-				AsyncRabbitTemplate.RabbitConverterFuture<List<AnalyzedItemRs>> analyzed = asyncRabbitTemplate.convertSendAndReceive(exchange.getName(),
-						rabbitMqManagementClient.getAnalyzerQueue(ANALYZE_ROUTE).getName(),
-						rq
-				);
-				analyzed.addCallback(new ListenableFutureCallback<List<AnalyzedItemRs>>() {
-					@Override
-					public void onFailure(Throwable ex) {
-						throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Cannot analyze " + rq);
-					}
-
-					@Override
-					public void onSuccess(List<AnalyzedItemRs> result) {
-						if (!CollectionUtils.isEmpty(result)) {
-							resultMap.put(exchange.getName(), result);
-							removeAnalyzedFromRq(rq, result);
-						}
-					}
-				});
-			});
-			return resultMap;
-		});
+	public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
+		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo();
+		Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
+		analyzerExchanges.forEach(exchange -> analyze(rq, resultMap, exchange));
+		return resultMap;
 	}
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
-		rabbitMqManagementClient.getAnalyzerExchanges()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
-						rabbitMqManagementClient.getAnalyzerQueue(CLEAN_ROUTE).getName(),
-						new CleanIndexRq(index, ids)
-				));
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
 
 	}
 
 	@Override
 	public void deleteIndex(Long index) {
-		rabbitMqManagementClient.getAnalyzerExchanges()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
-						rabbitMqManagementClient.getAnalyzerQueue(DELETE_ROUTE).getName(),
-						index
-				));
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DELETE_ROUTE, index));
+	}
+
+	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
+		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
+				ANALYZE_ROUTE,
+				rq,
+				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
+				}
+		);
+		if (!CollectionUtils.isEmpty(result)) {
+			resultMap.put((String) exchangeInfo.getArguments().getOrDefault(ANALYZER_KEY, exchangeInfo.getName()), result);
+			removeAnalyzedFromRq(rq, result);
+		}
 	}
 
 	/**
@@ -159,4 +124,5 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 		List<Long> analyzedItemIds = analyzed.stream().map(AnalyzedItemRs::getItemId).collect(toList());
 		rq.getTestItems().removeIf(it -> analyzedItemIds.contains(it.getTestItemId()));
 	}
+
 }

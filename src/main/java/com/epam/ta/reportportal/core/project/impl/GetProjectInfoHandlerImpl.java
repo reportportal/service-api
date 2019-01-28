@@ -90,13 +90,16 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private final ProjectInfoWidgetDataConverter dataConverter;
 
+	private final LaunchConverter launchConverter;
+
 	@Autowired
 	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter) {
+			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter, LaunchConverter launchConverter) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.activityRepository = activityRepository;
 		this.dataConverter = dataConverter;
+		this.launchConverter = launchConverter;
 	}
 
 	@Override
@@ -189,7 +192,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	private Map<String, ?> getLastLaunchStatistics(Long projectId) {
 		Optional<Launch> launchOptional = launchRepository.findLastRun(projectId, Mode.DEFAULT.name());
 		return launchOptional.isPresent() ?
-				Collections.singletonMap(RESULT, LaunchConverter.TO_RESOURCE.apply(launchOptional.get())) :
+				Collections.singletonMap(RESULT, launchConverter.TO_RESOURCE.apply(launchOptional.get())) :
 				Collections.emptyMap();
 	}
 
@@ -214,8 +217,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		return Filter.builder()
 				.withTarget(ProjectInfo.class)
 				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
-				.withCondition(new FilterCondition(
-						GREATER_THAN_OR_EQUALS,
+				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
 						CRITERIA_PROJECT_CREATION_DATE
@@ -232,8 +234,8 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID), new FilterCondition(
-						GREATER_THAN_OR_EQUALS,
+				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
+				new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
 						CRITERIA_CREATION_DATE

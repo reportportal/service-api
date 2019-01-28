@@ -32,8 +32,6 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -54,11 +52,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.io.OutputStream;
-import java.util.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
@@ -73,7 +71,6 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -96,11 +93,13 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	private final UserRepository userRepository;
 	private final JasperDataProvider dataProvider;
 	private final GetJasperReportHandler<Launch> jasperReportHandler;
+	private final LaunchConverter launchConverter;
 
 	@Autowired
 	public GetLaunchHandler(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
 			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository, UserRepository userRepository,
-			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler) {
+			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler,
+			LaunchConverter launchConverter) {
 		this.launchRepository = launchRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
@@ -108,13 +107,14 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		this.userRepository = userRepository;
 		this.dataProvider = Preconditions.checkNotNull(dataProvider);
 		this.jasperReportHandler = jasperReportHandler;
+		this.launchConverter = launchConverter;
 	}
 
 	@Override
 	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		validate(launch, projectDetails);
-		return TO_RESOURCE.apply(launch);
+		return launchConverter.TO_RESOURCE.apply(launch);
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
-		return LaunchConverter.TO_RESOURCE.apply(launches.iterator().next());
+		return launchConverter.TO_RESOURCE.apply(launches.iterator().next());
 	}
 
 	@Override
@@ -138,7 +138,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 		filter = addLaunchCommonCriteria(DEFAULT, filter);
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
-		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
+		return PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	/*
@@ -150,7 +150,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		validateModeConditions(filter);
 		filter = addLaunchCommonCriteria(DEBUG, filter);
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
-		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
+		return PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	@Override
@@ -175,13 +175,12 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		filter = addLaunchCommonCriteria(DEFAULT, filter);
 
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
-		return PagedResourcesAssembler.pageConverter(LaunchConverter.TO_RESOURCE).apply(launches);
+		return PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
 	}
 
 	@Override
 	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		expect(value.length() > 2, equalTo(true)).verify(
-				INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
 		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEFAULT.name());
@@ -189,8 +188,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 
 	@Override
 	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode) {
-		expect(value.length() > 2, equalTo(true)).verify(
-				INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
 

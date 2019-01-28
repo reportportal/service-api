@@ -30,6 +30,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.quartz.*;
@@ -43,6 +44,7 @@ import java.util.Properties;
 @Configuration
 @EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
 		SchedulerConfiguration.CleanLaunchesJobProperties.class })
+@Conditional(Conditions.NotTestCondition.class)
 public class SchedulerConfiguration {
 
 	@Autowired

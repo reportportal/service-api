@@ -84,4 +84,4 @@ rp:
       host: seaweed-master
       port: 9333
     # could be one of [seaweed, filesystem]
-    type: seaweed
+    type: filesystem

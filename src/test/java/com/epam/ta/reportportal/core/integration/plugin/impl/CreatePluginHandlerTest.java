@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,9 +44,12 @@ import static org.mockito.Mockito.*;
 public class CreatePluginHandlerTest {
 
 	public static final String PLUGIN_ID = "JIRA";
+	public static final String PLUGIN_VERSION = "1.0.0";
 	public static final String FILE_NAME = "file.jar";
 
 	private final String pluginRootPath = "plugins";
+
+	private final PluginInfo pluginInfo = mock(PluginInfo.class);
 
 	private final MultipartFile multipartFile = mock(MultipartFile.class);
 
@@ -58,10 +63,13 @@ public class CreatePluginHandlerTest {
 
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
+	private final DataStore dataStore = mock(DataStore.class);
+
 	private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginRootPath,
 			pluginBox,
 			pluginLoader,
-			integrationTypeRepository
+			integrationTypeRepository,
+			dataStore
 	);
 
 	@Test
@@ -71,8 +79,13 @@ public class CreatePluginHandlerTest {
 
 		when(multipartFile.getInputStream()).thenReturn(inputStream);
 
-		when(pluginLoader.extractPluginId(Paths.get(pluginRootPath, CreatePluginHandlerImpl.PLUGIN_TEMP_DIRECTORY, FILE_NAME))).thenReturn(
-				PLUGIN_ID);
+		when(pluginLoader.extractPluginInfo(Paths.get(pluginRootPath,
+				CreatePluginHandlerImpl.PLUGIN_TEMP_DIRECTORY,
+				FILE_NAME
+		))).thenReturn(pluginInfo);
+
+		when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
+		when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
 
 		when(pluginLoader.retrieveOldPlugin(PLUGIN_ID, FILE_NAME)).thenReturn(Optional.of(pluginWrapper));
 

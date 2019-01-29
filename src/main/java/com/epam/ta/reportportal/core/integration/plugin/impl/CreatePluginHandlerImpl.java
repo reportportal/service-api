@@ -19,13 +19,17 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.plugin.util.PluginUtils;
+import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +44,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -60,13 +66,16 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 
+	private final DataStore dataStore;
+
 	@Autowired
 	public CreatePluginHandlerImpl(@Value("${rp.plugins.path}") String pluginsRootPath, PluginBox pluginBox, PluginLoader pluginLoader,
-			IntegrationTypeRepository integrationTypeRepository) {
+			IntegrationTypeRepository integrationTypeRepository, DataStore dataStore) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.pluginBox = pluginBox;
 		this.pluginLoader = pluginLoader;
 		this.integrationTypeRepository = integrationTypeRepository;
+		this.dataStore = dataStore;
 	}
 
 	@Override
@@ -82,14 +91,20 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		PluginUtils.resolveExtensionAndUploadTempPlugin(pluginFile, pluginsTempPath);
 
 		Path newPluginTempPath = Paths.get(pluginsTempPath, newPluginFileName);
-		String pluginId = pluginLoader.extractPluginId(newPluginTempPath);
+		PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(newPluginTempPath);
 
-		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(pluginId)
+		BusinessRule.expect(newPluginInfo.getVersion(), notNull())
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+
+		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(newPluginInfo.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Unknown integration type - {} ", pluginId).get()
+						Suppliers.formattedSupplier("Unknown integration type - {} ", newPluginInfo.getId()).get()
 				));
 
-		Optional<PluginWrapper> oldPlugin = pluginLoader.retrieveOldPlugin(pluginId, newPluginFileName);
+		Optional<PluginWrapper> oldPlugin = pluginLoader.retrieveOldPlugin(newPluginInfo.getId(), newPluginFileName);
+
+		IntegrationType integrationType = retrieveIntegrationType(newPluginInfo, reportPortalIntegration);
+		IntegrationDetailsProperties.VERSION.setValue(integrationType.getDetails(), newPluginInfo.getVersion());
 
 		String newPluginId = pluginBox.loadPlugin(newPluginTempPath);
 
@@ -113,6 +128,21 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			try {
 
+				String fileId = dataStore.save(newPluginFileName, pluginFile.getInputStream());
+				IntegrationDetailsProperties.FILE_ID.setValue(integrationType.getDetails(), fileId);
+
+			} catch (IOException e) {
+
+				oldPlugin.ifPresent(pluginLoader::reloadPlugin);
+
+				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unable to upload the new plugin file with id = {} to the data store", newPluginId)
+								.get()
+				);
+			}
+
+			try {
+
 				org.apache.commons.io.FileUtils.copyFile(new File(pluginsTempPath, newPluginFileName),
 						new File(pluginsRootPath, newPluginFileName)
 				);
@@ -132,10 +162,9 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			String newLoadedPluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, newPluginFileName));
 			pluginBox.startUpPlugin(newLoadedPluginId);
 
-			IntegrationType integrationType = new IntegrationType();
 			integrationType.setName(newLoadedPluginId);
-			integrationType.setIntegrationGroup(reportPortalIntegration.getIntegrationGroup());
-			integrationType.setCreationDate(LocalDateTime.now());
+
+			IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(), newPluginFileName);
 
 			integrationType = integrationTypeRepository.save(integrationType);
 
@@ -152,5 +181,34 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			);
 		}
 
+	}
+
+	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo, ReportPortalIntegrationEnum reportPortalIntegration) {
+
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId()).orElseGet(this::getNewIntegrationType);
+		if (integrationType.getDetails() == null) {
+			integrationType.setDetails(getEmptyIntegrationTypeDetails());
+		}
+
+		integrationType.setIntegrationGroup(reportPortalIntegration.getIntegrationGroup());
+		integrationType.setCreationDate(LocalDateTime.now());
+
+		return integrationType;
+	}
+
+	private IntegrationType getNewIntegrationType() {
+		IntegrationType type = new IntegrationType();
+
+		type.setDetails(getEmptyIntegrationTypeDetails());
+
+		return type;
+	}
+
+	private IntegrationTypeDetails getEmptyIntegrationTypeDetails() {
+
+		IntegrationTypeDetails integrationTypeDetails = new IntegrationTypeDetails();
+		integrationTypeDetails.setDetails(new HashMap<>());
+
+		return integrationTypeDetails;
 	}
 }

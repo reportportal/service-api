@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.pf4j.*;
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,23 +50,22 @@ public class PluginLoaderImpl implements PluginLoader {
 
 	private final PluginDescriptorFinder pluginDescriptorFinder;
 
-	private final IntegrationTypeRepository integrationTypeRepository;
-
 	@Autowired
 	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, PluginBox pluginBox,
-			PluginDescriptorFinder pluginDescriptorFinder, IntegrationTypeRepository integrationTypeRepository) {
+			PluginDescriptorFinder pluginDescriptorFinder) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
-		this.integrationTypeRepository = integrationTypeRepository;
 	}
 
 	@Override
-	public String extractPluginId(Path pluginPath) {
+	@NotNull
+	public PluginInfo extractPluginInfo(Path pluginPath) {
 		try {
 
 			PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-			return pluginDescriptor.getPluginId();
+
+			return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
 
 		} catch (PluginException e) {
 
@@ -110,8 +110,6 @@ public class PluginLoaderImpl implements PluginLoader {
 						Suppliers.formattedSupplier("Failed to stop old plugin with id = {}", p.getPluginId()).get()
 				);
 			}
-
-			integrationTypeRepository.deleteByName(p.getPluginId());
 		});
 
 		validateNewPluginFile(oldPlugin, newPluginFileName);

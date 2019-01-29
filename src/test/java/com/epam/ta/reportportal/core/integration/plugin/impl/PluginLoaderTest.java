@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.pf4j.*;
@@ -30,7 +30,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
 
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +39,7 @@ import static org.mockito.Mockito.when;
 public class PluginLoaderTest {
 
 	public static final String PLUGIN_ID = "pluginV1";
+	public static final String PLUGIN_VERSION = "1.0.0";
 	public static final String FILE_NAME = "file";
 
 	private final String pluginRootPath = "plugins";
@@ -47,8 +47,6 @@ public class PluginLoaderTest {
 	private final PluginBox pluginBox = mock(PluginBox.class);
 
 	private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
-
-	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
 	private final PluginDescriptor pluginDescriptor = mock(PluginDescriptor.class);
 
@@ -58,8 +56,7 @@ public class PluginLoaderTest {
 
 	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath,
 			pluginBox,
-			pluginDescriptorFinder,
-			integrationTypeRepository
+			pluginDescriptorFinder
 	);
 
 	@Test
@@ -69,11 +66,13 @@ public class PluginLoaderTest {
 
 		when(pluginDescriptorFinder.find(path)).thenReturn(pluginDescriptor);
 		when(pluginDescriptor.getPluginId()).thenReturn(PLUGIN_ID);
+		when(pluginDescriptor.getVersion()).thenReturn(PLUGIN_VERSION);
 
-		String pluginId = pluginLoader.extractPluginId(path);
+		PluginInfo pluginInfo = pluginLoader.extractPluginInfo(path);
 
-		Assert.assertNotNull(pluginId);
-		Assert.assertEquals(PLUGIN_ID, pluginId);
+		Assert.assertNotNull(pluginInfo);
+		Assert.assertEquals(PLUGIN_ID, pluginInfo.getId());
+		Assert.assertEquals(PLUGIN_VERSION, pluginInfo.getVersion());
 	}
 
 	@Test
@@ -129,8 +128,6 @@ public class PluginLoaderTest {
 		when(pluginWrapper.getPluginId()).thenReturn(PLUGIN_ID);
 
 		when(pluginBox.unloadPlugin(PLUGIN_ID)).thenReturn(true);
-
-		doNothing().when(integrationTypeRepository).deleteByName(PLUGIN_ID);
 
 		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrieveOldPlugin(PLUGIN_ID, FILE_NAME);
 

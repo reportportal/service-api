@@ -27,7 +27,7 @@ import java.util.Optional;
  */
 public interface PluginLoader {
 
-	String extractPluginId(Path pluginPath);
+	PluginInfo extractPluginInfo(Path pluginPath);
 
 	PluginState reloadPlugin(PluginWrapper plugin);
 

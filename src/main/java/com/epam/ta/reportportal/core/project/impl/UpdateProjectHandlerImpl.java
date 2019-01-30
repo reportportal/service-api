@@ -34,17 +34,15 @@ import com.epam.ta.reportportal.entity.enums.*;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailRulesValidator;
-import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.util.integration.IntegrationService;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
@@ -61,8 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -92,39 +90,34 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final MessageBus messageBus;
 
-	private final Map<String, IntegrationService> integrationServiceMapping;
+	private final MailServiceFactory mailServiceFactory;
 
-	private final EmailIntegrationService emailIntegrationService;
+	private final LaunchRepository launchRepository;
 
-	@Autowired
-	private MailServiceFactory mailServiceFactory;
+	private final AnalyzerStatusCache analyzerStatusCache;
 
-	@Autowired
-	private LaunchRepository launchRepository;
+	private final AnalyzerServiceClient analyzerServiceClient;
 
-	@Autowired
-	private AnalyzerStatusCache analyzerStatusCache;
+	private final LogIndexer logIndexer;
 
-	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
-
-	@Autowired
-	private LogIndexer logIndexer;
-
-	@Autowired
-	private ShareableEntityRepository shareableEntityRepository;
-
-	@Autowired
-	private ShareableObjectsHandler aclHandler;
+	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository) {
+			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
+			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
 		this.messageBus = messageBus;
 		this.projectUserRepository = projectUserRepository;
+		this.mailServiceFactory = mailServiceFactory;
+		this.launchRepository = launchRepository;
+		this.analyzerStatusCache = analyzerStatusCache;
+		this.analyzerServiceClient = analyzerServiceClient;
+		this.logIndexer = logIndexer;
+		this.aclHandler = aclHandler;
 	}
 
 	@Override
@@ -386,12 +379,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		});
 
 		/* If project email settings */
-		Set<EmailSenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverter.TO_CASE_MODEL).collect(toSet());
+		Set<SenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverter.TO_CASE_MODEL).collect(toSet());
 		if (cases.size() != withoutDuplicateCases.size()) {
 			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
 		}
 
-		project.setEmailCases(withoutDuplicateCases);
+		project.setSenderCases(withoutDuplicateCases);
 	}
 
 }

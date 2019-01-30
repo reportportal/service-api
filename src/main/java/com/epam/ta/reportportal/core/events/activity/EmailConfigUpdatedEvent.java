@@ -58,7 +58,7 @@ public class EmailConfigUpdatedEvent extends BeforeEvent<Project> implements Act
 		 * Request contains EmailCases block and its not equal for stored project one
 		 */
 
-		List<EmailSenderCaseDTO> before = ofNullable(project.getEmailCases()).map(es -> es.stream()
+		List<EmailSenderCaseDTO> before = ofNullable(project.getSenderCases()).map(sc -> sc.stream()
 				.map(EmailConfigConverter.TO_CASE_RESOURCE)
 				.collect(toList())).orElseGet(Collections::emptyList);
 

@@ -86,7 +86,7 @@ public final class ProjectConverter {
 
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 
-		ofNullable(project.getEmailCases()).ifPresent(senderCases -> projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(
+		ofNullable(project.getSenderCases()).ifPresent(senderCases -> projectConfiguration.setEmailConfig(EmailConfigConverter.TO_RESOURCE.apply(
 				senderCases)));
 
 		projectConfiguration.setSubTypes(subTypes);

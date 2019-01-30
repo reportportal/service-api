@@ -31,10 +31,11 @@ import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
@@ -54,6 +55,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -83,26 +85,27 @@ public class LaunchFinishedEventHandler {
 
 	private final Provider<HttpServletRequest> currentRequest;
 
+	private final AnalyzeCollectorFactory analyzeCollectorFactory;
+
+	private final IssuesAnalyzer issuesAnalyzer;
+
+	private final LogIndexer logIndexer;
+
 	@Autowired
 	public LaunchFinishedEventHandler(ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler,
 			MailServiceFactory mailServiceFactory, UserRepository userRepository, LaunchRepository launchRepository,
-			Provider<HttpServletRequest> currentRequest) {
+			Provider<HttpServletRequest> currentRequest, AnalyzeCollectorFactory analyzeCollectorFactory, IssuesAnalyzer issuesAnalyzer,
+			LogIndexer logIndexer) {
 		this.projectRepository = projectRepository;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.mailServiceFactory = mailServiceFactory;
 		this.userRepository = userRepository;
 		this.launchRepository = launchRepository;
 		this.currentRequest = currentRequest;
+		this.analyzeCollectorFactory = analyzeCollectorFactory;
+		this.issuesAnalyzer = issuesAnalyzer;
+		this.logIndexer = logIndexer;
 	}
-
-	@Autowired
-	private AnalyzeCollectorFactory analyzeCollectorFactory;
-
-	@Autowired
-	private IssuesAnalyzer issuesAnalyzer;
-
-	@Autowired
-	private LogIndexer logIndexer;
 
 	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
@@ -118,13 +121,12 @@ public class LaunchFinishedEventHandler {
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 		logIndexer.indexLogs(Lists.newArrayList(launch.getId()), analyzerConfig);
 
-		Integration emailIntegration = EmailIntegrationUtil.getEmailIntegration(project)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, EmailIntegrationUtil.EMAIL));
+		Integration emailIntegration = getIntegrationHandler.findEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
+				IntegrationGroupEnum.NOTIFICATION
+		)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
 		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
-		getIntegrationHandler.findEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(), IntegrationGroupEnum.NOTIFICATION)
-				.ifPresent(emailIntegration -> mailServiceFactory.getDefaultEmailService(emailIntegration)
-						.ifPresent(it -> sendEmail(launch, project, it)));
 		if (!BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
 			emailService.ifPresent(it -> sendEmail(launch, project, it));
 			return;
@@ -189,7 +191,7 @@ public class LaunchFinishedEventHandler {
 	 * @param oneCase Mail case
 	 * @return TRUE if launch name matched
 	 */
-	private static boolean isLaunchNameMatched(Launch launch, EmailSenderCase oneCase) {
+	private static boolean isLaunchNameMatched(Launch launch, SenderCase oneCase) {
 		Set<String> configuredNames = oneCase.getLaunchNames();
 		return (null == configuredNames) || (configuredNames.isEmpty()) || configuredNames.contains(launch.getName());
 	}
@@ -218,7 +220,7 @@ public class LaunchFinishedEventHandler {
 	 */
 	private void sendEmail(Launch launch, Project project, EmailService emailService) {
 
-		project.getEmailCases().forEach(ec -> {
+		project.getSenderCases().forEach(ec -> {
 			SendCase sendCase = ec.getSendCase();
 			boolean successRate = isSuccessRateEnough(launch, sendCase);
 			boolean matchedNames = isLaunchNameMatched(launch, ec);

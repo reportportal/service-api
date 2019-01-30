@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.SendCase;
-import com.epam.ta.reportportal.entity.project.email.EmailSenderCase;
+import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
@@ -25,17 +25,17 @@ public final class EmailConfigConverter {
 		//static only
 	}
 
-	public final static Function<Set<EmailSenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = es -> {
+	public final static Function<Set<SenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = senderCaseSet -> {
 		ProjectEmailConfigDTO dto = new ProjectEmailConfigDTO();
 
-		ofNullable(es).ifPresent(senderCases -> dto.setEmailCases(senderCases.stream()
+		ofNullable(senderCaseSet).ifPresent(senderCases -> dto.setEmailCases(senderCases.stream()
 				.map(EmailConfigConverter.TO_CASE_RESOURCE)
 				.collect(Collectors.toList())));
 
 		return dto;
 	};
 
-	public final static Function<EmailSenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
+	public final static Function<SenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
 		Preconditions.checkNotNull(model);
 		EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
 		resource.setLaunchNames(Lists.newArrayList(model.getLaunchNames()));
@@ -45,15 +45,15 @@ public final class EmailConfigConverter {
 		return resource;
 	};
 
-	public final static Function<EmailSenderCaseDTO, EmailSenderCase> TO_CASE_MODEL = resource -> {
-		EmailSenderCase emailSenderCase = new EmailSenderCase();
-		emailSenderCase.setLaunchAttributes(Sets.newHashSet(resource.getAttributes()));
-		emailSenderCase.setLaunchNames(Sets.newHashSet(resource.getLaunchNames()));
-		emailSenderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
-		emailSenderCase.setSendCase(SendCase.findByName(resource.getSendCase())
+	public final static Function<EmailSenderCaseDTO, SenderCase> TO_CASE_MODEL = resource -> {
+		SenderCase senderCase = new SenderCase();
+		senderCase.setLaunchAttributes(Sets.newHashSet(resource.getAttributes()));
+		senderCase.setLaunchNames(Sets.newHashSet(resource.getLaunchNames()));
+		senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
+		senderCase.setSendCase(SendCase.findByName(resource.getSendCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						"Incorrect send case type " + resource.getSendCase()
 				)));
-		return emailSenderCase;
+		return senderCase;
 	};
 }

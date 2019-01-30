@@ -28,12 +28,20 @@ public class PluginInfo implements Serializable {
 
 	private String version;
 
+	private String fileName;
+
 	public PluginInfo() {
 	}
 
 	public PluginInfo(String id, String version) {
 		this.id = id;
 		this.version = version;
+	}
+
+	public PluginInfo(String id, String version, String fileName) {
+		this.id = id;
+		this.version = version;
+		this.fileName = fileName;
 	}
 
 	@Nullable
@@ -54,6 +62,15 @@ public class PluginInfo implements Serializable {
 		this.version = version;
 	}
 
+	@Nullable
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -68,13 +85,17 @@ public class PluginInfo implements Serializable {
 		if (id != null ? !id.equals(that.id) : that.id != null) {
 			return false;
 		}
-		return version != null ? version.equals(that.version) : that.version == null;
+		if (version != null ? !version.equals(that.version) : that.version != null) {
+			return false;
+		}
+		return fileName != null ? fileName.equals(that.fileName) : that.fileName == null;
 	}
 
 	@Override
 	public int hashCode() {
 		int result = id != null ? id.hashCode() : 0;
 		result = 31 * result + (version != null ? version.hashCode() : 0);
+		result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
 		return result;
 	}
 }

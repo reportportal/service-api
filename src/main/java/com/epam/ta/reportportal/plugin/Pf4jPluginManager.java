@@ -35,13 +35,13 @@ import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
-public class P4jPluginManager extends AbstractIdleService implements PluginBox {
+public class Pf4jPluginManager extends AbstractIdleService implements PluginBox {
 
 	private final AutowireCapableBeanFactory context;
 	private final String pluginsPath;
 	private final org.pf4j.PluginManager pluginManager;
 
-	public P4jPluginManager(String pluginsPath, AutowireCapableBeanFactory context, Collection<PluginDescriptorFinder> pluginDescriptorFinders) {
+	public Pf4jPluginManager(String pluginsPath, AutowireCapableBeanFactory context, Collection<PluginDescriptorFinder> pluginDescriptorFinders) {
 		this.context = context;
 		this.pluginsPath = pluginsPath;
 		pluginManager = new DefaultPluginManager(FileSystems.getDefault().getPath(this.pluginsPath)) {
@@ -68,7 +68,7 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 						if (null == obj) {
 							return null;
 						}
-						P4jPluginManager.this.context.autowireBean(obj);
+						Pf4jPluginManager.this.context.autowireBean(obj);
 						return obj;
 					}
 				};

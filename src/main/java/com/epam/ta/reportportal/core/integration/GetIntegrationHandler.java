@@ -37,5 +37,5 @@ public interface GetIntegrationHandler {
 
 	IntegrationResource getGlobalIntegrationById(Long integrationId);
 
-	Optional<Integration> findEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup);
+	Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup);
 }

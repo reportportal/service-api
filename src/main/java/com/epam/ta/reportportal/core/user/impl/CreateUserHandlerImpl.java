@@ -148,7 +148,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
 
-		Integration integration = getIntegrationHandler.findEnabledByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
+		Integration integration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,

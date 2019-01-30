@@ -69,7 +69,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
-	public Optional<Integration> findEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup) {
+	public Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup) {
 
 		List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(integrationGroup)
 				.stream()
@@ -80,17 +80,19 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 		if (!CollectionUtils.isEmpty(integrations)) {
 
-			return integrations.stream()
-					.filter(Integration::isEnabled)
-					.findFirst();
+			return integrations.stream().filter(Integration::isEnabled).findFirst();
 
 		} else {
 
-			return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-					.stream()
-					.filter(Integration::isEnabled)
-					.findFirst();
+			return getGlobalIntegrationByIntegrationTypeIds(integrationTypeIds);
 		}
 
+	}
+
+	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
+		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+				.stream()
+				.filter(Integration::isEnabled)
+				.findFirst();
 	}
 }

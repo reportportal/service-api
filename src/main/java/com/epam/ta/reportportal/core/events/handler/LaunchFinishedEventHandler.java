@@ -121,7 +121,7 @@ public class LaunchFinishedEventHandler {
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 		logIndexer.indexLogs(Lists.newArrayList(launch.getId()), analyzerConfig);
 
-		Integration emailIntegration = getIntegrationHandler.findEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
+		Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));

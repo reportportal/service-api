@@ -4,8 +4,8 @@ import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -25,19 +25,19 @@ public final class EmailConfigConverter {
 		//static only
 	}
 
-	public final static Function<Set<SenderCase>, ProjectEmailConfigDTO> TO_RESOURCE = senderCaseSet -> {
-		ProjectEmailConfigDTO dto = new ProjectEmailConfigDTO();
+	public final static Function<Set<SenderCase>, ProjectConfigDTO> TO_RESOURCE = senderCaseSet -> {
+		ProjectConfigDTO dto = new ProjectConfigDTO();
 
-		ofNullable(senderCaseSet).ifPresent(senderCases -> dto.setEmailCases(senderCases.stream()
+		ofNullable(senderCaseSet).ifPresent(senderCases -> dto.setSenderCases(senderCases.stream()
 				.map(EmailConfigConverter.TO_CASE_RESOURCE)
 				.collect(Collectors.toList())));
 
 		return dto;
 	};
 
-	public final static Function<SenderCase, EmailSenderCaseDTO> TO_CASE_RESOURCE = model -> {
+	public final static Function<SenderCase, SenderCaseDTO> TO_CASE_RESOURCE = model -> {
 		Preconditions.checkNotNull(model);
-		EmailSenderCaseDTO resource = new EmailSenderCaseDTO();
+		SenderCaseDTO resource = new SenderCaseDTO();
 		resource.setLaunchNames(Lists.newArrayList(model.getLaunchNames()));
 		resource.setAttributes(Lists.newArrayList(model.getLaunchAttributes()));
 		resource.setSendCase(model.getSendCase().getCaseString());
@@ -45,7 +45,7 @@ public final class EmailConfigConverter {
 		return resource;
 	};
 
-	public final static Function<EmailSenderCaseDTO, SenderCase> TO_CASE_MODEL = resource -> {
+	public final static Function<SenderCaseDTO, SenderCase> TO_CASE_MODEL = resource -> {
 		SenderCase senderCase = new SenderCase();
 		senderCase.setLaunchAttributes(Sets.newHashSet(resource.getAttributes()));
 		senderCase.setLaunchNames(Sets.newHashSet(resource.getLaunchNames()));

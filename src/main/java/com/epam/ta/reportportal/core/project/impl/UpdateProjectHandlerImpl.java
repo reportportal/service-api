@@ -50,8 +50,8 @@ import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
-import com.epam.ta.reportportal.ws.model.project.email.EmailSenderCaseDTO;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectEmailConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -136,12 +136,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	@Override
 	public OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			ProjectEmailConfigDTO updateProjectRQ) {
+			ProjectConfigDTO updateProjectRQ) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		Project before = SerializationUtils.clone(project);
 
-		updateEmailCases(project, updateProjectRQ.getEmailCases());
+		updateSenderCases(project, updateProjectRQ.getSenderCases());
 
 		try {
 			projectRepository.save(project);
@@ -352,7 +352,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
 	}
 
-	private void updateEmailCases(Project project, List<EmailSenderCaseDTO> cases) {
+	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
 
 		expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
 		cases.forEach(sendCase -> {

@@ -17,6 +17,11 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.commons.SendCase;
+import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -35,7 +40,10 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +57,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
@@ -86,21 +95,53 @@ public class LaunchFinishedEventHandler {
 		this.currentRequest = currentRequest;
 	}
 
+	@Autowired
+	private AnalyzeCollectorFactory analyzeCollectorFactory;
+
+	@Autowired
+	private IssuesAnalyzer issuesAnalyzer;
+
+	@Autowired
+	private LogIndexer logIndexer;
+
 	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) {
-		//TODO: retries and analyzer handlers should be added according to existed logic.
-
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
+
 		if (LaunchModeEnum.DEBUG == launch.getMode()) {
 			return;
 		}
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
+		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+		logIndexer.indexLogs(Lists.newArrayList(launch.getId()), analyzerConfig);
+
+		Integration emailIntegration = EmailIntegrationUtil.getEmailIntegration(project)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, EmailIntegrationUtil.EMAIL));
+		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
+
 		getIntegrationHandler.findEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(), IntegrationGroupEnum.NOTIFICATION)
 				.ifPresent(emailIntegration -> mailServiceFactory.getDefaultEmailService(emailIntegration)
 						.ifPresent(it -> sendEmail(launch, project, it)));
+		if (!BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
+			emailService.ifPresent(it -> sendEmail(launch, project, it));
+			return;
+		}
+
+		if (issuesAnalyzer.hasAnalyzers()) {
+			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
+					.collectItems(project.getId(), launch.getId(), null);
+
+			CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch, testItems, analyzerConfig);
+
+			analyze.thenAccept(res -> {
+				Launch updatedLaunch = launchRepository.findById(launch.getId())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
+				emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
+			});
+		}
 
 	}
 

@@ -19,8 +19,13 @@ package com.epam.ta.reportportal.core.project.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.EmailConfigUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.*;
@@ -37,6 +42,9 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.util.integration.IntegrationService;
+import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
@@ -54,6 +62,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -82,6 +91,25 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectUserRepository projectUserRepository;
 
 	private final MessageBus messageBus;
+
+	private final Map<String, IntegrationService> integrationServiceMapping;
+
+	private final EmailIntegrationService emailIntegrationService;
+
+	@Autowired
+	private MailServiceFactory mailServiceFactory;
+
+	@Autowired
+	private LaunchRepository launchRepository;
+
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
+	private AnalyzerServiceClient analyzerServiceClient;
+
+	@Autowired
+	private LogIndexer logIndexer;
 
 	@Autowired
 	private ShareableEntityRepository shareableEntityRepository;
@@ -213,8 +241,35 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(String projectName, String user) {
-		return null;
+	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+
+		//		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+		//				"Index can not be removed until index generation proceeds."
+		//		);
+
+		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectDetails.getProjectId()), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until auto-analysis proceeds."
+		);
+
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer's."
+		);
+
+		//		projectRepository.enableProjectIndexing(projectName, true);
+
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
+		List<Long> launches = launchRepository.findLaunchIdsByProjectId(projectDetails.getProjectId());
+
+		logIndexer.deleteIndex(projectDetails.getProjectId());
+
+		logIndexer.indexLogs(launches, AnalyzerUtils.getAnalyzerConfig(project))
+				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
+						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
+
+		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), true));
+		return new OperationCompletionRS("Log indexing has been started");
 	}
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,

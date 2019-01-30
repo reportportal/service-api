@@ -18,11 +18,14 @@ package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.springframework.data.domain.Pageable;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -132,6 +135,16 @@ public interface GetLaunchHandler {
 	 * @return Response Data
 	 */
 	Map<String, String> getStatuses(ReportPortalUser.ProjectDetails projectDetails, Long[] ids);
+
+	/**
+	 * Export Launch info according to the {@link ReportFormat} type
+	 *
+	 * @param launchId     {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @param reportFormat {@link ReportFormat}
+	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
+	 * @param user         Current {@link ReportPortalUser}
+	 */
+	void exportLaunch(Long launchId, ReportFormat reportFormat, OutputStream outputStream, ReportPortalUser user);
 
 	/**
 	 * Get latest launches

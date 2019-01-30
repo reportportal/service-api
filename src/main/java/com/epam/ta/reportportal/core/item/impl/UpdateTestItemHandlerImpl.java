@@ -19,12 +19,15 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.StatusChangeTestItemHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.bts.Ticket;
@@ -34,6 +37,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -50,6 +54,7 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,9 +70,11 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -79,6 +86,8 @@ import static java.util.stream.Collectors.toSet;
  */
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
+
+	private final ProjectRepository projectRepository;
 
 	private final TestItemRepository testItemRepository;
 
@@ -92,21 +101,29 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final MessageBus messageBus;
 
+	private final LogIndexer logIndexer;
+
 	@Autowired
 	public UpdateTestItemHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
 			TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, StatusChangeTestItemHandler statusChangeTestItemHandler,
-			MessageBus messageBus) {
+			MessageBus messageBus, LogIndexer logIndexer, ProjectRepository projectRepository) {
 		this.testItemRepository = testItemRepository;
 		this.integrationRepository = integrationRepository;
 		this.ticketRepository = ticketRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.statusChangeTestItemHandler = statusChangeTestItemHandler;
 		this.messageBus = messageBus;
+		this.logIndexer = logIndexer;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
 	public List<Issue> defineTestItemsIssues(ReportPortalUser.ProjectDetails projectDetails, DefineIssueRQ defineIssue,
 			ReportPortalUser user) {
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+
 		List<String> errors = new ArrayList<>();
 		List<IssueDefinition> definitions = defineIssue.getIssues();
 		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
@@ -138,8 +155,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				issueEntity.setIssueId(testItem.getItemId());
 				testItem.getItemResults().setIssue(issueEntity);
 
-				//TODO EXTERNAL SYSTEM LOGIC, ANALYZER LOGIC
 				testItemRepository.save(testItem);
+				indexLogs(analyzerConfig, testItem, project.getId());
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
 				events.add(new ItemIssueTypeDefinedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), user.getUserId()));
@@ -272,35 +289,31 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
 		Launch launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(
-					ACCESS_DENIED,
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(
-						ACCESS_DENIED,
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
 						"You are not a launch owner."
 				);
 			}
 		}
 	}
 
-	//
-	//	/**
-	//	 * Index logs if item is not ignored for analyzer
-	//	 * Clean index logs if item is ignored for analyzer
-	//	 *
-	//	 * @param projectName Project name
-	//	 * @param testItem    Test item to reindex
-	//	 */
-	//	private void indexLogs(String projectName, TestItem testItem) {
-	//		if (CAN_BE_INDEXED.test(testItem)) {
-	//			logIndexer.indexLogs(testItem.getLaunchRef(), singletonList(testItem));
-	//		} else {
-	//			logIndexer.cleanIndex(projectName, singletonList(testItem.getId()));
-	//		}
-	//	}
-	//
+	/**
+	 * Index logs if item is not ignored for analyzer
+	 * Clean index logs if item is ignored for analyzer
+	 *
+	 * @param analyzerConfig Analyzer config
+	 * @param testItem       Test item to reindex
+	 */
+	private void indexLogs(AnalyzerConfig analyzerConfig, TestItem testItem, Long projectId) {
+		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+			logIndexer.indexLogs(singletonList(testItem.getLaunch().getId()), analyzerConfig);
+		} else {
+			logIndexer.cleanIndex(projectId, singletonList(testItem.getItemId()));
+		}
+	}
 
 	/**
 	 * Complex of domain verification for test item. Verifies that test item
@@ -315,10 +328,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

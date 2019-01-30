@@ -37,6 +37,8 @@ import java.util.function.Supplier;
  */
 public class UserBuilder implements Supplier<User> {
 
+	public static final String USER_LAST_LOGIN = "last_login";
+
 	private static final HashFunction HASH_FUNCTION = Hashing.md5();
 
 	private User user;
@@ -58,7 +60,7 @@ public class UserBuilder implements Supplier<User> {
 			user.setUserType(UserType.INTERNAL);
 			user.setExpired(false);
 			Map<String, Object> meta = new HashMap<>();
-			meta.put("last_login", new Date());
+			meta.put(USER_LAST_LOGIN, new Date());
 			user.setMetadata(new Metadata(meta));
 		}
 		return this;

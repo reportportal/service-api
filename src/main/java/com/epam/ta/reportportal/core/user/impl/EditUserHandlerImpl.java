@@ -51,7 +51,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -140,17 +139,16 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, boolean isAdmin) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-		expect(user, notNull()).verify(USER_NOT_FOUND, username);
 		boolean isRoleChanged = false;
 		UpdatedRole source = null;
 
 		if ((null != editUserRQ.getRole()) && isAdmin) {
-			Optional<UserRole> newRole = UserRole.findByName(editUserRQ.getRole());
-			expect(newRole.isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
+			UserRole newRole = UserRole.findByName(editUserRQ.getRole())
+					.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
 			//noinspection ConstantConditions
-			user.setRole(newRole.get());
+			user.setRole(newRole);
 			//noinspection ConstantConditions
-			source = new UpdatedRole(username, newRole.get());
+			source = new UpdatedRole(username, newRole);
 			isRoleChanged = true;
 		}
 
@@ -171,8 +169,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 					));
 
 			expect(username, equalTo(byEmail.getLogin())).verify(USER_ALREADY_EXISTS, updEmail);
-
-			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
 			userProjects.forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));

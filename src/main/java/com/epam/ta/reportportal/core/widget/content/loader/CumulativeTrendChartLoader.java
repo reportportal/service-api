@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.PREFIX;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEY;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -66,7 +66,7 @@ public class CumulativeTrendChartLoader implements LoadContentStrategy {
 		Map<String, List<CumulativeTrendChartContent>> result = widgetContentRepository.cumulativeTrendStatistics(filter,
 				contentFields,
 				sort,
-				WidgetOptionUtil.getValueByKey(PREFIX, widgetOptions),
+				WidgetOptionUtil.getValueByKey(ATTRIBUTE_KEY, widgetOptions),
 				limit
 		);
 		return singletonMap(RESULT, result);

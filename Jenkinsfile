@@ -6,8 +6,6 @@ node {
 
         stage('Checkout') {
             checkout scm
-            sh 'git checkout ps-migrations'
-            sh 'git pull'
         }
 
         stage('Build') {

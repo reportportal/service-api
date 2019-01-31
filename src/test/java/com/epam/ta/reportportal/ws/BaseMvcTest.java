@@ -19,6 +19,9 @@ package com.epam.ta.reportportal.ws;
 import com.epam.ta.reportportal.TestConfig;
 import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import org.flywaydb.test.FlywayTestExecutionListener;
+import org.flywaydb.test.annotation.FlywayTest;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,6 +30,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -41,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("unittest")
 @ContextConfiguration(classes = TestConfig.class)
 @Transactional
+@TestExecutionListeners(listeners = { FlywayTestExecutionListener.class }, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 public abstract class BaseMvcTest {
 
 	protected static final String DEFAULT_PROJECT_BASE_URL = "/default_personal";
@@ -54,6 +59,11 @@ public abstract class BaseMvcTest {
 
 	@MockBean
 	protected MessageBus messageBus;
+
+	@FlywayTest
+	@BeforeClass
+	public static void before() {
+	}
 
 	protected RequestPostProcessor token(OAuth2AccessToken token) {
 		return mockRequest -> {

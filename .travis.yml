@@ -6,7 +6,7 @@ script: ./gradlew build --stacktrace
 
 env:
   global:
-    - GRADLE_OPTS="-Xms128m -Xmx1g"
+  - GRADLE_OPTS="-Xms2g -Xmx4g"
 
 jdk:
   - oraclejdk8

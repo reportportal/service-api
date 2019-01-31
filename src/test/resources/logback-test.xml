@@ -24,6 +24,8 @@
         </encoder>
     </appender>
 
+    <logger name="org.springframework.security" level="info"/>
+
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>

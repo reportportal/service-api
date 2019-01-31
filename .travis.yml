@@ -1,6 +1,6 @@
 language: java
 
-dist: trusty
+dist: xenial
 #sudo: required
 script: ./gradlew build --info
 

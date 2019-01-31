@@ -24,11 +24,12 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -41,9 +42,9 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
+import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
-import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
@@ -76,7 +77,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
+		Sort sort = Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE);
 
 		ofNullable(widgetOptions).ifPresent(wo -> modifyFilterWithUserCriteria(filter, wo));
 
@@ -87,7 +88,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes), CRITERIA_ACTION));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
+		List<ActivityResource> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
 		return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
 	}
@@ -124,16 +125,23 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	private void modifyFilterWithUserCriteria(Filter filter, WidgetOptions widgetOptions) {
 
 		ofNullable(widgetOptions.getOptions()).ifPresent(wo -> ofNullable(wo.get(USER)).ifPresent(users -> {
-			Set<String> usernameCriteria = Arrays.stream(String.valueOf(users).split(CONTENT_FIELDS_DELIMITER))
-					.map(String::trim)
-					.collect(Collectors.toSet());
 
-			usernameCriteria.forEach(username -> userRepository.findByLogin(username)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-							"User with login " + username + " was not found"
-					)));
+			if (StringUtils.isNotBlank(String.valueOf(users))) {
+				Set<String> usernameCriteria = Arrays.stream(String.valueOf(users).split(CONTENT_FIELDS_DELIMITER))
+						.map(String::trim)
+						.collect(Collectors.toSet());
 
-			filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, usernameCriteria), USER));
+				usernameCriteria.forEach(username -> userRepository.findByLogin(username)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
+								"User with login " + username + " was not found"
+						)));
+
+				filter.withCondition(new FilterCondition(Condition.IN,
+						false,
+						String.join(CONTENT_FIELDS_DELIMITER, usernameCriteria),
+						USER
+				));
+			}
 
 		}));
 	}

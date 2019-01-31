@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
@@ -35,14 +36,20 @@ public final class ActivityConverter {
 
 	public static final Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
 		ActivityResource resource = new ActivityResource();
-		resource.setActivityId(activity.getId().toString());
-		resource.setLastModifiedDate(TO_DATE.apply(activity.getCreatedAt()));
+		resource.setId(activity.getId());
+		resource.setLastModified(TO_DATE.apply(activity.getCreatedAt()));
 		resource.setObjectType(activity.getActivityEntityType().getValue());
 		resource.setActionType(activity.getAction());
-		resource.setProjectRef(activity.getProjectId().toString());
-		resource.setUserRef(activity.getUserId().toString());
-		ofNullable(activity.getObjectId()).ifPresent(id -> resource.setLoggedObjectRef(id.toString()));
+		resource.setProjectId(activity.getProjectId());
+		resource.setUser(activity.getUserId().toString());
+		ofNullable(activity.getObjectId()).ifPresent(resource::setLoggedObjectId);
 		resource.setDetails(activity.getDetails());
+		return resource;
+	};
+
+	public static final BiFunction<Activity, String, ActivityResource> TO_RESOURCE_WITH_USER = (activity, username) -> {
+		ActivityResource resource = TO_RESOURCE.apply(activity);
+		resource.setUser(username);
 		return resource;
 	};
 }

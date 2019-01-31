@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.client;
-
-import com.rabbitmq.http.client.domain.ExchangeInfo;
+package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import java.util.List;
 
 /**
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * @author Pavel Bortnik
  */
-public interface RabbitMqManagementClient {
+@FunctionalInterface
+public interface AnalyzeItemsCollector {
 
-	List<ExchangeInfo> getAnalyzerExchangesInfo();
+	/**
+	 * Collects items for concrete project of concrete launch for following analyzing
+	 * according to concrete {@link com.epam.ta.reportportal.entity.AnalyzeMode}
+	 *
+	 * @param projectId Project id
+	 * @param launchId  Launch id
+	 * @param login     Username
+	 * @return List of item ids
+	 */
+	List<Long> collectItems(Long projectId, Long launchId, String login);
 
 }

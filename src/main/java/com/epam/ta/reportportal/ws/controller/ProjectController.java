@@ -165,8 +165,8 @@ public class ProjectController {
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Starts reindex all project data in ML")
-	public OperationCompletionRS indexProjectData(@PathVariable String projectName, Principal principal) {
-		return updateProjectHandler.indexProjectData(normalizeId(projectName), principal.getName());
+	public OperationCompletionRS indexProjectData(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.indexProjectData(ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -281,7 +281,7 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/export")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
 			@FilterFor(Project.class) Filter filter, @SortFor(ProjectInfo.class) Pageable pageable,

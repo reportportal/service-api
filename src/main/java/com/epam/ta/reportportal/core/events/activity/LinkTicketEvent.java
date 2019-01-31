@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.google.common.base.Strings;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
@@ -30,6 +31,8 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
 public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
 	private Long attachedBy;
+
+	private String nameAttachedBy;
 
 	public LinkTicketEvent() {
 	}
@@ -43,6 +46,17 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 		this.attachedBy = attachedBy;
 	}
 
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String nameAttachedBy) {
+		super(before, after);
+		this.nameAttachedBy = nameAttachedBy;
+	}
+
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy, String nameAttachedBy) {
+		super(before, after);
+		this.attachedBy = attachedBy;
+		this.nameAttachedBy = nameAttachedBy;
+	}
+
 	public Long getAttachedBy() {
 		return attachedBy;
 	}
@@ -53,6 +67,7 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
 				.addActivityEntityType(TICKET)
 				.addUserId(attachedBy)
+				.addUserName(nameAttachedBy)
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId());
@@ -60,6 +75,10 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 		if (getAfter() != null) {
 			String oldValue = getBefore().getTickets();
 			String newValue = getAfter().getTickets();
+			//no changes with tickets
+			if (Strings.isNullOrEmpty(oldValue) && newValue.isEmpty() || oldValue.equalsIgnoreCase(newValue)) {
+				return null;
+			}
 			if (!oldValue.isEmpty() && !newValue.isEmpty() || !oldValue.equalsIgnoreCase(newValue)) {
 				if (oldValue.length() > newValue.length()) {
 					builder.addAction(UNLINK_ISSUE);

@@ -277,12 +277,12 @@ public class LaunchController {
 	}
 
 	@Transactional
-	@PostMapping(value = "/{launchId}/analyze")
+	@PostMapping(value = "/analyze")
 	@ResponseStatus(OK)
 	@ApiOperation("Start launch auto-analyzer on demand")
-	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName, @PathVariable Long launchId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.startLaunchAnalyzer(extractProjectDetails(user, normalizeId(projectName)), launchId);
+	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
+			@RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.startLaunchAnalyzer(extractProjectDetails(user, normalizeId(projectName)), analyzeLaunchRQ, user);
 	}
 
 	@Transactional(readOnly = true)

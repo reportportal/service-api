@@ -43,6 +43,11 @@ public class ActivityBuilder implements Supplier<Activity> {
 		return this;
 	}
 
+	public ActivityBuilder addUserName(String postedName) {
+		activity.setUsername(postedName);
+		return this;
+	}
+
 	public ActivityBuilder addProjectId(Long projectId) {
 		activity.setProjectId(projectId);
 		return this;

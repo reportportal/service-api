@@ -26,18 +26,18 @@ INSERT INTO activity(user_id, project_id, entity, action, details, creation_date
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
   "history": null,
   "objectName": "widget test"
-}', now() - interval '20 day', 1),
+}', now() - INTERVAL '20 day', 1),
 
 (2, 2, 'FILTER', 'filter_create', '{
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
   "history": null,
   "objectName": "filter test"
-}', now() - interval '3 day', 1),
+}', now() - INTERVAL '3 day', 1),
 (2, 2, 'FILTER', 'filter_create', '{
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
   "history": [],
   "objectName": "filter new test"
-}', now() - interval '2 day', 1),
+}', now() - INTERVAL '2 day', 1),
 
 (2, 2, 'FILTER', 'filter_update', '{
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
@@ -54,16 +54,16 @@ INSERT INTO activity(user_id, project_id, entity, action, details, creation_date
     }
   ],
   "objectName": "filter new test"
-}', now() - interval '1 day' - interval '4 hour', 2),
+}', now() - INTERVAL '1 day' - INTERVAL '4 hour', 2),
 
 (2, 2, 'LAUNCH', 'start_launch', '{
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
   "history": [],
   "objectName": "launch test"
-}', now() - interval '2 day', 3),
+}', now() - INTERVAL '2 day', 3),
 
 (1, 1, 'LAUNCH', 'finish_launch', '{
   "type": "com.epam.ta.reportportal.entity.activity.ActivityDetails",
   "history": [],
   "objectName": "launch test"
-}', now() - interval '1 day', 4);
+}', now() - INTERVAL '1 day', 4);

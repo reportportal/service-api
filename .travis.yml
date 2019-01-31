@@ -1,8 +1,8 @@
 language: java
 
 dist: trusty
-#sudo: required
-script: gradle build --stacktrace
+sudo: required
+script: ./gradlew build --stacktrace
 
 env:
   global:

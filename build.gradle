@@ -262,16 +262,10 @@ build.dependsOn jacocoTestReport
 
 bootJar {
     archiveName = "${baseName}.${extension}"
-    mainClassName = "com.epam.ta.reportportal.core.configs.ReportPortalApp"
-    group = "com.epam.ta.reportportal.core.configs"
 }
 
 test {
-    testLogging.showStandardStreams = true
-
-    testLogging {
-        events "skipped", "failed"
-    }
+//    testLogging.showStandardStreams = true
 
     jacocoTestReport {
         reports {

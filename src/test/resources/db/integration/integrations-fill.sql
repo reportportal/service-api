@@ -8,7 +8,7 @@ VALUES (1, 1, 2, FALSE, now(), NULL),                                           
             "recipients":[
                "OWNER"
             ],
-            "fromAddress":"Auto_EPM-RPP_Notifications@epam.com",
+            "fromAddress":"test@mail.com",
             "launchStatsRule":"always"
          }
       ]
@@ -23,7 +23,7 @@ VALUES (1, 1, 2, FALSE, now(), NULL),                                           
             "recipients":[
                "OWNER"
             ],
-            "fromAddress":"Auto_EPM-RPP_Notifications@epam.com",
+            "fromAddress":"test@mail.com",
             "launchStatsRule":"always"
          }
       ]

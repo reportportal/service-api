@@ -22,6 +22,7 @@ import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -118,6 +119,12 @@ public class SchedulerConfiguration {
 		return createTrigger(jobDetail, Duration.parse(loadPluginsCron).toMillis());
 	}
 
+	@Bean
+	public SimpleTriggerFactoryBean createCleanOutdatedPluginsTrigger(@Qualifier("cleanOutdatedPluginsJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.outdated.plugins.cron}") String cleanOutdatedPluginsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanOutdatedPluginsCron).toMillis());
+	}
+
 	@Bean("cleanLogsJobBean")
 	public JobDetailFactoryBean cleanLogsJob() {
 		return createJobDetail(CleanLogsJob.class);
@@ -141,6 +148,11 @@ public class SchedulerConfiguration {
 	@Bean("loadPluginsJobBean")
 	public JobDetailFactoryBean loadPluginsJobBean() {
 		return createJobDetail(LoadPluginsJob.class);
+	}
+
+	@Bean("cleanOutdatedPluginsJobBean")
+	public JobDetailFactoryBean cleanOutdatedPluginsJobBean() {
+		return createJobDetail(CleanOutdatedPluginsJob.class);
 	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {

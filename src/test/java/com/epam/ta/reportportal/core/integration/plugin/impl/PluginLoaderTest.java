@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,10 +55,9 @@ public class PluginLoaderTest {
 
 	private final PluginManager pluginManager = mock(PluginManager.class);
 
-	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath,
-			pluginBox,
-			pluginDescriptorFinder
-	);
+	private final PluginUploadingCache pluginUploadingCache = mock(PluginUploadingCache.class);
+
+	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder, pluginUploadingCache);
 
 	@Test
 	public void shouldExtractPluginIdWhenExists() throws PluginException {

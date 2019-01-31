@@ -176,6 +176,7 @@ CREATE TABLE defect_form_field_value (
 CREATE TABLE integration_type (
   id            BIGSERIAL CONSTRAINT integration_type_pk PRIMARY KEY,
   name          VARCHAR(128)               NOT NULL UNIQUE,
+  enabled       BOOLEAN                    NOT NULL,
   auth_flow     INTEGRATION_AUTH_FLOW_ENUM,
   creation_date TIMESTAMP DEFAULT now()    NOT NULL,
   group_type    INTEGRATION_GROUP_ENUM     NOT NULL,

@@ -20,13 +20,17 @@ import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.io.FilenameUtils;
 import org.pf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
@@ -34,6 +38,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
@@ -50,12 +55,15 @@ public class PluginLoaderImpl implements PluginLoader {
 
 	private final PluginDescriptorFinder pluginDescriptorFinder;
 
+	private final PluginUploadingCache pluginUploadingCache;
+
 	@Autowired
 	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, PluginBox pluginBox,
-			PluginDescriptorFinder pluginDescriptorFinder) {
+			PluginDescriptorFinder pluginDescriptorFinder, PluginUploadingCache pluginUploadingCache) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
+		this.pluginUploadingCache = pluginUploadingCache;
 	}
 
 	@Override
@@ -68,6 +76,8 @@ public class PluginLoaderImpl implements PluginLoader {
 			return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
 
 		} catch (PluginException e) {
+
+			ofNullable(pluginPath.getFileName()).ifPresent(name -> pluginUploadingCache.finishPluginUploading(name.toString()));
 
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e);
 		}
@@ -85,10 +95,10 @@ public class PluginLoaderImpl implements PluginLoader {
 	@Override
 	public boolean validatePluginExtensionClasses(String pluginId) {
 
-		PluginWrapper newPlugin = pluginBox.getPluginById(pluginId).orElseThrow(() -> new ReportPortalException(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Plugin with id = {} has not been found.", pluginId).get()
-		));
+		PluginWrapper newPlugin = pluginBox.getPluginById(pluginId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("Plugin with id = {} has not been found.", pluginId).get()
+				));
 
 		return newPlugin.getPluginManager()
 				.getExtensionClasses(pluginId)
@@ -105,8 +115,7 @@ public class PluginLoaderImpl implements PluginLoader {
 		oldPlugin.ifPresent(p -> {
 
 			if (!pluginBox.unloadPlugin(p.getPluginId())) {
-				throw new ReportPortalException(
-						ErrorType.PLUGIN_REMOVE_ERROR,
+				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
 						Suppliers.formattedSupplier("Failed to stop old plugin with id = {}", p.getPluginId()).get()
 				);
 			}
@@ -127,12 +136,69 @@ public class PluginLoaderImpl implements PluginLoader {
 
 				reloadPlugin(oldPluginWrapper);
 
-				throw new ReportPortalException(
-						ErrorType.PLUGIN_REMOVE_ERROR,
+				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
 						Suppliers.formattedSupplier("Unable to delete the old plugin file with id = {}", oldPluginWrapper.getPluginId())
 								.get()
 				);
 			}
+		}
+	}
+
+	@Override
+	public void createTempPluginsFolderIfNotExists(String path) {
+		if (!Files.isDirectory(Paths.get(path))) {
+			try {
+				Files.createDirectories(Paths.get(path));
+			} catch (IOException e) {
+
+				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unable to create directory = {}", path).get()
+				);
+			}
+		}
+	}
+
+	@Override
+	public String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, String pluginsTempPath) {
+
+		String resolvedExtension = FilenameUtils.getExtension(pluginFile.getOriginalFilename());
+
+		PluginFileExtension pluginFileExtension = PluginFileExtension.findByExtension("." + resolvedExtension)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
+				));
+
+		Path pluginPath = Paths.get(pluginsTempPath, pluginFile.getOriginalFilename());
+
+		try {
+			pluginUploadingCache.startPluginUploading(pluginFile.getOriginalFilename(), pluginPath);
+
+			Files.copy(pluginFile.getInputStream(), pluginPath, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+
+			pluginUploadingCache.finishPluginUploading(pluginFile.getOriginalFilename());
+
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+					Suppliers.formattedSupplier("Unable to copy the new plugin file with name = {} to the temp directory",
+							pluginFile.getOriginalFilename()
+					).get()
+			);
+		}
+
+		return pluginFileExtension.getExtension();
+
+	}
+
+	@Override
+	public void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) {
+		try {
+
+			Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
+
+		} catch (IOException e) {
+			//error during temp plugin is not crucial, temp files cleaning will be delegated to //TODO impl Quartz job to clean temp files
+		} finally {
+			pluginUploadingCache.finishPluginUploading(pluginFileName);
 		}
 	}
 
@@ -141,8 +207,7 @@ public class PluginLoaderImpl implements PluginLoader {
 		if (new File(pluginsRootPath, newPluginFileName).exists()) {
 
 			if (!oldPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName).equals(oldPlugin.get().getPluginPath())) {
-				throw new ReportPortalException(
-						ErrorType.PLUGIN_UPLOAD_ERROR,
+				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with different plugin type", newPluginFileName)
 								.get()
 				);

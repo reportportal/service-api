@@ -19,15 +19,13 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Sql(value = { "classpath:db/integration/integration-type-fill.sql", "classpath:db/integration/integrations-fill.sql" })
+@Ignore
 public class IntegrationControllerTest extends BaseMvcTest {
 
 	@Autowired

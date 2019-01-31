@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -65,11 +66,14 @@ public class CreatePluginHandlerTest {
 
 	private final DataStore dataStore = mock(DataStore.class);
 
+	private final PluginUploadingCache pluginUploadingCache = mock(PluginUploadingCache.class);
+
 	private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginRootPath,
 			pluginBox,
 			pluginLoader,
 			integrationTypeRepository,
-			dataStore
+			dataStore,
+			pluginUploadingCache
 	);
 
 	@Test

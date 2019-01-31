@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.integration.plugin.util.PluginUtils;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -30,6 +29,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -68,14 +69,17 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private final DataStore dataStore;
 
+	private final PluginUploadingCache pluginUploadingCache;
+
 	@Autowired
 	public CreatePluginHandlerImpl(@Value("${rp.plugins.path}") String pluginsRootPath, PluginBox pluginBox, PluginLoader pluginLoader,
-			IntegrationTypeRepository integrationTypeRepository, DataStore dataStore) {
+			IntegrationTypeRepository integrationTypeRepository, DataStore dataStore, PluginUploadingCache pluginUploadingCache) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.pluginBox = pluginBox;
 		this.pluginLoader = pluginLoader;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.dataStore = dataStore;
+		this.pluginUploadingCache = pluginUploadingCache;
 	}
 
 	@Override
@@ -87,19 +91,19 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 		final String pluginsTempPath = pluginsRootPath + PLUGIN_TEMP_DIRECTORY;
 
-		PluginUtils.createTempPluginsFolderIfNotExists(pluginsTempPath);
-		PluginUtils.resolveExtensionAndUploadTempPlugin(pluginFile, pluginsTempPath);
+		pluginLoader.createTempPluginsFolderIfNotExists(pluginsTempPath);
+		pluginLoader.resolveFileExtensionAndUploadTempPlugin(pluginFile, pluginsTempPath);
 
 		Path newPluginTempPath = Paths.get(pluginsTempPath, newPluginFileName);
 		PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(newPluginTempPath);
 
-		BusinessRule.expect(newPluginInfo.getVersion(), notNull())
-				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+		if (!ofNullable(newPluginInfo.getVersion()).isPresent()) {
+			pluginUploadingCache.finishPluginUploading(newPluginFileName);
 
-		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(newPluginInfo.getId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Unknown integration type - {} ", newPluginInfo.getId()).get()
-				));
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+		}
+
+		ReportPortalIntegrationEnum reportPortalIntegration = resolveIntegrationType(newPluginInfo, newPluginFileName);
 
 		Optional<PluginWrapper> oldPlugin = pluginLoader.retrieveOldPlugin(newPluginInfo.getId(), newPluginFileName);
 
@@ -116,7 +120,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 				pluginBox.unloadPlugin(newPluginId);
 				oldPlugin.ifPresent(pluginLoader::reloadPlugin);
-				PluginUtils.deleteTempPlugin(newPluginTempPath);
+				pluginLoader.deleteTempPlugin(pluginsTempPath, newPluginFileName);
 
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 						Suppliers.formattedSupplier("New plugin with id = {} doesn't have mandatory extension classes.")
@@ -135,26 +139,29 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 				oldPlugin.ifPresent(pluginLoader::reloadPlugin);
 
+				pluginUploadingCache.finishPluginUploading(newPluginFileName);
+
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 						Suppliers.formattedSupplier("Unable to upload the new plugin file with id = {} to the data store", newPluginId)
 								.get()
 				);
 			}
 
-			try {
+			File file = new File(pluginsTempPath, newPluginFileName);
 
-				org.apache.commons.io.FileUtils.copyFile(new File(pluginsTempPath, newPluginFileName),
-						new File(pluginsRootPath, newPluginFileName)
-				);
+			if (file.exists()) {
+				try {
+					org.apache.commons.io.FileUtils.copyFile(file, new File(pluginsRootPath, newPluginFileName));
+				} catch (IOException e) {
 
-			} catch (IOException e) {
+					oldPlugin.ifPresent(pluginLoader::reloadPlugin);
 
-				oldPlugin.ifPresent(pluginLoader::reloadPlugin);
-
-				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId)
-								.get()
-				);
+					throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+							Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory",
+									newPluginId
+							).get()
+					);
+				}
 			}
 
 			oldPlugin.ifPresent(p -> pluginLoader.deleteOldPlugin(p, newPluginFileName));
@@ -168,7 +175,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			integrationType = integrationTypeRepository.save(integrationType);
 
-			PluginUtils.deleteTempPlugin(newPluginTempPath);
+			pluginLoader.deleteTempPlugin(pluginsTempPath, newPluginFileName);
 
 			return new EntryCreatedRS(integrationType.getId());
 
@@ -176,11 +183,28 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			oldPlugin.ifPresent(pluginLoader::reloadPlugin);
 
+			pluginLoader.deleteTempPlugin(pluginsTempPath, newPluginFileName);
+
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Failed to load new plugin from file = {}", newPluginFileName).get()
 			);
 		}
 
+	}
+
+	private ReportPortalIntegrationEnum resolveIntegrationType(PluginInfo pluginInfo, String newPluginFileName) {
+
+		Optional<ReportPortalIntegrationEnum> reportPortalIntegration = ReportPortalIntegrationEnum.findByName(pluginInfo.getId());
+
+		if (!reportPortalIntegration.isPresent()) {
+			pluginUploadingCache.finishPluginUploading(newPluginFileName);
+
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+					Suppliers.formattedSupplier("Unknown integration type - {} ", pluginInfo.getId()).get()
+			);
+		}
+
+		return reportPortalIntegration.get();
 	}
 
 	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo, ReportPortalIntegrationEnum reportPortalIntegration) {

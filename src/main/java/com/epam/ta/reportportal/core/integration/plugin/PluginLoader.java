@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
+import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -36,4 +38,17 @@ public interface PluginLoader {
 	Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginFileName);
 
 	void deleteOldPlugin(PluginWrapper oldPluginWrapper, String newPluginFileName);
+
+	void createTempPluginsFolderIfNotExists(String path);
+
+	/**
+	 * Resolve file type and upload it to the temporary plugins directory.
+	 * If successful returns file extension
+	 *
+	 * @param pluginFile Plugin file to upload
+	 * @return {@link PluginFileExtension#extension}
+	 */
+	String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, String pluginsTempPath);
+
+	void deleteTempPlugin(String pluginFileDirectory, String pluginFileName);
 }

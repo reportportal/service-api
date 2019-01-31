@@ -94,10 +94,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 		List<PluginInfo> notLoadedPlugins = Lists.newArrayList();
 
-		//		integrationTypes.stream()
-		//				.filter(it -> it.getDetails() == null || it.getDetails().getDetails() == null)
-		//				.forEach(this::checkAndDeleteIntegrationType);
-
 		integrationTypes.stream()
 				.filter(it -> it.getDetails() != null && it.getDetails().getDetails() != null)
 				.filter(this::isMandatoryFieldsExist)
@@ -144,7 +140,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	private Map<IntegrationDetailsProperties, String> retrievePluginProperties(IntegrationType integrationType) {
 
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		Map<IntegrationDetailsProperties, String> pluginProperties = Maps.newHashMapWithExpectedSize(3);
+		Map<IntegrationDetailsProperties, String> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
 		Arrays.stream(IntegrationDetailsProperties.values())
 				.forEach(property -> property.getValue(details).ifPresent(value -> pluginProperties.put(property, value)));
 
@@ -160,13 +156,14 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					if (pluginBox.unloadPlugin(p.getPluginId())) {
 						try {
 							Files.deleteIfExists(p.getPluginPath());
+							return true;
 						} catch (IOException ex) {
 							LOGGER.debug("Error has occurred during plugin removing from the root directory", ex);
 							return false;
 						}
+					} else {
+						return false;
 					}
-
-					return true;
 
 				}).orElse(true);
 

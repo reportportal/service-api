@@ -18,11 +18,11 @@ package com.epam.ta.reportportal.core.widget.util;
 
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 

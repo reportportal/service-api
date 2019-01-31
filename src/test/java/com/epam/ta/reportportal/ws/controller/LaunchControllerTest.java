@@ -59,7 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql("classpath:db/launch/launch-fill.sql")
+@Sql("/db/launch/launch-fill.sql")
 public class LaunchControllerTest extends BaseMvcTest {
 
 	@Autowired

@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql("classpath:db/test-item/test-item-fill.sql")
+@Sql("/db/test-item/test-item-fill.sql")
 public class TestItemControllerTest extends BaseMvcTest {
 
 	@Autowired

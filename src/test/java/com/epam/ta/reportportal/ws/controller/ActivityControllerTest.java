@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql("classpath:db/activity/activity-fill.sql")
+@Sql("/db/activity/activity-fill.sql")
 public class ActivityControllerTest extends BaseMvcTest {
 
 	@Test

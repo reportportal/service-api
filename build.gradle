@@ -211,10 +211,10 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 
-    testCompile 'com.github.database-rider:rider-spring:1.2.8'
-    testCompile 'org.dbunit:dbunit:2.5.4'
+//    testCompile 'com.github.database-rider:rider-spring:1.2.8'
+//    testCompile 'org.dbunit:dbunit:2.5.4'
 
-    testCompile 'org.testcontainers:postgresql:1.8.0'
+//    testCompile 'org.testcontainers:postgresql:1.8.0'
 
 }
 

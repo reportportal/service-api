@@ -115,7 +115,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:b8a723e'
+        compile 'com.github.reportportal:commons-dao:4011a10'
         compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:05abf033'
         compile('com.github.reportportal:commons:71d4aca')
@@ -210,6 +210,8 @@ dependencies {
     testCompile 'org.apache.commons:commons-math3:3.6.1'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
+
+    testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
 
 //    testCompile 'com.github.database-rider:rider-spring:1.2.8'
 //    testCompile 'org.dbunit:dbunit:2.5.4'

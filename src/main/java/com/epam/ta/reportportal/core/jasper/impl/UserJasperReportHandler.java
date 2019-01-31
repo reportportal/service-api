@@ -27,10 +27,11 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -81,13 +82,12 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
 		ofNullable(user.getMetadata()).ifPresent(metadata -> ofNullable(metadata.getMetadata()).ifPresent(meta -> ofNullable(meta.get(
 				USER_LAST_LOGIN)).ifPresent(lastLogin -> {
 			try {
-				long epochMilli = Long.parseLong(String.valueOf(lastLogin));
-				Instant instant = Instant.ofEpochMilli(epochMilli);
+				LocalDateTime lastLoginDateTime = LocalDateTime.parse(String.valueOf(lastLogin));
 				params.put(
 						UserReportConstants.LAST_LOGIN,
-						DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC))
+						DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.of(lastLoginDateTime, ZoneOffset.UTC))
 				);
-			} catch (NumberFormatException e) {
+			} catch (DateTimeParseException e) {
 				//do nothing, null value will be put in the result
 			}
 

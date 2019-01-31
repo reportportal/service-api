@@ -97,7 +97,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream().map(Launch::getDescription).collect(joining("\n"))));
+		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream().map(Launch::getDescription).collect(joining("\n\n"))));
 		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse("Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)

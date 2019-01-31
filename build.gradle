@@ -267,6 +267,8 @@ bootJar {
 test {
 //    testLogging.showStandardStreams = true
 
+    exclude "com.epam.ta.reportportal.ws.controller.suite"
+    
     jacocoTestReport {
         reports {
             xml.enabled true

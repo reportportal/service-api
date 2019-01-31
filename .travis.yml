@@ -1,8 +1,8 @@
 language: java
 
 dist: xenial
-#sudo: required
-script: ./gradlew build --info
+sudo: required
+script: ./gradlew build --stacktrace
 
 env:
   global:

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -84,14 +100,12 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getDebugLaunches() throws Exception {
-		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/launch/mode").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().is(200));
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/launch/mode").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	public void compareLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/compare?ids=1,2").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().is(200));
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/compare?ids=1,2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
@@ -112,20 +126,17 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void deleteLaunchPositive() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/1").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().is(200));
+		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	public void deleteLaunchNegative() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/3").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().is(406));
+		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch/3").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(406));
 	}
 
 	@Test
 	public void getStatus() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/status?ids=1").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().is(200));
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/status?ids=1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
@@ -164,22 +175,18 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	public void getAllOwners() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/owners?filter.cnt.user=def").contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/owners?filter.cnt.user=def").contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	public void getAllLaunchNames() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/names?filter.cnt.name=test").contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/names?filter.cnt.name=test").contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	public void bulkDeleteLaunches() throws Exception {
 		List<Long> toDelete = asList(1L, 2L);
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch?ids=" + toDelete.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(","))).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch?ids=" + toDelete.stream().map(Object::toString).collect(Collectors.joining(","))).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 		List<Launch> launches = launchRepository.findAllById(toDelete);
 		assertTrue(launches.isEmpty());
@@ -207,29 +214,25 @@ public class LaunchControllerTest extends BaseMvcTest {
 	@Test
 	@Ignore
 	public void getLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-				+ "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug$total,ASC").contentType(APPLICATION_JSON)
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug$total,ASC").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
 	}
 
 	@Test
 	public void getLatestLaunches() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-				+ "/launch/latest?page.page=1&page.size=10&page.sort=name,ASC").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/latest?page.page=1&page.size=10&page.sort=name,ASC").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
 	public void getAttributeKeys() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-				+ "/launch/attribute/keys?filter.cnt.attributeKey=browser").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/attribute/keys?filter.cnt.attributeKey=browser").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	public void getAttributeValues() throws Exception {
-		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/launch/attribute/values?filter.eq.attributeKey=browser&filter.cnt.attributeValue=ch").with(
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/attribute/values?filter.eq.attributeKey=browser&filter.cnt.attributeValue=ch").with(
 				token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 }

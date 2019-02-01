@@ -27,7 +27,7 @@ node {
         stage('Build') {
             docker.withServer("$DOCKER_HOST") {
                         stage('Build Docker Image') {
-                            sh 'docker build -f docker/Dockerfile-test -t reportportal-dev-5/service-api .'
+                            sh 'docker build -f docker/Dockerfile-develop -t reportportal-dev-5/service-api .'
                         }
 
                         stage('Deploy container') {

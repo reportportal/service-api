@@ -6,7 +6,7 @@ script: ./gradlew build --info
 
 env:
   global:
-  - GRADLE_OPTS="-Xms128m -Xmx1g -Dorg.gradle.parallel=false Dorg.gradle.daemon=false"
+  - GRADLE_OPTS="-Xms128m -Xmx1g -Dorg.gradle.parallel=false -Dorg.gradle.daemon=false"
 
 jdk:
   - oraclejdk8

@@ -2,11 +2,11 @@ language: java
 
 dist: trusty
 sudo: required
-script: ./gradlew build --stacktrace
+script: ./gradlew build --stacktrace --max-workers=1
 
 env:
   global:
-  - GRADLE_OPTS="-Xms128m -Xmx1g --max-workers=1"
+  - GRADLE_OPTS="-Xms128m -Xmx1g"
 
 jdk:
   - oraclejdk8

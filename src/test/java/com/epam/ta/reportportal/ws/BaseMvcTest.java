@@ -63,6 +63,7 @@ public abstract class BaseMvcTest {
 	@FlywayTest
 	@BeforeClass
 	public static void before() {
+		System.err.println("thread_id" + Thread.currentThread().getId());
 	}
 
 	protected RequestPostProcessor token(OAuth2AccessToken token) {

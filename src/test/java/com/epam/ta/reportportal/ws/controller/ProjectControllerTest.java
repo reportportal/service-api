@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +51,6 @@ public class ProjectControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ProjectRepository projectRepository;
-
-	@Before
-	public void setUp() throws Exception {
-		System.err.println(Thread.currentThread().getId());
-	}
 
 	@Test
 	public void createProjectPositive() throws Exception {

@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -30,10 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Sql("/db/activity/activity-fill.sql")
 public class ActivityControllerTest extends BaseMvcTest {
 
-	@Before
-	public void setUp() throws Exception {
-		System.err.println(Thread.currentThread().getId());
-	}
 
 	@Test
 	public void getActivityByWrongTestItemId() throws Exception {

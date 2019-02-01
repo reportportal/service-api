@@ -269,7 +269,7 @@ bootJar {
 test {
 //    testLogging.showStandardStreams = true
 
-    maxParallelForks = 1
+    maxParallelForks = 0
 
     exclude "com.epam.ta.reportportal.ws.controller.suite"
     

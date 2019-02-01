@@ -2,11 +2,11 @@ language: java
 
 dist: trusty
 sudo: required
-script: ./gradlew build --info --no-daemon --max-workers=1
+script: ./gradlew build --stacktrace
 
 env:
   global:
-  - GRADLE_OPTS="-Xms128m -Xmx1g -Dorg.gradle.parallel=false -Dorg.gradle.daemon=false"
+  - GRADLE_OPTS="-Xms128m -Xmx1g"
 
 jdk:
   - oraclejdk8

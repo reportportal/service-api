@@ -2,7 +2,7 @@ language: java
 
 dist: trusty
 sudo: required
-script: ./gradlew build --info --no-deamon --max-worker=1
+script: ./gradlew build --info --no-daemon --max-worker=1
 
 env:
   global:

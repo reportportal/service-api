@@ -166,8 +166,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Override
 	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
 			ReportPortalUser user) {
-		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(
-				BAD_REQUEST_ERROR,
+		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
 				"Request should contain at least one username."
 		);
 		Project project = projectRepository.findById(projectDetails.getProjectId())

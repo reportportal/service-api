@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,11 @@ public class LaunchControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private LaunchRepository launchRepository;
+
+	@Before
+	public void setUp() throws Exception {
+		System.err.println(Thread.currentThread().getId());
+	}
 
 	@Test
 	public void happyCreateLaunch() throws Exception {

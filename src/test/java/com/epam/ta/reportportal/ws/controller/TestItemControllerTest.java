@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -53,6 +54,11 @@ public class TestItemControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Before
+	public void setUp() throws Exception {
+		System.err.println(Thread.currentThread().getId());
+	}
 
 	@Test
 	public void startRootItemPositive() throws Exception {

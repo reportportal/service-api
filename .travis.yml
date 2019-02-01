@@ -2,11 +2,11 @@ language: java
 
 dist: trusty
 sudo: required
-script: ./gradlew build --stacktrace -Dorg.gradle.parallel=false
+script: ./gradlew build --info
 
 env:
   global:
-  - GRADLE_OPTS="-Xms2g -Xmx4g"
+  - GRADLE_OPTS="-Xms128g -Xmx1g -Dorg.gradle.parallel=false"
 
 jdk:
   - oraclejdk8

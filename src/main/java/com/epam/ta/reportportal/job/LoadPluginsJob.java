@@ -24,13 +24,11 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import org.apache.commons.io.FileUtils;
 import org.pf4j.PluginState;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -44,7 +42,7 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LoadPluginsJob implements Job {
+public class LoadPluginsJob {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoadPluginsJob.class);
 
@@ -68,8 +66,8 @@ public class LoadPluginsJob implements Job {
 		this.pluginsRootPath = pluginsRootPath;
 	}
 
-	@Override
-	public void execute(JobExecutionContext context) throws JobExecutionException {
+	@Scheduled(fixedDelayString = "${com.ta.reportportal.job.load.plugins.cron}")
+	public void execute() {
 
 		List<IntegrationType> integrationTypes = integrationTypeRepository.findAll();
 

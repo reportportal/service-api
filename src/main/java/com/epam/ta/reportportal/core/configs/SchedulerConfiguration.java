@@ -113,18 +113,6 @@ public class SchedulerConfiguration {
 		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
-	@Bean
-	public SimpleTriggerFactoryBean createLoadPluginsTrigger(@Named("loadPluginsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.load.plugins.cron}") String loadPluginsCron) {
-		return createTrigger(jobDetail, Duration.parse(loadPluginsCron).toMillis());
-	}
-
-	@Bean
-	public SimpleTriggerFactoryBean createCleanOutdatedPluginsTrigger(@Qualifier("cleanOutdatedPluginsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.outdated.plugins.cron}") String cleanOutdatedPluginsCron) {
-		return createTrigger(jobDetail, Duration.parse(cleanOutdatedPluginsCron).toMillis());
-	}
-
 	@Bean("cleanLogsJobBean")
 	public JobDetailFactoryBean cleanLogsJob() {
 		return createJobDetail(CleanLogsJob.class);
@@ -143,16 +131,6 @@ public class SchedulerConfiguration {
 	@Bean("cleanLaunchesJobBean")
 	public JobDetailFactoryBean cleanLaunchesJob() {
 		return createJobDetail(CleanLaunchesJob.class);
-	}
-
-	@Bean("loadPluginsJobBean")
-	public JobDetailFactoryBean loadPluginsJobBean() {
-		return createJobDetail(LoadPluginsJob.class);
-	}
-
-	@Bean("cleanOutdatedPluginsJobBean")
-	public JobDetailFactoryBean cleanOutdatedPluginsJobBean() {
-		return createJobDetail(CleanOutdatedPluginsJob.class);
 	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {

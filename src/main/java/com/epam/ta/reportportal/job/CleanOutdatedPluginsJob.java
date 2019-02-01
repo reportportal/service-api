@@ -23,13 +23,11 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import org.pf4j.PluginWrapper;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
@@ -48,7 +46,7 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class CleanOutdatedPluginsJob implements Job {
+public class CleanOutdatedPluginsJob {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanOutdatedPluginsJob.class);
 
@@ -72,8 +70,8 @@ public class CleanOutdatedPluginsJob implements Job {
 		this.pluginUploadingCache = pluginUploadingCache;
 	}
 
-	@Override
-	public void execute(JobExecutionContext context) throws JobExecutionException {
+	@Scheduled(fixedDelayString = "${com.ta.reportportal.job.clean.outdated.plugins.cron}")
+	public void execute() {
 
 		removeTemporaryPlugins();
 

@@ -268,11 +268,9 @@ bootJar {
 
 test {
 //    testLogging.showStandardStreams = true
-    options.fork = false
 
-    //enable incremental compilation
-    options.incremental = false
-    
+    maxParallelForks = 1
+
     exclude "com.epam.ta.reportportal.ws.controller.suite"
     
     jacocoTestReport {

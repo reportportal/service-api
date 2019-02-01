@@ -269,8 +269,6 @@ bootJar {
 test {
 //    testLogging.showStandardStreams = true
 
-    maxParallelForks = 1
-
     exclude "com.epam.ta.reportportal.ws.controller.suite"
     
     jacocoTestReport {

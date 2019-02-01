@@ -40,6 +40,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -69,7 +70,7 @@ public class CumulativeTrendChartLoader implements LoadContentStrategy {
 				WidgetOptionUtil.getValueByKey(ATTRIBUTE_KEY, widgetOptions),
 				limit
 		);
-		return singletonMap(RESULT, result);
+		return MapUtils.isEmpty(result) ? emptyMap() : singletonMap(RESULT, result);
 	}
 
 	/**

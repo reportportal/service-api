@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -178,10 +179,11 @@ public class ProjectControllerTest extends BaseMvcTest {
 				.andExpect(status().isOk());
 	}
 
+	@Ignore
 	@Test
 	public void export() throws Exception {
 		final ResultActions resultActions = mockMvc.perform(get("/project/export").with(token(oAuthHelper.getSuperadminToken())));
 		resultActions.andExpect(status().isOk());
-		//		assertEquals("text/csv", resultActions.andReturn().getResponse().getContentType());
+		assertEquals("text/csv", resultActions.andReturn().getResponse().getContentType());
 	}
 }

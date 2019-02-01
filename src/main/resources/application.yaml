@@ -33,7 +33,7 @@ logging:
   level:
     #    org.springframework.context.support: warn
     #    com.novemberain.quartz : debug
-    org.springframework.security: debug
+    org.springframework.security: info
     #    com.epam.ta.reportportal.exception.ReportPortalException: fatal
     org.springframework.web.bind: fatal
     #    com.epam.ta.reportportal.commons.exception.rest: fatal

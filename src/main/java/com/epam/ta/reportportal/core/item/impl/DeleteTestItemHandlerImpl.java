@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -52,26 +53,41 @@ import static java.util.stream.Collectors.toList;
 @Service
 class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
+
+	private final LaunchRepository launchRepository;
+
+	@Autowired
+	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
+	}
 
 	// TODO ANALYZER
 	//	@Autowired
 	//	private ILogIndexer logIndexer;
-
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
 
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser reportPortalUser) {
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(item, reportPortalUser, projectDetails);
-		Optional<TestItem> parent = ofNullable(item.getParent());
-		testItemRepository.delete(item);
 
+		Optional<TestItem> retryParent = ofNullable(item.getRetryOf()).map(retryParentId -> testItemRepository.findById(retryParentId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, retryParentId)));
+
+		Launch launch = retryParent.map(TestItem::getLaunch).orElseGet(item::getLaunch);
+
+		validate(item, launch, reportPortalUser, projectDetails);
+		Optional<TestItem> parent = ofNullable(item.getParent());
+
+		retryParent.ifPresent(rp -> rp.getRetries().remove(item));
+
+		testItemRepository.deleteById(item.getItemId());
+
+		retryParent.ifPresent(rp -> rp.setHasRetries(testItemRepository.hasRetries(rp.getItemId())));
+
+		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
@@ -91,8 +107,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 * @param user           {@link ReportPortalUser}
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
-	private void validate(TestItem testItem, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = testItem.getLaunch();
+	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",

@@ -102,7 +102,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
-		//TODO retries
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
 				.addAttributes(rq.getAttributes())
 				.addLaunch(launch)
@@ -115,6 +114,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 		if (BooleanUtils.toBoolean(rq.isRetry())) {
 			testItemRepository.handleRetries(item.getItemId());
+			if (!launch.isHasRetries()) {
+				launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
+			}
 		}
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
 	}
@@ -152,6 +154,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * @param parent Parent item
 	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
+
+		//		expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
+
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(),
 				parent.getStartTime(),

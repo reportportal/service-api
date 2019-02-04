@@ -24,8 +24,8 @@ import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.ActivityContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -87,7 +87,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes), CRITERIA_ACTION));
 
-		List<ActivityContent> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
+		List<ActivityResource> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
 		return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
 	}

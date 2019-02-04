@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -49,8 +49,11 @@ public class DeleteTestItemHandlerImplTest {
 	@Mock
 	private TestItemRepository repository;
 
+	@Mock
+	private LaunchRepository launchRepository;
+
 	@InjectMocks
-	private DeleteTestItemHandler handler = new DeleteTestItemHandlerImpl();
+	private DeleteTestItemHandlerImpl handler;
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();

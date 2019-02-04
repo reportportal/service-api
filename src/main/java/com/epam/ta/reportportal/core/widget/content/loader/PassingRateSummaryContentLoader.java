@@ -35,6 +35,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -57,7 +58,7 @@ public class PassingRateSummaryContentLoader implements LoadContentStrategy {
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		PassingRateStatisticsResult result = widgetContentRepository.summaryPassingRateStatistics(filter, sort, limit);
-		return singletonMap(RESULT, result);
+		return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
 	}
 
 	/**

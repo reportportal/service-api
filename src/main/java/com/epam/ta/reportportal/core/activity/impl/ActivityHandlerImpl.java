@@ -16,9 +16,7 @@
 package com.epam.ta.reportportal.core.activity.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -30,8 +28,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.epam.ta.reportportal.ws.model.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -64,7 +62,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
 	@Override
 	public Iterable<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
-			Pageable pageable) {
+			Queryable predefinedFilter, Pageable pageable) {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
@@ -74,7 +72,8 @@ public class ActivityHandlerImpl implements ActivityHandler {
 				CRITERIA_PROJECT_ID
 		);
 
-		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter.withCondition(projectCondition),
+		Page<Activity> page = activityRepository.findByFilter(
+				new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
 				pageable
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
@@ -99,14 +98,15 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID));
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, Activity.ActivityEntityType.ITEM.getValue(), CRITERIA_ENTITY));
 
-		org.springframework.data.domain.Page<Activity> page = activityRepository.findByFilter(filter,
+		Page<Activity> page = activityRepository.findByFilter(
+				filter,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
 	}
 
 	@Override
-	public Page<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
+	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, projectDetails.getProjectId().toString(), CRITERIA_PROJECT_ID));

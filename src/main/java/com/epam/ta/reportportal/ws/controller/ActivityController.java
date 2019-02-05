@@ -19,11 +19,11 @@ package com.epam.ta.reportportal.ws.controller;
  import com.epam.ta.reportportal.auth.ReportPortalUser;
  import com.epam.ta.reportportal.commons.EntityUtils;
  import com.epam.ta.reportportal.commons.querygen.Filter;
+ import com.epam.ta.reportportal.commons.querygen.Queryable;
  import com.epam.ta.reportportal.core.activity.ActivityHandler;
  import com.epam.ta.reportportal.entity.activity.Activity;
  import com.epam.ta.reportportal.util.ProjectExtractor;
  import com.epam.ta.reportportal.ws.model.ActivityResource;
- import com.epam.ta.reportportal.ws.model.Page;
  import com.epam.ta.reportportal.ws.resolver.FilterFor;
  import com.epam.ta.reportportal.ws.resolver.SortFor;
  import io.swagger.annotations.ApiOperation;
@@ -57,10 +57,11 @@ public class ActivityController {
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	@ResponseStatus(OK)
 	@ApiOperation("Get activities for project")
-	public Page<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
-			@SortFor(Activity.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+	public Iterable<ActivityResource> getActivities(@PathVariable String projectName, @FilterFor(Activity.class) Filter filter,
+			@FilterFor(Activity.class) Queryable predefinedFilter, @SortFor(Activity.class) Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName));
-		return activityHandler.getItemActivities(projectDetails, filter, pageable);
+		return activityHandler.getActivitiesHistory(projectDetails, filter, predefinedFilter, pageable);
 	}
 
 	@RequestMapping(value = "/{activityId}", method = RequestMethod.GET)

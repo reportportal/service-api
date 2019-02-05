@@ -26,7 +26,8 @@ public enum PredefinedFilterType {
 
 	COLLAPSED("collapsed"),
 	USERS("users"),
-	PROJECTS("projects");
+	PROJECTS("projects"),
+	ACTIVITIES("activities");
 
 	private String type;
 

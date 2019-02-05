@@ -115,7 +115,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:268d7f5'
+        compile 'com.github.reportportal:commons-dao:1764cdd'
         compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:05abf033'
         compile('com.github.reportportal:commons:71d4aca')
@@ -260,13 +260,15 @@ bootJar {
 test {
 //    testLogging.showStandardStreams = true
 
+    maxParallelForks = 1
+    
     jacocoTestReport {
         reports {
             xml.enabled true
         }
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**'])
+                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**', '**/demodata/**'])
             })
         }
 //        doLast {
@@ -318,7 +320,6 @@ test {
     }
 
     if (System.env.TRAVIS == 'true') {
-        maxParallelForks = 1
         minHeapSize = "128m"
         maxHeapSize = "1g"
     }

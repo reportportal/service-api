@@ -19,9 +19,6 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.util.email.EmailService;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
@@ -29,12 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -59,20 +52,6 @@ public class UserControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ProjectRepository projectRepository;
-
-	@MockBean
-	private MailServiceFactory mailServiceFactory;
-
-	@Mock
-	private EmailService emailService;
-
-	@MockBean
-	private EmailIntegrationService emailIntegrationService;
-
-	@Before
-	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
-	}
 
 	@Test
 	public void createUserByAdminPositive() throws Exception {

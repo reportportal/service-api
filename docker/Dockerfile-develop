@@ -1,22 +1,26 @@
 FROM openjdk:8-jdk-alpine as builder
 
-RUN apk add --no-cache ca-certificates git curl
+RUN apk add --no-cache ca-certificates git curl font-noto
 
-WORKDIR /usr/src/reportportal
+RUN addgroup -S -g 1000 rp-builder
+RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
+
+WORKDIR /home/rp-builder
 
 COPY gradle/ ./gradle
 COPY gradlew .
-RUN ./gradlew wrapper
-
 COPY build-quality.gradle build.gradle gradlew settings.gradle gradle.properties ./
-RUN ./gradlew resolveDependencies --stacktrace
-
 COPY . ./
-RUN ./gradlew build
 
-RUN mkdir -p /usr/src/reportportal/plugins
-RUN curl -o /usr/src/reportportal/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
-RUN curl -o /usr/src/reportportal/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
+RUN chown -R rp-builder:rp-builder ./
+USER rp-builder
+RUN ./gradlew wrapper
+RUN ./gradlew resolveDependencies --stacktrace
+RUN ./gradlew build --stacktrace
+
+RUN mkdir -p /home/rp-builder/plugins
+RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
+RUN curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
 
 FROM openjdk:8-jre-slim
 
@@ -37,10 +41,10 @@ exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
 VOLUME /tmp
 
 RUN mkdir plugins
-COPY --from=builder /usr/src/reportportal/plugins/JIRA.jar ./plugins/JIRA.jar
-COPY --from=builder /usr/src/reportportal/plugins/RALLY.jar ./plugins/RALLY.jar
+COPY --from=builder /home/rp-builder/plugins/JIRA.jar ./plugins/JIRA.jar
+COPY --from=builder /home/rp-builder/plugins/RALLY.jar ./plugins/RALLY.jar
 
-COPY --from=builder /usr/src/reportportal/build/libs/service-api.jar ./app.jar
+COPY --from=builder /home/rp-builder/build/libs/service-api.jar ./app.jar
 
 RUN sh -c 'touch /app.jar'
 

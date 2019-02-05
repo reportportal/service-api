@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -102,12 +103,28 @@ class DemoLogsService {
 
 	private Optional<BinaryDataMetaInfo> saveAttachment(Long projectId, Attachment attachment) {
 		try {
-			return dataStoreService.save(
-					projectId,
-					attachment.getResource().getInputStream(),
-					attachment.getResource().getFilename(),
-					attachment.getContentType()
-			);
+			if (attachment == Attachment.PNG) {
+				final String fileId = dataStoreService.save(projectId,
+						attachment.getResource().getInputStream(),
+						attachment.getResource().getFilename()
+				);
+				final ClassPathResource thumbnailResource = new ClassPathResource("demo/attachments/img_tn.png");
+				final String thumbnailId = dataStoreService.save(projectId,
+						thumbnailResource.getInputStream(),
+						thumbnailResource.getFilename()
+				);
+				return Optional.of(BinaryDataMetaInfo.BinaryDataMetaInfoBuilder.aBinaryDataMetaInfo()
+						.withFileId(fileId)
+						.withThumbnailFileId(thumbnailId)
+						.build());
+			} else {
+				return Optional.of(BinaryDataMetaInfo.BinaryDataMetaInfoBuilder.aBinaryDataMetaInfo()
+						.withFileId(dataStoreService.save(projectId,
+								attachment.getResource().getInputStream(),
+								attachment.getResource().getFilename()
+						))
+						.build());
+			}
 		} catch (IOException e) {
 			LOGGER.error("Cannot attach file: ", e);
 		}

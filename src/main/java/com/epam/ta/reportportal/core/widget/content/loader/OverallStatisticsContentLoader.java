@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.OverallStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -62,7 +64,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 
 		OverallStatisticsContent content = widgetContentRepository.overallStatisticsContent(filter, sort, contentFields, latestMode, limit);
 
-		return singletonMap(RESULT, content);
+		return MapUtils.isEmpty(content.getValues()) ? emptyMap() : singletonMap(RESULT, content);
 	}
 
 	/**

@@ -46,6 +46,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -56,17 +57,17 @@ import static java.util.Optional.ofNullable;
 @Service
 public class TopTestCasesContentLoader implements LoadContentStrategy {
 
-	private LaunchRepository launchRepository;
+	private final LaunchRepository launchRepository;
 
-	private WidgetContentRepository widgetContentRepository;
+	private final LaunchConverter launchConverter;
+
+	private final WidgetContentRepository widgetContentRepository;
 
 	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
+	public TopTestCasesContentLoader(LaunchRepository launchRepository, LaunchConverter launchConverter,
+			WidgetContentRepository widgetContentRepository) {
 		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setWidgetContentRepository(WidgetContentRepository widgetContentRepository) {
+		this.launchConverter = launchConverter;
 		this.widgetContentRepository = widgetContentRepository;
 	}
 
@@ -84,17 +85,18 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(latestByName.getId()), CRITERIA_ID));
 
-		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(
-				filter,
+		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
 				contentField,
 				limit,
 				ofNullable(widgetOptions.getOptions().get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v)))
 						.orElse(false)
 		);
 
-		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, LaunchConverter.TO_RESOURCE.apply(latestByName))
-				.put(RESULT, content)
-				.build();
+		return CollectionUtils.isEmpty(content) ?
+				emptyMap() :
+				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, launchConverter.TO_RESOURCE.apply(latestByName))
+						.put(RESULT, content)
+						.build();
 	}
 
 	/**

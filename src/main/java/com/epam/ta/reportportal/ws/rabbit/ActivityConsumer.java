@@ -8,6 +8,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * @author Andrei Varabyeu
  */
@@ -24,6 +26,6 @@ public class ActivityConsumer {
 
 	@RabbitListener(queues = "#{ @activityQueue.name }")
 	public void onEvent(@Payload ActivityEvent rq) {
-		activityRepository.save(rq.toActivity());
+		Optional.ofNullable(rq.toActivity()).ifPresent(activityRepository::save);
 	}
 }

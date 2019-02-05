@@ -101,7 +101,6 @@ public class UserControllerTest extends BaseMvcTest {
 		rq.setRole("MEMBER");
 
 		when(mailServiceFactory.getEmailService(any(Integration.class), any(Boolean.class))).thenReturn(emailService);
-		when(mailServiceFactory.getEmailService(any(Integration.class))).thenReturn(Optional.of(emailService));
 		doNothing().when(emailService).sendCreateUserConfirmationEmail(any(), any(), any());
 
 		MvcResult mvcResult = mockMvc.perform(post("/user/bid").with(token(oAuthHelper.getDefaultToken()))
@@ -130,9 +129,14 @@ public class UserControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void deleteUserPositive() throws Exception {
+	public void deleteUserNegative() throws Exception {
 		/* Administrator cannot remove him/her-self */
 		mockMvc.perform(delete("/user/superadmin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().is(400));
+	}
+
+	@Test
+	public void deleteUserPositive() throws Exception {
+		mockMvc.perform(delete("/user/default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -240,5 +244,49 @@ public class UserControllerTest extends BaseMvcTest {
 		mockMvc.perform(post("/user/password/change").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void restorePassword() throws Exception {
+		final RestorePasswordRQ restorePasswordRQ = new RestorePasswordRQ();
+		restorePasswordRQ.setEmail("defaultemail@domain.com");
+
+		when(mailServiceFactory.getDefaultEmailService(true)).thenReturn(emailService);
+		doNothing().when(emailService).sendRestorePasswordEmail(any(), any(), any(), any());
+
+		mockMvc.perform(post("/user/password/restore").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(restorePasswordRQ))).andExpect(status().isOk());
+	}
+
+	@Test
+	public void resetPassword() throws Exception {
+		final ResetPasswordRQ resetPasswordRQ = new ResetPasswordRQ();
+		resetPasswordRQ.setPassword("password");
+		resetPasswordRQ.setUuid("e5f98deb-8966-4b2d-ba2f-35bc69d30c06");
+		mockMvc.perform(post("/user/password/reset").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(resetPasswordRQ))).andExpect(status().isOk());
+	}
+
+	@Test
+	public void isRestorePasswordBidExist() throws Exception {
+		mockMvc.perform(get("/user/password/reset/e5f98deb-8966-4b2d-ba2f-35bc69d30c06").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
+	}
+
+	@Test
+	public void getUserProjects() throws Exception {
+		mockMvc.perform(get("/user/default/projects").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	public void getMyself() throws Exception {
+		mockMvc.perform(get("/user").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	public void exportUsers() throws Exception {
+		mockMvc.perform(get("/user/export").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 }

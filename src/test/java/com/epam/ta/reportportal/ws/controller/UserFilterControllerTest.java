@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql("/db/filter/filter-fill.sql")
+@Sql("/db/shareable/shareable-fill.sql")
 public class UserFilterControllerTest extends BaseMvcTest {
 
 	@Autowired

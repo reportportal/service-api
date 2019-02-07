@@ -95,7 +95,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		project.setProjectType(projectType);
 
 		project.setProjectAttributes(projectAttributes);
-		ProjectUtils.setDefaultEmailConfiguration(project);
+		ProjectUtils.setDefaultNotificationConfiguration(project);
 
 		ProjectUser projectUser = new ProjectUser().withProject(project)
 				.withUser(userRepository.findById(user.getUserId())

@@ -4,7 +4,7 @@ import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -25,8 +25,8 @@ public final class EmailConfigConverter {
 		//static only
 	}
 
-	public final static Function<Set<SenderCase>, ProjectConfigDTO> TO_RESOURCE = senderCaseSet -> {
-		ProjectConfigDTO dto = new ProjectConfigDTO();
+	public final static Function<Set<SenderCase>, ProjectNotificationConfigDTO> TO_RESOURCE = senderCaseSet -> {
+		ProjectNotificationConfigDTO dto = new ProjectNotificationConfigDTO();
 
 		ofNullable(senderCaseSet).ifPresent(senderCases -> dto.setSenderCases(senderCases.stream()
 				.map(EmailConfigConverter.TO_CASE_RESOURCE)

@@ -5,7 +5,6 @@ import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.BeforeClass;
@@ -53,9 +52,6 @@ public abstract class BaseMvcTest {
 
 	@Mock
 	protected EmailService emailService;
-
-	@MockBean
-	protected EmailIntegrationService emailIntegrationService;
 
 	@FlywayTest
 	@BeforeClass

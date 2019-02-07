@@ -50,7 +50,7 @@ import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
@@ -136,12 +136,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	@Override
 	public OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			ProjectConfigDTO updateProjectRQ) {
+			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		Project before = SerializationUtils.clone(project);
 
-		updateSenderCases(project, updateProjectRQ.getSenderCases());
+		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
 
 		try {
 			projectRepository.save(project);
@@ -149,7 +149,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			throw new ReportPortalException("Error during updating Project", e);
 		}
 
-		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectRQ, user.getUserId()));
+		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}

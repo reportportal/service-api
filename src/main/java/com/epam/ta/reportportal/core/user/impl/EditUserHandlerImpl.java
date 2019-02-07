@@ -51,9 +51,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.HASH_FUNCTION;
@@ -204,7 +204,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
 		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
 		String subtype = mediaType.getSubtype();
-		expect(ImageFormat.fromValue(subtype), notNull()).verify(BINARY_DATA_CANNOT_BE_SAVED,
+		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(
+				BINARY_DATA_CANNOT_BE_SAVED,
 				"Image format should be " + ImageFormat.getValues()
 		);
 		BufferedImage read = ImageIO.read(file.getInputStream());

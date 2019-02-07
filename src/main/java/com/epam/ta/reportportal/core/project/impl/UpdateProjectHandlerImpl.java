@@ -157,6 +157,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Override
 	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
 			ReportPortalUser user) {
+		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
+				"Request should contain at least one username."
+		);
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		User modifier = userRepository.findById(user.getUserId())
@@ -184,7 +187,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		projectUserRepository.deleteAll(unassignUsers);
 		ProjectUtils.excludeProjectRecipients(unassignUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
-		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
+		unassignUsers.forEach(it -> preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), it.getUser().getId()));
 
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"

@@ -1,3 +1,6 @@
+hibernate:
+  generate_statistics: true
+
 info:
   build:
     version: ${rp.api.version:5.0}

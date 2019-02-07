@@ -72,7 +72,7 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 
 	@Test
 	public void deleteSubType() throws Exception {
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/settings/6").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type/6").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -83,9 +83,11 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 		updateOneIssueSubTypeRQ.setColor("updated");
 		updateOneIssueSubTypeRQ.setLocator("custom_ti");
 		updateOneIssueSubTypeRQ.setLongName("updated");
-		updateOneIssueSubTypeRQ.setShortName("updated");
-		updateOneIssueSubTypeRQ.setTypeRef("toInvestigate");
+		updateOneIssueSubTypeRQ.setShortName("upd");
+		updateOneIssueSubTypeRQ.setTypeRef("TO_INVESTIGATE");
 		request.setIds(Collections.singletonList(updateOneIssueSubTypeRQ));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}
 }

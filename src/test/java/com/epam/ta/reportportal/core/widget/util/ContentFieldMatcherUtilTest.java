@@ -3,8 +3,6 @@ package com.epam.ta.reportportal.core.widget.util;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.List;
 import java.util.Random;
@@ -14,8 +12,6 @@ import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConst
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-//TODO replace random wrong content field generation with the specified loop
-@RunWith(Parameterized.class)
 public class ContentFieldMatcherUtilTest {
 
 	@Test
@@ -136,11 +132,6 @@ public class ContentFieldMatcherUtilTest {
 		contentFields.set(index, "statistics$wrong$format");
 
 		return contentFields;
-	}
-
-	@Parameterized.Parameters
-	public static Object[][] data() {
-		return new Object[100][0];
 	}
 
 }

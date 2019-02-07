@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -51,6 +51,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -162,16 +163,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			user.setDefaultProject(defaultProject);
 		}
 
-		if (null != editUserRQ.getEmail()) {
+		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
 			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
-			User byEmail = userRepository.findByEmail(updEmail)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-							Suppliers.formattedSupplier("User with email - {} was not found", updEmail)
-					));
+			final Optional<User> byEmail = userRepository.findByEmail(updEmail);
 
-			expect(username, equalTo(byEmail.getLogin())).verify(USER_ALREADY_EXISTS, updEmail);
+			expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
 			userProjects.forEach(project -> emailIntegrationService.updateProjectRecipients(user.getEmail(), updEmail, project));

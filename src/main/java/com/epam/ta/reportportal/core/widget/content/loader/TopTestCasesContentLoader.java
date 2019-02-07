@@ -46,6 +46,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -91,9 +92,11 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 						.orElse(false)
 		);
 
-		return ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, launchConverter.TO_RESOURCE.apply(latestByName))
-				.put(RESULT, content)
-				.build();
+		return CollectionUtils.isEmpty(content) ?
+				emptyMap() :
+				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, launchConverter.TO_RESOURCE.apply(latestByName))
+						.put(RESULT, content)
+						.build();
 	}
 
 	/**

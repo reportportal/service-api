@@ -72,6 +72,7 @@ public class DemoDataLaunchService {
 				.addUser(user.getUserId())
 				.get();
 		launchRepository.save(launch);
+		launchRepository.refresh(launch);
 		return launch.getId();
 	}
 

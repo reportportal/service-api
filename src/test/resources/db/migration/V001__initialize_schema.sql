@@ -8,8 +8,6 @@ CREATE TYPE AUTH_TYPE_ENUM AS ENUM ('OAUTH', 'NTLM', 'APIKEY', 'BASIC');
 
 CREATE TYPE ACCESS_TOKEN_TYPE_ENUM AS ENUM ('OAUTH', 'NTLM', 'APIKEY', 'BASIC');
 
-CREATE TYPE ACTIVITY_ENTITY_ENUM AS ENUM ('LAUNCH', 'ITEM', 'DASHBOARD', 'DEFECT_TYPE', 'EMAIL_CONFIG', 'FILTER', 'IMPORT', 'INTEGRATION', 'ITEM_ISSUE', 'PROJECT', 'SHARING', 'TICKET', 'USER', 'WIDGET');
-
 CREATE TYPE TEST_ITEM_TYPE_ENUM AS ENUM ('SUITE', 'STORY', 'TEST', 'SCENARIO', 'STEP', 'BEFORE_CLASS', 'BEFORE_GROUPS', 'BEFORE_METHOD',
   'BEFORE_SUITE', 'BEFORE_TEST', 'AFTER_CLASS', 'AFTER_GROUPS', 'AFTER_METHOD', 'AFTER_SUITE', 'AFTER_TEST');
 
@@ -370,10 +368,6 @@ CREATE TABLE item_attribute (
   CHECK ((item_id IS NOT NULL AND launch_id IS NULL) OR (item_id IS NULL AND launch_id IS NOT NULL))
 );
 
-CREATE UNIQUE INDEX item_attribute_unique
-  ON item_attribute (coalesce(key, '-1'), value, system, coalesce(launch_id, -1), coalesce(item_id, -1));
-
-
 CREATE TABLE log (
   id                   BIGSERIAL CONSTRAINT log_pk PRIMARY KEY,
   log_time             TIMESTAMP                                                NOT NULL,
@@ -391,7 +385,7 @@ CREATE TABLE activity (
   user_id       BIGINT REFERENCES users (id) ON DELETE CASCADE,
   username      VARCHAR,
   project_id    BIGINT REFERENCES project (id) ON DELETE CASCADE         NOT NULL,
-  entity        ACTIVITY_ENTITY_ENUM                                     NOT NULL,
+  entity        VARCHAR(128)                                             NOT NULL,
   action        VARCHAR(128)                                             NOT NULL,
   details       JSONB                                                    NULL,
   creation_date TIMESTAMP                                                NOT NULL,
@@ -540,14 +534,14 @@ CREATE OR REPLACE FUNCTION merge_launch(launchid BIGINT)
   RETURNS INTEGER
 AS $$
 DECLARE targettestitemcursor CURSOR (id BIGINT, lvl INT) FOR
-  SELECT DISTINCT ON (unique_id) unique_id, item_id
+  SELECT DISTINCT ON (unique_id) unique_id, item_id, path AS path_value
   FROM test_item
   WHERE test_item.launch_id = id
     AND nlevel(test_item.path) = lvl
     AND has_child(test_item.path);
 
   DECLARE mergingtestitemcursor CURSOR (uniqueid VARCHAR, lvl INT, launchid BIGINT) FOR
-  SELECT item_id, path AS path_value
+  SELECT item_id, path AS path_value, has_retries
   FROM test_item
   WHERE test_item.unique_id = uniqueid
     AND nlevel(test_item.path) = lvl
@@ -558,6 +552,7 @@ DECLARE targettestitemcursor CURSOR (id BIGINT, lvl INT) FOR
   DECLARE maxlevel             BIGINT;
   DECLARE firstitemid          VARCHAR;
   DECLARE parentitemid         BIGINT;
+  DECLARE parentitempath       LTREE;
   DECLARE concatenated_descr   TEXT;
 BEGIN
   maxlevel := (SELECT MAX(nlevel(path)) FROM test_item WHERE launch_id = launchid);
@@ -574,6 +569,7 @@ BEGIN
 
       firstitemid := targettestitemfield.unique_id;
       parentitemid := targettestitemfield.item_id;
+      parentitempath := targettestitemfield.path_value;
 
       EXIT WHEN firstitemid ISNULL;
 
@@ -638,13 +634,24 @@ BEGIN
         IF has_child(mergingtestitemfield.path_value)
         THEN
           UPDATE test_item
-          SET parent_id = parentitemid
+          SET parent_id = parentitemid,
+              path      = text2ltree(concat(parentitempath :: text, '.', test_item.item_id :: text))
           WHERE test_item.path <@ mergingtestitemfield.path_value
             AND test_item.path != mergingtestitemfield.path_value
-            AND nlevel(test_item.path) = i + 1;
-          DELETE FROM test_item WHERE test_item.path = mergingtestitemfield.path_value
-                                  AND test_item.item_id != parentitemid;
+            AND nlevel(test_item.path) = i + 1
+            AND test_item.retry_of IS NULL;
+          DELETE
+          FROM test_item
+          WHERE test_item.path = mergingtestitemfield.path_value
+            AND test_item.item_id != parentitemid;
 
+        END IF;
+
+        IF mergingtestitemfield.has_retries
+        THEN
+          UPDATE test_item
+          SET path = text2ltree(concat(mergingtestitemfield.path_value :: text, '.', test_item.item_id :: text))
+          WHERE test_item.retry_of = mergingtestitemfield.item_id;
         END IF;
 
       END LOOP;
@@ -734,7 +741,7 @@ BEGIN
     UPDATE test_item ti
     SET retry_of    = NULL,
         has_retries = TRUE,
-        path           = ((SELECT path FROM test_item WHERE item_id = ti.parent_id) :: TEXT || '.' || ti.item_id) :: LTREE
+        path        = ((SELECT path FROM test_item WHERE item_id = ti.parent_id) :: TEXT || '.' || ti.item_id) :: LTREE
     WHERE ti.item_id = itemidwithmaxstarttime;
   END IF;
   RETURN 0;
@@ -1285,9 +1292,9 @@ CREATE TRIGGER before_item_delete
 
 DO
 $$DECLARE
-  defaultproject BIGINT;
-  superadminproject BIGINT;
-  defaultid BIGINT;
+  defaultProject BIGINT;
+  superadminProject BIGINT;
+  defaultId BIGINT;
   superadmin BIGINT;
   ldap BIGINT;
   rally BIGINT;
@@ -1297,14 +1304,14 @@ BEGIN
 
     INSERT INTO server_settings (key, value) VALUES ('server.analytics.all', 'true');
     INSERT INTO server_settings (key, value) VALUES ('server.email.star_tls_enabled', 'false');
-    INSERT INTO server_settings (key, value) VALUES ('server.email.password', NULL);
+    INSERT INTO server_settings (key, value) VALUES ('server.email.password', null);
     INSERT INTO server_settings (key, value) VALUES ('server.email.port', '587');
     INSERT INTO server_settings (key, value) VALUES ('server.email.protocol', 'smtp');
     INSERT INTO server_settings (key, value) VALUES ('server.email.ssl_enabled', 'false');
     INSERT INTO server_settings (key, value) VALUES ('server.email.auth_enabled', 'false');
     INSERT INTO server_settings (key, value) VALUES ('server.email.enabled', 'true');
-    INSERT INTO server_settings (key, value) VALUES ('server.email.username', NULL);
-    INSERT INTO server_settings (key, value) VALUES ('server.email.host', NULL);
+    INSERT INTO server_settings (key, value) VALUES ('server.email.username', null);
+    INSERT INTO server_settings (key, value) VALUES ('server.email.host', null);
     INSERT INTO server_settings (key, value) VALUES ('server.analytics.asd', 'true');
 
     INSERT INTO issue_group (issue_group_id, issue_group) VALUES (1, 'TO_INVESTIGATE');
@@ -1333,29 +1340,29 @@ BEGIN
 
     -- Superadmin project and user
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('superadmin_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
-    superadminproject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
+    superadminProject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
 
     INSERT INTO users (login, password, email, role, type, default_project_id, full_name, expired, metadata)
-    VALUES ('superadmin', '5d39d85bddde885f6579f8121e11eba2', 'superadminemail@domain.com', 'ADMINISTRATOR', 'INTERNAL', superadminproject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
+    VALUES ('superadmin', '5d39d85bddde885f6579f8121e11eba2', 'superadminemail@domain.com', 'ADMINISTRATOR', 'INTERNAL', superadminProject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
     superadmin := (SELECT currval(pg_get_serial_sequence('users', 'id')));
 
-    INSERT INTO project_user (user_id, project_id, project_role) VALUES (superadmin, superadminproject, 'PROJECT_MANAGER');
+    INSERT INTO project_user (user_id, project_id, project_role) VALUES (superadmin, superadminProject, 'PROJECT_MANAGER');
 
     -- Default project and user
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('default_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
-    defaultproject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
+    defaultProject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
 
     INSERT INTO users (login, password, email, role, type, default_project_id, full_name, expired, metadata)
-    VALUES ('default', '3fde6bb0541387e4ebdadf7c2ff31123', 'defaultemail@domain.com', 'USER', 'INTERNAL', defaultproject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
-    defaultid := (SELECT currval(pg_get_serial_sequence('users', 'id')));
+    VALUES ('default', '3fde6bb0541387e4ebdadf7c2ff31123', 'defaultemail@domain.com', 'USER', 'INTERNAL', defaultProject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
+    defaultId := (SELECT currval(pg_get_serial_sequence('users', 'id')));
 
-    INSERT INTO project_user (user_id, project_id, project_role) VALUES (defaultid, defaultproject, 'PROJECT_MANAGER');
+    INSERT INTO project_user (user_id, project_id, project_role) VALUES (defaultId, defaultProject, 'PROJECT_MANAGER');
 
     -- Project configurations
 
     INSERT INTO issue_type_project (project_id, issue_type_id) VALUES
-    (superadminproject, 1), (superadminproject, 2), (superadminproject, 3), (superadminproject, 4), (superadminproject, 5),
-    (defaultproject, 1),(defaultproject, 2),(defaultproject, 3),(defaultproject, 4),(defaultproject, 5);
+    (superadminProject, 1), (superadminProject, 2), (superadminProject, 3), (superadminProject, 4), (superadminProject, 5),
+    (defaultProject, 1),(defaultProject, 2),(defaultProject, 3),(defaultProject, 4),(defaultProject, 5);
 
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (1, '1 day', defaultProject), (1, '1 day', superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (2, '3 months', defaultProject), (2, '3 months', superadminProject);

@@ -1,0 +1,6 @@
+ignore:
+  - "**/entity/**"
+  - "**/aop/**"
+  - "**/jasper/**"
+  - "**/configs/**"
+  - "**/demodata/**"

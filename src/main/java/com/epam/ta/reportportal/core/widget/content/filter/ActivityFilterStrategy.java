@@ -23,18 +23,14 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.USER;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -45,12 +41,6 @@ public class ActivityFilterStrategy extends AbstractStatisticsFilterStrategy {
 	@Override
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
 			Widget widget) {
-
-		WidgetOptions widgetOptions = widget.getWidgetOptions();
-
-		if (StringUtils.isBlank(WidgetOptionUtil.getValueByKey(USER, widgetOptions))) {
-			widgetOptions.getOptions().put(USER, widget.getOwner());
-		}
 
 		return super.buildFilterAndLoadContent(loadContentStrategy, projectDetails, widget);
 	}

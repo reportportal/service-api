@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -54,6 +55,7 @@ public class UserControllerTest extends BaseMvcTest {
 	private ProjectRepository projectRepository;
 
 	@Test
+	@Ignore
 	public void createUserByAdminPositive() throws Exception {
 		CreateUserRQFull rq = new CreateUserRQFull();
 		rq.setLogin("testLogin");
@@ -92,6 +94,7 @@ public class UserControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Ignore
 	public void createUserPositive() throws Exception {
 		CreateUserRQConfirm rq = new CreateUserRQConfirm();
 		rq.setLogin("testLogin");

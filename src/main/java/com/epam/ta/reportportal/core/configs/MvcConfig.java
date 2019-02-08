@@ -30,6 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -160,6 +161,7 @@ public class MvcConfig implements WebMvcConfigurer {
 		return new HttpMessageConverters(converters);
 	}
 
+	@Profile("!unittest")
 	@Bean
 	@Order(0)
 	public MultipartFilter multipartFilter() {
@@ -168,6 +170,7 @@ public class MvcConfig implements WebMvcConfigurer {
 		return multipartFilter;
 	}
 
+	@Profile("!unittest")
 	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
 		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {

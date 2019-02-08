@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
-import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -72,22 +71,6 @@ public class MailServiceFactory {
 		this.encryptor = encryptor;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
-	}
-
-	/**
-	 * Build mail service based on provided configs
-	 *
-	 * @param emailIntegration Project configuration attributes
-	 * @param serverSettings   Server-level configuration
-	 * @return Built email service
-	 */
-	private Optional<EmailService> getEmailService(Integration emailIntegration, List<ServerSettings> serverSettings) {
-		return getEmailService(emailIntegration).flatMap(service -> {
-			if (null != emailIntegration && emailIntegration.isEnabled()) {
-				service.setFrom((String) emailIntegration.getParams().getParams().get(FROM_ADDRESS));
-			}
-			return Optional.of(service);
-		});
 	}
 
 	/**

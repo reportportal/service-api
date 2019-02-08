@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -52,6 +53,7 @@ public class ProjectControllerTest extends BaseMvcTest {
 	private ProjectRepository projectRepository;
 
 	@Test
+	@Ignore
 	public void createProjectPositive() throws Exception {
 		CreateProjectRQ rq = new CreateProjectRQ();
 		rq.setProjectName("TestProject");

@@ -12,9 +12,6 @@ COPY gradlew .
 COPY build-quality.gradle build.gradle gradlew settings.gradle gradle.properties ./
 COPY . ./
 
-#костыль
-RUN echo "rp.binarystore.path=/home/rp-builder/data/store" >> ./src/test/resources/test-application.properties
-
 RUN chown -R rp-builder:rp-builder ./
 USER rp-builder
 RUN ./gradlew wrapper

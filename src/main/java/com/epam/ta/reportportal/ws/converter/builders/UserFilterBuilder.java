@@ -74,6 +74,7 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 						.map(entity -> FilterCondition.builder()
 								.withSearchCriteria(entity.getFilteringField())
 								.withValue(entity.getValue())
+								.withNegative(Condition.isNegative(entity.getCondition()))
 								.withCondition(Condition.findByMarker(entity.getCondition())
 										.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, entity.getCondition())))
 								.build())

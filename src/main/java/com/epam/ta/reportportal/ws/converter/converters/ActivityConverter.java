@@ -35,13 +35,13 @@ public final class ActivityConverter {
 
 	public static final Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
 		ActivityResource resource = new ActivityResource();
-		resource.setActivityId(activity.getId().toString());
-		resource.setLastModifiedDate(TO_DATE.apply(activity.getCreatedAt()));
+		resource.setId(activity.getId());
+		resource.setLastModified(TO_DATE.apply(activity.getCreatedAt()));
 		resource.setObjectType(activity.getActivityEntityType().getValue());
 		resource.setActionType(activity.getAction());
-		resource.setProjectRef(activity.getProjectId().toString());
-		resource.setUserRef(activity.getUserId().toString());
-		ofNullable(activity.getObjectId()).ifPresent(id -> resource.setLoggedObjectRef(id.toString()));
+		resource.setProjectId(activity.getProjectId());
+		resource.setUser(activity.getUsername());
+		ofNullable(activity.getObjectId()).ifPresent(resource::setLoggedObjectId);
 		resource.setDetails(activity.getDetails());
 		return resource;
 	};

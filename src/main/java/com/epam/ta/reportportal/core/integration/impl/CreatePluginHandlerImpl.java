@@ -246,7 +246,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 				);
 			}
 
-			integrationTypeRepository.deleteByName(p.getPluginId());
+			//			integrationTypeRepository.deleteByName(p.getPluginId());
 		});
 
 		validateNewPluginFile(oldPlugin, newPluginName);

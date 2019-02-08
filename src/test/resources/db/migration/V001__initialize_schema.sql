@@ -121,7 +121,6 @@ CREATE TABLE oauth_registration_restriction (
 
 
 ------------------------------ Project configurations ------------------------------
-
 CREATE TABLE sender_case (
   id         BIGSERIAL CONSTRAINT sender_case_pk PRIMARY KEY,
   send_case  VARCHAR(256) NOT NULL,
@@ -198,6 +197,7 @@ CREATE TABLE integration_type (
   auth_flow     INTEGRATION_AUTH_FLOW_ENUM,
   creation_date TIMESTAMP DEFAULT now()    NOT NULL,
   group_type    INTEGRATION_GROUP_ENUM     NOT NULL,
+  enabled       BOOLEAN                    NOT NULL,
   details       JSONB                      NULL
 );
 
@@ -205,7 +205,7 @@ CREATE TABLE integration (
   id            SERIAL CONSTRAINT integration_pk PRIMARY KEY,
   project_id    BIGINT REFERENCES project (id) ON DELETE CASCADE,
   type          INTEGER REFERENCES integration_type (id) ON DELETE CASCADE,
-  enabled       BOOLEAN,
+  enabled       BOOLEAN                 NOT NULL,
   params        JSONB                   NULL,
   creation_date TIMESTAMP DEFAULT now() NOT NULL
 );
@@ -339,6 +339,7 @@ CREATE TABLE launch (
   last_modified TIMESTAMP DEFAULT now()                                             NOT NULL,
   mode          LAUNCH_MODE_ENUM                                                    NOT NULL,
   status        STATUS_ENUM                                                         NOT NULL,
+  has_retries   BOOLEAN                                                             NOT NULL DEFAULT FALSE,
   CONSTRAINT unq_name_number UNIQUE (name, number, project_id, uuid)
 );
 
@@ -1334,16 +1335,16 @@ BEGIN
     INSERT INTO server_settings (key, value) VALUES ('server.email.host', null);
     INSERT INTO server_settings (key, value) VALUES ('server.analytics.asd', 'true');
 
-    INSERT INTO integration_type (name, auth_flow, creation_date, group_type) VALUES ('test integration type', 'LDAP', now(), 'AUTH');
+    INSERT INTO integration_type (enabled, name, auth_flow, creation_date, group_type) VALUES (true, 'test integration type', 'LDAP', now(), 'AUTH');
     ldap := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
 
-    INSERT INTO integration_type (name, auth_flow, creation_date, group_type) VALUES ('RALLY', 'OAUTH', now(), 'BTS') ;
+    INSERT INTO integration_type (enabled, name, auth_flow, creation_date, group_type) VALUES (true, 'RALLY', 'OAUTH', now(), 'BTS') ;
     rally := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
 
-    INSERT INTO integration_type (name, auth_flow, creation_date, group_type) VALUES ('JIRA', 'BASIC', now(), 'BTS');
+    INSERT INTO integration_type (enabled, name, auth_flow, creation_date, group_type) VALUES (true, 'JIRA', 'BASIC', now(), 'BTS');
     jira := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
 
-    INSERT INTO integration_type (name, creation_date, group_type) VALUES ('email', now(), 'NOTIFICATION');
+    INSERT INTO integration_type (enabled, name, creation_date, group_type) VALUES (true, 'email', now(), 'NOTIFICATION');
     email := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
 
     INSERT INTO issue_group (issue_group_id, issue_group) VALUES (1, 'TO_INVESTIGATE');
@@ -1369,6 +1370,8 @@ BEGIN
     INSERT INTO attribute (name) VALUES ('analyzer.indexingRunning');
     INSERT INTO attribute (name) VALUES ('analyzer.isAutoAnalyzerEnabled');
     INSERT INTO attribute (name) VALUES ('analyzer.autoAnalyzerMode');
+    INSERT INTO attribute (name) VALUES ('email.enabled');
+    INSERT INTO attribute (name) VALUES ('email.from');
 
     -- Superadmin project and user
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('superadmin_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
@@ -1410,6 +1413,8 @@ BEGIN
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (9, false, defaultProject), (9, false, superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (10, false, defaultProject), (10, false, superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (11, 'LAUNCH_NAME', defaultProject), (11, 'LAUNCH_NAME', superadminProject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (12, 'true', defaultProject), (12, 'reportportal@example.com', superadminProject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (13, 'true', defaultProject), (13, 'reportportal@example.com', superadminProject);
 
     INSERT INTO integration (project_id, type, enabled, params)
       VALUES (defaultProject, email, false, '{"params": {"rules": [{"recipients": ["owner"]}, {"launchStatsRule": "always"}]}}');

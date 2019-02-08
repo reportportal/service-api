@@ -17,7 +17,11 @@
 package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
+
+import java.util.Optional;
 
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
@@ -32,4 +36,6 @@ public interface GetIntegrationHandler {
 	IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 
 	IntegrationResource getGlobalIntegrationById(Long integrationId);
+
+	Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup);
 }

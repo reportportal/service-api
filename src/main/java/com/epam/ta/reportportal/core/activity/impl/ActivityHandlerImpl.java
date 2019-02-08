@@ -76,7 +76,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 				new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
 				pageable
 		);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 				filter,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
 		);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
 	}
 
 	@Override

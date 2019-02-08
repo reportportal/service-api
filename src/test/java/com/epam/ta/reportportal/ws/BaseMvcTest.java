@@ -3,10 +3,13 @@ package com.epam.ta.reportportal.ws;
 import com.epam.ta.reportportal.TestConfig;
 import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +46,12 @@ public abstract class BaseMvcTest {
 
 	@MockBean
 	protected MessageBus messageBus;
+
+	@MockBean
+	protected MailServiceFactory mailServiceFactory;
+
+	@Mock
+	protected EmailService emailService;
 
 	@FlywayTest
 	@BeforeClass

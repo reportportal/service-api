@@ -44,6 +44,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -81,8 +82,8 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 				CRITERIA_ID
 		));
 
-		PassingRateStatisticsResult content = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);
-		return singletonMap(RESULT, content);
+		PassingRateStatisticsResult result = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);
+		return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
 	}
 
 	/**

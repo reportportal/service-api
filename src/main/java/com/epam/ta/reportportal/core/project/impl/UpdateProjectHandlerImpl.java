@@ -24,44 +24,47 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.EmailConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.*;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.util.integration.IntegrationService;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
+import static com.epam.ta.reportportal.commons.SendCase.findByName;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -69,6 +72,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.ProjectConverter.
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Pavel Bortnik
@@ -86,43 +90,34 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final MessageBus messageBus;
 
-	private final Map<String, IntegrationService> integrationServiceMapping;
+	private final MailServiceFactory mailServiceFactory;
 
-	private final EmailIntegrationService emailIntegrationService;
+	private final LaunchRepository launchRepository;
 
-	@Autowired
-	private MailServiceFactory mailServiceFactory;
+	private final AnalyzerStatusCache analyzerStatusCache;
 
-	@Autowired
-	private LaunchRepository launchRepository;
+	private final AnalyzerServiceClient analyzerServiceClient;
 
-	@Autowired
-	private AnalyzerStatusCache analyzerStatusCache;
+	private final LogIndexer logIndexer;
 
-	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
-
-	@Autowired
-	private LogIndexer logIndexer;
-
-	@Autowired
-	private ShareableEntityRepository shareableEntityRepository;
-
-	@Autowired
-	private ShareableObjectsHandler aclHandler;
+	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
-			@Qualifier(value = "integrationServiceMap") Map<String, IntegrationService> integrationServiceMapping,
-			EmailIntegrationService emailIntegrationService) {
+			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
 		this.messageBus = messageBus;
 		this.projectUserRepository = projectUserRepository;
-		this.integrationServiceMapping = integrationServiceMapping;
-		this.emailIntegrationService = emailIntegrationService;
+		this.mailServiceFactory = mailServiceFactory;
+		this.launchRepository = launchRepository;
+		this.analyzerStatusCache = analyzerStatusCache;
+		this.analyzerServiceClient = analyzerServiceClient;
+		this.logIndexer = logIndexer;
+		this.aclHandler = aclHandler;
 	}
 
 	@Override
@@ -140,25 +135,21 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateIntegration(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			UpdateIntegrationRQ updateIntegrationRQ) {
-
+	public OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		Project before = SerializationUtils.clone(project);
 
-		IntegrationService integrationService = Optional.ofNullable(integrationServiceMapping.get(updateIntegrationRQ.getIntegrationName()))
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
+		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
 
-		integrationService.validateIntegrationParameters(project, updateIntegrationRQ.getIntegrationParams());
+		try {
+			projectRepository.save(project);
+		} catch (Exception e) {
+			throw new ReportPortalException("Error during updating Project", e);
+		}
 
-		Integration integration = project.getIntegrations()
-				.stream()
-				.filter(it -> it.getType().getName().equalsIgnoreCase(updateIntegrationRQ.getIntegrationName()))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, updateIntegrationRQ.getIntegrationName()));
-		integration.setEnabled(updateIntegrationRQ.getEnabled());
-		integration.setParams(new IntegrationParams(updateIntegrationRQ.getIntegrationParams()));
-
+		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
@@ -166,6 +157,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Override
 	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
 			ReportPortalUser user) {
+		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
+				"Request should contain at least one username."
+		);
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 		User modifier = userRepository.findById(user.getUserId())
@@ -192,8 +186,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		});
 
 		projectUserRepository.deleteAll(unassignUsers);
-		emailIntegrationService.excludeProjectRecipients(unassignUsers, project);
-		preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId());
+		ProjectUtils.excludeProjectRecipients(unassignUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
+		unassignUsers.forEach(it -> preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), it.getUser().getId()));
 
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
@@ -337,16 +331,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
-		ofNullable(configuration).ifPresent(config -> {
-			ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
-				verifyProjectAttributes(attributes);
-				attributes.forEach((attribute, value) -> project.getProjectAttributes()
-						.stream()
-						.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
-						.findFirst()
-						.ifPresent(attr -> attr.setValue(value)));
-			});
-		});
+		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
+			verifyProjectAttributes(attributes);
+			attributes.forEach((attribute, value) -> project.getProjectAttributes()
+					.stream()
+					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
+					.findFirst()
+					.ifPresent(attr -> attr.setValue(value)));
+		}));
 	}
 
 	private void verifyProjectAttributes(Map<String, String> attributes) {
@@ -361,6 +353,41 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
 		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
+	}
+
+	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
+
+		expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
+		cases.forEach(sendCase -> {
+			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
+			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
+			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
+					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
+			);
+			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+				EmailRulesValidator.validateRecipient(project, it);
+				return it.trim();
+			}).distinct().collect(toList()));
+
+			ofNullable(sendCase.getLaunchNames()).ifPresent(launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
+				EmailRulesValidator.validateLaunchName(name);
+				return name.trim();
+			}).distinct().collect(toList())));
+
+			ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().map(attribute -> {
+				EmailRulesValidator.validateLaunchAttribute(attribute);
+				return attribute.trim();
+			}).distinct().collect(toList())));
+
+		});
+
+		/* If project email settings */
+		Set<SenderCase> withoutDuplicateCases = cases.stream().distinct().map(EmailConfigConverter.TO_CASE_MODEL).collect(toSet());
+		if (cases.size() != withoutDuplicateCases.size()) {
+			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+		}
+
+		project.setSenderCases(withoutDuplicateCases);
 	}
 
 }

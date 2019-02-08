@@ -32,9 +32,10 @@ import com.google.common.base.Preconditions;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -53,7 +54,7 @@ public final class ProjectConverter {
 		resource.setProjectId(project.getId());
 		resource.setProjectName(project.getName());
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
-		resource.setLastRun(Optional.ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
+		resource.setLastRun(ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
 		resource.setEntryType(project.getProjectType());
 		resource.setOrganization(project.getOrganization());
 		return resource;
@@ -84,6 +85,10 @@ public final class ProjectConverter {
 				));
 
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
+
+		ofNullable(project.getSenderCases()).ifPresent(senderCases -> projectConfiguration.setProjectConfig(EmailConfigConverter.TO_RESOURCE.apply(
+				senderCases)));
+
 		projectConfiguration.setSubTypes(subTypes);
 
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());

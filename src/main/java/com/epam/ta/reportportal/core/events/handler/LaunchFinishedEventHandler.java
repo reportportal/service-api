@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.commons.SendCase;
 import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
@@ -30,6 +29,7 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;

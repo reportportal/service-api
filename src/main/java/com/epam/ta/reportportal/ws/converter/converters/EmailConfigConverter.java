@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.commons.SendCase;
+import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;

@@ -197,7 +197,7 @@ CREATE TABLE integration_type (
   auth_flow     INTEGRATION_AUTH_FLOW_ENUM,
   creation_date TIMESTAMP DEFAULT now()    NOT NULL,
   group_type    INTEGRATION_GROUP_ENUM     NOT NULL,
-  enabled       BOOLEAN                    NOT NULL,
+  enabled       BOOLEAN                    NOT NULL DEFAULT FALSE,
   details       JSONB                      NULL
 );
 

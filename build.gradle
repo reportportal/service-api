@@ -259,7 +259,7 @@ bootJar {
 
 test {
 //    testLogging.showStandardStreams = true
-
+    
     maxParallelForks = 1
 
     jacocoTestReport {
@@ -268,7 +268,12 @@ test {
         }
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**', '**/demodata/**', '**/exception/**'])
+                fileTree(dir: it, exclude: ['**/entity/**',
+                                            '**/aop/**',
+                                            '**/jasper/**',
+                                            '**/configs/**',
+                                            '**/demodata/**',
+                                            '**/exception/**'])
             })
         }
 //        doLast {

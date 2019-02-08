@@ -72,10 +72,11 @@ public class ActivityHandlerImpl implements ActivityHandler {
 				CRITERIA_PROJECT_ID
 		);
 
-		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
+		Page<Activity> page = activityRepository.findByFilter(
+				new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
 				pageable
 		);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
 	}
 
 	@Override
@@ -97,10 +98,11 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID));
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, Activity.ActivityEntityType.ITEM.getValue(), CRITERIA_ENTITY));
 
-		Page<Activity> page = activityRepository.findByFilter(filter,
+		Page<Activity> page = activityRepository.findByFilter(
+				filter,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
 		);
-		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page).getContent();
+		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
 	}
 
 	@Override

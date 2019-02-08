@@ -207,21 +207,6 @@ public class EditUserHandlerImplTest {
 	}
 
 	@Test
-	public void editUserWithNotExistedEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'User with email - not_existed@domain.com was not found' not found.");
-
-		User user = new User();
-		user.setUserType(UserType.INTERNAL);
-		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
-		when(userRepository.findByEmail("not_existed@domain.com")).thenReturn(Optional.empty());
-		final EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setEmail("not_existed@domain.com");
-
-		handler.editUser("test", editUserRQ, UserRole.USER);
-	}
-
-	@Test
 	public void editUserWithAlreadyExistedEmail() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("User with 'existed@domain.com' already exists. You couldn't create the duplicate.");

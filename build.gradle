@@ -115,9 +115,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:1764cdd'
+        compile 'com.github.reportportal:commons-dao:08c8664'
         compile 'com.github.reportportal:commons-rules:4cd20af'
-        compile 'com.github.reportportal:commons-model:05abf033'
+        compile 'com.github.reportportal:commons-model:cf34342'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:e7970ce')
     }
@@ -198,24 +198,17 @@ dependencies {
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
 
     compile "com.querydsl:querydsl-jpa:4.2.1"
-
-
+    
+    testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'
-//    testCompile 'org.mockito:mockito-all:2.0.2-beta'
 
     testCompile 'com.jayway.jsonpath:json-path:2.2.0'
-    //testCompile 'com.github.fakemongo:fongo:2.0.12'
 
     testCompile 'org.apache.commons:commons-math3:3.6.1'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
-
-    testCompile 'com.github.database-rider:rider-spring:1.2.8'
-    testCompile 'org.dbunit:dbunit:2.5.4'
-
-    testCompile 'org.testcontainers:postgresql:1.8.0'
-
+    testCompile group: 'org.testcontainers', name: 'testcontainers', version: '1.10.6'
 }
 
 
@@ -267,13 +260,15 @@ bootJar {
 test {
 //    testLogging.showStandardStreams = true
 
+    maxParallelForks = 1
+    
     jacocoTestReport {
         reports {
             xml.enabled true
         }
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**'])
+                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**', '**/demodata/**'])
             })
         }
 //        doLast {
@@ -325,7 +320,6 @@ test {
     }
 
     if (System.env.TRAVIS == 'true') {
-        maxParallelForks = 2
         minHeapSize = "128m"
         maxHeapSize = "1g"
     }

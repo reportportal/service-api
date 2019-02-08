@@ -37,9 +37,9 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -123,13 +123,17 @@ public class ProjectController {
 	}
 
 	@Transactional
-	@PutMapping("/{projectName}/integration")
+	@PutMapping("/{projectName}/emailconfig")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	@ApiOperation("Update project integration configuration")
-	public OperationCompletionRS updateProjectIntegration(@PathVariable String projectName,
-			@RequestBody @Validated UpdateIntegrationRQ updateProjectRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateIntegration(ProjectExtractor.extractProjectDetails(user, projectName), user, updateProjectRQ);
+	@ApiOperation("Update project email configuration")
+	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
+			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateProjectHandler.updateProjectEmailConfig(ProjectExtractor.extractProjectDetails(user, projectName),
+				user,
+				updateProjectNotificationConfigRQ
+		);
 	}
 
 	@Transactional
@@ -290,8 +294,7 @@ public class ProjectController {
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
 
-		response.setHeader(
-				com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
+		response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
 				String.format("attachment; filename=RP_PROJECTS_%s_Report.%s", format.name(), format.getValue())
 		);
 

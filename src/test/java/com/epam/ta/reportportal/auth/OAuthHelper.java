@@ -24,12 +24,18 @@ public class OAuthHelper {
 	@Autowired
 	private AuthorizationServerTokenServices tokenService;
 
-	public OAuth2AccessToken getDefaultToken() {
-		return createAccessToken("default", "1q2w3e", UserRole.USER);
+	private String defaultToken;
+
+	private String superadminToken;
+
+	public String getDefaultToken() {
+		return defaultToken == null ? defaultToken = createAccessToken("default", "1q2w3e", UserRole.USER).getValue() : defaultToken;
 	}
 
-	public OAuth2AccessToken getSuperadminToken() {
-		return createAccessToken("superadmin", "erebus", UserRole.ADMINISTRATOR);
+	public String getSuperadminToken() {
+		return superadminToken == null ?
+				superadminToken = createAccessToken("superadmin", "erebus", UserRole.ADMINISTRATOR).getValue() :
+				superadminToken;
 	}
 
 	private OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {

@@ -5,7 +5,6 @@ import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.BeforeClass;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -54,17 +52,14 @@ public abstract class BaseMvcTest {
 	@Mock
 	protected EmailService emailService;
 
-	@MockBean
-	protected EmailIntegrationService emailIntegrationService;
-
 	@FlywayTest
 	@BeforeClass
 	public static void before() {
 	}
 
-	protected RequestPostProcessor token(OAuth2AccessToken token) {
+	protected RequestPostProcessor token(String tokenValue) {
 		return mockRequest -> {
-			mockRequest.addHeader("Authorization", "Bearer " + token.getValue());
+			mockRequest.addHeader("Authorization", "Bearer " + tokenValue);
 			return mockRequest;
 		};
 	}

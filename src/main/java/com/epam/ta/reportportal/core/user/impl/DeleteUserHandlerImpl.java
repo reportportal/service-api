@@ -22,13 +22,16 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Delete user handler
@@ -43,14 +46,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private final EmailIntegrationService emailIntegrationService;
-
 	@Autowired
-	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
-			EmailIntegrationService emailIntegrationService) {
+	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
-		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	//	@Autowired
@@ -61,16 +60,15 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
 		BusinessRule.expect(login.equalsIgnoreCase(loggedInUser.getUsername()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
-		//		try {
-		//			user.getProjects().forEach(userProject -> emailIntegrationService.excludeProjectRecipients(
-		//					Lists.newArrayList(userProject),
-		//							userProject.getProject()
-		//					));
-		//		} catch (Exception exp) {
-		//			throw new ReportPortalException("Error while updating projects", exp);
-		//		}
+		try {
+			user.getProjects()
+					.forEach(userProject -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject()));
+		} catch (Exception exp) {
+			exp.printStackTrace();
+			throw new ReportPortalException("Error while updating projects", exp);
+		}
 
-		//		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
+		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
 
 		userRepository.delete(user);
 

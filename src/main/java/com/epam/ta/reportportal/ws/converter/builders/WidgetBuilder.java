@@ -59,6 +59,8 @@ public class WidgetBuilder implements Supplier<Widget> {
 			widget.setWidgetOptions(widgetOptions);
 		});
 
+		widget.setDescription(widgetRQ.getDescription());
+
 		widget.setWidgetType(widgetRQ.getWidgetType());
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
 

@@ -108,7 +108,7 @@ public class SaveDefaultProjectService {
 			 */
 			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
 
-			user.setDefaultProject(personalProject);
+			user.setDefaultProject(defaultProject);
 			user.getProjects().add(assignedProjectUser);
 			user.getProjects()
 					.add(personalProject.getUsers()

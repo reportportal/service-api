@@ -270,7 +270,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			Project personalProject = personalProjectService.generatePersonalProject(newUser);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
-				newUser.setDefaultProject(personalProject);
 			}
 
 			userCreationBidRepository.deleteById(uuid);

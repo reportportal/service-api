@@ -240,7 +240,7 @@
     "contentParameters": {
       "itemsCount": 10,
       "contentFields": [
-        "statistics$executions$passed"
+        "statistics$executions$failed"
       ],
       "widgetOptions": {
         "launchNameFilter": "Demo Api Tests"

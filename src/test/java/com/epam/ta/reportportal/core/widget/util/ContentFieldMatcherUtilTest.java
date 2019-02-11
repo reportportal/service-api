@@ -140,7 +140,7 @@ public class ContentFieldMatcherUtilTest {
 
 	@Parameterized.Parameters
 	public static Object[][] data() {
-		return new Object[100][0];
+		return new Object[1][0];
 	}
 
 }

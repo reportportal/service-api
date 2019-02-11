@@ -211,8 +211,8 @@ public class LaunchControllerTest extends BaseMvcTest {
 		launchRepository.findAllById(ids).forEach(it -> assertSame(it.getMode(), LaunchModeEnum.DEBUG));
 	}
 
-	@Test
 	@Ignore
+	@Test
 	public void getLaunches() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch?page.page=1&page.size=50&page.sort=statistics$defects$product_bug$total,ASC").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));

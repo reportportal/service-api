@@ -99,7 +99,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:0178883a'
+        compile 'com.github.reportportal:commons-dao:3c0feb4'
         compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:63ef134'
         compile('com.github.reportportal:commons:71d4aca')
@@ -182,7 +182,7 @@ dependencies {
     api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
 
     compile "com.querydsl:querydsl-jpa:4.2.1"
-    
+
     testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'
@@ -243,16 +243,21 @@ bootJar {
 
 test {
 //    testLogging.showStandardStreams = true
-
-    maxParallelForks = 1
     
+    maxParallelForks = 1
+
     jacocoTestReport {
         reports {
             xml.enabled true
         }
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**', '**/demodata/**'])
+                fileTree(dir: it, exclude: ['**/entity/**',
+                                            '**/aop/**',
+                                            '**/jasper/**',
+                                            '**/configs/**',
+                                            '**/demodata/**',
+                                            '**/exception/**'])
             })
         }
 //        doLast {

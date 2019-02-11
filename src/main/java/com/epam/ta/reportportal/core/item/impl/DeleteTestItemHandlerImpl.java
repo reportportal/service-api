@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -54,13 +56,16 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private TestItemRepository testItemRepository;
 
-	// TODO ANALYZER
-	//	@Autowired
-	//	private ILogIndexer logIndexer;
+	private LogIndexer logIndexer;
 
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
+	}
+
+	@Autowired
+	public void setLogIndexer(LogIndexer logIndexer) {
+		this.logIndexer = logIndexer;
 	}
 
 	@Override
@@ -71,6 +76,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validate(item, reportPortalUser, projectDetails);
 		Optional<TestItem> parent = ofNullable(item.getParent());
 		testItemRepository.delete(item);
+
+		logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(itemId));
 
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 

@@ -23,7 +23,10 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
+import com.epam.ta.reportportal.dao.UserCreationBidRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -262,6 +265,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		try {
 			userRepository.save(newUser);
+			newUser.setDefaultProject(defaultProject);
 			projectRepository.save(defaultProject);
 
 			/*

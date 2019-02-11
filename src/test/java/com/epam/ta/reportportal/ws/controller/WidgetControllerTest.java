@@ -5,6 +5,7 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -102,5 +104,34 @@ public class WidgetControllerTest extends BaseMvcTest {
 	public void searchSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared/search?term=ch").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getWidgetNamesPositive() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/widget/names/all").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().is(200));
+	}
+
+	@Test
+	public void getWidgetPreview() throws Exception {
+		WidgetPreviewRQ request = new WidgetPreviewRQ();
+		request.setWidgetType("launchStatistics");
+		final ContentParameters contentParameters = new ContentParameters();
+		final HashMap<String, Object> widgetOptions = new HashMap<>();
+		widgetOptions.put("timeline", "WEEK");
+		contentParameters.setWidgetOptions(widgetOptions);
+		contentParameters.setItemsCount(20);
+		contentParameters.setContentFields(Arrays.asList(
+				"statistics$executions$total",
+				"statistics$executions$passed",
+				"statistics$executions$failed",
+				"statistics$executions$skipped"
+		));
+		request.setContentParameters(contentParameters);
+		request.setFilterIds(Collections.singletonList(4L));
+
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/widget/preview").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}
 }

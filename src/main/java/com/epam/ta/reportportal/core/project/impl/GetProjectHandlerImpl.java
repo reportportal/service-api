@@ -28,9 +28,9 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
@@ -77,14 +77,17 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final IntegrationRepository integrationRepository;
 
+	private final ProjectConverter projectConverter;
+
 	@Autowired
 	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler,
-			IntegrationRepository integrationRepository) {
+			IntegrationRepository integrationRepository, ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.jasperReportHandler = jasperReportHandler;
 		this.integrationRepository = integrationRepository;
+		this.projectConverter = projectConverter;
 	}
 
 	@Override
@@ -127,7 +130,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 		project.getIntegrations().addAll(globalIntegrations);
 
-		return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
+		return projectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}
 
 	@Override

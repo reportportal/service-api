@@ -138,7 +138,7 @@ public class IssuesAnalyzerServiceTest {
 		);
 		verify(analyzerServiceClient, times(1)).analyze(any());
 		verify(testItemRepository, times(itemsCount)).save(any());
-		verify(logIndexer, times(1)).indexLogs(eq(singletonList(launch.getId())), eq(analyzerConfig));
+		verify(logIndexer, times(1)).indexLogs(eq(launch.getProjectId()), eq(singletonList(launch.getId())), eq(analyzerConfig));
 		verify(messageBus, times(4)).publishActivity(any());
 	}
 

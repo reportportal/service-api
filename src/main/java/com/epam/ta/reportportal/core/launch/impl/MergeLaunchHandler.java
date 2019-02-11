@@ -109,7 +109,7 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 		launchRepository.save(newLaunch);
 		launchRepository.deleteAll(launchesList);
 
-		logIndexer.indexLogs(Collections.singletonList(newLaunch.getId()), AnalyzerUtils.getAnalyzerConfig(project));
+		logIndexer.indexLogs(project.getId(), Collections.singletonList(newLaunch.getId()), AnalyzerUtils.getAnalyzerConfig(project));
 
 		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}

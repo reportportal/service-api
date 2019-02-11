@@ -119,7 +119,7 @@ public class LaunchFinishedEventHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-		logIndexer.indexLogs(Lists.newArrayList(launch.getId()), analyzerConfig);
+		logIndexer.indexLogs(project.getId(), Lists.newArrayList(launch.getId()), analyzerConfig);
 
 		Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 				IntegrationGroupEnum.NOTIFICATION

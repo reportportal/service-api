@@ -23,32 +23,54 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Contains cache of analyzing launches. Key is a launch id,
- * value is a project name.
+ * Contains caches for analyzing and indexing status
  *
  * @author Pavel Bortnik
  */
 @Service
 public class AnalyzerStatusCache {
 
-	private static final int CACHE_ITEM_LIVE = 100;
-	private static final int MAXIMUM_SIZE = 10000;
+	private static final int CACHE_ITEM_LIVE = 10;
+	private static final int MAXIMUM_SIZE = 50000;
 
-	private Cache<Long, Long> analyzerStatus;
+	/**
+	 * Contains cache of analyze running for concrete launch
+	 * launchId - projectId
+	 */
+	private Cache<Long, Long> analyzeStatus;
+
+	/**
+	 * Contains cache of indexing running for concrete project
+	 * launchId - projectId
+	 */
+	private Cache<Long, Boolean> indexingStatus;
 
 	public AnalyzerStatusCache() {
-		analyzerStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
+		analyzeStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
+		indexingStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
+	}
+
+	public void indexingStarted(Long projectId) {
+		indexingStatus.put(projectId, true);
+	}
+
+	public void indexingFinished(Long projectId) {
+		indexingStatus.invalidate(projectId);
 	}
 
 	public void analyzeStarted(Long launchId, Long projectId) {
-		analyzerStatus.put(launchId, projectId);
+		analyzeStatus.put(launchId, projectId);
 	}
 
 	public void analyzeFinished(Long launchId) {
-		analyzerStatus.invalidate(launchId);
+		analyzeStatus.invalidate(launchId);
 	}
 
-	public Cache<Long, Long> getAnalyzerStatus() {
-		return analyzerStatus;
+	public Cache<Long, Long> getAnalyzeStatus() {
+		return analyzeStatus;
+	}
+
+	public Cache<Long, Boolean> getIndexingStatus() {
+		return indexingStatus;
 	}
 }

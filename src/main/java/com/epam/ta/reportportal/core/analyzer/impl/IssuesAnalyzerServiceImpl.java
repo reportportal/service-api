@@ -178,7 +178,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 		Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
 		if (!MapUtils.isEmpty(analyzedMap)) {
 			analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
-			logIndexer.indexLogs(Collections.singletonList(launch.getId()), analyzerConfig);
+			logIndexer.indexLogs(launch.getProjectId(), Collections.singletonList(launch.getId()), analyzerConfig);
 		}
 	}
 

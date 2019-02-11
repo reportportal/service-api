@@ -130,7 +130,7 @@ public class ProjectController {
 	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectEmailConfig(ProjectExtractor.extractProjectDetails(user, projectName),
+		return updateProjectHandler.updateProjectNotificationConfig(ProjectExtractor.extractProjectDetails(user, projectName),
 				user,
 				updateProjectNotificationConfigRQ
 		);

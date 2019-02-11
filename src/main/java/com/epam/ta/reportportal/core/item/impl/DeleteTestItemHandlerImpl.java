@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -73,19 +75,12 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-		Optional<TestItem> retryParent = ofNullable(item.getRetryOf()).map(retryParentId -> testItemRepository.findById(retryParentId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, retryParentId)));
-
-		Launch launch = retryParent.map(TestItem::getLaunch).orElseGet(item::getLaunch);
+		Launch launch = item.getLaunch();
 
 		validate(item, launch, reportPortalUser, projectDetails);
 		Optional<TestItem> parent = ofNullable(item.getParent());
 
-		retryParent.ifPresent(rp -> rp.getRetries().remove(item));
-
 		testItemRepository.deleteById(item.getItemId());
-
-		retryParent.ifPresent(rp -> rp.setHasRetries(testItemRepository.hasRetries(rp.getItemId())));
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
@@ -121,6 +116,9 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				);
 			}
 		}
+		expect(testItem.getRetryOf(), Objects::isNull).verify(ErrorType.RETRIES_HANDLER_ERROR,
+				Suppliers.formattedSupplier("Unable to delete test item ['{}'] because it is a retry", testItem.getItemId()).get()
+		);
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);

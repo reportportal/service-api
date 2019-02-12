@@ -199,7 +199,7 @@ public class PluginLoaderImpl implements PluginLoader {
 			Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
 
 		} catch (IOException e) {
-			//error during temp plugin is not crucial, temp files cleaning will be delegated to //TODO impl Quartz job to clean temp files
+			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
 		} finally {
 			pluginUploadingCache.finishPluginUploading(pluginFileName);
 		}

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -183,7 +184,11 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
 		);
-		return launchRepository.getLaunchNames(projectDetails.getProjectId(), value, LaunchModeEnum.DEFAULT.name());
+		return launchRepository.getLaunchNamesByModeExcludedByStatus(projectDetails.getProjectId(),
+				value,
+				LaunchModeEnum.DEFAULT,
+				StatusEnum.IN_PROGRESS
+		);
 	}
 
 	@Override

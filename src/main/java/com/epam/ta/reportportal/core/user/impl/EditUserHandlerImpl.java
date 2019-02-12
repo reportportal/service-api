@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -27,12 +27,12 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ImageFormat;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.util.UserUtils;
-import com.epam.ta.reportportal.util.integration.email.EmailIntegrationService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
@@ -51,9 +51,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.HASH_FUNCTION;
@@ -82,17 +82,14 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final DataEncoder dataEncoder;
 
-	private final EmailIntegrationService emailIntegrationService;
-
 	@Autowired
 	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, ApplicationEventPublisher eventPublisher,
-			DataStoreService dataStoreService, DataEncoder dataEncoder, EmailIntegrationService emailIntegrationService) {
+			DataStoreService dataStoreService, DataEncoder dataEncoder) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.eventPublisher = eventPublisher;
 		this.dataStoreService = dataStoreService;
 		this.dataEncoder = dataEncoder;
-		this.emailIntegrationService = emailIntegrationService;
 	}
 
 	@Override
@@ -162,19 +159,16 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			user.setDefaultProject(defaultProject);
 		}
 
-		if (null != editUserRQ.getEmail()) {
+		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
 			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
 			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
-			User byEmail = userRepository.findByEmail(updEmail)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND,
-							Suppliers.formattedSupplier("User with email - {} was not found", updEmail)
-					));
+			final Optional<User> byEmail = userRepository.findByEmail(updEmail);
 
-			expect(username, equalTo(byEmail.getLogin())).verify(USER_ALREADY_EXISTS, updEmail);
+			expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
 
 			List<Project> userProjects = projectRepository.findUserProjects(username);
-			userProjects.forEach(project -> emailIntegrationService.updateProjectRecipients(user.getEmail(), updEmail, project));
+			userProjects.forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
 			user.setEmail(updEmail);
 			try {
 				projectRepository.saveAll(userProjects);
@@ -204,7 +198,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
 		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
 		String subtype = mediaType.getSubtype();
-		expect(ImageFormat.fromValue(subtype), notNull()).verify(BINARY_DATA_CANNOT_BE_SAVED,
+		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(
+				BINARY_DATA_CANNOT_BE_SAVED,
 				"Image format should be " + ImageFormat.getValues()
 		);
 		BufferedImage read = ImageIO.read(file.getInputStream());

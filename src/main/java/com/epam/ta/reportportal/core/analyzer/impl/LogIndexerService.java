@@ -62,34 +62,30 @@ public class LogIndexerService implements LogIndexer {
 
 	private final LogRepository logRepository;
 
+	private final AnalyzerStatusCache analyzerStatusCache;
+
 	@Autowired
 	public LogIndexerService(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			AnalyzerServiceClient analyzerServiceClient, LogRepository logRepository) {
+			AnalyzerServiceClient analyzerServiceClient, LogRepository logRepository, AnalyzerStatusCache analyzerStatusCache) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.logRepository = logRepository;
+		this.analyzerStatusCache = analyzerStatusCache;
 	}
 
 	@Override
-	public CompletableFuture<Void> indexLog(Log log) {
-		return CompletableFuture.runAsync(() -> {
-			IndexLaunch rq = createRqLaunch(log);
-			if (rq != null) {
-				analyzerServiceClient.index(Collections.singletonList(rq));
-			}
-		});
-	}
-
-	@Override
-	public CompletableFuture<Long> indexLogs(List<Long> launchIds, AnalyzerConfig analyzerConfig) {
+	public CompletableFuture<Long> indexLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
+				analyzerStatusCache.indexingStarted(projectId);
 				List<IndexLaunch> indexLaunches = prepareLaunches(launchIds, analyzerConfig);
 				return analyzerServiceClient.index(indexLaunches);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
+			} finally {
+				analyzerStatusCache.indexingFinished(projectId);
 			}
 		});
 	}

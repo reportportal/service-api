@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
@@ -31,10 +32,11 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.email.ProjectInfoWidget;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
@@ -67,10 +69,11 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteria
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
+import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE_WITH_USER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Pavel Bortnik
@@ -92,19 +95,23 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	private final LaunchConverter launchConverter;
 
+	private final UserRepository userRepository;
+
 	@Autowired
 	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter, LaunchConverter launchConverter) {
+			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter, LaunchConverter launchConverter,
+			UserRepository userRepository) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.activityRepository = activityRepository;
 		this.dataConverter = dataConverter;
 		this.launchConverter = launchConverter;
+		this.userRepository = userRepository;
 	}
 
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
-		return PagedResourcesAssembler.pageConverter(ProjectConverter.TO_PROJECT_INFO_RESOURCE)
+		return PagedResourcesAssembler.pageConverter(ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE)
 				.apply(projectRepository.findProjectInfoByFilter(filter, pageable));
 	}
 
@@ -120,7 +127,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		Filter filter = projectInfoFilter(project, infoInterval);
 
 		Page<ProjectInfo> result = projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
-		ProjectInfoResource projectInfoResource = ProjectConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
+		ProjectInfoResource projectInfoResource = ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
 
@@ -176,7 +183,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				result = dataConverter.getLaunchesIssues(launches, infoInterval);
 				break;
 			case ACTIVITIES:
-				result = getActivities(project.getId(), infoInterval);
+				result = getActivities(project, infoInterval);
 				break;
 			case LAST_LAUNCH:
 				result = getLastLaunchStatistics(project.getId());
@@ -228,13 +235,13 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
 			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
 
-	private Map<String, List<ActivityResource>> getActivities(Long projectId, InfoInterval infoInterval) {
+	private Map<String, List<ActivityResource>> getActivities(Project project, InfoInterval infoInterval) {
 		String value = Arrays.stream(ActivityAction.values())
 				.filter(not(ACTIVITIES_PROJECT_FILTER))
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
 		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
-				new FilterCondition(EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID),
+				new FilterCondition(EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID),
 				new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,
 						String.valueOf(Timestamp.valueOf(getStartIntervalDate(infoInterval)).getTime()),
@@ -245,7 +252,18 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				PageRequest.of(0, LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE))
 		).getContent();
 
-		return Collections.singletonMap(RESULT, activities.stream().map(TO_RESOURCE).collect(toList()));
+		Map<Long, String> userIdLoginMapping = userRepository.findAllById(activities.stream()
+				.filter(a -> a.getUserId() != null)
+				.map(Activity::getUserId)
+				.collect(Collectors.toSet())).stream().collect(toMap(User::getId, User::getLogin));
+
+		return Collections.singletonMap(RESULT,
+				activities.stream()
+						.map(a -> ofNullable(a.getUserId()).map(userId -> TO_RESOURCE_WITH_USER.apply(a, userIdLoginMapping.get(userId)))
+								.orElseGet(() -> TO_RESOURCE.apply(a)))
+						.peek(resource -> resource.setProjectName(project.getName()))
+						.collect(toList())
+		);
 	}
 
 }

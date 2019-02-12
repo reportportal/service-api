@@ -118,10 +118,11 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				.addShortName(rq.getShortName())
 				.addHexColor(rq.getColor())
 				.get();
-		issueTypeRepository.save(subType);
 
 		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));
+		issueTypeRepository.save(subType);
 		projectRepository.save(project);
+
 		widgetRepository.findAllByProjectId(project.getId())
 				.stream()
 				.filter(widget -> widget.getContentFields()

@@ -21,13 +21,12 @@ import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.epam.ta.reportportal.ws.converter.converters.ProjectConverter.TO_PROJECT_SETTINGS_RESOURCE;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -47,6 +46,6 @@ public class GetProjectSettingsHandlerImpl implements GetProjectSettingsHandler 
 	public ProjectSettingsResource getProjectSettings(ReportPortalUser.ProjectDetails projectDetails) {
 		Project project = repository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		return TO_PROJECT_SETTINGS_RESOURCE.apply(project);
+		return ProjectSettingsConverter.TO_PROJECT_SETTINGS_RESOURCE.apply(project);
 	}
 }

@@ -45,6 +45,8 @@ public class RepositoryAdaptersConsumer {
 
 	private DataStoreService dataStoreService;
 
+	private ProjectConverter projectConverter;
+
 	private TestItemResourceAssembler itemResourceAssembler;
 
 	@Autowired
@@ -76,7 +78,7 @@ public class RepositoryAdaptersConsumer {
 	public ProjectResource findProjectByName(@Payload String projectName) {
 		Project project = projectRepository.findByName(projectName).orElse(null);
 		if (null != project) {
-			return ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
+			return projectConverter.TO_PROJECT_RESOURCE.apply(project);
 		}
 		return null;
 	}

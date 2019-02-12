@@ -44,8 +44,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -63,71 +61,36 @@ public class LogIndexerServiceTest {
 
 	private LogRepository logRepository = mock(LogRepository.class);
 
+	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
+
 	private LogIndexerService logIndexerService = new LogIndexerService(testItemRepository,
 			launchRepository,
 			analyzerServiceClient,
-			logRepository
+			logRepository,
+			analyzerStatusCache
 	);
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
 	@Test
-	public void testIndexLogWithoutTestItem() {
-		Log log = createLog(1L);
-		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
-		logIndexerService.indexLog(log).exceptionally(it -> null).join();
-		verify(testItemRepository).findById(eq(log.getTestItem().getItemId()));
-		verifyZeroInteractions(launchRepository, logRepository, analyzerServiceClient);
-	}
-
-	@Test
-	public void testIndexLogWithoutLaunch() {
-		Log log = createLog(2L);
-		TestItem ti = createTestItem(2L, PRODUCT_BUG);
-		ti.setLaunch(new Launch(2L));
-		log.setTestItem(ti);
-		when(testItemRepository.findById(log.getTestItem().getItemId())).thenReturn(Optional.of(ti));
-		when(launchRepository.findById(eq(ti.getLaunch().getId()))).thenReturn(Optional.empty());
-		logIndexerService.indexLog(log).exceptionally(it -> null).join();
-		verify(testItemRepository).findById(log.getTestItem().getItemId());
-		verify(launchRepository).findById(eq(ti.getLaunch().getId()));
-		verifyZeroInteractions(logRepository, analyzerServiceClient);
-	}
-
-	@Test
-	public void testIndexLog() {
-		Log log = createLog(3L);
-		TestItem ti = createTestItem(3L, PRODUCT_BUG);
-		Launch launch = createLaunch(3L);
-		ti.setLaunch(launch);
-		log.setTestItem(ti);
-		when(testItemRepository.findById(log.getId())).thenReturn(Optional.of(ti));
-		when(launchRepository.findById(launch.getId())).thenReturn(Optional.of(launch));
-		logIndexerService.indexLog(log).join();
-
-		verify(testItemRepository).findById(ti.getItemId());
-		verify(launchRepository).findById(launch.getId());
-		verify(analyzerServiceClient).index(any());
-		verifyZeroInteractions(logRepository);
-	}
-
-	@Test
 	public void testIndexLogsWithNonExistentLaunchId() {
 		Long launchId = 1L;
 		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
-		Long result = logIndexerService.indexLogs(Collections.singletonList(launchId), analyzerConfig()).exceptionally(it -> 0L).join();
+		Long result = logIndexerService.indexLogs(1L, Collections.singletonList(launchId), analyzerConfig()).exceptionally(it -> 0L).join();
 		Assert.assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
+		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	@Test
 	public void testIndexLogsWithoutTestItems() {
 		Long launchId = 2L;
 		when(launchRepository.findById(launchId)).thenReturn(Optional.of(createLaunch(launchId)));
-		Long result = logIndexerService.indexLogs(Collections.singletonList(launchId), analyzerConfig()).join();
+		Long result = logIndexerService.indexLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
 		Assert.assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
+		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	private AnalyzerConfig analyzerConfig() {

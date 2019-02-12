@@ -29,17 +29,55 @@ import java.util.Optional;
  */
 public interface PluginLoader {
 
+	/**
+	 * Extract info about the plugin from the provided path
+	 *
+	 * @param pluginPath Plugin's path
+	 * @return {@link PluginInfo} with {@link PluginInfo#id} and {@link PluginInfo#version}
+	 */
 	PluginInfo extractPluginInfo(Path pluginPath);
 
-	PluginState reloadPlugin(PluginWrapper plugin);
+	/**
+	 * Load and start up the plugin
+	 *
+	 * @param plugin {@link PluginWrapper} with mandatory data for plugin loading: {@link PluginWrapper#pluginPath}
+	 * @return {@link PluginState}
+	 */
+	PluginState loadAndStartUpPlugin(PluginWrapper plugin);
 
+	/**
+	 * Validate the plugin with {@link com.epam.reportportal.extension.common.ExtensionPoint}
+	 * on the presence of the mandatory extension class/classes
+	 *
+	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @return true if the plugin has mandatory extension class/classes, else false
+	 */
 	boolean validatePluginExtensionClasses(String pluginId);
 
-	Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginFileName);
+	/**
+	 * Unload and get plugin with the same 'id' as a new plugin 'id', if they both are of the same type.
+	 * This info will be needed to reload previous plugin if something goes wrong with the new one.
+	 *
+	 * @param newPluginId       Id of the new plugin
+	 * @param newPluginFileName New plugin file name
+	 * @return {@link Optional} wrapper with the previous unloaded plugin
+	 */
+	Optional<PluginWrapper> retrievePreviousPlugin(String newPluginId, String newPluginFileName);
 
-	void deleteOldPlugin(PluginWrapper oldPluginWrapper, String newPluginFileName);
+	/**
+	 * Remove old plugin file, if it wasn't replaced by the new one during the plugin uploading
+	 *
+	 * @param previousPlugin    {@link PluginWrapper} with info about the previous plugin
+	 * @param newPluginFileName New plugin file name
+	 */
+	void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName);
 
-	void createTempPluginsFolderIfNotExists(String path);
+	/**
+	 * Create a new temporary directory for plugins if not exists
+	 *
+	 * @param path Path of the new directory
+	 */
+	void createTempPluginsFolderIfNotExists(Path path);
 
 	/**
 	 * Resolve file type and upload it to the temporary plugins directory.
@@ -48,7 +86,13 @@ public interface PluginLoader {
 	 * @param pluginFile Plugin file to upload
 	 * @return {@link PluginFileExtension#extension}
 	 */
-	String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, String pluginsTempPath);
+	String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, Path pluginsTempPath);
 
+	/**
+	 * Remove the plugin file from the temporary directory and file name from the {@link PluginUploadingCache}
+	 *
+	 * @param pluginFileDirectory Path to the temporary directory with the plugin file
+	 * @param pluginFileName      Name of the plugin file
+	 */
 	void deleteTempPlugin(String pluginFileDirectory, String pluginFileName);
 }

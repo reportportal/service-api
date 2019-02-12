@@ -24,6 +24,10 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Cache for the plugin cleaning job: {@link com.epam.ta.reportportal.job.CleanOutdatedPluginsJob}
+ * to prevent the removing of the plugins that are still being processed within the database transaction with
+ * {@link com.epam.ta.reportportal.entity.integration.IntegrationType} in uncommitted state
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component

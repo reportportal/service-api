@@ -86,7 +86,7 @@ public class PluginLoaderTest {
 
 		when(pluginBox.startUpPlugin(PLUGIN_ID)).thenReturn(PluginState.STARTED);
 
-		PluginState pluginState = pluginLoader.reloadPlugin(pluginWrapper);
+		PluginState pluginState = pluginLoader.loadAndStartUpPlugin(pluginWrapper);
 
 		Assert.assertNotNull(pluginState);
 		Assert.assertEquals(PluginState.STARTED, pluginState);
@@ -121,7 +121,7 @@ public class PluginLoaderTest {
 	}
 
 	@Test
-	public void shouldRetrieveOldPluginWhenExists() {
+	public void shouldRetrievePreviousPluginWhenExists() {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
 
@@ -129,17 +129,17 @@ public class PluginLoaderTest {
 
 		when(pluginBox.unloadPlugin(PLUGIN_ID)).thenReturn(true);
 
-		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrieveOldPlugin(PLUGIN_ID, FILE_NAME);
+		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
 
 		Assert.assertTrue(pluginWrapper.isPresent());
 	}
 
 	@Test
-	public void shouldNotRetrieveOldPluginWhenNotExists() {
+	public void shouldNotRetrievePreviousPluginWhenNotExists() {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.empty());
 
-		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrieveOldPlugin(PLUGIN_ID, FILE_NAME);
+		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
 
 		Assert.assertFalse(pluginWrapper.isPresent());
 	}
@@ -149,6 +149,6 @@ public class PluginLoaderTest {
 
 		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
 
-		pluginLoader.deleteOldPlugin(pluginWrapper, FILE_NAME);
+		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
 	}
 }

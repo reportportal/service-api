@@ -91,7 +91,7 @@ public class CreatePluginHandlerTest {
 		when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
 		when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
 
-		when(pluginLoader.retrieveOldPlugin(PLUGIN_ID, FILE_NAME)).thenReturn(Optional.of(pluginWrapper));
+		when(pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME)).thenReturn(Optional.of(pluginWrapper));
 
 		when(pluginBox.loadPlugin(Paths.get(pluginRootPath,
 				CreatePluginHandlerImpl.PLUGIN_TEMP_DIRECTORY,
@@ -104,7 +104,7 @@ public class CreatePluginHandlerTest {
 
 		when(pluginBox.unloadPlugin(PLUGIN_ID)).thenReturn(true);
 
-		doNothing().when(pluginLoader).deleteOldPlugin(pluginWrapper, FILE_NAME);
+		doNothing().when(pluginLoader).deletePreviousPlugin(pluginWrapper, FILE_NAME);
 
 		when(pluginBox.loadPlugin(Paths.get(pluginRootPath, FILE_NAME))).thenReturn(PLUGIN_ID);
 

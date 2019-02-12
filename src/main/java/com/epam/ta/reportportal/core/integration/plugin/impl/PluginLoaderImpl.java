@@ -84,7 +84,11 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public PluginState reloadPlugin(PluginWrapper plugin) {
+	public PluginState loadAndStartUpPlugin(PluginWrapper plugin) {
+
+		if (plugin.getPluginState() == PluginState.STARTED) {
+			return plugin.getPluginState();
+		}
 
 		return pluginBox.startUpPlugin(ofNullable(pluginBox.loadPlugin(plugin.getPluginPath())).orElseThrow(() -> new ReportPortalException(
 				ErrorType.PLUGIN_UPLOAD_ERROR,
@@ -108,11 +112,11 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public Optional<PluginWrapper> retrieveOldPlugin(String newPluginId, String newPluginFileName) {
+	public Optional<PluginWrapper> retrievePreviousPlugin(String newPluginId, String newPluginFileName) {
 
-		Optional<PluginWrapper> oldPlugin = pluginBox.getPluginById(newPluginId);
+		Optional<PluginWrapper> previousPlugin = pluginBox.getPluginById(newPluginId);
 
-		oldPlugin.ifPresent(p -> {
+		previousPlugin.ifPresent(p -> {
 
 			if (!pluginBox.unloadPlugin(p.getPluginId())) {
 				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
@@ -121,34 +125,33 @@ public class PluginLoaderImpl implements PluginLoader {
 			}
 		});
 
-		validateNewPluginFile(oldPlugin, newPluginFileName);
+		validateNewPluginFile(previousPlugin, newPluginFileName);
 
-		return oldPlugin;
+		return previousPlugin;
 	}
 
 	@Override
-	public void deleteOldPlugin(PluginWrapper oldPluginWrapper, String newPluginFileName) {
+	public void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName) {
 
-		if (!oldPluginWrapper.getPluginPath().equals(Paths.get(pluginsRootPath, newPluginFileName))) {
+		if (!previousPlugin.getPluginPath().equals(Paths.get(pluginsRootPath, newPluginFileName))) {
 			try {
-				Files.deleteIfExists(oldPluginWrapper.getPluginPath());
+				Files.deleteIfExists(previousPlugin.getPluginPath());
 			} catch (IOException e) {
 
-				reloadPlugin(oldPluginWrapper);
+				loadAndStartUpPlugin(previousPlugin);
 
 				throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
-						Suppliers.formattedSupplier("Unable to delete the old plugin file with id = {}", oldPluginWrapper.getPluginId())
-								.get()
+						Suppliers.formattedSupplier("Unable to delete the old plugin file with id = {}", previousPlugin.getPluginId()).get()
 				);
 			}
 		}
 	}
 
 	@Override
-	public void createTempPluginsFolderIfNotExists(String path) {
-		if (!Files.isDirectory(Paths.get(path))) {
+	public void createTempPluginsFolderIfNotExists(Path path) {
+		if (!Files.isDirectory(path)) {
 			try {
-				Files.createDirectories(Paths.get(path));
+				Files.createDirectories(path);
 			} catch (IOException e) {
 
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
@@ -159,7 +162,7 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, String pluginsTempPath) {
+	public String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, Path pluginsTempPath) {
 
 		String resolvedExtension = FilenameUtils.getExtension(pluginFile.getOriginalFilename());
 
@@ -168,7 +171,7 @@ public class PluginLoaderImpl implements PluginLoader {
 						Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
 				));
 
-		Path pluginPath = Paths.get(pluginsTempPath, pluginFile.getOriginalFilename());
+		Path pluginPath = Paths.get(pluginsTempPath.toString(), pluginFile.getOriginalFilename());
 
 		try {
 			pluginUploadingCache.startPluginUploading(pluginFile.getOriginalFilename(), pluginPath);
@@ -202,11 +205,12 @@ public class PluginLoaderImpl implements PluginLoader {
 		}
 	}
 
-	private void validateNewPluginFile(Optional<PluginWrapper> oldPlugin, String newPluginFileName) {
+	private void validateNewPluginFile(Optional<PluginWrapper> previousPlugin, String newPluginFileName) {
 
 		if (new File(pluginsRootPath, newPluginFileName).exists()) {
 
-			if (!oldPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName).equals(oldPlugin.get().getPluginPath())) {
+			if (!previousPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName)
+					.equals(previousPlugin.get().getPluginPath())) {
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with different plugin type", newPluginFileName)
 								.get()

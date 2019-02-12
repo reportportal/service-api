@@ -61,6 +61,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private LogIndexer logIndexer;
 
+	private LaunchRepository launchRepository;
+
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
@@ -70,6 +72,12 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	public void setLogIndexer(LogIndexer logIndexer) {
 		this.logIndexer = logIndexer;
 	}
+
+	@Autowired
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
+
 
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,

@@ -51,7 +51,7 @@ public interface UpdateProjectHandler {
 	 * @param user                              User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	OperationCompletionRS updateProjectNotificationConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ);
 
 	/**

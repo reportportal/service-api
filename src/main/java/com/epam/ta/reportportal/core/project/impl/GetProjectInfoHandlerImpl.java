@@ -36,7 +36,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
-import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
@@ -73,9 +73,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Pavel Bortnik
@@ -113,7 +111,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
-		return PagedResourcesAssembler.pageConverter(ProjectConverter.TO_PROJECT_INFO_RESOURCE)
+		return PagedResourcesAssembler.pageConverter(ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE)
 				.apply(projectRepository.findProjectInfoByFilter(filter, pageable));
 	}
 
@@ -129,7 +127,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		Filter filter = projectInfoFilter(project, infoInterval);
 
 		Page<ProjectInfo> result = projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
-		ProjectInfoResource projectInfoResource = ProjectConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
+		ProjectInfoResource projectInfoResource = ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
 

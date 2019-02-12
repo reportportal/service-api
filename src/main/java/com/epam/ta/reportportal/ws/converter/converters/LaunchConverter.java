@@ -58,7 +58,7 @@ public class LaunchConverter {
 		ofNullable(db.getLastModified()).map(EntityUtils.TO_DATE).ifPresent(resource::setLastModified);
 		resource.setAttributes(getAttributes(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
-		resource.setIsProcessing(analyzerStatusCache.getAnalyzerStatus().getIfPresent(resource.getLaunchId()) != null);
+		resource.setIsProcessing(analyzerStatusCache.getAnalyzeStatus().getIfPresent(resource.getLaunchId()) != null);
 		ofNullable(db.getUser()).ifPresent(u -> resource.setOwner(u.getLogin()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setHasRetries(db.isHasRetries());

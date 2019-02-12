@@ -59,7 +59,7 @@ public class ProjectControllerTest extends BaseMvcTest {
 		mockMvc.perform(post("/project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
-		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject" .toLowerCase());
+		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
 		assertEquals(11, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
@@ -183,5 +183,47 @@ public class ProjectControllerTest extends BaseMvcTest {
 		final ResultActions resultActions = mockMvc.perform(get("/project/export").with(token(oAuthHelper.getSuperadminToken())));
 		resultActions.andExpect(status().isOk());
 		assertEquals("text/csv", resultActions.andReturn().getResponse().getContentType());
+	}
+
+	@Test
+	public void getInvestigatedProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/investigated").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getCasesStatsProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/casesStats").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getLaunchesQuantityProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/launchesQuantity").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getIssuesChartProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/issuesChart").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getBugPercentageProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/bugsPercentage").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getActivitiesProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/activities").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void getLastLaunchProjectWidget() throws Exception {
+		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/lastLaunch").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 }

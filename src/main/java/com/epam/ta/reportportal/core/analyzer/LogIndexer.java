@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.analyzer;
 
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.List;
@@ -30,22 +29,16 @@ import java.util.concurrent.CompletableFuture;
 public interface LogIndexer {
 
 	/**
-	 * Index single log if it's level greater than
-	 * {@link com.epam.ta.reportportal.entity.enums.LogLevel#ERROR}
-	 *
-	 * @param log - log
-	 */
-	CompletableFuture<Void> indexLog(Log log);
-
-	/**
 	 * Index logs with it's level greater than
 	 * {@link com.epam.ta.reportportal.entity.enums.LogLevel#ERROR}
 	 * for all given test items within launch
 	 *
-	 * @param launchIds - ID of the launch
+	 * @param projectId      - project id
+	 * @param launchIds      - ID of the launch
+	 * @param analyzerConfig - anlayzer config
 	 * @return The count of indexed test items
 	 */
-	CompletableFuture<Long> indexLogs(List<Long> launchIds, AnalyzerConfig analyzerConfig);
+	CompletableFuture<Long> indexLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig);
 
 	/**
 	 * Delete index of specified project

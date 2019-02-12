@@ -68,7 +68,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
-import static com.epam.ta.reportportal.ws.converter.converters.ProjectConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -102,11 +102,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final ShareableObjectsHandler aclHandler;
 
+	private final ProjectConverter projectConverter;
+
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
 			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
-			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler) {
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
+			ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
@@ -118,6 +121,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.logIndexer = logIndexer;
 		this.aclHandler = aclHandler;
+		this.projectConverter = projectConverter;
 	}
 
 	@Override
@@ -135,11 +139,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectEmailConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	public OperationCompletionRS updateProjectNotificationConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		ProjectResource before = ProjectConverter.TO_PROJECT_RESOURCE.apply(project);
+		ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
 
@@ -159,7 +163,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(
+					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
@@ -195,7 +200,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
 		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(
+					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
 		}
@@ -233,19 +239,18 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Override
 	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		//		expect(project.getConfiguration().getAnalyzerConfig().isIndexingRunning(), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
-		//				"Index can not be removed until index generation proceeds."
-		//		);
+		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
+				equalTo(false)
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
-		expect(analyzerStatusCache.getAnalyzerStatus().asMap().containsValue(projectDetails.getProjectId()), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
-				"Index can not be removed until auto-analysis proceeds."
-		);
+		expect(
+				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+				equalTo(false)
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer's."
 		);
-
-		//		projectRepository.enableProjectIndexing(projectName, true);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
@@ -254,9 +259,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		logIndexer.deleteIndex(projectDetails.getProjectId());
 
-		logIndexer.indexLogs(launches, AnalyzerUtils.getAnalyzerConfig(project))
-				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
-						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
+		logIndexer.indexLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
+			mailServiceFactory.getDefaultEmailService(true)
+					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
+		});
 
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), true));
 		return new OperationCompletionRS("Log indexing has been started");

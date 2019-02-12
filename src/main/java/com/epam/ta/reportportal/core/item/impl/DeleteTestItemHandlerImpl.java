@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -32,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,19 +57,19 @@ import static java.util.stream.Collectors.toList;
 @Service
 class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
-	private final TestItemRepository testItemRepository;
+	private TestItemRepository testItemRepository;
 
-	private final LaunchRepository launchRepository;
+	private LogIndexer logIndexer;
 
 	@Autowired
-	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
+	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
-		this.launchRepository = launchRepository;
 	}
 
-	// TODO ANALYZER
-	//	@Autowired
-	//	private ILogIndexer logIndexer;
+	@Autowired
+	public void setLogIndexer(LogIndexer logIndexer) {
+		this.logIndexer = logIndexer;
+	}
 
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
@@ -82,7 +84,10 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		testItemRepository.deleteById(item.getItemId());
 
+		logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(itemId));
+
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
+
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");

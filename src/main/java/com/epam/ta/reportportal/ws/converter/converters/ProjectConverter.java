@@ -16,51 +16,36 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
-import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
-import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
-import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter.TO_SUBTYPE_RESOURCE;
 import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
  */
+@Service
 public final class ProjectConverter {
 
-	private ProjectConverter() {
-		//static only
-	}
+	private final static String INDEXING_RUN = "analyzer.indexingRunning";
 
-	public static final Function<ProjectInfo, ProjectInfoResource> TO_PROJECT_INFO_RESOURCE = project -> {
-		Preconditions.checkNotNull(project);
-		ProjectInfoResource resource = new ProjectInfoResource();
-		resource.setUsersQuantity(project.getUsersQuantity());
-		resource.setLaunchesQuantity(project.getLaunchesQuantity());
-		resource.setProjectId(project.getId());
-		resource.setProjectName(project.getName());
-		resource.setCreationDate(EntityUtils.TO_DATE.apply(project.getCreationDate()));
-		resource.setLastRun(ofNullable(project.getLastRun()).map(EntityUtils.TO_DATE).orElse(null));
-		resource.setEntryType(project.getProjectType());
-		resource.setOrganization(project.getOrganization());
-		return resource;
-	};
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
 
-	public static final Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
+	public Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
 		if (project == null) {
 			return null;
 		}
@@ -81,17 +66,22 @@ public final class ProjectConverter {
 				.map(ProjectIssueType::getIssueType)
 				.collect(Collectors.groupingBy(
 						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
-						Collectors.mapping(ProjectConverter.TO_SUBTYPE_RESOURCE, Collectors.toList())
+						Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
 
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 
-		ofNullable(project.getSenderCases()).ifPresent(senderCases -> projectConfiguration.setProjectConfig(EmailConfigConverter.TO_RESOURCE.apply(
-				senderCases)));
+		ofNullable(project.getSenderCases()).ifPresent(senderCases -> projectConfiguration.setProjectConfig(EmailConfigConverter.TO_RESOURCE
+				.apply(senderCases)));
 
 		projectConfiguration.setSubTypes(subTypes);
 
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+
+		attributes.put(
+				INDEXING_RUN,
+				String.valueOf(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
+		);
 		projectConfiguration.setProjectAttributes(attributes);
 
 		projectResource.setIntegrations(project.getIntegrations()
@@ -102,42 +92,6 @@ public final class ProjectConverter {
 		projectResource.setConfiguration(projectConfiguration);
 		projectResource.setOrganization(project.getOrganization());
 		return projectResource;
-	};
-
-	static final Function<IssueType, IssueSubTypeResource> TO_SUBTYPE_RESOURCE = issueType -> {
-		IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
-		issueSubTypeResource.setId(issueType.getId());
-		issueSubTypeResource.setLocator(issueType.getLocator());
-		issueSubTypeResource.setColor(issueType.getHexColor());
-		issueSubTypeResource.setLongName(issueType.getLongName());
-		issueSubTypeResource.setShortName(issueType.getShortName());
-		issueSubTypeResource.setTypeRef(issueType.getIssueGroup().getTestItemIssueGroup().getValue());
-		return issueSubTypeResource;
-	};
-
-	public static final Function<List<IssueType>, Map<String, List<IssueSubTypeResource>>> TO_PROJECT_SUB_TYPES_RESOURCE = issueTypes -> issueTypes
-			.stream()
-			.collect(Collectors.groupingBy(
-					it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
-					Collectors.mapping(TO_SUBTYPE_RESOURCE::apply, Collectors.toList())
-			));
-
-	public static final Function<Project, ProjectSettingsResource> TO_PROJECT_SETTINGS_RESOURCE = project -> {
-		ProjectSettingsResource resource = new ProjectSettingsResource();
-		resource.setProjectId(project.getId());
-		resource.setSubTypes(TO_PROJECT_SUB_TYPES_RESOURCE.apply(project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.toList())));
-		return resource;
-	};
-
-	public static final Function<Project, ProjectAttributesActivityResource> TO_ACTIVITY_RESOURCE = project -> {
-		ProjectAttributesActivityResource resource = new ProjectAttributesActivityResource();
-		resource.setProjectId(project.getId());
-		resource.setProjectName(project.getName());
-		resource.setConfig(ProjectUtils.getConfigParameters(project.getProjectAttributes()));
-		return resource;
 	};
 
 }

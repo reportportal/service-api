@@ -148,20 +148,6 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public void createTempPluginsFolderIfNotExists(Path path) {
-		if (!Files.isDirectory(path)) {
-			try {
-				Files.createDirectories(path);
-			} catch (IOException e) {
-
-				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to create directory = {}", path).get()
-				);
-			}
-		}
-	}
-
-	@Override
 	public String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, Path pluginsTempPath) {
 
 		String resolvedExtension = FilenameUtils.getExtension(pluginFile.getOriginalFilename());

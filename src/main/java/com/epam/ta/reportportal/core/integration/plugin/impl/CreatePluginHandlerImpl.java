@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -110,8 +111,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			pluginLoader.deleteTempPlugin(pluginsTempFolderPath, newPluginFileName);
 
-			throw new ReportPortalException(
-					ErrorType.PLUGIN_UPLOAD_ERROR,
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Failed to load new plugin from file = {}", newPluginFileName).get()
 			);
 		}
@@ -130,7 +130,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 		Path pluginsTempPath = Paths.get(pluginsTempFolderPath);
 
-		pluginLoader.createTempPluginsFolderIfNotExists(pluginsTempPath);
+		createTempPluginsFolderIfNotExists(pluginsTempPath);
 		pluginLoader.resolveFileExtensionAndUploadTempPlugin(pluginFile, pluginsTempPath);
 
 		PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(newPluginTempPath);
@@ -142,6 +142,24 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		}
 
 		return newPluginInfo;
+	}
+
+	/**
+	 * Create a new temporary directory for plugins if not exists
+	 *
+	 * @param path Path of the new directory
+	 */
+	private void createTempPluginsFolderIfNotExists(Path path) {
+		if (!Files.isDirectory(path)) {
+			try {
+				Files.createDirectories(path);
+			} catch (IOException e) {
+
+				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unable to create directory = {}", path).get()
+				);
+			}
+		}
 	}
 
 	/**
@@ -175,8 +193,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		if (!reportPortalIntegration.isPresent()) {
 			pluginUploadingCache.finishPluginUploading(newPluginFileName);
 
-			throw new ReportPortalException(
-					ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 					Suppliers.formattedSupplier("Unknown integration type - {} ", pluginInfo.getId()).get()
 			);
 		}
@@ -256,8 +273,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			previousPlugin.ifPresent(pluginLoader::loadAndStartUpPlugin);
 			pluginLoader.deleteTempPlugin(pluginsTempFolderPath, newPluginFileName);
 
-			throw new ReportPortalException(
-					ErrorType.PLUGIN_UPLOAD_ERROR,
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("New plugin with id = {} doesn't have mandatory extension classes.")
 			);
 
@@ -286,8 +302,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			pluginUploadingCache.finishPluginUploading(pluginFile.getOriginalFilename());
 
-			throw new ReportPortalException(
-					ErrorType.PLUGIN_UPLOAD_ERROR,
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Unable to upload the new plugin file with id = {} to the data store", newPluginId).get()
 			);
 		}
@@ -304,8 +319,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 				previousPlugin.ifPresent(pluginLoader::loadAndStartUpPlugin);
 
-				throw new ReportPortalException(
-						ErrorType.PLUGIN_UPLOAD_ERROR,
+				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId)
 								.get()
 				);

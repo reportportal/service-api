@@ -73,13 +73,6 @@ public interface PluginLoader {
 	void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName);
 
 	/**
-	 * Create a new temporary directory for plugins if not exists
-	 *
-	 * @param path Path of the new directory
-	 */
-	void createTempPluginsFolderIfNotExists(Path path);
-
-	/**
 	 * Resolve file type and upload it to the temporary plugins directory.
 	 * If successful returns file extension
 	 *

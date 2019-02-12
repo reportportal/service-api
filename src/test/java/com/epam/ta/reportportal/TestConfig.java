@@ -3,6 +3,8 @@ package com.epam.ta.reportportal;
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
+import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
+import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
 import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,8 +23,10 @@ import org.springframework.context.annotation.*;
 @EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
 @ComponentScan(value = "com.epam.ta.reportportal", excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
-		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*") }, includeFilters = {
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { SaveBinaryDataJob.class, PluginUploadingCache.class }) })
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*"),
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ResourceCopierBeanTest.TestConfig.class),
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) }, includeFilters = {
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SaveBinaryDataJob.class) })
 @PropertySource("classpath:test-application.properties")
 public class TestConfig {
 

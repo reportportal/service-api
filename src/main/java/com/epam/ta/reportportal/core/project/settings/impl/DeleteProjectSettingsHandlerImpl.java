@@ -109,6 +109,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		allByIssueTypeId.forEach(issueEntity -> issueEntity.setIssueType(defaultGroupIssueType));
 
 		project.getProjectIssueTypes().remove(type);
+		issueTypeRepository.deleteById(type.getId().getTypeId());
 		projectRepository.save(project);
 
 		widgetRepository.findAllByProjectId(projectDetails.getProjectId())
@@ -118,7 +119,6 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.forEach(widget -> widget.getContentFields()
 						.remove("statistics$defects$" + type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase()
 								+ "$" + type.getIssueType().getLocator()));
-		issueTypeRepository.delete(type.getIssueType());
 
 		messageBus.publishActivity(new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				project.getId(),

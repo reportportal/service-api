@@ -49,6 +49,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 	public WidgetBuilder addWidgetRq(WidgetRQ widgetRQ) {
 		widget.setName(widgetRQ.getName());
 		ofNullable(widgetRQ.getShare()).ifPresent(it -> widget.setShared(it));
+		ofNullable(widgetRQ.getDescription()).ifPresent(it -> widget.setDescription(it));
 
 		ofNullable(widgetRQ.getContentParameters().getWidgetOptions()).ifPresent(wo -> {
 			WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
@@ -57,6 +58,8 @@ public class WidgetBuilder implements Supplier<Widget> {
 			widgetOptions.setOptions(options);
 			widget.setWidgetOptions(widgetOptions);
 		});
+
+		widget.setDescription(widgetRQ.getDescription());
 
 		widget.setWidgetType(widgetRQ.getWidgetType());
 		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());

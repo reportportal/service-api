@@ -189,7 +189,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
 				logIndexer.cleanIndex(projectId, items);
 			} else {
-				logIndexer.indexLogs(Collections.singletonList(launch.getId()), analyzerConfig);
+				logIndexer.indexLogs(projectId, Collections.singletonList(launch.getId()), analyzerConfig);
 			}
 		}
 	}

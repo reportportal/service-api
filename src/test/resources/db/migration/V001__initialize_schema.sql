@@ -121,6 +121,26 @@ CREATE TABLE oauth_registration_restriction (
 
 
 ------------------------------ Project configurations ------------------------------
+CREATE TABLE sender_case (
+  id         BIGSERIAL CONSTRAINT sender_case_pk PRIMARY KEY,
+  send_case  VARCHAR(256) NOT NULL,
+  project_id BIGSERIAL REFERENCES project (id) ON DELETE CASCADE
+);
+
+CREATE TABLE launch_names (
+  sender_case_id BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
+  launch_name            VARCHAR(256)
+);
+
+CREATE TABLE launch_attributes (
+  sender_case_id BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
+  launch_attribute            VARCHAR(256)
+);
+
+CREATE TABLE recipients (
+  sender_case_id BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
+  recipient            VARCHAR(256)
+);
 
 CREATE TABLE attribute (
   id   BIGSERIAL CONSTRAINT attribute_pk PRIMARY KEY,
@@ -178,6 +198,7 @@ CREATE TABLE integration_type (
   auth_flow     INTEGRATION_AUTH_FLOW_ENUM,
   creation_date TIMESTAMP DEFAULT now()    NOT NULL,
   group_type    INTEGRATION_GROUP_ENUM     NOT NULL,
+  enabled       BOOLEAN                    NOT NULL DEFAULT FALSE,
   details       JSONB                      NULL
 );
 
@@ -185,7 +206,7 @@ CREATE TABLE integration (
   id            BIGSERIAL CONSTRAINT integration_pk PRIMARY KEY,
   project_id    BIGINT REFERENCES project (id) ON DELETE CASCADE,
   type          INTEGER REFERENCES integration_type (id) ON DELETE CASCADE,
-  enabled       BOOLEAN,
+  enabled       BOOLEAN                 NOT NULL,
   params        JSONB                   NULL,
   creation_date TIMESTAMP DEFAULT now() NOT NULL
 );
@@ -319,6 +340,7 @@ CREATE TABLE launch (
   last_modified TIMESTAMP DEFAULT now()                                             NOT NULL,
   mode          LAUNCH_MODE_ENUM                                                    NOT NULL,
   status        STATUS_ENUM                                                         NOT NULL,
+  has_retries   BOOLEAN                                                             NOT NULL DEFAULT FALSE,
   CONSTRAINT unq_name_number UNIQUE (name, number, project_id, uuid)
 );
 
@@ -1337,6 +1359,8 @@ BEGIN
     INSERT INTO attribute (name) VALUES ('analyzer.indexingRunning');
     INSERT INTO attribute (name) VALUES ('analyzer.isAutoAnalyzerEnabled');
     INSERT INTO attribute (name) VALUES ('analyzer.autoAnalyzerMode');
+    INSERT INTO attribute (name) VALUES ('email.enabled');
+    INSERT INTO attribute (name) VALUES ('email.from');
 
     -- Superadmin project and user
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('superadmin_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
@@ -1375,6 +1399,8 @@ BEGIN
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (9, false, defaultProject), (9, false, superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (10, false, defaultProject), (10, false, superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (11, 'LAUNCH_NAME', defaultProject), (11, 'LAUNCH_NAME', superadminProject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (12, 'true', defaultProject), (12, 'reportportal@example.com', superadminProject);
+    INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (13, 'true', defaultProject), (13, 'reportportal@example.com', superadminProject);
 
 END
 $$;

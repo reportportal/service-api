@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -31,7 +32,6 @@ import org.junit.Test;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +42,9 @@ public class GetIntegrationHandlerTest {
 
 	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 
-	private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(integrationRepository);
+	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+
+	private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(integrationRepository, integrationTypeRepository);
 
 	@Test
 	public void getProjectIntegrationById() {

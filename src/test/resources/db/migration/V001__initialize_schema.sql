@@ -194,7 +194,6 @@ CREATE TABLE defect_form_field_value (
 CREATE TABLE integration_type (
   id            BIGSERIAL CONSTRAINT integration_type_pk PRIMARY KEY,
   name          VARCHAR(128)               NOT NULL UNIQUE,
-  enabled       BOOLEAN                    NOT NULL,
   auth_flow     INTEGRATION_AUTH_FLOW_ENUM,
   creation_date TIMESTAMP DEFAULT now()    NOT NULL,
   group_type    INTEGRATION_GROUP_ENUM     NOT NULL,
@@ -1336,6 +1335,19 @@ BEGIN
     INSERT INTO server_settings (key, value) VALUES ('server.email.host', null);
     INSERT INTO server_settings (key, value) VALUES ('server.analytics.asd', 'true');
 
+
+    INSERT INTO integration_type (enabled, name, auth_flow, creation_date, group_type) VALUES (true, 'test integration type', 'LDAP', now(), 'AUTH');
+    ldap := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
+
+    INSERT INTO integration_type (enabled, name, auth_flow, creation_date, group_type) VALUES (true, 'RALLY', 'OAUTH', now(), 'BTS') ;
+    rally := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
+
+    INSERT INTO integration_type (enabled, name, auth_flow, creation_date, group_type) VALUES (true, 'JIRA', 'BASIC', now(), 'BTS');
+    jira := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
+
+    INSERT INTO integration_type (enabled, name, creation_date, group_type) VALUES (true, 'email', now(), 'NOTIFICATION');
+    email := (SELECT currval(pg_get_serial_sequence('integration_type', 'id')));
+
     INSERT INTO issue_group (issue_group_id, issue_group) VALUES (1, 'TO_INVESTIGATE');
     INSERT INTO issue_group (issue_group_id, issue_group) VALUES (2, 'AUTOMATION_BUG');
     INSERT INTO issue_group (issue_group_id, issue_group) VALUES (3, 'PRODUCT_BUG');
@@ -1388,6 +1400,9 @@ BEGIN
     (superadminProject, 1), (superadminProject, 2), (superadminProject, 3), (superadminProject, 4), (superadminProject, 5),
     (defaultProject, 1),(defaultProject, 2),(defaultProject, 3),(defaultProject, 4),(defaultProject, 5);
 
+    INSERT INTO integration (project_id, type, enabled, creation_date) VALUES (superadminProject, rally, FALSE, now()), (defaultProject, rally, FALSE, now());
+    INSERT INTO integration (project_id, type, enabled, creation_date) VALUES (superadminProject, jira, FALSE, now()), (defaultProject, jira, FALSE, now());
+
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (1, '1 day', defaultProject), (1, '1 day', superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (2, '3 months', defaultProject), (2, '3 months', superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (3, '2 weeks', defaultProject), (3, '2 weeks', superadminProject);
@@ -1401,6 +1416,12 @@ BEGIN
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (11, 'LAUNCH_NAME', defaultProject), (11, 'LAUNCH_NAME', superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (12, 'true', defaultProject), (12, 'reportportal@example.com', superadminProject);
     INSERT INTO project_attribute (attribute_id, value, project_id) VALUES (13, 'true', defaultProject), (13, 'reportportal@example.com', superadminProject);
+
+    INSERT INTO integration (project_id, type, enabled, params)
+      VALUES (defaultProject, email, false, '{"params": {"rules": [{"recipients": ["owner"]}, {"launchStatsRule": "always"}]}}');
+
+    INSERT INTO integration (project_id, type, enabled, params)
+      VALUES (superadminProject, email, false, '{"params": {"rules": [{"recipients": ["owner"]}, {"launchStatsRule": "always"}]}}');
 
 END
 $$;

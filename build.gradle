@@ -99,7 +99,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:4bffdc8'
+        compile 'com.github.reportportal:commons-dao:314edd9'
         compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:63ef134'
         compile('com.github.reportportal:commons:71d4aca')

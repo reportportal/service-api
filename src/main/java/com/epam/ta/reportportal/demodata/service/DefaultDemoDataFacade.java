@@ -18,10 +18,13 @@ package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,17 +60,21 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private final ObjectMapper objectMapper;
 
+	private final UserRepository userRepository;
+
 	@Value("classpath:demo/demo_data.json")
 	private Resource resource;
 
 	@Autowired
 	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoDataTestItemService demoDataTestItemService,
-			DemoLogsService demoLogsService, TestItemRepository testItemRepository, ObjectMapper objectMapper) {
+			DemoLogsService demoLogsService, TestItemRepository testItemRepository, ObjectMapper objectMapper,
+			UserRepository userRepository) {
 		this.demoDataLaunchService = demoDataLaunchService;
 		this.demoDataTestItemService = demoDataTestItemService;
 		this.demoLogsService = demoLogsService;
 		this.testItemRepository = testItemRepository;
 		this.objectMapper = objectMapper;
+		this.userRepository = userRepository;
 	}
 
 	@Override
@@ -84,10 +91,14 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private List<Long> generateLaunches(DemoDataRq rq, Map<String, Map<String, List<String>>> suitesStructure, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
+
+		User creator = userRepository.findById(user.getUserId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
+
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			Long launchId = demoDataLaunchService.startLaunch(NAME, i, user, projectDetails);
+			Long launchId = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
 			generateSuites(suitesStructure, i, launchId, user, projectDetails);
-			demoDataLaunchService.finishLaunch(launchId, user, projectDetails);
+			demoDataLaunchService.finishLaunch(launchId);
 			return launchId;
 		}).collect(toList());
 	}

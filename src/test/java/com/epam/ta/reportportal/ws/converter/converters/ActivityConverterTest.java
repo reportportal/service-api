@@ -41,12 +41,11 @@ public class ActivityConverterTest {
 	}
 
 	private void validate(Activity db, ActivityResource resource) {
-		assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()), resource.getLastModifiedDate());
-		assertEquals(String.valueOf(db.getId()), resource.getActivityId());
+		assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()), resource.getLastModified());
+		assertEquals(db.getId(), resource.getId());
 		assertEquals(db.getActivityEntityType(), Activity.ActivityEntityType.fromString(resource.getObjectType()).get());
-		assertEquals(String.valueOf(db.getUserId()), resource.getUserRef());
-		assertEquals(String.valueOf(db.getProjectId()), resource.getProjectRef());
+		assertEquals(String.valueOf(db.getUserId()), resource.getUser());
+		assertEquals(db.getProjectId(), resource.getProjectId());
 		assertEquals(db.getAction(), resource.getActionType());
-		assertEquals(String.valueOf(db.getId()), resource.getActivityId());
 	}
 }

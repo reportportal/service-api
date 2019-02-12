@@ -157,9 +157,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
 
-			launch = ofNullable(retryParent.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+			launch = ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 		} else {
-			launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+			launch = ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 		}
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 

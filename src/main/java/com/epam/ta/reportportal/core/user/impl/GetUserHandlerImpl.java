@@ -177,8 +177,9 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	}
 
 	@Override
-	public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable) {
-		final List<User> users = userRepository.findByFilter(filter, pageable).getContent();
+	public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter) {
+
+		final List<User> users = userRepository.findByFilter(filter);
 
 		List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 

@@ -95,7 +95,6 @@ public interface GetUserHandler {
 	 * @param reportFormat {@link ReportFormat}
 	 * @param filter       {@link Filter}
 	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
-	 * @param pageable     {@link Pageable}
 	 */
-	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable);
+	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
 }

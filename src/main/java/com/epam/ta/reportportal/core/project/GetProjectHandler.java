@@ -88,9 +88,8 @@ public interface GetProjectHandler {
 	 * @param reportFormat {@link ReportFormat}
 	 * @param filter       {@link Filter}
 	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
-	 * @param pageable     {@link Pageable}
 	 */
-	void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream, Pageable pageable);
+	void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream);
 
 	Map<String, Boolean> getAnalyzerIndexingStatus();
 }

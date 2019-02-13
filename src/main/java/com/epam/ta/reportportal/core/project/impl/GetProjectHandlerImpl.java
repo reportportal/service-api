@@ -166,9 +166,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream, Pageable pageable) {
+	public void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream) {
 
-		List<Project> projects = projectRepository.findByFilter(filter, pageable).getContent();
+		List<Project> projects = projectRepository.findByFilter(filter);
 
 		List<? extends Map<String, ?>> data = projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 

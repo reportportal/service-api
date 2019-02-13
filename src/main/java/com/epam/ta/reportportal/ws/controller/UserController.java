@@ -243,7 +243,7 @@ public class UserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Exports information about all users", notes = "Allowable only for users with administrator role")
 	public void export(@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable, @FilterFor(User.class) Queryable queryable,
+			@FilterFor(User.class) Filter filter, @FilterFor(User.class) Queryable queryable,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
@@ -255,7 +255,7 @@ public class UserController {
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {
-			getUserHandler.exportUsers(format, outputStream, new CompositeFilter(filter, queryable), pageable);
+			getUserHandler.exportUsers(format, outputStream, new CompositeFilter(filter, queryable));
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
 		}

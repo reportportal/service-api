@@ -77,7 +77,7 @@ public class UserControllerTest extends BaseMvcTest {
 		CreateUserRQ rq = new CreateUserRQ();
 		rq.setDefaultProject("default_personal");
 		rq.setEmail("test@domain.com");
-		rq.setRole("MEMBER");
+		rq.setRole("PROJECT_MANAGER");
 
 		when(mailServiceFactory.getEmailService(any(Integration.class), any(Boolean.class))).thenReturn(emailService);
 		doNothing().when(emailService).sendCreateUserConfirmationEmail(any(), any(), any());

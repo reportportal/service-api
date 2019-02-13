@@ -166,19 +166,6 @@ public class EditUserHandlerImplTest {
 	}
 
 	@Test
-	public void editUserWithNotExistedDefaultProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Project 'not_exist_project' not found. Did you use correct project name?");
-
-		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
-		when(projectRepository.findByName("not_exist_project")).thenReturn(Optional.empty());
-		final EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setDefaultProject("not_exist_project");
-
-		handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR);
-	}
-
-	@Test
 	public void changeExternalUserEmail() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You do not have enough permissions. Unable to change email for external user");

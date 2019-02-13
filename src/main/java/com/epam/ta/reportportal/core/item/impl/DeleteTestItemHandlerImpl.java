@@ -17,8 +17,10 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -58,6 +61,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private LogIndexer logIndexer;
 
+	private LaunchRepository launchRepository;
+
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
@@ -68,16 +73,28 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		this.logIndexer = logIndexer;
 	}
 
+	@Autowired
+	public void setLaunchRepository(LaunchRepository launchRepository) {
+		this.launchRepository = launchRepository;
+	}
+
+
 	@Override
 	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser reportPortalUser) {
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		validate(item, reportPortalUser, projectDetails);
+
+		Launch launch = item.getLaunch();
+
+		validate(item, launch, reportPortalUser, projectDetails);
 		Optional<TestItem> parent = ofNullable(item.getParent());
-		testItemRepository.delete(item);
+
+		testItemRepository.deleteById(item.getItemId());
 
 		logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(itemId));
+
+		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
@@ -98,8 +115,7 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 * @param user           {@link ReportPortalUser}
 	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 */
-	private void validate(TestItem testItem, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = testItem.getLaunch();
+	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
@@ -113,6 +129,9 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				);
 			}
 		}
+		expect(testItem.getRetryOf(), Objects::isNull).verify(ErrorType.RETRIES_HANDLER_ERROR,
+				Suppliers.formattedSupplier("Unable to delete test item ['{}'] because it is a retry", testItem.getItemId()).get()
+		);
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);

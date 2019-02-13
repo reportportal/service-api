@@ -52,7 +52,7 @@ public class LaunchBuilderTest {
 	}
 
 	@Test
-	public void startRq() {
+	public void addStartRqTest() {
 		final StartLaunchRQ request = new StartLaunchRQ();
 		final String uuid = "uuid";
 		request.setUuid(uuid);
@@ -76,7 +76,7 @@ public class LaunchBuilderTest {
 	}
 
 	@Test
-	public void overWriteAttributes() {
+	public void overwriteAttributes() {
 		Launch launch = new Launch();
 		final ItemAttribute systemAttribute = new ItemAttribute("key", "value", true);
 		launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));

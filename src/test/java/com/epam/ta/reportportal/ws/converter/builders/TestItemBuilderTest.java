@@ -57,7 +57,7 @@ public class TestItemBuilderTest {
 	}
 
 	@Test
-	public void startRq() {
+	public void addStartRqTest() {
 		final StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setType("step");
 		final ParameterResource parameterResource = new ParameterResource();
@@ -87,7 +87,7 @@ public class TestItemBuilderTest {
 	}
 
 	@Test
-	public void addResults() {
+	public void addResultsTest() {
 		TestItem item = new TestItem();
 		final LocalDateTime now = LocalDateTime.now();
 		item.setStartTime(now);

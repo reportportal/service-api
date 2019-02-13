@@ -32,6 +32,16 @@ import static org.junit.Assert.assertEquals;
  */
 public class TestItemConverterTest {
 
+	@Test(expected = NullPointerException.class)
+	public void toActivityResourceNullTest() {
+		TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null);
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void toResourceNullTest() {
+		TestItemConverter.TO_RESOURCE.apply(null);
+	}
+
 	@Test
 	public void toActivityResource() {
 		final TestItem item = getItem();

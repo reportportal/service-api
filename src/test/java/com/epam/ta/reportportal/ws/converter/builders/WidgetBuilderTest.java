@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 public class WidgetBuilderTest {
 
 	@Test
-	public void name() {
+	public void widgetBuilderTest() {
 		final WidgetRQ widgetRQ = new WidgetRQ();
 		final String name = "name";
 		widgetRQ.setName(name);
@@ -59,7 +59,7 @@ public class WidgetBuilderTest {
 	}
 
 	@Test
-	public void widgetPreviewRq() {
+	public void addWidgetPreviewRqTest() {
 		final WidgetPreviewRQ previewRQ = new WidgetPreviewRQ();
 		final ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(Collections.singletonList("contentField"));

@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class IssueTypeBuilderTest {
 
 	@Test
-	public void name() {
+	public void issueTypeBuilderTest() {
 		final String color = "color";
 		final IssueGroup issueGroup = new IssueGroup(TestItemIssueGroup.PRODUCT_BUG);
 		final String locator = "locator";

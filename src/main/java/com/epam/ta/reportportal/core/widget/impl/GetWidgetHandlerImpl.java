@@ -17,10 +17,7 @@
 package com.epam.ta.reportportal.core.widget.impl;
 
 import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
@@ -37,6 +34,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.apache.commons.collections.CollectionUtils;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -51,7 +49,8 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static freemarker.template.utility.Collections12.singletonMap;
 
@@ -173,13 +172,15 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	public Iterable<WidgetResource> searchShared(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
 			ReportPortalUser user, String term) {
-		Filter updatedFilter = filter.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_NAME))
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_DESCRIPTION))
-				.withCondition(new FilterCondition(Condition.CONTAINS, false, term, CRITERIA_OWNER));
-		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(updatedFilter, projectDetails.getProjectId()),
-				pageable,
-				user.getUsername()
-		);
+		Filter termFilter = Filter.builder()
+				.withTarget(Widget.class)
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_NAME))
+				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_OWNER))
+				.build();
+		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(
+				new CompositeFilter(filter, termFilter),
+				projectDetails.getProjectId()
+		), pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);
 	}
 }

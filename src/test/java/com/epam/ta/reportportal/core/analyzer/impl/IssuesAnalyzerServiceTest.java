@@ -114,11 +114,10 @@ class IssuesAnalyzerServiceTest {
 
 		List<TestItem> items = testItemsTI(itemsCount);
 
-		when(logRepository.findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(anyListOf(Long.class),
-				eq(LogLevel.ERROR.toInt())
-		)).thenReturn(errorLogs(2));
+		when(logRepository.findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(anyList(), eq(LogLevel.ERROR.toInt()))).thenReturn(
+				errorLogs(2));
 
-		when(testItemRepository.findAllById(anyListOf(Long.class))).thenReturn(items);
+		when(testItemRepository.findAllById(anyList())).thenReturn(items);
 
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 
@@ -133,7 +132,8 @@ class IssuesAnalyzerServiceTest {
 
 		analyze.join();
 
-		verify(logRepository, times(itemsCount)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(anyListOf(Long.class),
+		verify(logRepository, times(itemsCount)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(
+				anyList(),
 				eq(LogLevel.ERROR.toInt())
 		);
 		verify(analyzerServiceClient, times(1)).analyze(any());

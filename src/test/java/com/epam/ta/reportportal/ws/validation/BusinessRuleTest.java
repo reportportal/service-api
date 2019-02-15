@@ -27,22 +27,30 @@ import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationExceptio
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit test for business rule logic
  *
  * @author Andrei Varabyeu
  */
-public class BusinessRuleTest {
+class BusinessRuleTest {
 
-	@Test(expected = ReportPortalException.class)
-	public void testVerifyCustomError() {
-		BusinessRule.expect("", Predicates.isNull()).verify(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME, "");
+	@Test
+	void testVerifyCustomError() {
+		assertThrows(
+				ReportPortalException.class,
+				() -> BusinessRule.expect("", Predicates.isNull()).verify(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME, "")
+		);
 	}
 
-	@Test(expected = BusinessRuleViolationException.class)
-	public void testVerifyBusinessError() throws BusinessRuleViolationException {
-		BusinessRule.expect("", Predicates.alwaysFalse(), Suppliers.stringSupplier("error")).verify();
+	@Test
+	void testVerifyBusinessError() {
+		assertThrows(
+				BusinessRuleViolationException.class,
+				() -> BusinessRule.expect("", Predicates.alwaysFalse(), Suppliers.stringSupplier("error")).verify()
+		);
 	}
 }

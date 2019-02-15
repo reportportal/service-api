@@ -25,24 +25,25 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class EditUserHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class EditUserHandlerImplTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -53,85 +54,70 @@ public class EditUserHandlerImplTest {
 	@InjectMocks
 	private EditUserHandlerImpl handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void uploadNotExistUserPhoto() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'not_exists' not found.");
-
+	void uploadNotExistUserPhoto() {
 		when(userRepository.findByLogin("not_exists")).thenReturn(Optional.empty());
 
-		handler.uploadPhoto("not_exists", new MockMultipartFile("photo", new byte[100]));
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.uploadPhoto("not_exists", new MockMultipartFile("photo", new byte[100]))
+		);
+		assertEquals("User 'not_exists' not found.", exception.getMessage());
 	}
 
 	@Test
-	public void uploadOversizePhoto() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Binary data cannot be saved. Image size should be less than 1 mb");
-
+	void uploadOversizePhoto() {
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
 
-		handler.uploadPhoto("test", new MockMultipartFile("photo", new byte[1024 * 1024 + 10]));
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.uploadPhoto("test", new MockMultipartFile("photo", new byte[1024 * 1024 + 10]))
+		);
+		assertEquals("Binary data cannot be saved. Image size should be less than 1 mb", exception.getMessage());
 	}
 
 	@Test
-	public void deleteNotExistUserPhoto() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'not_exist' not found.");
-
+	void deleteNotExistUserPhoto() {
 		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-		handler.deletePhoto("not_exist");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deletePhoto("not_exist"));
+		assertEquals("User 'not_exist' not found.", exception.getMessage());
 	}
 
 	@Test
-	public void deleteExternalUserPhoto() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions. Unable to change photo for external user");
-
+	void deleteExternalUserPhoto() {
 		User user = new User();
 		user.setLogin("test");
 		user.setUserType(UserType.UPSA);
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 
-		handler.deletePhoto("test");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deletePhoto("test"));
+		assertEquals("You do not have enough permissions. Unable to change photo for external user", exception.getMessage());
 	}
 
 	@Test
-	public void changeNotExistUserPassword() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'not_exist' not found.");
-
+	void changeNotExistUserPassword() {
 		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-		handler.changePassword(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L), new ChangePasswordRQ());
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.changePassword(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L), new ChangePasswordRQ())
+		);
+		assertEquals("User 'not_exist' not found.", exception.getMessage());
 	}
 
 	@Test
-	public void changeExternalUserPassword() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Forbidden operation. Impossible to change password for external users.");
-
+	void changeExternalUserPassword() {
 		User user = new User();
 		user.setLogin("test");
 		user.setUserType(UserType.UPSA);
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 
-		handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L), new ChangePasswordRQ());
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L), new ChangePasswordRQ())
+		);
+		assertEquals("Forbidden operation. Impossible to change password for external users.", exception.getMessage());
 	}
 
 	@Test
-	public void changePasswordWithIncorrectOldPassword() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Forbidden operation. Old password not match with stored.");
-
+	void changePasswordWithIncorrectOldPassword() {
 		User user = new User();
 		user.setLogin("test");
 		user.setUserType(UserType.INTERNAL);
@@ -140,77 +126,81 @@ public class EditUserHandlerImplTest {
 
 		final ChangePasswordRQ changePasswordRQ = new ChangePasswordRQ();
 		changePasswordRQ.setOldPassword("wrongPass");
-		handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L), changePasswordRQ);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L), changePasswordRQ)
+		);
+		assertEquals("Forbidden operation. Old password not match with stored.", exception.getMessage());
 	}
 
 	@Test
-	public void editNotExistUser() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'not_exist' not found.");
-
+	void editNotExistUser() {
 		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-		handler.editUser("not_exist", new EditUserRQ(), UserRole.USER);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("not_exist", new EditUserRQ(), UserRole.USER)
+		);
+		assertEquals("User 'not_exist' not found.", exception.getMessage());
 	}
 
 	@Test
-	public void editUserWithIncorrectRole() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Error in handled Request. Please, check specified parameters: 'Incorrect specified Account Role parameter.'");
-
+	void editUserWithIncorrectRole() {
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setRole("not_exist_role");
 
-		handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR)
+		);
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Incorrect specified Account Role parameter.'",
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void editUserWithNotExistedDefaultProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Project 'not_exist_project' not found. Did you use correct project name?");
-
+	void editUserWithNotExistedDefaultProject() {
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
 		when(projectRepository.findByName("not_exist_project")).thenReturn(Optional.empty());
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setDefaultProject("not_exist_project");
 
-		handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR)
+		);
+		assertEquals("Project 'not_exist_project' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
-	public void changeExternalUserEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions. Unable to change email for external user");
-
+	void changeExternalUserEmail() {
 		User user = new User();
 		user.setUserType(UserType.LDAP);
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("newemail@domain.com");
 
-		handler.editUser("test", editUserRQ, UserRole.USER);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+		);
+		assertEquals("You do not have enough permissions. Unable to change email for external user", exception.getMessage());
 	}
 
 	@Test
-	public void editUserWithIncorrectEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Error in handled Request. Please, check specified parameters: ' wrong email: incorrect#domain.com'");
-
+	void editUserWithIncorrectEmail() {
 		User user = new User();
 		user.setUserType(UserType.INTERNAL);
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("incorrect#domain.com");
 
-		handler.editUser("test", editUserRQ, UserRole.USER);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+		);
+		assertEquals("Error in handled Request. Please, check specified parameters: ' wrong email: incorrect#domain.com'",
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void editUserWithAlreadyExistedEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User with 'existed@domain.com' already exists. You couldn't create the duplicate.");
-
+	void editUserWithAlreadyExistedEmail() {
 		User user = new User();
 		user.setUserType(UserType.INTERNAL);
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
@@ -218,20 +208,23 @@ public class EditUserHandlerImplTest {
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("existed@domain.com");
 
-		handler.editUser("test", editUserRQ, UserRole.USER);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+		);
+		assertEquals("User with 'existed@domain.com' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
-	public void editExternalUserFullName() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions. Unable to change full name for external user");
-
+	void editExternalUserFullName() {
 		User user = new User();
 		user.setUserType(UserType.GITHUB);
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setFullName("full name");
 
-		handler.editUser("test", editUserRQ, UserRole.USER);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+		);
+		assertEquals("You do not have enough permissions. Unable to change full name for external user", exception.getMessage());
 	}
 }

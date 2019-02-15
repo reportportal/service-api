@@ -23,37 +23,37 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.log.Log;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.fromTestItem;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Pavel Bortnik
  */
-public class AnalyzerUtilsTest {
+class AnalyzerUtilsTest {
 
 	@Test
-	public void testConverting() {
+	void testConverting() {
 		TestItem testItem = createTest();
 		testItem.getItemResults().setIssue(createIssue(false));
 		IndexTestItem indexTestItem = fromTestItem(testItem, createSameLogs(5));
-		Assert.assertEquals(testItem.getItemId(), indexTestItem.getTestItemId());
-		Assert.assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
-		Assert.assertEquals(testItem.getItemResults().getIssue().getIssueType().getId(), indexTestItem.getIssueTypeId());
-		Assert.assertEquals(1, indexTestItem.getLogs().size());
-		Assert.assertFalse(indexTestItem.isAutoAnalyzed());
+		assertEquals(testItem.getItemId(), indexTestItem.getTestItemId());
+		assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
+		assertEquals(testItem.getItemResults().getIssue().getIssueType().getId(), indexTestItem.getIssueTypeId());
+		assertEquals(1, indexTestItem.getLogs().size());
+		assertFalse(indexTestItem.isAutoAnalyzed());
 	}
 
 	@Test
-	public void testConvertingAnalyzed() {
+	void testConvertingAnalyzed() {
 		TestItem test = createTest();
 		test.getItemResults().setIssue(createIssue(true));
 		IndexTestItem indexTestItem = fromTestItem(test, createSameLogs(1));
-		Assert.assertTrue(indexTestItem.isAutoAnalyzed());
+		assertTrue(indexTestItem.isAutoAnalyzed());
 	}
 
 	private TestItem createTest() {

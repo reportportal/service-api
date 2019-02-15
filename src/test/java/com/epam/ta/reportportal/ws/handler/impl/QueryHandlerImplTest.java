@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.ws.handler.impl;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -9,24 +8,26 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.rabbit.QueryRQ;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Yauheni_Martynau
  */
-@RunWith(MockitoJUnitRunner.class)
-public class QueryHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class QueryHandlerImplTest {
 
 	@Mock
 	private ProjectRepository projectRepository;
@@ -44,14 +45,11 @@ public class QueryHandlerImplTest {
 	private QueryHandlerImpl queryHandler;
 
 	@Test
-	public void testFind_withLogRepositoryRequest() {
+	void testFind_withLogRepositoryRequest() {
 
 		//given:
 		Filter requestFilter = Filter.builder()
-				.withTarget(Log.class)
-				.withCondition(FilterCondition.builder()
-						.eq("id", "2")
-						.build())
+				.withTarget(Log.class).withCondition(FilterCondition.builder().eq("id", "2").build())
 				.build();
 
 		QueryRQ queryRQ = new QueryRQ();
@@ -73,15 +71,12 @@ public class QueryHandlerImplTest {
 		assertEquals(requestFilter, capturedFilter);
 	}
 
-	@Test(expected = ReportPortalException.class)
-	public void testFind_withNotFoundRepository() {
+	@Test
+	void testFind_withNotFoundRepository() {
 
 		//given:
 		Filter requestFilter = Filter.builder()
-				.withTarget(Launch.class)
-				.withCondition(FilterCondition.builder()
-						.eq("name", "name")
-						.build())
+				.withTarget(Launch.class).withCondition(FilterCondition.builder().eq("name", "name").build())
 				.build();
 
 		QueryRQ queryRQ = new QueryRQ();
@@ -89,6 +84,6 @@ public class QueryHandlerImplTest {
 		queryRQ.setFilter(requestFilter);
 
 		//when:
-		queryHandler.find(queryRQ);
+		assertThrows(ReportPortalException.class, () -> queryHandler.find(queryRQ));
 	}
 }

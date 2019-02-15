@@ -1,24 +1,25 @@
 package com.epam.ta.reportportal.util;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ApplicationContextAwareFactoryBeanTest.TestConfig.class })
 public class ApplicationContextAwareFactoryBeanTest {
+
 	@Autowired
 	private ApplicationContextAwareFactoryBeanTest testObject;
 
@@ -26,8 +27,8 @@ public class ApplicationContextAwareFactoryBeanTest {
 	private ApplicationContext context;
 
 	@Test
-	public void testSingleton() {
-		Assert.assertThat(testObject, is(context.getBean(ApplicationContextAwareFactoryBeanTest.class)));
+	void testSingleton() {
+		assertThat(testObject, is(context.getBean(ApplicationContextAwareFactoryBeanTest.class)));
 	}
 
 	@Configuration

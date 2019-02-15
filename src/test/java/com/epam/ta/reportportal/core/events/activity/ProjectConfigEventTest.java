@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -36,7 +36,7 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ProjectConfigEventTest {
+class ProjectConfigEventTest {
 
 	private static final Pair<String, String> ANALYZER_MODE = Pair.of("false", "true");
 	private static final Pair<String, String> MIN_DOC_FREQ = Pair.of("7", "8");
@@ -50,7 +50,7 @@ public class ProjectConfigEventTest {
 	private static final Pair<String, String> INTERRUPT_JOB_TIME = Pair.of("1 day", "1 week");
 
 	@Test
-	public void analyzerConfigUpdate() {
+	void analyzerConfigUpdate() {
 		final Activity actual = new ProjectAnalyzerConfigEvent(getProjectAttributes(getAnalyzerConfig(ANALYZER_MODE.getLeft(),
 				MIN_DOC_FREQ.getLeft(),
 				MIN_TERM_FREQ.getLeft(),
@@ -77,10 +77,13 @@ public class ProjectConfigEventTest {
 	}
 
 	@Test
-	public void projectConfigUpdate() {
-		final Activity actual = new ProjectUpdatedEvent(
-				getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(), KEEP_SCREENSHOTS.getLeft(), INTERRUPT_JOB_TIME.getLeft())),
-				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())), 1L
+	void projectConfigUpdate() {
+		final Activity actual = new ProjectUpdatedEvent(getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(),
+				KEEP_SCREENSHOTS.getLeft(),
+				INTERRUPT_JOB_TIME.getLeft()
+		)),
+				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())),
+				1L
 		).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_PROJECT);
 		expected.getDetails().setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));

@@ -33,8 +33,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -43,13 +42,14 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 /**
  * @author Pavel Bortnik
  */
-public class IssuesAnalyzerServiceTest {
+class IssuesAnalyzerServiceTest {
 
 	private AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
@@ -75,13 +75,13 @@ public class IssuesAnalyzerServiceTest {
 	);
 
 	@Test
-	public void hasAnalyzers() {
+	void hasAnalyzers() {
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		Assert.assertTrue(issuesAnalyzer.hasAnalyzers());
+		assertTrue(issuesAnalyzer.hasAnalyzers());
 	}
 
 	@Test
-	public void analyzeWithoutLogs() {
+	void analyzeWithoutLogs() {
 		Launch launch = launch();
 		TestItem testItems = testItemsTI(1).get(0);
 
@@ -107,7 +107,7 @@ public class IssuesAnalyzerServiceTest {
 	}
 
 	@Test
-	public void analyze() {
+	void analyze() {
 		int itemsCount = 2;
 
 		Launch launch = launch();

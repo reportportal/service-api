@@ -106,10 +106,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 
-		if (user.getUserType() != UserType.UPSA && user.getDefaultProject() == null && CollectionUtils.isEmpty(user.getProjects())) {
+		if (user.getUserType() != UserType.UPSA && CollectionUtils.isEmpty(user.getProjects())) {
 			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
-
-			user.setDefaultProject(personalProject);
 			personalProject.getUsers().stream().findFirst().ifPresent(projectUser -> user.getProjects().add(projectUser));
 		}
 

@@ -27,9 +27,8 @@ import com.google.common.collect.Lists;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * Converts user from database to resource
@@ -64,19 +63,15 @@ public final class UserConverter {
 						assignedProject.setProjectRole(p.getProjectRole().toString());
 						return assignedProject;
 					}));
-			ofNullable(user.getDefaultProject()).ifPresent(project -> {
-				resource.setDefaultProject(project.getName());
-			});
-
 			resource.setAssignedProjects(userProjects);
 		}
 		return resource;
 	};
 
-	public static final Function<User, UserActivityResource> TO_ACTIVITY_RESOURCE = user -> {
+	public static final BiFunction<User, Long, UserActivityResource> TO_ACTIVITY_RESOURCE = (user, projectId) -> {
 		UserActivityResource resource = new UserActivityResource();
 		resource.setId(user.getId());
-		resource.setDefaultProjectId(user.getDefaultProject().getId());
+		resource.setDefaultProjectId(projectId);
 		resource.setFullName(user.getFullName());
 		return resource;
 	};

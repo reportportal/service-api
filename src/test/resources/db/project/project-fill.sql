@@ -1,8 +1,8 @@
 insert into project (id, name, project_type, organization, creation_date)
 values (3, 'test_project', 'INTERNAL', 'org', now());
 
-insert into users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired, default_project_id, full_name, metadata)
-values (3, 'test_user', '179AD45C6CE2CB97CF1029E212046E81', 'test@domain.com', null, null, 'USER', 'INTERNAL', false, 3, 'test full name', '{"metadata": {"last_login": "now"}}');
+insert into users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired, full_name, metadata)
+values (3, 'test_user', '179AD45C6CE2CB97CF1029E212046E81', 'test@domain.com', null, null, 'USER', 'INTERNAL', false, 'test full name', '{"metadata": {"last_login": "now"}}');
 
 insert into project_user(user_id, project_id, project_role) values (3, 3, 'MEMBER');
 insert into project_user(user_id, project_id, project_role) values (1, 3, 'PROJECT_MANAGER');

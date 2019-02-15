@@ -152,13 +152,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			isRoleChanged = true;
 		}
 
-		if (null != editUserRQ.getDefaultProject()) {
-			Project defaultProject = projectRepository.findByName(editUserRQ.getDefaultProject().toLowerCase())
-					.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, editUserRQ.getDefaultProject()));
-			//TODO check if user is owner
-			user.setDefaultProject(defaultProject);
-		}
-
 		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
 			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");

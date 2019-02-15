@@ -157,19 +157,6 @@ class EditUserHandlerImplTest {
 	}
 
 	@Test
-	void editUserWithNotExistedDefaultProject() {
-		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
-		when(projectRepository.findByName("not_exist_project")).thenReturn(Optional.empty());
-		final EditUserRQ editUserRQ = new EditUserRQ();
-		editUserRQ.setDefaultProject("not_exist_project");
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR)
-		);
-		assertEquals("Project 'not_exist_project' not found. Did you use correct project name?", exception.getMessage());
-	}
-
-	@Test
 	void changeExternalUserEmail() {
 		User user = new User();
 		user.setUserType(UserType.LDAP);

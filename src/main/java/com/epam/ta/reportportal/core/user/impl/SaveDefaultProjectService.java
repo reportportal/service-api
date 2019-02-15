@@ -108,7 +108,6 @@ public class SaveDefaultProjectService {
 			 */
 			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
 
-			user.setDefaultProject(personalProject);
 			user.getProjects().add(assignedProjectUser);
 			user.getProjects()
 					.add(personalProject.getUsers()
@@ -129,6 +128,6 @@ public class SaveDefaultProjectService {
 
 		response.setLogin(user.getLogin());
 
-		return Pair.of(TO_ACTIVITY_RESOURCE.apply(user), response);
+		return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, defaultProject.getId()), response);
 	}
 }

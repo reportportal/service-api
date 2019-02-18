@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -54,15 +53,12 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 
 	private final PluginBox pluginBox;
 
-	private final ProjectRepository projectRepository;
-
 	@Autowired
 	public AbstractBtsIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			PluginBox pluginBox, ProjectRepository projectRepository) {
+			PluginBox pluginBox) {
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.integrationRepository = integrationRepository;
 		this.pluginBox = pluginBox;
-		this.projectRepository = projectRepository;
 	}
 
 	@Override

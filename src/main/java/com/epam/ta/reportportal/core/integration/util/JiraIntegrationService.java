@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -46,8 +45,8 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 
 	@Autowired
 	public JiraIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			PluginBox pluginBox, ProjectRepository projectRepository, BasicTextEncryptor basicTextEncryptor) {
-		super(integrationTypeRepository, integrationRepository, pluginBox, projectRepository);
+			PluginBox pluginBox, BasicTextEncryptor basicTextEncryptor) {
+		super(integrationTypeRepository, integrationRepository, pluginBox);
 		this.basicTextEncryptor = basicTextEncryptor;
 	}
 
@@ -69,8 +68,7 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 					"Password value cannot be NULL"
 			);
 
-			integrationParams.put(
-					BtsProperties.PASSWORD.getName(),
+			integrationParams.put(BtsProperties.PASSWORD.getName(),
 					basicTextEncryptor.encrypt(BtsProperties.PASSWORD.getParam(integrationParams).get())
 			);
 

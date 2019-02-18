@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -43,8 +42,8 @@ public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
 	@Autowired
 	public RallyIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			PluginBox pluginBox, ProjectRepository projectRepository) {
-		super(integrationTypeRepository, integrationRepository, pluginBox, projectRepository);
+			PluginBox pluginBox) {
+		super(integrationTypeRepository, integrationRepository, pluginBox);
 	}
 
 	@Override

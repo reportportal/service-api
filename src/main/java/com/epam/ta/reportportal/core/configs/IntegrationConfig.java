@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.core.integration.util.EmailServerIntegrationService;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.JiraIntegrationService;
+import com.epam.ta.reportportal.core.integration.util.RallyIntegrationService;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.BeansException;
@@ -46,7 +47,10 @@ public class IntegrationConfig implements ApplicationContextAware {
 	public Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping() {
 		return ImmutableMap.<ReportPortalIntegrationEnum, IntegrationService>builder().put(ReportPortalIntegrationEnum.JIRA,
 				applicationContext.getBean(JiraIntegrationService.class)
-		).put(ReportPortalIntegrationEnum.EMAIL, applicationContext.getBean(EmailServerIntegrationService.class)).build();
+		)
+				.put(ReportPortalIntegrationEnum.RALLY, applicationContext.getBean(RallyIntegrationService.class))
+				.put(ReportPortalIntegrationEnum.EMAIL, applicationContext.getBean(EmailServerIntegrationService.class))
+				.build();
 
 	}
 }

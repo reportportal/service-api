@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,54 +39,40 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class JiraIntegrationService extends AbstractBtsIntegrationService {
-
-	private final BasicTextEncryptor basicTextEncryptor;
+public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
 	@Autowired
-	public JiraIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			PluginBox pluginBox, ProjectRepository projectRepository, BasicTextEncryptor basicTextEncryptor) {
+	public RallyIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
+			PluginBox pluginBox, ProjectRepository projectRepository) {
 		super(integrationTypeRepository, integrationRepository, pluginBox, projectRepository);
-		this.basicTextEncryptor = basicTextEncryptor;
 	}
 
+	@Override
 	protected void validateIntegrationParams(Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
 		String authName = BtsProperties.AUTH_TYPE.getParam(integrationParams)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"No auth property provided for Jira integration"
+						"No auth property provided for Rally integration"
 				));
 		AuthType authType = AuthType.findByName(authName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
 
-		if (AuthType.BASIC.equals(authType)) {
-			expect(BtsProperties.USER_NAME.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-					"Username value cannot be NULL"
-			);
-			expect(BtsProperties.PASSWORD.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-					"Password value cannot be NULL"
-			);
-
-			integrationParams.put(
-					BtsProperties.PASSWORD.getName(),
-					basicTextEncryptor.encrypt(BtsProperties.PASSWORD.getParam(integrationParams).get())
-			);
-
-		} else if (AuthType.OAUTH.equals(authType)) {
+		if (AuthType.OAUTH.equals(authType)) {
 			expect(BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
 					"AccessKey value cannot be NULL"
 			);
 		} else {
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					"Unsupported auth type for Jira integration - " + authType.name()
+					"Unsupported auth type for Rally integration - " + authType.name()
 			);
 		}
 		expect(BtsProperties.PROJECT.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-				"JIRA project value cannot be NULL"
+				"Rally project value cannot be NULL"
 		);
 		expect(BtsProperties.URL.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-				"JIRA URL value cannot be NULL"
+				"Rally URL value cannot be NULL"
 		);
 	}
 }
+

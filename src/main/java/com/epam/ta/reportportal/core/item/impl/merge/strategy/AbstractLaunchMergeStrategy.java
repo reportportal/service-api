@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;

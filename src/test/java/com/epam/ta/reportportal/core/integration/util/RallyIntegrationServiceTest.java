@@ -27,14 +27,14 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,10 +42,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class RallyIntegrationServiceTest {
+class RallyIntegrationServiceTest {
 
-	public static final String RALLY_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.RALLY.name();
-	public static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
+	private static final String RALLY_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.RALLY.name();
+	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
@@ -58,11 +58,8 @@ public class RallyIntegrationServiceTest {
 			pluginBox
 	);
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Test
-	public void shouldCreateGlobalIntegrationWhenValidParams() {
+	void shouldCreateGlobalIntegrationWhenValidParams() {
 
 		when(integrationType.getName()).thenReturn(RALLY_INTEGRATION_TYPE_NAME);
 
@@ -80,67 +77,65 @@ public class RallyIntegrationServiceTest {
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoBtsProjectProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Rally project value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoBtsProjectProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.PROJECT.getName());
 
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. Rally project value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoUrlProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Rally URL value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoUrlProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.URL.getName());
 
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. Rally URL value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoAuthTypeProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("No auth property provided for Rally integration");
-
+	void shouldNotCreateGlobalIntegrationWhenNoAuthTypeProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.AUTH_TYPE.getName());
 
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. No auth property provided for Rally integration", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoOauthTokenProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("AccessKey value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoOauthTokenProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNotSupportedAuthTypeProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Unsupported auth type for Rally integration - " + UNSUPPORTED_AUTH_TYPE_NAME);
-
+	void shouldNotCreateGlobalIntegrationWhenNotSupportedAuthTypeProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
 
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals(
+				"Impossible interact with integration. Unsupported auth type for Rally integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void shouldCreateProjectIntegrationWhenValidParams() {
+	void shouldCreateProjectIntegrationWhenValidParams() {
 
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 

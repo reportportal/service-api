@@ -103,6 +103,16 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 				projectDetails.getProjectId(),
 				user.getUserId()
 		);
+
+		if (!userFilter.getName().equals(updateRQ.getName())) {
+
+			BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
+					userFilter.getOwner(),
+					projectDetails.getProjectId()
+			), BooleanUtils::isFalse)
+					.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, updateRQ.getName(), userFilter.getOwner(), projectDetails.getProjectName());
+		}
+
 		UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
 		UserFilter updated = new UserFilterBuilder(userFilter).addFilterRq(updateRQ).get();
 

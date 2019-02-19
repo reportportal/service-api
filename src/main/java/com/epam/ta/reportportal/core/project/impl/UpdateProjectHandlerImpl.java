@@ -107,9 +107,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectConverter projectConverter;
 
 	@Autowired
-	private ObjectMapper objectMapper;
-
-	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
 			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,

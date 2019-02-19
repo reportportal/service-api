@@ -33,10 +33,11 @@ public interface GetWidgetHandler {
 	/**
 	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
 	 *
-	 * @param widgetId Widget id
+	 * @param widgetId       Widget id
+	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
 	 * @return Allowed widget.
 	 */
-	Widget getPermitted(Long widgetId);
+	Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id

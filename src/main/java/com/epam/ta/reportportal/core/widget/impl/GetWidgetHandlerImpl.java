@@ -92,8 +92,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
-	public Widget getPermitted(Long widgetId) {
-		return widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+	public Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails) {
+		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId()).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, projectDetails.getProjectName()));
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	@Override
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = getPermitted(widgetId);
+		Widget widget = getPermitted(widgetId, projectDetails);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,

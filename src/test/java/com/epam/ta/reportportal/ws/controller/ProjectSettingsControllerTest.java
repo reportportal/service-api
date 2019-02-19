@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
@@ -29,9 +31,11 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,6 +48,9 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Autowired
+	private IssueTypeRepository issueTypeRepository;
 
 	@Test
 	public void createSubType() throws Exception {
@@ -74,6 +81,10 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 	public void deleteSubType() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type/6").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
+
+		Optional<IssueType> byId = issueTypeRepository.findById(6L);
+		assertFalse(byId.isPresent());
+
 	}
 
 	@Test

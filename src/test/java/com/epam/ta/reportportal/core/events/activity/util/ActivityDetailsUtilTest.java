@@ -17,31 +17,31 @@
 package com.epam.ta.reportportal.core.events.activity.util;
 
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ActivityDetailsUtilTest {
+class ActivityDetailsUtilTest {
 
 	private static final String OLD_VALUE = "oldValue";
 	private static final String NEW_VALUE = "newValue";
 
 	@Test
-	public void processName() {
+	void processName() {
 		final Optional<HistoryField> historyField = ActivityDetailsUtil.processName(OLD_VALUE, NEW_VALUE);
 		assertTrue(historyField.isPresent());
 		assertThat(historyField.get()).isEqualToIgnoringGivenFields(getExpected("name"), "mapper");
 	}
 
 	@Test
-	public void processNameReturnEmpty() {
+	void processNameReturnEmpty() {
 		final Optional<HistoryField> sameValue = ActivityDetailsUtil.processName(OLD_VALUE, OLD_VALUE);
 		assertFalse(sameValue.isPresent());
 		final Optional<HistoryField> newNull = ActivityDetailsUtil.processName(OLD_VALUE, null);
@@ -51,20 +51,20 @@ public class ActivityDetailsUtilTest {
 	}
 
 	@Test
-	public void processDescription() {
+	void processDescription() {
 		final Optional<HistoryField> historyField = ActivityDetailsUtil.processDescription(OLD_VALUE, NEW_VALUE);
 		assertTrue(historyField.isPresent());
 		assertThat(historyField.get()).isEqualToIgnoringGivenFields(getExpected("description"), "mapper");
 	}
 
 	@Test
-	public void processDescriptionReturnEmpty() {
+	void processDescriptionReturnEmpty() {
 		final Optional<HistoryField> sameValue = ActivityDetailsUtil.processDescription(OLD_VALUE, OLD_VALUE);
 		assertFalse(sameValue.isPresent());
 	}
 
 	@Test
-	public void processShared() {
+	void processShared() {
 		final Optional<HistoryField> historyField = ActivityDetailsUtil.processShared(false, true);
 		assertTrue(historyField.isPresent());
 		assertThat(historyField.get()).isEqualToIgnoringGivenFields(getExpected("share"), "mapper");

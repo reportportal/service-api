@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -29,24 +29,24 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class DefectTypeEventsTest {
+class DefectTypeEventsTest {
 
 	@Test
-	public void created() {
+	void created() {
 		final Activity actual = new DefectTypeCreatedEvent(getIssueType(), 1L, 3L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.CREATE_DEFECT, "test long name");
 		checkActivity(expected, actual);
 	}
 
 	@Test
-	public void deleted() {
+	void deleted() {
 		final Activity actual = new DefectTypeDeletedEvent(getIssueType(), 1L, 3L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_DEFECT, "test long name");
 		checkActivity(expected, actual);
 	}
 
 	@Test
-	public void updated() {
+	void updated() {
 		final Activity actual = new DefectTypeUpdatedEvent(getIssueType(), 1L, 3L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_DEFECT, "test long name");
 		checkActivity(expected, actual);

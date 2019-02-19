@@ -28,28 +28,26 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.jasypt.util.text.BasicTextEncryptor;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class JiraIntegrationServiceTest {
+class JiraIntegrationServiceTest {
 
-	public static final String JIRA_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.JIRA.name();
-	public static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
+	private static final String JIRA_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.JIRA.name();
+	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
@@ -59,21 +57,17 @@ public class JiraIntegrationServiceTest {
 
 	private JiraIntegrationService jiraIntegrationService;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
 		jiraIntegrationService = new JiraIntegrationService(integrationTypeRepository,
-				integrationRepository,
-				pluginBox, basicTextEncryptor
+				integrationRepository, pluginBox, basicTextEncryptor
 		);
 	}
 
 	@Test
-	public void shouldCreateGlobalIntegrationWhenValidParams() {
+	void shouldCreateGlobalIntegrationWhenValidParams() {
 
 		when(integrationType.getName()).thenReturn(JIRA_INTEGRATION_TYPE_NAME);
 
@@ -91,92 +85,88 @@ public class JiraIntegrationServiceTest {
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoBtsProjectProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("JIRA project value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoBtsProjectProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.PROJECT.getName());
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. JIRA project value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoUrlProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("JIRA URL value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoUrlProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.URL.getName());
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. JIRA URL value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoAuthTypeProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("No auth property provided for Jira integration");
-
+	void shouldNotCreateGlobalIntegrationWhenNoAuthTypeProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.AUTH_TYPE.getName());
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. No auth property provided for Jira integration", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoUsernameProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Username value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoUsernameProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.USER_NAME.getName());
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. Username value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoPasswordProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Password value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoPasswordProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.PASSWORD.getName());
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. Password value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNoOauthTokenProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("AccessKey value cannot be NULL");
-
+	void shouldNotCreateGlobalIntegrationWhenNoOauthTokenProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.OAUTH.name());
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
-	public void shouldNotCreateGlobalIntegrationWhenNotSupportedAuthTypeProvided() {
-
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Unsupported auth type for Jira integration - " + UNSUPPORTED_AUTH_TYPE_NAME);
-
+	void shouldNotCreateGlobalIntegrationWhenNotSupportedAuthTypeProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+		);
+		assertEquals(
+				"Impossible interact with integration. Unsupported auth type for Jira integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void shouldCreateProjectIntegrationWhenValidParams() {
+	void shouldCreateProjectIntegrationWhenValidParams() {
 
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 

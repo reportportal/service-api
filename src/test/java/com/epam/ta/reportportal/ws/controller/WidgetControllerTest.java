@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
@@ -18,8 +18,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Sql("/db/shareable/shareable-fill.sql")
-public class WidgetControllerTest extends BaseMvcTest {
+class WidgetControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -37,7 +37,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 	private WidgetRepository widgetRepository;
 
 	@Test
-	public void createWidgetPositive() throws Exception {
+	void createWidgetPositive() throws Exception {
 		WidgetRQ rq = new WidgetRQ();
 		rq.setName("widget");
 		rq.setDescription("description");
@@ -59,12 +59,12 @@ public class WidgetControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void getWidgetPositive() throws Exception {
+	void getWidgetPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/widget/10").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void updateWidgetPositive() throws Exception {
+	void updateWidgetPositive() throws Exception {
 		final WidgetRQ rq = new WidgetRQ();
 		rq.setName("updated");
 		rq.setDescription("updated");
@@ -84,7 +84,7 @@ public class WidgetControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateNonExistingWidget() throws Exception {
+	void updateNonExistingWidget() throws Exception {
 		WidgetRQ rq = new WidgetRQ();
 		rq.setName("name");
 		rq.setWidgetType("oldLineChart");
@@ -95,25 +95,25 @@ public class WidgetControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void getSharedWidgetsListPositive() throws Exception {
+	void getSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void searchSharedWidgetsListPositive() throws Exception {
+	void searchSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared/search?term=ch").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getWidgetNamesPositive() throws Exception {
+	void getWidgetNamesPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/widget/names/all").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().is(200));
 	}
 
 	@Test
-	public void getWidgetPreview() throws Exception {
+	void getWidgetPreview() throws Exception {
 		WidgetPreviewRQ request = new WidgetPreviewRQ();
 		request.setWidgetType("launchStatistics");
 		final ContentParameters contentParameters = new ContentParameters();

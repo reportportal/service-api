@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -28,17 +28,17 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ProjectIndexEventTest {
+class ProjectIndexEventTest {
 
 	@Test
-	public void generate() {
+	void generate() {
 		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, true).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.GENERATE_INDEX);
 		checkActivity(expected, actual);
 	}
 
 	@Test
-	public void delete() {
+	void delete() {
 		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, false).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_INDEX);
 		checkActivity(expected, actual);

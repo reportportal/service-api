@@ -4,14 +4,14 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 
 import java.util.Calendar;
 import java.util.Collections;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 /**
@@ -28,8 +28,8 @@ public class JaskonRequiredPropertiesValidatorTest {
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();
 		Errors errors = new BeanPropertyBindingResult(startLaunchRQ, "startLaunchRq");
 		validator.validate(startLaunchRQ, errors);
-		Assert.assertThat(errors.getAllErrors(), not(empty()));
-		Assert.assertThat(errors.getFieldError("startTime"), not(nullValue()));
+		assertThat(errors.getAllErrors(), not(empty()));
+		assertThat(errors.getFieldError("startTime"), not(nullValue()));
 	}
 
 	@Test
@@ -38,8 +38,8 @@ public class JaskonRequiredPropertiesValidatorTest {
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();
 		Errors errors = new BeanPropertyBindingResult(issueRQ, "issueRQ");
 		validator.validate(issueRQ, errors);
-		Assert.assertThat(errors.getAllErrors(), not(empty()));
-		Assert.assertThat(errors.getFieldError("issue"), not(nullValue()));
+		assertThat(errors.getAllErrors(), not(empty()));
+		assertThat(errors.getFieldError("issue"), not(nullValue()));
 	}
 
 	@Test
@@ -50,7 +50,7 @@ public class JaskonRequiredPropertiesValidatorTest {
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();
 		Errors errors = new BeanPropertyBindingResult(issueRQ, "issueRQ");
 		validator.validate(issueRQ, errors);
-		Assert.assertThat(errors.getAllErrors(), empty());
+		assertThat(errors.getAllErrors(), empty());
 	}
 
 	@Test
@@ -62,7 +62,7 @@ public class JaskonRequiredPropertiesValidatorTest {
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();
 		Errors errors = new BeanPropertyBindingResult(issueRQ, "issueRQ");
 		validator.validate(issueRQ, errors);
-		Assert.assertThat(errors.getAllErrors(), not(empty()));
+		assertThat(errors.getAllErrors(), not(empty()));
 	}
 
 }

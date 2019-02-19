@@ -29,24 +29,25 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UpdateTestItemHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class UpdateTestItemHandlerImplTest {
 
 	@Mock
 	private TestItemRepository repository;
@@ -54,29 +55,18 @@ public class UpdateTestItemHandlerImplTest {
 	@InjectMocks
 	private UpdateTestItemHandlerImpl handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void updateNotExistedTestItem() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Test Item '1' not found. Did you use correct Test Item ID?");
-
+	void updateNotExistedTestItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 		when(repository.findById(1L)).thenReturn(Optional.empty());
-		handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
+		);
+		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 
 	@Test
-	public void updateTestItemWithSystemAttributes() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Forbidden operation. System attributes is not applicable here");
-
+	void updateTestItemWithSystemAttributes() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 		when(repository.findById(1L)).thenReturn(Optional.of(new TestItem()));
 		final UpdateTestItemRQ updateTestItemRQ = new UpdateTestItemRQ();
@@ -84,26 +74,26 @@ public class UpdateTestItemHandlerImplTest {
 				new ItemAttributeResource("key", "value", false)
 		));
 
-		handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, updateTestItemRQ, rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, updateTestItemRQ, rpUser)
+		);
+		assertEquals("Forbidden operation. System attributes is not applicable here", exception.getMessage());
 	}
 
 	@Test
-	public void updateTestItemUnderNotExistedLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Launch '' not found. Did you use correct Launch ID?");
-
+	void updateTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(repository.findById(1L)).thenReturn(Optional.of(new TestItem()));
 
-		handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
+		);
+		assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
 
 	@Test
-	public void updateTestItemUnderNotOwnLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions. You are not a launch owner.");
-
+	void updateTestItemUnderNotOwnLaunch() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		TestItem item = new TestItem();
@@ -115,14 +105,14 @@ public class UpdateTestItemHandlerImplTest {
 		item.setLaunch(launch);
 		when(repository.findById(1L)).thenReturn(Optional.of(item));
 
-		handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
+		);
+		assertEquals("You do not have enough permissions. You are not a launch owner.", exception.getMessage());
 	}
 
 	@Test
-	public void updateTestItemFromAnotherProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions. Launch is not under the specified project.");
-
+	void updateTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -133,15 +123,14 @@ public class UpdateTestItemHandlerImplTest {
 		item.setLaunch(launch);
 		when(repository.findById(1L)).thenReturn(Optional.of(item));
 
-		handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
+		);
+		assertEquals("You do not have enough permissions. Launch is not under the specified project.", exception.getMessage());
 	}
 
 	@Test
-	public void updateStatusOnNotFinishedTestItem() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(
-				"Error in handled Request. Please, check specified parameters: 'Unable to change status on not finished test item'");
-
+	void updateStatusOnNotFinishedTestItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		TestItemResults results = new TestItemResults();
@@ -157,6 +146,12 @@ public class UpdateTestItemHandlerImplTest {
 		final UpdateTestItemRQ rq = new UpdateTestItemRQ();
 		rq.setStatus(StatusEnum.PASSED.name());
 
-		handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, rq, rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, rq, rpUser)
+		);
+		assertEquals(
+				"Error in handled Request. Please, check specified parameters: 'Unable to change status on not finished test item'",
+				exception.getMessage()
+		);
 	}
 }

@@ -28,37 +28,38 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class StartLaunchHandlerTest {
+@ExtendWith(MockitoExtension.class)
+class StartLaunchHandlerTest {
 
-	private LaunchRepository launchRepository = mock(LaunchRepository.class);
+	@Mock
+	private LaunchRepository launchRepository;
 
-	private MessageBus messageBus = mock(MessageBus.class);
+	@Mock
+	private MessageBus messageBus;
 
-	private StartLaunchHandler startLaunchHandler = new StartLaunchHandler(launchRepository, messageBus);
-
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+	@InjectMocks
+	private StartLaunchHandler startLaunchHandler;
 
 	@Test
-	public void startLaunch() {
+	void startLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
@@ -77,16 +78,16 @@ public class StartLaunchHandlerTest {
 	}
 
 	@Test
-	public void accessDeniedForCustomerRoleAndDebugMode() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Forbidden operation.");
-
+	void accessDeniedForCustomerRoleAndDebugMode() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
 
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setMode(Mode.DEBUG);
 
-		startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"), startLaunchRQ);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"), startLaunchRQ)
+		);
+		assertEquals("Forbidden operation.", exception.getMessage());
 	}
 }

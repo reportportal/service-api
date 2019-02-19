@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -29,10 +29,10 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UserCreatedEventTest {
+class UserCreatedEventTest {
 
 	@Test
-	public void toActivity() {
+	void toActivity() {
 		final Activity actual = new UserCreatedEvent(getUser(), 1L).toActivity();
 		final Activity expected = getExpectedActivity();
 		checkActivity(expected, actual);

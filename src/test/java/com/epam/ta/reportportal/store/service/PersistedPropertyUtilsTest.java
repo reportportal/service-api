@@ -1,16 +1,17 @@
 package com.epam.ta.reportportal.store.service;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class PersistedPropertyUtilsTest {
+class PersistedPropertyUtilsTest {
 
 	@Test
-	public void testToMap() {
+	void testToMap() {
 
 		DemoBean bean = new DemoBean();
 		bean.setNamedPersistentProperty("property 1");
@@ -33,9 +34,9 @@ public class PersistedPropertyUtilsTest {
 		assertThat(b2.getNamedPersistentProperty()).isEqualTo("property 1");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testWrongType() {
-		PersistedPropertyUtils.toMap(new IncorrectBean());
+	@Test
+	void testWrongType() {
+		assertThrows(IllegalArgumentException.class, () -> PersistedPropertyUtils.toMap(new IncorrectBean()));
 	}
 
 	public static class DemoBean {

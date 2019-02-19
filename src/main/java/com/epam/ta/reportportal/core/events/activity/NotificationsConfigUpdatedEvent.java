@@ -21,17 +21,33 @@ import static java.util.Optional.ofNullable;
 /**
  * @author Andrei Varabyeu
  */
-public class EmailConfigUpdatedEvent extends BeforeEvent<ProjectResource> implements ActivityEvent {
+public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource> implements ActivityEvent {
 
 	private ProjectNotificationConfigDTO updateProjectNotificationConfigRQ;
 	private Long updatedBy;
 
-	public EmailConfigUpdatedEvent() {
+	public NotificationsConfigUpdatedEvent() {
 	}
 
-	public EmailConfigUpdatedEvent(ProjectResource before, ProjectNotificationConfigDTO updateProjectNotificationConfigRQ, Long updatedBy) {
+	public NotificationsConfigUpdatedEvent(ProjectResource before, ProjectNotificationConfigDTO updateProjectNotificationConfigRQ, Long updatedBy) {
 		super(before);
 		this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
+		this.updatedBy = updatedBy;
+	}
+
+	public ProjectNotificationConfigDTO getUpdateProjectNotificationConfigRQ() {
+		return updateProjectNotificationConfigRQ;
+	}
+
+	public void setUpdateProjectNotificationConfigRQ(ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
+		this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
+	}
+
+	public Long getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Long updatedBy) {
 		this.updatedBy = updatedBy;
 	}
 
@@ -64,7 +80,7 @@ public class EmailConfigUpdatedEvent extends BeforeEvent<ProjectResource> implem
 
 			boolean isEmailCasesChanged = !before.equals(updateProjectNotificationConfigRQ.getSenderCases());
 
-			if (isEmailCasesChanged) {
+			if (!isEmailCasesChanged) {
 				details.addHistoryField(HistoryField.of(EMAIL_CASES, EMPTY_FIELD, EMPTY_FIELD));
 			} else {
 				details.addHistoryField(HistoryField.of(

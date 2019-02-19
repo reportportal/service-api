@@ -131,9 +131,11 @@ CREATE TABLE launch_names (
   launch_name    VARCHAR(256)
 );
 
-CREATE TABLE launch_attributes (
+CREATE TABLE launch_attribute_rules (
+  id               BIGSERIAL CONSTRAINT launch_attribute_rules_pk PRIMARY KEY,
   sender_case_id   BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
-  launch_attribute VARCHAR(256)
+  key              VARCHAR(256),
+  value            VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE recipients (

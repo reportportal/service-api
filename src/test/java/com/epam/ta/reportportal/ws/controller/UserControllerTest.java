@@ -82,20 +82,18 @@ class UserControllerTest extends BaseMvcTest {
 		assertTrue(projectOptional.get().getUsers().stream().anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
 
 		Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
-		assertTrue("Personal project isn't created", personalProject.isPresent());
+		assertTrue(personalProject.isPresent(), "Personal project isn't created");
 		Project project = personalProject.get();
 
 		List<IssueType> defaultIssueTypes = issueTypeRepository.getDefaultIssueTypes();
 
-		project.getProjectAttributes().forEach(projectAttribute -> assertThat(
-				"Default value of " + projectAttribute.getAttribute().getName() + " is not correct",
-				projectAttribute.getValue(),
-				Matchers.equalTo(ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
-						.get()
-						.getDefaultValue())
-		));
+		project.getProjectAttributes()
+				.forEach(projectAttribute -> assertTrue(projectAttribute.getValue()
+						.equalsIgnoreCase(ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
+								.get()
+								.getDefaultValue())));
 
-		Assert.assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
+		assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
 				.stream()
 				.map(ProjectIssueType::getIssueType)
 				.collect(Collectors.toList())));

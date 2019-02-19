@@ -64,7 +64,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 		return filterRepository.findById(filterId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND,
 						filterId,
-						projectDetails.getProjectId(),
+						projectDetails.getProjectName(),
 						user.getUsername()
 				));
 	}
@@ -111,6 +111,6 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 	@Override
 	@PostFilter(CAN_READ_OBJECT_FILTER)
 	public List<UserFilter> getFiltersById(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
-		return filterRepository.findAllById(Lists.newArrayList(ids));
+		return filterRepository.findAllByIdInAndProjectId(Lists.newArrayList(ids), projectDetails.getProjectId());
 	}
 }

@@ -105,7 +105,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 
 	@Override
 	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId, projectDetails);
 		Widget widget = getWidgetHandler.getPermitted(widgetId, projectDetails);
 
 		/*

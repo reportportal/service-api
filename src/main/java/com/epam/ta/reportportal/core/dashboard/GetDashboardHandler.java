@@ -35,14 +35,15 @@ public interface GetDashboardHandler {
 	 * Get dashboard on which use have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
 	 *
 	 * @param dashboardId    Dashboard id
+	 * @param projectDetails {@link ProjectDetails}
 	 * @return dashboard
 	 */
-	Dashboard getPermitted(Long dashboardId);
+	Dashboard getPermitted(Long dashboardId, ProjectDetails projectDetails);
 
 	/**
 	 * Get dashboard on which use have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
 	 *
-	 * @param dashboardId    Dashboard id
+	 * @param dashboardId Dashboard id
 	 * @return dashboard
 	 */
 	Dashboard getAdministrated(Long dashboardId);

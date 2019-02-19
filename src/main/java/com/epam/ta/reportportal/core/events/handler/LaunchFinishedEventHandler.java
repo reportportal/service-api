@@ -26,24 +26,24 @@ import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.SendCase;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.*;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +60,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -121,28 +121,34 @@ public class LaunchFinishedEventHandler {
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 		logIndexer.indexLogs(project.getId(), Lists.newArrayList(launch.getId()), analyzerConfig);
 
-		Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
-				IntegrationGroupEnum.NOTIFICATION
-		)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
-		Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
+		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
+				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
-		if (!BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
-			emailService.ifPresent(it -> sendEmail(launch, project, it));
-			return;
-		}
+		if (isNotificationsEnabled) {
 
-		if (issuesAnalyzer.hasAnalyzers()) {
-			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
-					.collectItems(project.getId(), launch.getId(), null);
+			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
+					IntegrationGroupEnum.NOTIFICATION
+			)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
+			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
-			CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch, testItems, analyzerConfig);
+			if (!BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
+				emailService.ifPresent(it -> sendEmail(launch, project, it));
+				return;
+			}
 
-			analyze.thenAccept(res -> {
-				Launch updatedLaunch = launchRepository.findById(launch.getId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
-				emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
-			});
+			if (issuesAnalyzer.hasAnalyzers()) {
+				List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
+						.collectItems(project.getId(), launch.getId(), null);
+
+				CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch, testItems, analyzerConfig);
+
+				analyze.thenAccept(res -> {
+					Launch updatedLaunch = launchRepository.findById(launch.getId())
+							.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
+					emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
+				});
+			}
 		}
 
 	}
@@ -203,12 +209,25 @@ public class LaunchFinishedEventHandler {
 	 * @return TRUE if tags matched
 	 */
 	@VisibleForTesting
-	private static boolean isAttributesMatched(Launch launch, Set<String> attributes) {
-		return !(null != attributes && !attributes.isEmpty()) || null != launch.getAttributes() && launch.getAttributes()
+	private static boolean isAttributesMatched(Launch launch, Set<LaunchAttributeRule> launchAttributeRules) {
+
+		if (CollectionUtils.isEmpty(launchAttributeRules)) {
+			return true;
+		}
+
+		return launch.getAttributes()
 				.stream()
-				.map(ItemAttribute::getKey)
-				.collect(toList())
-				.containsAll(attributes);
+				.filter(attribute -> !attribute.isSystem())
+				.map(attribute -> {
+					LaunchAttribute launchAttribute = new LaunchAttribute();
+					launchAttribute.setKey(attribute.getKey());
+					launchAttribute.setValue(attribute.getValue());
+					return launchAttribute;
+				})
+				.collect(Collectors.toSet())
+				.containsAll(launchAttributeRules.stream()
+						.map(EmailConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
+						.collect(Collectors.toSet()));
 	}
 
 	/**
@@ -224,7 +243,7 @@ public class LaunchFinishedEventHandler {
 			SendCase sendCase = ec.getSendCase();
 			boolean successRate = isSuccessRateEnough(launch, sendCase);
 			boolean matchedNames = isLaunchNameMatched(launch, ec);
-			boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributes());
+			boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributeRules());
 
 			Set<String> recipients = ec.getRecipients();
 			if (successRate && matchedNames && matchedTags) {

@@ -16,23 +16,31 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -53,6 +61,9 @@ public class UserControllerTest extends BaseMvcTest {
 	@Autowired
 	private ProjectRepository projectRepository;
 
+	@Autowired
+	private IssueTypeRepository issueTypeRepository;
+
 	@Test
 	public void createUserByAdminPositive() throws Exception {
 		CreateUserRQFull rq = new CreateUserRQFull();
@@ -63,13 +74,33 @@ public class UserControllerTest extends BaseMvcTest {
 		rq.setAccountRole("USER");
 		rq.setProjectRole("MEMBER");
 		rq.setDefaultProject("default_personal");
+
 		mockMvc.perform(post("/user").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+
 		final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
 		assertTrue(projectOptional.isPresent());
 		assertTrue(projectOptional.get().getUsers().stream().anyMatch(config -> config.getUser().getLogin().equals("testlogin")));
-		assertTrue("Personal project isn't created", projectRepository.existsByName("testlogin_personal"));
+
+		Optional<Project> personalProject = projectRepository.findByName("testlogin_personal");
+		assertTrue("Personal project isn't created", personalProject.isPresent());
+		Project project = personalProject.get();
+
+		List<IssueType> defaultIssueTypes = issueTypeRepository.getDefaultIssueTypes();
+
+		project.getProjectAttributes().forEach(projectAttribute -> assertThat(
+				"Default value of " + projectAttribute.getAttribute().getName() + " is not correct",
+				projectAttribute.getValue(),
+				Matchers.equalTo(ProjectAttributeEnum.findByAttributeName(projectAttribute.getAttribute().getName())
+						.get()
+						.getDefaultValue())
+		));
+
+		Assert.assertTrue(defaultIssueTypes.containsAll(project.getProjectIssueTypes()
+				.stream()
+				.map(ProjectIssueType::getIssueType)
+				.collect(Collectors.toList())));
 	}
 
 	@Test

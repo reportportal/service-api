@@ -37,7 +37,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
+import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
@@ -226,7 +226,7 @@ public class LaunchFinishedEventHandler {
 				})
 				.collect(Collectors.toSet())
 				.containsAll(launchAttributeRules.stream()
-						.map(EmailConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
+						.map(NotificationConfigConverter.TO_ATTRIBUTE_RULE_RESOURCE)
 						.collect(Collectors.toSet()));
 	}
 

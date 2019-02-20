@@ -185,14 +185,14 @@ dependencies {
 
 //  Tests
     testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'
-    
+
     testCompile('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'junit', module: 'junit'
     }
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
     testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
     testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
-    
+
     testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 }
@@ -242,6 +242,27 @@ build.dependsOn jacocoTestReport
 bootJar {
     archiveName = "${baseName}.${extension}"
 }
+
+private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
+    def file = new File(localScriptPath)
+    if (file.exists()) {
+        file.delete()
+    }
+    file.createNewFile()
+    file << new URL(scriptUrl).openStream()
+}
+
+task copyScripts {
+    def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/copy-scripts-from-github/migrations/1_initialize_schema.up.sql"
+    copyFromUrl(initScriptPath, initScriptUrl)
+
+    def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
+    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/copy-scripts-from-github/migrations/3_default_data.up.sql"
+    copyFromUrl(dataScriptPath, dataScriptUrl)
+}
+
+test.dependsOn copyScripts
 
 test {
     useJUnitPlatform()

@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;

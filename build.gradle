@@ -43,7 +43,8 @@ targetCompatibility = 1.8
 
 project.ext {
     limits = [
-            'instruction': 50,
+            'instruction': 50
+//            'instruction': 68,
 //            'branch'     : 41,
 //            'line'       : 67,
 //            'complexity' : 49,
@@ -99,8 +100,8 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:bef9ffb2'
-        compile 'com.github.reportportal:commons-rules:d9d570e2'
+        compile 'com.github.reportportal:commons-dao:57979e9'
+        compile 'com.github.reportportal:commons-rules:4cd20af'
         compile 'com.github.reportportal:commons-model:25819e6'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:e7970ce')
@@ -185,14 +186,14 @@ dependencies {
 
 //  Tests
     testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'
-    
+
     testCompile('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'junit', module: 'junit'
     }
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
     testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
     testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
-    
+
     testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 }

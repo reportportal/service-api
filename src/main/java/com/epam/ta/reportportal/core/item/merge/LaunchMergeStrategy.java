@@ -18,7 +18,7 @@
 
 package com.epam.ta.reportportal.core.item.merge;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 

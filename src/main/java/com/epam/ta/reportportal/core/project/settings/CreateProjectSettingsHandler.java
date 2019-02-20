@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
 

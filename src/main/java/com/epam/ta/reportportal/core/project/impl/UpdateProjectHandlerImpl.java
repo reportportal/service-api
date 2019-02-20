@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
@@ -42,7 +42,7 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
+import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -54,7 +54,6 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -384,7 +383,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		/* If project email settings */
 		Set<SenderCase> withoutDuplicateCases = cases.stream()
 				.distinct()
-				.map(EmailConfigConverter.TO_CASE_MODEL)
+				.map(NotificationConfigConverter.TO_CASE_MODEL)
 				.peek(sc -> sc.setProject(project))
 				.collect(toSet());
 		if (cases.size() != withoutDuplicateCases.size()) {

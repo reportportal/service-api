@@ -16,8 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -27,101 +26,95 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class DeleteTestItemHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class DeleteTestItemHandlerImplTest {
 
 	@Mock
 	private TestItemRepository repository;
 
-	@Mock
-	private LaunchRepository launchRepository;
-
 	@InjectMocks
 	private DeleteTestItemHandlerImpl handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void testItemNotFound() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Test Item '1' not found. Did you use correct Test Item ID?");
-
+	void testItemNotFound() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(repository.findById(1L)).thenReturn(Optional.empty());
 
-		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 
 	@Test
-	public void deleteInProgressItem() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Unable to perform operation for non-finished test item. Unable to delete test item ['1'] in progress state");
-
+	void deleteInProgressItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.IN_PROGRESS, StatusEnum.IN_PROGRESS, 1L, "test")));
 
-		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("Unable to perform operation for non-finished test item. Unable to delete test item ['1'] in progress state",
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void deleteTestItemWithInProgressLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(
-				"Unable to perform operation for non-finished launch. Unable to delete test item ['1'] under launch ['null'] with 'In progress' state");
-
+	void deleteTestItemWithInProgressLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
 
-		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals(
+				"Unable to perform operation for non-finished launch. Unable to delete test item ['1'] under launch ['null'] with 'In progress' state",
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void deleteTestItemFromAnotherProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Forbidden operation. Deleting testItem '1' is not under specified project '1'");
-
+	void deleteTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
 
-		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("Forbidden operation. Deleting testItem '1' is not under specified project '1'", exception.getMessage());
 	}
 
 	@Test
-	public void deleteNotOwnTestItem() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions");
-
+	void deleteNotOwnTestItem() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, "owner")));
 
-		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("You do not have enough permissions. You are not a launch owner.", exception.getMessage());
 	}
 
 	private TestItem getTestItem(StatusEnum itemStatus, StatusEnum launchStatus, Long projectId, String owner) {

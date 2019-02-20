@@ -16,22 +16,26 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,13 +44,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Sql("/db/project-settings/project-settings-fill.sql")
-public class ProjectSettingsControllerTest extends BaseMvcTest {
+class ProjectSettingsControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	@Autowired
+	private IssueTypeRepository issueTypeRepository;
+
 	@Test
-	public void createSubType() throws Exception {
+	void createSubType() throws Exception {
 		CreateIssueSubTypeRQ rq = new CreateIssueSubTypeRQ();
 		rq.setTypeRef("PRODUCT_BUG");
 		rq.setColor("color");
@@ -58,7 +65,7 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void getProjectSettings() throws Exception {
+	void getProjectSettings() throws Exception {
 		final MvcResult mvcResult = mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/settings").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk())
 				.andReturn();
@@ -71,13 +78,17 @@ public class ProjectSettingsControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void deleteSubType() throws Exception {
+	void deleteSubType() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type/6").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
+
+		Optional<IssueType> byId = issueTypeRepository.findById(6L);
+		assertFalse(byId.isPresent());
+
 	}
 
 	@Test
-	public void updateSubType() throws Exception {
+	void updateSubType() throws Exception {
 		UpdateIssueSubTypeRQ request = new UpdateIssueSubTypeRQ();
 		final UpdateOneIssueSubTypeRQ updateOneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
 		updateOneIssueSubTypeRQ.setColor("updated");

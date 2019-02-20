@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -29,23 +29,25 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class CreateUserHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class CreateUserHandlerImplTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -59,160 +61,149 @@ public class CreateUserHandlerImplTest {
 	@InjectMocks
 	private CreateUserHandlerImpl handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void createByNotExistedAdmin() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'admin' not found.");
+	void createByNotExistedAdmin() {
 
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		when(userRepository.findByLogin("admin")).thenReturn(Optional.empty());
 
-		handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url")
+		);
+		assertEquals("User 'admin' not found.", exception.getMessage());
 	}
 
 	@Test
-	public void createByNotAdmin() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions. Only administrator can create new user. Your role is - USER");
-
+	void createByNotAdmin() {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User user = new User();
 		user.setRole(UserRole.USER);
 		when(userRepository.findByLogin("admin")).thenReturn(Optional.of(user));
 
-		handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url")
+		);
+		assertEquals("You do not have enough permissions. Only administrator can create new user. Your role is - USER",
+				exception.getMessage()
+		);
 	}
 
 	@Test
-	public void createByAdminUserAlreadyExists() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User with 'login='new_user'' already exists. You couldn't create the duplicate.");
-
+	void createByAdminUserAlreadyExists() {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		when(userRepository.findByLogin("admin")).thenReturn(Optional.of(creator));
-		when(userRepository.findByLogin("new_user")).thenReturn(Optional.of(new User()));
+
+		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.of(new User())).when(userRepository).findByLogin("new_user");
 
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("new_user");
-		handler.createUserByAdmin(request, rpUser, "url");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(request, rpUser, "url")
+		);
+		assertEquals("User with 'login='new_user'' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
-	public void createByAdminWithIncorrectName() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Incorrect Request. Username '#$$/' consists only of special characters");
-
+	void createByAdminWithIncorrectName() {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		when(userRepository.findByLogin("admin")).thenReturn(Optional.of(creator));
-		when(userRepository.findByLogin("#$$/")).thenReturn(Optional.empty());
+		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.empty()).when(userRepository).findByLogin("#$$/");
 
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("#$$/");
-		handler.createUserByAdmin(request, rpUser, "url");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(request, rpUser, "url")
+		);
+		assertEquals("Incorrect Request. Username '#$$/' consists only of special characters", exception.getMessage());
 	}
 
 	@Test
-	public void createByAdminWithIncorrectEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Error in handled Request. Please, check specified parameters: 'email = 'incorrect@email''");
-
+	void createByAdminWithIncorrectEmail() {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		when(userRepository.findByLogin("admin")).thenReturn(Optional.of(creator));
-		when(userRepository.findByLogin("new_user")).thenReturn(Optional.empty());
+		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
 
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("new_user");
 		request.setEmail("incorrect@email");
-		handler.createUserByAdmin(request, rpUser, "url");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(request, rpUser, "url")
+		);
+		assertEquals("Error in handled Request. Please, check specified parameters: 'email = 'incorrect@email''", exception.getMessage());
 	}
 
 	@Test
-	public void createByAdminWithExistedEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User with 'email = 'correct@domain.com'' already exists. You couldn't create the duplicate.");
-
+	void createByAdminWithExistedEmail() {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		when(userRepository.findByLogin("admin")).thenReturn(Optional.of(creator));
-		when(userRepository.findByLogin("new_user")).thenReturn(Optional.empty());
+		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
 		when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("new_user");
 		request.setEmail("correct@domain.com");
-		handler.createUserByAdmin(request, rpUser, "url");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(request, rpUser, "url")
+		);
+		assertEquals("User with 'email = 'correct@domain.com'' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
-	public void CreateUserBidOnNotExistedProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Project 'not_exists' not found. Did you use correct project name?");
-
+	void CreateUserBidOnNotExistedProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(projectRepository.findByName("not_exists")).thenReturn(Optional.empty());
 
 		CreateUserRQ request = new CreateUserRQ();
 		request.setDefaultProject("not_exists");
-		handler.createUserBid(request, rpUser, "emailUrl");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserBid(request, rpUser, "emailUrl")
+		);
+		assertEquals("Project 'not_exists' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
-	public void createUserWithoutBid() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Incorrect Request. Impossible to register user. UUID expired or already registered.");
-
+	void createUserWithoutBid() {
 		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.empty());
 
-		handler.createUser(new CreateUserRQConfirm(), "uuid");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUser(new CreateUserRQConfirm(), "uuid")
+		);
+		assertEquals("Incorrect Request. Impossible to register user. UUID expired or already registered.", exception.getMessage());
 	}
 
 	@Test
-	public void createAlreadyExistedUser() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User with 'login='test'' already exists. You couldn't create the duplicate.");
-
+	void createAlreadyExistedUser() {
 		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(new UserCreationBid()));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		request.setLogin("test");
-		handler.createUser(request, "uuid");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
+		assertEquals("User with 'login='test'' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
 	public void createUserWithIncorrectLogin() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Incorrect Request. Username '##$%/' consists only of special characters");
-
 		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(new UserCreationBid()));
 		when(userRepository.findByLogin("##$%/")).thenReturn(Optional.empty());
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		request.setLogin("##$%/");
-		handler.createUser(request, "uuid");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
+		assertEquals("Incorrect Request. Username '##$%/' consists only of special characters", exception.getMessage());
 	}
 
 	@Test
-	public void CreateUserWithIncorrectDefaultProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Project 'not_existed' not found. Did you use correct project name?");
-
+	void CreateUserWithIncorrectDefaultProject() {
 		final UserCreationBid bid = new UserCreationBid();
 		Project project = new Project();
 		project.setName("not_existed");
@@ -223,14 +214,12 @@ public class CreateUserHandlerImplTest {
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		request.setLogin("test");
-		handler.createUser(request, "uuid");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
+		assertEquals("Project 'not_existed' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
-	public void createUserWithIncorrectEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Error in handled Request. Please, check specified parameters: 'incorrect@domain'");
-
+	void createUserWithIncorrectEmail() {
 		final UserCreationBid bid = new UserCreationBid();
 		Project project = new Project();
 		project.setName("test_project");
@@ -242,14 +231,12 @@ public class CreateUserHandlerImplTest {
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		request.setLogin("test");
 		request.setEmail("incorrect@domain");
-		handler.createUser(request, "uuid");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
+		assertEquals("Error in handled Request. Please, check specified parameters: 'incorrect@domain'", exception.getMessage());
 	}
 
 	@Test
-	public void createUserWithExistedEmail() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User with 'email='email@domain.com'' already exists. You couldn't create the duplicate.");
-
+	void createUserWithExistedEmail() {
 		final UserCreationBid bid = new UserCreationBid();
 		Project project = new Project();
 		project.setName("test_project");
@@ -262,6 +249,7 @@ public class CreateUserHandlerImplTest {
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		request.setLogin("test");
 		request.setEmail("email@domain.com");
-		handler.createUser(request, "uuid");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
+		assertEquals("User with 'email='email@domain.com'' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 }

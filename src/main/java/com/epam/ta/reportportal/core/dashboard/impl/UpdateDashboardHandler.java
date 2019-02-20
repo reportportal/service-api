@@ -16,11 +16,10 @@
 
 package com.epam.ta.reportportal.core.dashboard.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
@@ -116,7 +115,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	}
 
 	@Override
-	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
 		Widget widget = getWidgetHandler.getPermitted(widgetId);
 

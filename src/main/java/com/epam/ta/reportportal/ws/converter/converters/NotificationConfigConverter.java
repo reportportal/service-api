@@ -21,9 +21,9 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public final class EmailConfigConverter {
+public final class NotificationConfigConverter {
 
-	private EmailConfigConverter() {
+	private NotificationConfigConverter() {
 		//static only
 	}
 
@@ -31,7 +31,7 @@ public final class EmailConfigConverter {
 		ProjectNotificationConfigDTO dto = new ProjectNotificationConfigDTO();
 
 		ofNullable(senderCaseSet).ifPresent(senderCases -> dto.setSenderCases(senderCases.stream()
-				.map(EmailConfigConverter.TO_CASE_RESOURCE)
+				.map(NotificationConfigConverter.TO_CASE_RESOURCE)
 				.collect(Collectors.toList())));
 
 		return dto;

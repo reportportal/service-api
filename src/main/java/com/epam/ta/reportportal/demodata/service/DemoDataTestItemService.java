@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;

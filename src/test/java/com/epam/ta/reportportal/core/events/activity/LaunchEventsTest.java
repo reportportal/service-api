@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -29,10 +29,10 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class LaunchEventsTest {
+class LaunchEventsTest {
 
 	@Test
-	public void started() {
+	void started() {
 		final String name = "name";
 		final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.START_LAUNCH, name);
@@ -40,7 +40,7 @@ public class LaunchEventsTest {
 	}
 
 	@Test
-	public void finished() {
+	void finished() {
 		final String name = "name";
 		final Activity actual = new LaunchFinishedEvent(getLaunch(name), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
@@ -48,7 +48,7 @@ public class LaunchEventsTest {
 	}
 
 	@Test
-	public void forceFinished() {
+	void forceFinished() {
 		final String name = "name";
 		final Activity actual = new LaunchFinishForcedEvent(getLaunch(name), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
@@ -56,7 +56,7 @@ public class LaunchEventsTest {
 	}
 
 	@Test
-	public void deleted() {
+	void deleted() {
 		final String name = "name";
 		final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_LAUNCH, name);

@@ -2,22 +2,19 @@ package com.epam.ta.reportportal.generator;
 
 import org.jooq.codegen.GenerationTool;
 import org.jooq.meta.jaxb.*;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Test for generating JOOQ entities
  *
  * @author Yauheni_Martynau
  */
-@Ignore
-@RunWith(SpringRunner.class)
+@Disabled
 @TestPropertySource("classpath:test-application.properties")
-public class JooqGenerator {
+class JooqGenerator {
 
 	@Value("${spring.datasource.driver-class-name}")
 	private String driver;
@@ -44,7 +41,7 @@ public class JooqGenerator {
 	private String schema;
 
 	@Test
-	public void generate() {
+	void generate() {
 
 		Configuration configuration = new Configuration().withJdbc(new Jdbc().withDriver(driver)
 				.withUrl(url)

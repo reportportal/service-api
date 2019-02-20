@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.BinaryData;
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;

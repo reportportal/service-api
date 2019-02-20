@@ -22,22 +22,23 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class CreateDashboardHandlerTest {
+@ExtendWith(MockitoExtension.class)
+class CreateDashboardHandlerTest {
 
 	@Mock
 	private DashboardRepository dashboardRepository;
@@ -45,25 +46,18 @@ public class CreateDashboardHandlerTest {
 	@InjectMocks
 	private CreateDashboardHandler handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void init() {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void createDashboard() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Resource 'existed' already exists. You couldn't create the duplicate.");
-
+	void createAlreadyExistDashboard() {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("existed");
+		createDashboardRQ.setName("exist");
 
 		final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(dashboardRepository.existsByNameAndOwnerAndProjectId("existed", "owner", 1L)).thenReturn(true);
-		handler.createDashboard(extractProjectDetails(rpUser, "test_project"), createDashboardRQ, rpUser);
+		when(dashboardRepository.existsByNameAndOwnerAndProjectId("exist", "owner", 1L)).thenReturn(true);
+		final ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.createDashboard(extractProjectDetails(rpUser, "test_project"), createDashboardRQ, rpUser)
+		);
+		assertEquals("Resource 'exist' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 }

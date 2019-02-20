@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
@@ -41,7 +42,7 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.converters.EmailConfigConverter;
+import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -147,7 +148,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
 
-		//		messageBus.publishActivity(new EmailConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
+		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
@@ -163,8 +164,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
@@ -200,8 +200,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
 		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
 		}
@@ -243,10 +242,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
-		expect(
-				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
-				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until auto-analysis proceeds."
+		);
 
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer's."
@@ -374,17 +373,17 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				return name.trim();
 			}).distinct().collect(toList())));
 
-			ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().map(attribute -> {
+			ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
 				EmailRulesValidator.validateLaunchAttribute(attribute);
-				return attribute.trim();
-			}).distinct().collect(toList())));
+				attribute.setValue(attribute.getValue().trim());
+			}).collect(Collectors.toSet())));
 
 		});
 
 		/* If project email settings */
 		Set<SenderCase> withoutDuplicateCases = cases.stream()
 				.distinct()
-				.map(EmailConfigConverter.TO_CASE_MODEL)
+				.map(NotificationConfigConverter.TO_CASE_MODEL)
 				.peek(sc -> sc.setProject(project))
 				.collect(toSet());
 		if (cases.size() != withoutDuplicateCases.size()) {

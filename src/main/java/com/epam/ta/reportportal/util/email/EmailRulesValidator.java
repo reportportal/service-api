@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -28,9 +30,7 @@ import static com.epam.ta.reportportal.entity.project.ProjectUtils.getOwner;
 import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.USER_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LOGIN_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_NAME_LENGTH;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LOGIN_LENGTH;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -72,8 +72,9 @@ public final class EmailRulesValidator {
 		);
 	}
 
-	public static void validateLaunchAttribute(String attribute) {
-		expect(isNullOrEmpty(attribute), equalTo(false)).verify(BAD_REQUEST_ERROR,
+	public static void validateLaunchAttribute(LaunchAttribute attribute) {
+		expect(attribute, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Launch attribute cannot be null.");
+		expect(isNullOrEmpty(attribute.getValue()), equalTo(false)).verify(BAD_REQUEST_ERROR,
 				"Tags' values cannot be empty. Please specify them or do not include in a request."
 		);
 	}

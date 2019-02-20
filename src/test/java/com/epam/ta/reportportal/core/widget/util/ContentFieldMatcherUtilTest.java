@@ -1,70 +1,68 @@
 package com.epam.ta.reportportal.core.widget.util;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Random;
 
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 //TODO replace random wrong content field generation with the specified loop
-@RunWith(Parameterized.class)
 public class ContentFieldMatcherUtilTest {
 
 	@Test
-	public void whenCorrectDefectsContentFieldsFormatThenTrue() {
+	void whenCorrectDefectsContentFieldsFormatThenTrue() {
 
 		boolean match = ContentFieldMatcherUtil.match(DEFECTS_REGEX, buildCorrectDefectContentFields());
 
-		Assert.assertTrue(match);
+		assertTrue(match);
 	}
 
 	@Test
-	public void whenWrongDefectsContentFieldsFormatThenFalse() {
+	void whenWrongDefectsContentFieldsFormatThenFalse() {
 
 		boolean match = ContentFieldMatcherUtil.match(DEFECTS_REGEX, buildWrongDefectContentFields());
 
-		Assert.assertFalse(match);
+		assertFalse(match);
 	}
 
 	@Test
-	public void whenCorrectExecutionsContentFieldsFormatThenTrue() {
+	void whenCorrectExecutionsContentFieldsFormatThenTrue() {
 
 		boolean match = ContentFieldMatcherUtil.match(EXECUTIONS_REGEX, buildCorrectExecutionContentFields());
 
-		Assert.assertTrue(match);
+		assertTrue(match);
 	}
 
 	@Test
-	public void whenWrongExecutionsContentFieldsFormatThenFalse() {
+	void whenWrongExecutionsContentFieldsFormatThenFalse() {
 
 		List<String> contentFields = buildWrongExecutionContentFields();
 		boolean match = ContentFieldMatcherUtil.match(DEFECTS_REGEX, contentFields);
 
-		Assert.assertFalse(match);
+		assertFalse(match);
 	}
 
 	@Test
-	public void whenCorrectCombinedContentFieldsFormatThenTrue() {
+	void whenCorrectCombinedContentFieldsFormatThenTrue() {
 
 		boolean match = ContentFieldMatcherUtil.match(COMBINED_CONTENT_FIELDS_REGEX, buildCorrectCombinedContentFields());
 
-		Assert.assertTrue(match);
+		assertTrue(match);
 	}
 
 	@Test
-	public void whenWrongCombinedContentFieldsFormatThenFalse() {
+	void whenWrongCombinedContentFieldsFormatThenFalse() {
 
 		boolean match = ContentFieldMatcherUtil.match(COMBINED_CONTENT_FIELDS_REGEX, buildWrongCombinedContentFields());
 
-		Assert.assertFalse(match);
+		assertFalse(match);
 	}
 
 	private List<String> buildCorrectDefectContentFields() {
@@ -138,7 +136,6 @@ public class ContentFieldMatcherUtilTest {
 		return contentFields;
 	}
 
-	@Parameterized.Parameters
 	public static Object[][] data() {
 		return new Object[1][0];
 	}

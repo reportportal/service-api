@@ -11,15 +11,14 @@ import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Sql("/db/shareable/shareable-fill.sql")
-public class DashboardControllerTest extends BaseMvcTest {
+class DashboardControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -37,7 +36,7 @@ public class DashboardControllerTest extends BaseMvcTest {
 	private DashboardRepository dashboardRepository;
 
 	@Test
-	public void createDashboardPositive() throws Exception {
+	void createDashboardPositive() throws Exception {
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
 		createDashboardRQ.setName("dashboard");
 		createDashboardRQ.setDescription("description");
@@ -47,23 +46,23 @@ public class DashboardControllerTest extends BaseMvcTest {
 		final EntryCreatedRS entryCreatedRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), EntryCreatedRS.class);
 		final Optional<Dashboard> dashboardOptional = dashboardRepository.findById(entryCreatedRS.getId());
 		assertTrue(dashboardOptional.isPresent());
-		Assert.assertEquals("dashboard", dashboardOptional.get().getName());
-		Assert.assertEquals("description", dashboardOptional.get().getDescription());
+		assertEquals("dashboard", dashboardOptional.get().getName());
+		assertEquals("description", dashboardOptional.get().getDescription());
 	}
 
 	@Test
-	public void getAllDashboardsPositive() throws Exception {
+	void getAllDashboardsPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/dashboard").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void getDashboardPositive() throws Exception {
+	void getDashboardPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/dashboard/17").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void updateDashboardPositive() throws Exception {
+	void updateDashboardPositive() throws Exception {
 		final UpdateDashboardRQ rq = new UpdateDashboardRQ();
 		rq.setName("updated");
 		rq.setDescription("updated");
@@ -73,31 +72,31 @@ public class DashboardControllerTest extends BaseMvcTest {
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
 		final Optional<Dashboard> optionalDashboard = dashboardRepository.findById(17L);
 		assertTrue(optionalDashboard.isPresent());
-		Assert.assertEquals("updated", optionalDashboard.get().getName());
-		Assert.assertEquals("updated", optionalDashboard.get().getDescription());
-		Assert.assertFalse(optionalDashboard.get().isShared());
+		assertEquals("updated", optionalDashboard.get().getName());
+		assertEquals("updated", optionalDashboard.get().getDescription());
+		assertFalse(optionalDashboard.get().isShared());
 	}
 
 	@Test
-	public void deleteDashboardPositive() throws Exception {
+	void deleteDashboardPositive() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/dashboard/17").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getSharedDashboardsNamesPositive() throws Exception {
+	void getSharedDashboardsNamesPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/dashboard/shared").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void removeWidget() throws Exception {
+	void removeWidget() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/dashboard/18/10").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void addWidget() throws Exception {
+	void addWidget() throws Exception {
 		AddWidgetRq rq = new AddWidgetRq();
 		rq.setAddWidget(new DashboardResource.WidgetObjectModel(10L, new Size(5, 5), new Position(0, 0)));
 

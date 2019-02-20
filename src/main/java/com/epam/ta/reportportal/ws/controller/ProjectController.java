@@ -116,18 +116,18 @@ public class ProjectController {
 	@PutMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-	@ApiOperation(value = "Update project", notes = "'Email Configuration' can be also update via PUT to /{projectName}/emailconfig resource.")
+	@ApiOperation(value = "Update project", notes = "'Notifications Configuration' can be also update via PUT to /{projectName}/notification resource.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
 	}
 
 	@Transactional
-	@PutMapping("/{projectName}/emailconfig")
+	@PutMapping("/{projectName}/notification")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	@ApiOperation("Update project email configuration")
-	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
+	@ApiOperation("Update project notifications configuration")
+	public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProjectNotificationConfig(ProjectExtractor.extractProjectDetails(user, projectName),

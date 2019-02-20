@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -29,24 +29,24 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class IntegrationEventsTest {
+class IntegrationEventsTest {
 
 	@Test
-	public void created() {
+	void created() {
 		final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.CREATE_BTS);
 		checkActivity(expected, actual);
 	}
 
 	@Test
-	public void deleted() {
+	void deleted() {
 		final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_BTS);
 		checkActivity(expected, actual);
 	}
 
 	@Test
-	public void updated() {
+	void updated() {
 		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_BTS);
 		checkActivity(expected, actual);

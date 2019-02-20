@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public enum JiraProperties {
+public enum BtsProperties {
 
 	USER_NAME("username"),
 	PASSWORD("password"),
@@ -33,7 +33,7 @@ public enum JiraProperties {
 
 	private final String name;
 
-	JiraProperties(String name) {
+	BtsProperties(String name) {
 		this.name = name;
 	}
 

@@ -32,9 +32,11 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
@@ -47,33 +49,35 @@ import java.util.Map;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class FinishLaunchHandlerTest {
+@ExtendWith(MockitoExtension.class)
+class FinishLaunchHandlerTest {
 
-	private LaunchRepository launchRepository = mock(LaunchRepository.class);
-	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
-	private AfterLaunchFinishedHandler afterLaunchFinishedHandler = mock(AfterLaunchFinishedHandler.class);
-	private ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
-	private MessageBus messageBus = mock(MessageBus.class);
+	@Mock
+	private LaunchRepository launchRepository;
 
-	private FinishLaunchHandler handler = new FinishLaunchHandler(launchRepository,
-			testItemRepository,
-			messageBus,
-			applicationEventPublisher,
-			afterLaunchFinishedHandler
-	);
+	@Mock
+	private TestItemRepository testItemRepository;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+	@Mock
+	private AfterLaunchFinishedHandler afterLaunchFinishedHandler;
+
+	@Mock
+	private MessageBus messageBus;
+
+	@Mock
+	private ApplicationEventPublisher publisher;
+
+	@InjectMocks
+	private FinishLaunchHandler handler;
 
 	@Test
-	public void finishLaunch() {
+	void finishLaunch() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -88,7 +92,7 @@ public class FinishLaunchHandlerTest {
 	}
 
 	@Test
-	public void finishLaunchWithLink() {
+	void finishLaunchWithLink() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -108,7 +112,7 @@ public class FinishLaunchHandlerTest {
 	}
 
 	@Test
-	public void stopLaunch() {
+	void stopLaunch() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -124,7 +128,7 @@ public class FinishLaunchHandlerTest {
 	}
 
 	@Test
-	public void bulkStopLaunch() {
+	void bulkStopLaunch() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -144,9 +148,7 @@ public class FinishLaunchHandlerTest {
 	}
 
 	@Test
-	public void finishWithIncorrectStatus() {
-		thrown.expect(ReportPortalException.class);
-
+	void finishWithIncorrectStatus() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -154,13 +156,13 @@ public class FinishLaunchHandlerTest {
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
-		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+		assertThrows(ReportPortalException.class,
+				() -> handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
 	}
 
 	@Test
-	public void finishWithIncorrectEndTime() {
-		thrown.expect(ReportPortalException.class);
-
+	void finishWithIncorrectEndTime() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().minusHours(5).atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -168,14 +170,13 @@ public class FinishLaunchHandlerTest {
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+		assertThrows(ReportPortalException.class,
+				() -> handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
 	}
 
 	@Test
-	public void finishNotOwnLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions.");
-
+	void finishNotOwnLaunch() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
@@ -183,6 +184,9 @@ public class FinishLaunchHandlerTest {
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.finishLaunch(1L, finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("You do not have enough permissions. You are not launch owner.", exception.getMessage());
 	}
 }

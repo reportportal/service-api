@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -48,19 +47,15 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 	private final IntegrationRepository integrationRepository;
 
-	private final IntegrationTypeRepository integrationTypeRepository;
-
 	private final ProjectRepository projectRepository;
 
 	private final MessageBus messageBus;
 
 	@Autowired
 	public CreateIntegrationHandlerImpl(Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping,
-			IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
-			ProjectRepository projectRepository, MessageBus messageBus) {
+			IntegrationRepository integrationRepository, ProjectRepository projectRepository, MessageBus messageBus) {
 		this.integrationServiceMapping = integrationServiceMapping;
 		this.integrationRepository = integrationRepository;
-		this.integrationTypeRepository = integrationTypeRepository;
 		this.projectRepository = projectRepository;
 		this.messageBus = messageBus;
 	}
@@ -77,10 +72,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		integration.setEnabled(updateRequest.getEnabled());
 
 		integrationRepository.save(integration);
-
-		integrationRepository.updateEnabledStateByIntegrationTypeId(updateRequest.getEnabled(), integration.getType().getId());
-
-		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 
@@ -99,11 +90,12 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.createProjectIntegration(updateRequest.getIntegrationName(), projectDetails, updateRequest.getIntegrationParams());
 
+		integration.setProject(project);
 		integration.setEnabled(updateRequest.getEnabled());
 
-		integration.setProject(project);
-
 		integrationRepository.save(integration);
+
+		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 	}

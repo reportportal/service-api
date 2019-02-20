@@ -55,7 +55,8 @@ public interface GetDashboardHandler {
 	 * @param user           User
 	 * @return Page of permitted dashboard resources
 	 */
-	Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user);
 
 	/**
 	 * Get shared dashboards entities for current project.
@@ -66,5 +67,6 @@ public interface GetDashboardHandler {
 	 * @param user           User
 	 * @return {@link Iterable}
 	 */
-	Iterable<SharedEntity> getSharedDashboardsNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<SharedEntity> getSharedDashboardsNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user);
 }

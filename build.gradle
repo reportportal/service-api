@@ -244,6 +244,28 @@ bootJar {
     archiveName = "${baseName}.${extension}"
 }
 
+private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
+    def file = new File(localScriptPath)
+    if (file.exists()) {
+        file.delete()
+    }
+    file.getParentFile().mkdirs()
+    file.createNewFile()
+    file << new URL(scriptUrl).openStream()
+}
+
+task copyTestDatabaseScripts {
+    def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
+    copyFromUrl(initScriptPath, initScriptUrl)
+
+    def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
+    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql"
+    copyFromUrl(dataScriptPath, dataScriptUrl)
+}
+
+test.dependsOn copyTestDatabaseScripts
+
 test {
     useJUnitPlatform()
 //    systemProperty 'junit.jupiter.extensions.autodetection.enabled', true

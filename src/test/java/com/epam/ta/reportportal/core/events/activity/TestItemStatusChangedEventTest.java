@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,9 +34,10 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class TestItemStatusChangedEventTest {
+class TestItemStatusChangedEventTest {
+
 	@Test
-	public void toActivity() {
+	void toActivity() {
 
 		final String beforeStatus = "PASSED";
 		final String afterStatus = "FAILED";

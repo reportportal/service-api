@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
@@ -54,7 +55,7 @@ public class DemoDataLaunchService {
 	}
 
 	@Transactional
-	public Long startLaunch(String name, int i, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public Long startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
 		StartLaunchRQ rq = new StartLaunchRQ();
 		rq.setMode(Mode.DEFAULT);
 		rq.setDescription(ContentUtils.getLaunchDescription());
@@ -66,18 +67,16 @@ public class DemoDataLaunchService {
 				new ItemAttributeResource("build", "3.0.1." + i)
 		);
 
-		Launch launch = new LaunchBuilder().addStartRQ(rq)
-				.addAttributes(attributes)
-				.addProject(projectDetails.getProjectId())
-				.addUser(user.getUserId())
-				.get();
+		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
+
+		launch.setUser(user);
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		return launch.getId();
 	}
 
 	@Transactional
-	public void finishLaunch(Long launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public void finishLaunch(Long launchId) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 

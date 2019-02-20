@@ -23,7 +23,10 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
+import com.epam.ta.reportportal.dao.UserCreationBidRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -57,7 +60,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -171,7 +173,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
 		List<Project> projects = projectRepository.findUserProjects(loggedInUser.getUsername());
 
-		expect(defaultProject, in(projects)).verify(ACCESS_DENIED);
+		projects.stream()
+				.filter(it -> it.getId().equals(defaultProject.getId()))
+				.findAny()
+				.orElseThrow(() -> new ReportPortalException(ACCESS_DENIED,
+						formattedSupplier("{} is not your project", defaultProject.getName())
+				));
 
 		ProjectRole role = forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole()));
 
@@ -270,7 +277,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			Project personalProject = personalProjectService.generatePersonalProject(newUser);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
-				newUser.setDefaultProject(personalProject);
+				newUser.getProjects()
+						.add(new ProjectUser().withProject(personalProject).withUser(newUser).withProjectRole(ProjectRole.PROJECT_MANAGER));
 			}
 
 			userCreationBidRepository.deleteById(uuid);
@@ -280,7 +288,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(newUser), newUser.getId()));
+		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(newUser, defaultProject.getId()), newUser.getId()));
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

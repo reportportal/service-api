@@ -25,24 +25,25 @@ import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.filesystem.FilePathGenerator;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
  * @author Dzianis_Shybeka
  */
-public class DataStoreServiceTest {
+class DataStoreServiceTest {
 
 	private DataStore dataStore;
 
@@ -56,8 +57,8 @@ public class DataStoreServiceTest {
 
 	private DataStoreService dataStoreService;
 
-	@Before
-	public void setUp() {
+	@BeforeEach
+	void setUp() {
 
 		dataStore = mock(DataStore.class);
 		thumbnailator = mock(Thumbnailator.class);
@@ -69,7 +70,7 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void save_empty_on_file_io_error() throws Exception {
+	void save_empty_on_file_io_error() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
 
@@ -84,13 +85,13 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void save_use_type_resolver() throws Exception {
+	void save_use_type_resolver() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
 		Long projectId = 123L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		String fileName = "file.test";
 		when(file.getOriginalFilename()).thenReturn(fileName);
@@ -117,13 +118,13 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void save_does_not_use_type_resolver() throws Exception {
+	void save_does_not_use_type_resolver() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
 		Long projectId = 132L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("test-content-type");
 		String fileName = "file.test";
@@ -151,14 +152,14 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void save_does_not_use_type_resolver_with_thumbnail() throws Exception {
+	void save_does_not_use_type_resolver_with_thumbnail() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
 		Long projectId = 123L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
-		ByteArrayInputStream thumbnailFileInputStream = new ByteArrayInputStream("thumbnail-test".getBytes());
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
+		ByteArrayInputStream thumbnailFileInputStream = new ByteArrayInputStream("thumbnail-test".getBytes(Charset.forName("UTF-8")));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("image/png");
 		String fileName = "file.test";
@@ -197,13 +198,13 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void save_with_fail_on_thumbnail() throws Exception {
+	void save_with_fail_on_thumbnail() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
 		Long projectId = 123L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes());
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("image/png");
 		String fileName = "file.test";
@@ -236,10 +237,10 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void load() throws Exception {
+	void load() throws Exception {
 		//  given:
 		String fileId = "test-file.id";
-		InputStream expectedFile = new ByteArrayInputStream("test-content".getBytes());
+		InputStream expectedFile = new ByteArrayInputStream("test-content".getBytes(Charset.forName("UTF-8")));
 
 		//  and: setups
 		String expectedFilePath = File.separator + "file" + File.separator + "path.test";
@@ -255,7 +256,7 @@ public class DataStoreServiceTest {
 	}
 
 	@Test
-	public void delete() throws Exception {
+	void delete() throws Exception {
 		//  given:
 		String fileId = "test-file.id";
 

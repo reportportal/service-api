@@ -119,7 +119,12 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				.addHexColor(rq.getColor())
 				.get();
 
-		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));
+		ProjectIssueType projectIssueType = new ProjectIssueType();
+		projectIssueType.setIssueType(subType);
+		projectIssueType.setProject(project);
+
+		project.getProjectIssueTypes().add(projectIssueType);
+
 		issueTypeRepository.save(subType);
 		projectRepository.save(project);
 

@@ -1,5 +1,5 @@
-INSERT INTO public.users (id, login, password, email, attachment, attachment_thumbnail, role, type, expired, default_project_id, full_name, metadata)
-VALUES (3, 'jaja_user', '7c381f9d81b0e438af4e7094c6cae203', 'jaja@mail.com', null, null, 'USER', 'INTERNAL', false, null, 'Jaja Juja', '{"metadata": {"last_login": 1546605767372}}');
+INSERT INTO public.users (id, login, password, email, attachment, attachment_thumbnail, role, type, expired, full_name, metadata)
+VALUES (3, 'jaja_user', '7c381f9d81b0e438af4e7094c6cae203', 'jaja@mail.com', null, null, 'USER', 'INTERNAL', false, 'Jaja Juja', '{"metadata": {"last_login": 1546605767372}}');
 
 INSERT INTO public.project_user (user_id, project_id, project_role) VALUES (3, 1, 'MEMBER');
 
@@ -50,6 +50,13 @@ INSERT INTO public.widget (id, name, description, widget_type, items_count, widg
 (12, 'ACTIVITY STREAM', null, 'activityStream', 10, '{"options": {"user": "default", "actionType": ["startLaunch", "finishLaunch", "deleteLaunch"]}}'),
 (10, 'FAILED CASES TREND CHART', null, 'bugTrend', 10, '{"options": {}}'),
 (11, 'LAUNCH STATISTICS', null, 'launchStatistics', 10, '{"options": {"timeline": "WEEK"}}');
+
+insert into content_field(id, field)
+values (10, 'statistics$defects$to_investigate$total'),
+       (10, 'statistics$defects$product_bug$total'),
+       (10, 'statistics$defects$automation_bug$total'),
+       (10, 'statistics$defects$system_issue$total'),
+       (10, 'statistics$defects$no_defect$total');
 
 INSERT INTO public.widget_filter (widget_id, filter_id) VALUES
 (6, 1),

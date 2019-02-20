@@ -66,7 +66,6 @@ CREATE TABLE users (
   role                 VARCHAR NOT NULL,
   type                 VARCHAR NOT NULL,
   expired              BOOLEAN NOT NULL,
-  default_project_id   BIGINT REFERENCES project (id) ON DELETE SET NULL,
   full_name            VARCHAR NOT NULL,
   metadata             JSONB   NULL
 );
@@ -129,17 +128,19 @@ CREATE TABLE sender_case (
 
 CREATE TABLE launch_names (
   sender_case_id BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
-  launch_name            VARCHAR(256)
+  launch_name    VARCHAR(256)
 );
 
-CREATE TABLE launch_attributes (
-  sender_case_id BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
-  launch_attribute            VARCHAR(256)
+CREATE TABLE launch_attribute_rules (
+  id               BIGSERIAL CONSTRAINT launch_attribute_rules_pk PRIMARY KEY,
+  sender_case_id   BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
+  key              VARCHAR(256),
+  value            VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE recipients (
   sender_case_id BIGINT REFERENCES sender_case (id) ON DELETE CASCADE,
-  recipient            VARCHAR(256)
+  recipient      VARCHAR(256)
 );
 
 CREATE TABLE attribute (
@@ -197,7 +198,7 @@ CREATE TABLE integration_type (
   auth_flow     INTEGRATION_AUTH_FLOW_ENUM,
   creation_date TIMESTAMP DEFAULT now()    NOT NULL,
   group_type    INTEGRATION_GROUP_ENUM     NOT NULL,
-  enabled       BOOLEAN                    NOT NULL DEFAULT FALSE,
+  enabled       BOOLEAN                    NOT NULL,
   details       JSONB                      NULL
 );
 
@@ -458,7 +459,7 @@ CREATE TABLE statistics (
 
 CREATE TABLE issue_type_project (
   project_id    BIGINT REFERENCES project ON DELETE CASCADE,
-  issue_type_id BIGINT REFERENCES issue_type,
+  issue_type_id BIGINT REFERENCES issue_type ON DELETE CASCADE,
   CONSTRAINT issue_type_project_pk PRIMARY KEY (project_id, issue_type_id)
 );
 ----------------------------------------------------------------------------------------
@@ -656,22 +657,20 @@ BEGIN
         THEN
           UPDATE test_item
           SET parent_id = parentitemid,
-              path      = text2ltree(concat(parentitempath :: text, '.', test_item.item_id :: text))
+              path      = text2ltree(concat(parentitempath :: TEXT, '.', test_item.item_id :: TEXT))
           WHERE test_item.path <@ mergingtestitemfield.path_value
             AND test_item.path != mergingtestitemfield.path_value
             AND nlevel(test_item.path) = i + 1
             AND test_item.retry_of IS NULL;
-          DELETE
-          FROM test_item
-          WHERE test_item.path = mergingtestitemfield.path_value
-            AND test_item.item_id != parentitemid;
+          DELETE FROM test_item WHERE test_item.path = mergingtestitemfield.path_value
+                                  AND test_item.item_id != parentitemid;
 
         END IF;
 
         IF mergingtestitemfield.has_retries
         THEN
           UPDATE test_item
-          SET path = text2ltree(concat(mergingtestitemfield.path_value :: text, '.', test_item.item_id :: text))
+          SET path = text2ltree(concat(mergingtestitemfield.path_value :: TEXT, '.', test_item.item_id :: TEXT))
           WHERE test_item.retry_of = mergingtestitemfield.item_id;
         END IF;
 
@@ -745,6 +744,12 @@ BEGIN
         has_retries = FALSE,
         path        = ((SELECT path FROM test_item WHERE item_id = newitemid) :: TEXT || '.' || item_id) :: LTREE
     WHERE unique_id = newitemuniqueid
+      AND (retry_of IN (SELECT DISTINCT retries_parent.item_id
+                        FROM test_item retries_parent
+                               LEFT JOIN test_item retries ON retries_parent.item_id = retries.retry_of
+                        WHERE retries_parent.launch_id = newitemlaunchid
+                          AND retries_parent.unique_id = newitemuniqueid)
+             OR (retry_of IS NULL AND launch_id = newitemlaunchid))
       AND item_id != newitemid;
 
     UPDATE test_item
@@ -985,6 +990,7 @@ BEGIN
                 DO UPDATE SET s_counter = statistics.s_counter + 1;
     RETURN new;
   END IF;
+  RETURN new;
 END;
 $$
 LANGUAGE plpgsql;
@@ -1309,7 +1315,7 @@ CREATE TRIGGER before_item_delete
   ON test_item_results
   FOR EACH ROW EXECUTE PROCEDURE decrease_statistics();
 
--- Default data
+--   Default data
 
 DO
 $$DECLARE
@@ -1377,8 +1383,9 @@ BEGIN
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('superadmin_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
     superadminProject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
 
-    INSERT INTO users (login, password, email, role, type, default_project_id, full_name, expired, metadata)
-    VALUES ('superadmin', '5d39d85bddde885f6579f8121e11eba2', 'superadminemail@domain.com', 'ADMINISTRATOR', 'INTERNAL', superadminProject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
+    INSERT INTO users (login, password, email, role, type, full_name, expired, metadata)
+    VALUES ('superadmin', '5d39d85bddde885f6579f8121e11eba2', 'superadminemail@domain.com', 'ADMINISTRATOR', 'INTERNAL', 'tester', FALSE,
+            '{"metadata": {"last_login": "now"}}');
     superadmin := (SELECT currval(pg_get_serial_sequence('users', 'id')));
 
     INSERT INTO project_user (user_id, project_id, project_role) VALUES (superadmin, superadminProject, 'PROJECT_MANAGER');
@@ -1387,8 +1394,9 @@ BEGIN
     INSERT INTO project (name, project_type, creation_date, metadata) VALUES ('default_personal', 'PERSONAL', now(), '{"metadata": {"additional_info": ""}}');
     defaultProject := (SELECT currval(pg_get_serial_sequence('project', 'id')));
 
-    INSERT INTO users (login, password, email, role, type, default_project_id, full_name, expired, metadata)
-    VALUES ('default', '3fde6bb0541387e4ebdadf7c2ff31123', 'defaultemail@domain.com', 'USER', 'INTERNAL', defaultProject, 'tester', FALSE, '{"metadata": {"last_login": "now"}}');
+    INSERT INTO users (login, password, email, role, type, full_name, expired, metadata)
+    VALUES ('default', '3fde6bb0541387e4ebdadf7c2ff31123', 'defaultemail@domain.com', 'USER', 'INTERNAL', 'tester', FALSE,
+            '{"metadata": {"last_login": "now"}}');
     defaultId := (SELECT currval(pg_get_serial_sequence('users', 'id')));
 
     INSERT INTO project_user (user_id, project_id, project_role) VALUES (defaultId, defaultProject, 'PROJECT_MANAGER');

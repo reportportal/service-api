@@ -31,8 +31,6 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * Delete user handler
  *
@@ -67,8 +65,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 			exp.printStackTrace();
 			throw new ReportPortalException("Error while updating projects", exp);
 		}
-
-		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
 
 		userRepository.delete(user);
 

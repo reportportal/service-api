@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.Metadata;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
@@ -68,11 +67,6 @@ public class UserBuilder implements Supplier<User> {
 
 	public UserBuilder addUserRole(UserRole userRole) {
 		user.setRole(userRole);
-		return this;
-	}
-
-	public UserBuilder addDefaultProject(Project project) {
-		user.setDefaultProject(project);
 		return this;
 	}
 

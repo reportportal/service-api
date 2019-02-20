@@ -116,18 +116,18 @@ public class ProjectController {
 	@PutMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-	@ApiOperation(value = "Update project", notes = "'Email Configuration' can be also update via PUT to /{projectName}/emailconfig resource.")
+	@ApiOperation(value = "Update project", notes = "'Notifications Configuration' can be also update via PUT to /{projectName}/notification resource.")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
 	}
 
 	@Transactional
-	@PutMapping("/{projectName}/emailconfig")
+	@PutMapping("/{projectName}/notification")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	@ApiOperation("Update project email configuration")
-	public OperationCompletionRS updateProjectEmailConfig(@PathVariable String projectName,
+	@ApiOperation("Update project notifications configuration")
+	public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProjectNotificationConfig(ProjectExtractor.extractProjectDetails(user, projectName),
@@ -288,8 +288,7 @@ public class ProjectController {
 	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(Project.class) Filter filter, @SortFor(ProjectInfo.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+			@FilterFor(Project.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
@@ -299,7 +298,7 @@ public class ProjectController {
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {
-			getProjectHandler.exportProjects(format, filter, outputStream, pageable);
+			getProjectHandler.exportProjects(format, filter, outputStream);
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
 		}

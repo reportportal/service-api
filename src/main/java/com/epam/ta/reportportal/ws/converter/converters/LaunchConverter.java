@@ -61,6 +61,7 @@ public class LaunchConverter {
 		resource.setIsProcessing(analyzerStatusCache.getAnalyzeStatus().getIfPresent(resource.getLaunchId()) != null);
 		ofNullable(db.getUser()).ifPresent(u -> resource.setOwner(u.getLogin()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
+		resource.setHasRetries(db.isHasRetries());
 		return resource;
 	};
 

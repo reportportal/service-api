@@ -33,10 +33,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -51,7 +49,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Ivan Sharamet
  */
-public class LogIndexerServiceTest {
+class LogIndexerServiceTest {
 
 	private AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
@@ -70,25 +68,22 @@ public class LogIndexerServiceTest {
 			analyzerStatusCache
 	);
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Test
-	public void testIndexLogsWithNonExistentLaunchId() {
+	void testIndexLogsWithNonExistentLaunchId() {
 		Long launchId = 1L;
 		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
 		Long result = logIndexerService.indexLogs(1L, Collections.singletonList(launchId), analyzerConfig()).exceptionally(it -> 0L).join();
-		Assert.assertThat(result, org.hamcrest.Matchers.equalTo(0L));
+		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
 		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	@Test
-	public void testIndexLogsWithoutTestItems() {
+	void testIndexLogsWithoutTestItems() {
 		Long launchId = 2L;
 		when(launchRepository.findById(launchId)).thenReturn(Optional.of(createLaunch(launchId)));
 		Long result = logIndexerService.indexLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
-		Assert.assertThat(result, org.hamcrest.Matchers.equalTo(0L));
+		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
 		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
 	}

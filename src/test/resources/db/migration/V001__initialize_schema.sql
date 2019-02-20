@@ -459,7 +459,7 @@ CREATE TABLE statistics (
 
 CREATE TABLE issue_type_project (
   project_id    BIGINT REFERENCES project ON DELETE CASCADE,
-  issue_type_id BIGINT REFERENCES issue_type,
+  issue_type_id BIGINT REFERENCES issue_type ON DELETE CASCADE,
   CONSTRAINT issue_type_project_pk PRIMARY KEY (project_id, issue_type_id)
 );
 ----------------------------------------------------------------------------------------

@@ -18,26 +18,27 @@ package com.epam.ta.reportportal.core.widget.util;
 
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.junit.Assert;
-import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class WidgetOptionUtilTest {
+class WidgetOptionUtilTest {
 
-	public static final String FIRST_KEY = "KEY1";
-	public static final String SECOND_KEY = "KEY2";
-	public static final String FIRST_STRING_VALUE = "VALUE1";
-	public static final String SECOND_STRING_VALUE = "VALUE2";
+	private static final String FIRST_KEY = "KEY1";
+	private static final String SECOND_KEY = "KEY2";
+	private static final String FIRST_STRING_VALUE = "VALUE1";
+	private static final String SECOND_STRING_VALUE = "VALUE2";
 
 	@Test
-	public void getStringValueWhenCorrectTypeTest() {
+	void getStringValueWhenCorrectTypeTest() {
 
 		//given
 		WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
@@ -46,22 +47,22 @@ public class WidgetOptionUtilTest {
 		String value = WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions);
 
 		//then
-		Assert.assertNotNull(value);
-		Assert.assertEquals(FIRST_STRING_VALUE, value);
+		assertNotNull(value);
+		assertEquals(FIRST_STRING_VALUE, value);
 	}
 
-	@Test(expected = ReportPortalException.class)
-	public void throwExceptionWhenGetStringValueWithInCorrectTypeTest() {
+	@Test
+	void throwExceptionWhenGetStringValueWithInCorrectTypeTest() {
 
 		//given
 		WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
 
 		//when //then throw exception
-		String value = WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions);
+		assertThrows(ReportPortalException.class, () -> WidgetOptionUtil.getValueByKey(FIRST_KEY, widgetOptions));
 	}
 
 	@Test
-	public void getMapValueWhenCorrectTypeTest() {
+	void getMapValueWhenCorrectTypeTest() {
 
 		//given
 		WidgetOptions widgetOptions = new WidgetOptions(getMapWithNonStringValues());
@@ -70,17 +71,17 @@ public class WidgetOptionUtilTest {
 		Map<String, String> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
 
 		//then
-		Assert.assertNotNull(mapByKey);
+		assertNotNull(mapByKey);
 	}
 
-	@Test(expected = ReportPortalException.class)
-	public void throwExceptionWhenGetMapValueWithInCorrectTypeTest() {
+	@Test
+	void throwExceptionWhenGetMapValueWithInCorrectTypeTest() {
 
 		//given
 		WidgetOptions widgetOptions = new WidgetOptions(getMapWithStringValues());
 
 		//when //then throw exception
-		Map<String, String> mapByKey = WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions);
+		assertThrows(ReportPortalException.class, () -> WidgetOptionUtil.getMapByKey(FIRST_KEY, widgetOptions));
 	}
 
 	private Map<String, Object> getMapWithStringValues() {

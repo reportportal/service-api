@@ -27,7 +27,7 @@ import java.util.Optional;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class LaunchTestUtil {
+class LaunchTestUtil {
 
 	private LaunchTestUtil() {
 		//static only

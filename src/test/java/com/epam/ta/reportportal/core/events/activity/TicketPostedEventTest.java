@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,14 +35,14 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class TicketPostedEventTest {
+class TicketPostedEventTest {
 
 	private static final String EXISTED_TICKETS = "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
 	private static final String NEW_TICKET_ID = "125";
 	private static final String NEW_TICKET_URL = "http:/example.com/ticket/125";
 
 	@Test
-	public void toActivity() {
+	void toActivity() {
 		final Activity actual = new TicketPostedEvent(getTicket(), 1L, getTestItem()).toActivity();
 		final Activity expected = getExpectedActivity();
 		checkActivity(expected, actual);

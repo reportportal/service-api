@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,10 +34,10 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class DashboardEventsTest {
+class DashboardEventsTest {
 
 	@Test
-	public void created() {
+	void created() {
 		final String name = "name";
 
 		final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"), 1L).toActivity();
@@ -46,7 +46,7 @@ public class DashboardEventsTest {
 	}
 
 	@Test
-	public void deleted() {
+	void deleted() {
 		final String name = "name";
 
 		final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"), 1L).toActivity();
@@ -55,7 +55,7 @@ public class DashboardEventsTest {
 	}
 
 	@Test
-	public void updated() {
+	void updated() {
 		final String oldName = "oldName";
 		final boolean oldShared = true;
 		final String oldDescription = "oldDescription";

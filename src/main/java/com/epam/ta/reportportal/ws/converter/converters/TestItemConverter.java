@@ -75,6 +75,7 @@ public final class TestItemConverter {
 		resource.setId(testItem.getItemId());
 		resource.setName(testItem.getName());
 		resource.setStatus(testItem.getItemResults().getStatus().name());
+		ofNullable(testItem.getLaunch()).ifPresent(it -> resource.setProjectId(it.getProjectId()));
 		IssueEntity issue = testItem.getItemResults().getIssue();
 		if (issue != null) {
 			resource.setAutoAnalyzed(issue.getAutoAnalyzed());

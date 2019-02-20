@@ -43,7 +43,8 @@ targetCompatibility = 1.8
 
 project.ext {
     limits = [
-            'instruction': 50,
+            'instruction': 50
+//            'instruction': 68,
 //            'branch'     : 41,
 //            'line'       : 67,
 //            'complexity' : 49,
@@ -99,9 +100,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:ad4e7974'
+        compile 'com.github.reportportal:commons-dao:57979e9'
         compile 'com.github.reportportal:commons-rules:4cd20af'
-        compile 'com.github.reportportal:commons-model:8f7e9a0'
+        compile 'com.github.reportportal:commons-model:25819e6'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:e7970ce')
     }
@@ -253,7 +254,7 @@ private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
     file << new URL(scriptUrl).openStream()
 }
 
-task copyScripts {
+task copyTestDatabaseScripts {
     def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
     def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
     copyFromUrl(initScriptPath, initScriptUrl)
@@ -263,7 +264,7 @@ task copyScripts {
     copyFromUrl(dataScriptPath, dataScriptUrl)
 }
 
-test.dependsOn copyScripts
+test.dependsOn copyTestDatabaseScripts
 
 test {
     useJUnitPlatform()

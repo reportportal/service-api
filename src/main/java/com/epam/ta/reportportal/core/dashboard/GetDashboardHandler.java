@@ -16,8 +16,7 @@
 
 package com.epam.ta.reportportal.core.dashboard;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
-import com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -54,7 +53,8 @@ public interface GetDashboardHandler {
 	 * @param user           User
 	 * @return Page of permitted dashboard resources
 	 */
-	Iterable<DashboardResource> getPermitted(ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<DashboardResource> getPermitted(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user);
 
 	/**
 	 * Get shared dashboards entities for current project.
@@ -65,5 +65,6 @@ public interface GetDashboardHandler {
 	 * @param user           User
 	 * @return {@link Iterable}
 	 */
-	Iterable<SharedEntity> getSharedDashboardsNames(ProjectDetails projectDetails, Pageable pageable, Filter filter, ReportPortalUser user);
+	Iterable<SharedEntity> getSharedDashboardsNames(ReportPortalUser.ProjectDetails projectDetails, Pageable pageable, Filter filter,
+			ReportPortalUser user);
 }

@@ -19,8 +19,10 @@ package com.epam.ta.reportportal.auth.acl;
 import com.epam.ta.reportportal.dao.ShareableEntityRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ShareableEntity;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,10 +56,18 @@ public class ShareableObjectsHandler {
 		aclService.createAcl(object);
 		aclService.addPermissions(object, owner, BasePermission.ADMINISTRATION);
 		if (isShared) {
-			userRepository.findNamesByProject(projectId)
+			userRepository.findUsernamesWithProjectRolesByProjectId(projectId)
+					.entrySet()
 					.stream()
-					.filter(it -> !it.equalsIgnoreCase(owner))
-					.forEach(login -> aclService.addPermissions(object, login, BasePermission.READ));
+					.filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
+					.forEach(entry -> {
+						if (ProjectRole.PROJECT_MANAGER.higherThan(entry.getValue())) {
+							aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
+						} else {
+							aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
+						}
+
+					});
 		}
 	}
 
@@ -71,7 +81,14 @@ public class ShareableObjectsHandler {
 	 */
 	public void updateAcl(Object object, Long projectId, boolean isShared) {
 		if (isShared) {
-			userRepository.findNamesByProject(projectId).forEach(login -> aclService.addPermissions(object, login, BasePermission.READ));
+			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((key, value) -> {
+				if (ProjectRole.PROJECT_MANAGER.higherThan(value)) {
+					aclService.addPermissions(object, key, BasePermission.READ);
+				} else {
+					aclService.addPermissions(object, key, BasePermission.ADMINISTRATION);
+				}
+
+			});
 		} else {
 			userRepository.findNamesByProject(projectId).forEach(login -> aclService.removePermissions(object, login));
 		}
@@ -94,9 +111,9 @@ public class ShareableObjectsHandler {
 	 * @param projectId Project
 	 * @param userName  Username
 	 */
-	public void permitSharedObjects(Long projectId, String userName) {
+	public void permitSharedObjects(Long projectId, String userName, Permission permission) {
 		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
-		shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, BasePermission.READ));
+		shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, permission));
 	}
 
 	/**

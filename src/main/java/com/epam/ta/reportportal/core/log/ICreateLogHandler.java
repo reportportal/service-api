@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.log;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.web.multipart.MultipartFile;

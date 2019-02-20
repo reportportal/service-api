@@ -15,7 +15,7 @@
  */
 package com.epam.ta.reportportal.core.file;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 
 import java.io.InputStream;
 

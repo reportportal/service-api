@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.widget;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import org.springframework.transaction.annotation.Transactional;

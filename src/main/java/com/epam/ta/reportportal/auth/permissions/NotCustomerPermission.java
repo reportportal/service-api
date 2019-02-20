@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.auth.permissions;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import org.springframework.stereotype.Component;
 

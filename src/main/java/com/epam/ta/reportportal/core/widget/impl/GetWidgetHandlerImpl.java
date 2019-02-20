@@ -93,13 +93,18 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
 	public Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails) {
-		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId()).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, projectDetails.getProjectName()));
+		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, projectDetails.getProjectName()));
 	}
 
 	@Override
 	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
-	public Widget getAdministrated(Long widgetId) {
-		return widgetRepository.findById(widgetId).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND, widgetId));
+	public Widget getAdministrated(Long widgetId, ReportPortalUser.ProjectDetails projectDetails) {
+		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 	}
 
 	@Override
@@ -177,8 +182,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_NAME))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_OWNER))
 				.build();
-		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(
-				new CompositeFilter(filter, termFilter),
+		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(new CompositeFilter(filter, termFilter),
 				projectDetails.getProjectId()
 		), pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);

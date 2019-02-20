@@ -77,7 +77,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
 		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
@@ -94,7 +94,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
 		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId(), projectDetails);
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget);
 		dashboardWidgetRepository.save(dashboardWidget);

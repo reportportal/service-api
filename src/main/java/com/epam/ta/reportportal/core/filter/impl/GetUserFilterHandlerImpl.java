@@ -109,7 +109,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	@Override
 	@PostFilter(CAN_READ_OBJECT_FILTER)
-	public List<UserFilter> getFiltersById(Long[] ids, ProjectDetails projectDetails, ReportPortalUser user) {
+	public List<UserFilter> getFiltersById(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return filterRepository.findAllByIdInAndProjectId(Lists.newArrayList(ids), projectDetails.getProjectId());
 	}
 }

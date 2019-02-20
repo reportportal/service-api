@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -36,6 +38,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -93,8 +96,17 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
-		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId(), projectDetails);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		BusinessRule.expect(dashboard.getDashboardWidgets()
+				.stream()
+				.map(dw -> dw.getId().getWidgetId())
+				.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())), BooleanUtils::isFalse)
+				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
+						"Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
+						rq.getAddWidget().getWidgetId(),
+						dashboard.getId()
+				));
+		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId());
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget);
 		dashboardWidgetRepository.save(dashboardWidget);
 		return new OperationCompletionRS(

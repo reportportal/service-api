@@ -64,7 +64,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 
 	@Override
 	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
 
 		List<Widget> ownedWidgets = dashboard.getDashboardWidgets()
 				.stream()

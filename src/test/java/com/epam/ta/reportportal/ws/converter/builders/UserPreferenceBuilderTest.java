@@ -2,18 +2,18 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UserPreferenceBuilderTest {
+class UserPreferenceBuilderTest {
 
 	@Test
-	public void userPreferenceBuilder() {
+	void userPreferenceBuilder() {
 		final UserFilter filter = new UserFilter();
 		filter.setName("name");
 		filter.setOwner("owner");

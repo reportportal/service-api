@@ -17,7 +17,7 @@ import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -25,25 +25,26 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class TestItemConverterTest {
+class TestItemConverterTest {
 
-	@Test(expected = NullPointerException.class)
-	public void toActivityResourceNullTest() {
-		TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null);
-	}
-
-	@Test(expected = NullPointerException.class)
-	public void toResourceNullTest() {
-		TestItemConverter.TO_RESOURCE.apply(null);
+	@Test
+	void toActivityResourceNullTest() {
+		assertThrows(NullPointerException.class, () -> TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null));
 	}
 
 	@Test
-	public void toActivityResource() {
+	void toResourceNullTest() {
+		assertThrows(NullPointerException.class, () -> TestItemConverter.TO_RESOURCE.apply(null));
+	}
+
+	@Test
+	void toActivityResource() {
 		final TestItem item = getItem();
 		final TestItemActivityResource activityResource = TestItemConverter.TO_ACTIVITY_RESOURCE.apply(item);
 
@@ -67,7 +68,7 @@ public class TestItemConverterTest {
 	}
 
 	@Test
-	public void toResource() {
+	void toResource() {
 		final TestItem item = getItem();
 		final TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(item);
 

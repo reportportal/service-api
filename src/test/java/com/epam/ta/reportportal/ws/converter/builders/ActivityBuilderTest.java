@@ -4,22 +4,22 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAUNCH;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ActivityBuilderTest {
+class ActivityBuilderTest {
 
 	@Test
-	public void activityBuilderTest() {
+	void activityBuilderTest() {
 		final ActivityAction action = FINISH_LAUNCH;
 		final Activity.ActivityEntityType entity = LAUNCH;
 		final String objectName = "objectName";
@@ -50,7 +50,7 @@ public class ActivityBuilderTest {
 	}
 
 	@Test
-	public void addDetailsTest() {
+	void addDetailsTest() {
 		ActivityDetails details = new ActivityDetails();
 		details.setObjectName("name");
 		final HistoryField historyFiled = HistoryField.of("field", "before", "after");

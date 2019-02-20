@@ -8,19 +8,19 @@ import com.epam.ta.reportportal.ws.model.Size;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class DashboardBuilderTest {
+class DashboardBuilderTest {
 
 	@Test
-	public void createDashboard() {
+	void createDashboard() {
 		final String name = "name";
 		final String description = "description";
 		final boolean share = true;
@@ -42,7 +42,7 @@ public class DashboardBuilderTest {
 	}
 
 	@Test
-	public void updateDashboard() {
+	void updateDashboard() {
 		final String name = "name";
 		final String description = "description";
 		final boolean share = true;

@@ -10,7 +10,7 @@ import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -18,15 +18,15 @@ import java.time.ZoneId;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class IntegrationConverterTest {
+class IntegrationConverterTest {
 
 	@Test
-	public void toResource() {
+	void toResource() {
 		final Integration integration = getIntegration();
 		final IntegrationResource resource = IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
 
@@ -47,7 +47,7 @@ public class IntegrationConverterTest {
 	}
 
 	@Test
-	public void toActivityResource() {
+	void toActivityResource() {
 		final Integration integration = getIntegration();
 		final IntegrationActivityResource resource = IntegrationConverter.TO_ACTIVITY_RESOURCE.apply(integration);
 

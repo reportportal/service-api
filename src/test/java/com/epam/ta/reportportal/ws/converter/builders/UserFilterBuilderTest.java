@@ -8,21 +8,21 @@ import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UserFilterBuilderTest {
+class UserFilterBuilderTest {
 
 	@Test
-	public void userFilterBuilder() {
+	void userFilterBuilder() {
 		final UpdateUserFilterRQ request = new UpdateUserFilterRQ();
 		final String name = "name";
 		request.setName(name);

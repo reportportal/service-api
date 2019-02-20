@@ -4,27 +4,28 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ActivityConverterTest {
+class ActivityConverterTest {
 
-	@Test(expected = NullPointerException.class)
-	public void testNull() {
-		ActivityConverter.TO_RESOURCE.apply(null);
+	@Test
+	void testNull() {
+		assertThrows(NullPointerException.class, () -> ActivityConverter.TO_RESOURCE.apply(null));
 	}
 
 	@Test
-	public void testConvert() {
+	void testConvert() {
 		Activity activity = new Activity();
 		activity.setId(1L);
 		activity.setAction("LAUNCH_STARTED");
@@ -41,7 +42,7 @@ public class ActivityConverterTest {
 	}
 
 	@Test
-	public void toResourceWithUser() {
+	void toResourceWithUser() {
 		Activity activity = new Activity();
 		activity.setId(1L);
 		activity.setAction("LAUNCH_STARTED");

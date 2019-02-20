@@ -3,22 +3,22 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UserCreationBidConverterTest {
+class UserCreationBidConverterTest {
 
 	@Test
-	public void toUser() {
+	void toUser() {
 		CreateUserRQ request = new CreateUserRQ();
 		final String email = "email@example.com";
 		request.setEmail(email);

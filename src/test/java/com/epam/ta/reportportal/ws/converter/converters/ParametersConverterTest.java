@@ -2,18 +2,18 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ParametersConverterTest {
+class ParametersConverterTest {
 
 	@Test
-	public void toResource() {
-		final Parameter parameter = getParamener();
+	void toResource() {
+		final Parameter parameter = getParameter();
 		final ParameterResource resource = ParametersConverter.TO_RESOURCE.apply(parameter);
 
 		assertEquals(resource.getKey(), parameter.getKey());
@@ -21,7 +21,7 @@ public class ParametersConverterTest {
 	}
 
 	@Test
-	public void toModel() {
+	void toModel() {
 		final ParameterResource resource = getResource();
 		final Parameter parameter = ParametersConverter.TO_MODEL.apply(resource);
 
@@ -29,7 +29,7 @@ public class ParametersConverterTest {
 		assertEquals(parameter.getValue(), resource.getValue());
 	}
 
-	private static Parameter getParamener() {
+	private static Parameter getParameter() {
 		Parameter parameter = new Parameter();
 		parameter.setKey("key");
 		parameter.setValue("value");

@@ -11,7 +11,7 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,15 +19,15 @@ import java.util.Collections;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class TestItemBuilderTest {
+class TestItemBuilderTest {
 
 	@Test
-	public void testItemBuilder() {
+	void testItemBuilder() {
 		final Launch launch = new Launch();
 		launch.setId(1L);
 		launch.setName("name");
@@ -57,7 +57,7 @@ public class TestItemBuilderTest {
 	}
 
 	@Test
-	public void addStartRqTest() {
+	void addStartRqTest() {
 		final StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setType("step");
 		final ParameterResource parameterResource = new ParameterResource();
@@ -87,7 +87,7 @@ public class TestItemBuilderTest {
 	}
 
 	@Test
-	public void addResultsTest() {
+	void addResultsTest() {
 		TestItem item = new TestItem();
 		final LocalDateTime now = LocalDateTime.now();
 		item.setStartTime(now);

@@ -4,17 +4,17 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UserBuilderTest {
+class UserBuilderTest {
 
 	@Test
-	public void userBuilder() {
+	void userBuilder() {
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		final String login = "login";
 		request.setLogin(login);

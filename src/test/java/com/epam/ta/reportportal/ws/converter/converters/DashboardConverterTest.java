@@ -8,34 +8,35 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class DashboardConverterTest {
+class DashboardConverterTest {
 
-	@Test(expected = NullPointerException.class)
-	public void toResourceNullTest() {
-		DashboardConverter.TO_RESOURCE.apply(null);
-	}
-
-	@Test(expected = NullPointerException.class)
-	public void toActivityResourceNullTest() {
-		DashboardConverter.TO_ACTIVITY_RESOURCE.apply(null);
-	}
-
-	@Test(expected = NullPointerException.class)
-	public void toSharedEntityNullTest() {
-		DashboardConverter.TO_SHARED_ENTITY.apply(null);
+	@Test
+	void toResourceNullTest() {
+		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_RESOURCE.apply(null));
 	}
 
 	@Test
-	public void toSharedEntity() {
+	void toActivityResourceNullTest() {
+		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_ACTIVITY_RESOURCE.apply(null));
+	}
+
+	@Test
+	void toSharedEntityNullTest() {
+		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_SHARED_ENTITY.apply(null));
+	}
+
+	@Test
+	void toSharedEntity() {
 		final Dashboard dashboard = getDashboard();
 		final SharedEntity sharedEntity = DashboardConverter.TO_SHARED_ENTITY.apply(dashboard);
 
@@ -46,7 +47,7 @@ public class DashboardConverterTest {
 	}
 
 	@Test
-	public void toActivityResource() {
+	void toActivityResource() {
 		final Dashboard dashboard = getDashboard();
 		final DashboardActivityResource activityResource = DashboardConverter.TO_ACTIVITY_RESOURCE.apply(dashboard);
 
@@ -58,7 +59,7 @@ public class DashboardConverterTest {
 	}
 
 	@Test
-	public void toResource() {
+	void toResource() {
 		final Dashboard dashboard = getDashboard();
 		final DashboardResource resource = DashboardConverter.TO_RESOURCE.apply(dashboard);
 

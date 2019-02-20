@@ -5,18 +5,18 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ProjectActivityConverterTest {
+class ProjectActivityConverterTest {
 
 	@Test
-	public void toActivityResource() {
+	void toActivityResource() {
 		final Project project = getProject();
 		final ProjectAttributesActivityResource resource = ProjectActivityConverter.TO_ACTIVITY_RESOURCE.apply(project);
 

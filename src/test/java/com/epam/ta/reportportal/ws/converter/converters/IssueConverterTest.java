@@ -5,17 +5,17 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class IssueConverterTest {
+class IssueConverterTest {
 
 	@Test
-	public void toModel() {
+	void toModel() {
 		final IssueEntity issueEntity = getIssueEntity();
 		final Issue resource = IssueConverter.TO_MODEL.apply(issueEntity);
 
@@ -26,7 +26,7 @@ public class IssueConverterTest {
 	}
 
 	@Test
-	public void toResource() {
+	void toResource() {
 		final Issue issue = getIssue();
 		final IssueEntity issueEntity = IssueConverter.TO_ISSUE.apply(issue);
 

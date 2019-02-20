@@ -2,17 +2,17 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class BugTrackingSystemBuilderTest {
+class BugTrackingSystemBuilderTest {
 
 	@Test
-	public void setParamsTest() {
+	void setParamsTest() {
 		final String btsProject = "project";
 		final String url = "http:/test.com";
 		final String authKey = "authKey";

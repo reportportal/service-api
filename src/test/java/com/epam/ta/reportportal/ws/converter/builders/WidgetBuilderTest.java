@@ -5,22 +5,22 @@ import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class WidgetBuilderTest {
+class WidgetBuilderTest {
 
 	@Test
-	public void widgetBuilderTest() {
+	void widgetBuilderTest() {
 		final WidgetRQ widgetRQ = new WidgetRQ();
 		final String name = "name";
 		widgetRQ.setName(name);
@@ -59,7 +59,7 @@ public class WidgetBuilderTest {
 	}
 
 	@Test
-	public void addWidgetPreviewRqTest() {
+	void addWidgetPreviewRqTest() {
 		final WidgetPreviewRQ previewRQ = new WidgetPreviewRQ();
 		final ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(Collections.singletonList("contentField"));

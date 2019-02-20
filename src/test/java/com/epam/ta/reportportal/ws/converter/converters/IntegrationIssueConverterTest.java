@@ -2,17 +2,17 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class IntegrationIssueConverterTest {
+class IntegrationIssueConverterTest {
 
 	@Test
-	public void toTicket() {
+	void toTicket() {
 		final Issue.ExternalSystemIssue issue = getIssue();
 		final Ticket resource = IntegrationIssueConverter.TO_TICKET.apply(issue);
 

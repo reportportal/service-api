@@ -16,22 +16,22 @@ import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 
 import java.util.HashMap;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class WidgetConverterTest {
+class WidgetConverterTest {
 
 	@Test
-	public void toWidgetResource() {
+	void toWidgetResource() {
 		final Widget widget = getWidget();
 		final WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
 
@@ -47,7 +47,7 @@ public class WidgetConverterTest {
 	}
 
 	@Test
-	public void toActivityResource() {
+	void toActivityResource() {
 		final Widget widget = getWidget();
 		final WidgetActivityResource resource = WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget);
 
@@ -61,7 +61,7 @@ public class WidgetConverterTest {
 	}
 
 	@Test
-	public void toObjectModel() {
+	void toObjectModel() {
 		final DashboardWidget dashboardWidget = getDashboardWIdget();
 		final DashboardResource.WidgetObjectModel widgetObjectModel = WidgetConverter.TO_OBJECT_MODEL.apply(dashboardWidget);
 
@@ -73,7 +73,7 @@ public class WidgetConverterTest {
 	}
 
 	@Test
-	public void toDashboardWidget() {
+	void toDashboardWidget() {
 		final DashboardResource.WidgetObjectModel widgetObjectModel = getWidgetObjectModel();
 		final Dashboard dashboard = new Dashboard();
 		dashboard.setId(2L);

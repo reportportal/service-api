@@ -2,18 +2,18 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.user.RestorePasswordBid;
 import com.epam.ta.reportportal.ws.model.user.RestorePasswordRQ;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class RestorePasswordBidConverterTest {
+class RestorePasswordBidConverterTest {
 
 	@Test
-	public void toBid() {
+	void toBid() {
 		final RestorePasswordRQ request = new RestorePasswordRQ();
 		request.setEmail("email@example.com");
 

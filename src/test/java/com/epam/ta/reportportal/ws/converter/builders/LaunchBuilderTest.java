@@ -7,23 +7,23 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class LaunchBuilderTest {
+class LaunchBuilderTest {
 
 	@Test
-	public void launchBuilder() {
+	void launchBuilder() {
 		final String description = "description";
 		final LocalDateTime now = LocalDateTime.now();
 		final Date date = Date.from(now.atZone(ZoneId.of("UTC")).toInstant());
@@ -52,7 +52,7 @@ public class LaunchBuilderTest {
 	}
 
 	@Test
-	public void addStartRqTest() {
+	void addStartRqTest() {
 		final StartLaunchRQ request = new StartLaunchRQ();
 		final String uuid = "uuid";
 		request.setUuid(uuid);
@@ -76,7 +76,7 @@ public class LaunchBuilderTest {
 	}
 
 	@Test
-	public void overwriteAttributes() {
+	void overwriteAttributes() {
 		Launch launch = new Launch();
 		final ItemAttribute systemAttribute = new ItemAttribute("key", "value", true);
 		launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));

@@ -11,21 +11,20 @@ import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class UserConverterTest {
+class UserConverterTest {
 
 	@Test
-	public void toResource() {
+	void toResource() {
 		final User user = getUser();
 		final UserResource resource = UserConverter.TO_RESOURCE.apply(user);
 
@@ -40,12 +39,14 @@ public class UserConverterTest {
 	}
 
 	@Test
-	public void toActivityResource() {
+	void toActivityResource() {
 		final User user = getUser();
-		final UserActivityResource resource = UserConverter.TO_ACTIVITY_RESOURCE.apply(user);
+		final Long projectId = 2L;
+		final UserActivityResource resource = UserConverter.TO_ACTIVITY_RESOURCE.apply(user, projectId);
 
 		assertEquals(resource.getId(), user.getId());
 		assertEquals(resource.getFullName(), user.getFullName());
+		assertEquals(resource.getDefaultProjectId(), projectId);
 	}
 
 	private static User getUser() {
@@ -75,7 +76,6 @@ public class UserConverterTest {
 		return user;
 	}
 
-	@NotNull
 	private static HashMap<String, Object> getMetadata() {
 		final HashMap<String, Object> metadata = new HashMap<>();
 		metadata.put("key1", "value1");

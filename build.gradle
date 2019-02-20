@@ -100,8 +100,8 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:57979e9'
-        compile 'com.github.reportportal:commons-rules:4cd20af'
+        compile 'com.github.reportportal:commons-dao:44d1d4e'
+        compile 'com.github.reportportal:commons-rules:574fb3a'
         compile 'com.github.reportportal:commons-model:25819e6'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:e7970ce')
@@ -243,6 +243,28 @@ build.dependsOn jacocoTestReport
 bootJar {
     archiveName = "${baseName}.${extension}"
 }
+
+private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
+    def file = new File(localScriptPath)
+    if (file.exists()) {
+        file.delete()
+    }
+    file.getParentFile().mkdirs()
+    file.createNewFile()
+    file << new URL(scriptUrl).openStream()
+}
+
+task copyTestDatabaseScripts {
+    def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
+    copyFromUrl(initScriptPath, initScriptUrl)
+
+    def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
+    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql"
+    copyFromUrl(dataScriptPath, dataScriptUrl)
+}
+
+test.dependsOn copyTestDatabaseScripts
 
 test {
     useJUnitPlatform()

@@ -57,6 +57,7 @@ import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -227,7 +228,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 			projectUser.setUser(modifyingUser);
 			projectUser.setProject(project);
 			project.getUsers().add(projectUser);
-			aclHandler.permitSharedObjects(project.getId(), name);
+			aclHandler.permitSharedObjects(project.getId(),
+					name,
+					ProjectRole.PROJECT_MANAGER.higherThan(projectRole) ? BasePermission.READ : BasePermission.ADMINISTRATION
+			);
 		});
 
 		return new OperationCompletionRS(

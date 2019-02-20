@@ -10,6 +10,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
@@ -25,6 +26,7 @@ import java.io.InputStream;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Profile("!unittest")
 @Component
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class UserCreatedEventHandler {

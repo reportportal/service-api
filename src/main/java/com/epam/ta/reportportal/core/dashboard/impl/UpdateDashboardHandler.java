@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
@@ -79,7 +79,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS updateDashboard(ReportPortalUser.ProjectDetails projectDetails, UpdateDashboardRQ rq, Long dashboardId,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
 		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
@@ -96,7 +96,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	@Override
 	public OperationCompletionRS addWidget(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, AddWidgetRq rq,
 			ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
 		BusinessRule.expect(dashboard.getDashboardWidgets()
 				.stream()
 				.map(dw -> dw.getId().getWidgetId())
@@ -106,7 +106,7 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 						rq.getAddWidget().getWidgetId(),
 						dashboard.getId()
 				));
-		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId());
+		Widget widget = getWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId(), projectDetails);
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget);
 		dashboardWidgetRepository.save(dashboardWidget);
 		return new OperationCompletionRS(
@@ -116,8 +116,8 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 
 	@Override
 	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
-		Widget widget = getWidgetHandler.getPermitted(widgetId);
+		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId, projectDetails);
+		Widget widget = getWidgetHandler.getPermitted(widgetId, projectDetails);
 
 		/*
 		 *	if user is an owner of the widget - remove it from all dashboards

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -129,7 +130,7 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId);
+		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId, ProjectExtractor.extractProjectDetails(user, projectName));
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
 

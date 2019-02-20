@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.user.StoredAccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -51,7 +52,7 @@ public class CombinedTokenStore extends JwtTokenStore {
 	public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
 		try {
 			return super.readAuthentication(token);
-		} catch (Exception e) {
+		} catch (InvalidTokenException e) {
 			return this.readAuthentication(token.getValue());
 		}
 	}
@@ -60,7 +61,7 @@ public class CombinedTokenStore extends JwtTokenStore {
 	public OAuth2Authentication readAuthentication(String tokenId) {
 		try {
 			return super.readAuthentication(tokenId);
-		} catch (Exception e) {
+		} catch (InvalidTokenException e) {
 			StoredAccessToken accessToken = oAuth2AccessTokenRepository.findByTokenId(tokenId);
 			ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(accessToken.getUserName());
 			OAuth2Authentication authentication = SerializationUtils.deserialize(accessToken.getAuthentication());
@@ -75,7 +76,7 @@ public class CombinedTokenStore extends JwtTokenStore {
 	public OAuth2AccessToken readAccessToken(String tokenValue) {
 		try {
 			return super.readAccessToken(tokenValue);
-		} catch (Exception e) {
+		} catch (InvalidTokenException e) {
 			StoredAccessToken token = oAuth2AccessTokenRepository.findByTokenId(tokenValue);
 			if (token == null) {
 				return null; //let spring security handle the invalid token

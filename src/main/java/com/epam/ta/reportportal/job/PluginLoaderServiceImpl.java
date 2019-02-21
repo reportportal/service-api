@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.google.common.collect.Lists;
@@ -49,10 +49,10 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 
-	private final PluginBox pluginBox;
+	private final Pf4jPluginBox pluginBox;
 
 	@Autowired
-	public PluginLoaderServiceImpl(IntegrationTypeRepository integrationTypeRepository, PluginBox pluginBox) {
+	public PluginLoaderServiceImpl(IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pluginBox) {
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginBox = pluginBox;
 	}

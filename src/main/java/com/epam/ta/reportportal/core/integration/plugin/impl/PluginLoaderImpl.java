@@ -20,8 +20,7 @@ import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -51,19 +50,16 @@ public class PluginLoaderImpl implements PluginLoader {
 
 	private final String pluginsRootPath;
 
-	private final PluginBox pluginBox;
+	private final Pf4jPluginBox pluginBox;
 
 	private final PluginDescriptorFinder pluginDescriptorFinder;
 
-	private final PluginUploadingCache pluginUploadingCache;
-
 	@Autowired
-	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, PluginBox pluginBox,
-			PluginDescriptorFinder pluginDescriptorFinder, PluginUploadingCache pluginUploadingCache) {
+	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, Pf4jPluginBox pluginBox,
+			PluginDescriptorFinder pluginDescriptorFinder) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
-		this.pluginUploadingCache = pluginUploadingCache;
 	}
 
 	@Override
@@ -77,7 +73,7 @@ public class PluginLoaderImpl implements PluginLoader {
 
 		} catch (PluginException e) {
 
-			ofNullable(pluginPath.getFileName()).ifPresent(name -> pluginUploadingCache.finishPluginUploading(name.toString()));
+			ofNullable(pluginPath.getFileName()).ifPresent(name -> pluginBox.removeUploadingPlugin(name.toString()));
 
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e);
 		}
@@ -160,12 +156,12 @@ public class PluginLoaderImpl implements PluginLoader {
 		Path pluginPath = Paths.get(pluginsTempPath.toString(), pluginFile.getOriginalFilename());
 
 		try {
-			pluginUploadingCache.startPluginUploading(pluginFile.getOriginalFilename(), pluginPath);
+			pluginBox.addUploadingPlugin(pluginFile.getOriginalFilename(), pluginPath);
 
 			Files.copy(pluginFile.getInputStream(), pluginPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 
-			pluginUploadingCache.finishPluginUploading(pluginFile.getOriginalFilename());
+			pluginBox.removeUploadingPlugin(pluginFile.getOriginalFilename());
 
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Unable to copy the new plugin file with name = {} to the temp directory",
@@ -187,7 +183,7 @@ public class PluginLoaderImpl implements PluginLoader {
 		} catch (IOException e) {
 			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
 		} finally {
-			pluginUploadingCache.finishPluginUploading(pluginFileName);
+			pluginBox.removeUploadingPlugin(pluginFileName);
 		}
 	}
 

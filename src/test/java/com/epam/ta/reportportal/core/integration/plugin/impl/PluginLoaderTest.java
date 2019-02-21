@@ -19,8 +19,7 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
@@ -45,7 +44,7 @@ public class PluginLoaderTest {
 
 	private final String pluginRootPath = "plugins";
 
-	private final PluginBox pluginBox = mock(PluginBox.class);
+	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 
 	private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
 
@@ -55,9 +54,8 @@ public class PluginLoaderTest {
 
 	private final PluginManager pluginManager = mock(PluginManager.class);
 
-	private final PluginUploadingCache pluginUploadingCache = mock(PluginUploadingCache.class);
-
-	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder, pluginUploadingCache);
+	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder
+	);
 
 	@Test
 	void shouldExtractPluginIdWhenExists() throws PluginException {

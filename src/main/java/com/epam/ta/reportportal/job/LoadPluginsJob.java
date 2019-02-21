@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -52,13 +53,13 @@ public class LoadPluginsJob {
 
 	private final String pluginsRootPath;
 
-	private final PluginBox pluginBox;
+	private final Pf4jPluginBox pluginBox;
 
 	private final DataStore dataStore;
 
 	@Autowired
 	public LoadPluginsJob(@Value("${rp.plugins.path}") String pluginsRootPath, IntegrationTypeRepository integrationTypeRepository,
-			PluginLoaderService pluginLoaderService, PluginBox pf4jPluginBox, DataStore dataStore) {
+			PluginLoaderService pluginLoaderService, Pf4jPluginBox pf4jPluginBox, DataStore dataStore) {
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginLoaderService = pluginLoaderService;
 		this.pluginBox = pf4jPluginBox;

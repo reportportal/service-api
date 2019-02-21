@@ -20,8 +20,7 @@ import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
@@ -55,7 +54,7 @@ public class CreatePluginHandlerTest {
 
 	private final MultipartFile multipartFile = mock(MultipartFile.class);
 
-	private final PluginBox pluginBox = mock(PluginBox.class);
+	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 
 	private final PluginLoader pluginLoader = mock(PluginLoader.class);
 
@@ -67,14 +66,11 @@ public class CreatePluginHandlerTest {
 
 	private final DataStore dataStore = mock(DataStore.class);
 
-	private final PluginUploadingCache pluginUploadingCache = mock(PluginUploadingCache.class);
-
 	private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginRootPath,
 			pluginBox,
 			pluginLoader,
 			integrationTypeRepository,
-			dataStore,
-			pluginUploadingCache
+			dataStore
 	);
 
 	@Test

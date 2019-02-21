@@ -17,9 +17,8 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import org.pf4j.PluginWrapper;
@@ -54,20 +53,17 @@ public class CleanOutdatedPluginsJob {
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 
-	private final PluginBox pluginBox;
+	private final Pf4jPluginBox pluginBox;
 
 	private final PluginLoaderService pluginLoaderService;
 
-	private final PluginUploadingCache pluginUploadingCache;
-
 	@Autowired
 	public CleanOutdatedPluginsJob(@Value("${rp.plugins.path}") String pluginsRootPath, IntegrationTypeRepository integrationTypeRepository,
-			PluginBox pf4jPluginBox, PluginLoaderService pluginLoaderService, PluginUploadingCache pluginUploadingCache) {
+			Pf4jPluginBox pf4jPluginBox, PluginLoaderService pluginLoaderService) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginBox = pf4jPluginBox;
 		this.pluginLoaderService = pluginLoaderService;
-		this.pluginUploadingCache = pluginUploadingCache;
 	}
 
 	@Scheduled(fixedDelayString = "${com.ta.reportportal.job.clean.outdated.plugins.cron}")
@@ -91,7 +87,7 @@ public class CleanOutdatedPluginsJob {
 		LOGGER.info("Searching for temporary plugins...");
 		try (Stream<Path> pathStream = Files.walk(tempPluginsPath)) {
 			pathStream.filter(Files::isRegularFile).forEach(path -> ofNullable(path.getFileName()).ifPresent(fileName -> {
-				if (!pluginUploadingCache.isPluginStillBeingUploaded(fileName.toString())) {
+				if (!pluginBox.isPluginStillBeingUploaded(fileName.toString())) {
 					try {
 						Files.deleteIfExists(path);
 						LOGGER.info(Suppliers.formattedSupplier("Temporary plugin - '{}' has been removed", path).get());
@@ -132,6 +128,6 @@ public class CleanOutdatedPluginsJob {
 
 	private boolean isPluginStillBeingUploaded(@NotNull PluginWrapper pluginWrapper) {
 
-		return pluginUploadingCache.isPluginStillBeingUploaded(pluginWrapper.getPluginPath().getFileName().toString());
+		return pluginBox.isPluginStillBeingUploaded(pluginWrapper.getPluginPath().getFileName().toString());
 	}
 }

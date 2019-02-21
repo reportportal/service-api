@@ -82,7 +82,7 @@ public interface PluginLoader {
 	String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, Path pluginsTempPath);
 
 	/**
-	 * Remove the plugin file from the temporary directory and file name from the {@link PluginUploadingCache}
+	 * Remove the plugin file from the temporary directory and file name from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
 	 *
 	 * @param pluginFileDirectory Path to the temporary directory with the plugin file
 	 * @param pluginFileName      Name of the plugin file

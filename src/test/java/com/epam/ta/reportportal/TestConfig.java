@@ -5,7 +5,6 @@ import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTem
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

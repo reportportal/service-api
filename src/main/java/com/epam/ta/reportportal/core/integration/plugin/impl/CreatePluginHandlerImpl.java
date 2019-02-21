@@ -21,10 +21,9 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -61,7 +60,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private final String pluginsTempFolderPath;
 
-	private final PluginBox pluginBox;
+	private final Pf4jPluginBox pluginBox;
 
 	private final PluginLoader pluginLoader;
 
@@ -69,18 +68,15 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private final DataStore dataStore;
 
-	private final PluginUploadingCache pluginUploadingCache;
-
 	@Autowired
-	public CreatePluginHandlerImpl(@Value("${rp.plugins.path}") String pluginsRootPath, PluginBox pluginBox, PluginLoader pluginLoader,
-			IntegrationTypeRepository integrationTypeRepository, DataStore dataStore, PluginUploadingCache pluginUploadingCache) {
+	public CreatePluginHandlerImpl(@Value("${rp.plugins.path}") String pluginsRootPath, Pf4jPluginBox pluginBox, PluginLoader pluginLoader,
+			IntegrationTypeRepository integrationTypeRepository, DataStore dataStore) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.pluginsTempFolderPath = pluginsRootPath + PLUGIN_TEMP_DIRECTORY;
 		this.pluginBox = pluginBox;
 		this.pluginLoader = pluginLoader;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.dataStore = dataStore;
-		this.pluginUploadingCache = pluginUploadingCache;
 	}
 
 	@Override
@@ -136,7 +132,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(newPluginTempPath);
 
 		if (!ofNullable(newPluginInfo.getVersion()).isPresent()) {
-			pluginUploadingCache.finishPluginUploading(pluginFile.getOriginalFilename());
+			pluginBox.removeUploadingPlugin(pluginFile.getOriginalFilename());
 
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
 		}
@@ -191,7 +187,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		Optional<ReportPortalIntegrationEnum> reportPortalIntegration = ReportPortalIntegrationEnum.findByName(pluginInfo.getId());
 
 		if (!reportPortalIntegration.isPresent()) {
-			pluginUploadingCache.finishPluginUploading(newPluginFileName);
+			pluginBox.removeUploadingPlugin(newPluginFileName);
 
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 					Suppliers.formattedSupplier("Unknown integration type - {} ", pluginInfo.getId()).get()
@@ -300,7 +296,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			previousPlugin.ifPresent(pluginLoader::loadAndStartUpPlugin);
 
-			pluginUploadingCache.finishPluginUploading(pluginFile.getOriginalFilename());
+			pluginBox.removeUploadingPlugin(pluginFile.getOriginalFilename());
 
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Unable to upload the new plugin file with id = {} to the data store", newPluginId).get()

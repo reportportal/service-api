@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -15,18 +15,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class SettingsControllerTest extends BaseMvcTest {
+class SettingsControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Test
-	public void getServerSettings() throws Exception {
+	void getServerSettings() throws Exception {
 		mockMvc.perform(get("/settings").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void updateAnalyticsSettings() throws Exception {
+	void updateAnalyticsSettings() throws Exception {
 		AnalyticsResource resource = new AnalyticsResource();
 		resource.setType("server.analytics.all");
 		resource.setEnabled(true);
@@ -36,7 +36,7 @@ public class SettingsControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void saveAnalyticsSettingsNegative() throws Exception {
+	void saveAnalyticsSettingsNegative() throws Exception {
 		AnalyticsResource resource = new AnalyticsResource();
 		resource.setEnabled(true);
 		resource.setType("");

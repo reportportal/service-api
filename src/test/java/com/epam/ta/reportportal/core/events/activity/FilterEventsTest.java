@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,10 +34,10 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class FilterEventsTest {
+class FilterEventsTest {
 
 	@Test
-	public void created() {
+	void created() {
 		final String name = "name";
 		final Activity actual = new FilterCreatedEvent(getUserFilter(name, true, "description"), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.CREATE_FILTER, name);
@@ -45,7 +45,7 @@ public class FilterEventsTest {
 	}
 
 	@Test
-	public void deleted() {
+	void deleted() {
 		final String name = "name";
 		final Activity actual = new FilterDeletedEvent(getUserFilter(name, true, "description"), 1L).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_FILTER, name);
@@ -53,7 +53,7 @@ public class FilterEventsTest {
 	}
 
 	@Test
-	public void updated() {
+	void updated() {
 		final String oldName = "oldName";
 		final boolean oldShared = false;
 		final String oldDescription = "oldDescription";

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;

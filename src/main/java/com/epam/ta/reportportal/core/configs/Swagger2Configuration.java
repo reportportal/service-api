@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,9 +63,11 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
 import static com.google.common.collect.Lists.newArrayList;
@@ -83,6 +86,8 @@ import static springfox.documentation.spi.schema.contexts.ModelContext.inputPara
 @EnableSwagger2
 @ComponentScan(basePackages = "com.epam.ta.reportportal.ws.controller")
 public class Swagger2Configuration {
+
+	private static final Set<String> hiddenParams = ImmutableSet.<String>builder().add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
 
 	@Autowired
 	private ServletContext servletContext;
@@ -208,6 +213,7 @@ public class Swagger2Configuration {
 
 					List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value()).getCriteriaHolders();
 					List<Parameter> params = criteriaList.stream()
+							.filter(ch -> !hiddenParams.contains(ch.getFilterCriteria()))
 							.map(it -> buildParameters(parameterContext, factory, it))
 							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
 							.filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef()

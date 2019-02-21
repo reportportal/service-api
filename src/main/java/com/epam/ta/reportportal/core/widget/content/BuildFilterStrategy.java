@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.widget.content;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.widget.Widget;
 
 import java.util.Map;

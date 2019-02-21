@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.user;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
@@ -95,7 +95,6 @@ public interface GetUserHandler {
 	 * @param reportFormat {@link ReportFormat}
 	 * @param filter       {@link Filter}
 	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
-	 * @param pageable     {@link Pageable}
 	 */
-	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable);
+	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
 }

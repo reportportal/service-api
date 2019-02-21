@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.auth.CombinedTokenStore;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
@@ -42,7 +43,6 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
@@ -98,7 +98,7 @@ class SecurityConfiguration {
 
 		@Bean
 		public TokenStore tokenStore() {
-			return new JwtTokenStore(accessTokenConverter());
+			return new CombinedTokenStore(accessTokenConverter());
 		}
 
 		@Bean

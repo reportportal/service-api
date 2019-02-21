@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.ws.model.activity.WidgetActivityResource;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,10 +36,10 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class WidgetEventsTest {
+class WidgetEventsTest {
 
 	@Test
-	public void created() {
+	void created() {
 		final String name = "name";
 		final boolean shared = true;
 		final String description = "description";
@@ -50,7 +50,7 @@ public class WidgetEventsTest {
 	}
 
 	@Test
-	public void deleted() {
+	void deleted() {
 		final String name = "name";
 		final boolean shared = true;
 		final String description = "description";
@@ -61,7 +61,7 @@ public class WidgetEventsTest {
 	}
 
 	@Test
-	public void update() {
+	void update() {
 		final String oldName = "oldName";
 		final boolean oldShared = false;
 		final String oldDescription = "oldDescription";
@@ -69,7 +69,8 @@ public class WidgetEventsTest {
 		final boolean newShared = true;
 		final String newDescription = "newDescription";
 
-		final Activity actual = new WidgetUpdatedEvent(getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
+		final Activity actual = new WidgetUpdatedEvent(
+				getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
 				getWidget(newName, newShared, newDescription, 4, getAfterContentFields()),
 				getBeforeOptions(),
 				getAfterOptions(),
@@ -132,7 +133,8 @@ public class WidgetEventsTest {
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,
 			Pair<String, String> description, Pair<Integer, Integer> itemsCount, Pair<Set<String>, Set<String>> contentFields,
 			Pair<String, String> options) {
-		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
+		return Lists.newArrayList(
+				HistoryField.of(NAME, name.getLeft(), name.getRight()),
 				HistoryField.of(SHARE, shared.getLeft().toString(), shared.getRight().toString()),
 				HistoryField.of(DESCRIPTION, description.getLeft(), description.getRight()),
 				HistoryField.of(ITEMS_COUNT, itemsCount.getLeft().toString(), itemsCount.getRight().toString()),

@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -30,8 +30,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * Delete user handler
@@ -67,8 +65,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 			exp.printStackTrace();
 			throw new ReportPortalException("Error while updating projects", exp);
 		}
-
-		Optional<String> personalProjectName = projectRepository.findPersonalProjectName(user.getLogin());
 
 		userRepository.delete(user);
 

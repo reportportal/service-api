@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
@@ -71,9 +71,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integration.setEnabled(updateRequest.getEnabled());
 
-		integrationRepository.save(integration);
+		integration.setEnabled(updateRequest.getEnabled());
 
-		integrationRepository.updateEnabledStateByIntegrationTypeId(updateRequest.getEnabled(), integration.getType().getId());
+		integrationRepository.save(integration);
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 

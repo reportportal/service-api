@@ -30,7 +30,7 @@ import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -48,14 +48,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql("classpath:db/test-item/test-item-fill.sql")
-public class TestItemControllerTest extends BaseMvcTest {
+@Sql("/db/test-item/test-item-fill.sql")
+class TestItemControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Test
-	public void startRootItemPositive() throws Exception {
+	void startRootItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId(1L);
 		rq.setName("RootItem");
@@ -69,7 +69,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void startChildItemPositive() throws Exception {
+	void startChildItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId(1L);
 		rq.setName("ChildItem");
@@ -82,7 +82,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void finishTestItemPositive() throws Exception {
+	void finishTestItemPositive() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("PASSED");
@@ -92,41 +92,41 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void getTestItemPositive() throws Exception {
+	void getTestItemPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void getTestItemsPositive() throws Exception {
+	void getTestItemsPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getTestItemBySpecifiedIds() throws Exception {
+	void getTestItemBySpecifiedIds() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/items?ids=1,2,3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void deleteTestItemPositive() throws Exception {
+	void deleteTestItemPositive() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/item/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void deleteTestItemBySpecifiedIds() throws Exception {
+	void deleteTestItemBySpecifiedIds() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/item?ids=2,3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getItemHistoryPositive() throws Exception {
+	void getItemHistoryPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/history?ids=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void updateTestItemPositive() throws Exception {
+	void updateTestItemPositive() throws Exception {
 		UpdateTestItemRQ rq = new UpdateTestItemRQ();
 		rq.setDescription("updated");
 		rq.setAttributes(Sets.newHashSet(new ItemAttributeResource("test", "test")));
@@ -136,20 +136,20 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void getAttributeKeys() throws Exception {
+	void getAttributeKeys() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
 				+ "/item/attribute/keys?launch=1&filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getAttributeValues() throws Exception {
+	void getAttributeValues() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(token(
 				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void defineTestItemIssue() throws Exception {
+	void defineTestItemIssue() throws Exception {
 		DefineIssueRQ rq = new DefineIssueRQ();
 		IssueDefinition issueDefinition = new IssueDefinition();
 		issueDefinition.setId(3L);
@@ -164,7 +164,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void linkExternalIssues() throws Exception {
+	void linkExternalIssues() throws Exception {
 		LinkExternalIssueRQ rq = new LinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
@@ -179,7 +179,7 @@ public class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void unlinkExternalIssues() throws Exception {
+	void unlinkExternalIssues() throws Exception {
 		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		rq.setIssueIds(Collections.singletonList("ticket"));

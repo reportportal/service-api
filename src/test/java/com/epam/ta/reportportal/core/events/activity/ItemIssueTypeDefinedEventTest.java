@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,10 +34,10 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ItemIssueTypeDefinedEventTest {
+class ItemIssueTypeDefinedEventTest {
 
 	@Test
-	public void toActivity() {
+	void toActivity() {
 		final boolean oldIgnoreAnalyzer = true;
 		final String oldName = "oldName";
 		final String oldDescription = "oldDescription";
@@ -45,12 +45,14 @@ public class ItemIssueTypeDefinedEventTest {
 		final String newDescription = "newDescription";
 		final String newName = "newName";
 
-		final Activity actual = new ItemIssueTypeDefinedEvent(getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
+		final Activity actual = new ItemIssueTypeDefinedEvent(
+				getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
 				getTestItem(newName, newDescription, newIgnoreAnalyzer),
 				1L
 		).toActivity();
 		final Activity expected = getExpectedActivity();
-		expected.getDetails().setHistory(getExpectedHistory(Pair.of(oldDescription, newDescription),
+		expected.getDetails().setHistory(getExpectedHistory(
+				Pair.of(oldDescription, newDescription),
 				Pair.of(oldName, newName),
 				Pair.of(String.valueOf(oldIgnoreAnalyzer), String.valueOf(newIgnoreAnalyzer))
 		));
@@ -85,7 +87,8 @@ public class ItemIssueTypeDefinedEventTest {
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> description, Pair<String, String> issueType,
 			Pair<String, String> ignoreAnalyzer) {
-		return Lists.newArrayList(HistoryField.of(COMMENT, description.getLeft(), description.getRight()),
+		return Lists.newArrayList(
+				HistoryField.of(COMMENT, description.getLeft(), description.getRight()),
 				HistoryField.of(ISSUE_TYPE, issueType.getLeft(), issueType.getRight()),
 				HistoryField.of(IGNORE_ANALYZER, ignoreAnalyzer.getLeft(), ignoreAnalyzer.getRight())
 		);

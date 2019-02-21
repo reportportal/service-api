@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -166,9 +166,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream, Pageable pageable) {
+	public void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream) {
 
-		List<Project> projects = projectRepository.findByFilter(filter, pageable).getContent();
+		List<Project> projects = projectRepository.findByFilter(filter);
 
 		List<? extends Map<String, ?>> data = projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 

@@ -8,27 +8,27 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Andrei Varabyeu
  */
-public class PredicatesTest {
+class PredicatesTest {
 
 	@Test
-	public void checkSpecialCharacters() {
-		assertTrue("Incorrect predicate behavior: only spec chars", Predicates.SPECIAL_CHARS_ONLY.test("_"));
-		Assert.assertFalse("Incorrect predicate behavior: spec chars after ASCII", Predicates.SPECIAL_CHARS_ONLY.test("a_"));
-		Assert.assertFalse("Incorrect predicate behavior: spec chars before ASCII", Predicates.SPECIAL_CHARS_ONLY.test("_a"));
+	void checkSpecialCharacters() {
+		assertTrue(Predicates.SPECIAL_CHARS_ONLY.test("_"), "Incorrect predicate behavior: only spec chars");
+		assertFalse(Predicates.SPECIAL_CHARS_ONLY.test("a_"), "Incorrect predicate behavior: spec chars after ASCII");
+		assertFalse(Predicates.SPECIAL_CHARS_ONLY.test("_a"), "Incorrect predicate behavior: spec chars before ASCII");
 	}
 
 	@Test
-	public void checkCanBeIndexed() {
+	void checkCanBeIndexed() {
 		TestItem testItem = new TestItem();
 		final TestItemResults itemResults = new TestItemResults();
 		final IssueEntity issueEntity = new IssueEntity();
@@ -38,11 +38,11 @@ public class PredicatesTest {
 		issueEntity.setIssueType(issueType);
 		itemResults.setIssue(issueEntity);
 		testItem.setItemResults(itemResults);
-		assertTrue("Item should be available for indexing", ITEM_CAN_BE_INDEXED.test(testItem));
+		assertTrue(ITEM_CAN_BE_INDEXED.test(testItem), "Item should be available for indexing");
 	}
 
 	@Test
-	public void checkTIIndexed() {
+	void checkTIIndexed() {
 		TestItem testItem = new TestItem();
 		final TestItemResults itemResults = new TestItemResults();
 		final IssueEntity issue = new IssueEntity();
@@ -52,11 +52,11 @@ public class PredicatesTest {
 		issue.setIssueType(issueType);
 		itemResults.setIssue(issue);
 		testItem.setItemResults(itemResults);
-		Assert.assertFalse("Item with TI issue shouldn't be available for indexing", ITEM_CAN_BE_INDEXED.test(testItem));
+		assertFalse(ITEM_CAN_BE_INDEXED.test(testItem), "Item with TI issue shouldn't be available for indexing");
 	}
 
 	@Test
-	public void checkIgnoreIndexed() {
+	void checkIgnoreIndexed() {
 		TestItem testItem = new TestItem();
 		final TestItemResults itemResults = new TestItemResults();
 		final IssueEntity issueEntity = new IssueEntity();
@@ -66,20 +66,20 @@ public class PredicatesTest {
 		issueEntity.setIssueType(issueType);
 		itemResults.setIssue(issueEntity);
 		testItem.setItemResults(itemResults);
-		Assert.assertFalse("Item with ignore flag shouldn't be available for indexing", ITEM_CAN_BE_INDEXED.test(testItem));
+		assertFalse(ITEM_CAN_BE_INDEXED.test(testItem), "Item with ignore flag shouldn't be available for indexing");
 	}
 
 	@Test
-	public void checkLaunchCanBeIndexed() {
+	void checkLaunchCanBeIndexed() {
 		Launch launch = new Launch();
 		launch.setMode(LaunchModeEnum.DEFAULT);
-		assertTrue("Launch should be available for indexing", LAUNCH_CAN_BE_INDEXED.test(launch));
+		assertTrue(LAUNCH_CAN_BE_INDEXED.test(launch), "Launch should be available for indexing");
 	}
 
 	@Test
-	public void checkDebugLaunchCanBeIndexed() {
+	void checkDebugLaunchCanBeIndexed() {
 		Launch launch = new Launch();
 		launch.setMode(LaunchModeEnum.DEFAULT);
-		assertTrue("Launch in debug mode should not be available for indexing", LAUNCH_CAN_BE_INDEXED.test(launch));
+		assertTrue(LAUNCH_CAN_BE_INDEXED.test(launch), "Launch in debug mode should not be available for indexing");
 	}
 }

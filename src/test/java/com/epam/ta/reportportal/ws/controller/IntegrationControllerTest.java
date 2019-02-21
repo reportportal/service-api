@@ -1,119 +1,140 @@
-/*
- * Copyright 2018 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Sql(value = { "classpath:db/integration/integration-type-fill.sql", "classpath:db/integration/integrations-fill.sql" })
-@Ignore
-public class IntegrationControllerTest extends BaseMvcTest {
+@Sql("/db/integration/integration-fill.sql")
+class IntegrationControllerTest extends BaseMvcTest {
 
 	@Autowired
-	private ObjectMapper testObjectMapper;
+	private ObjectMapper objectMapper;
 
 	@Test
-	public void createGlobalIntegration() throws Exception {
-
-		UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
-
-		updateIntegrationRQ.setIntegrationName("EMAIL");
-		updateIntegrationRQ.setEnabled(true);
+	void createGlobalIntegration() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("email");
 		Map<String, Object> params = new HashMap<>();
-		params.put("from", "test@mail.com");
-		updateIntegrationRQ.setIntegrationParams(params);
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
 
-		mockMvc.perform(MockMvcRequestBuilders.post("/integration")
-				.with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(MediaType.APPLICATION_JSON_VALUE)
-				.content(testObjectMapper.writeValueAsString(updateIntegrationRQ))).andExpect(status().isCreated());
+		doNothing().when(emailService).testConnection();
+
+		mockMvc.perform(post("/integration").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
 	}
 
 	@Test
-	public void createProjectIntegration() throws Exception {
-
-		UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
-
-		updateIntegrationRQ.setIntegrationName("EMAIL");
-		updateIntegrationRQ.setEnabled(true);
+	void createGlobalIntegrationNegative() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("unknown");
 		Map<String, Object> params = new HashMap<>();
-		params.put("from", "test@mail.com");
-		updateIntegrationRQ.setIntegrationParams(params);
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
 
-		mockMvc.perform(MockMvcRequestBuilders.post("/integration" + SUPERADMIN_PROJECT_BASE_URL)
-				.with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(MediaType.APPLICATION_JSON_VALUE)
-				.content(testObjectMapper.writeValueAsString(updateIntegrationRQ))).andExpect(status().isCreated());
+		mockMvc.perform(post("/integration").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
 	}
 
 	@Test
-	public void getIntegration() throws Exception {
+	void createProjectIntegration() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("email");
+		Map<String, Object> params = new HashMap<>();
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/integration/7").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
 	}
 
 	@Test
-	public void deleteGlobalIntegration() throws Exception {
+	void createProjectIntegrationNegative() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("unknown");
+		Map<String, Object> params = new HashMap<>();
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
 
-		mockMvc.perform(MockMvcRequestBuilders.delete("/integration/7").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
 	}
 
 	@Test
-	public void deleteAllIntegrations() throws Exception {
-
-		mockMvc.perform(MockMvcRequestBuilders.delete("/integration/all").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk());
+	void getGlobalIntegration() throws Exception {
+		mockMvc.perform(get("/integration/7").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void getProjectIntegration() throws Exception {
-
-		mockMvc.perform(MockMvcRequestBuilders.get("/integration" + SUPERADMIN_PROJECT_BASE_URL + "/9")
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	void getGlobalIntegrationNegative() throws Exception {
+		mockMvc.perform(get("/integration/100").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isNotFound());
 	}
 
 	@Test
-	public void deleteProjectIntegration() throws Exception {
-
-		mockMvc.perform(MockMvcRequestBuilders.delete("/integration" + SUPERADMIN_PROJECT_BASE_URL + "/9")
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	void deleteGlobalIntegration() throws Exception {
+		mockMvc.perform(delete("/integration/7").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void deleteAllProjectIntegrations() throws Exception {
+	void deleteGlobalIntegrationNegative() throws Exception {
+		mockMvc.perform(delete("/integration/100").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isNotFound());
+	}
 
-		mockMvc.perform(MockMvcRequestBuilders.delete("/integration" + SUPERADMIN_PROJECT_BASE_URL + "/all")
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	@Test
+	void deleteAllIntegrations() throws Exception {
+		mockMvc.perform(delete("/integration/all").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getProjectIntegration() throws Exception {
+		mockMvc.perform(get("/integration/default_personal/8").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getProjectIntegrationNegative() throws Exception {
+		mockMvc.perform(get("/integration/default_personal/100").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void deleteProjectIntegration() throws Exception {
+		mockMvc.perform(delete("/integration/default_personal/8").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void deleteProjectIntegrationNegative() throws Exception {
+		mockMvc.perform(delete("/integration/default_personal/100").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void deleteAllProjectIntegrations() throws Exception {
+		mockMvc.perform(delete("/integration/default_personal/all").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 }

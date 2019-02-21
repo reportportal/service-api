@@ -16,14 +16,17 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
+import com.epam.ta.reportportal.dao.UserCreationBidRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -49,6 +52,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +61,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -95,11 +98,14 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final GetIntegrationHandler getIntegrationHandler;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler) {
+			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
+			ApplicationEventPublisher eventPublisher) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.personalProjectService = personalProjectService;
@@ -109,6 +115,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		this.messageBus = messageBus;
 		this.saveDefaultProjectService = saveDefaultProjectService;
 		this.getIntegrationHandler = getIntegrationHandler;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -137,7 +144,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		);
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, email, basicUrl);
-		messageBus.publishActivity(new UserCreatedEvent(pair.getKey(), creator.getUserId()));
+		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId());
+		messageBus.publishActivity(userCreatedEvent);
+		eventPublisher.publishEvent(userCreatedEvent);
 		return pair.getValue();
 
 	}
@@ -171,7 +180,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
 		List<Project> projects = projectRepository.findUserProjects(loggedInUser.getUsername());
 
-		expect(defaultProject, in(projects)).verify(ACCESS_DENIED);
+		projects.stream()
+				.filter(it -> it.getId().equals(defaultProject.getId()))
+				.findAny()
+				.orElseThrow(() -> new ReportPortalException(ACCESS_DENIED,
+						formattedSupplier("{} is not your project", defaultProject.getName())
+				));
 
 		ProjectRole role = forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole()));
 
@@ -270,7 +284,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			Project personalProject = personalProjectService.generatePersonalProject(newUser);
 			if (!defaultProject.getId().equals(personalProject.getId())) {
 				projectRepository.save(personalProject);
-				newUser.setDefaultProject(personalProject);
+				newUser.getProjects()
+						.add(new ProjectUser().withProject(personalProject).withUser(newUser).withProjectRole(ProjectRole.PROJECT_MANAGER));
 			}
 
 			userCreationBidRepository.deleteById(uuid);
@@ -280,7 +295,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(newUser), newUser.getId()));
+		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
+				TO_ACTIVITY_RESOURCE.apply(newUser, defaultProject.getId()),
+				newUser.getId()
+		);
+		messageBus.publishActivity(userCreatedEvent);
+		eventPublisher.publishEvent(userCreatedEvent);
+
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

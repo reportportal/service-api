@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -28,19 +28,19 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ImportEventsTest {
+class ImportEventsTest {
 
 	private static final String FILE_NAME = "C:\\Windows\\winhlp32.exe";
 
 	@Test
-	public void started() {
+	void started() {
 		final Activity actual = new ImportStartedEvent(3L, 1L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.START_IMPORT);
 		checkActivity(expected, actual);
 	}
 
 	@Test
-	public void finished() {
+	void finished() {
 		final Activity actual = new ImportFinishedEvent(3L, 1L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_IMPORT);
 		checkActivity(expected, actual);

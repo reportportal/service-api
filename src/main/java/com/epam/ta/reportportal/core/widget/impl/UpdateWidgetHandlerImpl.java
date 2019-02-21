@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.widget.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
@@ -82,7 +82,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = getWidgetHandler.getAdministrated(widgetId);
+		Widget widget = getWidgetHandler.getAdministrated(widgetId, projectDetails);
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
 		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());

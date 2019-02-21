@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.BinaryData;
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
 import com.epam.ta.reportportal.core.user.event.UpdatedRole;
@@ -150,13 +150,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			//noinspection ConstantConditions
 			source = new UpdatedRole(username, newRole);
 			isRoleChanged = true;
-		}
-
-		if (null != editUserRQ.getDefaultProject()) {
-			Project defaultProject = projectRepository.findByName(editUserRQ.getDefaultProject().toLowerCase())
-					.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, editUserRQ.getDefaultProject()));
-			//TODO check if user is owner
-			user.setDefaultProject(defaultProject);
 		}
 
 		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {

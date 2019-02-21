@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -106,10 +106,8 @@ public class GetUserHandlerImpl implements GetUserHandler {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 
-		if (user.getUserType() != UserType.UPSA && user.getDefaultProject() == null && CollectionUtils.isEmpty(user.getProjects())) {
+		if (user.getUserType() != UserType.UPSA && CollectionUtils.isEmpty(user.getProjects())) {
 			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
-
-			user.setDefaultProject(personalProject);
 			personalProject.getUsers().stream().findFirst().ifPresent(projectUser -> user.getProjects().add(projectUser));
 		}
 
@@ -179,8 +177,9 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	}
 
 	@Override
-	public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter, Pageable pageable) {
-		final List<User> users = userRepository.findByFilter(filter, pageable).getContent();
+	public void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter) {
+
+		final List<User> users = userRepository.findByFilter(filter);
 
 		List<? extends Map<String, ?>> data = users.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 

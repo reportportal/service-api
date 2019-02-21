@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
@@ -109,8 +109,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		allByIssueTypeId.forEach(issueEntity -> issueEntity.setIssueType(defaultGroupIssueType));
 
 		project.getProjectIssueTypes().remove(type);
-		issueTypeRepository.deleteById(type.getId().getTypeId());
 		projectRepository.save(project);
+
+		issueTypeRepository.delete(type.getIssueType());
 
 		widgetRepository.findAllByProjectId(projectDetails.getProjectId())
 				.stream()

@@ -21,23 +21,24 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class GetUserHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class GetUserHandlerImplTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -48,31 +49,23 @@ public class GetUserHandlerImplTest {
 	@InjectMocks
 	private GetUserHandlerImpl handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+	@Test
+	void getNotExistedUserByUsername() {
+		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-	@Before
-	public void setUp() {
-		MockitoAnnotations.initMocks(this);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L))
+		);
+		assertEquals("User 'not_exist' not found.", exception.getMessage());
 	}
 
 	@Test
-	public void getNotExistedUserByUsername() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'not_exist' not found.");
-
+	void getNotExistedUserByLoggedInUser() {
 		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
-		handler.getUser("not_exist", getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L));
-	}
-
-	@Test
-	public void getNotExistedUserByLoggedInUser() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("User 'not_exist' not found.");
-
-		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
-
-		handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L));
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
+		);
+		assertEquals("User 'not_exist' not found.", exception.getMessage());
 	}
 }

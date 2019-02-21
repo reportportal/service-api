@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -28,13 +28,11 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -43,12 +41,15 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class StartTestItemHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class StartTestItemHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
@@ -59,33 +60,22 @@ public class StartTestItemHandlerImplTest {
 	@InjectMocks
 	private StartTestItemHandler handler = new StartTestItemHandlerImpl();
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void startRootItemUnderNotExistedLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Launch '1' not found. Did you use correct Launch ID?");
-
+	void startRootItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 		final StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId(1L);
 
-		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq)
+		);
+		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
 
 	@Test
-	public void startRootItemUnderLaunchFromAnotherProject() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("You do not have enough permissions.");
-
+	void startRootItemUnderLaunchFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
 		startTestItemRQ.setLaunchId(1L);
@@ -95,28 +85,28 @@ public class StartTestItemHandlerImplTest {
 		launch.setStartTime(LocalDateTime.now().minusHours(1));
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
-
-		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
+		);
+		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
 
 	@Test
-	public void startRootItemUnderFinishedLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Start test item is not allowed. Launch '1' is not in progress");
-
+	void startRootItemUnderFinishedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
 		startTestItemRQ.setLaunchId(1L);
 
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(getLaunch(1L, StatusEnum.PASSED)));
 
-		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
+		);
+		assertEquals("Start test item is not allowed. Launch '1' is not in progress", exception.getMessage());
 	}
 
 	@Test
-	public void startRootItemEarlierThanLaunch() {
-		thrown.expect(ReportPortalException.class);
-
+	void startRootItemEarlierThanLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
 		startTestItemRQ.setLaunchId(1L);
@@ -126,24 +116,25 @@ public class StartTestItemHandlerImplTest {
 		launch.setStartTime(LocalDateTime.now().plusHours(1));
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
-		handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ);
+		assertThrows(ReportPortalException.class,
+				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
+		);
 	}
 
 	@Test
-	public void startChildItemUnderNotExistedParent() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Test Item '1' not found. Did you use correct Test Item ID?");
-
+	void startChildItemUnderNotExistedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
-		handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), new StartTestItemRQ(), 1L);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), new StartTestItemRQ(), 1L)
+		);
+		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 
 	@Test
-	public void startChildItemEarlierThanParent() {
-		thrown.expect(ReportPortalException.class);
+	void startChildItemEarlierThanParent() {
 
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
@@ -155,14 +146,13 @@ public class StartTestItemHandlerImplTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 
-		handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, 1L);
+		assertThrows(ReportPortalException.class,
+				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, 1L)
+		);
 	}
 
 	@Test
-	public void startChildItemUnderFinishedParent() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Start test item is not allowed. Parent Item '1' is not in progress");
-
+	void startChildItemUnderFinishedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
 		startTestItemRQ.setLaunchId(1L);
@@ -177,7 +167,10 @@ public class StartTestItemHandlerImplTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 
-		handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, 1L);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, 1L)
+		);
+		assertEquals("Start test item is not allowed. Parent Item '1' is not in progress", exception.getMessage());
 	}
 
 	private Launch getLaunch(Long projectId, StatusEnum status) {

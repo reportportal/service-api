@@ -71,8 +71,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integration.setEnabled(updateRequest.getEnabled());
 
-		integration.setEnabled(updateRequest.getEnabled());
-
 		integrationRepository.save(integration);
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");

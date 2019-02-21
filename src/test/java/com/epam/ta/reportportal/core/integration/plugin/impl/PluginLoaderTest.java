@@ -21,16 +21,16 @@ import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
-import org.junit.Assert;
-import org.junit.Test;
+import com.google.common.collect.Lists;
+import org.junit.jupiter.api.Test;
 import org.pf4j.*;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +60,7 @@ public class PluginLoaderTest {
 	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder, pluginUploadingCache);
 
 	@Test
-	public void shouldExtractPluginIdWhenExists() throws PluginException {
+	void shouldExtractPluginIdWhenExists() throws PluginException {
 
 		Path path = Paths.get("dir", FILE_NAME);
 
@@ -70,13 +70,13 @@ public class PluginLoaderTest {
 
 		PluginInfo pluginInfo = pluginLoader.extractPluginInfo(path);
 
-		Assert.assertNotNull(pluginInfo);
-		Assert.assertEquals(PLUGIN_ID, pluginInfo.getId());
-		Assert.assertEquals(PLUGIN_VERSION, pluginInfo.getVersion());
+		assertNotNull(pluginInfo);
+		assertEquals(PLUGIN_ID, pluginInfo.getId());
+		assertEquals(PLUGIN_VERSION, pluginInfo.getVersion());
 	}
 
 	@Test
-	public void shouldReloadPlugin() {
+	void shouldReloadPlugin() {
 
 		Path path = Paths.get("dir", FILE_NAME);
 
@@ -88,12 +88,12 @@ public class PluginLoaderTest {
 
 		PluginState pluginState = pluginLoader.loadAndStartUpPlugin(pluginWrapper);
 
-		Assert.assertNotNull(pluginState);
-		Assert.assertEquals(PluginState.STARTED, pluginState);
+		assertNotNull(pluginState);
+		assertEquals(PluginState.STARTED, pluginState);
 	}
 
 	@Test
-	public void shouldReturnTrueWhenPluginExtensionClassesValid() {
+	void shouldReturnTrueWhenPluginExtensionClassesValid() {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
 
@@ -103,11 +103,11 @@ public class PluginLoaderTest {
 
 		boolean isValid = pluginLoader.validatePluginExtensionClasses(PLUGIN_ID);
 
-		Assert.assertTrue(isValid);
+		assertTrue(isValid);
 	}
 
 	@Test
-	public void shouldReturnFalseWhenPluginExtensionClassesInvalid() {
+	void shouldReturnFalseWhenPluginExtensionClassesInvalid() {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
 
@@ -117,11 +117,11 @@ public class PluginLoaderTest {
 
 		boolean isValid = pluginLoader.validatePluginExtensionClasses(PLUGIN_ID);
 
-		Assert.assertFalse(isValid);
+		assertFalse(isValid);
 	}
 
 	@Test
-	public void shouldRetrievePreviousPluginWhenExists() {
+	void shouldRetrievePreviousPluginWhenExists() {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
 
@@ -131,21 +131,21 @@ public class PluginLoaderTest {
 
 		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
 
-		Assert.assertTrue(pluginWrapper.isPresent());
+		assertTrue(pluginWrapper.isPresent());
 	}
 
 	@Test
-	public void shouldNotRetrievePreviousPluginWhenNotExists() {
+	void shouldNotRetrievePreviousPluginWhenNotExists() {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.empty());
 
 		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
 
-		Assert.assertFalse(pluginWrapper.isPresent());
+		assertFalse(pluginWrapper.isPresent());
 	}
 
 	@Test
-	public void shouldDeletePluginWhenPathsEqual() {
+	void shouldDeletePluginWhenPathsEqual() {
 
 		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
 

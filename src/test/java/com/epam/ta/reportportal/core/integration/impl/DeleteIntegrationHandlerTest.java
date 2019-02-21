@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.ReportPortalUserUtil;
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
@@ -28,17 +28,14 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -50,11 +47,8 @@ public class DeleteIntegrationHandlerTest {
 
 	private final DeleteIntegrationHandler deleteIntegrationHandler = new DeleteIntegrationHandlerImpl(integrationRepository, messageBus);
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Test
-	public void deleteGlobalIntegration() {
+	void deleteGlobalIntegration() {
 
 		final long emailIntegrationId = 1L;
 
@@ -65,8 +59,8 @@ public class DeleteIntegrationHandlerTest {
 
 		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteGlobalIntegration(emailIntegrationId);
 
-		Assert.assertNotNull(operationCompletionRS);
-		Assert.assertEquals(
+		assertNotNull(operationCompletionRS);
+		assertEquals(
 				Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed", emailIntegrationId).get(),
 				operationCompletionRS.getResultMessage()
 		);
@@ -74,18 +68,18 @@ public class DeleteIntegrationHandlerTest {
 	}
 
 	@Test
-	public void deleteAllIntegrations() {
+	void deleteAllIntegrations() {
 
 		doNothing().when(integrationRepository).deleteAllInBatch();
 
 		OperationCompletionRS operationCompletionRS = deleteIntegrationHandler.deleteAllIntegrations();
 
-		Assert.assertNotNull(operationCompletionRS);
-		Assert.assertEquals("All integrations have been successfully removed.", operationCompletionRS.getResultMessage());
+		assertNotNull(operationCompletionRS);
+		assertEquals("All integrations have been successfully removed.", operationCompletionRS.getResultMessage());
 	}
 
 	@Test
-	public void deleteProjectIntegration() {
+	void deleteProjectIntegration() {
 
 		final long emailIntegrationId = 1L;
 		final long projectId = 1L;
@@ -110,14 +104,14 @@ public class DeleteIntegrationHandlerTest {
 				user
 		);
 
-		Assert.assertNotNull(operationCompletionRS);
-		Assert.assertEquals("Integration with ID = '" + emailIntegrationId + "' has been successfully deleted.",
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with ID = '" + emailIntegrationId + "' has been successfully deleted.",
 				operationCompletionRS.getResultMessage()
 		);
 	}
 
 	@Test
-	public void deleteProjectIntegrations() {
+	void deleteProjectIntegrations() {
 
 		final long emailIntegrationId = 1L;
 		final long projectId = 1L;
@@ -138,8 +132,8 @@ public class DeleteIntegrationHandlerTest {
 				TEST_PROJECT_NAME
 		), user);
 
-		Assert.assertNotNull(operationCompletionRS);
-		Assert.assertEquals(
+		assertNotNull(operationCompletionRS);
+		assertEquals(
 				"All integrations for project with id ='" + projectId + "' have been successfully deleted",
 				operationCompletionRS.getResultMessage()
 		);

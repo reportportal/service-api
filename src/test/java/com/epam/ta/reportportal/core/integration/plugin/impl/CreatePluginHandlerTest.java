@@ -20,14 +20,13 @@ import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.core.integration.plugin.PluginUploadingCache;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +36,8 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -77,7 +78,7 @@ public class CreatePluginHandlerTest {
 	);
 
 	@Test
-	public void uploadPlugin() throws IOException {
+	void uploadPlugin() throws IOException {
 
 		when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
 
@@ -114,7 +115,7 @@ public class CreatePluginHandlerTest {
 
 		EntryCreatedRS entryCreatedRS = createPluginHandler.uploadPlugin(multipartFile);
 
-		Assert.assertNotNull(entryCreatedRS);
-		Assert.assertEquals(IntegrationTestUtil.getJiraIntegrationType().getId(), entryCreatedRS.getId());
+		assertNotNull(entryCreatedRS);
+		assertEquals(IntegrationTestUtil.getJiraIntegrationType().getId(), entryCreatedRS.getId());
 	}
 }

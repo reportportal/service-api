@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.ReportPortalUserUtil;
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -26,12 +26,12 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +47,7 @@ public class GetIntegrationHandlerTest {
 	private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(integrationRepository, integrationTypeRepository);
 
 	@Test
-	public void getProjectIntegrationById() {
+	void getProjectIntegrationById() {
 
 		final long emailIntegrationId = 1L;
 		final long projectId = 1L;
@@ -69,16 +69,16 @@ public class GetIntegrationHandlerTest {
 				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME)
 		);
 
-		Assert.assertNotNull(integrationResource);
-		Assert.assertEquals(emailIntegrationId, (long) integrationResource.getId());
-		Assert.assertEquals(false, integrationResource.getEnabled());
-		Assert.assertEquals(projectId, (long) integrationResource.getProjectId());
-		Assert.assertNotNull(integrationResource.getIntegrationParams());
-		Assert.assertNotNull(integrationResource.getIntegrationType());
+		assertNotNull(integrationResource);
+		assertEquals(emailIntegrationId, (long) integrationResource.getId());
+		assertEquals(false, integrationResource.getEnabled());
+		assertEquals(projectId, (long) integrationResource.getProjectId());
+		assertNotNull(integrationResource.getIntegrationParams());
+		assertNotNull(integrationResource.getIntegrationType());
 	}
 
 	@Test
-	public void getGlobalIntegrationById() {
+	void getGlobalIntegrationById() {
 
 		final long emailIntegrationId = 1L;
 		when(integrationRepository.findGlobalById(emailIntegrationId)).thenReturn(Optional.of(IntegrationTestUtil.getGlobalEmailIntegration(
@@ -86,11 +86,11 @@ public class GetIntegrationHandlerTest {
 
 		IntegrationResource integrationResource = getIntegrationHandler.getGlobalIntegrationById(emailIntegrationId);
 
-		Assert.assertNotNull(integrationResource);
-		Assert.assertEquals(emailIntegrationId, (long) integrationResource.getId());
-		Assert.assertEquals(false, integrationResource.getEnabled());
-		Assert.assertNull(integrationResource.getProjectId());
-		Assert.assertNotNull(integrationResource.getIntegrationParams());
-		Assert.assertNotNull(integrationResource.getIntegrationType());
+		assertNotNull(integrationResource);
+		assertEquals(emailIntegrationId, (long) integrationResource.getId());
+		assertEquals(false, integrationResource.getEnabled());
+		assertNull(integrationResource.getProjectId());
+		assertNotNull(integrationResource.getIntegrationParams());
+		assertNotNull(integrationResource.getIntegrationType());
 	}
 }

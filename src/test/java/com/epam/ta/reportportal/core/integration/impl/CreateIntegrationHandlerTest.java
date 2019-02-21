@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.ReportPortalUserUtil;
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
@@ -30,14 +30,13 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,11 +58,8 @@ public class CreateIntegrationHandlerTest {
 			messageBus
 	);
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Test
-	public void createGlobalIntegration() {
+	void createGlobalIntegration() {
 
 		//given
 		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
@@ -84,14 +80,14 @@ public class CreateIntegrationHandlerTest {
 		//then
 		OperationCompletionRS operationCompletionRS = createIntegrationHandler.createGlobalIntegration(updateIntegrationRQ);
 
-		Assert.assertNotNull(operationCompletionRS);
-		Assert.assertEquals("Integration with id = " + emailIntegrationId + " has been successfully created.",
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully created.",
 				operationCompletionRS.getResultMessage()
 		);
 	}
 
 	@Test
-	public void createProjectIntegration() {
+	void createProjectIntegration() {
 
 		//given
 		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
@@ -124,8 +120,8 @@ public class CreateIntegrationHandlerTest {
 				TEST_PROJECT_NAME
 		), updateIntegrationRQ, user);
 
-		Assert.assertNotNull(operationCompletionRS);
-		Assert.assertEquals("Integration with id = " + emailIntegrationId + " has been successfully created.",
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully created.",
 				operationCompletionRS.getResultMessage()
 		);
 

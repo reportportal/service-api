@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -65,7 +64,7 @@ public class UserCreatedEventHandler {
 				final String path = userRepository.replaceUserPhoto(user.getLogin(), binaryData);
 				user.setAttachment(encoder.encode(path));
 
-			} catch (IOException exception) {
+			} catch (Exception exception) {
 				LOGGER.error("Cannot attach default photo to user {}. Error: {}", user.getLogin(), exception);
 			}
 		}

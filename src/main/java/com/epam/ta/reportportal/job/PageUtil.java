@@ -28,6 +28,10 @@ import java.util.function.Function;
  */
 class PageUtil {
 
+	private PageUtil() {
+		//static only
+	}
+
 	private static final int DEFAULT_PAGE_SIZE = 50;
 
 	/**

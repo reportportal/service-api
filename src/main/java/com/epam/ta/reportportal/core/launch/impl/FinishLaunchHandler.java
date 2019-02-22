@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -184,7 +185,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
 				finishExecutionRQ.getEndTime(),
-				launch.getStartTime(),
+				TO_DATE.apply(launch.getStartTime()),
 				launch.getId()
 		);
 	}
@@ -194,7 +195,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 *
 	 * @param launch         {@link Launch}
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 */
 	private void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {

@@ -67,6 +67,9 @@ rp:
     apiuser: rabbitmq
     apipass: rabbitmq
 
+  jwt:
+    signing-key: 123
+
   db:
     url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}?user=${rp.db.user}&password=${rp.db.pass}
     name: reportportal

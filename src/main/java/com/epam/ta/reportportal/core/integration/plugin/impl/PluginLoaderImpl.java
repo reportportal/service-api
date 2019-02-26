@@ -187,6 +187,12 @@ public class PluginLoaderImpl implements PluginLoader {
 		}
 	}
 
+	/**
+	 * @param previousPlugin    Already loaded plugin with the same id as the new one
+	 * @param newPluginFileName New plugin file name
+	 * @throws ReportPortalException When a file with the same name as new one is already exists in the directory
+	 *                               and it's not a file of the previous plugin with the same id
+	 */
 	private void validateNewPluginFile(Optional<PluginWrapper> previousPlugin, String newPluginFileName) {
 
 		if (new File(pluginsRootPath, newPluginFileName).exists()) {

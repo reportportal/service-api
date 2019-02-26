@@ -57,7 +57,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 		this.pluginBox = pluginBox;
 	}
 
-	@Transactional
 	@Override
 	public List<PluginInfo> getAllPluginsInfo(List<IntegrationType> integrationTypes) {
 		LOGGER.info("Searching for all plugins...");
@@ -74,7 +73,8 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					PluginInfo pluginInfo = new PluginInfo(
 							pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
 							pluginProperties.get(IntegrationDetailsProperties.VERSION),
-							pluginProperties.get(IntegrationDetailsProperties.FILE_NAME)
+							pluginProperties.get(IntegrationDetailsProperties.FILE_NAME),
+							it.isEnabled()
 					);
 
 					pluginInfoList.add(pluginInfo);
@@ -86,7 +86,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 		return pluginInfoList;
 	}
 
-	@Transactional
 	@Override
 	public List<PluginInfo> getNotLoadedPluginsInfo(List<IntegrationType> integrationTypes) {
 
@@ -109,7 +108,8 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 						PluginInfo pluginInfo = new PluginInfo(
 								pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
 								pluginProperties.get(IntegrationDetailsProperties.VERSION),
-								pluginProperties.get(IntegrationDetailsProperties.FILE_NAME)
+								pluginProperties.get(IntegrationDetailsProperties.FILE_NAME),
+								it.isEnabled()
 						);
 
 						notLoadedPlugins.add(pluginInfo);

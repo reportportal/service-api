@@ -17,21 +17,27 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Lists;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -40,7 +46,8 @@ public class PluginLoaderTest {
 
 	public static final String PLUGIN_ID = "pluginV1";
 	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String FILE_NAME = "file";
+	public static final String FILE_NAME = "file.jar";
+	public static final String PLUGIN_FILE = "plugin.jar";
 
 	private final String pluginRootPath = "plugins";
 
@@ -54,8 +61,11 @@ public class PluginLoaderTest {
 
 	private final PluginManager pluginManager = mock(PluginManager.class);
 
-	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder
-	);
+	private final MultipartFile multipartFile = mock(MultipartFile.class);
+
+	private final InputStream inputStream = mock(InputStream.class);
+
+	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder);
 
 	@Test
 	void shouldExtractPluginIdWhenExists() throws PluginException {
@@ -127,6 +137,8 @@ public class PluginLoaderTest {
 
 		when(pluginBox.unloadPlugin(PLUGIN_ID)).thenReturn(true);
 
+		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
+
 		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
 
 		assertTrue(pluginWrapper.isPresent());
@@ -137,9 +149,14 @@ public class PluginLoaderTest {
 
 		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.empty());
 
-		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME)
+		);
 
-		assertFalse(pluginWrapper.isPresent());
+		assertEquals(Suppliers.formattedSupplier("Error during plugin uploading: 'Unable to rewrite plugin file = '{}' with different plugin type'",
+				FILE_NAME
+		)
+				.get(), exception.getMessage());
 	}
 
 	@Test
@@ -148,5 +165,36 @@ public class PluginLoaderTest {
 		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
 
 		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
+	}
+
+	@Test
+	void shouldResolveFileExtension() throws IOException {
+
+		when(multipartFile.getOriginalFilename()).thenReturn(PLUGIN_FILE);
+		when(multipartFile.getInputStream()).thenReturn(inputStream);
+
+		doNothing().when(pluginBox).addUploadingPlugin(PLUGIN_FILE, Paths.get(pluginRootPath, PLUGIN_FILE));
+
+		String extension = pluginLoader.resolveFileExtensionAndUploadTempPlugin(multipartFile, Paths.get(pluginRootPath, "/temp"));
+
+		Assertions.assertEquals(PluginFileExtension.JAR.getExtension(), extension);
+	}
+
+	@Test
+	void shouldNotResolveFileExtensionWhenFileInvalid() throws IOException {
+
+		when(multipartFile.getOriginalFilename()).thenReturn(PLUGIN_FILE);
+		when(multipartFile.getInputStream()).thenThrow(IOException.class);
+
+		doNothing().when(pluginBox).addUploadingPlugin(PLUGIN_FILE, Paths.get(pluginRootPath, PLUGIN_FILE));
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> pluginLoader.resolveFileExtensionAndUploadTempPlugin(multipartFile, Paths.get(pluginRootPath, "/temp"))
+		);
+
+		assertEquals(Suppliers.formattedSupplier(
+				"Error during plugin uploading: 'Unable to copy the new plugin file with name = {} to the temp directory'",
+				PLUGIN_FILE
+		).get(), exception.getMessage());
 	}
 }

@@ -53,4 +53,8 @@ public enum IntegrationDetailsProperties {
 
 		integrationTypeDetails.setDetails(details);
 	}
+
+	public String getAttribute() {
+		return attribute;
+	}
 }

@@ -34,7 +34,8 @@ public final class IntegrationIssueConverter {
 	public static final Function<Issue.ExternalSystemIssue, Ticket> TO_TICKET = issue -> {
 		Preconditions.checkNotNull(issue);
 		Ticket ticket = new Ticket();
-		ticket.setBugTrackingSystemId(issue.getExternalSystemId());
+		ticket.setBtsUrl(issue.getBtsUrl());
+		ticket.setBtsProject(issue.getBtsProject());
 		ticket.setTicketId(issue.getTicketId());
 		ticket.setUrl(issue.getUrl());
 		return ticket;

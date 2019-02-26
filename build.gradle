@@ -100,11 +100,11 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:44d1d4e'
+        compile 'com.github.reportportal:commons-dao:8548a7a9'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:25819e6'
+        compile 'com.github.reportportal:commons-model:89444036'
         compile('com.github.reportportal:commons:71d4aca')
-        compile('com.github.reportportal:plugin-api:2efc7f3')
+        compile('com.github.reportportal:plugin-api:f8eeabb8')
     }
 
     //move this to the plugin-api
@@ -283,7 +283,8 @@ test {
                                             '**/jasper/**',
                                             '**/configs/**',
                                             '**/demodata/**',
-                                            '**/exception/**'])
+                                            '**/exception/**',
+                                            '**/PluginInfo.java'])
             })
         }
         doLast {

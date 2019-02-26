@@ -168,7 +168,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		LinkExternalIssueRQ rq = new LinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
-		issue.setExternalSystemId(4L);
+		issue.setBtsUrl("jira.com");
+		issue.setBtsProject("project");
 		issue.setSubmitter(2L);
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");

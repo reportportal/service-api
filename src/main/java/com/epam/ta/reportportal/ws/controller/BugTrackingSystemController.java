@@ -22,10 +22,7 @@ import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.UpdateBugTrackingSystemHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
-import com.epam.ta.reportportal.ws.model.externalsystem.UpdateBugTrackingSystemRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.*;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,7 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -49,8 +46,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/{projectName}/integration")
-@PreAuthorize(ASSIGNED_TO_PROJECT)
+@RequestMapping("/bts")
 public class BugTrackingSystemController {
 
 	private final CreateTicketHandler createTicketHandler;
@@ -68,32 +64,42 @@ public class BugTrackingSystemController {
 	@Transactional
 	@PutMapping(value = "/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Update integration instance")
+	@ApiOperation("Update global bug tracking system integration form fields")
+	@PreAuthorize(ADMIN_ONLY)
+	public OperationCompletionRS updateGlobalBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
+			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateBugTrackingSystemHandler.updateGlobalBugTrackingSystem(updateRequest, integrationId);
+	}
+
+	@Transactional
+	@PutMapping(value = "/{projectName}/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Update project bug tracking system integration form fields")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS updateIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
+	public OperationCompletionRS updateProjectBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
 			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.updateBugTrackingSystem(updateRequest,
+		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(updateRequest,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);
 	}
 
-	@Transactional
-	@PutMapping(value = "/{integrationId}/connect", consumes = { APPLICATION_JSON_VALUE })
+	@Transactional(readOnly = true)
+	@PutMapping(value = "/{projectName}/{integrationId}/connect", consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Check connection to the integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
-			@RequestBody @Validated UpdateBugTrackingSystemRQ updateRequest, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.integrationConnect(updateRequest,
+			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateBugTrackingSystemHandler.integrationConnect(connectionTestRQ,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/{integrationId}/fields-set")
+	@GetMapping(value = "/{projectName}/{integrationId}/fields-set")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get list of fields required for posting ticket")
 	@PreAuthorize(PROJECT_MANAGER)
@@ -106,7 +112,7 @@ public class BugTrackingSystemController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/{integrationId}/issue_types")
+	@GetMapping(value = "/{projectName}/{integrationId}/issue_types")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get list of fields required for posting ticket")
 	@PreAuthorize(PROJECT_MANAGER)
@@ -115,13 +121,8 @@ public class BugTrackingSystemController {
 		return getTicketHandler.getAllowableIssueTypes(integrationId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
-	//
-	//	// ===================
-	//	// TICKETS BLOCK
-	//	// ===================
-	//
 	@Transactional
-	@PostMapping(value = "{integrationId}/ticket")
+	@PostMapping(value = "/{projectName}/{integrationId}/ticket")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Post ticket to the bts integration")
 	public Ticket createIssue(@Validated @RequestBody PostTicketRQ ticketRQ, @PathVariable String projectName,
@@ -134,12 +135,12 @@ public class BugTrackingSystemController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/{integrationId}/ticket/{ticketId}")
+	@GetMapping(value = "/{projectName}/ticket/{ticketId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get ticket from the bts integration")
-	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @PathVariable Long integrationId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getTicket(ticketId, integrationId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @RequestParam(value = "url") String btsUrl,
+			@RequestParam(value = "btsProject") String btsProject, @AuthenticationPrincipal ReportPortalUser user) {
+		return getTicketHandler.getTicket(ticketId, btsUrl, btsProject, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 }

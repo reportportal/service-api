@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -26,6 +27,8 @@ import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +54,7 @@ class RallyIntegrationServiceTest {
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 	private PluginBox pluginBox = mock(PluginBox.class);
 	private IntegrationType integrationType = mock(IntegrationType.class);
+	private IntegrationTypeDetails details = mock(IntegrationTypeDetails.class);
 	private BtsExtension btsExtension = mock(BtsExtension.class);
 
 	private RallyIntegrationService rallyIntegrationService = new RallyIntegrationService(integrationTypeRepository,
@@ -81,10 +85,16 @@ class RallyIntegrationServiceTest {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.PROJECT.getName());
 
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
+
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
 		);
-		assertEquals("Impossible interact with integration. Rally project value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. RALLY project value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
@@ -92,16 +102,28 @@ class RallyIntegrationServiceTest {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.URL.getName());
 
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
+
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
 		);
-		assertEquals("Impossible interact with integration. Rally URL value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. RALLY URL value cannot be NULL", exception.getMessage());
 	}
 
 	@Test
 	void shouldNotCreateGlobalIntegrationWhenNoAuthTypeProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.AUTH_TYPE.getName());
+
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
@@ -114,6 +136,12 @@ class RallyIntegrationServiceTest {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
+
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
 		);
@@ -124,6 +152,12 @@ class RallyIntegrationServiceTest {
 	void shouldNotCreateGlobalIntegrationWhenNotSupportedAuthTypeProvided() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
+
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
@@ -150,7 +184,14 @@ class RallyIntegrationServiceTest {
 		when(pluginBox.getInstance(RALLY_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
 		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params);
+
+		final long projectId = 1L;
+
+		rallyIntegrationService.createProjectIntegration(
+				RALLY_INTEGRATION_TYPE_NAME,
+				new ReportPortalUser.ProjectDetails(projectId, "admin_personal", ProjectRole.PROJECT_MANAGER),
+				params
+		);
 	}
 
 	private Map<String, Object> getCorrectRallyIntegrationParams() {

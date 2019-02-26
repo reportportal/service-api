@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.util;
+package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.integration.Integration;
 
-import java.util.Map;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface IntegrationService {
+public interface GetBugTrackingSystemHandler {
 
-	Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams);
+	Integration getEnabledProjectOrGlobalIntegrationByUrlAndBtsProject(ReportPortalUser.ProjectDetails projectDetails, String url,
+			String btsProject);
 
-	Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
-			Map<String, Object> integrationParams);
-
-	Integration updateGlobalIntegration(Long id, Map<String, Object> integrationParams);
-
-	Integration updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, Map<String, Object> integrationParams);
+	Integration getEnabledByProjectIdAndIdOrGlobalById(ReportPortalUser.ProjectDetails projectDetails,
+			Long integrationId);
 }

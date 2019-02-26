@@ -80,7 +80,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 		if (!CollectionUtils.isEmpty(integrations)) {
 
-			return integrations.stream().filter(Integration::isEnabled).findFirst();
+			return integrations.stream().filter(integration -> integration.getType().isEnabled() && integration.isEnabled()).findFirst();
 
 		} else {
 
@@ -92,7 +92,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
 		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
 				.stream()
-				.filter(Integration::isEnabled)
+				.filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
 				.findFirst();
 	}
 }

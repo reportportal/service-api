@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration;
+package com.epam.ta.reportportal.core.integration.plugin;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface CreateIntegrationHandler {
+public interface UpdatePluginHandler {
 
-	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest);
-
-	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
-			ReportPortalUser user);
-
-	OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest);
-
-	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
-			ReportPortalUser user);
+	OperationCompletionRS updatePluginState(Long id, UpdatePluginStateRQ updatePluginStateRQ);
 }

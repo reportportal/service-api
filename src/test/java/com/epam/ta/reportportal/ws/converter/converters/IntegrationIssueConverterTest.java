@@ -18,12 +18,14 @@ class IntegrationIssueConverterTest {
 
 		assertEquals(resource.getTicketId(), issue.getTicketId());
 		assertEquals(resource.getUrl(), issue.getUrl());
-		assertEquals(resource.getBugTrackingSystemId(), issue.getExternalSystemId());
+		assertEquals(resource.getBtsUrl(), issue.getBtsUrl());
+		assertEquals(resource.getBtsProject(), issue.getBtsProject());
 	}
 
 	private static Issue.ExternalSystemIssue getIssue() {
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
-		issue.setExternalSystemId(1L);
+		issue.setBtsUrl("jira.com");
+		issue.setBtsUrl("project");
 		issue.setTicketId("ticketId");
 		issue.setUrl("https:/example.com/ticketId");
 		return issue;

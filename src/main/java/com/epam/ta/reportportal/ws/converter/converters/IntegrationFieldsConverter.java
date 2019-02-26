@@ -36,7 +36,7 @@ import static java.util.Optional.ofNullable;
  */
 public final class IntegrationFieldsConverter {
 
-	public IntegrationFieldsConverter() {
+	private IntegrationFieldsConverter() {
 		//static only
 	}
 

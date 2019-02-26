@@ -6,28 +6,29 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Resource copier bean test
  *
  * @author Andrei Varabyeu
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ResourceCopierBeanTest.TestConfig.class })
 public class ResourceCopierBeanTest {
 	private static final String RANDOM_NAME = RandomStringUtils.randomAlphabetic(5);
@@ -38,16 +39,16 @@ public class ResourceCopierBeanTest {
 	private ResourceLoader resourceLoader;
 
 	@Test
-	public void testResourceCopierBean() throws IOException {
+	void testResourceCopierBean() throws IOException {
 		File createdFile = new File(StandardSystemProperty.JAVA_IO_TMPDIR.value(), RANDOM_NAME);
 		Resource resource = resourceLoader.getResource(RESOURCE_TO_BE_COPIED);
 		String copied = Files.toString(createdFile, Charsets.UTF_8);
 		String fromResource = CharStreams.toString(new InputStreamReader(resource.getInputStream(), Charsets.UTF_8));
-		Assert.assertEquals("Copied file is not equal to resource source", fromResource, copied);
+		assertEquals(fromResource, copied, "Copied file is not equal to resource source");
 	}
 
-	@After
-	public void deleteCreatedFile() throws IOException {
+	@AfterEach
+	void deleteCreatedFile() throws IOException {
 		FileUtils.deleteQuietly(new File(StandardSystemProperty.JAVA_IO_TMPDIR.value(), RANDOM_NAME));
 	}
 

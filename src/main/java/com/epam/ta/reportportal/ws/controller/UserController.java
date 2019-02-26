@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -90,12 +90,12 @@ public class UserController {
 		this.jasperReportHandler = jasperReportHandler;
 	}
 
+	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
-	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
-			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
+	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
 		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
 				.replacePath(null)
 				.replaceQuery(null)

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -27,24 +27,25 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class FinishTestItemHandlerImplTest {
+@ExtendWith(MockitoExtension.class)
+class FinishTestItemHandlerImplTest {
 
 	@Mock
 	private TestItemRepository repository;
@@ -52,41 +53,32 @@ public class FinishTestItemHandlerImplTest {
 	@InjectMocks
 	private FinishTestItemHandlerImpl handler;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
-	@Before
-	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	public void finishNotExistedTestItem() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Test Item '1' not found. Did you use correct Test Item ID?");
-
+	void finishNotExistedTestItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		when(repository.findById(1L)).thenReturn(Optional.empty());
-		handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ());
+		final ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ())
+		);
+		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 
 	@Test
-	public void finishTestItemUnderNotExistedLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Launch '' not found. Did you use correct Launch ID?");
-
+	void finishTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		when(repository.findById(1L)).thenReturn(Optional.of(item));
 
-		handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ());
+		final ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ())
+		);
+		assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
 
 	@Test
-	public void finishTestItemByNotLaunchOwner() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Finish test item is not allowed. You are not a launch owner.");
-
+	void finishTestItemByNotLaunchOwner() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
@@ -96,14 +88,15 @@ public class FinishTestItemHandlerImplTest {
 		item.setLaunch(launch);
 		when(repository.findById(1L)).thenReturn(Optional.of(item));
 
-		handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ());
+		final ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ())
+		);
+		assertEquals("Finish test item is not allowed. You are not a launch owner.", exception.getMessage());
 	}
 
 	@Test
-	public void finishAlreadyFinishedTestItem() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Reporting for item 1 already finished. Please, check item status.");
-
+	void finishAlreadyFinishedTestItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		item.setItemId(1L);
@@ -117,15 +110,15 @@ public class FinishTestItemHandlerImplTest {
 		item.setLaunch(launch);
 		when(repository.findById(1L)).thenReturn(Optional.of(item));
 
-		handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ());
+		final ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ())
+		);
+		assertEquals("Reporting for item 1 already finished. Please, check item status.", exception.getMessage());
 	}
 
 	@Test
-	public void finishStepItemWithoutProvidedStatus() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(
-				"Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'");
-
+	void finishStepItemWithoutProvidedStatus() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		item.setItemId(1L);
@@ -140,6 +133,13 @@ public class FinishTestItemHandlerImplTest {
 		item.setHasChildren(false);
 		when(repository.findById(1L)).thenReturn(Optional.of(item));
 
-		handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ());
+		final ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ())
+		);
+		assertEquals(
+				"Test item status is ambiguous. There is no status provided from request and there are no descendants to check statistics for test item id '1'",
+				exception.getMessage()
+		);
 	}
 }

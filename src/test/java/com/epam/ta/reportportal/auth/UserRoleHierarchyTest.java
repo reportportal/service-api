@@ -21,36 +21,33 @@
 
 package com.epam.ta.reportportal.auth;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Created by Andrey_Ivanov1 on 05-Jun-17.
  */
-@RunWith(SpringRunner.class)
-public class UserRoleHierarchyTest {
+class UserRoleHierarchyTest {
 
 	@InjectMocks
 	private UserRoleHierarchy userRoleHierarchy = new UserRoleHierarchy();
 
 	@Test
-	public void getReachableGrantedAuthoritiesTest() {
+	void getReachableGrantedAuthoritiesTest() {
 		String string_for_auth = "ROLE_1,ROLE_2,ROLE_3,ROLE_4";
 		Collection<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(string_for_auth);
-		Assert.assertNotNull(userRoleHierarchy.getReachableGrantedAuthorities(authorities));
+		assertNotNull(userRoleHierarchy.getReachableGrantedAuthorities(authorities));
 	}
 
 	@Test
-	public void nullAuthoritiesTest() {
+	void nullAuthoritiesTest() {
 		Collection<GrantedAuthority> authorities = null;
-		Assert.assertNotNull(userRoleHierarchy.getReachableGrantedAuthorities(authorities));
+		assertNotNull(userRoleHierarchy.getReachableGrantedAuthorities(authorities));
 	}
-
 }

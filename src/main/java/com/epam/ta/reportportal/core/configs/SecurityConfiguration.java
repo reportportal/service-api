@@ -15,11 +15,13 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.auth.CombinedTokenStore;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -42,7 +44,6 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 
@@ -91,6 +92,10 @@ class SecurityConfiguration {
 		@Autowired
 		private DatabaseUserDetailsService userDetailsService;
 
+		@Autowired
+		@Value("${rp.jwt.signing-key}")
+		private String signingKey;
+
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
@@ -98,13 +103,13 @@ class SecurityConfiguration {
 
 		@Bean
 		public TokenStore tokenStore() {
-			return new JwtTokenStore(accessTokenConverter());
+			return new CombinedTokenStore(accessTokenConverter());
 		}
 
 		@Bean
 		public JwtAccessTokenConverter accessTokenConverter() {
 			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-			converter.setSigningKey("123");
+			converter.setSigningKey(signingKey);
 
 			DefaultAccessTokenConverter converter1 = new DefaultAccessTokenConverter();
 			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();

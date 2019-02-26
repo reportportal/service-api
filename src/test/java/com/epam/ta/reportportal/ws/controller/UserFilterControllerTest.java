@@ -27,8 +27,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
@@ -38,8 +37,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Sql("/db/shareable/shareable-fill.sql")
-public class UserFilterControllerTest extends BaseMvcTest {
+class UserFilterControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -57,7 +56,7 @@ public class UserFilterControllerTest extends BaseMvcTest {
 	private UserFilterRepository repository;
 
 	@Test
-	public void createFilterPositive() throws Exception {
+	void createFilterPositive() throws Exception {
 		String name = "userFilter";
 		String description = "description";
 		UpdateUserFilterRQ request = new UpdateUserFilterRQ();
@@ -81,65 +80,65 @@ public class UserFilterControllerTest extends BaseMvcTest {
 		final Optional<UserFilter> optionalFilter = repository.findById(response.getId());
 
 		assertTrue(optionalFilter.isPresent());
-		Assert.assertEquals(name, optionalFilter.get().getName());
-		Assert.assertEquals(description, optionalFilter.get().getDescription());
+		assertEquals(name, optionalFilter.get().getName());
+		assertEquals(description, optionalFilter.get().getDescription());
 	}
 
 	@Test
-	public void getFilterPositive() throws Exception {
+	void getFilterPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
-	public void getFilterNegative() throws Exception {
+	void getFilterNegative() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/100").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isNotFound());
 	}
 
 	@Test
-	public void getFiltersByIds() throws Exception {
+	void getFiltersByIds() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/filters?ids=3,4").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getOwnFiltersPositive() throws Exception {
+	void getOwnFiltersPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/own").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getSharedFiltersPositive() throws Exception {
+	void getSharedFiltersPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/filter/shared").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getPermittedFilters() throws Exception {
+	void getPermittedFilters() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void deleteFilterPositive() throws Exception {
+	void deleteFilterPositive() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/filter/3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getAllFiltersNamesPositive() throws Exception {
+	void getAllFiltersNamesPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/names").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void getAllSharedFiltersNames() throws Exception {
+	void getAllSharedFiltersNames() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/filter/names?share=true").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
-	public void updateUserFilterPositive() throws Exception {
+	void updateUserFilterPositive() throws Exception {
 		UpdateUserFilterRQ updateUserFilterRQ = new UpdateUserFilterRQ();
 		updateUserFilterRQ.setName("new name");
 		updateUserFilterRQ.setObjectType("Launch");
@@ -161,7 +160,7 @@ public class UserFilterControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createUserFiltersLongDescription() throws Exception {
+	void createUserFiltersLongDescription() throws Exception {
 		String name = "userFilter";
 		UpdateUserFilterRQ request = new UpdateUserFilterRQ();
 		request.setName(name);
@@ -181,7 +180,7 @@ public class UserFilterControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createUserFiltersZeroDescription() throws Exception {
+	void createUserFiltersZeroDescription() throws Exception {
 		String name = "userFilter";
 		UpdateUserFilterRQ request = new UpdateUserFilterRQ();
 		request.setName(name);

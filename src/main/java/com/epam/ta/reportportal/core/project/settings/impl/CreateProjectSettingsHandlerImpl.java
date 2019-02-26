@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
@@ -119,7 +119,12 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				.addHexColor(rq.getColor())
 				.get();
 
-		project.getProjectIssueTypes().add(new ProjectIssueType().withIssueType(subType).withProject(project));
+		ProjectIssueType projectIssueType = new ProjectIssueType();
+		projectIssueType.setIssueType(subType);
+		projectIssueType.setProject(project);
+
+		project.getProjectIssueTypes().add(projectIssueType);
+
 		issueTypeRepository.save(subType);
 		projectRepository.save(project);
 

@@ -16,9 +16,10 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.auth.ReportPortalUser;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -52,6 +53,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -97,11 +99,14 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final GetIntegrationHandler getIntegrationHandler;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler) {
+			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
+			ApplicationEventPublisher eventPublisher) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.personalProjectService = personalProjectService;
@@ -111,6 +116,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		this.messageBus = messageBus;
 		this.saveDefaultProjectService = saveDefaultProjectService;
 		this.getIntegrationHandler = getIntegrationHandler;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -139,7 +145,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		);
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, email, basicUrl);
-		messageBus.publishActivity(new UserCreatedEvent(pair.getKey(), creator.getUserId()));
+		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId());
+		messageBus.publishActivity(userCreatedEvent);
+		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();
 
 	}
@@ -288,7 +296,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while User creating.", exp);
 		}
 
-		messageBus.publishActivity(new UserCreatedEvent(TO_ACTIVITY_RESOURCE.apply(newUser, defaultProject.getId()), newUser.getId()));
+		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
+				TO_ACTIVITY_RESOURCE.apply(newUser, defaultProject.getId()),
+				newUser.getId()
+		);
+		messageBus.publishActivity(userCreatedEvent);
+		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
+
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());
 		return response;

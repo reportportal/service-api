@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.entity.activity.ActivityDetails;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
@@ -32,15 +32,14 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class LinkTicketEventTest {
+class LinkTicketEventTest {
 
 	private static final String EXISTED_TICKETS = "1:http:/example.com/ticket/1,2:http:/example.com/ticket/2";
 	private static final String LINKED_TICKET = "125:http:/example.com/ticket/125";
 
 	@Test
-	public void toActivity() {
-		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS),
-				getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET), 1L
+	void toActivity() {
+		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS), getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET), 1L
 		).toActivity();
 		final Activity expected = getExpectedActivity();
 		checkActivity(expected, actual);

@@ -63,4 +63,19 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(get("/data/" + dataId).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
+
+	@Test
+	void getUserPhotoNegative() throws Exception {
+		mockMvc.perform(get("/data/photo").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getUserPhotoByLoginNegative() throws Exception {
+		mockMvc.perform(get("/data/userphoto?id=default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getNotExistUserPhoto() throws Exception {
+		mockMvc.perform(get("/data/userphoto?id=not_exist").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isNotFound());
+	}
 }

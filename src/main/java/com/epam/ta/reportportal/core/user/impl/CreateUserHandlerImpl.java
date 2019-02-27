@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -146,7 +147,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, email, basicUrl);
 		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId());
 		messageBus.publishActivity(userCreatedEvent);
-		eventPublisher.publishEvent(userCreatedEvent);
+		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();
 
 	}
@@ -300,7 +301,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 				newUser.getId()
 		);
 		messageBus.publishActivity(userCreatedEvent);
-		eventPublisher.publishEvent(userCreatedEvent);
+		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 
 		CreateUserRS response = new CreateUserRS();
 		response.setLogin(newUser.getLogin());

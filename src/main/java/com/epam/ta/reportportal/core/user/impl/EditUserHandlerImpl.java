@@ -20,9 +20,8 @@ import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
-import com.epam.ta.reportportal.core.user.event.UpdateUserRoleEvent;
-import com.epam.ta.reportportal.core.user.event.UpdatedRole;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ImageFormat;
@@ -120,6 +119,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			user.setAttachment(null);
 			user.setAttachmentThumbnail(null);
 		});
+		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(user.getId()));
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
 	}
 
@@ -139,17 +139,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, boolean isAdmin) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-		boolean isRoleChanged = false;
-		UpdatedRole source = null;
 
 		if ((null != editUserRQ.getRole()) && isAdmin) {
 			UserRole newRole = UserRole.findByName(editUserRQ.getRole())
 					.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
 			//noinspection ConstantConditions
 			user.setRole(newRole);
-			//noinspection ConstantConditions
-			source = new UpdatedRole(username, newRole);
-			isRoleChanged = true;
 		}
 
 		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
@@ -177,9 +172,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 		try {
 			userRepository.save(user);
-			if (isRoleChanged) {
-				eventPublisher.publishEvent(new UpdateUserRoleEvent(source));
-			}
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User editing.", exp);
 		}

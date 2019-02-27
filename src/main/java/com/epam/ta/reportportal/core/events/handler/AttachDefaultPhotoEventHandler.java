@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.BinaryData;
+import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.User;
@@ -28,7 +29,7 @@ import java.io.InputStream;
 @Profile("!unittest")
 @Component
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-public class UserCreatedEventHandler {
+public class AttachDefaultPhotoEventHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserCreatedEvent.class);
 
@@ -37,15 +38,15 @@ public class UserCreatedEventHandler {
 	private final DataEncoder encoder;
 
 	@Autowired
-	public UserCreatedEventHandler(UserRepository userRepository, DataEncoder encoder) {
+	public AttachDefaultPhotoEventHandler(UserRepository userRepository, DataEncoder encoder) {
 		this.userRepository = userRepository;
 		this.encoder = encoder;
 	}
 
 	@TransactionalEventListener
-	public void onApplicationEvent(UserCreatedEvent event) {
-		final User user = userRepository.findById(event.getUserActivityResource().getId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, event.getUserActivityResource().getId()));
+	public void handleDefaultPhotoAttached(AttachDefaultPhotoEvent event) {
+		final User user = userRepository.findById(event.getUserId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, event.getUserId()));
 		attachPhoto(user, "image/nonameUserPhoto.jpg");
 	}
 

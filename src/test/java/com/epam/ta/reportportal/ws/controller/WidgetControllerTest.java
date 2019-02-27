@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -226,14 +242,47 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Sql("/db/widget/launches-table.sql")
 	@Test
 	void getLaunchesTableWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("launches table"))
+				.andExpect(jsonPath("$.widgetType").value("launchesTable"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$skipped").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.status").value("FAILED"))
+				.andExpect(jsonPath("$.content.result[0].values.description").value("desc"))
+				.andExpect(jsonPath("$.content.result[0].values.user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("1"))
+				.andReturn();
+	}
+
+	@Sql("/db/widget/top-test-cases.sql")
+	@Test
+	void getTopTestCasesWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("top test cases"))
+				.andExpect(jsonPath("$.widgetType").value("topTestCases"))
+				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test item 5"))
+				.andExpect(jsonPath("$.content.result[0].total").value("4"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test item 2"))
+				.andExpect(jsonPath("$.content.result[1].total").value("4"))
+				.andExpect(jsonPath("$.content.result[2].name").value("test item 3"))
+				.andExpect(jsonPath("$.content.result[2].total").value("4"));
+	}
+
+	@Sql("/db/widget/flaky-test-cases.sql")
+	@Test
+	void getFlakyTestCasesWidget() throws Exception {
 		MvcResult mvcResult = mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
-
 		WidgetResource response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<WidgetResource>() {
 		});
-
 		System.out.println();
 	}
 }

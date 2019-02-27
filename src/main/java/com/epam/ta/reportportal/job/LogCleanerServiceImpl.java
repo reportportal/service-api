@@ -85,20 +85,18 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), TO_LOCAL_DATE_TIME.apply(endDate))) {
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					List<Long> logIds = ids.peek(itemId -> {
+					List<Long> itemIds = ids.peek(itemId -> {
 						List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId, period);
 						removeAttachmentsOfLogs(logs, attachmentsCount, thumbnailsCount);
 					}).collect(Collectors.toList());
-					long count = logRepository.deleteByPeriodAndTestItemIds(period, logIds);
+					long count = logRepository.deleteByPeriodAndTestItemIds(period, itemIds);
 					removedLogsCount.addAndGet(count);
 					removedLogsInThreadCount.addAndGet(count);
 				} catch (Exception e) {
-					//do nothing
 					LOGGER.error("Error during cleaning outdated logs {}", e);
 				}
 			});
 		} catch (Exception e) {
-			//do nothing
 			LOGGER.error("Error during cleaning outdated logs {}", e);
 		}
 

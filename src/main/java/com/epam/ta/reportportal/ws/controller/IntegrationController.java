@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
-import com.epam.ta.reportportal.core.integration.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
@@ -79,7 +79,7 @@ public class IntegrationController {
 	public OperationCompletionRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
 
-		return createIntegrationHandler.createGlobalIntegration(updateRequest, user);
+		return createIntegrationHandler.createGlobalIntegration(updateRequest);
 
 	}
 
@@ -130,8 +130,7 @@ public class IntegrationController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public IntegrationResource getProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getIntegrationHandler.getProjectIntegrationById(
-				integrationId,
+		return getIntegrationHandler.getProjectIntegrationById(integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
 	}
@@ -143,8 +142,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegration(
-				integrationId,
+		return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);

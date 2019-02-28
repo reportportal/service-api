@@ -5,6 +5,9 @@ import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTem
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,4 +41,13 @@ public class TestConfig {
 		return new RabbitMqManagementClientTemplate(rabbitClient);
 	}
 
+	@Bean
+	public ObjectMapper testObjectMapper() {
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		objectMapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
+		objectMapper.registerModule(new JavaTimeModule());
+
+		return objectMapper;
+	}
 }

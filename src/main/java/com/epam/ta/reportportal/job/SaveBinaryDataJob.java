@@ -77,8 +77,8 @@ public class SaveBinaryDataJob implements Runnable {
 		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectId, file);
 
 		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
-
-			Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
+			try {
+				Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
 			Attachment attachment = new AttachmentBuilder().withPath(maybeBinaryDataMetaInfo.get().getFileId())
 					.withThumbnailPath(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
@@ -90,15 +90,14 @@ public class SaveBinaryDataJob implements Runnable {
 
 			log.setAttachment(attachment);
 
-			try {
-
 				logRepository.save(log);
-			} catch (Exception e) {
+			} catch (Exception exception) {
 
-				LOGGER.error("Cannot save log to database, remove files ", e);
+				LOGGER.error("Cannot save log to database, remove files ", exception);
 
 				dataStoreService.delete(binaryDataMetaInfo.getFileId());
 				dataStoreService.delete(binaryDataMetaInfo.getThumbnailFileId());
+				throw exception;
 			}
 		});
 	}

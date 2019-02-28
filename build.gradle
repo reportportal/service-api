@@ -100,11 +100,11 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:213c4ab1'
+        compile 'com.github.reportportal:commons-dao:801b3c0'
         compile 'com.github.reportportal:commons-rules:574fb3a'
         compile 'com.github.reportportal:commons-model:25819e6'
         compile('com.github.reportportal:commons:71d4aca')
-        compile('com.github.reportportal:plugin-api:e7970ce')
+        compile('com.github.reportportal:plugin-api:2efc7f3')
     }
 
     //move this to the plugin-api

@@ -61,7 +61,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest, ReportPortalUser user) {
+	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest) {
 
 		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
@@ -90,8 +90,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.createProjectIntegration(updateRequest.getIntegrationName(), projectDetails, updateRequest.getIntegrationParams());
 
-		integration.setProject(project);
 		integration.setEnabled(updateRequest.getEnabled());
+
+		integration.setProject(project);
 
 		integrationRepository.save(integration);
 

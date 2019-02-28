@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration;
+package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
+import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface CreateIntegrationHandler {
+public interface PluginLoaderService {
 
-	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest);
+	List<PluginInfo> getAllPluginsInfo(List<IntegrationType> integrationTypes);
 
-	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
-			ReportPortalUser user);
+	List<PluginInfo> getNotLoadedPluginsInfo(List<IntegrationType> integrationTypes);
+
+	void checkAndDeleteIntegrationType(IntegrationType integrationType);
 }

@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.plugin;
 
 import com.epam.reportportal.extension.common.ExtensionPoint;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.AbstractIdleService;
 import org.pf4j.*;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -31,20 +33,34 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
-public class P4jPluginManager extends AbstractIdleService implements PluginBox {
+/**
+ * {@link Pf4jPluginManager#uploadingPlugins} Holder for the plugin cleaning job: {@link com.epam.ta.reportportal.job.CleanOutdatedPluginsJob}
+ * to prevent the removing of the plugins that are still being processed within the database transaction with
+ * {@link com.epam.ta.reportportal.entity.integration.IntegrationType} in uncommitted state
+ */
+public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPluginBox {
+
+	private static final long MAXIMUM_UPLOADED_PLUGINS = 50;
+	private static final long PLUGIN_LIVE_TIME = 2;
 
 	private final AutowireCapableBeanFactory context;
-	private final String pluginsPath;
 	private final org.pf4j.PluginManager pluginManager;
 
-	public P4jPluginManager(String pluginsPath, AutowireCapableBeanFactory context, Collection<PluginDescriptorFinder> pluginDescriptorFinders) {
+	private final Cache<String, Path> uploadingPlugins;
+
+	public Pf4jPluginManager(String pluginsPath, AutowireCapableBeanFactory context,
+			Collection<PluginDescriptorFinder> pluginDescriptorFinders) {
 		this.context = context;
-		this.pluginsPath = pluginsPath;
-		pluginManager = new DefaultPluginManager(FileSystems.getDefault().getPath(this.pluginsPath)) {
+		uploadingPlugins = CacheBuilder.newBuilder()
+				.maximumSize(MAXIMUM_UPLOADED_PLUGINS)
+				.expireAfterWrite(PLUGIN_LIVE_TIME, TimeUnit.MINUTES)
+				.build();
+		pluginManager = new DefaultPluginManager(FileSystems.getDefault().getPath(pluginsPath)) {
 			@Override
 			protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
 
@@ -68,7 +84,7 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 						if (null == obj) {
 							return null;
 						}
-						P4jPluginManager.this.context.autowireBean(obj);
+						Pf4jPluginManager.this.context.autowireBean(obj);
 						return obj;
 					}
 				};
@@ -93,6 +109,7 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 		return getPlugins().stream().filter(p -> p.getType().name().equalsIgnoreCase(type)).findAny();
 	}
 
+	@Override
 	public <T> Optional<T> getInstance(Class<T> extension) {
 		return pluginManager.getExtensions(extension).stream().findFirst();
 	}
@@ -127,6 +144,25 @@ public class P4jPluginManager extends AbstractIdleService implements PluginBox {
 		return ofNullable(pluginManager.getPlugin(id));
 	}
 
+	@Override
+	public void addUploadingPlugin(String fileName, Path path) {
+
+		uploadingPlugins.put(fileName, path);
+	}
+
+	@Override
+	public void removeUploadingPlugin(String fileName) {
+
+		uploadingPlugins.invalidate(fileName);
+	}
+
+	@Override
+	public boolean isPluginStillBeingUploaded(String fileName) {
+
+		return uploadingPlugins.asMap().containsKey(fileName);
+	}
+
+	@Override
 	public <T> Optional<T> getInstance(String name, Class<T> extension) {
 		return pluginManager.getExtensions(extension, name).stream().findFirst();
 	}

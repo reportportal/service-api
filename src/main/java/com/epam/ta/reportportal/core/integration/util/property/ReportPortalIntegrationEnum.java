@@ -26,18 +26,24 @@ import java.util.Optional;
  */
 public enum ReportPortalIntegrationEnum {
 
-	JIRA(IntegrationGroupEnum.BTS),
-	RALLY(IntegrationGroupEnum.BTS),
-	EMAIL(IntegrationGroupEnum.NOTIFICATION);
+	JIRA(IntegrationGroupEnum.BTS, true),
+	RALLY(IntegrationGroupEnum.BTS, true),
+	EMAIL(IntegrationGroupEnum.NOTIFICATION, false);
 
 	private IntegrationGroupEnum integrationGroup;
+	private boolean isPlugin;
 
-	ReportPortalIntegrationEnum(IntegrationGroupEnum integrationGroup) {
+	ReportPortalIntegrationEnum(IntegrationGroupEnum integrationGroup, boolean isPlugin) {
 		this.integrationGroup = integrationGroup;
+		this.isPlugin = isPlugin;
 	}
 
 	public IntegrationGroupEnum getIntegrationGroup() {
 		return integrationGroup;
+	}
+
+	public boolean isPlugin() {
+		return isPlugin;
 	}
 
 	public static Optional<ReportPortalIntegrationEnum> findByName(String name) {

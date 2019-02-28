@@ -108,9 +108,19 @@ where result_id = 10;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (10, 1, 'to investigate', false, true);
 
+-- Third launch
+insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
+values (3, 'uuid3', 1, 1, 'empty launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
+
 -- Filter and widget
 INSERT INTO public.shareable_entity (id, shared, owner, project_id)
-VALUES (2, false, 'superadmin', 1);
+VALUES (1, false, 'superadmin', 1),
+       (2, false, 'superadmin', 1),
+       (3, false, 'superadmin', 1),
+       (4, false, 'superadmin', 1);
 
 INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options)
-VALUES (2, 'flaky test cases', null, 'flakyTestCases', 10, '{"options": {"launchNameFilter": "test launch"}}');
+VALUES (1, 'flaky test cases', null, 'flakyTestCases', 10, '{"options": {"launchNameFilter": "test launch"}}'),
+       (2, 'flaky test cases', null, 'flakyTestCases', 10, '{"options": {"launchNameFilter": "not_exist"}}'),
+       (3, 'flaky test cases', null, 'flakyTestCases', 10, '{"options": {"launchNameFilter": "empty launch"}}'),
+       (4, 'flaky test cases', null, 'flakyTestCases', 10, '{"options": {"launchNameFilter": "test launch", "includeMethods": true}}');

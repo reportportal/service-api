@@ -53,22 +53,28 @@ where result_id = 10;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (10, 1, 'to investigate', false, true);
 
--- Filter and widget
+-- Filters and widgets
 INSERT INTO public.shareable_entity (id, shared, owner, project_id)
 VALUES (1, false, 'superadmin', 1),
-       (2, false, 'superadmin', 1);
+       (2, false, 'superadmin', 1),
+       (3, false, 'superadmin', 1),
+       (4, false, 'superadmin', 1);
 
 INSERT INTO public.filter (id, name, target, description)
-VALUES (1, 'Admin Filter', 'Launch', null);
+VALUES (1, 'Admin Filter', 'Launch', null),
+       (4, 'Not match any launch filter', 'Launch', null);
 
 INSERT INTO public.filter_sort (id, filter_id, field, direction)
-VALUES (1, 1, 'name', 'ASC');
+VALUES (1, 1, 'name', 'ASC'),
+       (4, 4, 'name', 'DESC');
 
 INSERT INTO public.filter_condition (id, filter_id, condition, value, search_criteria, negative)
-VALUES (1, 1, 'CONTAINS', 'test', 'name', false);
+VALUES (1, 1, 'CONTAINS', 'test', 'name', false),
+       (4, 4, 'EQUALS', 'mot_exist', 'name', false);
 
 INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options)
-VALUES (2, 'launches table', null, 'launchesTable', 20, '{"options": {}}');
+VALUES (2, 'launches table', null, 'launchesTable', 20, '{"options": {}}'),
+       (3, 'launches table', null, 'launchesTable', 20, '{"options": {}}');
 
 insert into content_field(id, field)
 values (2, 'name'),
@@ -84,7 +90,22 @@ values (2, 'name'),
        (2, 'statistics$executions$failed'),
        (2, 'statistics$executions$skipped'),
        (2, 'statistics$defects$product_bug$pb001'),
-       (2, 'statistics$defects$automation_bug$ab001');
+       (2, 'statistics$defects$automation_bug$ab001'),
+       (3, 'name'),
+       (3, 'status'),
+       (3, 'endTime'),
+       (3, 'lastModified'),
+       (3, 'number'),
+       (3, 'description'),
+       (3, 'user'),
+       (3, 'attributes'),
+       (3, 'statistics$executions$total'),
+       (3, 'statistics$executions$passed'),
+       (3, 'statistics$executions$failed'),
+       (3, 'statistics$executions$skipped'),
+       (3, 'statistics$defects$product_bug$pb001'),
+       (3, 'statistics$defects$automation_bug$ab001');
 
 insert into widget_filter(widget_id, filter_id)
-values (2, 1);
+values (2, 1),
+       (3, 4);

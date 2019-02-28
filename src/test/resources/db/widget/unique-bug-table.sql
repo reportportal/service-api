@@ -1,3 +1,7 @@
+-- BTS
+insert into bug_tracking_system(id, url, bts_project, project_id, type)
+values (1, 'http:/example.com', 'superadmin_bts', 1, 'JIRA');
+
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);
@@ -21,6 +25,10 @@ set status   = 'FAILED',
 where result_id = 2;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (2, 2, 'automation bug', false, true);
+insert into ticket(id, ticket_id, submitter_id, submit_date, bts_id, url)
+values (1, 'ticket1', 1, now(), 1, 'http:/example.com/ticket1');
+insert into issue_ticket(issue_id, ticket_id)
+values (2, 1);
 
 insert into test_item(item_id, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
 values (3, 'test item 3', 'STEP', now(), 'desc', 'uuid3', now(), '3', null, 1);
@@ -108,7 +116,7 @@ where result_id = 10;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (10, 1, 'to investigate', false, true);
 
--- Filters and widgets
+-- Filter and widget
 INSERT INTO public.shareable_entity (id, shared, owner, project_id)
 VALUES (1, false, 'superadmin', 1),
        (2, false, 'superadmin', 1),
@@ -128,20 +136,8 @@ VALUES (1, 1, 'CONTAINS', 'test', 'name', false),
        (4, 4, 'EQUALS', 'mot_exist', 'name', false);
 
 INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options)
-VALUES (2, 'launch comparison', null, 'launchesComparisonChart', 20, '{"options": {"launchNameFilter": "test launch"}}'),
-       (3, 'launch comparison', null, 'launchesComparisonChart', 20, '{"options": {"launchNameFilter": "test launch"}}');
-
-insert into content_field(id, field)
-values (2, 'statistics$executions$total'),
-       (2, 'statistics$executions$passed'),
-       (2, 'statistics$executions$failed'),
-       (2, 'statistics$executions$skipped'),
-       (2, 'statistics$defects$product_bug$pb001'),
-       (2, 'statistics$defects$automation_bug$ab001'),
-       (2, 'statistics$defects$to_investigate$ti001'),
-       (3, 'statistics$executions$total'),
-       (3, 'statistics$executions$passed'),
-       (3, 'statistics$executions$failed');
+VALUES (2, 'unique bug table', null, 'uniqueBugTable', 10, '{"options": {}}'),
+       (3, 'unique bug table', null, 'uniqueBugTable', 10, '{"options": {}}');
 
 insert into widget_filter(widget_id, filter_id)
 values (2, 1),

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -182,6 +183,14 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[0].values.*").value("60.0"));
 	}
 
+	@Sql("/db/widget/not-passed.sql")
+	@Test
+	void getEmptyContentNotPassedWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
 	@Sql("/db/widget/launches-comparison-chart.sql")
 	@Test
 	void getLaunchesComparisonWidget() throws Exception {
@@ -206,6 +215,17 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[1].values.statistics$executions$total").value("5.0"));
 	}
 
+	@Sql("/db/widget/launches-comparison-chart.sql")
+	@Test
+	void getEmptyContentLaunchesComparisonWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("launch comparison"))
+				.andExpect(jsonPath("$.widgetType").value("launchesComparisonChart"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
 	@Sql("/db/widget/launches-duration-chart.sql")
 	@Test
 	void getLaunchesDurationWidget() throws Exception {
@@ -218,6 +238,17 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[0].duration").value("540000"))
 				.andExpect(jsonPath("$.content.result[1].name").value("test launch"))
 				.andExpect(jsonPath("$.content.result[1].duration").value("660000"));
+	}
+
+	@Sql("/db/widget/launches-duration-chart.sql")
+	@Test
+	void getEmptyContentLaunchesDurationWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("launches duration"))
+				.andExpect(jsonPath("$.widgetType").value("launchesDurationChart"))
+				.andExpect(jsonPath("$.content").isEmpty());
 	}
 
 	@Sql("/db/widget/bug-trend.sql")
@@ -257,10 +288,56 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andReturn();
 	}
 
+	@Sql("/db/widget/launches-table.sql")
+	@Test
+	void getEmptyContentLaunchesTableWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("launches table"))
+				.andExpect(jsonPath("$.widgetType").value("launchesTable"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
 	@Sql("/db/widget/top-test-cases.sql")
 	@Test
 	void getTopTestCasesWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("top test cases"))
+				.andExpect(jsonPath("$.widgetType").value("topTestCases"))
+				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test item 5"))
+				.andExpect(jsonPath("$.content.result[0].total").value("4"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test item 2"))
+				.andExpect(jsonPath("$.content.result[1].total").value("4"))
+				.andExpect(jsonPath("$.content.result[2].name").value("test item 3"))
+				.andExpect(jsonPath("$.content.result[2].total").value("4"));
+	}
+
+	@Sql("/db/widget/top-test-cases.sql")
+	@Test
+	void getEmptyContentTopTestCasesWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("top test cases"))
+				.andExpect(jsonPath("$.widgetType").value("topTestCases"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/top-test-cases.sql")
+	@Test
+	void getTopTestCasesWidgetWithNotExistLaunch() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Sql("/db/widget/top-test-cases.sql")
+	@Test
+	void getTopTestCasesIncludeMethodsWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.name").value("top test cases"))
@@ -277,12 +354,449 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Sql("/db/widget/flaky-test-cases.sql")
 	@Test
 	void getFlakyTestCasesWidget() throws Exception {
-		MvcResult mvcResult = mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("flaky test cases"))
+				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
+				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
+				.andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
+				.andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"))
+				.andExpect(jsonPath("$.content.flaky[1].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[1].itemName").value("test item 1"))
+				.andExpect(jsonPath("$.content.flaky[2].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[2].itemName").value("test item 2"))
+				.andExpect(jsonPath("$.content.flaky[3].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[3].itemName").value("test item 3"))
+				.andExpect(jsonPath("$.content.flaky[4].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[4].itemName").value("test item 5"));
+	}
+
+	@Sql("/db/widget/flaky-test-cases.sql")
+	@Test
+	void getFlakyTestCasesWidgetWithNotExistLaunch() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Sql("/db/widget/flaky-test-cases.sql")
+	@Test
+	void getEmptyContentFlakyTestCasesWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("flaky test cases"))
+				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/flaky-test-cases.sql")
+	@Test
+	void getFlakyTestCasesWithIncludeMethodsWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("flaky test cases"))
+				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
+				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
+				.andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
+				.andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"))
+				.andExpect(jsonPath("$.content.flaky[1].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[1].itemName").value("test item 1"))
+				.andExpect(jsonPath("$.content.flaky[2].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[2].itemName").value("test item 2"))
+				.andExpect(jsonPath("$.content.flaky[3].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[3].itemName").value("test item 3"))
+				.andExpect(jsonPath("$.content.flaky[4].flakyCount").value("0"))
+				.andExpect(jsonPath("$.content.flaky[4].itemName").value("test item 5"));
+	}
+
+	@Sql("/db/widget/cases-trend.sql")
+	@Test
+	void getCasesTrendWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("cases trend"))
+				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].number").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[1].number").value("2"))
+				.andExpect(jsonPath("$.content.result[1].values.statistics$executions$total").value("5"));
+	}
+
+	@Sql("/db/widget/cases-trend.sql")
+	@Test
+	void getCasesTrendWidgetWithTimeline() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("cases trend"))
+				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
+				.andExpect(jsonPath("$.content.result.*.name").value("test launch"))
+				.andExpect(jsonPath("$.content.result.*.number").value(2))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$executions$total").value("5"));
+	}
+
+	@Sql("/db/widget/cases-trend.sql")
+	@Test
+	void getEmptyContentCasesTrendWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/6").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("cases trend"))
+				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/cases-trend.sql")
+	@Test
+	void getCasesTrendWidgetWithWrongTimeLineOption() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/7").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("cases trend"))
+				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].number").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[1].number").value("2"))
+				.andExpect(jsonPath("$.content.result[1].values.statistics$executions$total").value("5"));
+	}
+
+	@Sql("/db/widget/cases-trend.sql")
+	@Test
+	void getCasesTrendWidgetWithDescOrdering() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/8").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("cases trend"))
+				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
+				.andExpect(jsonPath("$.content.result.*.name").value("test launch"))
+				.andExpect(jsonPath("$.content.result.*.number").value(2))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$executions$total").value("5"));
+	}
+
+	@Sql("/db/widget/passing-rate-per-launch.sql")
+	@Test
+	void getPassingRatePerLaunchWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("passing rate per launch"))
+				.andExpect(jsonPath("$.widgetType").value("passingRatePerLaunch"))
+				.andExpect(jsonPath("$.content.result.passed").value("1"))
+				.andExpect(jsonPath("$.content.result.total").value("5"))
 				.andReturn();
+	}
+
+	@Sql("/db/widget/passing-rate-per-launch.sql")
+	@Test
+	void getEmptyContentPassingRatePerLaunchWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("passing rate per launch"))
+				.andExpect(jsonPath("$.widgetType").value("passingRatePerLaunch"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/passing-rate-per-launch.sql")
+	@Test
+	void getPassingRatePerLaunchWidgetWithNotExistLaunchName() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Sql("/db/widget/passing-rate-summary.sql")
+	@Test
+	void getPassingRateSummaryWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("passing rate summary"))
+				.andExpect(jsonPath("$.widgetType").value("passingRateSummary"))
+				.andExpect(jsonPath("$.content.result.passed").value("3"))
+				.andExpect(jsonPath("$.content.result.total").value("10"));
+	}
+
+	@Sql("/db/widget/passing-rate-summary.sql")
+	@Test
+	void getEmptyContentPassingRateSummaryWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/old-line-chart.sql")
+	@Test
+	void getOldLineChartWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("old line chart"))
+				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$automation_bug$ab001").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$product_bug$pb001").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$to_investigate$ti001").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("2"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"));
+	}
+
+	@Sql("/db/widget/old-line-chart.sql")
+	@Test
+	void getEmptyContentOldLineChartWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("old line chart"))
+				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/old-line-chart.sql")
+	@Test
+	void getOldLineChartWithTimeLineWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("old line chart"))
+				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
+				.andExpect(jsonPath("$.content.*.values.statistics$defects$automation_bug$ab001").value("1.0"))
+				.andExpect(jsonPath("$.content.*.values.statistics$defects$product_bug$pb001").value("1.0"))
+				.andExpect(jsonPath("$.content.*.values.statistics$defects$to_investigate$ti001").value("1.0"))
+				.andExpect(jsonPath("$.content.*.values.statistics$executions$failed").value("3.0"))
+				.andExpect(jsonPath("$.content.*.values.statistics$executions$passed").value("2.0"))
+				.andExpect(jsonPath("$.content.*.values.statistics$executions$total").value("5.0"));
+	}
+
+	@Sql("/db/widget/old-line-chart.sql")
+	@Test
+	void getEmptyContentOldLineChartWithTimeLineWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/6").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("old line chart"))
+				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/old-line-chart.sql")
+	@Test
+	void getOldLineChartWidgetWithIncorrectTimeLine() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/7").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("old line chart"))
+				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/investigated-trend.sql")
+	@Test
+	void getInvestigatedTrendWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("investigated trend"))
+				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].number").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.toInvestigate").value("33.33"))
+				.andExpect(jsonPath("$.content.result[0].values.investigated").value("66.67"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[1].number").value("2"))
+				.andExpect(jsonPath("$.content.result[1].values.toInvestigate").value("66.67"))
+				.andExpect(jsonPath("$.content.result[1].values.investigated").value("33.33"));
+	}
+
+	//Waiting for fix
+	@Disabled
+	@Sql("/db/widget/investigated-trend.sql")
+	@Test
+	void getInvestigatedTrendWidgetWithTimeline() throws Exception {
+		MvcResult mvcResult = mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("investigated trend"))
+				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"))
+				.andReturn();
+
 		WidgetResource response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<WidgetResource>() {
 		});
 		System.out.println();
+	}
+
+	@Sql("/db/widget/unique-bug-table.sql")
+	@Test
+	void getUniqueBugTableWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("unique bug table"))
+				.andExpect(jsonPath("$.widgetType").value("uniqueBugTable"))
+				.andExpect(jsonPath("$.content.result.ticket1[0].itemId").value(2))
+				.andExpect(jsonPath("$.content.result.ticket1[0].submitter").value("superadmin"))
+				.andExpect(jsonPath("$.content.result.ticket1[0].itemName").value("test item 2"))
+				.andExpect(jsonPath("$.content.result.ticket1[0].url").value("http:/example.com/ticket1"))
+				.andExpect(jsonPath("$.content.result.ticket1[0].launchId").value(1))
+				.andExpect(jsonPath("$.content.result.ticket1[0].description").value("desc"));
+	}
+
+	@Sql("/db/widget/unique-bug-table.sql")
+	@Test
+	void getEmptyContentUniqueBugTableWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("unique bug table"))
+				.andExpect(jsonPath("$.widgetType").value("uniqueBugTable"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/most-time-consuming.sql")
+	@Test
+	void getMostTimeConsumingWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("most time consuming"))
+				.andExpect(jsonPath("$.widgetType").value("mostTimeConsuming"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test item 3"))
+				.andExpect(jsonPath("$.content.result[0].duration").value("337.0"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test item 5"))
+				.andExpect(jsonPath("$.content.result[1].duration").value("251.0"))
+				.andExpect(jsonPath("$.content.result[2].name").value("test item 2"))
+				.andExpect(jsonPath("$.content.result[2].duration").value("192.0"))
+				.andExpect(jsonPath("$.content.result[3].name").value("test item 1"))
+				.andExpect(jsonPath("$.content.result[3].duration").value("165.0"))
+				.andExpect(jsonPath("$.content.result[4].name").value("test item 4"))
+				.andExpect(jsonPath("$.content.result[4].duration").value("87.0"));
+	}
+
+	@Sql("/db/widget/most-time-consuming.sql")
+	@Test
+	void getEmptyContentMostTimeConsumingWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("most time consuming"))
+				.andExpect(jsonPath("$.widgetType").value("mostTimeConsuming"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/most-time-consuming.sql")
+	@Test
+	void getMostTimeConsumingWidgetWithNotExistLaunch() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Sql("/db/widget/most-time-consuming.sql")
+	@Test
+	void getMostTimeConsumingWidgetWithIncludeMethods() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/6").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("most time consuming"))
+				.andExpect(jsonPath("$.widgetType").value("mostTimeConsuming"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test item 3"))
+				.andExpect(jsonPath("$.content.result[0].duration").value("337.0"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test item 5"))
+				.andExpect(jsonPath("$.content.result[1].duration").value("251.0"))
+				.andExpect(jsonPath("$.content.result[2].name").value("test item 2"))
+				.andExpect(jsonPath("$.content.result[2].duration").value("192.0"))
+				.andExpect(jsonPath("$.content.result[3].name").value("test item 1"))
+				.andExpect(jsonPath("$.content.result[3].duration").value("165.0"))
+				.andExpect(jsonPath("$.content.result[4].name").value("test item 4"))
+				.andExpect(jsonPath("$.content.result[4].duration").value("87.0"));
+	}
+
+	@Sql("/db/widget/overall-statistics.sql")
+	@Test
+	void getOverallStatisticsWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("overall statistics"))
+				.andExpect(jsonPath("$.widgetType").value("overallStatistics"))
+				.andExpect(jsonPath("$.content.result.values.statistics$defects$automation_bug$ab001").value("1"))
+				.andExpect(jsonPath("$.content.result.values.statistics$defects$product_bug$pb001").value("1"))
+				.andExpect(jsonPath("$.content.result.values.statistics$defects$to_investigate$ti001").value("1"))
+				.andExpect(jsonPath("$.content.result.values.statistics$executions$failed").value("3"))
+				.andExpect(jsonPath("$.content.result.values.statistics$executions$passed").value("2"))
+				.andExpect(jsonPath("$.content.result.values.statistics$executions$total").value("5"));
+	}
+
+	@Sql("/db/widget/overall-statistics.sql")
+	@Test
+	void getEmptyContentOverallStatisticsWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("overall statistics"))
+				.andExpect(jsonPath("$.widgetType").value("overallStatistics"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/activity-stream.sql")
+	@Test
+	void getActivityStreamWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("activity stream"))
+				.andExpect(jsonPath("$.widgetType").value("activityStream"))
+				.andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[0].actionType").value("startLaunch"))
+				.andExpect(jsonPath("$.content.result[0].objectType").value("launch"))
+				.andExpect(jsonPath("$.content.result[1].user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
+				.andExpect(jsonPath("$.content.result[1].objectType").value("item"))
+				.andExpect(jsonPath("$.content.result[2].user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
+				.andExpect(jsonPath("$.content.result[2].objectType").value("launch"));
+	}
+
+	@Sql("/db/widget/activity-stream.sql")
+	@Test
+	void getEmptyContentActivityStreamWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("activity stream"))
+				.andExpect(jsonPath("$.widgetType").value("activityStream"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
+
+	@Sql("/db/widget/activity-stream.sql")
+	@Test
+	void getActivityStreamWidgetWithNotExistUser() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isNotFound());
+	}
+
+	@Sql("/db/widget/activity-stream.sql")
+	@Test
+	void getActivityStreamWidgetWithEmptyUserOption() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("activity stream"))
+				.andExpect(jsonPath("$.widgetType").value("activityStream"))
+				.andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[0].actionType").value("startLaunch"))
+				.andExpect(jsonPath("$.content.result[0].objectType").value("launch"))
+				.andExpect(jsonPath("$.content.result[1].user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
+				.andExpect(jsonPath("$.content.result[1].objectType").value("item"))
+				.andExpect(jsonPath("$.content.result[2].user").value("superadmin"))
+				.andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
+				.andExpect(jsonPath("$.content.result[2].objectType").value("launch"));
 	}
 }

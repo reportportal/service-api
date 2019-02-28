@@ -30,13 +30,15 @@ import java.util.Map;
  */
 public class ReportPortalUserUtil {
 
+	public static final String TEST_PROJECT_NAME = "test_project";
+
 	private ReportPortalUserUtil() {
 		//static only
 	}
 
 	public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole, Long projectId) {
 		Map<String, ReportPortalUser.ProjectDetails> detailsMap = new HashMap<>();
-		detailsMap.put("test_project", new ReportPortalUser.ProjectDetails(projectId, "test_project", projectRole));
+		detailsMap.put("test_project", new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole));
 
 		return new ReportPortalUser(
 				login,

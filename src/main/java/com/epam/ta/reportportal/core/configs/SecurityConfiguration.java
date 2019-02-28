@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -91,6 +92,10 @@ class SecurityConfiguration {
 		@Autowired
 		private DatabaseUserDetailsService userDetailsService;
 
+		@Autowired
+		@Value("${rp.jwt.signing-key}")
+		private String signingKey;
+
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
@@ -104,7 +109,7 @@ class SecurityConfiguration {
 		@Bean
 		public JwtAccessTokenConverter accessTokenConverter() {
 			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-			converter.setSigningKey("123");
+			converter.setSigningKey(signingKey);
 
 			DefaultAccessTokenConverter converter1 = new DefaultAccessTokenConverter();
 			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();

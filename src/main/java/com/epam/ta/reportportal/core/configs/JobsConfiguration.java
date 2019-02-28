@@ -68,15 +68,4 @@ public class JobsConfiguration {
 		return threadPoolTaskExecutor;
 	}
 
-	@Bean(name = "publishAttachmentEventTaskExecutor")
-	public TaskExecutor publishAttachmentEventTaskExecutor() {
-		final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(20);
-		executor.setMaxPoolSize(60);
-		executor.setQueueCapacity(500);
-		executor.setAllowCoreThreadTimeOut(true);
-		executor.setThreadNamePrefix("publish-attachment-event-exec");
-		return executor;
-	}
-
 }

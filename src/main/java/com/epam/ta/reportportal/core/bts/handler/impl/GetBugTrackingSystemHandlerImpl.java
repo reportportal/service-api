@@ -21,16 +21,13 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -38,71 +35,55 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 @Service
 public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHandler {
 
-	private final ProjectRepository projectRepository;
 	private final IntegrationRepository integrationRepository;
 
 	@Autowired
-	public GetBugTrackingSystemHandlerImpl(ProjectRepository projectRepository, IntegrationRepository integrationRepository) {
-		this.projectRepository = projectRepository;
+	public GetBugTrackingSystemHandlerImpl(IntegrationRepository integrationRepository) {
 		this.integrationRepository = integrationRepository;
 	}
 
 	@Override
-	public Integration getEnabledProjectOrGlobalIntegrationByUrlAndBtsProject(ReportPortalUser.ProjectDetails projectDetails, String url,
+	public Optional<Integration> getEnabledProjectIntegrationByUrlAndBtsProject(ReportPortalUser.ProjectDetails projectDetails, String url,
 			String btsProject) {
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+		Optional<Integration> integration = integrationRepository.findProjectBtsByUrlAndLinkedProject(url,
+				btsProject,
+				projectDetails.getProjectId()
+		);
 
-		Integration integration = integrationRepository.findProjectBtsByUrlAndLinkedProject(url, btsProject, project.getId())
-				.orElseGet(() -> {
-
-					Integration globalIntegration = integrationRepository.findGlobalBtsByUrlAndLinkedProject(url, btsProject)
-							.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, url));
-
-					validateProjectLevelConstraints(project, globalIntegration);
-
-					return globalIntegration;
-
-				});
-
-		validateBtsIntegration(integration);
+		integration.ifPresent(this::validateBtsIntegration);
 
 		return integration;
 	}
 
 	@Override
-	public Integration getEnabledByProjectIdAndIdOrGlobalById(ReportPortalUser.ProjectDetails projectDetails,
-			Long integrationId) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+	public Optional<Integration> getEnabledGlobalIntegrationByUrlAndBtsProject(String url, String btsProject) {
 
-		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId()).orElseGet(() -> {
+		Optional<Integration> integration = integrationRepository.findGlobalBtsByUrlAndLinkedProject(url, btsProject);
 
-			Integration globalIntegration = integrationRepository.findGlobalById(integrationId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-
-			validateProjectLevelConstraints(project, globalIntegration);
-
-			return globalIntegration;
-
-		});
-
-		validateBtsIntegration(integration);
+		integration.ifPresent(this::validateBtsIntegration);
 
 		return integration;
 	}
 
-	private void validateProjectLevelConstraints(Project project, Integration integration) {
+	@Override
+	public Optional<Integration> getEnabledByProjectIdAndId(ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
 
-		BusinessRule.expect(project.getIntegrations()
-				.stream()
-				.map(Integration::getType)
-				.noneMatch(it -> it.getIntegrationGroup() == integration.getType().getIntegrationGroup()), equalTo(true))
-				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
-						"Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
-						integration.getId()
-				).get());
+		Optional<Integration> integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId());
+
+		integration.ifPresent(this::validateBtsIntegration);
+
+		return integration;
+	}
+
+	@Override
+	public Optional<Integration> getEnabledGlobalById(Long integrationId) {
+
+		Optional<Integration> integration = integrationRepository.findGlobalById(integrationId);
+
+		integration.ifPresent(this::validateBtsIntegration);
+
+		return integration;
 	}
 
 	private void validateBtsIntegration(Integration integration) {
@@ -114,12 +95,10 @@ public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHand
 						IntegrationGroupEnum.BTS
 				));
 
-		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName()).get()
 		);
-		BusinessRule.expect(integration, Integration::isEnabled).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(integration, Integration::isEnabled).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
 		);
 	}

@@ -100,15 +100,15 @@ public class EmailServerIntegrationService implements IntegrationService {
 	}
 
 	@Override
-	public Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
+	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
 			Map<String, Object> integrationParams) {
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
 				IntegrationGroupEnum.NOTIFICATION
 		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationName).get()
+				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
 		));
 
 		Integration integration = retrieveIntegration(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),

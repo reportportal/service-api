@@ -104,7 +104,7 @@ dependencies {
         compile 'com.github.reportportal:commons-rules:574fb3a'
         compile 'com.github.reportportal:commons-model:89444036'
         compile('com.github.reportportal:commons:71d4aca')
-        compile('com.github.reportportal:plugin-api:f8eeabb8')
+        compile('com.github.reportportal:plugin-api:8b1a6f8')
     }
 
     //move this to the plugin-api

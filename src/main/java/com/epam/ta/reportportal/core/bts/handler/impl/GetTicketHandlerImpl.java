@@ -20,8 +20,11 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
+import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
@@ -46,20 +49,33 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 
 	private final PluginBox pluginBox;
 	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
+	private final ProjectRepository projectRepository;
 
 	@Autowired
-	public GetTicketHandlerImpl(PluginBox pluginBox, GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
+	public GetTicketHandlerImpl(PluginBox pluginBox, GetBugTrackingSystemHandler getBugTrackingSystemHandler,
+			ProjectRepository projectRepository) {
 		this.pluginBox = pluginBox;
 		this.getBugTrackingSystemHandler = getBugTrackingSystemHandler;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
 	public Ticket getTicket(String ticketId, String url, String btsProject, ReportPortalUser.ProjectDetails projectDetails) {
 
-		Integration integration = getBugTrackingSystemHandler.getEnabledProjectOrGlobalIntegrationByUrlAndBtsProject(projectDetails,
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+
+		Integration integration = getBugTrackingSystemHandler.getEnabledProjectIntegrationByUrlAndBtsProject(projectDetails,
 				url,
 				btsProject
-		);
+		).orElseGet(() -> {
+			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegrationByUrlAndBtsProject(url, btsProject)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, url));
+
+			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+			return globalIntegration;
+		});
 
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
@@ -76,7 +92,17 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 	public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
 
-		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndIdOrGlobalById(projectDetails, integrationId);
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+
+		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndId(projectDetails, integrationId).orElseGet(() -> {
+			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalById(integrationId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+			return globalIntegration;
+		});
 
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
@@ -90,7 +116,17 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 	@Override
 	public List<String> getAllowableIssueTypes(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
 
-		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndIdOrGlobalById(projectDetails, integrationId);
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+
+		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndId(projectDetails, integrationId).orElseGet(() -> {
+			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalById(integrationId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+			return globalIntegration;
+		});
 
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,

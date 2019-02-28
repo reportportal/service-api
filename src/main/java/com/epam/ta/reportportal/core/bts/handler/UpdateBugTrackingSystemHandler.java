@@ -60,7 +60,7 @@ public interface UpdateBugTrackingSystemHandler {
 	 * @param projectDetails   {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS integrationConnect(BtsConnectionTestRQ connectionTestRQ, Long integrationId,
+	OperationCompletionRS testIntegrationConnection(BtsConnectionTestRQ connectionTestRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails);
 
 }

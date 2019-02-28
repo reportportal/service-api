@@ -23,10 +23,15 @@ import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
+import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -56,14 +61,16 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
 	private final MessageBus messageBus;
 	private final PluginBox pluginBox;
+	private final ProjectRepository projectRepository;
 
 	@Autowired
 	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, GetBugTrackingSystemHandler getBugTrackingSystemHandler,
-			PluginBox pluginBox, MessageBus messageBus) {
+			PluginBox pluginBox, MessageBus messageBus, ProjectRepository projectRepository) {
 		this.testItemRepository = testItemRepository;
 		this.getBugTrackingSystemHandler = getBugTrackingSystemHandler;
 		this.pluginBox = pluginBox;
 		this.messageBus = messageBus;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
@@ -71,7 +78,17 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
 
-		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndIdOrGlobalById(projectDetails, integrationId);
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+
+		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndId(projectDetails, integrationId).orElseGet(() -> {
+			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalById(integrationId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+			return globalIntegration;
+		});
 
 		expect(BtsConstants.DEFECT_FORM_FIELDS.getParam(integration.getParams()), notNull()).verify(BAD_REQUEST_ERROR,
 				"There aren't any submitted BTS fields!"

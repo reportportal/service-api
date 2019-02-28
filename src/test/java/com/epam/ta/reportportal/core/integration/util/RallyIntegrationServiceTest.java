@@ -75,7 +75,7 @@ class RallyIntegrationServiceTest {
 
 		when(pluginBox.getInstance(RALLY_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
-		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, getCorrectRallyIntegrationParams());
 	}
@@ -183,7 +183,7 @@ class RallyIntegrationServiceTest {
 
 		when(pluginBox.getInstance(RALLY_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
-		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		final long projectId = 1L;
 

@@ -92,7 +92,7 @@ public class BugTrackingSystemController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
 			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.integrationConnect(connectionTestRQ,
+		return updateBugTrackingSystemHandler.testIntegrationConnection(connectionTestRQ,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);

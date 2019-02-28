@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.bts.handler.UpdateBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
+import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -134,19 +135,26 @@ public class UpdateBugTrackingSystemHandlerImpl implements UpdateBugTrackingSyst
 	}
 
 	@Override
-	public OperationCompletionRS integrationConnect(BtsConnectionTestRQ connectionTestRQ, Long integrationId,
+	public OperationCompletionRS testIntegrationConnection(BtsConnectionTestRQ connectionTestRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 
-		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndIdOrGlobalById(projectDetails, integrationId);
+		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndId(projectDetails, integrationId).orElseGet(() -> {
+			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalById(integrationId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 
-		IntegrationParams connectionParams = createConnectionParams(ofNullable(integration.getParams()).orElseGet(IntegrationParams::new),
+			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+			return globalIntegration;
+		});
+
+		IntegrationParams testConnectionParams = prepareTestConnectionParams(ofNullable(integration.getParams()).orElseGet(IntegrationParams::new),
 				connectionTestRQ
 		);
 		Integration connectionIntegration = new Integration();
-		connectionIntegration.setParams(connectionParams);
+		connectionIntegration.setParams(testConnectionParams);
 		connectionIntegration.setType(integration.getType());
 		connectionIntegration.setProject(project);
 		connectionIntegration.setEnabled(integration.isEnabled());
@@ -158,20 +166,25 @@ public class UpdateBugTrackingSystemHandlerImpl implements UpdateBugTrackingSyst
 						connectionIntegration.getType().getName()
 				)
 		);
-		expect(extension.get().connectionTest(connectionIntegration), equalTo(true)).verify(UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extension.get().testConnection(connectionIntegration), equalTo(true)).verify(UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Connection to the integration with id = '{}' refused", integrationId)
 		);
 
 		return new OperationCompletionRS("Connection to  BTS Integration with ID = '" + integrationId + "' is successfully performed.");
 	}
 
-	private IntegrationParams createConnectionParams(IntegrationParams paramsToUpdate, BtsConnectionTestRQ connectionTestRQ) {
+	/**
+	 * @param existingParams   {@link IntegrationParams#params}
+	 * @param connectionTestRQ {@link BtsConnectionTestRQ}
+	 * @return Params to test connection to the BTS
+	 */
+	private IntegrationParams prepareTestConnectionParams(IntegrationParams existingParams, BtsConnectionTestRQ connectionTestRQ) {
 
 		Map<String, Object> connectionParams = Maps.newHashMap();
 
 		Set<String> excludedParameters = Sets.newHashSet(BtsProperties.PROJECT.getName(), BtsProperties.URL.getName());
 
-		ofNullable(paramsToUpdate.getParams()).ifPresent(params -> params.entrySet()
+		ofNullable(existingParams.getParams()).ifPresent(params -> params.entrySet()
 				.stream()
 				.filter(entry -> !excludedParameters.contains(entry.getKey()))
 				.forEach(entry -> connectionParams.put(entry.getKey(), entry.getValue())));

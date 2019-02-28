@@ -88,7 +88,7 @@ class JiraIntegrationServiceTest {
 
 		when(pluginBox.getInstance(JIRA_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
-		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, getCorrectJiraIntegrationParams());
 	}
@@ -227,7 +227,7 @@ class JiraIntegrationServiceTest {
 
 		when(pluginBox.getInstance(JIRA_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
-		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		final long projectId = 1L;
 

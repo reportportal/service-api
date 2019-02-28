@@ -69,7 +69,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.createGlobalIntegration(updateRequest.getIntegrationName(), updateRequest.getIntegrationParams());
-
 		integration.setEnabled(updateRequest.getEnabled());
 
 		integrationRepository.save(integration);
@@ -90,7 +89,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.createProjectIntegration(updateRequest.getIntegrationName(), projectDetails, updateRequest.getIntegrationParams());
-
 		integration.setEnabled(updateRequest.getEnabled());
 		integration.setProject(project);
 
@@ -109,7 +107,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.updateGlobalIntegration(id, updateRequest.getIntegrationParams());
-
 		integration.setEnabled(updateRequest.getEnabled());
 
 		integrationRepository.save(integration);
@@ -129,7 +126,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.updateProjectIntegration(id, projectDetails, updateRequest.getIntegrationParams());
-
 		integration.setEnabled(updateRequest.getEnabled());
 		integration.setProject(project);
 

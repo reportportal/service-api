@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -25,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.DeleteProjectRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,16 +40,23 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
-	public DeleteProjectHandlerImpl(ProjectRepository projectRepository) {
+	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
 	public OperationCompletionRS deleteProject(String projectName) {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
 		projectRepository.deleteById(project.getId());
+
+		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
+
 		return new OperationCompletionRS("Project with name = '" + projectName + "' has been successfully deleted.");
 	}
 

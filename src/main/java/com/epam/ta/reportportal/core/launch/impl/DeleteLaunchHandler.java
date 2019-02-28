@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
+import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -29,6 +30,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.DeleteLaunchesRS;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -59,9 +62,13 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 
 	private final MessageBus messageBus;
 
-	public DeleteLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus) {
+	private final ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	public DeleteLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
+		this.eventPublisher = eventPublisher;
 	}
 
 	//	private ILogIndexer logIndexer;
@@ -77,6 +84,8 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
 		launchRepository.delete(launch);
+
+		eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(launch.getId()));
 
 		//		logIndexer.cleanIndex(
 		//				projectName, itemRepository.selectIdsNotInIssueByLaunch(launchId, TestItemIssueType.TO_INVESTIGATE.getLocator()));
@@ -126,7 +135,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 *
 	 * @param launch         {@link Launch}
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,

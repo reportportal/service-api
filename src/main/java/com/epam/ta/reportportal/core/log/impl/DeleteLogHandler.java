@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -39,6 +40,7 @@ import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Delete Logs handler. Basic implementation of
@@ -56,6 +58,7 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 	private final ProjectRepository projectRepository;
 
+	@Autowired
 	public DeleteLogHandler(LogRepository logRepository, DataStoreService dataStoreService, ProjectRepository projectRepository) {
 		this.logRepository = logRepository;
 		this.dataStoreService = dataStoreService;
@@ -83,14 +86,17 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 
 	private void cleanUpLogData(Log log) {
 
-		if (StringUtils.isNotEmpty(log.getAttachment())) {
+		ofNullable(log.getAttachment()).ifPresent(a -> {
+			if (StringUtils.isNotBlank(a.getPath())) {
 
-			dataStoreService.delete(log.getAttachment());
-		}
-		if (StringUtils.isNotEmpty(log.getAttachmentThumbnail())) {
+				dataStoreService.delete(a.getPath());
+			}
+			if (StringUtils.isNotBlank(a.getThumbnailPath())) {
 
-			dataStoreService.delete(log.getAttachmentThumbnail());
-		}
+				dataStoreService.delete(a.getThumbnailPath());
+			}
+		});
+
 	}
 
 	/**

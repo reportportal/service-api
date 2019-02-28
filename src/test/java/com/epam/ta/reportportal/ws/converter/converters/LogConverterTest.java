@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -30,9 +31,9 @@ class LogConverterTest {
 
 		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
 
-		assertEquals(binaryContent.getContentType(), log.getContentType());
-		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment());
-		assertEquals(binaryContent.getThumbnailId(), log.getAttachmentThumbnail());
+		assertEquals(binaryContent.getContentType(), log.getAttachment().getContentType());
+		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getPath());
+		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailPath());
 	}
 
 	private static Log getLog() {
@@ -42,12 +43,14 @@ class LogConverterTest {
 		final TestItem testItem = new TestItem();
 		testItem.setItemId(1L);
 		log.setTestItem(testItem);
-		log.setAttachment("attachId");
-		log.setContentType("contentType");
+		Attachment attachment = new Attachment();
+		attachment.setPath("attachId");
+		attachment.setContentType("contentType");
+		attachment.setThumbnailPath("thumbnailId");
+		log.setAttachment(attachment);
 		log.setLogTime(LocalDateTime.now());
 		log.setId(2L);
 		log.setLastModified(LocalDateTime.now());
-		log.setAttachmentThumbnail("thumbnailId");
 		return log;
 	}
 }

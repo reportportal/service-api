@@ -799,4 +799,41 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
 				.andExpect(jsonPath("$.content.result[2].objectType").value("launch"));
 	}
+
+	@Sql("/db/widget/product-status.sql")
+	@Test
+	void getProductStatusGroupedByLaunchWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("product status"))
+				.andExpect(jsonPath("$.widgetType").value("productStatus"))
+				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[0].number").value("1"))
+				.andExpect(jsonPath("$.content.result[0].attributes").isNotEmpty())
+				.andExpect(jsonPath("$.content.result[0].passingRate").value("40.0"))
+				.andExpect(jsonPath("$.content.result[1].name").value("test launch"))
+				.andExpect(jsonPath("$.content.result[1].number").value("2"))
+				.andExpect(jsonPath("$.content.result[1].attributes").doesNotExist())
+				.andExpect(jsonPath("$.content.result[1].passingRate").value("20.0"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$executions$passed").value("3"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$executions$skipped").value("1"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$defects$to_investigate$ti001").value("3"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$defects$product_bug$pb001").value("2"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$defects$automation_bug$ab001").value("1"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$executions$failed").value("6"))
+				.andExpect(jsonPath("$.content.result[2].sum.statistics$executions$total").value("10"))
+				.andExpect(jsonPath("$.content.result[2].averagePassingRate").value("30.0"));
+	}
+
+	@Sql("/db/widget/product-status.sql")
+	@Test
+	void getEmptyContentProductStatusGroupedByLaunchWidget() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("product status"))
+				.andExpect(jsonPath("$.widgetType").value("productStatus"))
+				.andExpect(jsonPath("$.content").isEmpty());
+	}
 }

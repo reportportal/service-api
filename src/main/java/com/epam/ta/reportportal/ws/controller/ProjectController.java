@@ -207,7 +207,7 @@ public class ProjectController {
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.assignUsers(ProjectExtractor.extractProjectDetails(user, projectName), assignUsersRQ, user);
+		return updateProjectHandler.assignUsers(projectName, assignUsersRQ, user);
 	}
 
 	@Transactional(readOnly = true)

@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.plugin.P4jPluginManager;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.google.common.collect.Sets;
 import org.pf4j.ManifestPluginDescriptorFinder;
 import org.pf4j.PluginDescriptorFinder;
@@ -37,8 +37,8 @@ public class PluginConfiguration {
 	private String pluginsPath;
 
 	@Bean
-	public PluginBox p4jPluginBox() {
-		P4jPluginManager manager = new P4jPluginManager(pluginsPath, context, Sets.newHashSet(pluginDescriptorFinder()));
+	public Pf4jPluginBox pf4jPluginBox() {
+		Pf4jPluginManager manager = new Pf4jPluginManager(pluginsPath, context, Sets.newHashSet(pluginDescriptorFinder()));
 		manager.startAsync();
 		return manager;
 	}

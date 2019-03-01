@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -73,7 +72,7 @@ public class CleanScreenshotsJob implements Job {
 				LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
 				proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
 			} catch (Exception e) {
-				LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
+				LOGGER.error("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 			}
 			LOGGER.info(
 					"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
@@ -88,11 +87,7 @@ public class CleanScreenshotsJob implements Job {
 	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
 		return Filter.builder()
 				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS,
-						false,
-						projectAttributeEnum.getAttribute(),
-						CRITERIA_PROJECT_ATTRIBUTE_NAME
-				))
+				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ATTRIBUTE_NAME, projectAttributeEnum.getAttribute()).build())
 				.build();
 	}
 

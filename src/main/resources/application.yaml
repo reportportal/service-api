@@ -85,3 +85,9 @@ rp:
     enableByDefault: true
   plugins:
     path: /plugins
+  binarystore:
+    master:
+      host: seaweed-master
+      port: 9333
+    # could be one of [seaweed, filesystem]
+    type: filesystem

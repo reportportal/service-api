@@ -22,14 +22,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractScheduledService;
-import org.pf4j.PluginState;
-import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -67,26 +64,6 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	@Override
 	public <T> Optional<T> getInstance(Class<T> type) {
 		//TODO implement
-		return Optional.empty();
-	}
-
-	@Override
-	public PluginState startUpPlugin(String pluginId) {
-		return null;
-	}
-
-	@Override
-	public String loadPlugin(Path path) {
-		return null;
-	}
-
-	@Override
-	public boolean unloadPlugin(String pluginId) {
-		return false;
-	}
-
-	@Override
-	public Optional<PluginWrapper> getPluginById(String id) {
 		return Optional.empty();
 	}
 

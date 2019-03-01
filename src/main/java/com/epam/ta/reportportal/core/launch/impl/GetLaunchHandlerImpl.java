@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ import static java.util.Optional.ofNullable;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements com.epam.ta.reportportal.core.launch.GetLaunchHandler {
+public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implements com.epam.ta.reportportal.core.launch.GetLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
@@ -97,7 +97,7 @@ public class GetLaunchHandler /*extends StatisticBasedContentLoader*/ implements
 	private final LaunchConverter launchConverter;
 
 	@Autowired
-	public GetLaunchHandler(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
+	public GetLaunchHandlerImpl(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
 			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository, UserRepository userRepository,
 			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler,
 			LaunchConverter launchConverter) {

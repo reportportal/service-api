@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,17 +59,17 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	@Autowired
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
 
 	private final PluginBox pluginBox;
 
 	@Autowired
 	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
-			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
+			ApplicationEventPublisher eventPublisher, MessageBus messageBus, PluginBox pluginBox) {
 		this.testItemRepository = testItemRepository;
 		this.integrationRepository = integrationRepository;
 		this.eventPublisher = eventPublisher;
+		this.messageBus = messageBus;
 		this.pluginBox = pluginBox;
 	}
 
@@ -78,7 +78,9 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
 		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
-		List<TestItemActivityResource> before = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
+		List<TestItemActivityResource> before = testItems.stream()
+				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+				.collect(Collectors.toList());
 
 		Integration integration = integrationRepository.findById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));

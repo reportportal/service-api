@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,9 +72,9 @@ public class LineChartContentLoader extends AbstractStatisticsContentLoader impl
 
 		String timeLineOption = ofNullable(widgetOptions).map(wo -> WidgetOptionUtil.getValueByKey(TIMELINE, wo)).orElse(Strings.EMPTY);
 		if (StringUtils.isNotBlank(timeLineOption)) {
-			Optional<AbstractStatisticsContentLoader.Period> period = AbstractStatisticsContentLoader.Period.findByName(timeLineOption);
+			Optional<Period> period = Period.findByName(timeLineOption);
 			if (period.isPresent()) {
-				return CollectionUtils.isEmpty(content) ? singletonMap(RESULT, Collections.emptyList()) : groupByDate(content, period.get());
+				return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, groupByDate(content, period.get()));
 			}
 
 		}

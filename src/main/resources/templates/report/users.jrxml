@@ -35,6 +35,7 @@
         <![CDATA[]]>
     </queryString>
     <field name="Full name" class="java.lang.String"/>
+    <field name="Type" class="java.lang.String"/>
     <field name="Login" class="java.lang.String"/>
     <field name="Email" class="java.lang.String"/>
     <field name="Last login" class="java.lang.String"/>
@@ -43,16 +44,23 @@
         <band splitType="Stretch"/>
     </background>
     <columnHeader>
-        <band height="19" splitType="Stretch">
+        <band height="23" splitType="Stretch">
             <staticText>
-                <reportElement x="0" y="0" width="217" height="18" uuid="1e0d3905-6d0e-4660-ac0a-9b6ca6b47b93">
+                <reportElement x="0" y="0" width="180" height="18" uuid="1e0d3905-6d0e-4660-ac0a-9b6ca6b47b93">
                     <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f172f0b8-1df3-4c59-bec2-45f6582696e3"/>
                 </reportElement>
                 <textElement textAlignment="Center"/>
                 <text><![CDATA[Full name]]></text>
             </staticText>
             <staticText>
-                <reportElement x="217" y="0" width="193" height="18" uuid="64cc94b9-8766-49b1-8b9f-e45296c5c9c7">
+                <reportElement x="180" y="0" width="80" height="18" uuid="82d59e26-2731-4f85-b1ee-3179b20e6f07">
+                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f172f0b8-1df3-4c59-bec2-45f6582696e3"/>
+                </reportElement>
+                <textElement textAlignment="Center"/>
+                <text><![CDATA[Type]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="260" y="0" width="150" height="18" uuid="64cc94b9-8766-49b1-8b9f-e45296c5c9c7">
                     <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3ebec559-1ba4-4dc0-978b-ff46d0298c59"/>
                 </reportElement>
                 <textElement textAlignment="Center"/>
@@ -86,7 +94,7 @@
             <frame>
                 <reportElement style="Row" mode="Opaque" x="0" y="0" width="797" height="18" uuid="34a2ae4b-4055-476b-8676-d499f6af510b"/>
                 <textField>
-                    <reportElement x="0" y="0" width="217" height="30" uuid="42609d3f-7d28-44f2-b8ea-650fbbcf746f">
+                    <reportElement x="0" y="0" width="180" height="30" uuid="42609d3f-7d28-44f2-b8ea-650fbbcf746f">
                         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f172f0b8-1df3-4c59-bec2-45f6582696e3"/>
                         <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
                     </reportElement>
@@ -94,7 +102,15 @@
                     <textFieldExpression><![CDATA[$F{Full name}]]></textFieldExpression>
                 </textField>
                 <textField>
-                    <reportElement x="217" y="0" width="193" height="30" uuid="66d3c031-147d-40f1-a43b-d1d9a3a6e457">
+                    <reportElement x="180" y="0" width="80" height="30" uuid="9d167ef4-d39b-4963-9d55-593d5a6e388a">
+                        <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="f172f0b8-1df3-4c59-bec2-45f6582696e3"/>
+                        <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+                    </reportElement>
+                    <textElement textAlignment="Center"/>
+                    <textFieldExpression><![CDATA[$F{Type}]]></textFieldExpression>
+                </textField>
+                <textField>
+                    <reportElement x="260" y="0" width="150" height="30" uuid="66d3c031-147d-40f1-a43b-d1d9a3a6e457">
                         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="3ebec559-1ba4-4dc0-978b-ff46d0298c59"/>
                         <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
                     </reportElement>
@@ -112,6 +128,7 @@
                 <textField>
                     <reportElement x="560" y="0" width="120" height="30" uuid="47939077-bc56-4fc7-85b9-2942fcaddaa0">
                         <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="7d2a698e-beb1-4dbb-b059-0654b305955e"/>
+                        <property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
                     </reportElement>
                     <textElement textAlignment="Center"/>
                     <textFieldExpression><![CDATA[$F{Last login}]]></textFieldExpression>

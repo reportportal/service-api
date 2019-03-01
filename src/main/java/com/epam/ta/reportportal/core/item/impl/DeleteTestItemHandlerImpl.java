@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEvent;
+import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -95,7 +95,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(launch.getId()));
+		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
 
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}

@@ -45,7 +45,6 @@ RUN  mkdir /opt/java && cd /opt/java \
 RUN cd /tmp && wget https://dl.influxdata.com/telegraf/releases/telegraf_1.8.3-1_amd64.deb && \
     dpkg -i telegraf_1.8.3-1_amd64.deb
 COPY docker/telegraf.conf /etc/telegraf/telegraf.conf
-COPY docker/jolokia.conf /
 
 RUN apt-get update && \
     apt-get install -y fonts-noto net-tools && \

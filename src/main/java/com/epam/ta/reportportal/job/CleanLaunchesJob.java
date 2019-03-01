@@ -96,7 +96,7 @@ public class CleanLaunchesJob implements Job {
 						try {
 							proceedLaunchesCleaning(project, removedLaunchesCount, removedAttachmentsCount, removedThumbnailsCount);
 						} catch (Exception e) {
-							LOGGER.debug("Cleaning outdated launches for project {} has been failed", project.getId(), e);
+							LOGGER.error("Cleaning outdated launches for project {} has been failed", project.getId(), e);
 						}
 
 						LOGGER.info(

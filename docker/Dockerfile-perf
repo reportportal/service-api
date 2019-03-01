@@ -1,0 +1,70 @@
+FROM openjdk:8-jdk-alpine as builder
+
+RUN apk add --no-cache ca-certificates git curl font-noto
+
+RUN addgroup -S -g 1000 rp-builder
+RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
+
+WORKDIR /home/rp-builder
+
+COPY gradle/ ./gradle
+COPY gradlew .
+COPY build-quality.gradle build.gradle gradlew settings.gradle gradle.properties ./
+COPY . ./
+
+RUN chown -R rp-builder:rp-builder ./
+USER rp-builder
+RUN ./gradlew wrapper
+RUN ./gradlew resolveDependencies --stacktrace
+RUN ./gradlew build --stacktrace
+
+RUN mkdir -p /home/rp-builder/plugins
+RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
+RUN curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
+
+FROM openjdk:8-jre-slim
+
+LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
+LABEL version="@version@"
+LABEL description="@description@"
+
+ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+ENV JOLOKIA_AGENT="-javaagent:/opt/java/jolokia-jvm-1.6.0-agent.jar=port=7777,host=localhost"
+ENV JAVA_APP=/app.jar
+
+RUN apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+
+# Installing Java Jolokia
+RUN  mkdir /opt/java && cd /opt/java \
+ && wget -O jolokia-jvm-1.6.0-agent.jar \
+ http://search.maven.org/remotecontent?filepath=org/jolokia/jolokia-jvm/1.6.0/jolokia-jvm-1.6.0-agent.jar
+
+# Installing Telegraf
+RUN cd /tmp && wget https://dl.influxdata.com/telegraf/releases/telegraf_1.8.3-1_amd64.deb && \
+    dpkg -i telegraf_1.8.3-1_amd64.deb
+COPY docker/telegraf.conf /etc/telegraf/telegraf.conf
+COPY docker/jolokia.conf /
+
+RUN apt-get update && \
+    apt-get install -y fonts-noto net-tools && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN sh -c "echo '#!/bin/sh \n\
+service telegraf restart \n\
+exec java $JOLOKIA_AGENT $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
+
+VOLUME /tmp
+
+RUN mkdir plugins
+COPY --from=builder /home/rp-builder/plugins/JIRA.jar ./plugins/JIRA.jar
+COPY --from=builder /home/rp-builder/plugins/RALLY.jar ./plugins/RALLY.jar
+
+COPY --from=builder /home/rp-builder/build/libs/service-api.jar ./app.jar
+
+RUN sh -c 'touch /app.jar'
+
+EXPOSE 8080
+
+ENTRYPOINT /start.sh

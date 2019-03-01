@@ -116,7 +116,7 @@ public class ProjectController {
 	@PutMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-	@ApiOperation(value = "Update project", notes = "'Notifications Configuration' can be also update via PUT to /{projectName}/notification resource.")
+	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);

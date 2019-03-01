@@ -25,6 +25,11 @@ import java.util.List;
  */
 public interface GetPluginHandler {
 
+	/**
+	 * Get a list of all existing plugins
+	 *
+	 * @return {@link List} of the {@link IntegrationTypeResource}
+	 */
 	List<IntegrationTypeResource> getPlugins();
 
 }

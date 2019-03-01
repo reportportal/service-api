@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
 import org.junit.jupiter.api.Assertions;
@@ -51,11 +52,13 @@ class UpdatePluginHandlerTest {
 	private final String pluginRootPath = "plugins";
 	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+	private final DataStore dataStore = mock(DataStore.class);
 
 	private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
 	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox,
 			integrationTypeRepository,
+			dataStore,
 			pluginRootPath
 	);
 
@@ -185,7 +188,6 @@ class UpdatePluginHandlerTest {
 		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "file-id");
 		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), fileName);
 		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), "1.0.0");
-
 		return params;
 	}
 

@@ -43,46 +43,38 @@ public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHand
 	}
 
 	@Override
-	public Optional<Integration> getEnabledProjectIntegrationByUrlAndBtsProject(ReportPortalUser.ProjectDetails projectDetails, String url,
+	public Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
 			String btsProject) {
 
 		Optional<Integration> integration = integrationRepository.findProjectBtsByUrlAndLinkedProject(url,
 				btsProject,
 				projectDetails.getProjectId()
 		);
-
 		integration.ifPresent(this::validateBtsIntegration);
-
 		return integration;
 	}
 
 	@Override
-	public Optional<Integration> getEnabledGlobalIntegrationByUrlAndBtsProject(String url, String btsProject) {
-
-		Optional<Integration> integration = integrationRepository.findGlobalBtsByUrlAndLinkedProject(url, btsProject);
-
-		integration.ifPresent(this::validateBtsIntegration);
-
-		return integration;
-	}
-
-	@Override
-	public Optional<Integration> getEnabledByProjectIdAndId(ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
+	public Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
 
 		Optional<Integration> integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId());
-
 		integration.ifPresent(this::validateBtsIntegration);
-
 		return integration;
 	}
 
 	@Override
-	public Optional<Integration> getEnabledGlobalById(Long integrationId) {
+	public Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject) {
+
+		Optional<Integration> integration = integrationRepository.findGlobalBtsByUrlAndLinkedProject(url, btsProject);
+		integration.ifPresent(this::validateBtsIntegration);
+		return integration;
+	}
+
+	@Override
+	public Optional<Integration> getEnabledGlobalIntegration(Long integrationId) {
 
 		Optional<Integration> integration = integrationRepository.findGlobalById(integrationId);
-
 		integration.ifPresent(this::validateBtsIntegration);
-
 		return integration;
 	}
 
@@ -94,12 +86,5 @@ public class GetBugTrackingSystemHandlerImpl implements GetBugTrackingSystemHand
 						integration.getType().getIntegrationGroup(),
 						IntegrationGroupEnum.BTS
 				));
-
-		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName()).get()
-		);
-		BusinessRule.expect(integration, Integration::isEnabled).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
-		);
 	}
 }

@@ -21,12 +21,11 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.bts.handler.UpdateBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
+import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
-import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -70,16 +69,16 @@ public class UpdateBugTrackingSystemHandlerImpl implements UpdateBugTrackingSyst
 	private final ProjectRepository projectRepository;
 	private final MessageBus messageBus;
 	private final PluginBox pluginBox;
-	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
+	private final GetIntegrationHandler getIntegrationHandler;
 
 	@Autowired
 	public UpdateBugTrackingSystemHandlerImpl(IntegrationRepository integrationRepository, ProjectRepository projectRepository,
-			MessageBus messageBus, PluginBox pluginBox, GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
-		this.getBugTrackingSystemHandler = getBugTrackingSystemHandler;
+			MessageBus messageBus, PluginBox pluginBox, GetIntegrationHandler getIntegrationHandler) {
 		this.integrationRepository = integrationRepository;
 		this.projectRepository = projectRepository;
 		this.messageBus = messageBus;
 		this.pluginBox = pluginBox;
+		this.getIntegrationHandler = getIntegrationHandler;
 	}
 
 	@Override
@@ -141,14 +140,7 @@ public class UpdateBugTrackingSystemHandlerImpl implements UpdateBugTrackingSyst
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 
-		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndId(projectDetails, integrationId).orElseGet(() -> {
-			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalById(integrationId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-
-			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
-
-			return globalIntegration;
-		});
+		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
 
 		IntegrationParams testConnectionParams = prepareTestConnectionParams(ofNullable(integration.getParams()).orElseGet(IntegrationParams::new),
 				connectionTestRQ

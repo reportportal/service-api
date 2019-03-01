@@ -26,12 +26,12 @@ import java.util.Optional;
  */
 public interface GetBugTrackingSystemHandler {
 
-	Optional<Integration> getEnabledProjectIntegrationByUrlAndBtsProject(ReportPortalUser.ProjectDetails projectDetails, String url,
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
 			String btsProject);
 
-	Optional<Integration> getEnabledGlobalIntegrationByUrlAndBtsProject(String url, String btsProject);
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 
-	Optional<Integration> getEnabledByProjectIdAndId(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
+	Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject);
 
-	Optional<Integration> getEnabledGlobalById(Long integrationId);
+	Optional<Integration> getEnabledGlobalIntegration(Long integrationId);
 }

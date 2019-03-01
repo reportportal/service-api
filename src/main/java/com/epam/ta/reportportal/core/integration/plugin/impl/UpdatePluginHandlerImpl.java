@@ -25,14 +25,20 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
+import org.apache.commons.io.FileUtils;
 import org.pf4j.PluginState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
@@ -47,13 +53,15 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
 	private final Pf4jPluginBox pluginBox;
 	private final IntegrationTypeRepository integrationTypeRepository;
+	private final DataStore dataStore;
 	private final String pluginsRootPath;
 
 	@Autowired
-	public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox, IntegrationTypeRepository integrationTypeRepository,
+	public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox, IntegrationTypeRepository integrationTypeRepository, DataStore dataStore,
 			@Value("${rp.plugins.path}") String pluginsRootPath) {
 		this.pluginBox = pluginBox;
 		this.integrationTypeRepository = integrationTypeRepository;
+		this.dataStore = dataStore;
 		this.pluginsRootPath = pluginsRootPath;
 	}
 
@@ -113,6 +121,32 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 									integrationType.getName()
 							).get()
 					));
+
+			if (!Files.exists(Paths.get(pluginsRootPath, pluginFileName))) {
+
+				String pluginFileId = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+								Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
+										integrationType.getName()
+								).get()
+						));
+
+				try (InputStream inputStream = ofNullable(dataStore.load(pluginFileId)).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Error during downloading the file of the plugin with ID = '{}' from the data storage",
+								integrationType.getName()
+						)
+								.get()
+				))) {
+					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginFileName));
+				} catch (IOException e) {
+
+					throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+							Suppliers.formattedSupplier("Error during copying the file of the plugin with ID = '{}'",
+									integrationType.getName()
+							).get()
+					);
+				}
+			}
 
 			Optional<String> pluginId = ofNullable(pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginFileName)));
 

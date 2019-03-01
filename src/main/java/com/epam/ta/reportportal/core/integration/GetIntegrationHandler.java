@@ -38,4 +38,8 @@ public interface GetIntegrationHandler {
 	IntegrationResource getGlobalIntegrationById(Long integrationId);
 
 	Optional<Integration> getEnabledByProjectIdOrGlobalAndIntegrationGroup(Long projectId, IntegrationGroupEnum integrationGroup);
+
+	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, String url, String btsProject);
+
+	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 }

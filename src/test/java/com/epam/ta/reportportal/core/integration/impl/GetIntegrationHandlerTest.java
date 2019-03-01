@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.ReportPortalUserUtil;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -41,11 +43,14 @@ import static org.mockito.Mockito.when;
 public class GetIntegrationHandlerTest {
 
 	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
-
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler = mock(GetBugTrackingSystemHandler.class);
 
 	private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(integrationRepository,
-			integrationTypeRepository
+			integrationTypeRepository,
+			projectRepository,
+			getBugTrackingSystemHandler
 	);
 
 	@Test
@@ -62,10 +67,7 @@ public class GetIntegrationHandlerTest {
 
 		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
 				projectId
-		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(
-				emailIntegrationId,
-				projectId
-		)));
+		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
 
 		IntegrationResource integrationResource = getIntegrationHandler.getProjectIntegrationById(emailIntegrationId,
 				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME)

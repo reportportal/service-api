@@ -20,18 +20,14 @@ import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
-import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
-import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
+import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -58,19 +54,17 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_POST_TICKET;
 public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 	private final TestItemRepository testItemRepository;
-	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
 	private final MessageBus messageBus;
 	private final PluginBox pluginBox;
-	private final ProjectRepository projectRepository;
+	private final GetIntegrationHandler getIntegrationHandler;
 
 	@Autowired
-	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, GetBugTrackingSystemHandler getBugTrackingSystemHandler,
-			PluginBox pluginBox, MessageBus messageBus, ProjectRepository projectRepository) {
+	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, PluginBox pluginBox, MessageBus messageBus,
+			ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler) {
 		this.testItemRepository = testItemRepository;
-		this.getBugTrackingSystemHandler = getBugTrackingSystemHandler;
 		this.pluginBox = pluginBox;
 		this.messageBus = messageBus;
-		this.projectRepository = projectRepository;
+		this.getIntegrationHandler = getIntegrationHandler;
 	}
 
 	@Override
@@ -78,17 +72,7 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
-
-		Integration integration = getBugTrackingSystemHandler.getEnabledByProjectIdAndId(projectDetails, integrationId).orElseGet(() -> {
-			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalById(integrationId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-
-			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
-
-			return globalIntegration;
-		});
+		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
 
 		expect(BtsConstants.DEFECT_FORM_FIELDS.getParam(integration.getParams()), notNull()).verify(BAD_REQUEST_ERROR,
 				"There aren't any submitted BTS fields!"

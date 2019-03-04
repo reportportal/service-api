@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,8 @@ public class BugTrackingSystemController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS updateProjectBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
 			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(updateRequest,
+		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(
+				updateRequest,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
@@ -92,7 +93,8 @@ public class BugTrackingSystemController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
 			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.testIntegrationConnection(connectionTestRQ,
+		return updateBugTrackingSystemHandler.testIntegrationConnection(
+				connectionTestRQ,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);

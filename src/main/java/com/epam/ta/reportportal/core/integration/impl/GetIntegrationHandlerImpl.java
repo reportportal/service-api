@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,8 +138,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
 		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-				.stream()
-				.filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
+				.stream().filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
 				.findFirst();
 	}
 

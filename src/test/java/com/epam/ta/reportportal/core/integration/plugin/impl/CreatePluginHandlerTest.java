@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,10 +147,12 @@ public class CreatePluginHandlerTest {
 				() -> createPluginHandler.uploadPlugin(multipartFile)
 		);
 
-		assertEquals(Suppliers.formattedSupplier("Error during plugin uploading: 'New plugin with id = {} doesn't have mandatory extension classes.'",
-				PLUGIN_ID
-		)
-				.get(), exception.getMessage());
+		assertEquals(
+				Suppliers.formattedSupplier("Error during plugin uploading: 'New plugin with id = {} doesn't have mandatory extension classes.'",
+						PLUGIN_ID
+				).get(),
+				exception.getMessage()
+		);
 	}
 
 	@Test

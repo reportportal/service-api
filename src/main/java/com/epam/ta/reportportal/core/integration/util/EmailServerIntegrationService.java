@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,7 +105,8 @@ public class EmailServerIntegrationService implements IntegrationService {
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(
+				integrationTypeName,
 				IntegrationGroupEnum.NOTIFICATION
 		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
@@ -196,8 +197,8 @@ public class EmailServerIntegrationService implements IntegrationService {
 				String.valueOf(e))).orElse(false);
 		if (isAuthEnabled) {
 
-			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
-					.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
+			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams).ifPresent(password -> resultParams.put(
+					EmailSettingsEnum.PASSWORD.getAttribute(),
 							basicTextEncryptor.encrypt(password)
 					));
 		} else {

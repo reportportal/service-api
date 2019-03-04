@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,7 +147,10 @@ public class CreateIntegrationHandlerTest {
 		)).thenReturn(IntegrationTestUtil.getGlobalEmailIntegration(emailIntegrationId));
 
 		//then
-		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateGlobalIntegration(emailIntegrationId, updateIntegrationRQ);
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateGlobalIntegration(
+				emailIntegrationId,
+				updateIntegrationRQ
+		);
 
 		assertNotNull(operationCompletionRS);
 		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully updated.",
@@ -185,9 +188,12 @@ public class CreateIntegrationHandlerTest {
 		)).thenReturn(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId));
 
 		//then
-		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateProjectIntegration(emailIntegrationId, ProjectExtractor.extractProjectDetails(user,
-				TEST_PROJECT_NAME
-		), updateIntegrationRQ, user);
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateProjectIntegration(
+				emailIntegrationId,
+				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME),
+				updateIntegrationRQ,
+				user
+		);
 
 		assertNotNull(operationCompletionRS);
 		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully updated.",

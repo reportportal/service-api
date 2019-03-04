@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import java.util.Optional;
  */
 public interface GetBugTrackingSystemHandler {
 
-	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
-			String btsProject);
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url, String btsProject);
 
 	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 

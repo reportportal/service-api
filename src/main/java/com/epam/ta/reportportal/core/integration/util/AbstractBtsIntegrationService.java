@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,10 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 
 	private Integration createIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName, IntegrationGroupEnum.BTS)
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(
+				integrationTypeName,
+				IntegrationGroupEnum.BTS
+		)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationTypeName).get()
 				));
@@ -166,7 +169,8 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName())
 		);
 
-		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Connection refused."
 		);
 	}

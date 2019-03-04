@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,6 @@ public interface CreateIntegrationHandler {
 
 	OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest);
 
-	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
-			ReportPortalUser user);
+	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			UpdateIntegrationRQ updateRequest, ReportPortalUser user);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import com.epam.ta.reportportal.core.analyzer.model.CleanIndexRq;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,6 +28,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +38,7 @@ import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_SUP
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient {
-
-	private static final Logger LOGGER = LogManager.getLogger(AnalyzerServiceClient.class.getSimpleName());
+public class AnalyzerServiceClientImpl implements com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient {
 
 	private static final String INDEX_ROUTE = "index";
 	private static final String ANALYZE_ROUTE = "analyze";
@@ -53,7 +50,7 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 	private final RabbitTemplate rabbitTemplate;
 
 	@Autowired
-	public AnalyzerServiceClient(RabbitMqManagementClient rabbitMqManagementClient,
+	public AnalyzerServiceClientImpl(RabbitMqManagementClient rabbitMqManagementClient,
 			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
 		this.rabbitMqManagementClient = rabbitMqManagementClient;
 		this.rabbitTemplate = rabbitTemplate;
@@ -69,13 +66,12 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
-				.flatMap(exchange -> rq.stream()
-						.map(indexLaunch -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-								INDEX_ROUTE,
-								indexLaunch,
-								new ParameterizedTypeReference<IndexRs>() {
-								}
-						)))
+				.map(exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+						INDEX_ROUTE,
+						rq,
+						new ParameterizedTypeReference<IndexRs>() {
+						}
+				))
 				.mapToLong(it -> it.getItems().size())
 				.sum();
 	}
@@ -103,8 +99,7 @@ public class AnalyzerServiceClient implements com.epam.ta.reportportal.core.anal
 
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
 		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
-				ANALYZE_ROUTE,
-				rq,
+				ANALYZE_ROUTE, Collections.singletonList(rq),
 				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
 				}
 		);

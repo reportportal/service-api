@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,10 +68,7 @@ class JiraIntegrationServiceTest {
 	void setUp() {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
-		jiraIntegrationService = new JiraIntegrationService(integrationTypeRepository,
-				integrationRepository,
-				pluginBox,
-				basicTextEncryptor
+		jiraIntegrationService = new JiraIntegrationService(integrationTypeRepository, integrationRepository, pluginBox, basicTextEncryptor
 		);
 	}
 
@@ -268,7 +265,10 @@ class JiraIntegrationServiceTest {
 				() -> jiraIntegrationService.updateGlobalIntegration(1L, correctJiraIntegrationParams)
 		);
 
-		assertEquals("Impossible interact with integration. Unable to update integration with type - 'NOTIFICATION'. Required type - 'BTS'", exception.getMessage());
+		assertEquals(
+				"Impossible interact with integration. Unable to update integration with type - 'NOTIFICATION'. Required type - 'BTS'",
+				exception.getMessage()
+		);
 
 	}
 

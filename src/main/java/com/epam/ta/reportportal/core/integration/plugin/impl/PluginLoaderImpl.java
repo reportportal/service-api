@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,11 +197,9 @@ public class PluginLoaderImpl implements PluginLoader {
 
 		if (new File(pluginsRootPath, newPluginFileName).exists()) {
 
-			if (!previousPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName)
-					.equals(previousPlugin.get().getPluginPath())) {
+			if (!previousPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName).equals(previousPlugin.get().getPluginPath())) {
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with different plugin type", newPluginFileName)
-								.get()
+						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with different plugin type", newPluginFileName).get()
 				);
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,21 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
+import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
@@ -46,44 +44,61 @@ import static org.mockito.Mockito.when;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
-class UpdateLaunchHandlerTest {
+class GetLaunchHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
 
 	@Mock
+	private ItemAttributeRepository itemAttributeRepository;
+
+	@Mock
 	private ProjectRepository projectRepository;
 
+	@Mock
+	private WidgetContentRepository widgetContentRepository;
+
+	@Mock
+	private UserRepository userRepository;
+
+	@Mock
+	private JasperDataProvider jasperDataProvider;
+
+	@Mock
+	private GetJasperReportHandler<Launch> getJasperReportHandler;
+
+	@Mock
+	private LaunchConverter launchConverter;
+
 	@InjectMocks
-	private UpdateLaunchHandler handler;
+	private GetLaunchHandlerImpl handler;
 
 	@Test
-	void updateNotOwnLaunch() {
-		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+	void getLaunchFromOtherProject() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 2L);
+		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
-		when(projectRepository.findById(1L)).thenReturn(Optional.of(new Project()));
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, new UpdateLaunchRQ())
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getLaunch(1L, extractProjectDetails(rpUser, "test_project"))
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
 
 	@Test
-	void updateDebugLaunchByCustomer() {
+	void getDebugLaunchWithCustomerRole() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.CUSTOMER, 1L);
+		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
 
-		when(projectRepository.findById(1L)).thenReturn(Optional.of(new Project()));
-		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
-		final UpdateLaunchRQ updateLaunchRQ = new UpdateLaunchRQ();
-		updateLaunchRQ.setMode(Mode.DEBUG);
-
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.updateLaunch(1L, extractProjectDetails(rpUser, "test_project"), rpUser, updateLaunchRQ)
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getLaunch(1L, extractProjectDetails(rpUser, "test_project"))
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	void getLaunchNamesIncorrectInput() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), "qw"));
 	}
 }

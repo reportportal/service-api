@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import com.google.common.collect.Maps;
 
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.function.Supplier;
 
 /**
@@ -38,7 +38,7 @@ public class IntegrationTypeBuilder implements Supplier<IntegrationType> {
 	public static IntegrationTypeDetails createIntegrationTypeDetails() {
 
 		IntegrationTypeDetails integrationTypeDetails = new IntegrationTypeDetails();
-		integrationTypeDetails.setDetails(new HashMap<>());
+		integrationTypeDetails.setDetails(Maps.newHashMap());
 
 		return integrationTypeDetails;
 	}

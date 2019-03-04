@@ -17,26 +17,20 @@
 package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.ta.reportportal.entity.integration.Integration;
+
+import java.util.Optional;
 
 /**
- * External system ticket creation handler
- *
- * @author Aliaksei_Makayed
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+public interface GetBugTrackingSystemHandler {
 
-public interface CreateTicketHandler {
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url, String btsProject);
 
-	/**
-	 * Post ticket to external system.
-	 *
-	 * @param postTicketRQ   Request Data
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param user           User
-	 * @return Found Ticket
-	 */
-	Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
+
+	Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject);
+
+	Optional<Integration> getEnabledGlobalIntegration(Long integrationId);
 }

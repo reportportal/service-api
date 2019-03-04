@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		LinkExternalIssueRQ rq = new LinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
-		issue.setExternalSystemId(4L);
+		issue.setBtsUrl("jira.com");
+		issue.setBtsProject("project");
 		issue.setSubmitter(2L);
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");

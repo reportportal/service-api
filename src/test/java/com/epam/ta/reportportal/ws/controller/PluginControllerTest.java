@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-#!groovy
+package com.epam.ta.reportportal.ws.controller;
 
-node {
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import org.junit.jupiter.api.Test;
 
-    load "$JENKINS_HOME/jobvars.env"
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-        stage('Checkout') {
-            checkout scm
-        }
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+class PluginControllerTest extends BaseMvcTest {
 
-        stage('Build') {
-            docker.withServer("$DOCKER_HOST") {
-                        stage('Build Docker Image') {
-                            sh 'docker build -f docker/Dockerfile-perf -t reportportal-dev-5/service-api .'
-                        }
-
-                        stage('Deploy container') {
-                            sh "docker-compose -p reportportal5 -f $COMPOSE_FILE_RP_5 up -d --force-recreate api"
-                        }
-            }
-
-        }
+	@Test
+	void getLaunchPositive() throws Exception {
+		mockMvc.perform(get("/plugin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
 
 }

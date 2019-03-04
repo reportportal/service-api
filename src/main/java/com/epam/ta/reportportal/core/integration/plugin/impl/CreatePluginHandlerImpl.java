@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			pluginBox.removeUploadingPlugin(newPluginFileName);
 
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					Suppliers.formattedSupplier("Unknown integration type - {} ", pluginInfo.getId()).get()
+					Suppliers.formattedSupplier("Unknown integration type - {}", pluginInfo.getId()).get()
 			);
 		}
 
@@ -238,20 +238,29 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 		previousPlugin.ifPresent(p -> pluginLoader.deletePreviousPlugin(p, newPluginFileName));
 
-		String newLoadedPluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, newPluginFileName));
-		pluginBox.startUpPlugin(newLoadedPluginId);
+		Optional<String> newLoadedPluginId = ofNullable(pluginBox.loadPlugin(Paths.get(pluginsRootPath, newPluginFileName)));
 
-		integrationType.setName(newLoadedPluginId);
+		if (newLoadedPluginId.isPresent()) {
+			pluginBox.startUpPlugin(newLoadedPluginId.get());
 
-		IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(), newPluginFileName);
+			integrationType.setName(newLoadedPluginId.get());
 
-		integrationType.setEnabled(true);
+			IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(), newPluginFileName);
 
-		integrationType = integrationTypeRepository.save(integrationType);
+			integrationType.setEnabled(true);
 
-		pluginLoader.deleteTempPlugin(pluginsTempFolderPath, newPluginFileName);
+			integrationType = integrationTypeRepository.save(integrationType);
 
-		return integrationType;
+			pluginLoader.deleteTempPlugin(pluginsTempFolderPath, newPluginFileName);
+
+			return integrationType;
+		} else {
+			throw new ReportPortalException(
+					ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+					Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
+			);
+		}
+
 	}
 
 	/**
@@ -270,7 +279,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			pluginLoader.deleteTempPlugin(pluginsTempFolderPath, newPluginFileName);
 
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("New plugin with id = {} doesn't have mandatory extension classes.")
+					Suppliers.formattedSupplier("New plugin with id = {} doesn't have mandatory extension classes.", newPluginId).get()
 			);
 
 		}

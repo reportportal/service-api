@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorRS;
@@ -29,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.DeleteLaunchesRS;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,6 +44,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -53,33 +58,39 @@ import static java.util.Arrays.stream;
  * @author Pavel Bortnik
  */
 @Service
-public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
+public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 
+	private final TestItemRepository testItemRepository;
+
 	private final MessageBus messageBus;
 
-	public DeleteLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus) {
+	private final LogIndexer logIndexer;
+
+	@Autowired
+	public DeleteLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
+			LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
+		this.logIndexer = logIndexer;
 	}
 
-	//	private ILogIndexer logIndexer;
-
-	//	@Autowired
-	//	public void setLogIndexer(ILogIndexer logIndexer) {
-	//		this.logIndexer = logIndexer;
-	//	}
-
-	//TODO Analyzer
 	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
 		launchRepository.delete(launch);
 
-		//		logIndexer.cleanIndex(
-		//				projectName, itemRepository.selectIdsNotInIssueByLaunch(launchId, TestItemIssueType.TO_INVESTIGATE.getLocator()));
+		logIndexer.cleanIndex(
+				projectDetails.getProjectId(),
+				testItemRepository.selectIdsNotInIssueByLaunch(launchId, TO_INVESTIGATE.getLocator())
+						.stream()
+						.flatMap(it -> it.getLogs().stream())
+						.map(Log::getId)
+						.collect(Collectors.toList())
+		);
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
@@ -105,9 +116,16 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 			}
 		});
 
-		//		launches.forEach(launch -> logIndexer.cleanIndex(projectName,
-		//				itemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueType.TO_INVESTIGATE.getLocator())
-		//		));
+		logIndexer.cleanIndex(
+				projectDetails.getProjectId(),
+				toDelete.stream()
+						.flatMap(it -> testItemRepository.selectIdsNotInIssueByLaunch(it.getId(), TO_INVESTIGATE.getLocator())
+								.stream()
+								.flatMap(item -> item.getLogs().stream()))
+						.map(Log::getId)
+						.collect(Collectors.toList())
+		);
+
 		launchRepository.deleteAll(toDelete);
 		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId())));
 		return new DeleteLaunchesRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
@@ -126,7 +144,7 @@ public class DeleteLaunchHandler implements com.epam.ta.reportportal.core.launch
 	 *
 	 * @param launch         {@link Launch}
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch, not(l -> l.getStatus().equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,

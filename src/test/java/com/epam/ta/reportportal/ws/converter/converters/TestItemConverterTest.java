@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -35,7 +51,7 @@ class TestItemConverterTest {
 
 	@Test
 	void toActivityResourceNullTest() {
-		assertThrows(NullPointerException.class, () -> TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null));
+		assertThrows(NullPointerException.class, () -> TestItemConverter.TO_ACTIVITY_RESOURCE.apply(null, null));
 	}
 
 	@Test
@@ -46,7 +62,7 @@ class TestItemConverterTest {
 	@Test
 	void toActivityResource() {
 		final TestItem item = getItem();
-		final TestItemActivityResource activityResource = TestItemConverter.TO_ACTIVITY_RESOURCE.apply(item);
+		final TestItemActivityResource activityResource = TestItemConverter.TO_ACTIVITY_RESOURCE.apply(item, 4L);
 
 		assertEquals(activityResource.getId(), item.getItemId());
 		assertEquals(activityResource.getName(), item.getName());
@@ -56,12 +72,7 @@ class TestItemConverterTest {
 		assertEquals(activityResource.getStatus(), item.getItemResults().getStatus().name());
 		assertEquals(
 				activityResource.getTickets(),
-				item.getItemResults()
-						.getIssue()
-						.getTickets()
-						.stream()
-						.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
-						.collect(Collectors.joining(","))
+				item.getItemResults().getIssue().getTickets().stream().map(it -> it.getTicketId().concat(":").concat(it.getUrl())).collect(Collectors.joining(","))
 		);
 		assertEquals(activityResource.isIgnoreAnalyzer(), item.getItemResults().getIssue().getIgnoreAnalyzer());
 		assertEquals(activityResource.isAutoAnalyzed(), item.getItemResults().getIssue().getAutoAnalyzed());
@@ -83,14 +94,8 @@ class TestItemConverterTest {
 		assertEquals(resource.getStartTime(), Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
 		assertEquals(resource.getEndTime(), Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
 		assertEquals(resource.getUniqueId(), item.getUniqueId());
-		assertThat(resource.getAttributes()
-				.stream()
-				.map(ItemAttributeConverter.FROM_RESOURCE)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
-		assertThat(resource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
+		assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE).collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
+		assertThat(resource.getParameters().stream().map(ParametersConverter.TO_MODEL).collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
 		assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
 				.getStatistics()));
 	}

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -138,7 +139,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						).get()));
 
 				verifyTestItem(testItem, issueDefinition.getId());
-				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
 				Issue issue = issueDefinition.getIssue();
 				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(),
@@ -158,7 +159,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				indexLogs(analyzerConfig, testItem, project.getId());
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
-				events.add(new ItemIssueTypeDefinedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), user.getUserId()));
+				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+
+				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -195,7 +198,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<String> errors = new ArrayList<>();
 
 		List<TestItem> testItems = testItemRepository.findAllById(rq.getTestItemIds());
-		List<TestItemActivityResource> before = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
+		List<TestItemActivityResource> before = testItems.stream()
+				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+				.collect(Collectors.toList());
 
 		List<Ticket> existedTickets = collectExistedTickets(rq);
 		Set<Ticket> ticketsFromRq = collectTickets(rq, user.getUserId());
@@ -212,7 +217,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
-		List<TestItemActivityResource> after = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
+		List<TestItemActivityResource> after = testItems.stream()
+				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+				.collect(Collectors.toList());
 
 		before.forEach(it -> new LinkTicketEvent(it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
@@ -309,7 +316,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
 			logIndexer.indexLogs(projectId, singletonList(testItem.getLaunch().getId()), analyzerConfig);
 		} else {
-			logIndexer.cleanIndex(projectId, singletonList(testItem.getItemId()));
+			logIndexer.cleanIndex(projectId, testItem.getLogs().stream().map(Log::getId).collect(toList()));
 		}
 	}
 

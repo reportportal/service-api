@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ import static java.util.stream.Collectors.toList;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch.UpdateLaunchHandler {
+public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.UpdateLaunchHandler {
 
 	private LaunchRepository launchRepository;
 
@@ -82,7 +82,7 @@ public class UpdateLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
-	public UpdateLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			ProjectRepository projectRepository, IssuesAnalyzer analyzerService, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;

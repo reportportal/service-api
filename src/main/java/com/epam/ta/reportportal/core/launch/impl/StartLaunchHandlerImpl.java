@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,13 +42,13 @@ import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.T
  * @author Andrei Varabyeu
  */
 @Service
-class StartLaunchHandler implements com.epam.ta.reportportal.core.launch.StartLaunchHandler {
+class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.StartLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final MessageBus messageBus;
 
 	@Autowired
-	public StartLaunchHandler(LaunchRepository launchRepository, MessageBus messageBus) {
+	public StartLaunchHandlerImpl(LaunchRepository launchRepository, MessageBus messageBus) {
 		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 	}

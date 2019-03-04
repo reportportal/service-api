@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ public class LogIndexerService implements LogIndexer {
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 			if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
 				List<TestItem> testItems = testItemRepository.selectIdsNotInIssueByLaunch(launchId,
-						TestItemIssueGroup.TO_INVESTIGATE.getValue()
+						TestItemIssueGroup.TO_INVESTIGATE.getLocator()
 				);
 				List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
 				if (!CollectionUtils.isEmpty(rqTestItems)) {

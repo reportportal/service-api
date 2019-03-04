@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 						+ FAILED
 		);
 
-		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 		testItem.getItemResults().setStatus(providedStatus);
 
 		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunch().getId(),
@@ -121,10 +121,10 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 			setToInvestigateIssue(testItem, projectId);
 		}
 
-		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), userId));
 
 		if (PASSED.equals(providedStatus)) {
-			changeStatusRecursively(testItem, userId);
+			changeStatusRecursively(testItem, userId, projectId);
 		}
 	}
 
@@ -134,7 +134,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		);
 
 		StatusEnum oldParentStatus = testItem.getParent().getItemResults().getStatus();
-		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunch().getId(),
 				SKIPPED_ISSUE_KEY,
@@ -147,16 +147,16 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 			setToInvestigateIssue(testItem, projectId);
 		}
 
-		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), userId));
 
-		changeParentsStatusesToFailed(testItem, oldParentStatus, userId);
+		changeParentsStatusesToFailed(testItem, oldParentStatus, userId, projectId);
 	}
 
 	private void changeStatusFromFailed(TestItem testItem, StatusEnum providedStatus, Long userId, Long projectId) {
 		expect(providedStatus, statusIn(SKIPPED, PASSED)).verify(INCORRECT_REQUEST,
 				"Actual status: " + testItem.getItemResults().getStatus() + " can be switched only to: " + SKIPPED + " or " + PASSED
 		);
-		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunch().getId(),
 				SKIPPED_ISSUE_KEY,
@@ -180,10 +180,10 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		}
 
 		testItem.getItemResults().setStatus(providedStatus);
-		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), userId));
 
 		if (PASSED.equals(providedStatus)) {
-			changeStatusRecursively(testItem, userId);
+			changeStatusRecursively(testItem, userId, projectId);
 		}
 	}
 
@@ -191,7 +191,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		expect(providedStatus, statusIn(PASSED, FAILED)).verify(INCORRECT_REQUEST,
 				"Actual status: " + testItem.getItemResults().getStatus() + " can be switched only to: " + PASSED + " or " + FAILED
 		);
-		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
+		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 		if (PASSED.equals(providedStatus) && testItem.getItemResults().getIssue() != null) {
 			issueEntityRepository.delete(testItem.getItemResults().getIssue());
@@ -202,10 +202,10 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		}
 
 		testItem.getItemResults().setStatus(providedStatus);
-		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem), userId));
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), userId));
 
 		if (PASSED.equals(providedStatus)) {
-			changeStatusRecursively(testItem, userId);
+			changeStatusRecursively(testItem, userId, projectId);
 		}
 	}
 
@@ -219,33 +219,33 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 		testItem.getItemResults().setIssue(issueEntity);
 	}
 
-	private void changeStatusRecursively(TestItem testItem, Long userId) {
+	private void changeStatusRecursively(TestItem testItem, Long userId, Long projectId) {
 		TestItem parent = testItem.getParent();
 		Hibernate.initialize(parent);
 		if (parent != null) {
-			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent);
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
 			StatusEnum newStatus = testItemRepository.hasStatusNotEqualsWithoutStepItem(parent.getItemId(),
 					testItem.getItemId(),
 					StatusEnum.PASSED.name()
 			) ? StatusEnum.FAILED : StatusEnum.PASSED;
 			if (!parent.getItemResults().getStatus().equals(newStatus)) {
 				parent.getItemResults().setStatus(newStatus);
-				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent), userId));
+				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
 				if (parent.getType().sameLevel(TestItemTypeEnum.SUITE)) {
 					testItem.getLaunch().setStatus(newStatus);
 				}
-				changeStatusRecursively(parent, userId);
+				changeStatusRecursively(parent, userId, projectId);
 			}
 		}
 	}
 
-	private void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId) {
+	private void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId, Long projectId) {
 		if (!oldParentStatus.equals(StatusEnum.FAILED)) {
 			TestItem parent = testItem.getParent();
-			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent);
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
 			while (parent != null) {
 				parent.getItemResults().setStatus(StatusEnum.FAILED);
-				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent), userId));
+				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
 				parent = parent.getParent();
 			}
 			testItem.getLaunch().setStatus(StatusEnum.FAILED);

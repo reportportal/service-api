@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,6 +71,10 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 	public Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
+		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
+		List<TestItemActivityResource> before = testItems.stream()
+				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
+				.collect(Collectors.toList());
 
 		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
 
@@ -83,9 +87,6 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 				"BugTracking plugin for {} isn't installed",
 				BtsConstants.PROJECT.getParam(integration.getParams())
 		);
-
-		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
-		List<TestItemActivityResource> before = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
 
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
 

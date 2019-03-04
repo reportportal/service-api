@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,16 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -28,7 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author Pavel Bortnik
@@ -38,9 +48,22 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final UserRepository userRepository;
+
+	private final LogIndexer logIndexer;
+
+	private final AnalyzerStatusCache analyzerStatusCache;
+
+	private final MessageBus messageBus;
+
 	@Autowired
-	public DeleteProjectHandlerImpl(ProjectRepository projectRepository) {
+	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
+			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus) {
 		this.projectRepository = projectRepository;
+		this.userRepository = userRepository;
+		this.logIndexer = logIndexer;
+		this.analyzerStatusCache = analyzerStatusCache;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -53,7 +76,21 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	@Override
 	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
-		return null;
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+
+		expect(AnalyzerUtils.getAnalyzerConfig(project).isIndexingRunning(), Predicate.isEqual(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until index generation proceeds."
+		);
+		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
+				Predicate.isEqual(false)
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+
+		logIndexer.deleteIndex(project.getId());
+		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), false));
+		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
 	}
 
 	@Override

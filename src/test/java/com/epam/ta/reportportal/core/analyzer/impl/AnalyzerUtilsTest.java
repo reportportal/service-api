@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ class AnalyzerUtilsTest {
 		IndexTestItem indexTestItem = fromTestItem(testItem, createSameLogs(5));
 		assertEquals(testItem.getItemId(), indexTestItem.getTestItemId());
 		assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
-		assertEquals(testItem.getItemResults().getIssue().getIssueType().getId(), indexTestItem.getIssueTypeId());
+		assertEquals(testItem.getItemResults().getIssue().getIssueType().getLocator(), indexTestItem.getIssueTypeLocator());
 		assertEquals(1, indexTestItem.getLogs().size());
 		assertFalse(indexTestItem.isAutoAnalyzed());
 	}
@@ -67,6 +67,7 @@ class AnalyzerUtilsTest {
 	private IssueEntity createIssue(boolean isAutoAnalyzed) {
 		IssueType issueType = new IssueType();
 		issueType.setId(1L);
+		issueType.setLocator("locator");
 		IssueEntity issue = new IssueEntity();
 		issue.setAutoAnalyzed(isAutoAnalyzed);
 		issue.setIssueType(issueType);

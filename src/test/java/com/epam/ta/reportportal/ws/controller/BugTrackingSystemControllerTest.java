@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;
@@ -26,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,15 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Sql("/db/integration/bts-integration-fill.sql")
+@Sql("/db/bts/bts-integration-fill.sql")
 class BugTrackingSystemControllerTest extends BaseMvcTest {
-
-	public static final String TICKET_ID = "/ticket_id";
-
-	private BtsExtension extension = mock(BtsExtension.class);
-
-	@MockBean
-	private Pf4jPluginBox pluginBox;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -126,6 +116,8 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 	@Test
 	void getTicket() throws Exception {
 
+		final String ticketId = "/ticket_id";
+
 		Map<String, List<String>> params = Maps.newHashMap();
 		params.put("url", Lists.newArrayList("jira.com"));
 		params.put("btsProject", Lists.newArrayList("project"));
@@ -133,7 +125,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		when(pluginBox.getInstance("JIRA", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getTicket(any(String.class), any(Integration.class))).thenReturn(java.util.Optional.of(new Ticket()));
 
-		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/ticket" + TICKET_ID).params(CollectionUtils.toMultiValueMap(params))
+		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/ticket" + ticketId).params(CollectionUtils.toMultiValueMap(params))
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 

@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -567,12 +567,12 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.name").value("old line chart"))
 				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
-				.andExpect(jsonPath("$.content.*.values.statistics$defects$automation_bug$ab001").value("1.0"))
-				.andExpect(jsonPath("$.content.*.values.statistics$defects$product_bug$pb001").value("1.0"))
-				.andExpect(jsonPath("$.content.*.values.statistics$defects$to_investigate$ti001").value("1.0"))
-				.andExpect(jsonPath("$.content.*.values.statistics$executions$failed").value("3.0"))
-				.andExpect(jsonPath("$.content.*.values.statistics$executions$passed").value("2.0"))
-				.andExpect(jsonPath("$.content.*.values.statistics$executions$total").value("5.0"));
+				.andExpect(jsonPath("$.content.result.*.values.statistics$defects$automation_bug$ab001").value("1.0"))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$defects$product_bug$pb001").value("1.0"))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$defects$automation_bug$ab001").value("1.0"))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$executions$failed").value("3.0"))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$executions$passed").value("2.0"))
+				.andExpect(jsonPath("$.content.result.*.values.statistics$executions$total").value("5.0"));
 	}
 
 	@Sql("/db/widget/old-line-chart.sql")

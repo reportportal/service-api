@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,8 +20,10 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -58,6 +60,27 @@ public final class IntegrationTestUtil {
 		return integration;
 	}
 
+	public static Integration getGlobalJiraIntegration(long id, Map<String, Object> params) {
+
+		Integration integration = new Integration();
+
+		integration.setCreationDate(LocalDateTime.now());
+		integration.setType(getJiraIntegrationType());
+		integration.setParams(new IntegrationParams(params));
+		integration.setId(id);
+
+		return integration;
+	}
+
+	public static Integration getProjectJiraIntegration(long id, Map<String, Object> params, long projectId) {
+
+		Integration integration = getGlobalJiraIntegration(id, params);
+
+		integration.setProject(getProjectWithId(projectId).get());
+
+		return integration;
+	}
+
 	public static Map<String, Object> getParams() {
 
 		return ImmutableMap.<String, Object>builder().put("first", "first").put("second", "second").build();
@@ -79,11 +102,14 @@ public final class IntegrationTestUtil {
 		integrationType.setCreationDate(LocalDateTime.now());
 		integrationType.setId(1L);
 		integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
+		IntegrationTypeDetails details = new IntegrationTypeDetails();
+		details.setDetails(Maps.newHashMap());
+		integrationType.setDetails(details);
 
 		return integrationType;
 	}
 
-	private static IntegrationType getEmailIntegrationType() {
+	public static IntegrationType getEmailIntegrationType() {
 
 		IntegrationType integrationType = new IntegrationType();
 

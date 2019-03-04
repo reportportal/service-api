@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ public final class IntegrationIssueConverter {
 	public static final Function<Issue.ExternalSystemIssue, Ticket> TO_TICKET = issue -> {
 		Preconditions.checkNotNull(issue);
 		Ticket ticket = new Ticket();
-		ticket.setBugTrackingSystemId(issue.getExternalSystemId());
+		ticket.setBtsUrl(issue.getBtsUrl());
+		ticket.setBtsProject(issue.getBtsProject());
 		ticket.setTicketId(issue.getTicketId());
 		ticket.setUrl(issue.getUrl());
 		return ticket;

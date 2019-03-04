@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -94,7 +94,10 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	@PostAuthorize(CAN_READ_OBJECT)
 	public Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails) {
 		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, projectDetails.getProjectName()));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
+						widgetId,
+						projectDetails.getProjectName()
+				));
 	}
 
 	@Override

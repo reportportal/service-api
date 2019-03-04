@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -187,15 +187,19 @@ public class PluginLoaderImpl implements PluginLoader {
 		}
 	}
 
+	/**
+	 * @param previousPlugin    Already loaded plugin with the same id as the new one
+	 * @param newPluginFileName New plugin file name
+	 * @throws ReportPortalException When a file with the same name as new one is already exists in the directory
+	 *                               and it's not a file of the previous plugin with the same id
+	 */
 	private void validateNewPluginFile(Optional<PluginWrapper> previousPlugin, String newPluginFileName) {
 
 		if (new File(pluginsRootPath, newPluginFileName).exists()) {
 
-			if (!previousPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName)
-					.equals(previousPlugin.get().getPluginPath())) {
+			if (!previousPlugin.isPresent() || !Paths.get(pluginsRootPath, newPluginFileName).equals(previousPlugin.get().getPluginPath())) {
 				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with different plugin type", newPluginFileName)
-								.get()
+						Suppliers.formattedSupplier("Unable to rewrite plugin file = '{}' with different plugin type", newPluginFileName).get()
 				);
 			}
 		}

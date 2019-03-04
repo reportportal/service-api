@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.externalsystem.BtsConnectionTestRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.UpdateBugTrackingSystemRQ;
 
 /**
@@ -30,26 +31,36 @@ public interface UpdateBugTrackingSystemHandler {
 
 	/**
 	 * Update method for {@link com.epam.ta.reportportal.entity.integration.Integration} entity
+	 * with {@link com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum#BTS}
 	 *
-	 * @param updateRequest        Request Data
-	 * @param integrationId  BugTrackingSystem id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param user {@link com.epam.ta.reportportal.auth.ReportPortalUser}
+	 * @param updateRequest Request Data
+	 * @param integrationId BugTrackingSystem id
 	 * @return Operation result
 	 */
-	OperationCompletionRS updateBugTrackingSystem(UpdateBugTrackingSystemRQ updateRequest, Long integrationId,
-			ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+	OperationCompletionRS updateGlobalBugTrackingSystem(UpdateBugTrackingSystemRQ updateRequest, Long integrationId);
+
+	/**
+	 * Update method for {@link com.epam.ta.reportportal.entity.integration.Integration} entity
+	 * with {@link com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum#BTS}
+	 *
+	 * @param updateRequest  Request Data
+	 * @param integrationId  BugTrackingSystem id
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
+	 * @return Operation result
+	 */
+	OperationCompletionRS updateProjectBugTrackingSystem(UpdateBugTrackingSystemRQ updateRequest, Long integrationId,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Validate connection of provided BugTrackingSystem configuration
 	 *
-	 * @param updateRequest       Request Data
-	 * @param integrationId  BugTrackingSystem id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param connectionTestRQ {@link BtsConnectionTestRQ}
+	 * @param integrationId    BugTrackingSystem id
+	 * @param projectDetails   {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @return Operation result
 	 */
-	OperationCompletionRS integrationConnect(UpdateBugTrackingSystemRQ updateRequest, Long integrationId,
+	OperationCompletionRS testIntegrationConnection(BtsConnectionTestRQ connectionTestRQ, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails);
 
 }

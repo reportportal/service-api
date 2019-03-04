@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -116,7 +116,7 @@ public class ProjectController {
 	@PutMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-	@ApiOperation(value = "Update project", notes = "'Notifications Configuration' can be also update via PUT to /{projectName}/notification resource.")
+	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
@@ -207,7 +207,7 @@ public class ProjectController {
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.assignUsers(ProjectExtractor.extractProjectDetails(user, projectName), assignUsersRQ, user);
+		return updateProjectHandler.assignUsers(projectName, assignUsersRQ, user);
 	}
 
 	@Transactional(readOnly = true)

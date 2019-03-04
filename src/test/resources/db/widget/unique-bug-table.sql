@@ -1,6 +1,6 @@
 -- BTS
-insert into bug_tracking_system(id, url, bts_project, project_id, type)
-values (1, 'http:/example.com', 'superadmin_bts', 1, 'JIRA');
+insert into bug_tracking_system(id, url, type, bts_project, project_id)
+values (1, 'http:/example.com', 'JIRA', 'superadmin_bts', 1);
 
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
@@ -25,8 +25,8 @@ set status   = 'FAILED',
 where result_id = 2;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (2, 2, 'automation bug', false, true);
-insert into ticket(id, ticket_id, submitter_id, submit_date, bts_id, url)
-values (1, 'ticket1', 1, now(), 1, 'http:/example.com/ticket1');
+insert into ticket(id, ticket_id, submitter_id, bts_url, submit_date, url, bts_project)
+values (1, 'ticket1', 1, 'http:/example.com', now(), 'http:/example.com/ticket1', 'superadmin_bts');
 insert into issue_ticket(issue_id, ticket_id)
 values (2, 1);
 

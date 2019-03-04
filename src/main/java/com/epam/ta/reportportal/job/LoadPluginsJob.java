@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,8 +33,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -75,23 +77,29 @@ public class LoadPluginsJob {
 
 		notLoadedPlugins.forEach(pluginInfo -> ofNullable(dataStore.load(pluginInfo.getId())).ifPresent(inputStream -> {
 			try {
-				FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
 
 				LOGGER.info("Plugin loading has started...");
 
-				String pluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginInfo.getFileName()));
+				if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
+					LOGGER.info("Copying plugin file...");
+					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
+				}
 
-				ofNullable(pluginId).ifPresent(id -> {
-					LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
+				if (pluginInfo.isEnabled()) {
+					String pluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginInfo.getFileName()));
 
-					PluginState pluginState = pluginBox.startUpPlugin(pluginId);
+					ofNullable(pluginId).ifPresent(id -> {
+						LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
 
-					if (pluginState == PluginState.STARTED) {
-						LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
-					} else {
-						LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
-					}
-				});
+						PluginState pluginState = pluginBox.startUpPlugin(pluginId);
+
+						if (pluginState == PluginState.STARTED) {
+							LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
+						} else {
+							LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
+						}
+					});
+				}
 
 			} catch (IOException ex) {
 				LOGGER.debug("Error has occurred during plugin copying from the Data store", ex);
@@ -99,6 +107,21 @@ public class LoadPluginsJob {
 			}
 		}));
 
+		unloadDisabledPlugins(integrationTypes);
+
+	}
+
+	private void unloadDisabledPlugins(List<IntegrationType> integrationTypes) {
+
+		List<IntegrationType> disabledPlugins = integrationTypes.stream().filter(it -> !it.isEnabled()).collect(Collectors.toList());
+
+		disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
+			if (pluginBox.unloadPlugin(plugin.getPluginId())) {
+				LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
+			} else {
+				LOGGER.info(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
+			}
+		}));
 	}
 
 }

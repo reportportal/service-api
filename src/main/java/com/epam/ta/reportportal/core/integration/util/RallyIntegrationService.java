@@ -24,14 +24,12 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Maps;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.commons.Predicates.isPresent;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 /**
@@ -40,15 +38,16 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
 @Service
 public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
-	@Autowired
 	public RallyIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
 			PluginBox pluginBox) {
 		super(integrationTypeRepository, integrationRepository, pluginBox);
 	}
 
 	@Override
-	protected void validateIntegrationParams(Map<String, Object> integrationParams) {
+	protected Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
+
+		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);
 
 		String authName = BtsProperties.AUTH_TYPE.getParam(integrationParams)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -58,20 +57,31 @@ public class RallyIntegrationService extends AbstractBtsIntegrationService {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
 
 		if (AuthType.OAUTH.equals(authType)) {
-			expect(BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-					"AccessKey value cannot be NULL"
+			resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
+					BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
+							.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+									"AccessKey value cannot be NULL"
+							))
 			);
 		} else {
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 					"Unsupported auth type for Rally integration - " + authType.name()
 			);
 		}
-		expect(BtsProperties.PROJECT.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-				"Rally project value cannot be NULL"
+
+		resultParams.put(BtsProperties.AUTH_TYPE.getName(), authName);
+
+		resultParams.put(BtsProperties.PROJECT.getName(),
+				BtsProperties.PROJECT.getParam(integrationParams)
+						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+								"RALLY project value cannot be NULL"
+						))
 		);
-		expect(BtsProperties.URL.getParam(integrationParams), isPresent()).verify(UNABLE_INTERACT_WITH_INTEGRATION,
-				"Rally URL value cannot be NULL"
+		resultParams.put(BtsProperties.URL.getName(),
+				BtsProperties.URL.getParam(integrationParams)
+						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "RALLY URL value cannot be NULL"))
 		);
+
+		return resultParams;
 	}
 }
-

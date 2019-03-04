@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -272,9 +271,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			Ticket apply = IntegrationIssueConverter.TO_TICKET.apply(it);
 			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
 			apply.setSubmitDate(LocalDateTime.now());
-			Optional<Integration> bts = integrationRepository.findById(it.getExternalSystemId());
-			expect(bts, isPresent()).verify(INTEGRATION_NOT_FOUND, it.getExternalSystemId());
-			apply.setBugTrackingSystemId(it.getExternalSystemId());
+			apply.setBtsUrl(it.getBtsUrl());
+			apply.setBtsProject(it.getBtsProject());
 			return apply;
 		}).collect(toSet());
 	}

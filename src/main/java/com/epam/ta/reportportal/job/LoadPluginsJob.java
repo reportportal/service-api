@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
@@ -34,8 +33,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -76,23 +77,29 @@ public class LoadPluginsJob {
 
 		notLoadedPlugins.forEach(pluginInfo -> ofNullable(dataStore.load(pluginInfo.getId())).ifPresent(inputStream -> {
 			try {
-				FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
 
 				LOGGER.info("Plugin loading has started...");
 
-				String pluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginInfo.getFileName()));
+				if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
+					LOGGER.info("Copying plugin file...");
+					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
+				}
 
-				ofNullable(pluginId).ifPresent(id -> {
-					LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
+				if (pluginInfo.isEnabled()) {
+					String pluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginInfo.getFileName()));
 
-					PluginState pluginState = pluginBox.startUpPlugin(pluginId);
+					ofNullable(pluginId).ifPresent(id -> {
+						LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
 
-					if (pluginState == PluginState.STARTED) {
-						LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
-					} else {
-						LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
-					}
-				});
+						PluginState pluginState = pluginBox.startUpPlugin(pluginId);
+
+						if (pluginState == PluginState.STARTED) {
+							LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
+						} else {
+							LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
+						}
+					});
+				}
 
 			} catch (IOException ex) {
 				LOGGER.debug("Error has occurred during plugin copying from the Data store", ex);
@@ -100,6 +107,21 @@ public class LoadPluginsJob {
 			}
 		}));
 
+		unloadDisabledPlugins(integrationTypes);
+
+	}
+
+	private void unloadDisabledPlugins(List<IntegrationType> integrationTypes) {
+
+		List<IntegrationType> disabledPlugins = integrationTypes.stream().filter(it -> !it.isEnabled()).collect(Collectors.toList());
+
+		disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
+			if (pluginBox.unloadPlugin(plugin.getPluginId())) {
+				LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
+			} else {
+				LOGGER.info(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
+			}
+		}));
 	}
 
 }

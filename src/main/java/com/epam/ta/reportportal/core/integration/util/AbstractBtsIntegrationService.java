@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.integration.util;
 import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -62,9 +63,9 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 	}
 
 	@Override
-	public Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams) {
+	public Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
 
-		Integration integration = createIntegration(integrationName, integrationParams);
+		Integration integration = createIntegration(integrationTypeName, integrationParams);
 		checkUniqueGlobalIntegration(integration);
 
 		checkConnection(integration);
@@ -72,11 +73,13 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		return integration;
 	}
 
+	protected abstract Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
+
 	@Override
-	public Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
+	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
 			Map<String, Object> integrationParams) {
 
-		Integration integration = createIntegration(integrationName, integrationParams);
+		Integration integration = createIntegration(integrationTypeName, integrationParams);
 		checkUniqueProjectIntegration(integration, projectDetails.getProjectId());
 
 		checkConnection(integration);
@@ -84,19 +87,54 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		return integration;
 	}
 
-	protected abstract void validateIntegrationParams(Map<String, Object> integrationParams);
+	@Override
+	public Integration updateGlobalIntegration(Long id, Map<String, Object> integrationParams) {
 
-	private Integration createIntegration(String integrationName, Map<String, Object> integrationParams) {
-		validateIntegrationParams(integrationParams);
+		Integration integration = integrationRepository.findGlobalById(id)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationName, IntegrationGroupEnum.BTS)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationName).get()
+		return updateIntegration(integration, integrationParams);
+	}
+
+	@Override
+	public Integration updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			Map<String, Object> integrationParams) {
+
+		Integration integration = integrationRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+
+		return updateIntegration(integration, integrationParams);
+	}
+
+	private Integration updateIntegration(Integration integration, Map<String, Object> integrationParams) {
+
+		BusinessRule.expect(integration, it -> IntegrationGroupEnum.BTS == it.getType().getIntegrationGroup())
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
+						"Unable to update integration with type - '{}'. Required type - '{}'",
+						integration.getType().getIntegrationGroup(),
+						IntegrationGroupEnum.BTS
 				));
+
+		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
+
+		integration.setParams(new IntegrationParams(retrievedParams));
+
+		return integration;
+
+	}
+
+	private Integration createIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
+
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName, IntegrationGroupEnum.BTS)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationTypeName).get()
+				));
+
+		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
 		Integration integration = new Integration();
 		integration.setCreationDate(LocalDateTime.now());
-		integration.setParams(new IntegrationParams(integrationParams));
+		integration.setParams(new IntegrationParams(retrievedParams));
 		integration.setType(integrationType);
 
 		return integration;
@@ -128,7 +166,7 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName())
 		);
 
-		expect(extension.get().connectionTest(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Connection refused."
 		);
 	}

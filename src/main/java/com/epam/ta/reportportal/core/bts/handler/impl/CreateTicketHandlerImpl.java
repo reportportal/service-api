@@ -22,17 +22,16 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
+import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,7 +41,8 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_POST_TICKET;
 
 /**
  * Default implementation of {@link CreateTicketHandler}
@@ -54,45 +54,41 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 	private final TestItemRepository testItemRepository;
-
-	private final IntegrationRepository integrationRepository;
-
-	private final ApplicationEventPublisher eventPublisher;
-
-	@Autowired
-	private MessageBus messageBus;
-
+	private final MessageBus messageBus;
 	private final PluginBox pluginBox;
+	private final GetIntegrationHandler getIntegrationHandler;
 
 	@Autowired
-	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, IntegrationRepository integrationRepository,
-			ApplicationEventPublisher eventPublisher, PluginBox pluginBox) {
+	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, PluginBox pluginBox, MessageBus messageBus,
+			ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler) {
 		this.testItemRepository = testItemRepository;
-		this.integrationRepository = integrationRepository;
-		this.eventPublisher = eventPublisher;
 		this.pluginBox = pluginBox;
+		this.messageBus = messageBus;
+		this.getIntegrationHandler = getIntegrationHandler;
 	}
 
 	@Override
 	public Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
-		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
-		List<TestItemActivityResource> before = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
 
-		Integration integration = integrationRepository.findById(integrationId)
-				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
+		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
 
 		expect(BtsConstants.DEFECT_FORM_FIELDS.getParam(integration.getParams()), notNull()).verify(BAD_REQUEST_ERROR,
 				"There aren't any submitted BTS fields!"
 		);
+
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
 				"BugTracking plugin for {} isn't installed",
 				BtsConstants.PROJECT.getParam(integration.getParams())
 		);
 
+		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
+		List<TestItemActivityResource> before = testItems.stream().map(TO_ACTIVITY_RESOURCE).collect(Collectors.toList());
+
 		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
+
 		before.forEach(it -> messageBus.publishActivity(new TicketPostedEvent(ticket, user.getUserId(), it)));
 		return ticket;
 	}

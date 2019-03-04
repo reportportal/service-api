@@ -32,7 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +43,7 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -163,7 +167,7 @@ class UpdatePluginHandlerTest {
 	}
 
 	@Test
-	void shouldLoadPluginWhenEnabledAndIsNotPresent() {
+	void shouldLoadPluginWhenEnabledAndIsNotPresent() throws IOException {
 		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
 		updatePluginStateRQ.setEnabled(true);
 
@@ -172,7 +176,8 @@ class UpdatePluginHandlerTest {
 		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
-		when(pluginBox.loadPlugin(Paths.get(pluginRootPath, fileName))).thenReturn(jiraIntegrationType.getName());
+		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(File.createTempFile("qwe", "txt")));
+		when(pluginBox.loadPlugin(any(Path.class))).thenReturn(jiraIntegrationType.getName());
 		when(pluginBox.startUpPlugin(jiraIntegrationType.getName())).thenReturn(PluginState.STARTED);
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 

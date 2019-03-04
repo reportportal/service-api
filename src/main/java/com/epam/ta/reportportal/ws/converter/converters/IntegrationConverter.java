@@ -43,6 +43,7 @@ public final class IntegrationConverter {
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());
+		type.setEnabled(integration.getType().isEnabled());
 		type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
 		type.setGroupType(integration.getType().getIntegrationGroup().name());
 		ofNullable(integration.getType().getDetails()).ifPresent(it -> type.setDetails(it.getDetails()));

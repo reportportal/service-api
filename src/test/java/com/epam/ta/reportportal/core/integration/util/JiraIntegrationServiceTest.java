@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -26,8 +28,11 @@ import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.jasypt.util.text.BasicTextEncryptor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +58,8 @@ class JiraIntegrationServiceTest {
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 	private PluginBox pluginBox = mock(PluginBox.class);
 	private IntegrationType integrationType = mock(IntegrationType.class);
+	private IntegrationType wrongIntegrationType = mock(IntegrationType.class);
+	private IntegrationTypeDetails details = mock(IntegrationTypeDetails.class);
 	private BtsExtension btsExtension = mock(BtsExtension.class);
 
 	private JiraIntegrationService jiraIntegrationService;
@@ -62,7 +69,9 @@ class JiraIntegrationServiceTest {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
 		jiraIntegrationService = new JiraIntegrationService(integrationTypeRepository,
-				integrationRepository, pluginBox, basicTextEncryptor
+				integrationRepository,
+				pluginBox,
+				basicTextEncryptor
 		);
 	}
 
@@ -79,7 +88,7 @@ class JiraIntegrationServiceTest {
 
 		when(pluginBox.getInstance(JIRA_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
-		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, getCorrectJiraIntegrationParams());
 	}
@@ -89,9 +98,15 @@ class JiraIntegrationServiceTest {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.PROJECT.getName());
 
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
 		);
+
 		assertEquals("Impossible interact with integration. JIRA project value cannot be NULL", exception.getMessage());
 	}
 
@@ -100,9 +115,15 @@ class JiraIntegrationServiceTest {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.URL.getName());
 
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
 		);
+
 		assertEquals("Impossible interact with integration. JIRA URL value cannot be NULL", exception.getMessage());
 	}
 
@@ -110,6 +131,12 @@ class JiraIntegrationServiceTest {
 	void shouldNotCreateGlobalIntegrationWhenNoAuthTypeProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.AUTH_TYPE.getName());
+
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
@@ -121,6 +148,11 @@ class JiraIntegrationServiceTest {
 	void shouldNotCreateGlobalIntegrationWhenNoUsernameProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.USER_NAME.getName());
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
@@ -132,6 +164,11 @@ class JiraIntegrationServiceTest {
 	void shouldNotCreateGlobalIntegrationWhenNoPasswordProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.PASSWORD.getName());
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
@@ -144,6 +181,11 @@ class JiraIntegrationServiceTest {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.OAUTH.name());
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
@@ -155,6 +197,11 @@ class JiraIntegrationServiceTest {
 	void shouldNotCreateGlobalIntegrationWhenNotSupportedAuthTypeProvided() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
+		when(integrationTypeRepository.findByNameAndIntegrationGroup(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS)).thenReturn(
+				Optional.ofNullable(integrationType));
+
+		when(integrationType.getDetails()).thenReturn(details);
+		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
@@ -180,8 +227,72 @@ class JiraIntegrationServiceTest {
 
 		when(pluginBox.getInstance(JIRA_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 
-		when(btsExtension.connectionTest(any(Integration.class))).thenReturn(true);
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params);
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
+
+		final long projectId = 1L;
+
+		jiraIntegrationService.createProjectIntegration(JIRA_INTEGRATION_TYPE_NAME,
+				new ReportPortalUser.ProjectDetails(projectId, "admin_personal", ProjectRole.PROJECT_MANAGER),
+				params
+		);
+	}
+
+	@Test
+	void shouldUpdateGlobalIntegrationWhenValidParams() {
+		Map<String, Object> correctJiraIntegrationParams = getCorrectJiraIntegrationParams();
+
+		Integration jiraIntegration = IntegrationTestUtil.getGlobalJiraIntegration(1L, new HashMap<>());
+
+		when(integrationRepository.findGlobalById(1L)).thenReturn(Optional.ofNullable(jiraIntegration));
+
+		Integration integration = jiraIntegrationService.updateGlobalIntegration(1L, correctJiraIntegrationParams);
+
+		Map<String, Object> params = integration.getParams().getParams();
+		Assertions.assertNotNull(params);
+		params.entrySet()
+				.stream()
+				.filter(e -> !e.getKey().equals(BtsProperties.PASSWORD.getName()))
+				.forEach(e -> Assertions.assertEquals(e.getValue(), correctJiraIntegrationParams.get(e.getKey())));
+	}
+
+	@Test
+	void shouldNotUpdateIntegrationWhenInvalidIntegrationGroup() {
+
+		Map<String, Object> correctJiraIntegrationParams = getCorrectJiraIntegrationParams();
+
+		Integration emailIntegration = IntegrationTestUtil.getGlobalEmailIntegration(1L);
+
+		when(integrationRepository.findGlobalById(1L)).thenReturn(Optional.ofNullable(emailIntegration));
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> jiraIntegrationService.updateGlobalIntegration(1L, correctJiraIntegrationParams)
+		);
+
+		assertEquals("Impossible interact with integration. Unable to update integration with type - 'NOTIFICATION'. Required type - 'BTS'", exception.getMessage());
+
+	}
+
+	@Test
+	void shouldUpdateProjectIntegrationWhenValidParams() {
+
+		Map<String, Object> correctJiraIntegrationParams = getCorrectJiraIntegrationParams();
+
+		Integration jiraIntegration = IntegrationTestUtil.getGlobalJiraIntegration(1L, new HashMap<>());
+
+		final long projectId = 1L;
+		when(integrationRepository.findByIdAndProjectId(1L, projectId)).thenReturn(Optional.ofNullable(jiraIntegration));
+
+		Integration integration = jiraIntegrationService.updateProjectIntegration(1L,
+				new ReportPortalUser.ProjectDetails(projectId, "admin_personal", ProjectRole.PROJECT_MANAGER),
+				correctJiraIntegrationParams
+		);
+
+		Map<String, Object> params = integration.getParams().getParams();
+		Assertions.assertNotNull(params);
+		params.entrySet()
+				.stream()
+				.filter(e -> !e.getKey().equals(BtsProperties.PASSWORD.getName()))
+				.forEach(e -> Assertions.assertEquals(e.getValue(), correctJiraIntegrationParams.get(e.getKey())));
 	}
 
 	private Map<String, Object> getCorrectJiraIntegrationParams() {

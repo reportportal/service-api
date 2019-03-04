@@ -121,17 +121,13 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 				"Plugin not found: " + pluginId
 		));
 
-		return pluginManager.startPlugin(pluginId);
+		return pluginManager.startPlugin(pluginWrapper.getPluginId());
 	}
 
 	@Override
 	@Nullable
 	public String loadPlugin(Path path) {
 		return pluginManager.loadPlugin(path);
-
-		//		.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-		//				"Unable to start plugin: error during plugin uploading"
-		//		)
 	}
 
 	@Override

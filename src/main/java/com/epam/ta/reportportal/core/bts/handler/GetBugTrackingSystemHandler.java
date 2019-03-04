@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration;
+package com.epam.ta.reportportal.core.bts.handler;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
+import com.epam.ta.reportportal.entity.integration.Integration;
+
+import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface CreateIntegrationHandler {
+public interface GetBugTrackingSystemHandler {
 
-	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest);
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
+			String btsProject);
 
-	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
-			ReportPortalUser user);
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 
-	OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest);
+	Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject);
 
-	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
-			ReportPortalUser user);
+	Optional<Integration> getEnabledGlobalIntegration(Long integrationId);
 }

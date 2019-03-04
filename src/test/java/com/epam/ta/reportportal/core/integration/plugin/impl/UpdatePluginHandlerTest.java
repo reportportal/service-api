@@ -32,8 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
-import java.io.InputStream;
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +43,7 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,11 +54,9 @@ class UpdatePluginHandlerTest {
 
 	private final String fileName = "file-name";
 	private final String pluginRootPath = "plugins";
-	private final String fileId = "file-id";
 	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private final DataStore dataStore = mock(DataStore.class);
-	private final InputStream inputStream = mock(InputStream.class);
 
 	private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
@@ -166,7 +167,7 @@ class UpdatePluginHandlerTest {
 	}
 
 	@Test
-	void shouldLoadPluginWhenEnabledAndIsNotPresent() {
+	void shouldLoadPluginWhenEnabledAndIsNotPresent() throws IOException {
 		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
 		updatePluginStateRQ.setEnabled(true);
 
@@ -175,8 +176,8 @@ class UpdatePluginHandlerTest {
 		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
-		when(dataStore.load(fileId)).thenReturn(inputStream);
-		when(pluginBox.loadPlugin(Paths.get(pluginRootPath, fileName))).thenReturn(jiraIntegrationType.getName());
+		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(File.createTempFile("qwe", "txt")));
+		when(pluginBox.loadPlugin(any(Path.class))).thenReturn(jiraIntegrationType.getName());
 		when(pluginBox.startUpPlugin(jiraIntegrationType.getName())).thenReturn(PluginState.STARTED);
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
@@ -189,7 +190,7 @@ class UpdatePluginHandlerTest {
 	private Map<String, Object> getCorrectJiraIntegrationDetailsParams() {
 
 		Map<String, Object> params = new HashMap<>();
-		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), fileId);
+		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "file-id");
 		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), fileName);
 		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), "1.0.0");
 		return params;

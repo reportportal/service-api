@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,9 +51,11 @@ class UpdatePluginHandlerTest {
 
 	private final String fileName = "file-name";
 	private final String pluginRootPath = "plugins";
+	private final String fileId = "1.0.0";
 	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private final DataStore dataStore = mock(DataStore.class);
+	private final InputStream inputStream = mock(InputStream.class);
 
 	private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
@@ -172,6 +175,7 @@ class UpdatePluginHandlerTest {
 		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.empty());
+		when(dataStore.load(fileId)).thenReturn(inputStream);
 		when(pluginBox.loadPlugin(Paths.get(pluginRootPath, fileName))).thenReturn(jiraIntegrationType.getName());
 		when(pluginBox.startUpPlugin(jiraIntegrationType.getName())).thenReturn(PluginState.STARTED);
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
@@ -187,7 +191,7 @@ class UpdatePluginHandlerTest {
 		Map<String, Object> params = new HashMap<>();
 		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "file-id");
 		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), fileName);
-		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), "1.0.0");
+		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), fileId);
 		return params;
 	}
 

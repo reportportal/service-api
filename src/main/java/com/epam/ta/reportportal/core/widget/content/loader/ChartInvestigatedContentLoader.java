@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,18 +74,17 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 						sort,
 						limit
 				), period.get());
-				calculateInvestigatedPercentage(statistics);
-				return singletonMap(RESULT, statistics);
+				return MapUtils.isEmpty(statistics) ? emptyMap() : calculateInvestigatedPercentage(statistics);
 			}
 
 		}
 
 		List<ChartStatisticsContent> content = widgetContentRepository.investigatedStatistics(filter, sort, limit);
 
-		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
+		return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, content);
 	}
 
-	private void calculateInvestigatedPercentage(Map<String, ChartStatisticsContent> investigatedStatistics) {
+	private Map<String, ?> calculateInvestigatedPercentage(Map<String, ChartStatisticsContent> investigatedStatistics) {
 
 		investigatedStatistics.values().forEach(c -> {
 			Map<String, String> values = c.getValues();
@@ -102,6 +101,8 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 				values.put(TO_INVESTIGATE, "0");
 			}
 		});
+
+		return singletonMap(RESULT, investigatedStatistics);
 	}
 
 	/**

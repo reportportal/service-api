@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,9 +72,9 @@ public class LineChartContentLoader extends AbstractStatisticsContentLoader impl
 
 		String timeLineOption = ofNullable(widgetOptions).map(wo -> WidgetOptionUtil.getValueByKey(TIMELINE, wo)).orElse(Strings.EMPTY);
 		if (StringUtils.isNotBlank(timeLineOption)) {
-			Optional<AbstractStatisticsContentLoader.Period> period = AbstractStatisticsContentLoader.Period.findByName(timeLineOption);
+			Optional<Period> period = Period.findByName(timeLineOption);
 			if (period.isPresent()) {
-				return CollectionUtils.isEmpty(content) ? emptyMap() : groupByDate(content, period.get());
+				return CollectionUtils.isEmpty(content) ? emptyMap() : singletonMap(RESULT, groupByDate(content, period.get()));
 			}
 
 		}

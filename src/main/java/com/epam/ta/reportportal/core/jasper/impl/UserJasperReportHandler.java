@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,10 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +69,7 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
 		Map<String, Object> params = new HashMap<>();
 
 		params.put(UserReportConstants.FULL_NAME, user.getFullName());
+		params.put(UserReportConstants.TYPE, user.getUserType().name());
 		params.put(UserReportConstants.LOGIN, user.getLogin());
 		params.put(UserReportConstants.EMAIL, user.getEmail());
 
@@ -82,12 +82,13 @@ public class UserJasperReportHandler extends AbstractJasperReportHandler<User> {
 		ofNullable(user.getMetadata()).ifPresent(metadata -> ofNullable(metadata.getMetadata()).ifPresent(meta -> ofNullable(meta.get(
 				USER_LAST_LOGIN)).ifPresent(lastLogin -> {
 			try {
-				LocalDateTime lastLoginDateTime = LocalDateTime.parse(String.valueOf(lastLogin));
+				long epochMilli = Long.parseLong(String.valueOf(lastLogin));
+				Instant instant = Instant.ofEpochMilli(epochMilli);
 				params.put(
 						UserReportConstants.LAST_LOGIN,
-						DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.of(lastLoginDateTime, ZoneOffset.UTC))
+						DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC))
 				);
-			} catch (DateTimeParseException e) {
+			} catch (NumberFormatException e) {
 				//do nothing, null value will be put in the result
 			}
 

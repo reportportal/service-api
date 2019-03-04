@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -54,8 +57,7 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 
@@ -68,6 +70,11 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 		String contentField = contentFields.get(0);
 		List<ChartStatisticsContent> content = widgetContentRepository.casesTrendStatistics(filter, contentField, sort, limit);
 
+		return CollectionUtils.isEmpty(content) ? emptyMap() : calculateStatistics(widgetOptions, content, contentField, sort);
+	}
+
+	private Map<String, ?> calculateStatistics(WidgetOptions widgetOptions, List<ChartStatisticsContent> content, String contentField,
+			Sort sort) {
 		String timeLineOption = WidgetOptionUtil.getValueByKey(TIMELINE, widgetOptions);
 
 		if (StringUtils.isNotBlank(timeLineOption)) {
@@ -80,7 +87,7 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 
 		}
 
-		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
+		return singletonMap(RESULT, content);
 	}
 
 	private void calculateDelta(Map<String, ChartStatisticsContent> statistics, Sort sort, String contentField) {

@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.jasper.constants;
+package com.epam.ta.reportportal.ws.controller;
+
+import com.epam.ta.reportportal.ws.BaseMvcTest;
+import org.junit.jupiter.api.Test;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public final class UserReportConstants {
+class PluginControllerTest extends BaseMvcTest {
 
-	public static final String FULL_NAME = "Full name";
-	public static final String TYPE = "Type";
-	public static final String LOGIN = "Login";
-	public static final String EMAIL = "Email";
-	public static final String LAST_LOGIN = "Last login";
-	public static final String PROJECTS_AND_ROLES = "Projects and Roles";
-
-	private UserReportConstants() {
-
-		//static only
+	@Test
+	void getLaunchPositive() throws Exception {
+		mockMvc.perform(get("/plugin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
+
 }

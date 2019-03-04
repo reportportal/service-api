@@ -29,4 +29,9 @@ public interface CreateIntegrationHandler {
 
 	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
 			ReportPortalUser user);
+
+	OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest);
+
+	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
+			ReportPortalUser user);
 }

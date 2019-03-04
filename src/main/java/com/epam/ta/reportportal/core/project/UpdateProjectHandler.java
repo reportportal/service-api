@@ -69,13 +69,12 @@ public interface UpdateProjectHandler {
 	/**
 	 * Assign specified user from project
 	 *
-	 * @param projectDetails Project Details
-	 * @param modifier       Modifier User
-	 * @param assignUsersRQ  Request Data
+	 * @param projectName   {@link com.epam.ta.reportportal.entity.project.Project#name}
+	 * @param modifier      Modifier User
+	 * @param assignUsersRQ Request Data
 	 * @return Operation Result
 	 */
-	OperationCompletionRS assignUsers(ReportPortalUser.ProjectDetails projectDetails, AssignUsersRQ assignUsersRQ,
-			ReportPortalUser modifier);
+	OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ, ReportPortalUser modifier);
 
 	/**
 	 * Index logs for specified project

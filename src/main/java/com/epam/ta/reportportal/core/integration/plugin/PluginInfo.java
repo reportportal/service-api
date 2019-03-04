@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +30,8 @@ public class PluginInfo implements Serializable {
 
 	private String fileName;
 
+	private boolean isEnabled;
+
 	public PluginInfo() {
 	}
 
@@ -38,10 +40,11 @@ public class PluginInfo implements Serializable {
 		this.version = version;
 	}
 
-	public PluginInfo(String id, String version, String fileName) {
+	public PluginInfo(String id, String version, String fileName, boolean isEnabled) {
 		this.id = id;
 		this.version = version;
 		this.fileName = fileName;
+		this.isEnabled = isEnabled;
 	}
 
 	@Nullable
@@ -71,31 +74,12 @@ public class PluginInfo implements Serializable {
 		this.fileName = fileName;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-
-		PluginInfo that = (PluginInfo) o;
-
-		if (id != null ? !id.equals(that.id) : that.id != null) {
-			return false;
-		}
-		if (version != null ? !version.equals(that.version) : that.version != null) {
-			return false;
-		}
-		return fileName != null ? fileName.equals(that.fileName) : that.fileName == null;
+	public boolean isEnabled() {
+		return isEnabled;
 	}
 
-	@Override
-	public int hashCode() {
-		int result = id != null ? id.hashCode() : 0;
-		result = 31 * result + (version != null ? version.hashCode() : 0);
-		result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
-		return result;
+	public void setEnabled(boolean enabled) {
+		isEnabled = enabled;
 	}
+
 }

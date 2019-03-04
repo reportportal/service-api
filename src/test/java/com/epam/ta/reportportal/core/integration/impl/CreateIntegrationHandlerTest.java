@@ -126,4 +126,73 @@ public class CreateIntegrationHandlerTest {
 		);
 
 	}
+
+	@Test
+	void updateGlobalIntegration() {
+
+		//given
+		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
+
+		updateIntegrationRQ.setEnabled(true);
+		updateIntegrationRQ.setIntegrationName(ReportPortalIntegrationEnum.EMAIL.name());
+		updateIntegrationRQ.setIntegrationParams(IntegrationTestUtil.getParams());
+
+		final long emailIntegrationId = 1L;
+
+		//when
+		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
+
+		when(integrationService.updateGlobalIntegration(1L,
+				updateIntegrationRQ.getIntegrationParams()
+		)).thenReturn(IntegrationTestUtil.getGlobalEmailIntegration(emailIntegrationId));
+
+		//then
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateGlobalIntegration(emailIntegrationId, updateIntegrationRQ);
+
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully updated.",
+				operationCompletionRS.getResultMessage()
+		);
+	}
+
+	@Test
+	void updateProjectIntegration() {
+
+		//given
+		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
+
+		updateIntegrationRQ.setEnabled(true);
+		updateIntegrationRQ.setIntegrationName(ReportPortalIntegrationEnum.EMAIL.name());
+		updateIntegrationRQ.setIntegrationParams(IntegrationTestUtil.getParams());
+
+		final long emailIntegrationId = 1L;
+		final long projectId = 1L;
+
+		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
+				UserRole.ADMINISTRATOR,
+				ProjectRole.PROJECT_MANAGER,
+				projectId
+		);
+
+		//when
+		when(projectRepository.findById(projectId)).thenReturn(IntegrationTestUtil.getProjectWithId(projectId));
+
+		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
+
+		when(integrationService.updateProjectIntegration(emailIntegrationId,
+				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME),
+				updateIntegrationRQ.getIntegrationParams()
+		)).thenReturn(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId));
+
+		//then
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateProjectIntegration(emailIntegrationId, ProjectExtractor.extractProjectDetails(user,
+				TEST_PROJECT_NAME
+		), updateIntegrationRQ, user);
+
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully updated.",
+				operationCompletionRS.getResultMessage()
+		);
+
+	}
 }

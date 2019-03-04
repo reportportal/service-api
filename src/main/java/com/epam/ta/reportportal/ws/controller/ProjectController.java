@@ -116,7 +116,7 @@ public class ProjectController {
 	@PutMapping("/{projectName}")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
-	@ApiOperation(value = "Update project", notes = "'Notifications Configuration' can be also update via PUT to /{projectName}/notification resource.")
+	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
@@ -207,7 +207,7 @@ public class ProjectController {
 	@ApiOperation("Assign users")
 	public OperationCompletionRS assignProjectUsers(@PathVariable String projectName, @RequestBody @Validated AssignUsersRQ assignUsersRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.assignUsers(ProjectExtractor.extractProjectDetails(user, projectName), assignUsersRQ, user);
+		return updateProjectHandler.assignUsers(projectName, assignUsersRQ, user);
 	}
 
 	@Transactional(readOnly = true)

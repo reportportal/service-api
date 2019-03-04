@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.jasper.constants;
+package com.epam.ta.reportportal.core.bts.handler;
+
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.integration.Integration;
+
+import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public final class UserReportConstants {
+public interface GetBugTrackingSystemHandler {
 
-	public static final String FULL_NAME = "Full name";
-	public static final String TYPE = "Type";
-	public static final String LOGIN = "Login";
-	public static final String EMAIL = "Email";
-	public static final String LAST_LOGIN = "Last login";
-	public static final String PROJECTS_AND_ROLES = "Projects and Roles";
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, String url,
+			String btsProject);
 
-	private UserReportConstants() {
+	Optional<Integration> getEnabledProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 
-		//static only
-	}
+	Optional<Integration> getEnabledGlobalIntegration(String url, String btsProject);
+
+	Optional<Integration> getEnabledGlobalIntegration(Long integrationId);
 }

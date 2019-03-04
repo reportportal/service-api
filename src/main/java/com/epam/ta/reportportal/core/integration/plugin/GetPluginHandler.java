@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.jasper.constants;
+package com.epam.ta.reportportal.core.integration.plugin;
+
+import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public final class UserReportConstants {
+public interface GetPluginHandler {
 
-	public static final String FULL_NAME = "Full name";
-	public static final String TYPE = "Type";
-	public static final String LOGIN = "Login";
-	public static final String EMAIL = "Email";
-	public static final String LAST_LOGIN = "Last login";
-	public static final String PROJECTS_AND_ROLES = "Projects and Roles";
+	/**
+	 * Get a list of all existing plugins
+	 *
+	 * @return {@link List} of the {@link IntegrationTypeResource}
+	 */
+	List<IntegrationTypeResource> getPlugins();
 
-	private UserReportConstants() {
-
-		//static only
-	}
 }

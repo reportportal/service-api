@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -27,6 +28,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
@@ -50,7 +52,10 @@ import static org.mockito.Mockito.when;
 class UpdateTestItemHandlerImplTest {
 
 	@Mock
-	private TestItemRepository repository;
+	private TestItemRepository itemRepository;
+
+	@Mock
+	private ProjectRepository projectRepository;
 
 	@InjectMocks
 	private UpdateTestItemHandlerImpl handler;
@@ -58,7 +63,7 @@ class UpdateTestItemHandlerImplTest {
 	@Test
 	void updateNotExistedTestItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-		when(repository.findById(1L)).thenReturn(Optional.empty());
+		when(itemRepository.findById(1L)).thenReturn(Optional.empty());
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
 		);
@@ -68,7 +73,7 @@ class UpdateTestItemHandlerImplTest {
 	@Test
 	void updateTestItemWithSystemAttributes() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-		when(repository.findById(1L)).thenReturn(Optional.of(new TestItem()));
+		when(itemRepository.findById(1L)).thenReturn(Optional.of(new TestItem()));
 		final UpdateTestItemRQ updateTestItemRQ = new UpdateTestItemRQ();
 		updateTestItemRQ.setAttributes(Sets.newHashSet(new ItemAttributeResource("key", "value", true),
 				new ItemAttributeResource("key", "value", false)
@@ -84,7 +89,7 @@ class UpdateTestItemHandlerImplTest {
 	void updateTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
-		when(repository.findById(1L)).thenReturn(Optional.of(new TestItem()));
+		when(itemRepository.findById(1L)).thenReturn(Optional.of(new TestItem()));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
@@ -103,7 +108,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setUser(user);
 		launch.setProjectId(1L);
 		item.setLaunch(launch);
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
+		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
@@ -121,7 +126,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setUser(user);
 		launch.setProjectId(2L);
 		item.setLaunch(launch);
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
+		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
@@ -142,7 +147,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setUser(user);
 		launch.setProjectId(1L);
 		item.setLaunch(launch);
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
+		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 		final UpdateTestItemRQ rq = new UpdateTestItemRQ();
 		rq.setStatus(StatusEnum.PASSED.name());
 
@@ -154,4 +159,19 @@ class UpdateTestItemHandlerImplTest {
 				exception.getMessage()
 		);
 	}
+
+	@Test
+	void defineIssuesOnNotExistProject() {
+		ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		when(projectRepository.findById(1L)).thenReturn(Optional.empty());
+
+		ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.defineTestItemsIssues(extractProjectDetails(rpUser, "test_project"), new DefineIssueRQ(), rpUser)
+		);
+
+		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.core.project.impl.StatisticsUtils;
+import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -206,7 +206,7 @@ public class Swagger2Configuration {
 
 					List<Parameter> defaultParams = Lists.newArrayList();
 					if (filterClass.value() == TestItem.class || filterClass.value() == Launch.class) {
-						defaultParams = StatisticsUtils.defaultStatisticsFields()
+						defaultParams = StatisticsHelper.defaultStatisticsFields()
 								.map(it -> buildParameters(parameterContext, factory, it))
 								.collect(Collectors.toList());
 					}

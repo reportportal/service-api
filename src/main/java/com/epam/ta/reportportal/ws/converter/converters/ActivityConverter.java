@@ -41,7 +41,7 @@ public final class ActivityConverter {
 		resource.setObjectType(activity.getActivityEntityType().getValue());
 		resource.setActionType(activity.getAction());
 		resource.setProjectId(activity.getProjectId());
-		resource.setUser(activity.getUserId().toString());
+		resource.setUser(activity.getUsername());
 		ofNullable(activity.getObjectId()).ifPresent(resource::setLoggedObjectId);
 		resource.setDetails(activity.getDetails());
 		return resource;

@@ -28,7 +28,7 @@ insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore
 insert into bug_tracking_system (id, url, type, bts_project, project_id)
 values (4, 'http://example.com', 'JIRA', 'test_project', 2);
 
-insert into ticket(ticket_id, submitter_id, submit_date, bts_id, url) values ('ticket', 2, now(), 4, 'https://example.com/ticket');
+insert into ticket(ticket_id, submitter_id, submit_date, bts_url, bts_project, url) values ('ticket', 2, now(), 'https://example.com', 'project', 'https://example.com/ticket');
 
 alter sequence launch_id_seq restart with 3;
 alter sequence test_item_item_id_seq restart with 4;

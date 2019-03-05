@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.integration.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
+import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
@@ -61,14 +62,13 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest, ReportPortalUser user) {
+	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest) {
 
 		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.createGlobalIntegration(updateRequest.getIntegrationName(), updateRequest.getIntegrationParams());
-
 		integration.setEnabled(updateRequest.getEnabled());
 
 		integrationRepository.save(integration);
@@ -89,15 +89,51 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
 				.createProjectIntegration(updateRequest.getIntegrationName(), projectDetails, updateRequest.getIntegrationParams());
-
-		integration.setProject(project);
 		integration.setEnabled(updateRequest.getEnabled());
+		integration.setProject(project);
 
 		integrationRepository.save(integration);
 
 		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
+	}
+
+	@Override
+	public OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest) {
+
+		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
+
+		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
+				.updateGlobalIntegration(id, updateRequest.getIntegrationParams());
+		integration.setEnabled(updateRequest.getEnabled());
+
+		integrationRepository.save(integration);
+
+		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully updated.");
+	}
+
+	@Override
+	public OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			UpdateIntegrationRQ updateRequest, ReportPortalUser user) {
+
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
+		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
+
+		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
+				.updateProjectIntegration(id, projectDetails, updateRequest.getIntegrationParams());
+		integration.setEnabled(updateRequest.getEnabled());
+		integration.setProject(project);
+
+		integrationRepository.save(integration);
+
+		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
+
+		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully updated.");
 	}
 
 }

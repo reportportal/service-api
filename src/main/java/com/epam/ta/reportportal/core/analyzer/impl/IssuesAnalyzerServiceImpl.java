@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -108,8 +107,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 		return CompletableFuture.runAsync(() -> runAnalyzers(launch, itemIds, analyzerConfig));
 	}
 
-	@Transactional
-	public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
+	private void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
 		if (launch != null) {
 			try {
 				analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
@@ -194,13 +192,11 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
 
-				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem);
-				before.setProjectId(projectId);
+				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 				updateTestItemIssue(projectId, analyzed, testItem);
 
-				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem);
-				after.setProjectId(projectId);
+				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 				testItemRepository.save(testItem);
 				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance));

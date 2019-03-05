@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,12 +71,12 @@ public final class TestItemConverter {
 		return resource;
 	};
 
-	public static final Function<TestItem, TestItemActivityResource> TO_ACTIVITY_RESOURCE = testItem -> {
+	public static final BiFunction<TestItem, Long, TestItemActivityResource> TO_ACTIVITY_RESOURCE = (testItem, projectId) -> {
 		TestItemActivityResource resource = new TestItemActivityResource();
 		resource.setId(testItem.getItemId());
 		resource.setName(testItem.getName());
 		resource.setStatus(testItem.getItemResults().getStatus().name());
-		ofNullable(testItem.getLaunch()).ifPresent(it -> resource.setProjectId(it.getProjectId()));
+		resource.setProjectId(projectId);
 		IssueEntity issue = testItem.getItemResults().getIssue();
 		if (issue != null) {
 			resource.setAutoAnalyzed(issue.getAutoAnalyzed());

@@ -58,7 +58,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 		integrationRepository.deleteById(integration.getId());
 
-		return new OperationCompletionRS(Suppliers.formattedSupplier("Integration with id = {} has been successfully removed",
+		return new OperationCompletionRS(Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed",
 				integration.getId()
 		).get());
 	}

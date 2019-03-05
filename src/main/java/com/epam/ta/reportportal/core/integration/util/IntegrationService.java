@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,42 @@ import java.util.Map;
  */
 public interface IntegrationService {
 
-	Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams);
+	/**
+	 * Create {@link Integration} with {@link Integration#project == NULL}
+	 *
+	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return new {@link Integration}
+	 */
+	Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams);
 
-	Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
+	/**
+	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
+	 *
+	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param projectDetails      {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return new {@link Integration}
+	 */
+	Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
 			Map<String, Object> integrationParams);
+
+	/**
+	 * Update {@link Integration} with {@link Integration#project == NULL}
+	 *
+	 * @param id                {@link Integration#id}
+	 * @param integrationParams {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return updated {@link Integration}
+	 */
+	Integration updateGlobalIntegration(Long id, Map<String, Object> integrationParams);
+
+	/**
+	 * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
+	 *
+	 * @param id                {@link Integration#id}
+	 * @param projectDetails    {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param integrationParams {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return updated {@link Integration}
+	 */
+	Integration updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, Map<String, Object> integrationParams);
 }

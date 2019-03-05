@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public final class IntegrationConverter {
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());
+		type.setEnabled(integration.getType().isEnabled());
 		type.setCreationDate(EntityUtils.TO_DATE.apply(integration.getType().getCreationDate()));
 		type.setGroupType(integration.getType().getIntegrationGroup().name());
 		ofNullable(integration.getType().getDetails()).ifPresent(it -> type.setDetails(it.getDetails()));

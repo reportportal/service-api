@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,18 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -42,13 +48,17 @@ import java.util.stream.Collectors;
 public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	private final IntegrationRepository integrationRepository;
-
 	private final IntegrationTypeRepository integrationTypeRepository;
+	private final ProjectRepository projectRepository;
+	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
 
 	@Autowired
-	public GetIntegrationHandlerImpl(IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository) {
+	public GetIntegrationHandlerImpl(IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
+			ProjectRepository projectRepository, GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
+		this.projectRepository = projectRepository;
+		this.getBugTrackingSystemHandler = getBugTrackingSystemHandler;
 	}
 
 	@Override
@@ -80,7 +90,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 		if (!CollectionUtils.isEmpty(integrations)) {
 
-			return integrations.stream().filter(Integration::isEnabled).findFirst();
+			return integrations.stream().filter(integration -> integration.getType().isEnabled() && integration.isEnabled()).findFirst();
 
 		} else {
 
@@ -89,10 +99,57 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	}
 
+	@Override
+	public Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, String url, String btsProject) {
+
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+
+		Integration integration = getBugTrackingSystemHandler.getEnabledProjectIntegration(projectDetails, url, btsProject)
+				.orElseGet(() -> {
+					Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegration(url, btsProject)
+							.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, url));
+
+					IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+					return globalIntegration;
+				});
+		validateIntegration(integration);
+		return integration;
+	}
+
+	@Override
+	public Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId) {
+
+		Project project = projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectName()));
+
+		Integration integration = getBugTrackingSystemHandler.getEnabledProjectIntegration(projectDetails, integrationId).orElseGet(() -> {
+			Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegration(integrationId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+			IntegrationValidator.validateProjectLevelIntegrationConstraints(project, globalIntegration);
+
+			return globalIntegration;
+		});
+		validateIntegration(integration);
+		return integration;
+	}
+
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
 		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-				.stream()
-				.filter(Integration::isEnabled)
+				.stream().filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
 				.findFirst();
+	}
+
+	private void validateIntegration(Integration integration) {
+		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName()).get()
+		);
+		BusinessRule.expect(integration, Integration::isEnabled).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
+		);
 	}
 }

@@ -67,6 +67,9 @@ rp:
     apiuser: rabbitmq
     apipass: rabbitmq
 
+  jwt:
+    signing-key: 123
+
   db:
     url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}?user=${rp.db.user}&password=${rp.db.pass}
     name: reportportal
@@ -82,3 +85,9 @@ rp:
     enableByDefault: true
   plugins:
     path: /plugins
+  binarystore:
+    master:
+      host: seaweed-master
+      port: 9333
+    # could be one of [seaweed, filesystem]
+    type: filesystem

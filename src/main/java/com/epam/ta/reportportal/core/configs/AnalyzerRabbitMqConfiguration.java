@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.rabbitmq.http.client.Client;
+import org.springframework.amqp.core.AsyncAmqpTemplate;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -35,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -74,6 +76,11 @@ public class AnalyzerRabbitMqConfiguration {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(messageConverter);
 		return rabbitTemplate;
+	}
+
+	@Bean(name = "asyncAnalyzerRabbitTemplate")
+	public AsyncAmqpTemplate asyncAmqpTemplate(@Autowired RabbitTemplate rabbitTemplate) {
+		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
 }

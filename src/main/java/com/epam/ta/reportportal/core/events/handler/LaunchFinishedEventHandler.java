@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
@@ -87,15 +87,15 @@ public class LaunchFinishedEventHandler {
 
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
-	private final IssuesAnalyzer issuesAnalyzer;
+	private final AnalyzerServiceAsync analyzerServiceAsync;
 
 	private final LogIndexer logIndexer;
 
 	@Autowired
 	public LaunchFinishedEventHandler(ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler,
 			MailServiceFactory mailServiceFactory, UserRepository userRepository, LaunchRepository launchRepository,
-			Provider<HttpServletRequest> currentRequest, AnalyzeCollectorFactory analyzeCollectorFactory, IssuesAnalyzer issuesAnalyzer,
-			LogIndexer logIndexer) {
+			Provider<HttpServletRequest> currentRequest, AnalyzeCollectorFactory analyzeCollectorFactory,
+			AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
 		this.projectRepository = projectRepository;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.mailServiceFactory = mailServiceFactory;
@@ -103,7 +103,7 @@ public class LaunchFinishedEventHandler {
 		this.launchRepository = launchRepository;
 		this.currentRequest = currentRequest;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
-		this.issuesAnalyzer = issuesAnalyzer;
+		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
 	}
 
@@ -137,11 +137,11 @@ public class LaunchFinishedEventHandler {
 				return;
 			}
 
-			if (issuesAnalyzer.hasAnalyzers()) {
+			if (analyzerServiceAsync.hasAnalyzers()) {
 				List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 						.collectItems(project.getId(), launch.getId(), null);
 
-				CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch, testItems, analyzerConfig);
+				CompletableFuture<Void> analyze = analyzerServiceAsync.analyze(launch, testItems, analyzerConfig);
 
 				analyze.thenAccept(res -> {
 					Launch updatedLaunch = launchRepository.findById(launch.getId())

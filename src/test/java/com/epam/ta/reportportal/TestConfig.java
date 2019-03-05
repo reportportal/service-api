@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;

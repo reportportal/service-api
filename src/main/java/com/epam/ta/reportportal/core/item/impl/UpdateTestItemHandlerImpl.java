@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -248,6 +249,23 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
+	}
+
+	@Override
+	public void resetItemsIssue(List<TestItem> items, Long projectId) {
+		items.forEach(item -> {
+			IssueType issueType = issueTypeHandler.defineIssueType(item.getItemId(),
+					projectId,
+					TestItemIssueGroup.TO_INVESTIGATE.getLocator()
+			);
+			IssueEntity issueEntity = new IssueEntityBuilder(item.getItemResults().getIssue()).addIssueType(issueType)
+					.addIgnoreFlag(item.getItemResults().getIssue().getIgnoreAnalyzer())
+					.addAutoAnalyzedFlag(true)
+					.get();
+			issueEntity.setIssueId(item.getItemId());
+			item.getItemResults().setIssue(issueEntity);
+			testItemRepository.save(item);
+		});
 	}
 
 	/**

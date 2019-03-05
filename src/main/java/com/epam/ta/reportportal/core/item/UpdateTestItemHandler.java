@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
@@ -58,7 +59,7 @@ public interface UpdateTestItemHandler {
 	/**
 	 * Add external system issue link directly to the {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param rq             {@link LinkExternalIssueRQ}
 	 * @param user           {@link ReportPortalUser}
 	 * @return {@link List} of the {@link OperationCompletionRS}
@@ -69,11 +70,19 @@ public interface UpdateTestItemHandler {
 	/**
 	 * Remove external system issue link from the  {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param rq             {@link UnlinkExternalIssueRq}
 	 * @param user           {@link ReportPortalUser}
 	 * @return {@link List} of the {@link OperationCompletionRS}
 	 */
 	List<OperationCompletionRS> unlinkExternalIssues(ReportPortalUser.ProjectDetails projectDetails, UnlinkExternalIssueRq rq,
 			ReportPortalUser user);
+
+	/**
+	 * Resets items issue to default state
+	 *
+	 * @param items     Items to be reseted
+	 * @param projectId Project id
+	 */
+	void resetItemsIssue(List<TestItem> items, Long projectId);
 }

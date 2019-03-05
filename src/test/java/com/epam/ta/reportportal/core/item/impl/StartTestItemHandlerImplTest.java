@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,6 +171,28 @@ class StartTestItemHandlerImplTest {
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, 1L)
 		);
 		assertEquals("Start test item is not allowed. Parent Item '1' is not in progress", exception.getMessage());
+	}
+
+	@Test
+	void startChildItemWithNotExistedLaunch() {
+		ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+		startTestItemRQ.setLaunchId(1L);
+		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		startTestItemRQ.setLaunchId(1L);
+
+		TestItem item = new TestItem();
+		item.setItemId(1L);
+
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
+
+		ReportPortalException exception = assertThrows(
+				ReportPortalException.class,
+				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, 1L)
+		);
+
+		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
 
 	private Launch getLaunch(Long projectId, StatusEnum status) {

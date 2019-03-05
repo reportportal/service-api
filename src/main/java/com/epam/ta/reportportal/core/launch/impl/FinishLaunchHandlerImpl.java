@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ import static java.util.stream.Collectors.toList;
  */
 @Service
 @Transactional
-public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch.FinishLaunchHandler {
+public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.FinishLaunchHandler {
 
 	private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
 
@@ -74,7 +74,7 @@ public class FinishLaunchHandler implements com.epam.ta.reportportal.core.launch
 	private AfterLaunchFinishedHandler afterLaunchFinishedHandler;
 
 	@Autowired
-	public FinishLaunchHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
+	public FinishLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
 			ApplicationEventPublisher eventPublisher, AfterLaunchFinishedHandler afterLaunchFinishedHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;

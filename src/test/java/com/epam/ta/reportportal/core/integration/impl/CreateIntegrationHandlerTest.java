@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,81 @@ public class CreateIntegrationHandlerTest {
 
 		assertNotNull(operationCompletionRS);
 		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully created.",
+				operationCompletionRS.getResultMessage()
+		);
+
+	}
+
+	@Test
+	void updateGlobalIntegration() {
+
+		//given
+		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
+
+		updateIntegrationRQ.setEnabled(true);
+		updateIntegrationRQ.setIntegrationName(ReportPortalIntegrationEnum.EMAIL.name());
+		updateIntegrationRQ.setIntegrationParams(IntegrationTestUtil.getParams());
+
+		final long emailIntegrationId = 1L;
+
+		//when
+		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
+
+		when(integrationService.updateGlobalIntegration(1L,
+				updateIntegrationRQ.getIntegrationParams()
+		)).thenReturn(IntegrationTestUtil.getGlobalEmailIntegration(emailIntegrationId));
+
+		//then
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateGlobalIntegration(
+				emailIntegrationId,
+				updateIntegrationRQ
+		);
+
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully updated.",
+				operationCompletionRS.getResultMessage()
+		);
+	}
+
+	@Test
+	void updateProjectIntegration() {
+
+		//given
+		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
+
+		updateIntegrationRQ.setEnabled(true);
+		updateIntegrationRQ.setIntegrationName(ReportPortalIntegrationEnum.EMAIL.name());
+		updateIntegrationRQ.setIntegrationParams(IntegrationTestUtil.getParams());
+
+		final long emailIntegrationId = 1L;
+		final long projectId = 1L;
+
+		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
+				UserRole.ADMINISTRATOR,
+				ProjectRole.PROJECT_MANAGER,
+				projectId
+		);
+
+		//when
+		when(projectRepository.findById(projectId)).thenReturn(IntegrationTestUtil.getProjectWithId(projectId));
+
+		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
+
+		when(integrationService.updateProjectIntegration(emailIntegrationId,
+				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME),
+				updateIntegrationRQ.getIntegrationParams()
+		)).thenReturn(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId));
+
+		//then
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateProjectIntegration(
+				emailIntegrationId,
+				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME),
+				updateIntegrationRQ,
+				user
+		);
+
+		assertNotNull(operationCompletionRS);
+		assertEquals("Integration with id = " + emailIntegrationId + " has been successfully updated.",
 				operationCompletionRS.getResultMessage()
 		);
 

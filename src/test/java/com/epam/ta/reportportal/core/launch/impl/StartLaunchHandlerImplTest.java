@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
-class StartLaunchHandlerTest {
+class StartLaunchHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
@@ -56,7 +56,7 @@ class StartLaunchHandlerTest {
 	private MessageBus messageBus;
 
 	@InjectMocks
-	private StartLaunchHandler startLaunchHandler;
+	private StartLaunchHandlerImpl startLaunchHandlerImpl;
 
 	@Test
 	void startLaunch() {
@@ -68,7 +68,7 @@ class StartLaunchHandlerTest {
 
 		when(launchRepository.save(any(Launch.class))).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
 
-		final StartLaunchRS startLaunchRS = startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
+		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
 				startLaunchRQ
 		);
 
@@ -86,7 +86,7 @@ class StartLaunchHandlerTest {
 		startLaunchRQ.setMode(Mode.DEBUG);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> startLaunchHandler.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"), startLaunchRQ)
+				() -> startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"), startLaunchRQ)
 		);
 		assertEquals("Forbidden operation.", exception.getMessage());
 	}

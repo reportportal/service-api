@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -42,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -76,61 +76,109 @@ public class EmailServerIntegrationService implements IntegrationService {
 		this.emailServiceFactory = emailServiceFactory;
 	}
 
+	/**
+	 * Only 1 global EMAIL server integration is allowed
+	 *
+	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return new {@link Integration}
+	 */
 	@Override
-	public Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams) {
+	public Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
 
-		updateIntegrationParams(integrationParams);
+		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
 				IntegrationGroupEnum.NOTIFICATION
 		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationName).get()
+				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
 		));
 
-		Integration integration = retrieveIntegration(integrationRepository.findAllGlobalByType(integrationType));
+		integrationRepository.deleteInBatch(integrationRepository.findAllGlobalByType(integrationType));
 
-		integration.setParams(new IntegrationParams(integrationParams));
-		integration.setType(integrationType);
-
+		Integration integration = retrieveIntegration(integrationType, retrievedParams);
 		testConnection(integration);
-
 		return integration;
 
 	}
 
+	/**
+	 * Only 1 EMAIL server integration per project is allowed
+	 *
+	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param projectDetails      {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return new {@link Integration}
+	 */
 	@Override
-	public Integration createProjectIntegration(String integrationName, ReportPortalUser.ProjectDetails projectDetails,
+	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
 			Map<String, Object> integrationParams) {
 
-		updateIntegrationParams(integrationParams);
+		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
 				IntegrationGroupEnum.NOTIFICATION
 		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationName).get()
+				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
 		));
 
-		Integration integration = retrieveIntegration(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
+		integrationRepository.deleteInBatch(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
 				integrationType
 		));
 
-		integration.setParams(new IntegrationParams(integrationParams));
-		integration.setType(integrationType);
-
+		Integration integration = retrieveIntegration(integrationType, retrievedParams);
 		testConnection(integration);
-
 		return integration;
 	}
 
-	private void updateIntegrationParams(Map<String, Object> integrationParams) {
+	@Override
+	public Integration updateGlobalIntegration(Long id, Map<String, Object> integrationParams) {
+
+		Integration integration = integrationRepository.findById(id)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+		return updateIntegration(integration, integrationParams);
+	}
+
+	@Override
+	public Integration updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			Map<String, Object> integrationParams) {
+
+		Integration integration = integrationRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+		return updateIntegration(integration, integrationParams);
+	}
+
+	private Integration updateIntegration(Integration integration, Map<String, Object> integrationParams) {
+
+		BusinessRule.expect(integration, it -> IntegrationGroupEnum.NOTIFICATION == it.getType().getIntegrationGroup())
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
+						"Unable to update integration with type - '{}'. Required type - '{}'",
+						integration.getType().getIntegrationGroup(),
+						IntegrationGroupEnum.NOTIFICATION
+				));
+
+		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
+		integration.setParams(new IntegrationParams(retrievedParams));
+
+		testConnection(integration);
+		return integration;
+
+	}
+
+	private Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
+		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(EmailSettingsEnum.values().length);
+
 		Optional<String> fromAttribute = EmailSettingsEnum.FROM.getAttribute(integrationParams);
 
-		fromAttribute.ifPresent(from -> expect(isEmailValid(from), equalTo(true)).verify(BAD_REQUEST_ERROR,
-				Suppliers.formattedSupplier("Provided FROM value '{}' is invalid", fromAttribute.get())
-		));
+		fromAttribute.ifPresent(from -> {
+			expect(isEmailValid(from), equalTo(true)).verify(BAD_REQUEST_ERROR,
+					Suppliers.formattedSupplier("Provided FROM value '{}' is invalid", fromAttribute.get())
+			);
+			resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from);
+		});
 
 		int port = ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
 				25
@@ -140,34 +188,46 @@ public class EmailServerIntegrationService implements IntegrationService {
 			BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
 		}
 
-		integrationParams.put(EmailSettingsEnum.PORT.getAttribute(), port);
+		resultParams.put(EmailSettingsEnum.PORT.getAttribute(), port);
 
 		if (!EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams).isPresent()) {
-			integrationParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), "smtp");
+			resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), "smtp");
+		} else {
+			resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams).get());
 		}
 
-		if (ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(String.valueOf(
-				e))).orElse(false)) {
+		Boolean isAuthEnabled = ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
+				String.valueOf(e))).orElse(false);
+		if (isAuthEnabled) {
+
 			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
-					.ifPresent(password -> integrationParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
+					.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
 							basicTextEncryptor.encrypt(password)
 					));
 		} else {
 			/* Auto-drop values on switched-off authentication */
-			integrationParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
-			integrationParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
+			resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
+			resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
 		}
+
+		resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
+
+		EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(integrationParams)
+				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), attr));
+		EmailSettingsEnum.SSL_ENABLED.getAttribute(integrationParams)
+				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), attr));
+		EmailSettingsEnum.HOST.getAttribute(integrationParams)
+				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.HOST.getAttribute(), attr));
+
+		return resultParams;
 	}
 
-	private Integration retrieveIntegration(List<Integration> integrations) {
-		Integration integration = integrations.stream().findFirst().orElseGet(() -> {
-			Integration newIntegration = new Integration();
-			newIntegration.setCreationDate(LocalDateTime.now());
-			return newIntegration;
-		});
+	private Integration retrieveIntegration(IntegrationType integrationType, Map<String, Object> retrievedParams) {
 
-		integrations.removeIf(i -> !i.getId().equals(integration.getId()));
-
+		Integration integration = new Integration();
+		integration.setCreationDate(LocalDateTime.now());
+		integration.setParams(new IntegrationParams(retrievedParams));
+		integration.setType(integrationType);
 		return integration;
 	}
 

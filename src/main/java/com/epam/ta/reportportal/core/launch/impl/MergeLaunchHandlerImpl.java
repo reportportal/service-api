@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author Pavel_Bortnik
  */
 @Service
-public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.MergeLaunchHandler {
+public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.MergeLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 
@@ -67,7 +67,8 @@ public class MergeLaunchHandler implements com.epam.ta.reportportal.core.launch.
 	private final LogIndexer logIndexer;
 
 	@Autowired
-	public MergeLaunchHandler(LaunchRepository launchRepository, ProjectRepository projectRepository, LaunchMergeFactory launchMergeFactory,
+	public MergeLaunchHandlerImpl(LaunchRepository launchRepository, ProjectRepository projectRepository,
+			LaunchMergeFactory launchMergeFactory,
 			LaunchConverter launchConverter, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
 		this.projectRepository = projectRepository;

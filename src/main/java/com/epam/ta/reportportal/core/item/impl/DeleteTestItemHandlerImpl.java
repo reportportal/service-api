@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -35,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -89,7 +89,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		testItemRepository.deleteById(item.getItemId());
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(itemId));
+		logIndexer.cleanIndex(projectDetails.getProjectId(), item.getLogs().stream().map(Log::getId).collect(toList()));
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 
@@ -112,7 +112,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 *
 	 * @param testItem       {@link TestItem}
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {

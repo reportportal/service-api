@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -36,8 +38,9 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,7 +50,13 @@ import static org.mockito.Mockito.when;
 class DeleteTestItemHandlerImplTest {
 
 	@Mock
-	private TestItemRepository repository;
+	private TestItemRepository testItemRepository;
+
+	@Mock
+	private LogIndexer logIndexer;
+
+	@Mock
+	private LaunchRepository launchRepository;
 
 	@InjectMocks
 	private DeleteTestItemHandlerImpl handler;
@@ -56,7 +65,7 @@ class DeleteTestItemHandlerImplTest {
 	void testItemNotFound() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(repository.findById(1L)).thenReturn(Optional.empty());
+		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -68,7 +77,11 @@ class DeleteTestItemHandlerImplTest {
 	void deleteInProgressItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.IN_PROGRESS, StatusEnum.IN_PROGRESS, 1L, "test")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.IN_PROGRESS,
+				StatusEnum.IN_PROGRESS,
+				1L,
+				"test"
+		)));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -82,7 +95,7 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemWithInProgressLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -97,7 +110,7 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -109,12 +122,35 @@ class DeleteTestItemHandlerImplTest {
 	void deleteNotOwnTestItem() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(repository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, "owner")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, "owner")));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("You do not have enough permissions. You are not a launch owner.", exception.getMessage());
+	}
+
+	@Test
+	void deleteTestItemWithParent() {
+		ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+
+		TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
+		TestItem parent = new TestItem();
+		long parentId = 35L;
+		parent.setItemId(parentId);
+		String path = "1.2.3";
+		parent.setPath(path);
+		item.setParent(parent);
+
+		doNothing().when(logIndexer).cleanIndex(any(), any());
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);
+		when(launchRepository.hasRetries(any())).thenReturn(false);
+
+		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+
+		assertFalse(parent.isHasChildren());
+
 	}
 
 	private TestItem getTestItem(StatusEnum itemStatus, StatusEnum launchStatus, Long projectId, String owner) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public final class EmailRulesValidator {
 	public static void validateLaunchAttribute(LaunchAttribute attribute) {
 		expect(attribute, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Launch attribute cannot be null.");
 		expect(isNullOrEmpty(attribute.getValue()), equalTo(false)).verify(BAD_REQUEST_ERROR,
-				"Tags' values cannot be empty. Please specify them or do not include in a request."
+				"Attribute' values cannot be empty. Please specify them or do not include in a request."
 		);
 	}
 }

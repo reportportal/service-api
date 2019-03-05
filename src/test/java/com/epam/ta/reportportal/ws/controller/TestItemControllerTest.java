@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -69,7 +71,34 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void startRootItemWithoutUuid() throws Exception {
+		StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchId(1L);
+		rq.setName("RootItem");
+		rq.setType("SUITE");
+		rq.setParameters(getParameters());
+		rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		mockMvc.perform(post(SUPERADMIN_PROJECT_BASE_URL + "/item").contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
+	}
+
+	@Test
 	void startChildItemPositive() throws Exception {
+		StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchId(1L);
+		rq.setName("ChildItem");
+		rq.setType("TEST");
+		rq.setUniqueId(UUID.randomUUID().toString());
+		rq.setParameters(getParameters());
+		rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
+	}
+
+	@Test
+	void startChildItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId(1L);
 		rq.setName("ChildItem");
@@ -89,6 +118,38 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void finishRootTestItemWithoutStatus() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void finishTestItemWithFailedStatus() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		rq.setIssue(issue);
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void finishTestItemWithoutIssueType() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -164,11 +225,27 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void defineTestItemIssueNegative() throws Exception {
+		DefineIssueRQ rq = new DefineIssueRQ();
+		IssueDefinition issueDefinition = new IssueDefinition();
+		issueDefinition.setId(100L);
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issueDefinition.setIssue(issue);
+		rq.setIssues(Collections.singletonList(issueDefinition));
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void linkExternalIssues() throws Exception {
 		LinkExternalIssueRQ rq = new LinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
-		issue.setExternalSystemId(4L);
+		issue.setBtsUrl("jira.com");
+		issue.setBtsProject("project");
 		issue.setSubmitter(2L);
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");
@@ -176,6 +253,22 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/link").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isOk());
+	}
+
+	@Test
+	void linkExternalIssueNegative() throws Exception {
+		LinkExternalIssueRQ rq = new LinkExternalIssueRQ();
+		rq.setTestItemIds(Collections.singletonList(2L));
+		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
+		issue.setBtsUrl("jira.com");
+		issue.setBtsProject("project");
+		issue.setSubmitter(2L);
+		issue.setTicketId("ticket1");
+		issue.setUrl("https://example.com/NEWTICKET1");
+		rq.setIssues(Collections.singletonList(issue));
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/link").with(token(oAuthHelper.getDefaultToken()))
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest());
 	}
 
 	@Test
@@ -188,6 +281,16 @@ class TestItemControllerTest extends BaseMvcTest {
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
 	}
 
+	@Test
+	void unlinkExternalIssuesNegative() throws Exception {
+		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
+		rq.setTestItemIds(Collections.singletonList(2L));
+		rq.setIssueIds(Collections.singletonList("ticket"));
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
+	}
+
 	private List<ParameterResource> getParameters() {
 		ParameterResource parameters = new ParameterResource();
 		parameters.setKey("CardNumber");
@@ -198,4 +301,10 @@ class TestItemControllerTest extends BaseMvcTest {
 		return ImmutableList.<ParameterResource>builder().add(parameters).add(parameters1).build();
 	}
 
+	@Test
+	void getItemsByAdmin() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/item/items?ids=1,2,4").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(3)));
+	}
 }

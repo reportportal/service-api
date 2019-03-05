@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public interface GetWidgetHandler {
 	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
 	 *
 	 * @param widgetId       Widget id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @return Allowed widget.
 	 */
 	Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails);
@@ -43,7 +43,7 @@ public interface GetWidgetHandler {
 	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
 	 *
 	 * @param widgetId       Widget id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @return Allowed widget.
 	 */
 	Widget getAdministrated(Long widgetId, ReportPortalUser.ProjectDetails projectDetails);

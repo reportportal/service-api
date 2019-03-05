@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.util.email.EmailRulesValidator;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
@@ -64,6 +65,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Preconditions.contains;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -195,48 +197,39 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS assignUsers(ReportPortalUser.ProjectDetails projectDetails, AssignUsersRQ assignUsersRQ,
-			ReportPortalUser user) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
 
-		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+		if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+			Project project = projectRepository.findByName(normalizeId(projectName))
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+
+			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
+			assignUsersRQ.getUserNames().forEach((name, role) -> {
+				ProjectRole projectRole = ProjectRole.forName(role).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
+				assignUser(name, projectRole, assignedUsernames, project);
+			});
+		} else {
 			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
-		}
 
-		List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
+			ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
+			Project project = projectRepository.findById(projectDetails.getProjectId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
 
-		assignUsersRQ.getUserNames().forEach((name, role) -> {
-			User modifyingUser = userRepository.findByLogin(name).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
-			expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
-					formattedSupplier("User '{}' cannot be assigned to project twice.", name)
-			);
-			if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(modifyingUser.getUserType())) {
-				fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
-			}
-			ProjectUser projectUser = new ProjectUser();
-			ProjectRole projectRole = ProjectRole.forName(role).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
-			if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
+			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
+			assignUsersRQ.getUserNames().forEach((name, role) -> {
+
+				ProjectRole projectRole = ProjectRole.forName(role).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, role));
 				ProjectRole modifierRole = projectDetails.getProjectRole();
 				expect(modifierRole.sameOrHigherThan(projectRole), BooleanUtils::isTrue).verify(ACCESS_DENIED);
-				projectUser.setProjectRole(projectRole);
-			} else {
-				projectUser.setProjectRole(projectRole);
-			}
-			projectUser.setUser(modifyingUser);
-			projectUser.setProject(project);
-			project.getUsers().add(projectUser);
-			aclHandler.permitSharedObjects(project.getId(),
-					name,
-					ProjectRole.PROJECT_MANAGER.higherThan(projectRole) ? BasePermission.READ : BasePermission.ADMINISTRATION
-			);
-		});
+				assignUser(name, projectRole, assignedUsernames, project);
+			});
+		}
 
 		return new OperationCompletionRS(
 				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
-						+ project.getName() + "'");
+						+ normalizeId(projectName) + "'");
 	}
 
 	@Override
@@ -269,6 +262,26 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), true));
 		return new OperationCompletionRS("Log indexing has been started");
+	}
+
+	private void assignUser(String name, ProjectRole projectRole, List<String> assignedUsernames, Project project) {
+
+		User modifyingUser = userRepository.findByLogin(name).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
+		expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+				formattedSupplier("User '{}' cannot be assigned to project twice.", name)
+		);
+		if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(modifyingUser.getUserType())) {
+			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Project and user has UPSA type!");
+		}
+		ProjectUser projectUser = new ProjectUser();
+		projectUser.setProjectRole(projectRole);
+		projectUser.setUser(modifyingUser);
+		projectUser.setProject(project);
+		project.getUsers().add(projectUser);
+		aclHandler.permitSharedObjects(project.getId(),
+				name,
+				ProjectRole.PROJECT_MANAGER.higherThan(projectRole) ? BasePermission.READ : BasePermission.ADMINISTRATION
+		);
 	}
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,

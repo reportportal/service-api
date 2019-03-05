@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.filter.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -28,6 +30,7 @@ import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -110,7 +113,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 					userFilter.getOwner(),
 					projectDetails.getProjectId()
 			), BooleanUtils::isFalse)
-					.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, updateRQ.getName(), userFilter.getOwner(), projectDetails.getProjectName());
+					.verify(ErrorType.USER_FILTER_ALREADY_EXISTS,
+							updateRQ.getName(),
+							userFilter.getOwner(),
+							projectDetails.getProjectName()
+					);
 		}
 
 		UserFilterActivityResource before = TO_ACTIVITY_RESOURCE.apply(userFilter);
@@ -147,11 +154,21 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Sort conditions should not be empty");
 
 		//filter conditions validation
-		updateFilerRq.getConditions()
-				.forEach(filter -> BusinessRule.expect(filterTarget.getCriteriaByFilter(filter.getFilteringField()), Optional::isPresent)
-						.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-								"Unable to find filtering field '" + filter.getFilteringField() + "'"
-						));
+		updateFilerRq.getConditions().forEach(c -> {
+
+			CriteriaHolder criteriaHolder = filterTarget.getCriteriaByFilter(c.getFilteringField())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
+							"Unable to find filtering field '" + c.getFilteringField() + "'"
+					));
+
+			Condition condition = Condition.findByMarker(c.getCondition())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, c.getCondition()));
+			boolean isNegative = Condition.isNegative(c.getCondition());
+			condition.validate(criteriaHolder, c.getValue(), isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			condition.castArray(criteriaHolder, c.getValue(), ErrorType.INCORRECT_FILTER_PARAMETERS);
+
+		});
+
 		//order conditions validation
 		updateFilerRq.getOrders()
 				.forEach(order -> BusinessRule.expect(filterTarget.getCriteriaByFilter(order.getSortingColumnName()), Optional::isPresent)

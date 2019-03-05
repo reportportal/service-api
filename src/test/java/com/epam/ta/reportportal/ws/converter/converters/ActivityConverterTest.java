@@ -62,7 +62,7 @@ class ActivityConverterTest {
 		assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()), resource.getLastModified());
 		assertEquals(db.getId(), resource.getId());
 		assertEquals(db.getActivityEntityType(), Activity.ActivityEntityType.fromString(resource.getObjectType()).get());
-		assertEquals(String.valueOf(db.getUserId()), resource.getUser());
+		assertEquals(db.getUsername(), resource.getUser());
 		assertEquals(db.getProjectId(), resource.getProjectId());
 		assertEquals(db.getAction(), resource.getActionType());
 	}

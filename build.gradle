@@ -299,7 +299,9 @@ test {
                                             '**/jasper/**',
                                             '**/configs/**',
                                             '**/demodata/**',
-                                            '**/exception/**'])
+                                            '**/exception/**',
+                                            '**/analyzer/model/**'
+                ])
             })
         }
         doLast {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.project;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
@@ -67,13 +66,6 @@ public interface GetProjectHandler {
 	 * @return List of found user logins
 	 */
 	Iterable<UserResource> getUserNames(String value, Pageable pageable);
-
-	/**
-	 * Verify if any project exists in MongoDB 'project' collection
-	 *
-	 * @return TRUE if projects for current users are available
-	 */
-	OperationCompletionRS isProjectsAvailable();
 
 	/**
 	 * Get all project names

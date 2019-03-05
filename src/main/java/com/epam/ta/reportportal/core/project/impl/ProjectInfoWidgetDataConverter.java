@@ -52,9 +52,12 @@ import static java.time.temporal.ChronoUnit.WEEKS;
 @Service("projectInfoDataConverter")
 public class ProjectInfoWidgetDataConverter {
 
-	@Autowired
-	@Qualifier("groupingStrategy")
 	private Map<InfoInterval, ProjectInfoGroup> grouping;
+
+	@Autowired
+	public ProjectInfoWidgetDataConverter(@Qualifier("groupingStrategy") Map<InfoInterval, ProjectInfoGroup> grouping) {
+		this.grouping = grouping;
+	}
 
 	public enum ProjectInfoGroup {
 		BY_DAY,

@@ -17,11 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.FilterTarget;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -34,14 +30,11 @@ import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Pavel Bortnik
@@ -61,11 +54,10 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
 		ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
 		ofNullable(rq.getDescription()).ifPresent(it -> userFilter.setDescription(it));
-		ObjectType objectType = ObjectType.getObjectTypeByName(rq.getObjectType());
-		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(objectType));
+		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
 		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
-		addFilterConditions(objectType, rq.getConditions());
-		addSelectionParameters(objectType, rq.getOrders());
+		addFilterConditions(rq.getConditions());
+		addSelectionParameters(rq.getOrders());
 		return this;
 	}
 
@@ -75,37 +67,18 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 * @param conditions Conditions from rq
 	 * @return UserFilterBuilder
 	 */
-	public UserFilterBuilder addFilterConditions(ObjectType objectType, Set<UserFilterCondition> conditions) {
+	public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
 		userFilter.getFilterCondition().clear();
-
-		FilterTarget filterTarget = FilterTarget.findByClass(objectType.getClassObject());
-		Map<String, CriteriaHolder> criteriaHolders = filterTarget.getCriteriaHolders()
-				.stream()
-				.collect(toMap(CriteriaHolder::getFilterCriteria, ch -> ch));
-
-		ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition().addAll(c.stream().map(entity -> {
-
-			Condition condition = Condition.findByMarker(entity.getCondition())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, entity.getCondition()));
-
-			CriteriaHolder criteriaHolder = ofNullable(criteriaHolders.get(entity.getFilteringField())).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-					Suppliers.formattedSupplier("Unknown filtering property - '{}' for target - '{}'",
-							entity.getFilteringField(),
-							objectType.name()
-					)
-			));
-
-			boolean isNegative = Condition.isNegative(entity.getCondition());
-
-			condition.validate(criteriaHolder, entity.getValue(), isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
-
-			return FilterCondition.builder()
-					.withSearchCriteria(entity.getFilteringField())
-					.withValue(entity.getValue())
-					.withNegative(isNegative)
-					.withCondition(condition)
-					.build();
-		}).collect(toList())));
+		ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition()
+				.addAll(c.stream()
+						.map(entity -> FilterCondition.builder()
+								.withSearchCriteria(entity.getFilteringField())
+								.withValue(entity.getValue())
+								.withNegative(Condition.isNegative(entity.getCondition()))
+								.withCondition(Condition.findByMarker(entity.getCondition())
+										.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, entity.getCondition())))
+								.build())
+						.collect(toList())));
 
 		return this;
 	}
@@ -117,24 +90,9 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	 * @param orders Filter sorting conditions
 	 * @return UserFilterBuilder
 	 */
-	public UserFilterBuilder addSelectionParameters(ObjectType objectType, List<Order> orders) {
+	public UserFilterBuilder addSelectionParameters(List<Order> orders) {
 		userFilter.getFilterSorts().clear();
-
-		FilterTarget filterTarget = FilterTarget.findByClass(objectType.getClassObject());
-		Map<String, CriteriaHolder> criteriaHolders = filterTarget.getCriteriaHolders()
-				.stream()
-				.collect(toMap(CriteriaHolder::getFilterCriteria, ch -> ch));
-
 		ofNullable(orders).ifPresent(o -> o.forEach(order -> {
-
-			BusinessRule.expect(ofNullable(criteriaHolders.get(order.getSortingColumnName())), Optional::isPresent)
-					.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-							Suppliers.formattedSupplier("Unknown filtering property - '{}' for target - '{}'",
-									order.getSortingColumnName(),
-									objectType.name()
-							)
-					);
-
 			FilterSort filterSort = new FilterSort();
 			filterSort.setField(order.getSortingColumnName());
 			filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);

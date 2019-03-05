@@ -43,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -77,50 +76,58 @@ public class EmailServerIntegrationService implements IntegrationService {
 		this.emailServiceFactory = emailServiceFactory;
 	}
 
+	/**
+	 * Only 1 global EMAIL server integration is allowed
+	 *
+	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return new {@link Integration}
+	 */
 	@Override
-	public Integration createGlobalIntegration(String integrationName, Map<String, Object> integrationParams) {
+	public Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
 				IntegrationGroupEnum.NOTIFICATION
 		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationName).get()
+				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
 		));
 
-		Integration integration = retrieveIntegration(integrationRepository.findAllGlobalByType(integrationType));
+		integrationRepository.deleteInBatch(integrationRepository.findAllGlobalByType(integrationType));
 
-		integration.setParams(new IntegrationParams(retrievedParams));
-		integration.setType(integrationType);
-
+		Integration integration = retrieveIntegration(integrationType, retrievedParams);
 		testConnection(integration);
-
 		return integration;
 
 	}
 
+	/**
+	 * Only 1 EMAIL server integration per project is allowed
+	 *
+	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param projectDetails      {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
+	 * @return new {@link Integration}
+	 */
 	@Override
 	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
 			Map<String, Object> integrationParams) {
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(
-				integrationTypeName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
 				IntegrationGroupEnum.NOTIFICATION
 		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
 		));
 
-		Integration integration = retrieveIntegration(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
+		integrationRepository.deleteInBatch(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
 				integrationType
 		));
 
-		integration.setParams(new IntegrationParams(retrievedParams));
-		integration.setType(integrationType);
-
+		Integration integration = retrieveIntegration(integrationType, retrievedParams);
 		testConnection(integration);
-
 		return integration;
 	}
 
@@ -129,7 +136,6 @@ public class EmailServerIntegrationService implements IntegrationService {
 
 		Integration integration = integrationRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
-
 		return updateIntegration(integration, integrationParams);
 	}
 
@@ -139,7 +145,6 @@ public class EmailServerIntegrationService implements IntegrationService {
 
 		Integration integration = integrationRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
-
 		return updateIntegration(integration, integrationParams);
 	}
 
@@ -153,11 +158,9 @@ public class EmailServerIntegrationService implements IntegrationService {
 				));
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
-
 		integration.setParams(new IntegrationParams(retrievedParams));
 
 		testConnection(integration);
-
 		return integration;
 
 	}
@@ -197,8 +200,8 @@ public class EmailServerIntegrationService implements IntegrationService {
 				String.valueOf(e))).orElse(false);
 		if (isAuthEnabled) {
 
-			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams).ifPresent(password -> resultParams.put(
-					EmailSettingsEnum.PASSWORD.getAttribute(),
+			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
+					.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
 							basicTextEncryptor.encrypt(password)
 					));
 		} else {
@@ -219,15 +222,12 @@ public class EmailServerIntegrationService implements IntegrationService {
 		return resultParams;
 	}
 
-	private Integration retrieveIntegration(List<Integration> integrations) {
-		Integration integration = integrations.stream().findFirst().orElseGet(() -> {
-			Integration newIntegration = new Integration();
-			newIntegration.setCreationDate(LocalDateTime.now());
-			return newIntegration;
-		});
+	private Integration retrieveIntegration(IntegrationType integrationType, Map<String, Object> retrievedParams) {
 
-		integrations.removeIf(i -> !i.getId().equals(integration.getId()));
-
+		Integration integration = new Integration();
+		integration.setCreationDate(LocalDateTime.now());
+		integration.setParams(new IntegrationParams(retrievedParams));
+		integration.setType(integrationType);
 		return integration;
 	}
 

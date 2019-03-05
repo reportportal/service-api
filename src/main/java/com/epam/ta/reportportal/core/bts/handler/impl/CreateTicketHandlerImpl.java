@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -34,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,6 +43,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_POST_TICKET;
+import static java.util.Optional.ofNullable;
 
 /**
  * Default implementation of {@link CreateTicketHandler}
@@ -60,7 +61,7 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 
 	@Autowired
 	public CreateTicketHandlerImpl(TestItemRepository testItemRepository, PluginBox pluginBox, MessageBus messageBus,
-			ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler) {
+			GetIntegrationHandler getIntegrationHandler) {
 		this.testItemRepository = testItemRepository;
 		this.pluginBox = pluginBox;
 		this.messageBus = messageBus;
@@ -71,7 +72,9 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 	public Ticket createIssue(PostTicketRQ postTicketRQ, Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		validatePostTicketRQ(postTicketRQ);
-		List<TestItem> testItems = testItemRepository.findAllById(postTicketRQ.getBackLinks().keySet());
+
+		List<TestItem> testItems = ofNullable(postTicketRQ.getBackLinks()).map(links -> testItemRepository.findAllById(links.keySet()))
+				.orElseGet(Collections::emptyList);
 		List<TestItemActivityResource> before = testItems.stream()
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());

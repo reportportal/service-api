@@ -58,7 +58,6 @@ class JiraIntegrationServiceTest {
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 	private PluginBox pluginBox = mock(PluginBox.class);
 	private IntegrationType integrationType = mock(IntegrationType.class);
-	private IntegrationType wrongIntegrationType = mock(IntegrationType.class);
 	private IntegrationTypeDetails details = mock(IntegrationTypeDetails.class);
 	private BtsExtension btsExtension = mock(BtsExtension.class);
 
@@ -68,7 +67,11 @@ class JiraIntegrationServiceTest {
 	void setUp() {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
-		jiraIntegrationService = new JiraIntegrationService(integrationTypeRepository, integrationRepository, pluginBox, basicTextEncryptor
+		jiraIntegrationService = new JiraIntegrationService(
+				integrationTypeRepository,
+				integrationRepository,
+				pluginBox,
+				basicTextEncryptor
 		);
 	}
 
@@ -242,6 +245,10 @@ class JiraIntegrationServiceTest {
 
 		when(integrationRepository.findGlobalById(1L)).thenReturn(Optional.ofNullable(jiraIntegration));
 
+		when(pluginBox.getInstance(JIRA_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
+
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
+
 		Integration integration = jiraIntegrationService.updateGlobalIntegration(1L, correctJiraIntegrationParams);
 
 		Map<String, Object> params = integration.getParams().getParams();
@@ -281,6 +288,10 @@ class JiraIntegrationServiceTest {
 
 		final long projectId = 1L;
 		when(integrationRepository.findByIdAndProjectId(1L, projectId)).thenReturn(Optional.ofNullable(jiraIntegration));
+
+		when(pluginBox.getInstance(JIRA_INTEGRATION_TYPE_NAME, BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
+
+		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		Integration integration = jiraIntegrationService.updateProjectIntegration(1L,
 				new ReportPortalUser.ProjectDetails(projectId, "admin_personal", ProjectRole.PROJECT_MANAGER),

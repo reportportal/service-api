@@ -95,8 +95,8 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 				Launch launch = getLaunch(testItem);
 
-				Attachment attachment = new AttachmentBuilder().withPath(maybeBinaryDataMetaInfo.get().getFileId())
-						.withThumbnailPath(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
+				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
+						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
 						.withContentType(file.getContentType())
 						.withProjectId(launch.getProjectId())
 						.withLaunchId(launch.getId())

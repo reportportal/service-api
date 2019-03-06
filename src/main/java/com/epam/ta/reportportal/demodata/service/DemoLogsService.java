@@ -95,8 +95,8 @@ class DemoLogsService {
 
 	private void attachFile(Log log, Long projectId, Long launchId, Long itemId) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
-		saveAttachment(projectId, attachment).ifPresent(it -> log.setAttachment(new AttachmentBuilder().withPath(it.getFileId())
-				.withThumbnailPath(it.getThumbnailFileId())
+		saveAttachment(projectId, attachment).ifPresent(it -> log.setAttachment(new AttachmentBuilder().withFileId(it.getFileId())
+				.withThumbnailId(it.getThumbnailFileId())
 				.withContentType(attachment.getContentType())
 				.withProjectId(projectId)
 				.withLaunchId(launchId)

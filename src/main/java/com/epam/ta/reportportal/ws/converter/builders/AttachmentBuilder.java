@@ -31,15 +31,13 @@ public class AttachmentBuilder implements Supplier<Attachment> {
 		this.attachment = new Attachment();
 	}
 
-	//TODO rename path field to FILE ID
-	public AttachmentBuilder withPath(String path) {
-		attachment.setPath(path);
+	public AttachmentBuilder withFileId(String fileId) {
+		attachment.setFileId(fileId);
 		return this;
 	}
 
-	//TODO rename thumbnail path field to FILE ID
-	public AttachmentBuilder withThumbnailPath(String thumbnailPath) {
-		attachment.setThumbnailPath(thumbnailPath);
+	public AttachmentBuilder withThumbnailId(String thumbnailId) {
+		attachment.setThumbnailId(thumbnailId);
 		return this;
 	}
 

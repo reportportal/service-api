@@ -87,13 +87,13 @@ public class DeleteLogHandler implements IDeleteLogHandler {
 	private void cleanUpLogData(Log log) {
 
 		ofNullable(log.getAttachment()).ifPresent(a -> {
-			if (StringUtils.isNotBlank(a.getPath())) {
+			if (StringUtils.isNotBlank(a.getFileId())) {
 
-				dataStoreService.delete(a.getPath());
+				dataStoreService.delete(a.getFileId());
 			}
-			if (StringUtils.isNotBlank(a.getThumbnailPath())) {
+			if (StringUtils.isNotBlank(a.getThumbnailId())) {
 
-				dataStoreService.delete(a.getThumbnailPath());
+				dataStoreService.delete(a.getThumbnailId());
 			}
 		});
 

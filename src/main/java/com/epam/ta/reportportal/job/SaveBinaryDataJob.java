@@ -80,15 +80,15 @@ public class SaveBinaryDataJob implements Runnable {
 			try {
 				Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
-			Attachment attachment = new AttachmentBuilder().withPath(maybeBinaryDataMetaInfo.get().getFileId())
-					.withThumbnailPath(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
-					.withContentType(file.getContentType())
-					.withProjectId(projectId)
-					.withLaunchId(launchId)
-					.withItemId(itemId)
-					.get();
+				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
+						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
+						.withContentType(file.getContentType())
+						.withProjectId(projectId)
+						.withLaunchId(launchId)
+						.withItemId(itemId)
+						.get();
 
-			log.setAttachment(attachment);
+				log.setAttachment(attachment);
 
 				logRepository.save(log);
 			} catch (Exception exception) {

@@ -48,8 +48,8 @@ public class AttachmentConsumer {
 		attachmentRepository.findById(event.getId()).ifPresent(a -> {
 
 			attachmentRepository.deleteById(a.getId());
-			ofNullable(a.getPath()).ifPresent(dataStoreService::delete);
-			ofNullable(a.getThumbnailPath()).ifPresent(dataStoreService::delete);
+			ofNullable(a.getFileId()).ifPresent(dataStoreService::delete);
+			ofNullable(a.getThumbnailId()).ifPresent(dataStoreService::delete);
 		});
 
 	}

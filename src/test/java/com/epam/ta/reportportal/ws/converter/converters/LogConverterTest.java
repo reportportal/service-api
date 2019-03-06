@@ -32,8 +32,8 @@ class LogConverterTest {
 		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
 
 		assertEquals(binaryContent.getContentType(), log.getAttachment().getContentType());
-		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getPath());
-		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailPath());
+		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getFileId());
+		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailId());
 	}
 
 	private static Log getLog() {
@@ -44,9 +44,9 @@ class LogConverterTest {
 		testItem.setItemId(1L);
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();
-		attachment.setPath("attachId");
+		attachment.setFileId("attachId");
 		attachment.setContentType("contentType");
-		attachment.setThumbnailPath("thumbnailId");
+		attachment.setThumbnailId("thumbnailId");
 		log.setAttachment(attachment);
 		log.setLogTime(LocalDateTime.now());
 		log.setId(2L);

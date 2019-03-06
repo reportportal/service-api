@@ -199,8 +199,16 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo, ReportPortalIntegrationEnum reportPortalIntegration) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId())
-				.orElseGet(() -> new IntegrationTypeBuilder().get());
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId()).map(it -> {
+			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
+					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
+							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
+									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
+									pluginInfo.getId(),
+									pluginInfo.getVersion()
+							)));
+			return it;
+		}).orElseGet(() -> new IntegrationTypeBuilder().get());
 		if (integrationType.getDetails() == null) {
 			integrationType.setDetails(IntegrationTypeBuilder.createIntegrationTypeDetails());
 		}
@@ -255,8 +263,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 			return integrationType;
 		} else {
-			throw new ReportPortalException(
-					ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 					Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
 			);
 		}

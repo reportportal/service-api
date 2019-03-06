@@ -120,7 +120,7 @@ dependencies {
         compile 'com.github.reportportal:commons-rules:574fb3a'
         compile 'com.github.reportportal:commons-model:480871f'
         compile('com.github.reportportal:commons:71d4aca')
-        compile('com.github.reportportal:plugin-api:8b1a6f8')
+        compile('com.github.reportportal:plugin-api:fbf67ae9')
     }
 
     //move this to the plugin-api

@@ -337,4 +337,14 @@ public class ProjectController {
 		return getProjectHandler.getAllProjectNames();
 	}
 
+	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
+	@GetMapping("analyzer/status")
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Map<String, Boolean> getAnalyzerIndexingStatus(@AuthenticationPrincipal ReportPortalUser user) {
+		return getProjectHandler.getAnalyzerIndexingStatus();
+	}
+
 }

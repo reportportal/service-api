@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -83,6 +84,9 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 				"Only internal projects can be created via API"
 		);
 
+		User dbUser = userRepository.findById(user.getUserId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
+
 		Project project = new Project();
 		project.setName(projectName);
 		project.setCreationDate(new Date());
@@ -97,10 +101,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		project.setProjectAttributes(projectAttributes);
 		ProjectUtils.setDefaultNotificationConfiguration(project);
 
-		ProjectUser projectUser = new ProjectUser().withProject(project)
-				.withUser(userRepository.findById(user.getUserId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername())))
-				.withProjectRole(ProjectRole.PROJECT_MANAGER);
+		ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser).withProjectRole(ProjectRole.PROJECT_MANAGER);
 
 		Set<ProjectUser> projectUsers = Sets.newHashSet(projectUser);
 		project.setUsers(projectUsers);

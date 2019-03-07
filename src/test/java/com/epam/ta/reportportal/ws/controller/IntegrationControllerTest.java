@@ -66,6 +66,8 @@ class IntegrationControllerTest extends BaseMvcTest {
 		request.setIntegrationParams(params);
 		request.setEnabled(true);
 
+		doNothing().when(emailService).testConnection();
+
 		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
@@ -82,6 +84,70 @@ class IntegrationControllerTest extends BaseMvcTest {
 		request.setEnabled(true);
 
 		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void updateGlobalIntegration() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("email");
+		Map<String, Object> params = new HashMap<>();
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
+
+		doNothing().when(emailService).testConnection();
+
+		mockMvc.perform(put("/integration/8").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+	}
+
+	@Test
+	void updateGlobalIntegrationNegative() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("unknown");
+		Map<String, Object> params = new HashMap<>();
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
+
+		mockMvc.perform(put("/integration/8").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void updateProjectIntegration() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("email");
+		Map<String, Object> params = new HashMap<>();
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
+
+		doNothing().when(emailService).testConnection();
+
+		mockMvc.perform(put("/integration" + DEFAULT_PROJECT_BASE_URL + "/8").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+	}
+
+	@Test
+	void updateProjectIntegrationNegative() throws Exception {
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		request.setIntegrationName("unknown");
+		Map<String, Object> params = new HashMap<>();
+		params.put("param1", "value");
+		params.put("param2", "lalala");
+		request.setIntegrationParams(params);
+		request.setEnabled(true);
+
+		mockMvc.perform(put("/integration" + DEFAULT_PROJECT_BASE_URL + "/8").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
 	}

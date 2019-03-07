@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -154,5 +155,25 @@ class GetTestItemHandlerImplTest {
 		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
 				exception.getMessage()
 		);
+	}
+
+	@Test
+	void getItemByOperator() {
+		ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.OPERATOR, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(2L);
+		launch.setMode(LaunchModeEnum.DEBUG);
+		launch.setProjectId(1L);
+		item.setLaunch(launch);
+
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(launchRepository.findById(2L)).thenReturn(Optional.of(launch));
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getTestItem(1L, extractProjectDetails(operator, "test_project"), operator)
+		);
+		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
 }

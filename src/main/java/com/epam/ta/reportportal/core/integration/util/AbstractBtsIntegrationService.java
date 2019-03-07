@@ -62,6 +62,8 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		this.pluginBox = pluginBox;
 	}
 
+	protected abstract Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
+
 	@Override
 	public Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
 
@@ -69,11 +71,8 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		checkUniqueGlobalIntegration(integration);
 
 		checkConnection(integration);
-
 		return integration;
 	}
-
-	protected abstract Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
 
 	@Override
 	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
@@ -83,7 +82,6 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		checkUniqueProjectIntegration(integration, projectDetails.getProjectId());
 
 		checkConnection(integration);
-
 		return integration;
 	}
 
@@ -92,8 +90,11 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 
 		Integration integration = integrationRepository.findGlobalById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+		updateIntegrationParams(integration, integrationParams);
+		checkUniqueGlobalIntegration(integration);
 
-		return updateIntegration(integration, integrationParams);
+		checkConnection(integration);
+		return integration;
 	}
 
 	@Override
@@ -102,11 +103,14 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 
 		Integration integration = integrationRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+		updateIntegrationParams(integration, integrationParams);
+		checkUniqueProjectIntegration(integration, projectDetails.getProjectId());
 
-		return updateIntegration(integration, integrationParams);
+		checkConnection(integration);
+		return integration;
 	}
 
-	private Integration updateIntegration(Integration integration, Map<String, Object> integrationParams) {
+	private void updateIntegrationParams(Integration integration, Map<String, Object> integrationParams) {
 
 		BusinessRule.expect(integration, it -> IntegrationGroupEnum.BTS == it.getType().getIntegrationGroup())
 				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
@@ -116,30 +120,22 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 				));
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
-
 		integration.setParams(new IntegrationParams(retrievedParams));
-
-		return integration;
-
 	}
 
 	private Integration createIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(
-				integrationTypeName,
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
 				IntegrationGroupEnum.BTS
-		)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationTypeName).get()
-				));
+		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationTypeName).get()
+		));
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
-
 		Integration integration = new Integration();
 		integration.setCreationDate(LocalDateTime.now());
 		integration.setParams(new IntegrationParams(retrievedParams));
 		integration.setType(integrationType);
-
 		return integration;
 	}
 
@@ -168,9 +164,7 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		expect(extension, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName())
 		);
-
-		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Connection refused."
 		);
 	}

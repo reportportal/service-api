@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import java.util.Map.Entry;
 
 import static com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_DAY;
 import static com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_NAME;
-import static com.epam.ta.reportportal.core.project.impl.StatisticsUtils.extractStatisticsCount;
+import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;

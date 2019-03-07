@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
 
 /**
  * Shows list of supported analyzers

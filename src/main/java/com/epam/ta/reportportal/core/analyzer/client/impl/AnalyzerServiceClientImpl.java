@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.client;
+package com.epam.ta.reportportal.core.analyzer.client.impl;
 
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
-import com.epam.ta.reportportal.core.analyzer.model.CleanIndexRq;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +33,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.DOES_SUPPORT_INDEX;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class AnalyzerServiceClientImpl implements com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient {
+public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
-	private static final String INDEX_ROUTE = "index";
 	private static final String ANALYZE_ROUTE = "analyze";
-	private static final String DELETE_ROUTE = "delete";
-	private static final String CLEAN_ROUTE = "clean";
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
@@ -62,21 +58,6 @@ public class AnalyzerServiceClientImpl implements com.epam.ta.reportportal.core.
 	}
 
 	@Override
-	public Long index(List<IndexLaunch> rq) {
-		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.stream()
-				.filter(DOES_SUPPORT_INDEX)
-				.map(exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-						INDEX_ROUTE,
-						rq,
-						new ParameterizedTypeReference<IndexRs>() {
-						}
-				))
-				.mapToLong(it -> it.getItems().size())
-				.sum();
-	}
-
-	@Override
 	public Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq) {
 		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo();
 		Map<String, List<AnalyzedItemRs>> resultMap = new HashMap<>(analyzerExchanges.size());
@@ -84,21 +65,9 @@ public class AnalyzerServiceClientImpl implements com.epam.ta.reportportal.core.
 		return resultMap;
 	}
 
-	@Override
-	public void cleanIndex(Long index, List<Long> ids) {
-		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
-
-	}
-
-	@Override
-	public void deleteIndex(Long index) {
-		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DELETE_ROUTE, index));
-	}
-
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
-		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
+		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(
+				exchangeInfo.getName(),
 				ANALYZE_ROUTE,
 				Collections.singletonList(rq),
 				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {

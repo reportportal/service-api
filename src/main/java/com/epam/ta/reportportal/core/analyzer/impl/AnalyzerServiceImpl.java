@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
@@ -43,12 +43,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
@@ -60,15 +60,16 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
- * Default implementation of {@link IssuesAnalyzer}.
+ * Default implementation of {@link AnalyzerService}.
  *
  * @author Ivan Sharamet
  * @author Pavel Bortnik
  */
 @Service
-public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
+@Transactional
+public class AnalyzerServiceImpl implements AnalyzerService {
 
-	private static final Logger LOGGER = LogManager.getLogger(IssuesAnalyzerServiceImpl.class.getName());
+	private static final Logger LOGGER = LogManager.getLogger(AnalyzerServiceImpl.class.getName());
 
 	private final AnalyzerStatusCache analyzerStatusCache;
 
@@ -85,7 +86,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	private final LogIndexer logIndexer;
 
 	@Autowired
-	public IssuesAnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServicesClient,
+	public AnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServicesClient,
 			LogRepository logRepository, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository, MessageBus messageBus,
 			LogIndexer logIndexer) {
 		this.analyzerStatusCache = analyzerStatusCache;
@@ -103,24 +104,16 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	}
 
 	@Override
-	public CompletableFuture<Void> analyze(Launch launch, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.runAsync(() -> runAnalyzers(launch, itemIds, analyzerConfig));
-	}
-
-	private void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
-		if (launch != null) {
-			try {
-				analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
-
-				List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
-				Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
-				rqLaunch.ifPresent(rq -> analyzeLaunch(launch, analyzerConfig, toAnalyze, rq));
-
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-			} finally {
-				analyzerStatusCache.analyzeFinished(launch.getId());
-			}
+	public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
+		try {
+			analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
+			List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
+			Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
+			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, analyzerConfig, toAnalyze, rq));
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		} finally {
+			analyzerStatusCache.analyzeFinished(launch.getId());
 		}
 	}
 
@@ -133,6 +126,9 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 	 * @return Optional of {@link IndexLaunch}
 	 */
 	private Optional<IndexLaunch> prepareLaunch(Launch launch, AnalyzerConfig analyzerConfig, List<TestItem> toAnalyze) {
+		if (launch == null) {
+			return Optional.empty();
+		}
 		List<IndexTestItem> indexTestItems = prepareItems(toAnalyze);
 		if (!indexTestItems.isEmpty()) {
 			IndexLaunch rqLaunch = new IndexLaunch();
@@ -193,9 +189,7 @@ public class IssuesAnalyzerServiceImpl implements IssuesAnalyzer {
 			toUpdate.ifPresent(testItem -> {
 
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-
 				updateTestItemIssue(projectId, analyzed, testItem);
-
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 				testItemRepository.save(testItem);

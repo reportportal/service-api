@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for issue type analysis based on historical data.
@@ -28,17 +27,16 @@ import java.util.concurrent.CompletableFuture;
  * @author Ivan Sharamet
  * @author Pavel Bortnik
  */
-public interface IssuesAnalyzer {
+public interface AnalyzerService {
 
 	/**
-	 * Analyze history to find similar issues and updates items if some were found
-	 * Indexes investigated issues as well.
+	 * Run analyzers for provided launch with concrete config
 	 *
-	 * @param launch         - Initial launch for history
-	 * @param testItemIds    - Prepared ids of test item for analyzing
-	 * @param analyzerConfig - Analyze mode
+	 * @param launch         Launch
+	 * @param testItemIds    Ids of items to be analyzed
+	 * @param analyzerConfig Analyzer Configuration
 	 */
-	CompletableFuture<Void> analyze(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
+	void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig);
 
 	/**
 	 * Checks if any analyzer is available

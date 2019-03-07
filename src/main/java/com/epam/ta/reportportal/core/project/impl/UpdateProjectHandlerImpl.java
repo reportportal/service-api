@@ -151,6 +151,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
 
+		project.getProjectAttributes()
+				.stream()
+				.filter(it -> it.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
+				.findAny()
+				.ifPresent(pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
+
 		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");

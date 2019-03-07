@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.BinaryData;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -56,7 +57,6 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.HASH_FUNCTION;
-import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
@@ -92,8 +92,50 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	}
 
 	@Override
-	public OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, UserRole userRole) {
-		return editUser(username, editUserRQ, userRole == ADMINISTRATOR);
+	public OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser updater) {
+		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+
+		if ((null != editUserRQ.getRole()) && updater.getUserRole() == UserRole.ADMINISTRATOR) {
+
+			BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(updater.getUsername()))
+					.verify(ErrorType.ACCESS_DENIED, "You cannot update your role.");
+
+			UserRole newRole = UserRole.findByName(editUserRQ.getRole())
+					.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
+			//noinspection ConstantConditions
+			user.setRole(newRole);
+		}
+
+		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
+			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
+			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
+			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
+			final Optional<User> byEmail = userRepository.findByEmail(updEmail);
+
+			expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
+
+			List<Project> userProjects = projectRepository.findUserProjects(username);
+			userProjects.forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
+			user.setEmail(updEmail);
+			try {
+				projectRepository.saveAll(userProjects);
+			} catch (Exception exp) {
+				throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
+			}
+		}
+
+		if (null != editUserRQ.getFullName()) {
+			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change full name for external user");
+			user.setFullName(editUserRQ.getFullName());
+		}
+
+		try {
+			userRepository.save(user);
+		} catch (Exception exp) {
+			throw new ReportPortalException("Error while User editing.", exp);
+		}
+
+		return new OperationCompletionRS("User with login = '" + user.getLogin() + "' successfully updated");
 	}
 
 	@Override
@@ -137,54 +179,11 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		return new OperationCompletionRS("Password has been changed successfully");
 	}
 
-	private OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, boolean isAdmin) {
-		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-
-		if ((null != editUserRQ.getRole()) && isAdmin) {
-			UserRole newRole = UserRole.findByName(editUserRQ.getRole())
-					.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
-			//noinspection ConstantConditions
-			user.setRole(newRole);
-		}
-
-		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
-			String updEmail = editUserRQ.getEmail().toLowerCase().trim();
-			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change email for external user");
-			expect(UserUtils.isEmailValid(updEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, " wrong email: " + updEmail);
-			final Optional<User> byEmail = userRepository.findByEmail(updEmail);
-
-			expect(byEmail, Predicates.not(Optional::isPresent)).verify(USER_ALREADY_EXISTS, updEmail);
-
-			List<Project> userProjects = projectRepository.findUserProjects(username);
-			userProjects.forEach(project -> ProjectUtils.updateProjectRecipients(user.getEmail(), updEmail, project));
-			user.setEmail(updEmail);
-			try {
-				projectRepository.saveAll(userProjects);
-			} catch (Exception exp) {
-				throw new ReportPortalException("PROJECT update exception while USER editing.", exp);
-			}
-		}
-
-		if (null != editUserRQ.getFullName()) {
-			expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change full name for external user");
-			user.setFullName(editUserRQ.getFullName());
-		}
-
-		try {
-			userRepository.save(user);
-		} catch (Exception exp) {
-			throw new ReportPortalException("Error while User editing.", exp);
-		}
-
-		return new OperationCompletionRS("User with login = '" + user.getLogin() + "' successfully updated");
-	}
-
 	private void validatePhoto(MultipartFile file) throws IOException {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
 		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
 		String subtype = mediaType.getSubtype();
-		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(
-				BINARY_DATA_CANNOT_BE_SAVED,
+		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
 				"Image format should be " + ImageFormat.getValues()
 		);
 		BufferedImage read = ImageIO.read(file.getInputStream());

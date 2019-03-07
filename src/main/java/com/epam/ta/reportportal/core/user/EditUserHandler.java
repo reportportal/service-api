@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
@@ -36,11 +35,11 @@ public interface EditUserHandler {
 	 *
 	 * @param username
 	 * @param editUserRQ
-	 * @param role
+	 * @param updater
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, UserRole role);
+	OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser updater);
 
 	/**
 	 * Upload photo

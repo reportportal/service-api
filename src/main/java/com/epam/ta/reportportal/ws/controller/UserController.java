@@ -151,7 +151,7 @@ public class UserController {
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
+		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, currentUser);
 	}
 
 	@Transactional(readOnly = true)

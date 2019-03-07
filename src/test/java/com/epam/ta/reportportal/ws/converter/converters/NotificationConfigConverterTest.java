@@ -4,13 +4,13 @@ import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,9 +30,9 @@ class NotificationConfigConverterTest {
 	@Test
 	void toResource() {
 		final Set<SenderCase> senderCases = getSenderCases();
-		final ProjectNotificationConfigDTO dto = NotificationConfigConverter.TO_RESOURCE.apply(senderCases);
+		List<SenderCaseDTO> resources = NotificationConfigConverter.TO_RESOURCE.apply(senderCases);
 
-		assertEquals(dto.getSenderCases().size(), senderCases.size());
+		assertEquals(resources.size(), senderCases.size());
 	}
 
 	@Test

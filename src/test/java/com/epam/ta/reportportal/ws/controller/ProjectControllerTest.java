@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -167,9 +169,36 @@ class ProjectControllerTest extends BaseMvcTest {
 		mockMvc.perform(get("/project/names").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
+	@Sql("/db/test-item/test-item-fill.sql")
 	@Test
 	void getProjectInfoPositive() throws Exception {
-		mockMvc.perform(get("/project/list/test_project").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/project/list/default_personal").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.projectId").value(2))
+				.andExpect(jsonPath("$.projectName").value("default_personal"))
+				.andExpect(jsonPath("$.usersQuantity").value(1))
+				.andExpect(jsonPath("$.launchesQuantity").value(1))
+				.andExpect(jsonPath("$.entryType").value("PERSONAL"));
+	}
+
+	@Sql("/db/test-item/test-item-fill.sql")
+	@Test
+	void getProjectInfoWithoutLaunches() throws Exception {
+		mockMvc.perform(get("/project/list/superadmin_personal").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.projectId").value(1))
+				.andExpect(jsonPath("$.projectName").value("superadmin_personal"))
+				.andExpect(jsonPath("$.usersQuantity").value(1))
+				.andExpect(jsonPath("$.launchesQuantity").value(0))
+				.andExpect(jsonPath("$.entryType").value("PERSONAL"));
+	}
+
+	@Sql("/db/test-item/test-item-fill.sql")
+	@Test
+	void getAllProjectInfo() throws Exception {
+		mockMvc.perform(get("/project/list").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", hasSize(2)));
 	}
 
 	@Test
@@ -187,43 +216,67 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void getInvestigatedProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/investigated").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(get("/project/test_project/widget/investigated").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$..values.toInvestigate").value("66.67"))
+				.andExpect(jsonPath("$..values.investigated").value("33.33"));
 	}
 
 	@Test
 	void getCasesStatsProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/casesStats").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(get("/project/test_project/widget/casesStats").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$..values.min").value("5.0"))
+				.andExpect(jsonPath("$..values.avg").value("5"))
+				.andExpect(jsonPath("$..values.max").value("5.0"));
 	}
 
 	@Test
 	void getLaunchesQuantityProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/launchesQuantity").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(get("/project/test_project/widget/launchesQuantity").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$..values.count").value("1"));
 	}
 
 	@Test
 	void getIssuesChartProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/issuesChart").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(get("/project/test_project/widget/issuesChart").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$..values.systemIssue").value("0"))
+				.andExpect(jsonPath("$..values.automationBug").value("0"))
+				.andExpect(jsonPath("$..values.toInvestigate").value("2"))
+				.andExpect(jsonPath("$..values.productBug").value("1"));
 	}
 
 	@Test
 	void getBugPercentageProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/bugsPercentage").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get("/project/test_project/widget/bugsPercentage").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getActivitiesProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/activities").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get("/project/test_project/widget/activities").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getLastLaunchProjectWidget() throws Exception {
-		mockMvc.perform(get("/project" + DEFAULT_PROJECT_BASE_URL + "/widget/lastLaunch").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(get("/project/test_project/widget/lastLaunch").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.result").isNotEmpty())
+				.andExpect(jsonPath("$.result.id").value(2))
+				.andExpect(jsonPath("$.result.name").value("test launch"))
+				.andExpect(jsonPath("$.result.statistics").isNotEmpty());
+	}
+
+	@Test
+	void getAnalyzerIndexingStatus() throws Exception {
+		mockMvc.perform(get("/project/analyzer/status").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.superadmin_personal").value(false))
+				.andExpect(jsonPath("$.default_personal").value(false))
+				.andExpect(jsonPath("$.test_project").value(false));
+
 	}
 }

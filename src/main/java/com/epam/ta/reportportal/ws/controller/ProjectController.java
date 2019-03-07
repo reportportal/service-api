@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -335,6 +335,16 @@ public class ProjectController {
 	@ApiIgnore
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAllProjectNames();
+	}
+
+	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
+	@GetMapping("analyzer/status")
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Map<String, Boolean> getAnalyzerIndexingStatus(@AuthenticationPrincipal ReportPortalUser user) {
+		return getProjectHandler.getAnalyzerIndexingStatus();
 	}
 
 }

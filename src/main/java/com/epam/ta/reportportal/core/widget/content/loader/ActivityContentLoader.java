@@ -55,8 +55,6 @@ import static java.util.Optional.ofNullable;
 @Service
 public class ActivityContentLoader implements LoadContentStrategy {
 
-	public static final String CONTENT_FIELDS_DELIMITER = ",";
-
 	private final UserRepository userRepository;
 
 	private final WidgetContentRepository widgetContentRepository;
@@ -72,8 +70,6 @@ public class ActivityContentLoader implements LoadContentStrategy {
 			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
-
-		validateContentFields(contentFields);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
@@ -104,20 +100,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	}
 
 	/**
-	 * Validate provided content fields.
-	 *
-	 * <p>
-	 * The value of content field should not be empty
-	 *
-	 * @param contentFields List of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-	}
-
-	/**
-	 * Add username criteria for the filter if there are any username options in the {@link WidgetOptions#options}
+	 * Add username criteria for the filter if there are any username options in the {@link WidgetOptions#getOptions()}
 	 *
 	 * @param filter        {@link Filter}
 	 * @param widgetOptions {@link WidgetOptions}

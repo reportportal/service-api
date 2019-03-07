@@ -72,12 +72,7 @@ class TestItemConverterTest {
 		assertEquals(activityResource.getStatus(), item.getItemResults().getStatus().name());
 		assertEquals(
 				activityResource.getTickets(),
-				item.getItemResults()
-						.getIssue()
-						.getTickets()
-						.stream()
-						.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
-						.collect(Collectors.joining(","))
+				item.getItemResults().getIssue().getTickets().stream().map(it -> it.getTicketId().concat(":").concat(it.getUrl())).collect(Collectors.joining(","))
 		);
 		assertEquals(activityResource.isIgnoreAnalyzer(), item.getItemResults().getIssue().getIgnoreAnalyzer());
 		assertEquals(activityResource.isAutoAnalyzed(), item.getItemResults().getIssue().getAutoAnalyzed());
@@ -99,14 +94,8 @@ class TestItemConverterTest {
 		assertEquals(resource.getStartTime(), Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
 		assertEquals(resource.getEndTime(), Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
 		assertEquals(resource.getUniqueId(), item.getUniqueId());
-		assertThat(resource.getAttributes()
-				.stream()
-				.map(ItemAttributeConverter.FROM_RESOURCE)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
-		assertThat(resource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
+		assertThat(resource.getAttributes().stream().map(ItemAttributeConverter.FROM_RESOURCE).collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
+		assertThat(resource.getParameters().stream().map(ParametersConverter.TO_MODEL).collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
 		assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
 				.getStatistics()));
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import net.sf.jasperreports.engine.JRDataSource;
@@ -62,6 +61,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
 
 /**
  * @author Pavel Bortnik
@@ -156,11 +156,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS isProjectsAvailable() {
-		return null;
-	}
-
-	@Override
 	public List<String> getAllProjectNames() {
 		return projectRepository.findAllProjectNames();
 	}
@@ -182,7 +177,9 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public Map<String, Boolean> getAnalyzerIndexingStatus() {
-		return null;
+		return projectRepository.findAll()
+				.stream()
+				.collect(Collectors.toMap(Project::getName, it -> getAnalyzerConfig(it).isIndexingRunning()));
 	}
 
 }

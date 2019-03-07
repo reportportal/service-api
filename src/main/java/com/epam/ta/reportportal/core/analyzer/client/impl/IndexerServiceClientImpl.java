@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.model.CleanIndexRq;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
-import org.springframework.amqp.core.AsyncAmqpTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -42,41 +42,44 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
-	private final AsyncAmqpTemplate asyncRabbitTemplate;
+	private final RabbitTemplate rabbitTemplate;
 
 	public IndexerServiceClientImpl(RabbitMqManagementClient rabbitMqManagementClient,
-			@Qualifier("asyncAnalyzerRabbitTemplate") AsyncAmqpTemplate asyncRabbitTemplate) {
+			@Qualifier("analyzerRabbitTemplate") RabbitTemplate rabbitTemplate) {
 		this.rabbitMqManagementClient = rabbitMqManagementClient;
-		this.asyncRabbitTemplate = asyncRabbitTemplate;
+		this.rabbitTemplate = rabbitTemplate;
 	}
 
 	@Override
 	public Long index(List<IndexLaunch> rq) {
-		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
-				.forEach(exchange -> asyncRabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+				.map(exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
 						INDEX_ROUTE,
 						rq,
 						new ParameterizedTypeReference<IndexRs>() {
 						}
-				));
-		return 0L;
+				))
+				.mapToLong(it -> {
+					if (it.getItems() != null) {
+						return it.getItems().size();
+					}
+					return 0;
+				})
+				.sum();
 	}
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> asyncRabbitTemplate.convertSendAndReceive(exchange.getName(),
-						CLEAN_ROUTE,
-						new CleanIndexRq(index, ids)
-				));
+				.forEach(exchange -> rabbitTemplate.convertSendAndReceive(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
 
 	}
 
 	@Override
 	public void deleteIndex(Long index) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> asyncRabbitTemplate.convertSendAndReceive(exchange.getName(), DELETE_ROUTE, index));
+				.forEach(exchange -> rabbitTemplate.convertSendAndReceive(exchange.getName(), DELETE_ROUTE, index));
 	}
 }

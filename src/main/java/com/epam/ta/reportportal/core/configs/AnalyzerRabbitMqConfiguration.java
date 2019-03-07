@@ -21,8 +21,6 @@ import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClie
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.rabbitmq.http.client.Client;
-import org.springframework.amqp.core.AsyncAmqpTemplate;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -76,11 +74,6 @@ public class AnalyzerRabbitMqConfiguration {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(messageConverter);
 		return rabbitTemplate;
-	}
-
-	@Bean(name = "asyncAnalyzerRabbitTemplate")
-	public AsyncAmqpTemplate asyncAmqpTemplate(@Autowired RabbitTemplate rabbitTemplate) {
-		return new AsyncRabbitTemplate(rabbitTemplate);
 	}
 
 }

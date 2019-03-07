@@ -99,7 +99,8 @@ public class AnalyzerServiceClientImpl implements com.epam.ta.reportportal.core.
 
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
 		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
-				ANALYZE_ROUTE, Collections.singletonList(rq),
+				ANALYZE_ROUTE,
+				Collections.singletonList(rq),
 				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
 				}
 		);

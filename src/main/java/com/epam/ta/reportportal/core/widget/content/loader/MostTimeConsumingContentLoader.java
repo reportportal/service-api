@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.MostTimeConsumingTestCasesContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +46,6 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters.HAS_METHOD_OR_CLASS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
-import static com.epam.ta.reportportal.core.widget.content.loader.ActivityContentLoader.CONTENT_FIELDS_DELIMITER;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.STEP;
 import static java.util.Collections.emptyMap;
@@ -112,37 +112,28 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	}
 
 	private Filter updateFilterWithLatestLaunchId(Filter filter, String launchName) {
-		return filter.withCondition(new FilterCondition(
-				Condition.EQUALS,
-				false,
-				String.valueOf(launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getId()),
-				CRITERIA_LAUNCH_ID
-		));
+		Long launchId = launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
+				.getId();
+		return filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build());
 	}
 
 	private Filter updateFilterWithTestItemTypes(Filter filter, boolean includeMethodsFlag) {
-		if (includeMethodsFlag) {
-			return updateFilterWithStepAndBeforeAfterMethods(filter);
-		} else {
-			return updateFilterWithStepTestItem(filter);
-		}
+		return includeMethodsFlag ? updateFilterWithStepAndBeforeAfterMethods(filter) : updateFilterWithStepTestItem(filter);
 	}
 
 	private Filter updateFilterWithStepTestItem(Filter filter) {
-		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, STEP.getLiteral(), ITEM_TYPE));
+		return filter.withCondition(FilterCondition.builder().eq(ITEM_TYPE, STEP.getLiteral()).build());
 	}
 
 	private Filter updateFilterWithStepAndBeforeAfterMethods(Filter filter) {
-		return filter.withCondition(new FilterCondition(
-				Condition.IN,
-				false,
-				String.join(
-						CONTENT_FIELDS_DELIMITER,
-						HAS_METHOD_OR_CLASS.stream().map(TestItemTypeEnum::name).collect(Collectors.toList())
-				),
-				ITEM_TYPE
-		));
+		List<TestItemTypeEnum> itemTypes = Lists.newArrayList(TestItemTypeEnum.STEP);
+		itemTypes.addAll(HAS_METHOD_OR_CLASS);
+
+		return filter.withCondition(FilterCondition.builder()
+				.withCondition(Condition.IN)
+				.withSearchCriteria(ITEM_TYPE)
+				.withValue(itemTypes.stream().map(TestItemTypeEnum::name).collect(Collectors.joining(CONTENT_FIELDS_DELIMITER)))
+				.build());
 	}
 }

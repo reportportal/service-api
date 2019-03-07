@@ -55,10 +55,12 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -278,10 +280,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		projectUser.setUser(modifyingUser);
 		projectUser.setProject(project);
 		project.getUsers().add(projectUser);
-		aclHandler.permitSharedObjects(project.getId(),
-				name,
-				ProjectRole.PROJECT_MANAGER.higherThan(projectRole) ? BasePermission.READ : BasePermission.ADMINISTRATION
-		);
+
+		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
+		if (!ProjectRole.PROJECT_MANAGER.higherThan(projectRole)) {
+			permissions.add(BasePermission.ADMINISTRATION);
+		}
+		aclHandler.permitSharedObjects(project.getId(), name, permissions);
 	}
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,

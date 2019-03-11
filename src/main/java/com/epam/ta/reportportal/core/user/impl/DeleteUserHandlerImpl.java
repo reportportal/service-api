@@ -20,16 +20,23 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
+import com.epam.ta.reportportal.ws.model.ErrorRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Delete user handler
@@ -42,35 +49,39 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final UserRepository userRepository;
 
-	private final ProjectRepository projectRepository;
-
 	@Autowired
-	public DeleteUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository) {
+	public DeleteUserHandlerImpl(UserRepository userRepository) {
 		this.userRepository = userRepository;
-		this.projectRepository = projectRepository;
 	}
 
-	//	@Autowired
-	//	private ILogIndexer logIndexer;
+	@Override
+	public OperationCompletionRS deleteUser(Long userId, ReportPortalUser loggedInUser) {
+		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
+		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
+				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+		user.getProjects()
+				.forEach(userProject -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject()));
+		userRepository.delete(user);
+		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
+	}
 
 	@Override
-	public OperationCompletionRS deleteUser(String login, ReportPortalUser loggedInUser) {
-		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
-		BusinessRule.expect(login.equalsIgnoreCase(loggedInUser.getUsername()), Predicates.equalTo(false))
-				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
-		try {
-			user.getProjects()
-					.forEach(userProject -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject()));
-		} catch (Exception exp) {
-			exp.printStackTrace();
-			throw new ReportPortalException("Error while updating projects", exp);
-		}
-
-		userRepository.delete(user);
-
-		//TODO analyzer
-		//		personalProjectName.ifPresent(s -> logIndexer.deleteIndex(s));
-
-		return new OperationCompletionRS("User with ID = '" + login + "' successfully deleted.");
+	public DeleteBulkRS deleteUsers(Long[] userIds, ReportPortalUser currentUser) {
+		List<ReportPortalException> exceptions = Lists.newArrayList();
+		List<Long> deleted = Lists.newArrayList();
+		Arrays.stream(userIds).forEach(userId -> {
+			try {
+				deleteUser(userId, currentUser);
+				deleted.add(userId);
+			} catch (ReportPortalException rp) {
+				exceptions.add(rp);
+			}
+		});
+		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {
+			ErrorRS errorResponse = new ErrorRS();
+			errorResponse.setErrorType(ex.getErrorType());
+			errorResponse.setMessage(ex.getMessage());
+			return errorResponse;
+		}).collect(Collectors.toList()));
 	}
 }

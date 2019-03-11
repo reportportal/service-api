@@ -28,10 +28,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.ErrorRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.launch.DeleteLaunchesRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -103,7 +103,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	//TODO Analyzer
-	public DeleteLaunchesRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public DeleteBulkRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Long> notFound = Lists.newArrayList();
 		List<ReportPortalException> exceptions = Lists.newArrayList();
 		List<Launch> toDelete = Lists.newArrayList();
@@ -135,7 +135,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 		launchRepository.deleteAll(toDelete);
 		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId())));
-		return new DeleteLaunchesRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
+		return new DeleteBulkRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 				notFound,
 				exceptions.stream().map(ex -> {
 					ErrorRS errorResponse = new ErrorRS();

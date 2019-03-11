@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.client;
+package com.epam.ta.reportportal.core.analyzer.client.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_INDEX;
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_PRIORITY;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_INDEX;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_PRIORITY;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Pavel Bortnik
  */
-class ClientUtilsTest {
+class AnalyzerUtilsTest {
 
 	@Test
 	void testParsing() {
@@ -39,16 +39,16 @@ class ClientUtilsTest {
 		when(mock.getArguments()).thenReturn(ImmutableMap.<String, Object>builder().put(ANALYZER_PRIORITY, 1)
 				.put(ANALYZER_INDEX, true)
 				.build());
-		assertEquals(1, ClientUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
-		assertTrue(ClientUtils.DOES_SUPPORT_INDEX.test(mock));
+		assertEquals(1, AnalyzerUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
+		assertTrue(AnalyzerUtils.DOES_SUPPORT_INDEX.test(mock));
 	}
 
 	@Test
 	void testDefaultValues() {
 		ExchangeInfo mock = mock(ExchangeInfo.class);
 		when(mock.getArguments()).thenReturn(Collections.emptyMap());
-		assertEquals(Integer.MAX_VALUE, ClientUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
-		assertFalse(ClientUtils.DOES_SUPPORT_INDEX.test(mock));
+		assertEquals(Integer.MAX_VALUE, AnalyzerUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
+		assertFalse(AnalyzerUtils.DOES_SUPPORT_INDEX.test(mock));
 	}
 
 	@Test
@@ -57,8 +57,8 @@ class ClientUtilsTest {
 		when(mock.getArguments()).thenReturn(ImmutableMap.<String, Object>builder().put(ANALYZER_PRIORITY, "abracadabra")
 				.put(ANALYZER_INDEX, "666")
 				.build());
-		assertEquals(Integer.MAX_VALUE, ClientUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
-		assertFalse(ClientUtils.DOES_SUPPORT_INDEX.test(mock));
+		assertEquals(Integer.MAX_VALUE, AnalyzerUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
+		assertFalse(AnalyzerUtils.DOES_SUPPORT_INDEX.test(mock));
 	}
 
 }

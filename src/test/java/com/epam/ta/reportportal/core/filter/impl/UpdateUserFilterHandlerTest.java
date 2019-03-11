@@ -143,7 +143,11 @@ class UpdateUserFilterHandlerTest {
 		when(userFilter.getOwner()).thenReturn("user");
 		when(project.getId()).thenReturn(1L);
 
-		when(userFilterRepository.existsByNameAndOwnerAndProjectId(updateUserFilterRQ.getName(), userFilter.getOwner(), projectDetails.getProjectId())).thenReturn(Boolean.TRUE);
+		when(userFilterRepository.existsByNameAndOwnerAndProjectId(
+				updateUserFilterRQ.getName(),
+				userFilter.getOwner(),
+				projectDetails.getProjectId()
+		)).thenReturn(Boolean.TRUE);
 
 		doNothing().when(aclHandler).initAcl(userFilter, "user", 1L, updateUserFilterRQ.getShare());
 		doNothing().when(messageBus).publishActivity(any(ActivityEvent.class));

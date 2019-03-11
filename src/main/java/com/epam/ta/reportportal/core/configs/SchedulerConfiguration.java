@@ -15,14 +15,16 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.job.*;
+import com.epam.ta.reportportal.job.CleanLaunchesJob;
+import com.epam.ta.reportportal.job.CleanLogsJob;
+import com.epam.ta.reportportal.job.CleanScreenshotsJob;
+import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;

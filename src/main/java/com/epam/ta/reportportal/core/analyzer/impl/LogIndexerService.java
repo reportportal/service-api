@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -58,7 +58,7 @@ public class LogIndexerService implements LogIndexer {
 
 	private final LaunchRepository launchRepository;
 
-	private final AnalyzerServiceClient analyzerServiceClient;
+	private final IndexerServiceClient indexerServiceClient;
 
 	private final LogRepository logRepository;
 
@@ -66,10 +66,10 @@ public class LogIndexerService implements LogIndexer {
 
 	@Autowired
 	public LogIndexerService(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			AnalyzerServiceClient analyzerServiceClient, LogRepository logRepository, AnalyzerStatusCache analyzerStatusCache) {
+			IndexerServiceClient indexerServiceClient, LogRepository logRepository, AnalyzerStatusCache analyzerStatusCache) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
-		this.analyzerServiceClient = analyzerServiceClient;
+		this.indexerServiceClient = indexerServiceClient;
 		this.logRepository = logRepository;
 		this.analyzerStatusCache = analyzerStatusCache;
 	}
@@ -80,7 +80,7 @@ public class LogIndexerService implements LogIndexer {
 			try {
 				analyzerStatusCache.indexingStarted(projectId);
 				List<IndexLaunch> indexLaunches = prepareLaunches(launchIds, analyzerConfig);
-				return analyzerServiceClient.index(indexLaunches);
+				return indexerServiceClient.index(indexLaunches);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
@@ -92,12 +92,12 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	public void deleteIndex(Long project) {
-		analyzerServiceClient.deleteIndex(project);
+		indexerServiceClient.deleteIndex(project);
 	}
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
-		CompletableFuture.runAsync(() -> analyzerServiceClient.cleanIndex(index, ids));
+		CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
 	}
 
 	/**

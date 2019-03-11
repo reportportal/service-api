@@ -21,6 +21,8 @@ package com.epam.ta.reportportal.core.widget.content.constant;
  */
 public final class ContentLoaderConstants {
 
+	public static final String CONTENT_FIELDS_DELIMITER = ",";
+
 	public static final String RESULT = "result";
 	public static final String LATEST_OPTION = "latest";
 	public static final String LATEST_LAUNCH = "latestLaunch";

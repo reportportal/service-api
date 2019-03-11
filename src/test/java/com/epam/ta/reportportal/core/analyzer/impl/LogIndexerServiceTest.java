@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
@@ -51,7 +51,7 @@ import static org.mockito.Mockito.*;
  */
 class LogIndexerServiceTest {
 
-	private AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
+	private IndexerServiceClient indexerServiceClient = mock(IndexerServiceClient.class);
 
 	private LaunchRepository launchRepository = mock(LaunchRepository.class);
 
@@ -63,7 +63,7 @@ class LogIndexerServiceTest {
 
 	private LogIndexerService logIndexerService = new LogIndexerService(testItemRepository,
 			launchRepository,
-			analyzerServiceClient,
+			indexerServiceClient,
 			logRepository,
 			analyzerStatusCache
 	);

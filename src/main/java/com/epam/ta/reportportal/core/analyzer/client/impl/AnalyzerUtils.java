@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.client;
+package com.epam.ta.reportportal.core.analyzer.client.impl;
 
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.slf4j.Logger;
@@ -26,9 +26,9 @@ import java.util.function.ToIntFunction;
 /**
  * @author Pavel Bortnik
  */
-public final class ClientUtils {
+public final class AnalyzerUtils {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ClientUtils.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerUtils.class);
 
 	public static final String ANALYZER_KEY = "analyzer";
 	static final String ANALYZER_PRIORITY = "analyzer_priority";

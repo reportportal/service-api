@@ -148,9 +148,8 @@ class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteUsers() throws Exception {
-		mockMvc.perform(delete("/user/ids=2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/user?ids=2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
-
 
 	@Test
 	void editUserPositive() throws Exception {

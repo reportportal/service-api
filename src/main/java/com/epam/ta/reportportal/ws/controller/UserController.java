@@ -57,7 +57,8 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -145,7 +146,7 @@ public class UserController {
 
 	@Transactional
 	@DeleteMapping
-	@PreAuthorize(ALLOWED_TO_REPORT)
+	@PreAuthorize(ADMIN_ONLY)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
 	public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {

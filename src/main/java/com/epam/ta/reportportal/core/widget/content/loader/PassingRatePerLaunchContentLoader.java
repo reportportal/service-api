@@ -21,10 +21,10 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.PassingRateStatisticsResult;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -64,24 +65,20 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
-
 		validateWidgetOptions(widgetOptions);
 
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
-
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		filter.withCondition(new FilterCondition(
-				Condition.EQUALS,
+		Launch latestLaunch = launchRepository.findLatestByFilter(filter.withCondition(new FilterCondition(Condition.EQUALS,
 				false,
-				String.valueOf(launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName))
-						.getId()),
-				CRITERIA_ID
-		));
+				launchName,
+				CRITERIA_NAME
+		)))
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(latestLaunch.getId()), CRITERIA_ID));
 		PassingRateStatisticsResult result = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);
 		return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
 	}

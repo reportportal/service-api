@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -137,10 +138,12 @@ class DeleteLogHandlerTest {
 		launch.setUser(user1);
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
-		String attachmentPath = "attachment";
-		log.setAttachment(attachmentPath);
+		Attachment attachment = new Attachment();
+		String attachmentPath = "attachmentPath";
+		attachment.setFileId(attachmentPath);
 		String attachmentThumbnailPath = "attachmentThumbnail";
-		log.setAttachmentThumbnail(attachmentThumbnailPath);
+		attachment.setThumbnailId(attachmentThumbnailPath);
+		log.setAttachment(attachment);
 
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
@@ -170,10 +173,12 @@ class DeleteLogHandlerTest {
 		launch.setUser(user1);
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
-		String attachmentPath = "attachment";
-		log.setAttachment(attachmentPath);
+		Attachment attachment = new Attachment();
+		String attachmentPath = "attachmentPath";
+		attachment.setFileId(attachmentPath);
 		String attachmentThumbnailPath = "attachmentThumbnail";
-		log.setAttachmentThumbnail(attachmentThumbnailPath);
+		attachment.setThumbnailId(attachmentThumbnailPath);
+		log.setAttachment(attachment);
 
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));

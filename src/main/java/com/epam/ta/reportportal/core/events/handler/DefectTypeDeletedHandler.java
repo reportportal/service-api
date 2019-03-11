@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -43,7 +42,7 @@ import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnaly
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
-@Transactional(propagation = Propagation.REQUIRES_NEW)
+@Transactional
 public class DefectTypeDeletedHandler {
 
 	private final AnalyzerStatusCache analyzerStatusCache;
@@ -66,14 +65,17 @@ public class DefectTypeDeletedHandler {
 		this.projectRepository = projectRepository;
 	}
 
-	@Retryable(value = ReportPortalException.class, backoff = @Backoff(value = 5000L))
+	@Retryable(value = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
 	@TransactionalEventListener
 	public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
 		Project project = projectRepository.findById(event.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, event.getProjectId()));
 
 		if (analyzerServiceClient.hasClients()) {
-			expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(event.getProjectId()), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+			expect(
+					analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(event.getProjectId()),
+					equalTo(false)
+			).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 			List<Long> launches = launchRepository.findLaunchIdsByProjectId(event.getProjectId());
 			logIndexer.deleteIndex(event.getProjectId());

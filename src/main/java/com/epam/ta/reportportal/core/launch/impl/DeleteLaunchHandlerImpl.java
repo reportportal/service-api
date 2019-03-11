@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
+import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -33,6 +34,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -68,13 +70,16 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	private final LogIndexer logIndexer;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public DeleteLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
-			LogIndexer logIndexer) {
+			LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
+		this.eventPublisher = eventPublisher;
 	}
 
 	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
@@ -91,6 +96,8 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 						.map(Log::getId)
 						.collect(Collectors.toList())
 		);
+		eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(launch.getId()));
+
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}

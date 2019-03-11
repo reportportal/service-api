@@ -19,8 +19,10 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -58,12 +60,15 @@ public class SaveBinaryDataJob implements Runnable {
 	 */
 	private MultipartFile file;
 
+	private Long projectId;
+
+	private Long launchId;
+
+	private Long itemId;
 	/**
 	 * {@link Log#id} related to this binary data
 	 */
 	private Long logId;
-
-	private Long projectId;
 
 	@Override
 	@Transactional
@@ -75,9 +80,15 @@ public class SaveBinaryDataJob implements Runnable {
 			try {
 				Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
-				log.setContentType(file.getContentType());
-				log.setAttachment(binaryDataMetaInfo.getFileId());
-				log.setAttachmentThumbnail(binaryDataMetaInfo.getThumbnailFileId());
+				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
+						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
+						.withContentType(file.getContentType())
+						.withProjectId(projectId)
+						.withLaunchId(launchId)
+						.withItemId(itemId)
+						.get();
+
+				log.setAttachment(attachment);
 
 				logRepository.save(log);
 			} catch (Exception exception) {
@@ -97,15 +108,27 @@ public class SaveBinaryDataJob implements Runnable {
 		return this;
 	}
 
-	public SaveBinaryDataJob withLogId(Long logId) {
-		Preconditions.checkNotNull(logId, "Log id shouldn't be null");
-		this.logId = logId;
-		return this;
-	}
-
 	public SaveBinaryDataJob withProjectId(Long projectId) {
 		Preconditions.checkNotNull(projectId, "Project id should not be null");
 		this.projectId = projectId;
+		return this;
+	}
+
+	public SaveBinaryDataJob withLaunchId(Long launchId) {
+		Preconditions.checkNotNull(launchId, "Launch id shouldn't be null");
+		this.launchId = launchId;
+		return this;
+	}
+
+	public SaveBinaryDataJob withItemId(Long itemId) {
+		Preconditions.checkNotNull(itemId, "Item id shouldn't be null");
+		this.itemId = itemId;
+		return this;
+	}
+
+	public SaveBinaryDataJob withLogId(Long logId) {
+		Preconditions.checkNotNull(logId, "Log id shouldn't be null");
+		this.logId = logId;
 		return this;
 	}
 }

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
@@ -73,10 +74,16 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 			throw new ReportPortalException("Error while Log instance creating.", exc);
 		}
 		if (null != file) {
+
+			Launch launch = getLaunch(testItem);
+
 			taskExecutor.execute(saveBinaryDataJob.get()
 					.withFile(file)
-					.withLogId(log.getId())
-					.withProjectId(projectDetails.getProjectId()));
+					.withProjectId(projectDetails.getProjectId())
+					.withLaunchId(launch.getId())
+					.withItemId(testItem.getItemId())
+					.withLogId(log.getId()));
+
 		}
 
 		return new EntryCreatedRS(log.getId());

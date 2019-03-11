@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.events;
 
 import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
+import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import org.springframework.amqp.core.AmqpTemplate;
 
 public class MessageBusImpl implements MessageBus {
@@ -29,5 +30,12 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void publishActivity(ActivityEvent o) {
 		this.amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_ACTIVITY, RabbitMqConfiguration.QUEUE_ACTIVITY, o);
+	}
+
+	@Override
+	public void publishDeleteAttachmentEvent(DeleteAttachmentEvent event) {
+
+		amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_ATTACHMENT, RabbitMqConfiguration.QUEUE_DELETE_ATTACHMENT, event);
+
 	}
 }

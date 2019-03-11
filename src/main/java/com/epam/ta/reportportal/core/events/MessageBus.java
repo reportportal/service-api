@@ -1,5 +1,7 @@
 package com.epam.ta.reportportal.core.events;
 
+import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
+
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -32,5 +34,13 @@ public interface MessageBus {
 	 * @param o Payload
 	 */
 	void publishActivity(ActivityEvent o);
+
+	/**
+	 * Publish event to remove {@link com.epam.ta.reportportal.entity.attachment.Attachment}
+	 * from the database and {@link com.epam.ta.reportportal.filesystem.DataStore}
+	 *
+	 * @param event {@link DeleteAttachmentEvent}
+	 */
+	void publishDeleteAttachmentEvent(DeleteAttachmentEvent event);
 
 }

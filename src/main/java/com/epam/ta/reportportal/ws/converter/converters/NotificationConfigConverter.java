@@ -6,12 +6,12 @@ import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
-import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,15 +27,9 @@ public final class NotificationConfigConverter {
 		//static only
 	}
 
-	public final static Function<Set<SenderCase>, ProjectNotificationConfigDTO> TO_RESOURCE = senderCaseSet -> {
-		ProjectNotificationConfigDTO dto = new ProjectNotificationConfigDTO();
-
-		ofNullable(senderCaseSet).ifPresent(senderCases -> dto.setSenderCases(senderCases.stream()
-				.map(NotificationConfigConverter.TO_CASE_RESOURCE)
-				.collect(Collectors.toList())));
-
-		return dto;
-	};
+	public final static Function<Set<SenderCase>, List<SenderCaseDTO>> TO_RESOURCE = senderCaseSet -> senderCaseSet.stream()
+			.map(NotificationConfigConverter.TO_CASE_RESOURCE)
+			.collect(Collectors.toList());
 
 	public static final Function<LaunchAttributeRule, LaunchAttribute> TO_ATTRIBUTE_RULE_RESOURCE = model -> {
 		LaunchAttribute launchAttribute = new LaunchAttribute();

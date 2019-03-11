@@ -17,12 +17,15 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -71,18 +74,23 @@ public final class ProjectConverter {
 
 		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
 
-		ofNullable(project.getSenderCases()).ifPresent(senderCases -> projectConfiguration.setProjectConfig(NotificationConfigConverter.TO_RESOURCE
-				.apply(senderCases)));
-
-		projectConfiguration.setSubTypes(subTypes);
-
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
 
 		attributes.put(
 				INDEXING_RUN,
 				String.valueOf(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
 		);
+
 		projectConfiguration.setProjectAttributes(attributes);
+
+		ProjectNotificationConfigDTO notificationConfig = new ProjectNotificationConfigDTO();
+		notificationConfig.setEnabled(BooleanUtils.toBoolean(attributes.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute())));
+
+		ofNullable(project.getSenderCases()).ifPresent(senderCases -> notificationConfig.setSenderCases(NotificationConfigConverter.TO_RESOURCE
+				.apply(senderCases)));
+		projectConfiguration.setProjectConfig(notificationConfig);
+
+		projectConfiguration.setSubTypes(subTypes);
 
 		projectResource.setIntegrations(project.getIntegrations()
 				.stream()

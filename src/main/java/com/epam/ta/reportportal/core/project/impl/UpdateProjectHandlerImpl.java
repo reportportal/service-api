@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.project.impl;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -150,6 +150,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
+
+		project.getProjectAttributes()
+				.stream()
+				.filter(it -> it.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()))
+				.findAny()
+				.ifPresent(pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
 
 		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
 		return new OperationCompletionRS(

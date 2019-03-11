@@ -125,8 +125,6 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 	private void mergeAttributes(Set<ItemAttributeResource> attributesFromRq, List<Launch> launchesToMerge, Launch resultedLaunch) {
 		Set<ItemAttribute> mergedAttributes = Sets.newHashSet();
 
-
-
 		if (attributesFromRq == null) {
 			mergedAttributes.addAll(launchesToMerge.stream()
 					.map(Launch::getAttributes)

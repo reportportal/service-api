@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.IssuesAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
@@ -74,7 +74,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	private ProjectRepository projectRepository;
 
-	private IssuesAnalyzer analyzerService;
+	private AnalyzerServiceAsync analyzerServiceAsync;
 
 	private LogIndexer logIndexer;
 
@@ -83,11 +83,11 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ProjectRepository projectRepository, IssuesAnalyzer analyzerService, LogIndexer logIndexer) {
+			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.projectRepository = projectRepository;
-		this.analyzerService = analyzerService;
+		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
 	}
 
@@ -122,7 +122,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	@Override
 	public OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ,
 			ReportPortalUser user) {
-		expect(analyzerService.hasAnalyzers(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		expect(analyzerServiceAsync.hasAnalyzers(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer services are deployed."
 		);
 
@@ -150,7 +150,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 		List<Long> items = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
-		analyzerService.analyze(launch, items, analyzerConfig);
+		analyzerServiceAsync.analyze(launch, items, analyzerConfig);
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}

@@ -34,9 +34,6 @@
                             <pre style="white-space: pre-wrap; display: block;font-family: monospace;max-height: 30em;text-align: left;">${logEntry.message}</pre>
                         </div>
                     </#if>
-                    <#if logEntry.image>
-                        HALLLOOOOO
-                    </#if>
                 <#--##    if URL provided to screen source-->
                     <#if logEntry.decodedFileName??>
                         <#if (logEntry.image)!false>

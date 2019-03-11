@@ -121,9 +121,7 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	@Override
 	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
 		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND,
-						"Project with name: " + projectName + " not found"
-				));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);

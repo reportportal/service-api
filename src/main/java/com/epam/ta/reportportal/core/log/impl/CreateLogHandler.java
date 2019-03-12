@@ -25,10 +25,13 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -75,6 +78,8 @@ public class CreateLogHandler implements ICreateLogHandler {
 
 	@Override
 	@Nonnull
+
+	//TODO check saving an attachment of the item of the project A in the project's B directory
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
 		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId())
@@ -88,8 +93,17 @@ public class CreateLogHandler implements ICreateLogHandler {
 			Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectDetails.getProjectId(), file);
 			maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
-				log.setAttachment(maybeBinaryDataMetaInfo.get().getFileId());
-				log.setContentType(file.getContentType());
+				Launch launch = getLaunch(testItem);
+
+				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
+						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
+						.withContentType(file.getContentType())
+						.withProjectId(launch.getProjectId())
+						.withLaunchId(launch.getId())
+						.withItemId(testItem.getItemId())
+						.get();
+
+				log.setAttachment(attachment);
 			});
 		});
 
@@ -113,5 +127,19 @@ public class CreateLogHandler implements ICreateLogHandler {
 				ErrorType.BAD_SAVE_LOG_REQUEST,
 				Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
 		);
+	}
+
+	protected Launch getLaunch(TestItem testItem) {
+
+		if (ofNullable(testItem.getRetryOf()).isPresent()) {
+			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+
+			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+		} else {
+			return ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+		}
 	}
 }

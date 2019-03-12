@@ -138,12 +138,17 @@ class UserControllerTest extends BaseMvcTest {
 	@Test
 	void deleteUserNegative() throws Exception {
 		/* Administrator cannot remove him/her-self */
-		mockMvc.perform(delete("/user/superadmin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().is(400));
+		mockMvc.perform(delete("/user/1").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().is(400));
 	}
 
 	@Test
 	void deleteUserPositive() throws Exception {
-		mockMvc.perform(delete("/user/default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/user/2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void deleteUsers() throws Exception {
+		mockMvc.perform(delete("/user?ids=2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test

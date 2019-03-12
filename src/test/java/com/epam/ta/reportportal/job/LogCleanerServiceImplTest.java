@@ -17,10 +17,8 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -61,6 +59,9 @@ class LogCleanerServiceImplTest {
 	@Mock
 	private ActivityRepository activityRepository;
 
+	@Mock
+	private AttachmentRepository attachmentRepository;
+
 	@InjectMocks
 	private LogCleanerServiceImpl logCleanerService;
 
@@ -75,11 +76,17 @@ class LogCleanerServiceImplTest {
 		long launchId = 1L;
 		long testItemId = 2L;
 		Log log1 = new Log();
-		log1.setAttachment("qewr");
-		log1.setAttachmentThumbnail("asd");
+		Attachment attachment1 = new Attachment();
+		attachment1.setId(1L);
+		attachment1.setFileId("qewr");
+		attachment1.setThumbnailId("asd");
+		log1.setAttachment(attachment1);
 		Log log2 = new Log();
-		log2.setAttachment("zxc");
-		log2.setAttachmentThumbnail("jkl");
+		Attachment attachment2 = new Attachment();
+		attachment2.setId(2L);
+		attachment2.setFileId("zxc");
+		attachment2.setThumbnailId("jkl");
+		log2.setAttachment(attachment2);
 
 		int deletedLogsCount = 2;
 
@@ -104,11 +111,17 @@ class LogCleanerServiceImplTest {
 		long launchId = 1L;
 		long testItemId = 2L;
 		Log log1 = new Log();
-		log1.setAttachment("qewr");
-		log1.setAttachmentThumbnail("asd");
+		Attachment attachment1 = new Attachment();
+		attachment1.setId(2L);
+		attachment1.setFileId("qewr");
+		attachment1.setThumbnailId("asd");
+		log1.setAttachment(attachment1);
 		Log log2 = new Log();
-		log2.setAttachment("zxc");
-		log2.setAttachmentThumbnail("jkl");
+		Attachment attachment2 = new Attachment();
+		attachment2.setId(2L);
+		attachment2.setFileId("zxc");
+		attachment2.setThumbnailId("jkl");
+		log2.setAttachment(attachment2);
 
 		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
@@ -117,7 +130,7 @@ class LogCleanerServiceImplTest {
 		logCleanerService.removeProjectAttachments(project, period, new AtomicLong(), new AtomicLong());
 
 		verify(dataStoreService, times(4)).delete(any());
-		verify(logRepository, times(1)).clearLogsAttachmentsAndThumbnails(any());
+		verify(attachmentRepository, times(2)).deleteById(any());
 
 	}
 }

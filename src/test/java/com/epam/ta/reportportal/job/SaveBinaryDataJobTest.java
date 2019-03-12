@@ -63,9 +63,9 @@ class SaveBinaryDataJobTest {
 
 		saveBinaryDataJob.run();
 
-		assertEquals(binaryData.getFileId(), log.getAttachment());
-		assertEquals(binaryData.getThumbnailFileId(), log.getAttachmentThumbnail());
-		assertEquals(file.getContentType(), log.getContentType());
+		assertEquals(binaryData.getFileId(), log.getAttachment().getFileId());
+		assertEquals(binaryData.getThumbnailFileId(), log.getAttachment().getThumbnailId());
+		assertEquals(file.getContentType(), log.getAttachment().getContentType());
 		verify(logRepository, times(1)).save(log);
 	}
 

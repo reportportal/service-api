@@ -54,6 +54,7 @@ public class RabbitMqConfiguration {
 	public static final String EXCHANGE_ACTIVITY = "direct.activity";
 	public static final String EXCHANGE_PLUGINS = "plugins";
 	public static final String EXCHANGE_REPORTING = "reporting";
+	public static final String EXCHANGE_ATTACHMENT = "direct.attachment";
 
 	public static final String KEY_PLUGINS_PING = "broadcast.plugins.ping";
 	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
@@ -67,6 +68,7 @@ public class RabbitMqConfiguration {
 	public static final String QUEUE_FINISH_LAUNCH = "reporting.launch.finish";
 	public static final String QUEUE_START_ITEM = "reporting.item.start";
 	public static final String QUEUE_FINISH_ITEM = "reporting.item.finish";
+	public static final String QUEUE_DELETE_ATTACHMENT = "attachment.delete";
 
 	public static final String QUEUE_QUERY_RQ = "query-rq";
 
@@ -159,6 +161,11 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
+	public Queue deleteAttachmentQueue() {
+		return new Queue(QUEUE_DELETE_ATTACHMENT);
+	}
+
+	@Bean
 	public FanoutExchange eventsExchange() {
 		return new FanoutExchange(EXCHANGE_EVENTS, false, false);
 	}
@@ -176,6 +183,11 @@ public class RabbitMqConfiguration {
 	@Bean
 	public DirectExchange reportingExchange() {
 		return new DirectExchange(EXCHANGE_REPORTING, true, false);
+	}
+
+	@Bean
+	public DirectExchange attachmentExchange() {
+		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
 	}
 
 	@Bean
@@ -213,9 +225,14 @@ public class RabbitMqConfiguration {
 		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY);
 	}
 
+//	@Bean
+//	public Binding pluginsPingBinding() {
+//		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
+//	}
+
 	@Bean
-	public Binding pluginsPingBinding() {
-		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
+	public Binding attachmentDeleteBinding() {
+		return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange()).with(QUEUE_DELETE_ATTACHMENT);
 	}
 
 	@Bean

@@ -26,8 +26,10 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.IsoFields;
@@ -47,8 +49,12 @@ class ProjectInfoWidgetDataConverterTest {
 	private ProjectInfoWidgetDataConverter converter;
 
 	private String thisWeekFormattedDate;
-	private String today;
-	private String yesterday;
+
+	private LocalDate today;
+	private LocalDate yesterday;
+
+	private String todayString;
+	private String yesterdayString;
 
 	@BeforeEach
 	void setUp() {
@@ -65,8 +71,13 @@ class ProjectInfoWidgetDataConverterTest {
 						.toFormatter());
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		today = LocalDate.now().format(formatter);
-		yesterday = LocalDate.now().minusDays(1).format(formatter);
+
+		LocalDate now = LocalDate.now();
+		today = now.getDayOfWeek().equals(DayOfWeek.MONDAY) ? now.plusDays(2) : now;
+		yesterday = today.minusDays(1);
+
+		todayString = today.format(formatter);
+		yesterdayString = yesterday.format(formatter);
 	}
 
 	@Test
@@ -75,11 +86,11 @@ class ProjectInfoWidgetDataConverterTest {
 				InfoInterval.ONE_MONTH
 		);
 
-		assertEquals("33.33", investigatedProjectInfo.get(yesterday).get(0).getValues().get("toInvestigate"));
-		assertEquals("66.67", investigatedProjectInfo.get(yesterday).get(0).getValues().get("investigated"));
+		assertEquals("33.33", investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("66.67", investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("investigated"));
 
-		assertEquals("38.46", investigatedProjectInfo.get(today).get(0).getValues().get("toInvestigate"));
-		assertEquals("61.54", investigatedProjectInfo.get(today).get(0).getValues().get("investigated"));
+		assertEquals("38.46", investigatedProjectInfo.get(todayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("61.54", investigatedProjectInfo.get(todayString).get(0).getValues().get("investigated"));
 	}
 
 	@Test
@@ -112,8 +123,8 @@ class ProjectInfoWidgetDataConverterTest {
 	void getLaunchesQuantity() {
 		Map<String, List<ChartObject>> launchesQuantity = converter.getLaunchesQuantity(getTestData(), InfoInterval.ONE_MONTH);
 
-		assertEquals("1", launchesQuantity.get(yesterday).get(0).getValues().get("count"));
-		assertEquals("1", launchesQuantity.get(today).get(0).getValues().get("count"));
+		assertEquals("1", launchesQuantity.get(yesterdayString).get(0).getValues().get("count"));
+		assertEquals("1", launchesQuantity.get(todayString).get(0).getValues().get("count"));
 	}
 
 	@Test
@@ -127,15 +138,15 @@ class ProjectInfoWidgetDataConverterTest {
 	void getLaunchesIssues() {
 		Map<String, List<ChartObject>> launchesIssues = converter.getLaunchesIssues(getTestData(), InfoInterval.ONE_MONTH);
 
-		assertEquals("3", launchesIssues.get(yesterday).get(0).getValues().get("systemIssue"));
-		assertEquals("4", launchesIssues.get(yesterday).get(0).getValues().get("toInvestigate"));
-		assertEquals("2", launchesIssues.get(yesterday).get(0).getValues().get("productBug"));
-		assertEquals("3", launchesIssues.get(yesterday).get(0).getValues().get("automationBug"));
+		assertEquals("3", launchesIssues.get(yesterdayString).get(0).getValues().get("systemIssue"));
+		assertEquals("4", launchesIssues.get(yesterdayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("2", launchesIssues.get(yesterdayString).get(0).getValues().get("productBug"));
+		assertEquals("3", launchesIssues.get(yesterdayString).get(0).getValues().get("automationBug"));
 
-		assertEquals("3", launchesIssues.get(today).get(0).getValues().get("systemIssue"));
-		assertEquals("5", launchesIssues.get(today).get(0).getValues().get("toInvestigate"));
-		assertEquals("1", launchesIssues.get(today).get(0).getValues().get("productBug"));
-		assertEquals("4", launchesIssues.get(today).get(0).getValues().get("automationBug"));
+		assertEquals("3", launchesIssues.get(todayString).get(0).getValues().get("systemIssue"));
+		assertEquals("5", launchesIssues.get(todayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("1", launchesIssues.get(todayString).get(0).getValues().get("productBug"));
+		assertEquals("4", launchesIssues.get(todayString).get(0).getValues().get("automationBug"));
 	}
 
 	@Test
@@ -153,7 +164,7 @@ class ProjectInfoWidgetDataConverterTest {
 		launch1.setName("test_launch");
 		launch1.setId(1L);
 		launch1.setNumber(1L);
-		launch1.setStartTime(LocalDateTime.now().minusDays(1));
+		launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now()));
 		launch1.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18),
 				getStatistics(EXECUTIONS_PASSED, 5),
 				getStatistics(EXECUTIONS_SKIPPED, 1),
@@ -167,7 +178,7 @@ class ProjectInfoWidgetDataConverterTest {
 		launch2.setName("test_launch");
 		launch2.setId(2L);
 		launch2.setNumber(2L);
-		launch2.setStartTime(LocalDateTime.now());
+		launch2.setStartTime(LocalDateTime.of(today, LocalTime.now()));
 		launch2.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21),
 				getStatistics(EXECUTIONS_PASSED, 6),
 				getStatistics(EXECUTIONS_SKIPPED, 2),

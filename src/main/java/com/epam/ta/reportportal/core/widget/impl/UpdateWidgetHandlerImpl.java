@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
@@ -39,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -83,6 +85,15 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Widget widget = getWidgetHandler.getAdministrated(widgetId, projectDetails);
+
+		if (!widget.getName().equals(updateRQ.getName())) {
+			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
+					user.getUsername(),
+					projectDetails.getProjectId()
+			), BooleanUtils::isFalse)
+					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
+		}
+
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
 
 		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());

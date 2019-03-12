@@ -114,6 +114,22 @@ class WidgetControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void updateWidgetWithDuplicatedName() throws Exception {
+		final WidgetRQ rq = new WidgetRQ();
+		rq.setName("LAUNCH STATISTICS");
+		rq.setDescription("updated");
+		rq.setWidgetType("activityStream");
+		rq.setShare(false);
+		final ContentParameters contentParameters = new ContentParameters();
+		contentParameters.setContentFields(Arrays.asList("number", "start_time", "user"));
+		contentParameters.setItemsCount(50);
+		rq.setContentParameters(contentParameters);
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken()))
+				.content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)).andExpect(status().isConflict());
+	}
+
+	@Test
 	void getSharedWidgetsListPositive() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/shared").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());

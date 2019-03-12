@@ -63,7 +63,6 @@ class IntegrationFieldsConverterTest {
 		final DefectFieldAllowedValue defectFieldAllowedValue = new DefectFieldAllowedValue();
 		defectFieldAllowedValue.setValueId("id");
 		defectFieldAllowedValue.setValueName("name");
-		defectFieldAllowedValue.setId(1L);
 		defectFormField.setDefectFieldAllowedValues(Sets.newHashSet(defectFieldAllowedValue));
 		return defectFormField;
 	}

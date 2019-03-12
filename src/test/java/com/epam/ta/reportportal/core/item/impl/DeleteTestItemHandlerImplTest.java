@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -40,8 +42,7 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -57,6 +58,9 @@ class DeleteTestItemHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
+
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
 
 	@InjectMocks
 	private DeleteTestItemHandlerImpl handler;
@@ -146,7 +150,7 @@ class DeleteTestItemHandlerImplTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
-
+		doNothing().when(eventPublisher).publishEvent(any(DeleteTestItemAttachmentsEvent.class));
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		assertFalse(parent.isHasChildren());

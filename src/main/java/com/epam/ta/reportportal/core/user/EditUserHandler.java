@@ -35,11 +35,11 @@ public interface EditUserHandler {
 	 *
 	 * @param username
 	 * @param editUserRQ
-	 * @param updater
+	 * @param editor
 	 * @return
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser updater);
+	OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser editor);
 
 	/**
 	 * Upload photo

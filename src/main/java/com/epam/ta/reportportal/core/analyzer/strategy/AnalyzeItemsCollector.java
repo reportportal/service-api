@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 import java.util.List;
 
 /**
+ * Collector of items that should be analyzed
+ *
  * @author Pavel Bortnik
  */
 @FunctionalInterface

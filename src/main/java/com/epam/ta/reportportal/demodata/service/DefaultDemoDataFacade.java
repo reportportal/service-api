@@ -123,7 +123,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					}
 					Long stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
 					StatusEnum status = status();
-					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status, projectDetails.getProjectId());
+					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status, projectDetails.getProjectId(), launchId);
 					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
 						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());

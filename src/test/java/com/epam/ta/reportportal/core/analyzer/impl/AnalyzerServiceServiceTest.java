@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
@@ -49,7 +48,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 /**
  * @author Pavel Bortnik
  */
-class IssuesAnalyzerServiceTest {
+class AnalyzerServiceServiceTest {
 
 	private AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
@@ -65,8 +64,7 @@ class IssuesAnalyzerServiceTest {
 
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private IssuesAnalyzerServiceImpl issuesAnalyzer = new IssuesAnalyzerServiceImpl(analyzerStatusCache,
-			analyzerServiceClient,
+	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(analyzerStatusCache, analyzerServiceClient,
 			logRepository,
 			issueTypeHandler,
 			testItemRepository,
@@ -96,7 +94,7 @@ class IssuesAnalyzerServiceTest {
 		doNothing().when(analyzerStatusCache).analyzeStarted(launch.getId(), launch.getProjectId());
 		doNothing().when(analyzerStatusCache).analyzeFinished(launch.getId());
 
-		issuesAnalyzer.analyze(launch, singletonList(1L), analyzerConfig()).join();
+		issuesAnalyzer.runAnalyzers(launch, singletonList(1L), analyzerConfig());
 
 		verify(logRepository, times(1)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(singletonList(testItems.getItemId()),
 				LogLevel.ERROR.toInt()
@@ -125,15 +123,9 @@ class IssuesAnalyzerServiceTest {
 
 		AnalyzerConfig analyzerConfig = analyzerConfig();
 
-		CompletableFuture<Void> analyze = issuesAnalyzer.analyze(launch,
-				items.stream().map(TestItem::getItemId).collect(Collectors.toList()),
-				analyzerConfig
-		);
+		issuesAnalyzer.runAnalyzers(launch, items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig);
 
-		analyze.join();
-
-		verify(logRepository, times(itemsCount)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(
-				anyList(),
+		verify(logRepository, times(itemsCount)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(anyList(),
 				eq(LogLevel.ERROR.toInt())
 		);
 		verify(analyzerServiceClient, times(1)).analyze(any());

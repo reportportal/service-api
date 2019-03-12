@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -32,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.DeleteProjectRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,14 +58,17 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final MessageBus messageBus;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
-			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus) {
+			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -71,6 +76,9 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		projectRepository.deleteById(project.getId());
+
+		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
+
 		return new OperationCompletionRS("Project with name = '" + projectName + "' has been successfully deleted.");
 	}
 

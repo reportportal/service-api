@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.client;
+package com.epam.ta.reportportal.core.analyzer.client.impl;
 
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,8 +26,8 @@ import com.rabbitmq.http.client.domain.ExchangeInfo;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.client.ClientUtils.EXCHANGE_PRIORITY;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
 import static java.util.Comparator.comparingInt;
 
 /**

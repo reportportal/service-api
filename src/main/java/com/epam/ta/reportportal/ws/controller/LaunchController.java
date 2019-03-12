@@ -321,7 +321,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public DeleteLaunchesRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+	public DeleteBulkRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return deleteLaunchMessageHandler.deleteLaunches(ids, extractProjectDetails(user, normalizeId(projectName)), user);
 	}

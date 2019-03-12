@@ -22,7 +22,7 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
 /**
@@ -34,9 +34,16 @@ public interface DeleteUserHandler {
 	/**
 	 * Delete User
 	 *
-	 * @param login
+	 * @param userId
 	 * @return
-	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS deleteUser(String login, ReportPortalUser currentUser);
+	OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
+
+	/**
+	 * Delete Users
+	 *
+	 * @param userIds
+	 * @return
+	 */
+	DeleteBulkRS deleteUsers(Long[] userIds, ReportPortalUser currentUser);
 }

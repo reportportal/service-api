@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer;
+package com.epam.ta.reportportal.core.analyzer.client;
 
+import com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 
@@ -24,15 +25,15 @@ import java.util.Map;
 
 /**
  * Rabbit client for all log indexing/analysis services. Such services are those that have
- * tag {@link com.epam.ta.reportportal.core.analyzer.client.ClientUtils#ANALYZER_KEY}
+ * tag {@link AnalyzerUtils#ANALYZER_KEY}
  * in service's metadata.
  * <p>
  * To define that service indexes/collecting data it should be indicated by tag
- * {@link com.epam.ta.reportportal.core.analyzer.client.ClientUtils#ANALYZER_INDEX}
+ * {@link AnalyzerUtils#ANALYZER_INDEX}
  * with <code>true</code> in metadata. If tag is not provided it is <code>false</code> by default
  * <p>
  * Items are analyzed in order of priority specified in tag
- * * {@link com.epam.ta.reportportal.core.analyzer.client.ClientUtils#ANALYZER_PRIORITY} in metadata.
+ * * {@link AnalyzerUtils#ANALYZER_PRIORITY} in metadata.
  * If priority is not provided service gets the lowest one. If several analyzers provided different
  * issues for one item, it would be overwritten with results of more priority
  * service.
@@ -50,14 +51,6 @@ public interface AnalyzerServiceClient {
 	boolean hasClients();
 
 	/**
-	 * Index list of launches
-	 *
-	 * @param rq Launches
-	 * @return Count of indexed test items
-	 */
-	Long index(List<IndexLaunch> rq);
-
-	/**
 	 * Analyze launch
 	 *
 	 * @param rq Launch
@@ -65,18 +58,5 @@ public interface AnalyzerServiceClient {
 	 */
 	Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq);
 
-	/**
-	 * Remove documents with specified ids from index
-	 *
-	 * @param index Index to to be cleaned
-	 * @param ids   Document ids to be deleted from index
-	 */
-	void cleanIndex(Long index, List<Long> ids);
 
-	/**
-	 * Delete index
-	 *
-	 * @param index Index to be deleted
-	 */
-	void deleteIndex(Long index);
 }

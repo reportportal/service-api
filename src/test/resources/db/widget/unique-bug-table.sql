@@ -1,7 +1,3 @@
--- BTS
-insert into bug_tracking_system(id, url, type, bts_project, project_id)
-values (1, 'http:/example.com', 'JIRA', 'superadmin_bts', 1);
-
 -- First launch
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);

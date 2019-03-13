@@ -35,8 +35,18 @@
                         </div>
                     </#if>
                 <#--##    if URL provided to screen source-->
-                    <#if logEntry.binaryDataId??>
-                    <p><img src="${logEntry.binaryDataId}" align="absmiddle" border="0" height="366"><br class="atl-forced-newline"></p>
+                    <#if logEntry.decodedFileName??>
+                        <#if (logEntry.image)!false>
+                         <p><img src="${logEntry.decodedFileName}" align="absmiddle" border="0" height="366"><br class="atl-forced-newline">
+                         </p>
+                        <#else>
+                        <p>
+                            <a href="${logEntry.decodedFileName}">
+                                "${logEntry.decodedFileName}"
+                            </a>
+                            <br class="atl-forced-newline">
+                        </p>
+                        </#if>
                     </#if>
                 </#list>
             </div>

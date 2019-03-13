@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -233,7 +234,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 			issue.setIssueDescription(emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getItemResults()
 					.getIssue()
 					.getIssueDescription())));
-			issue.setTickets(relevantItem.getItemResults().getIssue().getTickets());
+			issue.setTickets(Sets.newHashSet(relevantItem.getItemResults().getIssue().getTickets()));
 		}
 	}
 }

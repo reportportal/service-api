@@ -56,9 +56,11 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 			Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
 			FilterTarget filterTarget = FilterTarget.findByClass(domainModelType);
 
-			if (defaultSort.isUnsorted()) {
-				defaultSort = Sort.by(CRITERIA_ID);
-			}
+			/*
+			 * Hack. Adds sort by id to each query to avoid problems with
+			 * lost data while paging
+			 */
+			defaultSort = defaultSort.and(Sort.by(CRITERIA_ID));
 
 			/*
 			 * Build Sort with search criteria from internal domain model

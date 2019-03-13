@@ -21,21 +21,33 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.project.*;
+import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
+import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+import com.rabbitmq.http.client.Client;
+import com.rabbitmq.http.client.domain.ExchangeInfo;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -45,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Sql("/db/project/project-fill.sql")
+@ExtendWith(MockitoExtension.class)
 class ProjectControllerTest extends BaseMvcTest {
 
 	@Autowired
@@ -52,6 +65,18 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ProjectRepository projectRepository;
+
+	@Autowired
+	private Client rabbitClient;
+
+	@Autowired
+	@Qualifier("analyzerRabbitTemplate")
+	private RabbitTemplate rabbitTemplate;
+
+	@AfterEach
+	void after() {
+		Mockito.reset(rabbitClient, rabbitTemplate);
+	}
 
 	@Test
 	void createProjectPositive() throws Exception {
@@ -70,6 +95,18 @@ class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	void updateProjectPositive() throws Exception {
 		final UpdateProjectRQ rq = new UpdateProjectRQ();
+		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
+		HashMap<String, String> projectAttributes = new HashMap<>();
+		projectAttributes.put("job.keepLogs", "2 weeks");
+		projectAttributes.put("job.interruptJobTime", "1 week");
+		projectAttributes.put("job.keepScreenshots", "3 weeks");
+		projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
+		configuration.setProjectAttributes(projectAttributes);
+		rq.setConfiguration(configuration);
+
+		HashMap<String, String> userRoles = new HashMap<>();
+		userRoles.put("test_user", "PROJECT_MANAGER");
+		rq.setUserRoles(userRoles);
 		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
@@ -278,5 +315,53 @@ class ProjectControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.default_personal").value(false))
 				.andExpect(jsonPath("$.test_project").value(false));
 
+	}
+
+	@Test
+	void updateProjectNotificationConfig() throws Exception {
+		ProjectNotificationConfigDTO request = new ProjectNotificationConfigDTO();
+
+		SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
+		senderCaseDTO.setSendCase("always");
+		senderCaseDTO.setRecipients(Collections.singletonList("default"));
+		senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
+		LaunchAttribute launchAttribute = new LaunchAttribute();
+		launchAttribute.setKey("key");
+		launchAttribute.setValue("val");
+		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
+
+		request.setSenderCases(singletonList(senderCaseDTO));
+
+		mockMvc.perform(put("/project/default_personal/notification").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+	}
+
+	@Test
+	void indexProjectData() throws Exception {
+		ExchangeInfo exchangeInfo = new ExchangeInfo();
+		exchangeInfo.setName("analyzer");
+		HashMap<String, Object> arguments = new HashMap<>();
+		arguments.put("analyzer_index", true);
+		arguments.put("analyzer", "test_analyzer");
+		exchangeInfo.setArguments(arguments);
+		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
+
+		mockMvc.perform(put("/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void deleteIndex() throws Exception {
+		ExchangeInfo exchangeInfo = new ExchangeInfo();
+		exchangeInfo.setName("analyzer");
+		HashMap<String, Object> arguments = new HashMap<>();
+		arguments.put("analyzer_index", true);
+		arguments.put("analyzer", "test_analyzer");
+		exchangeInfo.setArguments(arguments);
+		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
+
+		mockMvc.perform(delete("/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+
+		verify(rabbitTemplate, times(1)).convertAndSend(eq(exchangeInfo.getName()), eq("delete"), eq(2L));
 	}
 }

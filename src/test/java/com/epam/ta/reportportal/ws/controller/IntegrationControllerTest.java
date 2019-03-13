@@ -38,7 +38,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(post("/integration").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isConflict());
 	}
 
 	@Test
@@ -70,7 +70,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isConflict());
 	}
 
 	@Test

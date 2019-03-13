@@ -137,19 +137,21 @@ class EditUserHandlerImplTest {
 		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("not_exist", new EditUserRQ(), UserRole.USER)
+				() -> handler.editUser("not_exist", new EditUserRQ(), getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("User 'not_exist' not found.", exception.getMessage());
 	}
 
 	@Test
 	void editUserWithIncorrectRole() {
-		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
+		User user = new User();
+		user.setLogin("test");
+		when(userRepository.findByLogin("test")).thenReturn(Optional.of(user));
 		final EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setRole("not_exist_role");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("test", editUserRQ, UserRole.ADMINISTRATOR)
+				() -> handler.editUser("test", editUserRQ, getRpUser("not_exist", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("Error in handled Request. Please, check specified parameters: 'Incorrect specified Account Role parameter.'",
 				exception.getMessage()
@@ -165,7 +167,7 @@ class EditUserHandlerImplTest {
 		editUserRQ.setEmail("newemail@domain.com");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+				() -> handler.editUser("test", editUserRQ, getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("You do not have enough permissions. Unable to change email for external user", exception.getMessage());
 	}
@@ -179,7 +181,7 @@ class EditUserHandlerImplTest {
 		editUserRQ.setEmail("incorrect#domain.com");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+				() -> handler.editUser("test", editUserRQ, getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("Error in handled Request. Please, check specified parameters: ' wrong email: incorrect#domain.com'",
 				exception.getMessage()
@@ -196,7 +198,7 @@ class EditUserHandlerImplTest {
 		editUserRQ.setEmail("existed@domain.com");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+				() -> handler.editUser("test", editUserRQ, getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("User with 'existed@domain.com' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
@@ -210,7 +212,7 @@ class EditUserHandlerImplTest {
 		editUserRQ.setFullName("full name");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.editUser("test", editUserRQ, UserRole.USER)
+				() -> handler.editUser("test", editUserRQ, getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("You do not have enough permissions. Unable to change full name for external user", exception.getMessage());
 	}

@@ -58,35 +58,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	}
 
 	@Override
-	public List<PluginInfo> getAllPluginsInfo(List<IntegrationType> integrationTypes) {
-		LOGGER.info("Searching for all plugins...");
-
-		List<PluginInfo> pluginInfoList = Lists.newArrayList();
-
-		integrationTypes.stream()
-				.filter(it -> it.getDetails() != null && it.getDetails().getDetails() != null)
-				.filter(this::isMandatoryFieldsExist)
-				.forEach(it -> {
-
-					Map<IntegrationDetailsProperties, String> pluginProperties = retrievePluginProperties(it);
-
-					PluginInfo pluginInfo = new PluginInfo(
-							pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
-							pluginProperties.get(IntegrationDetailsProperties.VERSION),
-							pluginProperties.get(IntegrationDetailsProperties.FILE_NAME),
-							it.isEnabled()
-					);
-
-					pluginInfoList.add(pluginInfo);
-
-				});
-
-		LOGGER.info(Suppliers.formattedSupplier("{} plugins have been found", pluginInfoList.size()).get());
-
-		return pluginInfoList;
-	}
-
-	@Override
 	public List<PluginInfo> getNotLoadedPluginsInfo(List<IntegrationType> integrationTypes) {
 
 		LOGGER.info("Searching for not loaded plugins...");
@@ -106,8 +77,9 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
 
 						PluginInfo pluginInfo = new PluginInfo(
-								pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
+								it.getName(),
 								pluginProperties.get(IntegrationDetailsProperties.VERSION),
+								pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
 								pluginProperties.get(IntegrationDetailsProperties.FILE_NAME),
 								it.isEnabled()
 						);

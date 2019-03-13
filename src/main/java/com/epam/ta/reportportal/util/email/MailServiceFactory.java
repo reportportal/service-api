@@ -89,7 +89,7 @@ public class MailServiceFactory {
 
 		Map<String, Object> config = integration.getParams().getParams();
 
-		if (MapUtils.isNotEmpty(config) && integration.isEnabled()) {
+		if (MapUtils.isNotEmpty(config)) {
 
 			boolean authRequired = ofNullable(config.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
 					String.valueOf(e))).orElse(false);

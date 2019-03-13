@@ -88,6 +88,23 @@ class TestReporterConsumerTest {
 	}
 
 	@Test
+	void onStartParentItemWithNegativeParentId() {
+		StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchId(1L);
+		rq.setType("TEST");
+		rq.setName("name");
+		rq.setDescription("description");
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+		String username = "user";
+
+		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
+
+		testReporterConsumer.onStartItem(username, "test_project", -2L, rq);
+
+		verify(startTestItemHandler, times(1)).startRootItem(user, extractProjectDetails(user, "test_project"), rq);
+	}
+
+	@Test
 	void onFinishItem() {
 		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
 		finishTestItemRQ.setStatus("PASSED");

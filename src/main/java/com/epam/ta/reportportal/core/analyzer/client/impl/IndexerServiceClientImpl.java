@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,13 +73,13 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertSendAndReceive(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
 
 	}
 
 	@Override
 	public void deleteIndex(Long index) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertSendAndReceive(exchange.getName(), DELETE_ROUTE, index));
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DELETE_ROUTE, index));
 	}
 }

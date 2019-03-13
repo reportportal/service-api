@@ -31,6 +31,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -54,6 +55,10 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 
 			Class<?> domainModelType = parameter.getParameterAnnotation(SortFor.class).value();
 			FilterTarget filterTarget = FilterTarget.findByClass(domainModelType);
+
+			if (defaultSort.isUnsorted()) {
+				defaultSort = Sort.by(CRITERIA_ID);
+			}
 
 			/*
 			 * Build Sort with search criteria from internal domain model

@@ -75,7 +75,6 @@ import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
-import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -131,6 +130,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
+		List<Long> launchIdsToReindex = new ArrayList<>();
+		List<Long> logIdsToCleanIndex = new ArrayList<>();
+
 		definitions.forEach(issueDefinition -> {
 			try {
 				TestItem testItem = testItemRepository.findById(issueDefinition.getId())
@@ -157,7 +159,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItem.getItemResults().setIssue(issueEntity);
 
 				testItemRepository.save(testItem);
-				indexLogs(analyzerConfig, testItem, project.getId());
+
+				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+					launchIdsToReindex.add(testItem.getLaunch().getId());
+				} else {
+					logIdsToCleanIndex.addAll(testItem.getLogs().stream().map(Log::getId).collect(toList()));
+				}
+
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
@@ -167,7 +175,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				errors.add(e.getMessage());
 			}
 		});
-		expect(!errors.isEmpty(), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		expect(errors.isEmpty(), equalTo(true)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		if (!launchIdsToReindex.isEmpty()) {
+			logIndexer.indexLogs(project.getId(), launchIdsToReindex, analyzerConfig);
+		}
+		if (!logIdsToCleanIndex.isEmpty()) {
+			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
+		}
 		events.forEach(messageBus::publishActivity);
 		return updated;
 	}
@@ -320,21 +334,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						"You are not a launch owner."
 				);
 			}
-		}
-	}
-
-	/**
-	 * Index logs if item is not ignored for analyzer
-	 * Clean index logs if item is ignored for analyzer
-	 *
-	 * @param analyzerConfig Analyzer config
-	 * @param testItem       Test item to reindex
-	 */
-	private void indexLogs(AnalyzerConfig analyzerConfig, TestItem testItem, Long projectId) {
-		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-			logIndexer.indexLogs(projectId, singletonList(testItem.getLaunch().getId()), analyzerConfig);
-		} else {
-			logIndexer.cleanIndex(projectId, testItem.getLogs().stream().map(Log::getId).collect(toList()));
 		}
 	}
 

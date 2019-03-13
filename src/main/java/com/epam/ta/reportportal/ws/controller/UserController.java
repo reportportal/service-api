@@ -30,10 +30,7 @@ import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ModelViews;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.YesNoRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -95,7 +92,8 @@ public class UserController {
 	@ResponseStatus(CREATED)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
-	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq, @AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
+	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
+			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
 		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
 				.replacePath(null)
 				.replaceQuery(null)
@@ -138,11 +136,21 @@ public class UserController {
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/{login}")
+	@DeleteMapping(value = "/{id}")
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
-	public OperationCompletionRS deleteUser(@PathVariable String login, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return deleteUserHandler.deleteUser(EntityUtils.normalizeId(login), currentUser);
+	public OperationCompletionRS deleteUser(@PathVariable(value = "id") Long userId,
+			@AuthenticationPrincipal ReportPortalUser currentUser) {
+		return deleteUserHandler.deleteUser(userId, currentUser);
+	}
+
+	@Transactional
+	@DeleteMapping
+	@PreAuthorize(ADMIN_ONLY)
+	@ResponseStatus(OK)
+	@ApiOperation("Delete specified launches by ids")
+	public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteUserHandler.deleteUsers(ids, user);
 	}
 
 	@Transactional
@@ -151,7 +159,7 @@ public class UserController {
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
+		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, currentUser);
 	}
 
 	@Transactional(readOnly = true)

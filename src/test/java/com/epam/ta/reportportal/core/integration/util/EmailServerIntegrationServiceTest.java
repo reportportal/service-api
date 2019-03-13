@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Assertions;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.mail.MessagingException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -109,7 +109,7 @@ class EmailServerIntegrationServiceTest {
 				Optional.ofNullable(emailIntegrationType));
 
 		Integration emailIntegration = IntegrationTestUtil.getGlobalEmailIntegration(1L);
-		when(integrationRepository.findAllGlobalByType(emailIntegrationType)).thenReturn(Lists.newArrayList(emailIntegration));
+		when(integrationRepository.findAllGlobalByType(emailIntegrationType)).thenReturn(Collections.emptyList());
 
 		when(mailServiceFactory.getEmailService(emailIntegration)).thenReturn(Optional.ofNullable(emailService));
 

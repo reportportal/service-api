@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,14 +65,14 @@ class DemoLogsService {
 		this.dataStoreService = dataStoreService;
 	}
 
-	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId) {
+	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId, Long launchId) {
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
 		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
 			Log log = new Log();
 			log.setLogLevel(logLevel().toInt());
 			log.setLogTime(LocalDateTime.now());
 			if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-				attachFile(log, projectId);
+				attachFile(log, projectId, launchId, testItem.getItemId());
 			}
 			log.setTestItem(testItem);
 			log.setLogMessage(ContentUtils.getLogMessage());
@@ -85,20 +86,22 @@ class DemoLogsService {
 				log.setLogTime(LocalDateTime.now());
 				log.setTestItem(testItem);
 				log.setLogMessage(msg);
-				attachFile(log, projectId);
+				attachFile(log, projectId, launchId, testItem.getItemId());
 				return log;
 			}).collect(toList()));
 		}
 		logRepository.saveAll(logs);
 	}
 
-	private void attachFile(Log log, Long projectId) {
+	private void attachFile(Log log, Long projectId, Long launchId, Long itemId) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
-		saveAttachment(projectId, attachment).ifPresent(it -> {
-			log.setAttachment(it.getFileId());
-			log.setAttachmentThumbnail(it.getThumbnailFileId());
-			log.setContentType(attachment.getContentType());
-		});
+		saveAttachment(projectId, attachment).ifPresent(it -> log.setAttachment(new AttachmentBuilder().withFileId(it.getFileId())
+				.withThumbnailId(it.getThumbnailFileId())
+				.withContentType(attachment.getContentType())
+				.withProjectId(projectId)
+				.withLaunchId(launchId)
+				.withItemId(itemId)
+				.get()));
 	}
 
 	private Optional<BinaryDataMetaInfo> saveAttachment(Long projectId, Attachment attachment) {

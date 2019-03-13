@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -32,6 +33,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,27 +57,23 @@ import static java.util.stream.Collectors.toList;
  * @author Andrei_Ramanchuk
  */
 @Service
-class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
+public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	private LogIndexer logIndexer;
+	private final LogIndexer logIndexer;
 
-	private LaunchRepository launchRepository;
+	private final LaunchRepository launchRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
+	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LogIndexer logIndexer, LaunchRepository launchRepository,
+			ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setLogIndexer(LogIndexer logIndexer) {
 		this.logIndexer = logIndexer;
-	}
-
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -96,6 +94,8 @@ class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
+
+		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
 
 		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
 	}

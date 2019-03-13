@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,10 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
@@ -31,17 +35,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -55,6 +60,9 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Autowired
+	private TestItemRepository testItemRepository;
 
 	@Test
 	void startRootItemPositive() throws Exception {
@@ -306,5 +314,199 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/item/items?ids=1,2,4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$", hasSize(3)));
+	}
+
+	@Sql("/db/test-item/item-change-status-from-passed.sql")
+	@Test
+	void changeStatusFromPassedToFailed() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("failed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-passed.sql")
+	@Test
+	void changeStatusFromPassedToSkipped() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("skipped");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-failed.sql")
+	@Test
+	void changeStatusFromFailedToPassed() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("passed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
+		assertNull(updatedItem.get().getItemResults().getIssue());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-failed.sql")
+	@Test
+	void changeStatusFromFailedToSkipped() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("skipped");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(
+				TestItemIssueGroup.AUTOMATION_BUG,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-skipped.sql")
+	@Test
+	void changeStatusFromSkippedToFailed() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("failed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-skipped.sql")
+	@Test
+	void changeStatusFromSkippedToPassed() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("passed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
+		assertNull(updatedItem.get().getItemResults().getIssue());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-interrupted.sql")
+	@Test
+	void changeStatusFromInterruptedToPassed() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("passed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
+		assertNull(updatedItem.get().getItemResults().getIssue());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.PASSED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-interrupted.sql")
+	@Test
+	void changeStatusFromInterruptedToSkipped() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("skipped");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-interrupted.sql")
+	@Test
+	void changeStatusFromInterruptedToFailed() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("failed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/6/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getLaunch().getStatus());
+
+		verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.YesNoRS;
+import com.epam.ta.reportportal.ws.model.user.UserBidRS;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,8 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -67,5 +69,52 @@ class GetUserHandlerImplTest {
 				() -> handler.getUser(getRpUser("not_exist", UserRole.USER, ProjectRole.MEMBER, 1L))
 		);
 		assertEquals("User 'not_exist' not found.", exception.getMessage());
+	}
+
+	@Test
+	void getEmptyBidInfo() {
+		String uuid = "uuid";
+
+		when(userCreationBidRepository.findById(uuid)).thenReturn(Optional.empty());
+
+		UserBidRS bidInformation = handler.getBidInformation(uuid);
+		assertFalse(bidInformation.getIsActive());
+		assertNull(bidInformation.getEmail());
+		assertNull(bidInformation.getUuid());
+	}
+
+	@Test
+	void validateInfoByNotExistUsername() {
+		String username = "not_exist";
+		when(userRepository.findByLogin(username)).thenReturn(Optional.empty());
+
+		YesNoRS yesNoRS = handler.validateInfo(username, null);
+
+		assertFalse(yesNoRS.getIs());
+	}
+
+	@Test
+	void validateInfoByExistEmail() {
+		String email = "exist@domain.com";
+		when(userRepository.findByEmail(email)).thenReturn(Optional.of(new User()));
+
+		YesNoRS yesNoRS = handler.validateInfo(null, email);
+
+		assertTrue(yesNoRS.getIs());
+	}
+
+	@Test
+	void validateInfoByNotExistEmail() {
+		String email = "not_exist@domain.com";
+		when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+		YesNoRS yesNoRS = handler.validateInfo(null, email);
+
+		assertFalse(yesNoRS.getIs());
+	}
+
+	@Test
+	void validateInfoNullRequest() {
+		assertFalse(handler.validateInfo(null, null).getIs());
 	}
 }

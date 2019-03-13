@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.StatusChangeTestItemHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -43,7 +44,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 /**
@@ -62,15 +62,19 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 	private final IssueEntityRepository issueEntityRepository;
 
+	private final LaunchRepository launchRepository;
+
 	private final MessageBus messageBus;
 
 	@Autowired
 	public StatusChangeTestItemHandlerImpl(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
+			MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.issueEntityRepository = issueEntityRepository;
+		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
 	}
 
@@ -78,7 +82,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 	public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
-				BAD_REQUEST_ERROR,
+				INCORRECT_REQUEST,
 				"Unable to change status on test item with children"
 		);
 		StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -125,6 +129,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(testItem, userId, projectId);
+			testItem.getLaunch().setStatus(launchRepository.identifyStatus(testItem.getLaunch().getId()) ? PASSED : FAILED);
 		}
 	}
 
@@ -184,6 +189,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(testItem, userId, projectId);
+			testItem.getLaunch().setStatus(launchRepository.identifyStatus(testItem.getLaunch().getId()) ? PASSED : FAILED);
 		}
 	}
 
@@ -206,6 +212,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(testItem, userId, projectId);
+			testItem.getLaunch().setStatus(launchRepository.identifyStatus(testItem.getLaunch().getId()) ? PASSED : FAILED);
 		}
 	}
 
@@ -231,9 +238,6 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 			if (!parent.getItemResults().getStatus().equals(newStatus)) {
 				parent.getItemResults().setStatus(newStatus);
 				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
-				if (parent.getType().sameLevel(TestItemTypeEnum.SUITE)) {
-					testItem.getLaunch().setStatus(newStatus);
-				}
 				changeStatusRecursively(parent, userId, projectId);
 			}
 		}

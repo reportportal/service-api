@@ -44,13 +44,12 @@ targetCompatibility = 1.8
 
 project.ext {
     limits = [
-            'instruction': 50
-//            'instruction': 68,
-//            'branch'     : 41,
-//            'line'       : 67,
-//            'complexity' : 49,
-//            'method'     : 73,
-//            'class'      : 87
+            'instruction': 70,
+            'branch'     : 55,
+            'line'       : 75,
+            'complexity' : 60,
+            'method'     : 65,
+            'class'      : 90
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
@@ -101,7 +100,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:d99b3a33'
+        compile 'com.github.reportportal:commons-dao:eec0ead'
         compile 'com.github.reportportal:commons-rules:574fb3a'
         compile 'com.github.reportportal:commons-model:12ceda1'
         compile('com.github.reportportal:commons:71d4aca')

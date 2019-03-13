@@ -16,73 +16,47 @@
 
 package com.epam.ta.reportportal.util.email;
 
+import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.collect.Sets;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class EmailServiceTest {
 
-	private EmailService emailService = mock(EmailService.class);
+	private TemplateEngine templateEngine = mock(TemplateEngine.class);
 
-	@Test
-	void sendCreateUserConfirmEmailTest() {
+	private EmailService emailService = new EmailService(new Properties());
 
-		doNothing().when(emailService).send(any(MimeMessagePreparator.class));
-
-		emailService.sendCreateUserConfirmationEmail("subj", new String[] { "email@email.com" }, "epam.com");
+	@BeforeEach
+	void setUp() {
+		emailService.setTemplateEngine(templateEngine);
 	}
 
 	@Test
-	void sendLaunchFinishedNotificationTest() {
+	void prepareLaunchTest() {
 
-		doNothing().when(emailService).send(any(MimeMessagePreparator.class));
+		when(templateEngine.merge(any(String.class), any(Map.class))).thenReturn("EMAIL MESSAGE");
 
-		emailService.sendLaunchFinishNotification(new String[] { "email@email.com" }, "epam.com", "project name", getLaunch());
-	}
+		String url = emailService.mergeFinishLaunchText("url", getLaunch());
 
-	@Test
-	void sendRestorePasswordEmailTest() {
-
-		doNothing().when(emailService).send(any(MimeMessagePreparator.class));
-
-		emailService.sendRestorePasswordEmail("restore", new String[] { "email@email.com" }, "url", "login");
-	}
-
-	@Test
-	void sendIndexFinishedEmailTest() {
-
-		doNothing().when(emailService).send(any(MimeMessagePreparator.class));
-
-		emailService.sendIndexFinishedEmail("restore", "email@email.com", 10L);
-	}
-
-	@Test
-	void sendCreateUserConfirmationEmailTest() {
-
-		CreateUserRQFull createUserRQFull = new CreateUserRQFull();
-		createUserRQFull.setLogin("login");
-		createUserRQFull.setPassword("password");
-		createUserRQFull.setEmail("email@email.com");
-
-		doNothing().when(emailService).send(any(MimeMessagePreparator.class));
-
-		emailService.sendCreateUserConfirmationEmail(createUserRQFull, "url");
+		System.out.println(url);
 	}
 
 	private Launch getLaunch() {

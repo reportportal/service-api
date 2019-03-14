@@ -28,6 +28,8 @@ public class PluginInfo implements Serializable {
 
 	private String version;
 
+	private String fileId;
+
 	private String fileName;
 
 	private boolean isEnabled;
@@ -40,9 +42,10 @@ public class PluginInfo implements Serializable {
 		this.version = version;
 	}
 
-	public PluginInfo(String id, String version, String fileName, boolean isEnabled) {
+	public PluginInfo(String id, String version, String fileId, String fileName, boolean isEnabled) {
 		this.id = id;
 		this.version = version;
+		this.fileId = fileId;
 		this.fileName = fileName;
 		this.isEnabled = isEnabled;
 	}
@@ -63,6 +66,15 @@ public class PluginInfo implements Serializable {
 
 	public void setVersion(String version) {
 		this.version = version;
+	}
+
+	@Nullable
+	public String getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(String fileId) {
+		this.fileId = fileId;
 	}
 
 	@Nullable

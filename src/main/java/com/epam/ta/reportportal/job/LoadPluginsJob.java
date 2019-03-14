@@ -75,7 +75,7 @@ public class LoadPluginsJob {
 
 		List<PluginInfo> notLoadedPlugins = pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes);
 
-		notLoadedPlugins.forEach(pluginInfo -> ofNullable(dataStore.load(pluginInfo.getId())).ifPresent(inputStream -> {
+		notLoadedPlugins.forEach(pluginInfo -> ofNullable(dataStore.load(pluginInfo.getFileId())).ifPresent(inputStream -> {
 			try {
 
 				LOGGER.info("Plugin loading has started...");

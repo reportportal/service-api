@@ -174,7 +174,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteAllIntegrations() throws Exception {
-		mockMvc.perform(delete("/integration/all").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/integration/all/email").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -201,6 +201,6 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteAllProjectIntegrations() throws Exception {
-		mockMvc.perform(delete("/integration/default_personal/all").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/integration/default_personal/all/email").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 }

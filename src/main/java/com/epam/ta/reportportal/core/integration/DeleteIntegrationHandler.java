@@ -31,23 +31,25 @@ public interface DeleteIntegrationHandler {
 	OperationCompletionRS deleteGlobalIntegration(Long integrationId);
 
 	/**
+	 * @param type {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
 	 * @return Response data
 	 */
-	OperationCompletionRS deleteAllIntegrations();
+	OperationCompletionRS deleteGlobalIntegrationsByType(String type);
 
 	/**
 	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param user           {@link com.epam.ta.reportportal.auth.ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
 	 * @return Response data
 	 */
 	OperationCompletionRS deleteProjectIntegration(Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
-	 * @param user           {@link com.epam.ta.reportportal.auth.ReportPortalUser}
+	 * @param type           {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
 	 * @return Response data
 	 */
-	OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	OperationCompletionRS deleteProjectIntegrationsByType(String type, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

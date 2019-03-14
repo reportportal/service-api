@@ -46,6 +46,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -321,9 +322,9 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public DeleteBulkRS deleteLaunches(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
+	public DeleteBulkRS deleteLaunches(@PathVariable String projectName, @RequestBody @Valid DeleteBulkRQ deleteBulkRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLaunchMessageHandler.deleteLaunches(ids, extractProjectDetails(user, normalizeId(projectName)), user);
+		return deleteLaunchMessageHandler.deleteLaunches(deleteBulkRQ, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@PostMapping(value = "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })

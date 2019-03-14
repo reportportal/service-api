@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
@@ -42,10 +43,10 @@ public interface DeleteLaunchHandler {
 	/**
 	 * Bul launches delete.
 	 *
-	 * @param ids            Launch ids
+	 * @param deleteBulkRQ   {@link DeleteBulkRQ}
 	 * @param projectDetails Project Details
 	 * @param user           User
 	 * @return DeleteLaunchesRS
 	 */
-	DeleteBulkRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

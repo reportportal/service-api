@@ -52,6 +52,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -149,8 +150,8 @@ public class UserController {
 	@PreAuthorize(ADMIN_ONLY)
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified launches by ids")
-	public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteUserHandler.deleteUsers(ids, user);
+	public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteUserHandler.deleteUsers(deleteBulkRQ, user);
 	}
 
 	@Transactional

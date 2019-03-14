@@ -27,13 +27,13 @@ import java.util.Optional;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-class LaunchTestUtil {
+public class LaunchTestUtil {
 
 	private LaunchTestUtil() {
 		//static only
 	}
 
-	static Optional<Launch> getLaunch(StatusEnum status, LaunchModeEnum mode) {
+	public static Optional<Launch> getLaunch(StatusEnum status, LaunchModeEnum mode) {
 		Launch launch = new Launch();
 		launch.setId(1L);
 		launch.setNumber(1L);

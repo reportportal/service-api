@@ -24,15 +24,11 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
-import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -66,10 +62,10 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 	}
 
 	@Override
-	public DeleteBulkRS deleteUsers(Long[] userIds, ReportPortalUser currentUser) {
+	public DeleteBulkRS deleteUsers(DeleteBulkRQ deleteBulkRQ, ReportPortalUser currentUser) {
 		List<ReportPortalException> exceptions = Lists.newArrayList();
 		List<Long> deleted = Lists.newArrayList();
-		Arrays.stream(userIds).forEach(userId -> {
+		deleteBulkRQ.getIds().forEach(userId -> {
 			try {
 				deleteUser(userId, currentUser);
 				deleted.add(userId);

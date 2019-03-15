@@ -22,6 +22,7 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 
@@ -42,8 +43,8 @@ public interface DeleteUserHandler {
 	/**
 	 * Delete Users
 	 *
-	 * @param userIds
+	 * @param deleteBulkRQ {@link DeleteBulkRQ}
 	 * @return
 	 */
-	DeleteBulkRS deleteUsers(Long[] userIds, ReportPortalUser currentUser);
+	DeleteBulkRS deleteUsers(DeleteBulkRQ deleteBulkRQ, ReportPortalUser currentUser);
 }

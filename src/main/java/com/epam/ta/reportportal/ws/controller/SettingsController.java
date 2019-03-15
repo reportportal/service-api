@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +28,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 
@@ -61,7 +62,7 @@ public class SettingsController {
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation(value = "Get server settings")
-	public ServerSettingsResource getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
+	public Map<String, String> getServerSettings(@AuthenticationPrincipal ReportPortalUser user) {
 		return serverHandler.getServerSettings();
 	}
 }

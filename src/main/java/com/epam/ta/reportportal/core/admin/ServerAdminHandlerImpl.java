@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +61,7 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	}
 
 	@Override
-	public ServerSettingsResource getServerSettings() {
+	public Map<String, String> getServerSettings() {
 		return ServerSettingsConverter.TO_RESOURCE.apply(serverSettingsRepository.findAll());
 	}
 

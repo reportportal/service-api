@@ -17,14 +17,13 @@ package com.epam.ta.reportportal.info;
 
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import org.apache.commons.lang3.BooleanUtils;
+import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Shows list of supported analytics providers and other server settings.
@@ -49,13 +48,9 @@ public class ServerSettingsInfoContributor implements ExtensionContributor {
 	@Override
 	public Map<String, ?> contribute() {
 		Map<String, Object> info = new HashMap<>();
-		Optional<ServerSettings> analyticsDetails = settingsRepository.findByKey("server.analytics.all");
-		analyticsDetails.ifPresent(it -> {
-			AnalyticsResource analyticsResource = new AnalyticsResource();
-			analyticsResource.setType(it.getKey());
-			analyticsResource.setEnabled(BooleanUtils.toBoolean(it.getValue()));
-			info.put(ANALYTICS_KEY, analyticsResource);
-		});
+		List<ServerSettings> all = settingsRepository.findAll();
+		Map<String, String> result = ServerSettingsConverter.TO_RESOURCE.apply(all);
+		info.put("result", result);
 		return info;
 
 	}

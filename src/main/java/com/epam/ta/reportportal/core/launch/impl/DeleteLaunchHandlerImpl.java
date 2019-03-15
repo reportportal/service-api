@@ -28,10 +28,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRS;
-import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,7 +47,6 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVEST
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Arrays.stream;
 
 /**
  * Default implementation of {@link com.epam.ta.reportportal.core.launch.DeleteLaunchHandler}
@@ -88,8 +84,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		validate(launch, user, projectDetails);
 		launchRepository.delete(launch);
 
-		logIndexer.cleanIndex(
-				projectDetails.getProjectId(),
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				testItemRepository.selectIdsNotInIssueByLaunch(launchId, TO_INVESTIGATE.getLocator())
 						.stream()
 						.flatMap(it -> it.getLogs().stream())
@@ -103,12 +98,12 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	//TODO Analyzer
-	public DeleteBulkRS deleteLaunches(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public DeleteBulkRS deleteLaunches(DeleteBulkRQ deleteBulkRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<Long> notFound = Lists.newArrayList();
 		List<ReportPortalException> exceptions = Lists.newArrayList();
 		List<Launch> toDelete = Lists.newArrayList();
 
-		stream(ids).forEach(id -> {
+		deleteBulkRQ.getIds().forEach(id -> {
 			Optional<Launch> optionalLaunch = launchRepository.findById(id);
 			if (optionalLaunch.isPresent()) {
 				Launch launch = optionalLaunch.get();

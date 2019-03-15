@@ -22,14 +22,16 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationDeletedEvent;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
@@ -43,32 +45,37 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 	private final IntegrationRepository integrationRepository;
 
+	private final IntegrationTypeRepository integrationTypeRepository;
+
 	private final MessageBus messageBus;
 
 	@Autowired
-	public DeleteIntegrationHandlerImpl(IntegrationRepository integrationRepository, MessageBus messageBus) {
+	public DeleteIntegrationHandlerImpl(IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
+			MessageBus messageBus) {
 		this.integrationRepository = integrationRepository;
+		this.integrationTypeRepository = integrationTypeRepository;
 		this.messageBus = messageBus;
 	}
 
 	@Override
 	public OperationCompletionRS deleteGlobalIntegration(Long integrationId) {
+
 		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-
 		integrationRepository.deleteById(integration.getId());
-
-		return new OperationCompletionRS(Suppliers.formattedSupplier(
-				"Global integration with id = {} has been successfully removed",
+		return new OperationCompletionRS(Suppliers.formattedSupplier("Global integration with id = {} has been successfully removed",
 				integration.getId()
 		).get());
 	}
 
 	@Override
-	public OperationCompletionRS deleteAllIntegrations() {
-		integrationRepository.deleteAllInBatch();
+	public OperationCompletionRS deleteGlobalIntegrationsByType(String type) {
 
-		return new OperationCompletionRS("All integrations have been successfully removed.");
+		IntegrationType integrationType = integrationTypeRepository.findByName(type)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
+		integrationRepository.deleteAllGlobalByIntegrationTypeId(integrationType.getId());
+		return new OperationCompletionRS(
+				"All global integrations with type ='" + integrationType.getName() + "' integrations have been successfully removed.");
 	}
 
 	@Override
@@ -77,23 +84,26 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
-
 		integrationRepository.deleteById(integration.getId());
-
 		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' has been successfully deleted.");
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		List<Integration> integrations = integrationRepository.findAllByProjectId(projectDetails.getProjectId());
-		if (!CollectionUtils.isEmpty(integrations)) {
-			integrationRepository.deleteInBatch(integrations);
-		}
+	public OperationCompletionRS deleteProjectIntegrationsByType(String type, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+
+		IntegrationType integrationType = integrationTypeRepository.findByName(type)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
+		List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(projectDetails.getProjectId(),
+				Collections.singletonList(integrationType.getId())
+		);
+		integrationRepository.deleteAllByProjectIdAndIntegrationTypeId(projectDetails.getProjectId(), integrationType.getId());
 		integrations.stream()
 				.map(TO_ACTIVITY_RESOURCE)
 				.forEach(it -> messageBus.publishActivity(new IntegrationDeletedEvent(it, user.getUserId())));
-		return new OperationCompletionRS(
-				"All integrations for project with id ='" + projectDetails.getProjectId() + "' have been successfully deleted");
+
+		return new OperationCompletionRS("All integrations with type ='" + 1 + "' for project with id ='" + projectDetails.getProjectId()
+				+ "' have been successfully deleted");
 	}
 }

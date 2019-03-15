@@ -17,12 +17,15 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.AuthFlowEnum;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -38,7 +41,13 @@ public final class IntegrationConverter {
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
 		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
-		ofNullable(integration.getParams()).ifPresent(it -> resource.setIntegrationParams(it.getParams()));
+		ofNullable(integration.getParams()).ifPresent(it -> {
+			Map<String, Object> params = ofNullable(it.getParams()).map(p -> {
+				p.remove(EmailSettingsEnum.PASSWORD.getAttribute());
+				return p;
+			}).orElseGet(Collections::emptyMap);
+			resource.setIntegrationParams(params);
+		});
 
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());

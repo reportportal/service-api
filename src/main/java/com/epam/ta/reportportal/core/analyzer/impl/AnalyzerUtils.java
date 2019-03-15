@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Useful utils methods for basic analyzer
@@ -81,12 +83,14 @@ public class AnalyzerUtils {
 	public static AnalyzerConfig getAnalyzerConfig(Project project) {
 		Map<String, String> configParameters = ProjectUtils.getConfigParameters(project.getProjectAttributes());
 		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
-		analyzerConfig.setIsAutoAnalyzerEnabled(Boolean.valueOf(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
-		analyzerConfig.setMinDocFreq(Integer.valueOf(configParameters.get(MIN_DOC_FREQ.getAttribute())));
-		analyzerConfig.setMinTermFreq(Integer.valueOf(configParameters.get(MIN_TERM_FREQ.getAttribute())));
-		analyzerConfig.setMinShouldMatch(Integer.valueOf(configParameters.get(MIN_SHOULD_MATCH.getAttribute())));
-		analyzerConfig.setNumberOfLogLines(Integer.valueOf(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())));
-		analyzerConfig.setIndexingRunning(Boolean.valueOf(configParameters.get(INDEXING_RUNNING.getAttribute())));
+		analyzerConfig.setIsAutoAnalyzerEnabled(BooleanUtils.toBoolean(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
+		analyzerConfig.setMinDocFreq(Integer.valueOf(ofNullable(configParameters.get(MIN_DOC_FREQ.getAttribute())).orElse(MIN_DOC_FREQ.getDefaultValue())));
+		analyzerConfig.setMinTermFreq(Integer.valueOf(ofNullable(configParameters.get(MIN_TERM_FREQ.getAttribute())).orElse(MIN_TERM_FREQ.getDefaultValue())));
+		analyzerConfig.setMinShouldMatch(Integer.valueOf(ofNullable(configParameters.get(MIN_SHOULD_MATCH.getAttribute())).orElse(
+				MIN_SHOULD_MATCH.getDefaultValue())));
+		analyzerConfig.setNumberOfLogLines(Integer.valueOf(ofNullable(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())).orElse(
+				NUMBER_OF_LOG_LINES.getDefaultValue())));
+		analyzerConfig.setIndexingRunning(BooleanUtils.toBoolean(configParameters.get(INDEXING_RUNNING.getAttribute())));
 		return analyzerConfig;
 	}
 }

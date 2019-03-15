@@ -17,6 +17,8 @@ package com.epam.ta.reportportal.info;
 
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +50,12 @@ public class ServerSettingsInfoContributor implements ExtensionContributor {
 	public Map<String, ?> contribute() {
 		Map<String, Object> info = new HashMap<>();
 		Optional<ServerSettings> analyticsDetails = settingsRepository.findByKey("server.analytics.all");
-		analyticsDetails.ifPresent(it -> info.put(ANALYTICS_KEY, it));
+		analyticsDetails.ifPresent(it -> {
+			AnalyticsResource analyticsResource = new AnalyticsResource();
+			analyticsResource.setType(it.getKey());
+			analyticsResource.setEnabled(BooleanUtils.toBoolean(it.getValue()));
+			info.put(ANALYTICS_KEY, analyticsResource);
+		});
 		return info;
 
 	}

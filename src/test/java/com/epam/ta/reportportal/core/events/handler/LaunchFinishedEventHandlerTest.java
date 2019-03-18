@@ -49,8 +49,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -101,7 +105,7 @@ class LaunchFinishedEventHandlerTest {
 	private LaunchFinishedEventHandler launchFinishedEventHandler;
 
 	@Test
-	void shouldNotSendWhenLaunchInDebug() {
+	void shouldNotSendWhenLaunchInDebug() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -122,7 +126,7 @@ class LaunchFinishedEventHandlerTest {
 	}
 
 	@Test
-	void shouldNotSendWhenNotificationsDisabled() {
+	void shouldNotSendWhenNotificationsDisabled() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -148,7 +152,7 @@ class LaunchFinishedEventHandlerTest {
 	}
 
 	@Test
-	void shouldSendWhenNotificationsEnabled() {
+	void shouldSendWhenNotificationsEnabled() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -186,7 +190,7 @@ class LaunchFinishedEventHandlerTest {
 	}
 
 	@Test
-	void shouldSendWhenAutoAnalyzedDisabledEnabled() {
+	void shouldSendWhenAutoAnalyzedDisabledEnabled() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);

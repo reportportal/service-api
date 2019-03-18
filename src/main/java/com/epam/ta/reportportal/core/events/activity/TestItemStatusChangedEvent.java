@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityReso
 	@Override
 	public Activity toActivity() {
 		Activity activity = new Activity();
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM);
+		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM.getValue());
 		activity.setObjectId(getAfter().getId());
 		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
 		activity.setProjectId(getAfter().getProjectId());

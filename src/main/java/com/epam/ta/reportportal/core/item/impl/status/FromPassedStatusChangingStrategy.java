@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -40,11 +42,12 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Component
 public class FromPassedStatusChangingStrategy extends StatusChangingStrategy {
 
+	@Autowired
 	public FromPassedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
-			MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository, MessageBus messageBus) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
 	}
 

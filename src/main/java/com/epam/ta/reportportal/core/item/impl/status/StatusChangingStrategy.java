@@ -38,21 +38,21 @@ import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter
  */
 public abstract class StatusChangingStrategy {
 
-	protected static final String SKIPPED_ISSUE_KEY = "skippedIssue";
+	static final String SKIPPED_ISSUE_KEY = "skippedIssue";
 
 	protected final TestItemRepository testItemRepository;
 
-	protected final ItemAttributeRepository itemAttributeRepository;
+	final ItemAttributeRepository itemAttributeRepository;
 
 	protected final IssueTypeHandler issueTypeHandler;
 
-	protected final IssueEntityRepository issueEntityRepository;
+	final IssueEntityRepository issueEntityRepository;
 
 	protected final LaunchRepository launchRepository;
 
 	protected final MessageBus messageBus;
 
-	public StatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
+	StatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
 			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
 			MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
@@ -65,7 +65,7 @@ public abstract class StatusChangingStrategy {
 
 	abstract public void changeStatus(TestItem item, StatusEnum providedStatus, Long userId, Long projectId);
 
-	protected void setToInvestigateIssue(TestItem testItem, Long projectId) {
+	void setToInvestigateIssue(TestItem testItem, Long projectId) {
 		IssueEntity issueEntity = new IssueEntity();
 		IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 		issueEntity.setIssueType(toInvestigate);
@@ -75,7 +75,7 @@ public abstract class StatusChangingStrategy {
 		testItem.getItemResults().setIssue(issueEntity);
 	}
 
-	protected void changeStatusRecursively(TestItem testItem, Long userId, Long projectId) {
+	void changeStatusRecursively(TestItem testItem, Long userId, Long projectId) {
 		TestItem parent = testItem.getParent();
 		Hibernate.initialize(parent);
 		if (parent != null) {
@@ -92,7 +92,7 @@ public abstract class StatusChangingStrategy {
 		}
 	}
 
-	protected void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId, Long projectId) {
+	void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId, Long projectId) {
 		if (!oldParentStatus.equals(StatusEnum.FAILED)) {
 			TestItem parent = testItem.getParent();
 			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);

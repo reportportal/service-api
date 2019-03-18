@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -37,11 +39,12 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Component
 public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 
+	@Autowired
 	public FromSkippedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
-			MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository, MessageBus messageBus) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
 	}
 

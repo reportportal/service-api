@@ -56,19 +56,25 @@ public class RabbitMqConfiguration {
 	public static final String EXCHANGE_REPORTING = "reporting";
 	public static final String EXCHANGE_ATTACHMENT = "direct.attachment";
 
-	public static final String KEY_PLUGINS_PING = "broadcast.plugins.ping";
-	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
-	public static final String KEY_EVENTS = "broadcast.events";
-
 	/**
 	 * Queues
 	 */
+	public static final String KEY_EVENTS = "broadcast.events";
 	public static final String QUEUE_ACTIVITY = "activity";
 	public static final String QUEUE_START_LAUNCH = "reporting.launch.start";
 	public static final String QUEUE_FINISH_LAUNCH = "reporting.launch.finish";
 	public static final String QUEUE_START_ITEM = "reporting.item.start";
 	public static final String QUEUE_FINISH_ITEM = "reporting.item.finish";
 	public static final String QUEUE_DELETE_ATTACHMENT = "attachment.delete";
+
+	public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
+	public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
+	public static final String TEST_ITEMS_FIND_ONE_QUEUE = "repository.find.item";
+	public static final String INTEGRATION_FIND_ONE = "repository.find.integration";
+	public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
+
+	public static final String KEY_PLUGINS_PING = "broadcast.plugins.ping";
+	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
 
 	public static final String QUEUE_QUERY_RQ = "query-rq";
 
@@ -237,63 +243,32 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Queue projectRepoQueue() {
-		return new Queue(RabbitConstants.QueueNames.PROJECTS_FIND_BY_NAME);
+		return new Queue(PROJECTS_FIND_BY_NAME);
 	}
 
 	@Bean
 	public Queue dataStorageQueue() {
-		return new Queue(RabbitConstants.QueueNames.DATA_STORAGE_FETCH_DATA_QUEUE);
+		return new Queue(DATA_STORAGE_FETCH_DATA_QUEUE);
 	}
 
 	@Bean
 	public Queue integrationRepoQueue() {
-		return new Queue(RabbitConstants.QueueNames.INTEGRATION_FIND_ONE);
+		return new Queue(INTEGRATION_FIND_ONE);
 	}
 
 	@Bean
 	public Queue logRepoQueue() {
-		return new Queue(RabbitConstants.QueueNames.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE);
+		return new Queue(LOGS_FIND_BY_TEST_ITEM_REF_QUEUE);
 	}
 
 	@Bean
 	public Queue testItemRepoQueue() {
-		return new Queue(RabbitConstants.QueueNames.TEST_ITEMS_FIND_ONE_QUEUE);
+		return new Queue(TEST_ITEMS_FIND_ONE_QUEUE);
 	}
 
 	@Bean
 	public Queue queryQueue() {
 		return new Queue(QUEUE_QUERY_RQ);
-	}
-
-	public class RabbitConstants {
-
-		private RabbitConstants() {
-			//static only
-		}
-
-		public final class QueueNames {
-
-			public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
-			public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
-			public static final String TEST_ITEMS_FIND_ONE_QUEUE = "repository.find.item";
-			public static final String INTEGRATION_FIND_ONE = "repository.find.integration";
-			public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
-
-			private QueueNames() {
-				//static only
-			}
-		}
-
-		public final class MessageHeaders {
-
-			public static final String ITEM_REF = "itemRef";
-			public static final String LIMIT = "limit";
-			public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
-
-			private MessageHeaders() {
-				//static only
-			}
-		}
 	}
 
 }

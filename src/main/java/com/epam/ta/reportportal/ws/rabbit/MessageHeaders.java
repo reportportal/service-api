@@ -27,6 +27,10 @@ public final class MessageHeaders {
 	public static final String ITEM_ID = "itemId";
 	public static final String PARENT_ID = "parentId";
 
+	public static final String ITEM_REF = "itemRef";
+	public static final String LIMIT = "limit";
+	public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
+
 	private MessageHeaders() {
 		//static only
 	}

@@ -149,7 +149,7 @@ public class UserController {
 	@DeleteMapping
 	@PreAuthorize(ADMIN_ONLY)
 	@ResponseStatus(OK)
-	@ApiOperation("Delete specified launches by ids")
+	@ApiOperation("Delete specified users by ids")
 	public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteUserHandler.deleteUsers(deleteBulkRQ, user);
 	}

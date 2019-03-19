@@ -76,6 +76,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		projectRepository.deleteById(project.getId());
+		logIndexer.deleteIndex(project.getId());
 
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
 

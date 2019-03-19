@@ -141,12 +141,12 @@ public class IntegrationController {
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/all")
+	@DeleteMapping(value = "/all/{type}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all integrations assigned to specified project")
 	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS deleteAllIntegrations(@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteAllIntegrations();
+	public OperationCompletionRS deleteAllIntegrations(@PathVariable String type, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteIntegrationHandler.deleteGlobalIntegrationsByType(type);
 	}
 
 	@Transactional
@@ -156,21 +156,24 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegration(
-				integrationId,
+		return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);
 	}
 
 	@Transactional
-	@DeleteMapping(value = "/{projectName}/all")
+	@DeleteMapping(value = "/{projectName}/all/{type}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Delete all integrations assigned to specified project")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String projectName,
+	public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegrations(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user);
+		return deleteIntegrationHandler.deleteProjectIntegrationsByType(
+				type,
+				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+				user
+		);
 	}
 
 }

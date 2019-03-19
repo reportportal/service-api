@@ -1,0 +1,146 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.ta.reportportal.job;
+
+import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.pf4j.PluginDescriptor;
+import org.pf4j.PluginWrapper;
+
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.mockito.Mockito.*;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+class PluginLoaderServiceTest {
+
+	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+
+	private Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
+
+	private PluginLoaderService pluginLoaderService = new PluginLoaderServiceImpl(integrationTypeRepository, pluginBox);
+
+	private PluginWrapper jiraPlugin = mock(PluginWrapper.class);
+	private PluginWrapper rallyPlugin = mock(PluginWrapper.class);
+
+	private PluginDescriptor jiraPluginDescriptor = mock(PluginDescriptor.class);
+	private PluginDescriptor rallyPluginDescriptor = mock(PluginDescriptor.class);
+
+	@Test
+	void getNotLoadedPluginsInfoTest() {
+
+		when(pluginBox.getPluginById("JIRA")).thenReturn(Optional.ofNullable(jiraPlugin));
+		when(pluginBox.getPluginById("RALLY")).thenReturn(Optional.ofNullable(rallyPlugin));
+		when(jiraPlugin.getDescriptor()).thenReturn(jiraPluginDescriptor);
+		when(jiraPluginDescriptor.getVersion()).thenReturn("v1");
+		when(rallyPlugin.getDescriptor()).thenReturn(rallyPluginDescriptor);
+		when(rallyPluginDescriptor.getVersion()).thenReturn("another version");
+		List<PluginInfo> notLoadedPluginsInfo = pluginLoaderService.getNotLoadedPluginsInfo(getIntegrationTypes());
+
+		Assertions.assertFalse(notLoadedPluginsInfo.isEmpty());
+		Assertions.assertEquals(1, notLoadedPluginsInfo.size());
+		Assertions.assertEquals("RALLY", notLoadedPluginsInfo.get(0).getId());
+	}
+
+	@Test
+	void checkAndDeleteIntegrationTypeWhenPluginPositive() {
+		IntegrationType integrationType = new IntegrationType();
+		integrationType.setId(1L);
+		integrationType.setName("JIRA");
+
+		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
+		when(jiraPlugin.getPluginId()).thenReturn("JIRA");
+		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get("plugins", "file.jar"));
+		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(true);
+
+		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
+
+		verify(integrationTypeRepository, times(1)).deleteById(integrationType.getId());
+	}
+
+	@Test
+	void checkAndDeleteIntegrationTypeWhenPluginNegative() {
+		IntegrationType integrationType = new IntegrationType();
+		integrationType.setId(1L);
+		integrationType.setName("JIRA");
+
+		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
+		when(jiraPlugin.getPluginId()).thenReturn("JIRA");
+		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(false);
+
+		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
+
+		verify(integrationTypeRepository, times(0)).deleteById(integrationType.getId());
+	}
+
+	@Test
+	void checkAndDeleteIntegrationTypeWhenNotPluginTest() {
+		IntegrationType integrationType = new IntegrationType();
+		integrationType.setId(1L);
+		integrationType.setName("EMAIL");
+
+		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
+
+		verify(integrationTypeRepository, times(0)).deleteById(integrationType.getId());
+	}
+
+	private List<IntegrationType> getIntegrationTypes() {
+
+		IntegrationType jira = new IntegrationType();
+		jira.setName("JIRA");
+		IntegrationTypeDetails jiraDetails = new IntegrationTypeDetails();
+		Map<String, Object> jiraParams = Maps.newHashMap();
+		jiraParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f1");
+		jiraParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname1");
+		jiraParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v1");
+		jiraDetails.setDetails(jiraParams);
+		jira.setDetails(jiraDetails);
+
+		IntegrationType rally = new IntegrationType();
+		Map<String, Object> rallyParams = Maps.newHashMap();
+		rallyParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f2");
+		rallyParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname2");
+		rallyParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v2");
+		IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
+		rallyDetails.setDetails(rallyParams);
+		rally.setName("RALLY");
+		rally.setDetails(rallyDetails);
+
+		IntegrationType noDetails = new IntegrationType();
+		noDetails.setName("NO DETAILS");
+
+		IntegrationType emptyParams = new IntegrationType();
+		emptyParams.setName("EMPTY PARAMS");
+		emptyParams.setDetails(new IntegrationTypeDetails());
+
+		return Lists.newArrayList(jira, rally, noDetails, emptyParams);
+	}
+
+}

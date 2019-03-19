@@ -15,14 +15,14 @@
  */
 package com.epam.ta.reportportal.info;
 
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -38,21 +38,12 @@ public class ExtensionsInfoContributor implements ExtensionContributor {
 
 	private static final String BUGTRACKING_KEY = "bugtracking";
 
-	private final DiscoveryClient discoveryClient;
-
 	@Autowired
-	public ExtensionsInfoContributor(DiscoveryClient discoveryClient) {
-		this.discoveryClient = discoveryClient;
-	}
+	private Pf4jPluginBox pluginBox;
 
 	@Override
 	public Map<String, ?> contribute() {
-		Set<String> collect = discoveryClient.getServices()
-				.stream()
-				.flatMap(service -> discoveryClient.getInstances(service).stream())
-				.filter(instance -> instance.getMetadata().containsKey(EXTENSION_KEY))
-				.map(instance -> instance.getMetadata().get(EXTENSION_KEY))
-				.collect(Collectors.toCollection(TreeSet::new));
-		return ImmutableMap.<String, Object>builder().put(BUGTRACKING_KEY, collect).build();
+		Set<String> names = pluginBox.getPlugins().stream().map(Plugin::getId).collect(Collectors.toSet());
+		return ImmutableMap.<String, Object>builder().put(EXTENSION_KEY, names).build();
 	}
 }

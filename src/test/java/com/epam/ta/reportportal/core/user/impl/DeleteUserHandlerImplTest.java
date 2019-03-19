@@ -21,6 +21,8 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -98,7 +100,10 @@ class DeleteUserHandlerImplTest {
 		doReturn(Optional.of(user)).when(repository).findById(2L);
 		doReturn(Optional.of(user2)).when(repository).findById(3L);
 
-		handler.deleteUsers(new Long[] { 2L, 3L }, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));
+		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
+		deleteBulkRQ.setIds(Lists.newArrayList(2L, 3L));
+
+		handler.deleteUsers(deleteBulkRQ, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));
 
 		verify(repository, times(2)).findById(any(Long.class));
 		verify(repository, times(2)).delete(any(User.class));

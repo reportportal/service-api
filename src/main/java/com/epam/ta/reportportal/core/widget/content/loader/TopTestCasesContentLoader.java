@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -43,7 +42,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static java.util.Collections.emptyMap;
@@ -76,14 +75,15 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 			int limit) {
 		String contentField = validateContentFields(contentFields);
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		Launch latestByName = launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter,
-				WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
-		))
+		filter.withCondition(new FilterCondition(Condition.EQUALS,
+				false,
+				WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions),
+				CRITERIA_NAME
+		));
+		Launch latestByName = launchRepository.findLatestByFilter(filter)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
 						WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions)
 				));
-
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(latestByName.getId()), CRITERIA_ID));
 
 		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
 				contentField,

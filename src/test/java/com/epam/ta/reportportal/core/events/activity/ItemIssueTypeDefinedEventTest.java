@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ class ItemIssueTypeDefinedEventTest {
 	private static Activity getExpectedActivity() {
 		Activity activity = new Activity();
 		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE);
+		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM_ISSUE.getValue());
 		activity.setUserId(1L);
 		activity.setProjectId(3L);
 		activity.setObjectId(2L);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,16 +65,19 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
 	private final IssueEntityRepository issueEntityRepository;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public DeleteProjectSettingsHandlerImpl(ProjectRepository projectRepository, StatisticsFieldRepository statisticsFieldRepository,
 			WidgetRepository widgetRepository, MessageBus messageBus, IssueTypeRepository issueTypeRepository,
-			IssueEntityRepository issueEntityRepository) {
+			IssueEntityRepository issueEntityRepository, ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.statisticsFieldRepository = statisticsFieldRepository;
 		this.widgetRepository = widgetRepository;
 		this.messageBus = messageBus;
 		this.issueTypeRepository = issueTypeRepository;
 		this.issueEntityRepository = issueEntityRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -121,10 +125,13 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 						.remove("statistics$defects$" + type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase()
 								+ "$" + type.getIssueType().getLocator()));
 
-		messageBus.publishActivity(new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
+		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(
+				TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				project.getId(),
 				user.getUserId()
-		));
+		);
+		messageBus.publishActivity(defectTypeDeletedEvent);
+		eventPublisher.publishEvent(defectTypeDeletedEvent);
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
 	}
 }

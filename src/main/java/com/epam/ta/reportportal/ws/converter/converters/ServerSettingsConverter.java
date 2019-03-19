@@ -18,18 +18,14 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.ServerSettingsConstants.ANALYTICS_CONFIG_PREFIX;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Converts internal DB model to DTO
@@ -42,21 +38,9 @@ public final class ServerSettingsConverter {
 		//static only
 	}
 
-	public static final Function<List<ServerSettings>, ServerSettingsResource> TO_RESOURCE = serverSettings -> {
+	public static final Function<List<ServerSettings>, Map<String, String>> TO_RESOURCE = serverSettings -> {
 		expect(serverSettings, CollectionUtils::isNotEmpty).verify(ErrorType.SERVER_SETTINGS_NOT_FOUND, "default");
-
-		ServerSettingsResource resource = new ServerSettingsResource();
-
-		resource.setAnalyticsResource(serverSettings.stream()
-				.filter(s -> ofNullable(s.getKey()).map(k -> k.startsWith(ANALYTICS_CONFIG_PREFIX)).orElse(false))
-				.collect(toMap(ServerSettings::getKey, s -> {
-					AnalyticsResource analyticsResource = new AnalyticsResource(BooleanUtils.toBoolean(s.getValue()));
-					analyticsResource.setType(s.getKey());
-
-					return analyticsResource;
-				}, (prev, curr) -> prev)));
-
-		return resource;
+		return serverSettings.stream().collect(Collectors.toMap(ServerSettings::getKey, ServerSettings::getValue));
 	};
 
 }

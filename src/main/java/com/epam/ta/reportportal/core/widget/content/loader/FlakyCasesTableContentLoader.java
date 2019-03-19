@@ -16,10 +16,11 @@
 
 package com.epam.ta.reportportal.core.widget.content.loader;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static java.util.Collections.emptyMap;
@@ -64,16 +66,14 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 			int limit) {
 
 		validateWidgetOptions(widgetOptions);
-
 		validateFilterSortMapping(filterSortMapping);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME));
 
-		Launch launch = launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
+		Launch launch = launchRepository.findLatestByFilter(filter)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
-
 		LatestLaunchContent latestLaunchContent = new LatestLaunchContent(launch);
 
 		List<FlakyCasesTableContent> flakyCasesTableContent = widgetRepository.flakyCasesStatistics(
@@ -82,7 +82,6 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 						.orElse(false),
 				limit
 		);
-
 		return CollectionUtils.isEmpty(flakyCasesTableContent) ?
 				emptyMap() :
 				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, latestLaunchContent).put(FLAKY, flakyCasesTableContent).build();

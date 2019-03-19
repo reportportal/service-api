@@ -16,7 +16,7 @@ RUN chown -R rp-builder:rp-builder ./
 USER rp-builder
 RUN ./gradlew wrapper
 RUN ./gradlew resolveDependencies --stacktrace
-RUN ./gradlew build --stacktrace
+RUN ./gradlew build --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins
 RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar

@@ -52,6 +52,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -148,9 +149,9 @@ public class UserController {
 	@DeleteMapping
 	@PreAuthorize(ADMIN_ONLY)
 	@ResponseStatus(OK)
-	@ApiOperation("Delete specified launches by ids")
-	public DeleteBulkRS deleteUsers(@RequestParam(value = "ids") Long[] ids, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteUserHandler.deleteUsers(ids, user);
+	@ApiOperation("Delete specified users by ids")
+	public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteUserHandler.deleteUsers(deleteBulkRQ, user);
 	}
 
 	@Transactional
@@ -159,7 +160,7 @@ public class UserController {
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, role);
+		return editUserMessageHandler.editUser(EntityUtils.normalizeId(login), editUserRQ, currentUser);
 	}
 
 	@Transactional(readOnly = true)

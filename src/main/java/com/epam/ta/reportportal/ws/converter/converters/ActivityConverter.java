@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public final class ActivityConverter {
 		ActivityResource resource = new ActivityResource();
 		resource.setId(activity.getId());
 		resource.setLastModified(TO_DATE.apply(activity.getCreatedAt()));
-		resource.setObjectType(activity.getActivityEntityType().getValue());
+		resource.setObjectType(activity.getActivityEntityType());
 		resource.setActionType(activity.getAction());
 		resource.setProjectId(activity.getProjectId());
 		resource.setUser(activity.getUsername());

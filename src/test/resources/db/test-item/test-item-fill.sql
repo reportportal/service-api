@@ -31,9 +31,6 @@ insert into test_item_results(result_id, status) values (3, 'FAILED');
 
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer) values (3, 2, 'issue desc', false, true);
 
-insert into bug_tracking_system (id, url, type, bts_project, project_id)
-values (4, 'http://example.com', 'JIRA', 'test_project', 2);
-
 insert into ticket(ticket_id, submitter_id, submit_date, bts_url, bts_project, url) values ('ticket', 2, now(), 'https://example.com', 'project', 'https://example.com/ticket');
 
 insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,14 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -48,12 +50,13 @@ import java.util.stream.LongStream;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -192,12 +195,13 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkDeleteLaunches() throws Exception {
-		List<Long> toDelete = asList(1L, 2L);
-		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch?ids=" + toDelete.stream()
-				.map(Object::toString)
-				.collect(Collectors.joining(","))).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().is(200));
-		List<Launch> launches = launchRepository.findAllById(toDelete);
+		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
+		List<Long> ids = Lists.newArrayList(1L, 2L);
+		deleteBulkRQ.setIds(ids);
+		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/launch").contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getDefaultToken()))
+				.content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().is(200));
+		List<Launch> launches = launchRepository.findAllById(ids);
 		assertTrue(launches.isEmpty());
 	}
 
@@ -247,5 +251,18 @@ class LaunchControllerTest extends BaseMvcTest {
 		mockMvc.perform(get(
 				DEFAULT_PROJECT_BASE_URL + "/launch/attribute/values?filter.eq.attributeKey=browser&filter.cnt.attributeValue=ch").with(
 				token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getProjectLaunches() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", hasSize(4)));
+	}
+
+	@Test
+	void export() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 }

@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
@@ -90,7 +90,7 @@ class NotificationConfigConverterTest {
 		SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
 		senderCaseDTO.setRecipients(Arrays.asList("recipient1", "recipient2"));
 		senderCaseDTO.setLaunchNames(Arrays.asList("launch1", "launch2"));
-		final LaunchAttribute launchAttribute = new LaunchAttribute();
+		final ItemAttributeResource launchAttribute = new ItemAttributeResource();
 		launchAttribute.setKey("key");
 		launchAttribute.setValue("val");
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.util.email;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -72,7 +72,7 @@ public final class EmailRulesValidator {
 		);
 	}
 
-	public static void validateLaunchAttribute(LaunchAttribute attribute) {
+	public static void validateLaunchAttribute(ItemAttributeResource attribute) {
 		expect(attribute, notNull()).verify(ErrorType.BAD_REQUEST_ERROR, "Launch attribute cannot be null.");
 		expect(isNullOrEmpty(attribute.getValue()), equalTo(false)).verify(BAD_REQUEST_ERROR,
 				"Attribute' values cannot be empty. Please specify them or do not include in a request."

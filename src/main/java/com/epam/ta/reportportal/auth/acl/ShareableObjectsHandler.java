@@ -62,7 +62,7 @@ public class ShareableObjectsHandler {
 					.filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
 					.forEach(entry -> {
 						aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
-						if (!ProjectRole.PROJECT_MANAGER.higherThan(entry.getValue())) {
+						if (ProjectRole.PROJECT_MANAGER.sameOrLowerThan(entry.getValue())) {
 							aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
 						}
 
@@ -82,7 +82,7 @@ public class ShareableObjectsHandler {
 		if (isShared) {
 			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((key, value) -> {
 				aclService.addPermissions(object, key, BasePermission.READ);
-				if (!ProjectRole.PROJECT_MANAGER.higherThan(value)) {
+				if (ProjectRole.PROJECT_MANAGER.sameOrLowerThan(value)) {
 					aclService.addPermissions(object, key, BasePermission.ADMINISTRATION);
 				}
 

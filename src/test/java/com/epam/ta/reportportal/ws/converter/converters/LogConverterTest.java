@@ -27,7 +27,7 @@ class LogConverterTest {
 		assertEquals(resource.getMessage(), log.getLogMessage());
 		assertEquals(resource.getLevel(), LogLevel.toLevel(log.getLogLevel()).toString());
 		assertEquals(resource.getLogTime(), Date.from(log.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
-		assertEquals(resource.getTestItem(), String.valueOf(log.getTestItem().getItemId()));
+		assertEquals(resource.getTestItem(), log.getTestItem().getItemId());
 
 		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
 

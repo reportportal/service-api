@@ -39,8 +39,8 @@ import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.NotificationConfigConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -219,10 +219,10 @@ public class LaunchFinishedEventHandler {
 				.stream()
 				.filter(attribute -> !attribute.isSystem())
 				.map(attribute -> {
-					LaunchAttribute launchAttribute = new LaunchAttribute();
-					launchAttribute.setKey(attribute.getKey());
-					launchAttribute.setValue(attribute.getValue());
-					return launchAttribute;
+					ItemAttributeResource attributeResource = new ItemAttributeResource();
+					attributeResource.setKey(attribute.getKey());
+					attributeResource.setValue(attribute.getValue());
+					return attributeResource;
 				})
 				.collect(Collectors.toSet())
 				.containsAll(launchAttributeRules.stream()

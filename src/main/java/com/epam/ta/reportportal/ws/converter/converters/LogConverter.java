@@ -57,7 +57,7 @@ public final class LogConverter {
 			resource.setBinaryContent(binaryContent);
 		}
 
-		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setTestItem(String.valueOf(testItem.getItemId())));
+		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setTestItem(testItem.getItemId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
 		return resource;
 	};

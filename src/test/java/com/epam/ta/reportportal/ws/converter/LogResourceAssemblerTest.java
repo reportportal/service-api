@@ -42,7 +42,7 @@ class LogResourceAssemblerTest {
 		assertEquals(logResource.getId(), log.getId());
 		assertEquals(logResource.getLevel(), LogLevel.toLevel(log.getLogLevel()).name());
 		assertEquals(logResource.getMessage(), log.getLogMessage());
-		assertEquals(logResource.getTestItem(), String.valueOf(log.getTestItem().getItemId()));
+		assertEquals(logResource.getTestItem(), log.getTestItem().getItemId());
 	}
 
 	@Test
@@ -62,7 +62,7 @@ class LogResourceAssemblerTest {
 		assertEquals(logResource.getId(), log.getId());
 		assertEquals(logResource.getLevel(), LogLevel.toLevel(log.getLogLevel()).name());
 		assertEquals(logResource.getMessage(), log.getLogMessage());
-		assertEquals(logResource.getTestItem(), String.valueOf(log.getTestItem().getItemId()));
+		assertEquals(logResource.getTestItem(), log.getTestItem().getItemId());
 	}
 
 	private Log getLog() {

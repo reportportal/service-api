@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.enums.SendCase;
@@ -5,7 +21,7 @@ import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -31,12 +47,11 @@ public final class NotificationConfigConverter {
 			.map(NotificationConfigConverter.TO_CASE_RESOURCE)
 			.collect(Collectors.toList());
 
-	public static final Function<LaunchAttributeRule, LaunchAttribute> TO_ATTRIBUTE_RULE_RESOURCE = model -> {
-		LaunchAttribute launchAttribute = new LaunchAttribute();
-		launchAttribute.setKey(model.getKey());
-		launchAttribute.setValue(model.getValue());
-
-		return launchAttribute;
+	public static final Function<LaunchAttributeRule, ItemAttributeResource> TO_ATTRIBUTE_RULE_RESOURCE = model -> {
+		ItemAttributeResource attributeResource = new ItemAttributeResource();
+		attributeResource.setKey(model.getKey());
+		attributeResource.setValue(model.getValue());
+		return attributeResource;
 	};
 
 	public final static Function<SenderCase, SenderCaseDTO> TO_CASE_RESOURCE = model -> {
@@ -51,12 +66,10 @@ public final class NotificationConfigConverter {
 		return resource;
 	};
 
-	public static final Function<LaunchAttribute, LaunchAttributeRule> TO_ATTRIBUTE_RULE_MODEL = resource -> {
-
+	public static final Function<ItemAttributeResource, LaunchAttributeRule> TO_ATTRIBUTE_RULE_MODEL = resource -> {
 		LaunchAttributeRule launchAttributeRule = new LaunchAttributeRule();
 		launchAttributeRule.setKey(resource.getKey());
 		launchAttributeRule.setValue(resource.getValue());
-
 		return launchAttributeRule;
 	};
 

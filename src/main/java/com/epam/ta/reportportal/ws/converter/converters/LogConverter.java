@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public final class LogConverter {
 			resource.setBinaryContent(binaryContent);
 		}
 
-		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setTestItem(String.valueOf(testItem.getItemId())));
+		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setTestItem(testItem.getItemId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
 		return resource;
 	};

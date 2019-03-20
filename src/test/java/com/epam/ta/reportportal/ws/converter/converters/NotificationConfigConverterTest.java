@@ -1,9 +1,25 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
@@ -90,7 +106,7 @@ class NotificationConfigConverterTest {
 		SenderCaseDTO senderCaseDTO = new SenderCaseDTO();
 		senderCaseDTO.setRecipients(Arrays.asList("recipient1", "recipient2"));
 		senderCaseDTO.setLaunchNames(Arrays.asList("launch1", "launch2"));
-		final LaunchAttribute launchAttribute = new LaunchAttribute();
+		final ItemAttributeResource launchAttribute = new ItemAttributeResource();
 		launchAttribute.setKey("key");
 		launchAttribute.setValue("val");
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));

@@ -339,6 +339,16 @@ public class ProjectController {
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ADMIN_ONLY)
+	@RequestMapping(value = "/names/search", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	@ApiIgnore
+	public Iterable<String> searchProjectNames(@RequestParam("term") String term, @AuthenticationPrincipal ReportPortalUser user) {
+		return getProjectHandler.getAllProjectNamesByTerm(term);
+	}
+
+	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping("analyzer/status")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)

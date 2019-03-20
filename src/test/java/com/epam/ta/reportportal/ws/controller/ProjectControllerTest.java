@@ -206,6 +206,11 @@ class ProjectControllerTest extends BaseMvcTest {
 		mockMvc.perform(get("/project/names").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
+	@Test
+	void searchProjectNames() throws Exception {
+		mockMvc.perform(get("/project/names/search?term=UpEr").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
 	@Sql("/db/test-item/test-item-fill.sql")
 	@Test
 	void getProjectInfoPositive() throws Exception {

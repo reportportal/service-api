@@ -69,12 +69,12 @@ class DeleteProjectHandlerImplTest {
 
 	@Test
 	void deleteNotExistProject() {
-		String projectName = "notExist";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		Long projectId = 1L;
+		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectName));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectId));
 
-		assertEquals("Project 'notExist' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test

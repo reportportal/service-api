@@ -90,6 +90,10 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	@Override
 	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer deployed."
+		);
+
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
@@ -101,10 +105,6 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
 				Predicate.isEqual(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
-
-		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"No Analyzer services up. Please deploy Analyzer service to remove index."
-		);
 
 		logIndexer.deleteIndex(project.getId());
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), false));

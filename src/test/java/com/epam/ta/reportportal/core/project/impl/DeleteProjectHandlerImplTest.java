@@ -84,6 +84,7 @@ class DeleteProjectHandlerImplTest {
 	@Test
 	void deleteIndexOnNotExistProject() {
 		String projectName = "notExist";
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
@@ -95,6 +96,7 @@ class DeleteProjectHandlerImplTest {
 	void deleteProjectIndexByNotExistUser() {
 		String projectName = "notExist";
 		String userName = "user";
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.empty());
 
@@ -108,6 +110,7 @@ class DeleteProjectHandlerImplTest {
 		String projectName = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, true)));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 
@@ -121,6 +124,7 @@ class DeleteProjectHandlerImplTest {
 		String projectName = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 		Cache<Long, Long> cache = CacheBuilder.newBuilder().build();
@@ -135,19 +139,11 @@ class DeleteProjectHandlerImplTest {
 	@Test
 	void deleteIndexWhenThereAreNoAnalyzers() {
 		String projectName = "test_project";
-		String userName = "user";
-		Long projectId = 1L;
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
-		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
-		when(analyzerStatusCache.getAnalyzeStatus()).thenReturn(CacheBuilder.newBuilder().build());
 		when(analyzerServiceClient.hasClients()).thenReturn(false);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
 
-		assertEquals(
-				"Impossible interact with integration. No Analyzer services up. Please deploy Analyzer service to remove index.",
-				exception.getMessage()
-		);
+		assertEquals("Impossible interact with integration. There are no analyzer deployed.", exception.getMessage());
 	}
 
 	@Test

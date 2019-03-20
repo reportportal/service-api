@@ -243,6 +243,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	@Override
 	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer deployed."
+		);
 
 		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
 				equalTo(false)
@@ -251,10 +254,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		expect(
 				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
 				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
-
-		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"No Analyzer services up. Please deploy Analyzer service to remove index."
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds."
 		);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())

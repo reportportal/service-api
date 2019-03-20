@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ class WidgetEventsTest {
 	private static Activity getExpectedActivity(ActivityAction action, String name) {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET);
+		activity.setActivityEntityType(Activity.ActivityEntityType.WIDGET.getValue());
 		activity.setUserId(1L);
 		activity.setProjectId(3L);
 		activity.setObjectId(2L);

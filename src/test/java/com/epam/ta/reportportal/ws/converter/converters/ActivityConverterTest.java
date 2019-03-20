@@ -51,7 +51,7 @@ class ActivityConverterTest {
 		details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
 		activity.setDetails(details);
 		activity.setUsername("username");
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
 		activity.setProjectId(2L);
 		activity.setUserId(3L);
 		validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
@@ -67,7 +67,7 @@ class ActivityConverterTest {
 		details.setObjectName("objectName");
 		details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
 		activity.setDetails(details);
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH);
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
 		activity.setProjectId(2L);
 		activity.setUserId(3L);
 		final ActivityResource resource = ActivityConverter.TO_RESOURCE_WITH_USER.apply(activity, "username");
@@ -77,7 +77,7 @@ class ActivityConverterTest {
 	private void validate(Activity db, ActivityResource resource) {
 		assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()), resource.getLastModified());
 		assertEquals(db.getId(), resource.getId());
-		assertEquals(db.getActivityEntityType(), Activity.ActivityEntityType.fromString(resource.getObjectType()).get());
+		assertEquals(db.getActivityEntityType(), Activity.ActivityEntityType.fromString(resource.getObjectType()).get().getValue());
 		assertEquals(db.getUsername(), resource.getUser());
 		assertEquals(db.getProjectId(), resource.getProjectId());
 		assertEquals(db.getAction(), resource.getActionType());

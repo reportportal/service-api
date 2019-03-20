@@ -84,6 +84,6 @@ class ActivityConsumerTest {
 
 		activityConsumer.onEvent(notEmptyActivity);
 
-		verify(activityRepository, times(1)).save(notEmptyActivity.toActivity());
+		verify(activityRepository, times(1)).save(any());
 	}
 }

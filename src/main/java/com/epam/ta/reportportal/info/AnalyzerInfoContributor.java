@@ -16,14 +16,14 @@
 
 package com.epam.ta.reportportal.info;
 
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.google.common.collect.ImmutableMap;
+import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
@@ -36,21 +36,16 @@ import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.A
 @Component
 public class AnalyzerInfoContributor implements ExtensionContributor {
 
-	private final DiscoveryClient discoveryClient;
+	private final RabbitMqManagementClient managementClient;
 
 	@Autowired
-	public AnalyzerInfoContributor(DiscoveryClient discoveryClient) {
-		this.discoveryClient = discoveryClient;
+	public AnalyzerInfoContributor(RabbitMqManagementClient managementClient) {
+		this.managementClient = managementClient;
 	}
 
 	@Override
 	public Map<String, ?> contribute() {
-		Set<String> collect = discoveryClient.getServices()
-				.stream()
-				.flatMap(service -> discoveryClient.getInstances(service).stream())
-				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
-				.map(instance -> instance.getMetadata().get(ANALYZER_KEY))
-				.collect(Collectors.toCollection(TreeSet::new));
-		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, collect).build();
+		Set<String> names = managementClient.getAnalyzerExchangesInfo().stream().map(ExchangeInfo::getName).collect(Collectors.toSet());
+		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, names).build();
 	}
 }

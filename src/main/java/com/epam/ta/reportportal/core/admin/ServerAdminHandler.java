@@ -20,6 +20,8 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
 import com.epam.ta.reportportal.ws.model.settings.ServerSettingsResource;
 
+import java.util.Map;
+
 /**
  * Server settings administration interface
  *
@@ -32,7 +34,7 @@ public interface ServerAdminHandler {
 	 *
 	 * @return {@link ServerSettingsResource}
 	 */
-	ServerSettingsResource getServerSettings();
+	Map<String, String> getServerSettings();
 
 	/**
 	 * Update analytics settings

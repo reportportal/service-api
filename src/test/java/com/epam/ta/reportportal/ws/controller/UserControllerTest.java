@@ -24,9 +24,11 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Disabled;
@@ -148,7 +150,13 @@ class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteUsers() throws Exception {
-		mockMvc.perform(delete("/user?ids=2").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+
+		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
+		deleteBulkRQ.setIds(Lists.newArrayList(2L));
+
+		mockMvc.perform(delete("/user").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().isOk());
 	}
 
 	@Test

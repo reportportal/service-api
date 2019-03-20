@@ -15,8 +15,14 @@
  */
 package com.epam.ta.reportportal.info;
 
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.entity.ServerSettings;
+import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,29 +37,21 @@ public class ServerSettingsInfoContributor implements ExtensionContributor {
 	private static final String ANALYTICS_KEY = "analytics";
 	private static final String INSTANCE_ID_KEY = "instanceId";
 
-	//private final ServerSettingsRepository settingsRepository;
+	private final ServerSettingsRepository settingsRepository;
 
-	//	@Autowired
-	//	@SuppressWarnings("SpringJavaAutowiringInspection")
-	//	public ServerSettingsInfoContributor(ServerSettingsRepository settingsRepository) {
-	//		this.settingsRepository = settingsRepository;
-	//	}
+	@Autowired
+	@SuppressWarnings("SpringJavaAutowiringInspection")
+	public ServerSettingsInfoContributor(ServerSettingsRepository settingsRepository) {
+		this.settingsRepository = settingsRepository;
+	}
 
 	@Override
 	public Map<String, ?> contribute() {
-
-		throw new UnsupportedOperationException();
-
-		//		Map<String, Object> info = new HashMap<>();
-		//
-		//		Optional<ServerSettings> serverSettings = ofNullable(settingsRepository.findOne("default"));
-		//
-		//		serverSettings.flatMap(settings -> ofNullable(settings.getAnalyticsDetails())).ifPresent(it -> info.put(ANALYTICS_KEY, it));
-		//
-		//		serverSettings.flatMap(settings -> ofNullable(settings.getInstanceId()))
-		//				.ifPresent(instanceId -> info.put(INSTANCE_ID_KEY, instanceId));
-		//
-		//		return info;
+		Map<String, Object> info = new HashMap<>();
+		List<ServerSettings> all = settingsRepository.findAll();
+		Map<String, String> result = ServerSettingsConverter.TO_RESOURCE.apply(all);
+		info.put("result", result);
+		return info;
 
 	}
 }

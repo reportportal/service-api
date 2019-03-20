@@ -217,9 +217,9 @@ public class EmailServerIntegrationService implements IntegrationService {
 		resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
 
 		EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(integrationParams)
-				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), attr));
+				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), BooleanUtils.toBoolean(attr)));
 		EmailSettingsEnum.SSL_ENABLED.getAttribute(integrationParams)
-				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), attr));
+				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), BooleanUtils.toBoolean(attr)));
 		EmailSettingsEnum.HOST.getAttribute(integrationParams)
 				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.HOST.getAttribute(), attr));
 

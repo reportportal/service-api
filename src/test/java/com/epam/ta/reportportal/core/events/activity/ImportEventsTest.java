@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class ImportEventsTest {
 	private static Activity getExpectedActivity(ActivityAction action) {
 		Activity activity = new Activity();
 		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT);
+		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT.getValue());
 		activity.setUserId(1L);
 		activity.setProjectId(3L);
 		activity.setCreatedAt(LocalDateTime.now());

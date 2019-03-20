@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import java.time.LocalDateTime;
@@ -83,7 +82,10 @@ public final class IntegrationTestUtil {
 
 	public static Map<String, Object> getParams() {
 
-		return ImmutableMap.<String, Object>builder().put("first", "first").put("second", "second").build();
+		Map<String, Object> map = Maps.newHashMap();
+		map.put("first", "first");
+		map.put("second", "second");
+		return map;
 	}
 
 	public static Optional<Project> getProjectWithId(long projectId) {

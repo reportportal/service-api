@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
@@ -57,6 +58,9 @@ class DeleteProjectHandlerImplTest {
 
 	@Mock
 	private LogIndexer logIndexer;
+
+	@Mock
+	private AnalyzerServiceClient analyzerServiceClient;
 
 	@Mock
 	private AnalyzerStatusCache analyzerStatusCache;
@@ -129,6 +133,24 @@ class DeleteProjectHandlerImplTest {
 	}
 
 	@Test
+	void deleteIndexWhenThereAreNoAnalyzers() {
+		String projectName = "test_project";
+		String userName = "user";
+		Long projectId = 1L;
+		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
+		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
+		when(analyzerStatusCache.getAnalyzeStatus()).thenReturn(CacheBuilder.newBuilder().build());
+		when(analyzerServiceClient.hasClients()).thenReturn(false);
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+
+		assertEquals(
+				"Impossible interact with integration. No Analyzer services up. Please deploy Analyzer service to remove index.",
+				exception.getMessage()
+		);
+	}
+
+	@Test
 	void happyDeleteIndex() {
 		String projectName = "test_project";
 		String userName = "user";
@@ -138,6 +160,7 @@ class DeleteProjectHandlerImplTest {
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 		when(analyzerStatusCache.getAnalyzeStatus()).thenReturn(CacheBuilder.newBuilder().build());
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 
 		OperationCompletionRS response = handler.deleteProjectIndex(projectName, "user");
 

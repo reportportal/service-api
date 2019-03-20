@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -54,6 +55,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final AnalyzerServiceClient analyzerServiceClient;
+
 	private final AnalyzerStatusCache analyzerStatusCache;
 
 	private final MessageBus messageBus;
@@ -62,10 +65,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
-			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
+			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
+			ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
+		this.analyzerServiceClient = analyzerServiceClient;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
@@ -96,6 +101,10 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
 				Predicate.isEqual(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"No Analyzer services up. Please deploy Analyzer service to remove index."
+		);
 
 		logIndexer.deleteIndex(project.getId());
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), false));

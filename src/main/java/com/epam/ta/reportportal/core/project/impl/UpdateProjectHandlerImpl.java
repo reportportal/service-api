@@ -254,7 +254,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"There are no analyzer's."
+				"There are no analyzer deployed."
 		);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())

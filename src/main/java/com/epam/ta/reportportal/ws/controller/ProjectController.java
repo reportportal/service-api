@@ -329,8 +329,7 @@ public class ProjectController {
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ADMIN_ONLY)
-	@RequestMapping(value = "/names", method = RequestMethod.GET)
-	@ResponseBody
+	@GetMapping(value = "/names")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiIgnore
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
@@ -339,10 +338,8 @@ public class ProjectController {
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ADMIN_ONLY)
-	@RequestMapping(value = "/names/search", method = RequestMethod.GET)
-	@ResponseBody
+	@GetMapping(value = "/names/search")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
 	public Iterable<String> searchProjectNames(@RequestParam("term") String term, @AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAllProjectNamesByTerm(term);
 	}

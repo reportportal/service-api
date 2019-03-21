@@ -112,12 +112,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	public DeleteBulkRS deleteProjects(DeleteBulkRQ deleteBulkRQ) {
 		List<ReportPortalException> exceptions = Lists.newArrayList();
 		List<Long> deleted = Lists.newArrayList();
-		deleteBulkRQ.getIds().forEach(userId -> {
+		deleteBulkRQ.getIds().forEach(projectId -> {
 			try {
-				deleteProject(userId);
-				deleted.add(userId);
-			} catch (ReportPortalException rp) {
-				exceptions.add(rp);
+				deleteProject(projectId);
+				deleted.add(projectId);
+			} catch (ReportPortalException ex) {
+				exceptions.add(ex);
 			}
 		});
 		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {

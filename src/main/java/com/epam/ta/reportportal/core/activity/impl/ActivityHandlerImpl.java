@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,13 +66,11 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		FilterCondition projectCondition = new FilterCondition(Condition.EQUALS,
-				false,
-				projectDetails.getProjectId().toString(),
-				CRITERIA_PROJECT_ID
-		);
-
-		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
+		FilterCondition projectCondition = FilterCondition.builder()
+				.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
+				.build();
+		Page<Activity> page = activityRepository.findByFilter(
+				new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
 				pageable
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);

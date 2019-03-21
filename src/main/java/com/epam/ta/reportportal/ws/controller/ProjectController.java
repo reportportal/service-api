@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,10 +33,7 @@ import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
@@ -58,6 +55,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
@@ -141,18 +139,17 @@ public class ProjectController {
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
-	public Iterable<OperationCompletionRS> deleteProject(@RequestBody @Validated BulkRQ<DeleteProjectRQ> deleteProjectsBulkRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProjects(deleteProjectsBulkRQ);
+	public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProjects(deleteBulkRQ);
 	}
 
 	@Transactional
-	@DeleteMapping("/{projectName}")
+	@DeleteMapping("/{projectId}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
-	public OperationCompletionRS deleteProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProject(normalizeId(projectName));
+	public OperationCompletionRS deleteProject(@PathVariable Long projectId, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProject(projectId);
 	}
 
 	@Transactional

@@ -210,8 +210,7 @@ class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	void getProjectInfoPositive() throws Exception {
 		mockMvc.perform(get("/project/list/default_personal").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.projectId").value(2))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.id").value(2))
 				.andExpect(jsonPath("$.projectName").value("default_personal"))
 				.andExpect(jsonPath("$.usersQuantity").value(1))
 				.andExpect(jsonPath("$.launchesQuantity").value(1))
@@ -222,8 +221,7 @@ class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	void getProjectInfoWithoutLaunches() throws Exception {
 		mockMvc.perform(get("/project/list/superadmin_personal").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.projectId").value(1))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.id").value(1))
 				.andExpect(jsonPath("$.projectName").value("superadmin_personal"))
 				.andExpect(jsonPath("$.usersQuantity").value(1))
 				.andExpect(jsonPath("$.launchesQuantity").value(0))

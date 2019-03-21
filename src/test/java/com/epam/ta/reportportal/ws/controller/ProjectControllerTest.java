@@ -19,13 +19,17 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.project.*;
+import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
+import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
+import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
@@ -114,20 +118,13 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteProjectPositive() throws Exception {
-		mockMvc.perform(delete("/project/test_project").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/project/1").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void bulkDeleteProjects() throws Exception {
-		BulkRQ<DeleteProjectRQ> bulkRQ = new BulkRQ<>();
-		Map<Long, DeleteProjectRQ> entities = new HashMap<>();
-		DeleteProjectRQ first = new DeleteProjectRQ();
-		first.setProjectName("default_personal");
-		entities.put(2L, first);
-		DeleteProjectRQ second = new DeleteProjectRQ();
-		second.setProjectName("test_project");
-		entities.put(3L, second);
-		bulkRQ.setEntities(entities);
+		DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
+		bulkRQ.setIds(Lists.newArrayList(2L, 3L));
 		mockMvc.perform(delete("/project").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());

@@ -28,14 +28,13 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.DeleteProjectRQ;
+import com.epam.ta.reportportal.ws.model.*;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -72,14 +71,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteProject(String projectName) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-		projectRepository.deleteById(project.getId());
-
+	public OperationCompletionRS deleteProject(Long projectId) {
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+		projectRepository.deleteById(projectId);
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
-
-		return new OperationCompletionRS("Project with name = '" + projectName + "' has been successfully deleted.");
+		return new OperationCompletionRS("Project with id = '" + projectId + "' has been successfully deleted.");
 	}
 
 	@Override
@@ -102,12 +99,22 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	}
 
 	@Override
-	public List<OperationCompletionRS> deleteProjects(BulkRQ<DeleteProjectRQ> deleteProjectBulkRQ) {
-		return deleteProjectBulkRQ.getEntities()
-				.values()
-				.stream()
-				.map(DeleteProjectRQ::getProjectName)
-				.map(this::deleteProject)
-				.collect(Collectors.toList());
+	public DeleteBulkRS deleteProjects(DeleteBulkRQ deleteBulkRQ) {
+		List<ReportPortalException> exceptions = Lists.newArrayList();
+		List<Long> deleted = Lists.newArrayList();
+		deleteBulkRQ.getIds().forEach(userId -> {
+			try {
+				deleteProject(userId);
+				deleted.add(userId);
+			} catch (ReportPortalException rp) {
+				exceptions.add(rp);
+			}
+		});
+		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {
+			ErrorRS errorResponse = new ErrorRS();
+			errorResponse.setErrorType(ex.getErrorType());
+			errorResponse.setMessage(ex.getMessage());
+			return errorResponse;
+		}).collect(Collectors.toList()));
 	}
 }

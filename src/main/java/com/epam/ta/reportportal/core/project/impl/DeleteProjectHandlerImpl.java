@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -53,6 +54,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final AnalyzerServiceClient analyzerServiceClient;
+
 	private final AnalyzerStatusCache analyzerStatusCache;
 
 	private final MessageBus messageBus;
@@ -61,10 +64,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
-			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
+			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
+			ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
+		this.analyzerServiceClient = analyzerServiceClient;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
@@ -75,12 +80,17 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
 		projectRepository.deleteById(projectId);
+		logIndexer.deleteIndex(projectId);
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
 		return new OperationCompletionRS("Project with id = '" + projectId + "' has been successfully deleted.");
 	}
 
 	@Override
 	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer deployed."
+		);
+
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
@@ -102,12 +112,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	public DeleteBulkRS deleteProjects(DeleteBulkRQ deleteBulkRQ) {
 		List<ReportPortalException> exceptions = Lists.newArrayList();
 		List<Long> deleted = Lists.newArrayList();
-		deleteBulkRQ.getIds().forEach(userId -> {
+		deleteBulkRQ.getIds().forEach(projectId -> {
 			try {
-				deleteProject(userId);
-				deleted.add(userId);
-			} catch (ReportPortalException rp) {
-				exceptions.add(rp);
+				deleteProject(projectId);
+				deleted.add(projectId);
+			} catch (ReportPortalException ex) {
+				exceptions.add(ex);
 			}
 		});
 		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {

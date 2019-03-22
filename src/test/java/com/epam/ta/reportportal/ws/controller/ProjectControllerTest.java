@@ -48,8 +48,7 @@ import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -118,7 +117,9 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteProjectPositive() throws Exception {
-		mockMvc.perform(delete("/project/1").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/project/3").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+
+		assertFalse(projectRepository.findById(3L).isPresent());
 	}
 
 	@Test
@@ -201,6 +202,11 @@ class ProjectControllerTest extends BaseMvcTest {
 	@Test
 	void getAllProjectNames() throws Exception {
 		mockMvc.perform(get("/project/names").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void searchProjectNames() throws Exception {
+		mockMvc.perform(get("/project/names/search?term=UpEr").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Sql("/db/test-item/test-item-fill.sql")

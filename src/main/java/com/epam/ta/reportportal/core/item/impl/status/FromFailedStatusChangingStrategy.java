@@ -46,7 +46,8 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 
 	@Autowired
 	public FromFailedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository, MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
+			MessageBus messageBus) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
 	}
 
@@ -57,15 +58,15 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 		);
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunch().getId(),
-				SKIPPED_ISSUE_KEY,
-				true
-		);
-
 		if (SKIPPED.equals(providedStatus)) {
+			Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunch().getId(),
+					SKIPPED_ISSUE_KEY,
+					true
+			);
+
 			if (skippedIssueAttribute.isPresent() && skippedIssueAttribute.get().getValue().equals("true")) {
 				if (item.getItemResults().getIssue() == null) {
-					setToInvestigateIssue(item, projectId);
+					addToInvestigateIssue(item, projectId);
 				}
 			} else {
 				issueEntityRepository.delete(item.getItemResults().getIssue());
@@ -76,14 +77,11 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 		if (PASSED.equals(providedStatus)) {
 			issueEntityRepository.delete(item.getItemResults().getIssue());
 			item.getItemResults().setIssue(null);
+			changeStatusRecursively(item, userId, projectId);
+			item.getLaunch().setStatus(launchRepository.identifyStatus(item.getLaunch().getId()) ? PASSED : FAILED);
 		}
 
 		item.getItemResults().setStatus(providedStatus);
 		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(item, projectId), userId));
-
-		if (PASSED.equals(providedStatus)) {
-			changeStatusRecursively(item, userId, projectId);
-			item.getLaunch().setStatus(launchRepository.identifyStatus(item.getLaunch().getId()) ? PASSED : FAILED);
-		}
 	}
 }

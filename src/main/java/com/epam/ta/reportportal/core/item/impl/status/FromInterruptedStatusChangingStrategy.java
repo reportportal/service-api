@@ -67,7 +67,7 @@ public class FromInterruptedStatusChangingStrategy extends StatusChangingStrateg
 
 		if (FAILED.equals(providedStatus) || (SKIPPED.equals(providedStatus) && skippedIssueAttribute.isPresent()
 				&& skippedIssueAttribute.get().getValue().equals("true"))) {
-			setToInvestigateIssue(item, projectId);
+			addToInvestigateIssue(item, projectId);
 		}
 
 		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(item, projectId), userId));

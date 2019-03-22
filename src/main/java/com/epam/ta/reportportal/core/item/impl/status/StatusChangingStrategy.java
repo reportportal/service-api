@@ -65,7 +65,7 @@ public abstract class StatusChangingStrategy {
 
 	abstract public void changeStatus(TestItem item, StatusEnum providedStatus, Long userId, Long projectId);
 
-	void setToInvestigateIssue(TestItem testItem, Long projectId) {
+	void addToInvestigateIssue(TestItem testItem, Long projectId) {
 		IssueEntity issueEntity = new IssueEntity();
 		IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
 		issueEntity.setIssueType(toInvestigate);

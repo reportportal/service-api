@@ -44,7 +44,8 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 
 	@Autowired
 	public FromSkippedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository, MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
+			MessageBus messageBus) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
 	}
 
@@ -61,7 +62,7 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 			item.getItemResults().setIssue(null);
 		}
 		if (FAILED.equals(providedStatus) && item.getItemResults().getIssue() == null) {
-			setToInvestigateIssue(item, projectId);
+			addToInvestigateIssue(item, projectId);
 		}
 
 		item.getItemResults().setStatus(providedStatus);

@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -215,7 +214,6 @@ class UserControllerTest extends BaseMvcTest {
 		mockMvc.perform(get("/user/default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
-	@Disabled
 	@Test
 	void getUserPositiveUsingApiToken() throws Exception {
 		mockMvc.perform(get("/user/default").with(token("3a402a94-ed35-4be7-bbed-975fbde2f76d"))).andExpect(status().isOk());

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpda
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
@@ -123,11 +124,11 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkDeleteProjects() throws Exception {
-		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
-		List<Long> ids = Arrays.asList(2L, 3L);
-		deleteBulkRQ.setIds(ids);
+		DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
+		bulkRQ.setIds(Lists.newArrayList(2L, 3L));
 		mockMvc.perform(delete("/project").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(deleteBulkRQ))).andExpect(status().isOk());
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());
 	}
 
 	@Test

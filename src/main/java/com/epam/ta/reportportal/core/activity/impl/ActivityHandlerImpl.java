@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 package com.epam.ta.reportportal.core.activity.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -66,13 +70,11 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		FilterCondition projectCondition = new FilterCondition(Condition.EQUALS,
-				false,
-				projectDetails.getProjectId().toString(),
-				CRITERIA_PROJECT_ID
-		);
-
-		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
+		FilterCondition projectCondition = FilterCondition.builder()
+				.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
+				.build();
+		Page<Activity> page = activityRepository.findByFilter(
+				new CompositeFilter(filter.withCondition(projectCondition), predefinedFilter),
 				pageable
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
@@ -82,7 +84,12 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	public ActivityResource getActivity(ReportPortalUser.ProjectDetails projectDetails, Long activityId) {
 		Activity activity = activityRepository.findById(activityId)
 				.orElseThrow(() -> new ReportPortalException(ACTIVITY_NOT_FOUND, activityId));
-		expect(projectDetails.getProjectId(), Predicate.isEqual(activity.getProjectId())).verify(ACCESS_DENIED, activityId);
+		expect(projectDetails.getProjectId(), Predicate.isEqual(activity.getProjectId())).verify(ACCESS_DENIED,
+				Suppliers.formattedSupplier("Activity with id '{}' is not under project with id '{}'",
+						activityId,
+						projectDetails.getProjectId()
+				)
+		);
 		return ActivityConverter.TO_RESOURCE.apply(activity);
 	}
 
@@ -91,11 +98,16 @@ public class ActivityHandlerImpl implements ActivityHandler {
 			Pageable pageable) {
 		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
 		Launch launch = testItem.getLaunch();
-		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED, itemId);
+		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED,
+				Suppliers.formattedSupplier("Test item with id '{}' is not under project with id '{}'",
+						itemId,
+						projectDetails.getProjectId()
+				)
+		);
 
-		Sort sortByCreationDateDesc = new Sort(Sort.Direction.DESC, CRITERIA_CREATION_DATE);
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, itemId.toString(), CRITERIA_OBJECT_ID));
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, Activity.ActivityEntityType.ITEM_ISSUE.name(), CRITERIA_ENTITY));
+		Sort sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE);
+		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
+				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.ITEM_ISSUE.getValue()).build());
 
 		Page<Activity> page = activityRepository.findByFilter(filter,
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
@@ -107,7 +119,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 		projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, projectDetails.getProjectId().toString(), CRITERIA_PROJECT_ID));
+		filter.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
 				.apply(activityRepository.findByFilter(filter, pageable));
 	}

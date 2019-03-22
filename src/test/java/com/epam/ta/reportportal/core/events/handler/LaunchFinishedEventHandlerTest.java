@@ -49,9 +49,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -101,7 +104,7 @@ class LaunchFinishedEventHandlerTest {
 	private LaunchFinishedEventHandler launchFinishedEventHandler;
 
 	@Test
-	void shouldNotSendWhenLaunchInDebug() {
+	void shouldNotSendWhenLaunchInDebug() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -122,7 +125,7 @@ class LaunchFinishedEventHandlerTest {
 	}
 
 	@Test
-	void shouldNotSendWhenNotificationsDisabled() {
+	void shouldNotSendWhenNotificationsDisabled() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -138,6 +141,7 @@ class LaunchFinishedEventHandlerTest {
 		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(launch);
 		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
 		when(project.getProjectAttributes()).thenReturn(getProjectAttributesWithDisabledNotifications());
+		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 		launchFinishedEventHandler.onApplicationEvent(event);
 		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
 
@@ -148,7 +152,7 @@ class LaunchFinishedEventHandlerTest {
 	}
 
 	@Test
-	void shouldSendWhenNotificationsEnabled() {
+	void shouldSendWhenNotificationsEnabled() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -179,14 +183,16 @@ class LaunchFinishedEventHandlerTest {
 
 		when(analyzerServiceAsync.analyze(any(Launch.class), anyList(), any(AnalyzerConfig.class))).thenReturn(analyze);
 
+		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
+
 		launchFinishedEventHandler.onApplicationEvent(event);
 		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
-		verify(analyze, times(1)).thenAccept(any(Consumer.class));
+		verify(analyzerServiceAsync, times(1)).analyze(any(), any(), any());
 
 	}
 
 	@Test
-	void shouldSendWhenAutoAnalyzedDisabledEnabled() {
+	void shouldSendWhenAutoAnalyzedDisabledEnabled() throws ExecutionException, InterruptedException {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -215,6 +221,7 @@ class LaunchFinishedEventHandlerTest {
 		when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("url"));
 		when(httpServletRequest.getHeaderNames()).thenReturn(Collections.enumeration(Lists.newArrayList("authorization")));
 		when(httpServletRequest.getHeaders(anyString())).thenReturn(Collections.emptyEnumeration());
+		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 		launchFinishedEventHandler.onApplicationEvent(event);
 		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
 		verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());

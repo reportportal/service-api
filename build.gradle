@@ -123,6 +123,10 @@ dependencies {
         compile('com.github.reportportal:plugin-api:fbf67ae9')
     }
 
+    //saucelabs
+
+    implementation 'com.saucelabs:saucerest:1.0.40'
+    
     //move this to the plugin-api
     compile('com.atlassian.fugue:fugue:2.6.1')
     compile('com.atlassian.jira:jira-rest-java-client-core:4.0.0')

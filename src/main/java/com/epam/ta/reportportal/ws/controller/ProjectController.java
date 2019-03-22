@@ -52,7 +52,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -231,7 +230,7 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/usernames/search")
 	@ResponseStatus(OK)
-	@ApiIgnore
+
 	@PreAuthorize(PROJECT_MANAGER)
 	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -271,7 +270,7 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/list")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
 			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -306,7 +305,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/list/{projectName}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -317,7 +316,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Map<String, ?> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -329,7 +328,7 @@ public class ProjectController {
 	@RequestMapping(value = "/names", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAllProjectNames();
 	}
@@ -339,7 +338,7 @@ public class ProjectController {
 	@GetMapping("analyzer/status")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Map<String, Boolean> getAnalyzerIndexingStatus(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAnalyzerIndexingStatus();
 	}

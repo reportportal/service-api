@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.UpdateBugTrackingSystemHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import com.saucelabs.saucerest.DataCenter;
+import com.saucelabs.saucerest.SauceREST;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
@@ -78,8 +81,7 @@ public class BugTrackingSystemController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS updateProjectBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
 			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(
-				updateRequest,
+		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(updateRequest,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
@@ -93,8 +95,7 @@ public class BugTrackingSystemController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
 			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.testIntegrationConnection(
-				connectionTestRQ,
+		return updateBugTrackingSystemHandler.testIntegrationConnection(connectionTestRQ,
 				integrationId,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
@@ -143,6 +144,17 @@ public class BugTrackingSystemController {
 	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @RequestParam(value = "url") String btsUrl,
 			@RequestParam(value = "btsProject") String btsProject, @AuthenticationPrincipal ReportPortalUser user) {
 		return getTicketHandler.getTicket(ticketId, btsUrl, btsProject, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/sauce")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get ticket from the bts integration")
+	public String getSauce(@AuthenticationPrincipal ReportPortalUser user) throws IOException {
+		SauceREST sauce = new SauceREST("Pavel_bortnik", "f8c124f5-8c9f-48ec-b5cd-de6d09c6b17b", DataCenter.EU);
+		String job = sauce.getJobInfo("afab7a393be2432db004f0edf3971b4f");
+		String link = sauce.getPublicJobLink("afab7a393be2432db004f0edf3971b4f");
+		return link;
 	}
 
 }

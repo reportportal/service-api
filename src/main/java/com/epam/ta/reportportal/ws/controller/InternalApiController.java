@@ -40,7 +40,7 @@ public class InternalApiController {
 	//	@RequestMapping(value = "/external-system/{systemId}", method = RequestMethod.GET)
 	//	@ResponseBody
 	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiIgnore
+	//
 	//	public ExternalSystemResource getExternalSystem(@PathVariable String systemId) {
 	//		ExternalSystem externalSystem = externalSystemRepository.findOne(systemId);
 	//		BusinessRule.expect(externalSystem, Predicates.notNull()).verify(ErrorType.EXTERNAL_SYSTEM_NOT_FOUND, systemId);

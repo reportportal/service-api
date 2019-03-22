@@ -26,7 +26,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
@@ -48,7 +47,7 @@ class DemoDataController {
 
 	@PostMapping
 	@ApiOperation(value = "generate")
-	@ApiIgnore
+
 	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return demoDataService.generate(demoDataRq, extractProjectDetails(user, projectName), user);

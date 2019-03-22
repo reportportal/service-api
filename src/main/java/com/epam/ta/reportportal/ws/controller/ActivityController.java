@@ -33,7 +33,6 @@ package com.epam.ta.reportportal.ws.controller;
  import org.springframework.security.core.annotation.AuthenticationPrincipal;
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.web.bind.annotation.*;
- import springfox.documentation.annotations.ApiIgnore;
 
  import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
  import static org.springframework.http.HttpStatus.OK;
@@ -66,7 +65,7 @@ public class ActivityController {
 
 	@RequestMapping(value = "/{activityId}", method = RequestMethod.GET)
 	@ResponseStatus(OK)
-	@ApiIgnore
+
 	public ActivityResource getActivity(@PathVariable String projectName, @PathVariable Long activityId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName));

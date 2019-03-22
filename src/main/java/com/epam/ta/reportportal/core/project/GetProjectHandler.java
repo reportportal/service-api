@@ -75,6 +75,13 @@ public interface GetProjectHandler {
 	List<String> getAllProjectNames();
 
 	/**
+	 * Get all project names, which contain provided term
+	 *
+	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.project.Project#name}
+	 */
+	List<String> getAllProjectNamesByTerm(String term);
+
+	/**
 	 * Export Projects info according to the {@link ReportFormat} type
 	 *
 	 * @param reportFormat {@link ReportFormat}

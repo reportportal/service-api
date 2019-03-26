@@ -238,18 +238,10 @@ public class UserController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{userName}/projects")
 	@ResponseStatus(OK)
+
 	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUserProjects(userName);
-	}
-
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/search")
-	@ResponseStatus(OK)
-	@PreAuthorize(ADMIN_ONLY)
-	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getUserHandler.searchUsers(term, pageable);
 	}
 
 	@Transactional(readOnly = true)

@@ -97,6 +97,4 @@ public interface GetUserHandler {
 	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
 	 */
 	void exportUsers(ReportFormat reportFormat, OutputStream outputStream, Queryable filter);
-
-	Iterable<UserResource> searchUsers(String term, Pageable pageable);
 }

@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.AMBIGUOUS_TEST_ITEM_STATUS;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -44,19 +44,18 @@ public class IssueTypeHandler {
 	 * Verifies that provided test item issue type is valid, and test item
 	 * domain object could be processed correctly
 	 *
-	 * @param locator    Issue locator
-	 * @param testItemId Test item id
-	 * @param projectId  Project id
+	 * @param locator   Issue locator
+	 * @param projectId Project id
 	 * @return verified issue type
 	 */
-	public IssueType defineIssueType(Long testItemId, Long projectId, String locator) {
+	public IssueType defineIssueType(Long projectId, String locator) {
 		return testItemRepository.selectIssueTypeByLocator(projectId,
 				ofNullable(locator).orElseThrow(() -> new ReportPortalException("Locator should not be null"))
 		)
-				.orElseThrow(() -> new ReportPortalException(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-						"Invalid test item issue type definition '{}' is requested for item '{}'. Valid issue types locators are: {}",
+				.orElseThrow(() -> new ReportPortalException(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, formattedSupplier(
+						"Invalid test item issue type definition '{}' is requested for item with locator - '{}'. Valid issue types locators are: {}",
 						locator,
-						testItemId,
+						locator,
 						testItemRepository.selectIssueLocatorsByProject(projectId).stream().map(IssueType::getLocator).collect(toList())
 				)));
 	}

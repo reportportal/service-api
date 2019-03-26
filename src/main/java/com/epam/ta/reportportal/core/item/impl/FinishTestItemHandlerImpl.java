@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -59,8 +60,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private IssueTypeHandler issueTypeHandler;
 
-	//	private ExternalSystemRepository externalSystemRepository;
-
 	@Autowired
 	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
@@ -70,11 +69,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	public void setIssueTypeHandler(IssueTypeHandler issueTypeHandler) {
 		this.issueTypeHandler = issueTypeHandler;
 	}
-
-	//	@Autowired
-	//	public void setExternalSystemRepository(ExternalSystemRepository externalSystemRepository) {
-	//		this.externalSystemRepository = externalSystemRepository;
-	//	}
 
 	@Override
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
@@ -116,7 +110,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (actualStatus.isPresent() && !hasChildren) {
 			testItemResults.setStatus(actualStatus.get());
 		} else {
-			testItemResults.setStatus(testItemRepository.identifyStatus(testItem.getItemId()));
+			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(testItem.getItemId(), JStatusEnum.PASSED);
+			testItemResults.setStatus(isFailed ? FAILED : PASSED);
 		}
 
 		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren
@@ -126,14 +121,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
-					IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, locator);
+					IssueType issueType = issueTypeHandler.defineIssueType(projectId, locator);
 					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issueEntity.setIssueType(issueType);
 					issueEntity.setIssueId(testItem.getItemId());
 					testItemResults.setIssue(issueEntity);
 				}
 			} else {
-				IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
+				IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
 				issueEntity.setIssueType(toInvestigate);
 				issueEntity.setIssueId(testItem.getItemId());
 				testItemResults.setIssue(issueEntity);

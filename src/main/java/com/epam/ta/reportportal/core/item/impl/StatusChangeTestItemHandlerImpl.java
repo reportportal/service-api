@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 @Service
 public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHandler {
 
-	private static final String SKIPPED_ISSUE_KEY = "skippedIssue";
+	public static final String SKIPPED_ISSUE_KEY = "skippedIssue";
 
 	private final TestItemRepository testItemRepository;
 
@@ -81,8 +82,7 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 	@Override
 	public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
-		expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
-				INCORRECT_REQUEST,
+		expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(INCORRECT_REQUEST,
 				"Unable to change status on test item with children"
 		);
 		StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -129,7 +129,10 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(testItem, userId, projectId);
-			testItem.getLaunch().setStatus(launchRepository.identifyStatus(testItem.getLaunch().getId()) ? PASSED : FAILED);
+			testItem.getLaunch()
+					.setStatus(launchRepository.hasItemsWithStatusNotEqual(testItem.getLaunch().getId(), JStatusEnum.PASSED) ?
+							PASSED :
+							FAILED);
 		}
 	}
 
@@ -189,7 +192,10 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(testItem, userId, projectId);
-			testItem.getLaunch().setStatus(launchRepository.identifyStatus(testItem.getLaunch().getId()) ? PASSED : FAILED);
+			testItem.getLaunch()
+					.setStatus(launchRepository.hasItemsWithStatusNotEqual(testItem.getLaunch().getId(), JStatusEnum.PASSED) ?
+							PASSED :
+							FAILED);
 		}
 	}
 
@@ -212,16 +218,18 @@ public class StatusChangeTestItemHandlerImpl implements StatusChangeTestItemHand
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(testItem, userId, projectId);
-			testItem.getLaunch().setStatus(launchRepository.identifyStatus(testItem.getLaunch().getId()) ? PASSED : FAILED);
+			testItem.getLaunch()
+					.setStatus(launchRepository.hasItemsWithStatusNotEqual(testItem.getLaunch().getId(), JStatusEnum.PASSED) ?
+							PASSED :
+							FAILED);
 		}
 	}
 
 	private void setToInvestigateIssue(TestItem testItem, Long projectId) {
 		IssueEntity issueEntity = new IssueEntity();
-		IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
+		IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
 		issueEntity.setIssueType(toInvestigate);
 		issueEntity.setIssueId(testItem.getItemId());
-
 		issueEntity.setTestItemResults(testItem.getItemResults());
 		testItem.getItemResults().setIssue(issueEntity);
 	}

@@ -210,7 +210,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	 * @return Updated issue entity
 	 */
 	private IssueEntity updateTestItemIssue(Long projectId, AnalyzedItemRs rs, TestItem testItem) {
-		IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, rs.getLocator());
+		IssueType issueType = issueTypeHandler.defineIssueType(projectId, rs.getLocator());
 		IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 				.addIgnoreFlag(testItem.getItemResults().getIssue().getIgnoreAnalyzer())
 				.addAutoAnalyzedFlag(true)

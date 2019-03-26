@@ -145,10 +145,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
 				Issue issue = issueDefinition.getIssue();
-				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(),
-						projectDetails.getProjectId(),
-						issue.getIssueType()
-				);
+				IssueType issueType = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), issue.getIssueType());
 
 				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
@@ -268,10 +265,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Override
 	public void resetItemsIssue(List<TestItem> items, Long projectId) {
 		items.forEach(item -> {
-			IssueType issueType = issueTypeHandler.defineIssueType(item.getItemId(),
-					projectId,
-					TestItemIssueGroup.TO_INVESTIGATE.getLocator()
-			);
+			IssueType issueType = issueTypeHandler.defineIssueType(projectId, TestItemIssueGroup.TO_INVESTIGATE.getLocator());
 			IssueEntity issueEntity = new IssueEntityBuilder(item.getItemResults().getIssue()).addIssueType(issueType)
 					.addIgnoreFlag(item.getItemResults().getIssue().getIgnoreAnalyzer())
 					.addAutoAnalyzedFlag(true)

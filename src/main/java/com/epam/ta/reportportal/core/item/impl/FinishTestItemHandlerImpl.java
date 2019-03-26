@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
+import com.epam.ta.reportportal.core.item.descendant.FinishDescendantsHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -56,18 +58,18 @@ import static java.util.Optional.ofNullable;
 @Service
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	private IssueTypeHandler issueTypeHandler;
+	private final IssueTypeHandler issueTypeHandler;
+
+	private final FinishDescendantsHandler<TestItem> finishDescendantsHandler;
 
 	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
+	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
+			@Qualifier("finishTestItemDescendantsHandler") FinishDescendantsHandler<TestItem> finishDescendantsHandler) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setIssueTypeHandler(IssueTypeHandler issueTypeHandler) {
 		this.issueTypeHandler = issueTypeHandler;
+		this.finishDescendantsHandler = finishDescendantsHandler;
 	}
 
 	@Override
@@ -78,11 +80,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());
 
-		TestItemResults testItemResults = processItemResults(projectDetails.getProjectId(),
-				testItem,
-				finishExecutionRQ,
-				testItem.isHasChildren()
-		);
+		TestItemResults testItemResults = processItemResults(projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addAttributes(finishExecutionRQ.getAttributes())
@@ -102,16 +100,24 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param finishExecutionRQ Finish test item request
 	 * @return TestItemResults object
 	 */
-	private TestItemResults processItemResults(Long projectId, TestItem testItem, FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
+	private TestItemResults processItemResults(ReportPortalUser.ProjectDetails projectDetails, TestItem testItem,
+			FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
 		TestItemResults testItemResults = ofNullable(testItem.getItemResults()).orElseGet(TestItemResults::new);
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 		Issue providedIssue = finishExecutionRQ.getIssue();
 
-		if (actualStatus.isPresent() && !hasChildren) {
-			testItemResults.setStatus(actualStatus.get());
-		} else {
+		if (hasChildren) {
+			if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
+				finishDescendantsHandler.finishDescendants(testItem,
+						actualStatus.orElse(StatusEnum.INTERRUPTED),
+						finishExecutionRQ.getEndTime(),
+						projectDetails
+				);
+			}
 			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(testItem.getItemId(), JStatusEnum.PASSED);
 			testItemResults.setStatus(isFailed ? FAILED : PASSED);
+		} else {
+			actualStatus.ifPresent(testItemResults::setStatus);
 		}
 
 		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren
@@ -121,14 +127,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = providedIssue.getIssueType();
 				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
-					IssueType issueType = issueTypeHandler.defineIssueType(projectId, locator);
+					IssueType issueType = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), locator);
 					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
 					issueEntity.setIssueType(issueType);
 					issueEntity.setIssueId(testItem.getItemId());
 					testItemResults.setIssue(issueEntity);
 				}
 			} else {
-				IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
+				IssueType toInvestigate = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), TO_INVESTIGATE.getLocator());
 				issueEntity.setIssueType(toInvestigate);
 				issueEntity.setIssueId(testItem.getItemId());
 				testItemResults.setIssue(issueEntity);

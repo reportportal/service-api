@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -31,7 +30,6 @@ import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
-import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import org.apache.commons.lang3.tuple.Pair;
@@ -40,16 +38,15 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static com.epam.reportportal.commons.Safe.safe;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -75,33 +72,26 @@ public class SaveDefaultProjectService {
 	}
 
 	@Transactional
-	public Pair<UserActivityResource, CreateUserRS> saveDefaultProject(CreateUserRQFull request, String email, String basicUrl) {
+	public Pair<UserActivityResource, CreateUserRS> saveDefaultProject(CreateUserRQFull request, String basicUrl) {
 		String projectName = EntityUtils.normalizeId(request.getDefaultProject());
 		Project defaultProject = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		CreateUserRQConfirm req = new CreateUserRQConfirm();
-		req.setDefaultProject(projectName);
-		req.setEmail(email);
-		req.setFullName(request.getFullName());
-		req.setLogin(request.getLogin());
-		req.setPassword(request.getPassword());
+		UserRole userRole = UserRole.findByName(request.getAccountRole())
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
 
-		final Optional<UserRole> userRole = UserRole.findByName(request.getAccountRole());
-		expect(userRole, Preconditions.IS_PRESENT).verify(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter.");
-		//noinspection ConstantConditions
-		User user = new UserBuilder().addCreateUserRQ(req).addUserRole(userRole.get()).get();
-		Optional<ProjectRole> projectRole = forName(request.getProjectRole());
-		expect(projectRole, Preconditions.IS_PRESENT).verify(ROLE_NOT_FOUND, request.getProjectRole());
+		ProjectRole projectRole = forName(request.getProjectRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND,
+				request.getProjectRole()
+		));
+
+		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(userRole).get();
 
 		Set<ProjectUser> projectUsers = defaultProject.getUsers();
-		//noinspection ConstantConditions
-		ProjectUser assignedProjectUser = new ProjectUser().withProjectRole(projectRole.get()).withUser(user).withProject(defaultProject);
+		ProjectUser assignedProjectUser = new ProjectUser().withProjectRole(projectRole).withUser(user).withProject(defaultProject);
 		projectUsers.add(assignedProjectUser);
 		defaultProject.setUsers(projectUsers);
 
 		CreateUserRS response = new CreateUserRS();
-
 		try {
 			/*
 			 * Generate and save personal project for the user
@@ -116,10 +106,10 @@ public class SaveDefaultProjectService {
 							.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, personalProject.getName())));
 			userRepository.save(user);
 
-			safe(
-					() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, basicUrl),
+			ofNullable(basicUrl).ifPresent(it -> safe(
+					() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, it),
 					e -> response.setWarning(e.getMessage())
-			);
+			));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
@@ -127,7 +117,6 @@ public class SaveDefaultProjectService {
 		}
 
 		response.setLogin(user.getLogin());
-
 		return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, defaultProject.getId()), response);
 	}
 }

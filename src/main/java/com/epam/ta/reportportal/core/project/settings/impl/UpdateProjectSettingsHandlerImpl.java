@@ -43,6 +43,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -110,10 +111,9 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 				TO_INVESTIGATE.getLocator()
 		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
-		exist.setLongName(issueSubTypeRQ.getLongName());
-		exist.setShortName(issueSubTypeRQ.getShortName());
-		exist.setHexColor(issueSubTypeRQ.getColor());
-
+		ofNullable(issueSubTypeRQ.getLongName()).ifPresent(exist::setLongName);
+		ofNullable(issueSubTypeRQ.getShortName()).ifPresent(exist::setShortName);
+		ofNullable(issueSubTypeRQ.getColor()).ifPresent(exist::setHexColor);
 		return exist;
 	}
 }

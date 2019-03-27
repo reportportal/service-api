@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -28,14 +29,13 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.DeleteProjectRQ;
+import com.epam.ta.reportportal.ws.model.*;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -54,6 +54,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final AnalyzerServiceClient analyzerServiceClient;
+
 	private final AnalyzerStatusCache analyzerStatusCache;
 
 	private final MessageBus messageBus;
@@ -62,28 +64,33 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
-			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
+			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
+			ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
+		this.analyzerServiceClient = analyzerServiceClient;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
-	public OperationCompletionRS deleteProject(String projectName) {
-		Project project = projectRepository.findByName(projectName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-		projectRepository.deleteById(project.getId());
-
+	public OperationCompletionRS deleteProject(Long projectId) {
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+		projectRepository.deleteById(projectId);
+		logIndexer.deleteIndex(projectId);
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
-
-		return new OperationCompletionRS("Project with name = '" + projectName + "' has been successfully deleted.");
+		return new OperationCompletionRS("Project with id = '" + projectId + "' has been successfully deleted.");
 	}
 
 	@Override
 	public OperationCompletionRS deleteProjectIndex(String projectName, String username) {
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer deployed."
+		);
+
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
@@ -102,12 +109,22 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	}
 
 	@Override
-	public List<OperationCompletionRS> deleteProjects(BulkRQ<DeleteProjectRQ> deleteProjectBulkRQ) {
-		return deleteProjectBulkRQ.getEntities()
-				.values()
-				.stream()
-				.map(DeleteProjectRQ::getProjectName)
-				.map(this::deleteProject)
-				.collect(Collectors.toList());
+	public DeleteBulkRS deleteProjects(DeleteBulkRQ deleteBulkRQ) {
+		List<ReportPortalException> exceptions = Lists.newArrayList();
+		List<Long> deleted = Lists.newArrayList();
+		deleteBulkRQ.getIds().forEach(projectId -> {
+			try {
+				deleteProject(projectId);
+				deleted.add(projectId);
+			} catch (ReportPortalException ex) {
+				exceptions.add(ex);
+			}
+		});
+		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {
+			ErrorRS errorResponse = new ErrorRS();
+			errorResponse.setErrorType(ex.getErrorType());
+			errorResponse.setMessage(ex.getMessage());
+			return errorResponse;
+		}).collect(Collectors.toList()));
 	}
 }

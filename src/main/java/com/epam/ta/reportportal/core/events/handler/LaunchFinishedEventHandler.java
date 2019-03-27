@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
@@ -108,7 +108,7 @@ public class LaunchFinishedEventHandler {
 	}
 
 	@TransactionalEventListener
-	public void onApplicationEvent(LaunchFinishedEvent event) {
+	public void onApplicationEvent(LaunchFinishedEvent event) throws ExecutionException, InterruptedException {
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
 
@@ -119,36 +119,27 @@ public class LaunchFinishedEventHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-		logIndexer.indexLogs(project.getId(), Lists.newArrayList(launch.getId()), analyzerConfig);
+		Long indexedLogsCount = logIndexer.indexLogs(project.getId(), Lists.newArrayList(launch.getId()), analyzerConfig).get();
 
 		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
 				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
-		if (isNotificationsEnabled) {
+		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers() && indexedLogsCount > 0) {
+			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
+					.collectItems(project.getId(), launch.getId(), null);
+			analyzerServiceAsync.analyze(launch, testItems, analyzerConfig).get();
+		}
 
+		if (isNotificationsEnabled) {
 			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 					IntegrationGroupEnum.NOTIFICATION
 			)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
 			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
-			if (!BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
-				emailService.ifPresent(it -> sendEmail(launch, project, it));
-				return;
-			}
-
-			if (analyzerServiceAsync.hasAnalyzers()) {
-				List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
-						.collectItems(project.getId(), launch.getId(), null);
-
-				CompletableFuture<Void> analyze = analyzerServiceAsync.analyze(launch, testItems, analyzerConfig);
-
-				analyze.thenAccept(res -> {
-					Launch updatedLaunch = launchRepository.findById(launch.getId())
-							.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
-					emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
-				});
-			}
+			Launch updatedLaunch = launchRepository.findById(launch.getId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
+			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
 		}
 
 	}

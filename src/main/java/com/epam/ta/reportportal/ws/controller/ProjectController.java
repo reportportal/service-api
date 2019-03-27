@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,10 +33,7 @@ import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
@@ -55,9 +52,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
@@ -141,18 +138,17 @@ public class ProjectController {
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
-	public Iterable<OperationCompletionRS> deleteProject(@RequestBody @Validated BulkRQ<DeleteProjectRQ> deleteProjectsBulkRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProjects(deleteProjectsBulkRQ);
+	public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProjects(deleteBulkRQ);
 	}
 
 	@Transactional
-	@DeleteMapping("/{projectName}")
+	@DeleteMapping("/{projectId}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete project", notes = "Could be deleted only by users with administrator role")
-	public OperationCompletionRS deleteProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProject(normalizeId(projectName));
+	public OperationCompletionRS deleteProject(@PathVariable Long projectId, @AuthenticationPrincipal ReportPortalUser user) {
+		return deleteProjectHandler.deleteProject(projectId);
 	}
 
 	@Transactional
@@ -234,7 +230,7 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/usernames/search")
 	@ResponseStatus(OK)
-	@ApiIgnore
+
 	@PreAuthorize(PROJECT_MANAGER)
 	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -274,7 +270,7 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/list")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
 			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -309,7 +305,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/list/{projectName}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -320,7 +316,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Map<String, ?> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -329,12 +325,19 @@ public class ProjectController {
 
 	@Transactional(readOnly = true)
 	@PreAuthorize(ADMIN_ONLY)
-	@RequestMapping(value = "/names", method = RequestMethod.GET)
-	@ResponseBody
+	@GetMapping(value = "/names")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAllProjectNames();
+	}
+
+	@Transactional(readOnly = true)
+	@PreAuthorize(ADMIN_ONLY)
+	@GetMapping(value = "/names/search")
+	@ResponseStatus(HttpStatus.OK)
+	public Iterable<String> searchProjectNames(@RequestParam("term") String term, @AuthenticationPrincipal ReportPortalUser user) {
+		return getProjectHandler.getAllProjectNamesByTerm(term);
 	}
 
 	@Transactional(readOnly = true)
@@ -342,7 +345,7 @@ public class ProjectController {
 	@GetMapping("analyzer/status")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	@ApiIgnore
+
 	public Map<String, Boolean> getAnalyzerIndexingStatus(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAnalyzerIndexingStatus();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.createUserByAdmin(request, rpUser, "url")
 		);
-		assertEquals("Error in handled Request. Please, check specified parameters: 'email = 'incorrect@email''", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: 'email='incorrect@email''", exception.getMessage());
 	}
 
 	@Test
@@ -153,7 +153,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.createUserByAdmin(request, rpUser, "url")
 		);
-		assertEquals("User with 'email = 'correct@domain.com'' already exists. You couldn't create the duplicate.", exception.getMessage());
+		assertEquals("User with 'email='correct@domain.com'' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
@@ -203,22 +203,6 @@ class CreateUserHandlerImplTest {
 	}
 
 	@Test
-	void CreateUserWithIncorrectDefaultProject() {
-		final UserCreationBid bid = new UserCreationBid();
-		Project project = new Project();
-		project.setName("not_existed");
-		bid.setDefaultProject(project);
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(bid));
-		when(userRepository.findByLogin("test")).thenReturn(Optional.empty());
-		when(projectRepository.findByName("not_existed")).thenReturn(Optional.empty());
-
-		final CreateUserRQConfirm request = new CreateUserRQConfirm();
-		request.setLogin("test");
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
-		assertEquals("Project 'not_existed' not found. Did you use correct project name?", exception.getMessage());
-	}
-
-	@Test
 	void createUserWithIncorrectEmail() {
 		final UserCreationBid bid = new UserCreationBid();
 		Project project = new Project();
@@ -226,13 +210,12 @@ class CreateUserHandlerImplTest {
 		bid.setDefaultProject(project);
 		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(bid));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.empty());
-		when(projectRepository.findByName("test_project")).thenReturn(Optional.of(project));
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
 		request.setLogin("test");
 		request.setEmail("incorrect@domain");
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createUser(request, "uuid"));
-		assertEquals("Error in handled Request. Please, check specified parameters: 'incorrect@domain'", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: 'email='incorrect@domain''", exception.getMessage());
 	}
 
 	@Test
@@ -243,7 +226,6 @@ class CreateUserHandlerImplTest {
 		bid.setDefaultProject(project);
 		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(bid));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.empty());
-		when(projectRepository.findByName("test_project")).thenReturn(Optional.of(project));
 		when(userRepository.findByEmail("email@domain.com")).thenReturn(Optional.of(new User()));
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();

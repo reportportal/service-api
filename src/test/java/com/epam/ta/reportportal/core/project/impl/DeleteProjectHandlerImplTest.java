@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
@@ -59,6 +60,9 @@ class DeleteProjectHandlerImplTest {
 	private LogIndexer logIndexer;
 
 	@Mock
+	private AnalyzerServiceClient analyzerServiceClient;
+
+	@Mock
 	private AnalyzerStatusCache analyzerStatusCache;
 
 	@Mock
@@ -69,17 +73,18 @@ class DeleteProjectHandlerImplTest {
 
 	@Test
 	void deleteNotExistProject() {
-		String projectName = "notExist";
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
+		Long projectId = 1L;
+		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectName));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProject(projectId));
 
-		assertEquals("Project 'notExist' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
 	void deleteIndexOnNotExistProject() {
 		String projectName = "notExist";
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
@@ -91,6 +96,7 @@ class DeleteProjectHandlerImplTest {
 	void deleteProjectIndexByNotExistUser() {
 		String projectName = "notExist";
 		String userName = "user";
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.empty());
 
@@ -104,6 +110,7 @@ class DeleteProjectHandlerImplTest {
 		String projectName = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, true)));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 
@@ -117,6 +124,7 @@ class DeleteProjectHandlerImplTest {
 		String projectName = "test_project";
 		String userName = "user";
 		Long projectId = 1L;
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId, false)));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 		Cache<Long, Long> cache = CacheBuilder.newBuilder().build();
@@ -129,6 +137,16 @@ class DeleteProjectHandlerImplTest {
 	}
 
 	@Test
+	void deleteIndexWhenThereAreNoAnalyzers() {
+		String projectName = "test_project";
+		when(analyzerServiceClient.hasClients()).thenReturn(false);
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.deleteProjectIndex(projectName, "user"));
+
+		assertEquals("Impossible interact with integration. There are no analyzer deployed.", exception.getMessage());
+	}
+
+	@Test
 	void happyDeleteIndex() {
 		String projectName = "test_project";
 		String userName = "user";
@@ -138,6 +156,7 @@ class DeleteProjectHandlerImplTest {
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
 		when(analyzerStatusCache.getAnalyzeStatus()).thenReturn(CacheBuilder.newBuilder().build());
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
 
 		OperationCompletionRS response = handler.deleteProjectIndex(projectName, "user");
 

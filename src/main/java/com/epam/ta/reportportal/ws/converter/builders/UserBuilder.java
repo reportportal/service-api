@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
+import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -30,6 +31,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -52,16 +55,13 @@ public class UserBuilder implements Supplier<User> {
 
 	public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
 		if (request != null) {
-			user.setLogin(EntityUtils.normalizeId(request.getLogin()));
-			user.setPassword(HASH_FUNCTION.hashString(request.getPassword(), Charsets.UTF_8).toString());
-			user.setEmail(EntityUtils.normalizeId(request.getEmail().trim()));
-			user.setFullName(request.getFullName());
-			user.setUserType(UserType.INTERNAL);
-			user.setExpired(false);
-			Map<String, Object> meta = new HashMap<>();
-			meta.put(USER_LAST_LOGIN, new Date());
-			user.setMetadata(new Metadata(meta));
+			fillUser(request.getLogin(), request.getPassword(), request.getEmail(), request.getFullName());
 		}
+		return this;
+	}
+
+	public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
+		ofNullable(request).ifPresent(it -> fillUser(it.getLogin(), it.getPassword(), it.getEmail(), it.getFullName()));
 		return this;
 	}
 
@@ -75,5 +75,17 @@ public class UserBuilder implements Supplier<User> {
 
 		//TODO check for existing of the default project etc.
 		return user;
+	}
+
+	private void fillUser(String login, String password, String email, String fullName) {
+		user.setLogin(EntityUtils.normalizeId(login));
+		user.setPassword(HASH_FUNCTION.hashString(password, Charsets.UTF_8).toString());
+		user.setEmail(EntityUtils.normalizeId(email.trim()));
+		user.setFullName(fullName);
+		user.setUserType(UserType.INTERNAL);
+		user.setExpired(false);
+		Map<String, Object> meta = new HashMap<>();
+		meta.put(USER_LAST_LOGIN, new Date());
+		user.setMetadata(new Metadata(meta));
 	}
 }

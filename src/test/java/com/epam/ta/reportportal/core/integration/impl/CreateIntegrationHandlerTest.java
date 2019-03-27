@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.ProjectExtractor;
@@ -74,6 +75,7 @@ public class CreateIntegrationHandlerTest {
 		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
 
 		when(integrationService.createGlobalIntegration(updateIntegrationRQ.getIntegrationName(),
+				IntegrationGroupEnum.NOTIFICATION,
 				updateIntegrationRQ.getIntegrationParams()
 		)).thenReturn(IntegrationTestUtil.getGlobalEmailIntegration(emailIntegrationId));
 
@@ -111,6 +113,7 @@ public class CreateIntegrationHandlerTest {
 		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
 
 		when(integrationService.createProjectIntegration(updateIntegrationRQ.getIntegrationName(),
+				IntegrationGroupEnum.NOTIFICATION,
 				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME),
 				updateIntegrationRQ.getIntegrationParams()
 		)).thenReturn(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId));
@@ -147,8 +150,7 @@ public class CreateIntegrationHandlerTest {
 		)).thenReturn(IntegrationTestUtil.getGlobalEmailIntegration(emailIntegrationId));
 
 		//then
-		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateGlobalIntegration(
-				emailIntegrationId,
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateGlobalIntegration(emailIntegrationId,
 				updateIntegrationRQ
 		);
 
@@ -188,8 +190,7 @@ public class CreateIntegrationHandlerTest {
 		)).thenReturn(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId));
 
 		//then
-		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateProjectIntegration(
-				emailIntegrationId,
+		OperationCompletionRS operationCompletionRS = createIntegrationHandler.updateProjectIntegration(emailIntegrationId,
 				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME),
 				updateIntegrationRQ,
 				user

@@ -115,7 +115,7 @@ class EmailServerIntegrationServiceTest {
 
 		doNothing().when(emailService).testConnection();
 
-		Integration integration = emailServerIntegrationService.createGlobalIntegration(integrationName, correctParams);
+		Integration integration = emailServerIntegrationService.createGlobalIntegration(integrationName, IntegrationGroupEnum.NOTIFICATION, correctParams);
 
 		Map<String, Object> params = integration.getParams().getParams();
 		Assertions.assertNotNull(params);

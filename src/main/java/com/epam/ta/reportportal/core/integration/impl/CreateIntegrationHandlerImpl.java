@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
+import com.epam.ta.reportportal.core.integration.util.IntegrationServiceImpl;
 import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -53,6 +54,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	private final MessageBus messageBus;
 
 	@Autowired
+	private IntegrationServiceImpl integrationService;
+
+	@Autowired
 	public CreateIntegrationHandlerImpl(Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping,
 			IntegrationRepository integrationRepository, ProjectRepository projectRepository, MessageBus messageBus) {
 		this.integrationServiceMapping = integrationServiceMapping;
@@ -63,12 +67,15 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 	@Override
 	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest) {
-
 		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(updateRequest.getIntegrationName())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
 
-		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
-				.createGlobalIntegration(updateRequest.getIntegrationName(), updateRequest.getIntegrationParams());
+		IntegrationService integrationService = integrationServiceMapping.getOrDefault(reportPortalIntegration, this.integrationService);
+
+		Integration integration = integrationService.createGlobalIntegration(updateRequest.getIntegrationName(),
+				reportPortalIntegration.getIntegrationGroup(),
+				updateRequest.getIntegrationParams()
+		);
 		integration.setEnabled(updateRequest.getEnabled());
 
 		integrationRepository.save(integration);
@@ -88,7 +95,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
 
 		Integration integration = integrationServiceMapping.get(reportPortalIntegration)
-				.createProjectIntegration(updateRequest.getIntegrationName(), projectDetails, updateRequest.getIntegrationParams());
+				.createProjectIntegration(updateRequest.getIntegrationName(),
+						reportPortalIntegration.getIntegrationGroup(),
+						projectDetails,
+						updateRequest.getIntegrationParams()
+				);
 		integration.setEnabled(updateRequest.getEnabled());
 		integration.setProject(project);
 

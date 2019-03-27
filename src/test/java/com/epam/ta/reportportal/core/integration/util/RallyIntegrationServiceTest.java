@@ -77,7 +77,7 @@ class RallyIntegrationServiceTest {
 
 		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
-		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, getCorrectRallyIntegrationParams());
+		rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, getCorrectRallyIntegrationParams());
 	}
 
 	@Test
@@ -92,7 +92,7 @@ class RallyIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. RALLY project value cannot be NULL", exception.getMessage());
 	}
@@ -109,7 +109,7 @@ class RallyIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. RALLY URL value cannot be NULL", exception.getMessage());
 	}
@@ -126,7 +126,7 @@ class RallyIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. No auth property provided for Rally integration", exception.getMessage());
 	}
@@ -143,7 +143,7 @@ class RallyIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
 	}
@@ -160,7 +160,7 @@ class RallyIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, params)
+				() -> rallyIntegrationService.createGlobalIntegration(RALLY_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals(
 				"Impossible interact with integration. Unsupported auth type for Rally integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
@@ -187,8 +187,8 @@ class RallyIntegrationServiceTest {
 
 		final long projectId = 1L;
 
-		rallyIntegrationService.createProjectIntegration(
-				RALLY_INTEGRATION_TYPE_NAME,
+		rallyIntegrationService.createProjectIntegration(RALLY_INTEGRATION_TYPE_NAME,
+				IntegrationGroupEnum.BTS,
 				new ReportPortalUser.ProjectDetails(projectId, "admin_personal", ProjectRole.PROJECT_MANAGER),
 				params
 		);

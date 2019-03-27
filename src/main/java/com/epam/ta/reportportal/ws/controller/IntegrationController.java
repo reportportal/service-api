@@ -63,9 +63,7 @@ public class IntegrationController {
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
-
 		return createIntegrationHandler.createGlobalIntegration(updateRequest);
-
 	}
 
 	@Transactional
@@ -75,7 +73,6 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS createProjectIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-
 		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), updateRequest, user);
 
 	}
@@ -86,7 +83,6 @@ public class IntegrationController {
 	@ApiOperation("Get global Report Portal integration instance")
 	@PreAuthorize(ADMIN_ONLY)
 	public IntegrationResource getGlobalIntegration(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-
 		return getIntegrationHandler.getGlobalIntegrationById(integrationId);
 	}
 
@@ -109,7 +105,6 @@ public class IntegrationController {
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId,
 			@RequestBody @Valid UpdateIntegrationRQ updateRequest, @AuthenticationPrincipal ReportPortalUser user) {
-
 		return createIntegrationHandler.updateGlobalIntegration(integrationId, updateRequest);
 
 	}
@@ -122,7 +117,6 @@ public class IntegrationController {
 	public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId,
 			@RequestBody @Valid UpdateIntegrationRQ updateRequest, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-
 		return createIntegrationHandler.updateProjectIntegration(integrationId,
 				extractProjectDetails(user, projectName),
 				updateRequest,

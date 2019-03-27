@@ -65,9 +65,10 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 	protected abstract Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
 
 	@Override
-	public Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
+	public Integration createGlobalIntegration(String integrationTypeName, IntegrationGroupEnum integrationGroup,
+			Map<String, Object> integrationParams) {
 
-		Integration integration = createIntegration(integrationTypeName, integrationParams);
+		Integration integration = createIntegration(integrationTypeName, integrationGroup, integrationParams);
 		checkUniqueGlobalIntegration(integration);
 
 		checkConnection(integration);
@@ -75,10 +76,10 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 	}
 
 	@Override
-	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
-			Map<String, Object> integrationParams) {
+	public Integration createProjectIntegration(String integrationTypeName, IntegrationGroupEnum integrationGroup,
+			ReportPortalUser.ProjectDetails projectDetails, Map<String, Object> integrationParams) {
 
-		Integration integration = createIntegration(integrationTypeName, integrationParams);
+		Integration integration = createIntegration(integrationTypeName, integrationGroup, integrationParams);
 		checkUniqueProjectIntegration(integration, projectDetails.getProjectId());
 
 		checkConnection(integration);
@@ -123,13 +124,13 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		integration.setParams(new IntegrationParams(retrievedParams));
 	}
 
-	private Integration createIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
+	private Integration createIntegration(String integrationTypeName, IntegrationGroupEnum integrationGroup,
+			Map<String, Object> integrationParams) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
-				IntegrationGroupEnum.BTS
-		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationTypeName).get()
-		));
+		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName, integrationGroup)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("BTS integration with name - '{}' not found.", integrationTypeName).get()
+				));
 
 		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
 		Integration integration = new Integration();

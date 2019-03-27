@@ -67,8 +67,7 @@ class JiraIntegrationServiceTest {
 	void setUp() {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
-		jiraIntegrationService = new JiraIntegrationService(
-				integrationTypeRepository,
+		jiraIntegrationService = new JiraIntegrationService(integrationTypeRepository,
 				integrationRepository,
 				pluginBox,
 				basicTextEncryptor
@@ -90,7 +89,11 @@ class JiraIntegrationServiceTest {
 
 		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
-		jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, getCorrectJiraIntegrationParams());
+		jiraIntegrationService.createGlobalIntegration(
+				JIRA_INTEGRATION_TYPE_NAME,
+				IntegrationGroupEnum.BTS,
+				getCorrectJiraIntegrationParams()
+		);
 	}
 
 	@Test
@@ -104,7 +107,7 @@ class JiraIntegrationServiceTest {
 		when(integrationType.getDetails()).thenReturn(details);
 		when(details.getDetails()).thenReturn(params);
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 
 		assertEquals("Impossible interact with integration. JIRA project value cannot be NULL", exception.getMessage());
@@ -121,7 +124,7 @@ class JiraIntegrationServiceTest {
 		when(integrationType.getDetails()).thenReturn(details);
 		when(details.getDetails()).thenReturn(params);
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 
 		assertEquals("Impossible interact with integration. JIRA URL value cannot be NULL", exception.getMessage());
@@ -139,7 +142,7 @@ class JiraIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. No auth property provided for Jira integration", exception.getMessage());
 	}
@@ -155,7 +158,7 @@ class JiraIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. Username value cannot be NULL", exception.getMessage());
 	}
@@ -171,7 +174,7 @@ class JiraIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. Password value cannot be NULL", exception.getMessage());
 	}
@@ -188,7 +191,7 @@ class JiraIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
 	}
@@ -204,7 +207,7 @@ class JiraIntegrationServiceTest {
 		when(details.getDetails()).thenReturn(params);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, params)
+				() -> jiraIntegrationService.createGlobalIntegration(JIRA_INTEGRATION_TYPE_NAME, IntegrationGroupEnum.BTS, params)
 		);
 		assertEquals(
 				"Impossible interact with integration. Unsupported auth type for Jira integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
@@ -232,6 +235,7 @@ class JiraIntegrationServiceTest {
 		final long projectId = 1L;
 
 		jiraIntegrationService.createProjectIntegration(JIRA_INTEGRATION_TYPE_NAME,
+				IntegrationGroupEnum.BTS,
 				new ReportPortalUser.ProjectDetails(projectId, "admin_personal", ProjectRole.PROJECT_MANAGER),
 				params
 		);

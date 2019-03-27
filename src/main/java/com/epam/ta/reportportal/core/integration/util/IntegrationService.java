@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 
 import java.util.Map;
@@ -33,7 +34,8 @@ public interface IntegrationService {
 	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
 	 * @return new {@link Integration}
 	 */
-	Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams);
+	Integration createGlobalIntegration(String integrationTypeName, IntegrationGroupEnum integrationGroup,
+			Map<String, Object> integrationParams);
 
 	/**
 	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
@@ -43,8 +45,8 @@ public interface IntegrationService {
 	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
 	 * @return new {@link Integration}
 	 */
-	Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
-			Map<String, Object> integrationParams);
+	Integration createProjectIntegration(String integrationTypeName, IntegrationGroupEnum integrationGroup,
+			ReportPortalUser.ProjectDetails projectDetails, Map<String, Object> integrationParams);
 
 	/**
 	 * Update {@link Integration} with {@link Integration#project == NULL}

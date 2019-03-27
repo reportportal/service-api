@@ -28,7 +28,8 @@ public enum ReportPortalIntegrationEnum {
 
 	JIRA(IntegrationGroupEnum.BTS, true),
 	RALLY(IntegrationGroupEnum.BTS, true),
-	EMAIL(IntegrationGroupEnum.NOTIFICATION, false);
+	EMAIL(IntegrationGroupEnum.NOTIFICATION, false),
+	SAUCELABS(IntegrationGroupEnum.NOTIFICATION, true);
 
 	private IntegrationGroupEnum integrationGroup;
 	private boolean isPlugin;

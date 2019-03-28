@@ -116,6 +116,7 @@ public class SaveDefaultProjectService {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
+		response.setId(user.getId());
 		response.setLogin(user.getLogin());
 		return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, defaultProject.getId()), response);
 	}

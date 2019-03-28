@@ -37,7 +37,7 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.item.impl.StatusChangeTestItemHandlerImpl.SKIPPED_ISSUE_KEY;
+import static com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;

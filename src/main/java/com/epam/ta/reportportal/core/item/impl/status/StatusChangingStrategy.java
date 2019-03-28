@@ -30,6 +30,8 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.hibernate.Hibernate;
 
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 
@@ -38,7 +40,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter
  */
 public abstract class StatusChangingStrategy {
 
-	static final String SKIPPED_ISSUE_KEY = "skippedIssue";
+	public static final String SKIPPED_ISSUE_KEY = "skippedIssue";
 
 	protected final TestItemRepository testItemRepository;
 
@@ -67,11 +69,10 @@ public abstract class StatusChangingStrategy {
 
 	void addToInvestigateIssue(TestItem testItem, Long projectId) {
 		IssueEntity issueEntity = new IssueEntity();
-		IssueType toInvestigate = issueTypeHandler.defineIssueType(testItem.getItemId(), projectId, TO_INVESTIGATE.getLocator());
+		IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
 		issueEntity.setIssueType(toInvestigate);
-		issueEntity.setIssueId(testItem.getItemId());
-
 		issueEntity.setTestItemResults(testItem.getItemResults());
+		issueEntityRepository.save(issueEntity);
 		testItem.getItemResults().setIssue(issueEntity);
 	}
 
@@ -84,7 +85,7 @@ public abstract class StatusChangingStrategy {
 					testItem.getItemId(),
 					StatusEnum.PASSED.name()
 			) ? StatusEnum.FAILED : StatusEnum.PASSED;
-			if (!parent.getItemResults().getStatus().equals(newStatus)) {
+			if (!parent.getItemResults().getStatus().equals(newStatus) && parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS) {
 				parent.getItemResults().setStatus(newStatus);
 				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
 				changeStatusRecursively(parent, userId, projectId);
@@ -93,7 +94,7 @@ public abstract class StatusChangingStrategy {
 	}
 
 	void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId, Long projectId) {
-		if (!oldParentStatus.equals(StatusEnum.FAILED)) {
+		if (!oldParentStatus.equals(StatusEnum.FAILED) || oldParentStatus != StatusEnum.IN_PROGRESS) {
 			TestItem parent = testItem.getParent();
 			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
 			while (parent != null) {
@@ -101,7 +102,9 @@ public abstract class StatusChangingStrategy {
 				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
 				parent = parent.getParent();
 			}
-			testItem.getLaunch().setStatus(StatusEnum.FAILED);
+			if (testItem.getLaunch().getStatus() != IN_PROGRESS) {
+				testItem.getLaunch().setStatus(FAILED);
+			}
 		}
 	}
 }

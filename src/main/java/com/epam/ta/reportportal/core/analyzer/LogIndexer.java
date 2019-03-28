@@ -40,6 +40,8 @@ public interface LogIndexer {
 	 */
 	CompletableFuture<Long> indexLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig);
 
+	CompletableFuture<Long> indexLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig);
+
 	/**
 	 * Delete index of specified project
 	 *

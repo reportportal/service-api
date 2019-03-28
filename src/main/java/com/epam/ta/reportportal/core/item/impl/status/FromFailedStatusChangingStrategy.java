@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -69,8 +71,11 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 					addToInvestigateIssue(item, projectId);
 				}
 			} else {
-				issueEntityRepository.delete(item.getItemResults().getIssue());
-				item.getItemResults().setIssue(null);
+				ofNullable(item.getItemResults().getIssue()).map(issue -> {
+					issue.setTestItemResults(null);
+					item.getItemResults().setIssue(null);
+					return issue.getIssueId();
+				}).ifPresent(issueEntityRepository::deleteById);
 			}
 		}
 
@@ -78,7 +83,12 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 			issueEntityRepository.delete(item.getItemResults().getIssue());
 			item.getItemResults().setIssue(null);
 			changeStatusRecursively(item, userId, projectId);
-			item.getLaunch().setStatus(launchRepository.identifyStatus(item.getLaunch().getId()) ? PASSED : FAILED);
+			if (item.getLaunch().getStatus() != IN_PROGRESS) {
+				item.getLaunch()
+						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), JStatusEnum.PASSED) ?
+								FAILED :
+								PASSED);
+			}
 		}
 
 		item.getItemResults().setStatus(providedStatus);

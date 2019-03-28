@@ -17,8 +17,13 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.descendant.FinishDescendantsHandler;
+import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -36,8 +41,12 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
+import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
@@ -47,6 +56,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 
@@ -64,12 +74,29 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final FinishDescendantsHandler<TestItem> finishDescendantsHandler;
 
+	private final LogIndexer logIndexer;
+
+	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
+
+	private final IssueEntityRepository issueEntityRepository;
+
+	private final LogRepository logRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
-			@Qualifier("finishTestItemDescendantsHandler") FinishDescendantsHandler<TestItem> finishDescendantsHandler) {
+			@Qualifier("finishTestItemDescendantsHandler") FinishDescendantsHandler<TestItem> finishDescendantsHandler,
+			LogIndexer logIndexer, Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
+			IssueEntityRepository issueEntityRepository, LogRepository logRepository, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishDescendantsHandler = finishDescendantsHandler;
+		this.logIndexer = logIndexer;
+		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
+		this.issueEntityRepository = issueEntityRepository;
+		this.logRepository = logRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -78,9 +105,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());
-
-		TestItemResults testItemResults = processItemResults(projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
+		TestItemResults testItemResults = processItemResults(user, projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addAttributes(finishExecutionRQ.getAttributes())
@@ -100,44 +125,41 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param finishExecutionRQ Finish test item request
 	 * @return TestItemResults object
 	 */
-	private TestItemResults processItemResults(ReportPortalUser.ProjectDetails projectDetails, TestItem testItem,
+	private TestItemResults processItemResults(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, TestItem testItem,
 			FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
+
+		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());
+
 		TestItemResults testItemResults = ofNullable(testItem.getItemResults()).orElseGet(TestItemResults::new);
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
-		Issue providedIssue = finishExecutionRQ.getIssue();
 
 		if (hasChildren) {
-			if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
-				finishDescendantsHandler.finishDescendants(testItem,
-						actualStatus.orElse(StatusEnum.INTERRUPTED),
-						finishExecutionRQ.getEndTime(),
-						projectDetails
-				);
-			}
+			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishExecutionRQ.getEndTime(), projectDetails);
 			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(testItem.getItemId(), JStatusEnum.PASSED);
 			testItemResults.setStatus(isFailed ? FAILED : PASSED);
 		} else {
-			actualStatus.ifPresent(testItemResults::setStatus);
-		}
+			Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.get(),
+					testItem,
+					finishExecutionRQ.getIssue(),
+					projectDetails.getProjectId()
+			);
 
-		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren
-				&& !ofNullable(testItem.getRetryOf()).isPresent()) {
-			IssueEntity issueEntity = new IssueEntity();
-			if (null != providedIssue) {
-				//in provided issue should be locator id or NOT_ISSUE value
-				String locator = providedIssue.getIssueType();
-				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
-					IssueType issueType = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), locator);
-					issueEntity = IssueConverter.TO_ISSUE.apply(providedIssue);
-					issueEntity.setIssueType(issueType);
-					issueEntity.setIssueId(testItem.getItemId());
-					testItemResults.setIssue(issueEntity);
-				}
+			if (testItemResults.getStatus() == IN_PROGRESS) {
+				testItemResults.setStatus(actualStatus.get());
+				resolvedIssue.ifPresent(issue -> {
+					issue.setTestItemResults(testItemResults);
+					issueEntityRepository.save(issue);
+					testItemResults.setIssue(issue);
+				});
 			} else {
-				IssueType toInvestigate = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), TO_INVESTIGATE.getLocator());
-				issueEntity.setIssueType(toInvestigate);
-				issueEntity.setIssueId(testItem.getItemId());
-				testItemResults.setIssue(issueEntity);
+				updateFinishedItem(
+						testItemResults,
+						actualStatus.get(),
+						resolvedIssue,
+						testItem,
+						user.getUserId(),
+						projectDetails.getProjectId()
+				);
 			}
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
@@ -166,13 +188,85 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(testItem.getItemResults().getStatus(), Preconditions.statusIn(IN_PROGRESS)).verify(REPORTING_ITEM_ALREADY_FINISHED,
-				testItem.getItemId()
-		);
-
 		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 				testItem.getItemId()
 		));
+	}
+
+	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser.ProjectDetails projectDetails) {
+		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
+			finishDescendantsHandler.finishDescendants(testItem, status, endtime, projectDetails);
+		}
+	}
+
+	private boolean isIssueRequired(StatusEnum status, TestItem testItem) {
+		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(testItem.getRetryOf()).isPresent();
+	}
+
+	private Optional<IssueEntity> resolveIssue(StatusEnum status, TestItem testItem, @Nullable Issue issue, Long projectId) {
+
+		if (isIssueRequired(status, testItem)) {
+			return ofNullable(issue).map(is -> {
+				//in provided issue should be locator id or NOT_ISSUE value
+				String locator = is.getIssueType();
+				if (!NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(locator)) {
+					IssueType issueType = issueTypeHandler.defineIssueType(projectId, locator);
+					IssueEntity issueEntity = IssueConverter.TO_ISSUE.apply(is);
+					issueEntity.setIssueType(issueType);
+					return Optional.of(issueEntity);
+				}
+				return Optional.<IssueEntity>empty();
+			}).orElseGet(() -> {
+				IssueEntity issueEntity = new IssueEntity();
+				IssueType toInvestigate = issueTypeHandler.defineIssueType(projectId, TO_INVESTIGATE.getLocator());
+				issueEntity.setIssueType(toInvestigate);
+				return Optional.of(issueEntity);
+			});
+		}
+		return Optional.empty();
+	}
+
+	private void updateFinishedItem(TestItemResults testItemResults, StatusEnum actualStatus, Optional<IssueEntity> resolvedIssue,
+			TestItem testItem, Long userId, Long projectId) {
+		if (testItemResults.getStatus() != actualStatus || resolvedIssue.isPresent()) {
+
+			deleteOldIssueIndex(resolvedIssue, actualStatus, testItem, testItemResults, projectId);
+
+			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(testItemResults.getStatus()));
+			if (statusChangingStrategy.isPresent()) {
+				statusChangingStrategy.get().changeStatus(testItem, actualStatus, userId, projectId);
+			} else {
+				testItemResults.setStatus(actualStatus);
+			}
+
+			resolvedIssue.ifPresent(issue -> {
+
+				ofNullable(testItemResults.getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+
+				issue.setTestItemResults(testItemResults);
+				issueEntityRepository.save(issue);
+				testItemResults.setIssue(issue);
+
+				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+					eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunch().getId(), projectId));
+
+				}
+			});
+
+		}
+	}
+
+	private void deleteOldIssueIndex(Optional<IssueEntity> resolvedIssue, StatusEnum actualStatus, TestItem testItem,
+			TestItemResults testItemResults, Long projectId) {
+
+		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+			if (resolvedIssue.isPresent() || actualStatus == PASSED) {
+				ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
+						logRepository.findIdsByTestItemId(testItem.getItemId())
+				));
+			}
+		}
+
 	}
 }

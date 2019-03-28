@@ -216,6 +216,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 				.addAutoAnalyzedFlag(true)
 				.get();
 		issueEntity.setIssueId(testItem.getItemId());
+		issueEntity.setTestItemResults(testItem.getItemResults());
 		testItem.getItemResults().setIssue(issueEntity);
 		ofNullable(rs.getRelevantItemId()).ifPresent(relevantItemId -> updateIssueFromRelevantItem(issueEntity, relevantItemId));
 		return issueEntity;

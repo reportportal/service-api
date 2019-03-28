@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
@@ -96,18 +97,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final IssueEntityRepository issueEntityRepository;
+
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
 	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, TestItemRepository testItemRepository,
 			TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer,
-			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+			IssueEntityRepository issueEntityRepository, Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
 		this.ticketRepository = ticketRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
+		this.issueEntityRepository = issueEntityRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
 
@@ -146,7 +150,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
-				issueEntity.setIssueId(testItem.getItemId());
+				issueEntity.setTestItemResults(testItem.getItemResults());
+				issueEntityRepository.save(issueEntity);
 				testItem.getItemResults().setIssue(issueEntity);
 
 				testItemRepository.save(testItem);
@@ -188,7 +193,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -269,7 +275,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					.addIgnoreFlag(item.getItemResults().getIssue().getIgnoreAnalyzer())
 					.addAutoAnalyzedFlag(true)
 					.get();
-			issueEntity.setIssueId(item.getItemId());
+			issueEntity.setTestItemResults(item.getItemResults());
+			issueEntityRepository.save(issueEntity);
 			item.getItemResults().setIssue(issueEntity);
 			testItemRepository.save(item);
 		});
@@ -343,10 +350,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

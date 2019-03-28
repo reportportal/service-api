@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,7 +47,8 @@ public class FromInterruptedStatusChangingStrategy extends StatusChangingStrateg
 
 	@Autowired
 	public FromInterruptedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository, MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
+			MessageBus messageBus) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
 	}
 
@@ -74,7 +76,12 @@ public class FromInterruptedStatusChangingStrategy extends StatusChangingStrateg
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(item, userId, projectId);
-			item.getLaunch().setStatus(launchRepository.identifyStatus(item.getLaunch().getId()) ? PASSED : FAILED);
+			if (item.getLaunch().getStatus() != IN_PROGRESS) {
+				item.getLaunch()
+						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), JStatusEnum.PASSED) ?
+								FAILED :
+								PASSED);
+			}
 		}
 	}
 }

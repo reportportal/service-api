@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -315,10 +316,10 @@ class UserControllerTest extends BaseMvcTest {
 		MvcResult mvcResult = mockMvc.perform(get("/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andReturn();
-		List userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), List.class);
+		Page userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), Page.class);
 
 		Assertions.assertNotNull(userResources);
-		Assertions.assertEquals(2, userResources.size());
+		Assertions.assertEquals(2, userResources.getContent().size());
 	}
 
 	@Test

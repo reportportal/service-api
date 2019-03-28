@@ -312,13 +312,13 @@ class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	void findUsers() throws Exception {
-		MvcResult mvcResult = mockMvc.perform(get("/user/search?term=pers").with(token(oAuthHelper.getSuperadminToken())))
+		MvcResult mvcResult = mockMvc.perform(get("/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andReturn();
-		UserResource[] userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), UserResource[].class);
+		List userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), List.class);
 
 		Assertions.assertNotNull(userResources);
-		Assertions.assertEquals(2, userResources.length);
+		Assertions.assertEquals(2, userResources.size());
 	}
 
 	@Test

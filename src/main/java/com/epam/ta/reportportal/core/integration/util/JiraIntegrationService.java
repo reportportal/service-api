@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -43,14 +42,14 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 	private final BasicTextEncryptor basicTextEncryptor;
 
 	@Autowired
-	public JiraIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
+	public JiraIntegrationService(IntegrationRepository integrationRepository,
 			PluginBox pluginBox, BasicTextEncryptor basicTextEncryptor) {
-		super(integrationTypeRepository, integrationRepository, pluginBox);
+		super(integrationRepository, pluginBox);
 		this.basicTextEncryptor = basicTextEncryptor;
 	}
 
 	@Override
-	protected Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);

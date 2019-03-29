@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.core.integration.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;

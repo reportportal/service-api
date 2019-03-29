@@ -83,7 +83,7 @@ public abstract class StatusChangingStrategy {
 			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
 			StatusEnum newStatus = testItemRepository.hasStatusNotEqualsWithoutStepItem(parent.getItemId(),
 					testItem.getItemId(),
-					StatusEnum.PASSED.name()
+					StatusEnum.PASSED
 			) ? StatusEnum.FAILED : StatusEnum.PASSED;
 			if (!parent.getItemResults().getStatus().equals(newStatus) && parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS) {
 				parent.getItemResults().setStatus(newStatus);

@@ -53,7 +53,7 @@ public interface LogIndexer {
 	 * Remove documents with specified ids from index
 	 *
 	 * @param index Index to to be cleaned
-	 * @param ids   Document ids to be deleted from index
+	 * @param ids   The {@link List} of the {@link com.epam.ta.reportportal.entity.log.Log#id}
 	 */
 	void cleanIndex(Long index, List<Long> ids);
 

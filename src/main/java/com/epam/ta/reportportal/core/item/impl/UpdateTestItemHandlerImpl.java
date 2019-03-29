@@ -268,17 +268,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	}
 
 	@Override
-	public void resetItemsIssue(List<TestItem> items, Long projectId) {
-		items.forEach(item -> {
+	public void resetItemsIssue(List<Long> itemIds, Long projectId) {
+		itemIds.forEach(itemId -> {
 			IssueType issueType = issueTypeHandler.defineIssueType(projectId, TestItemIssueGroup.TO_INVESTIGATE.getLocator());
-			IssueEntity issueEntity = new IssueEntityBuilder(item.getItemResults().getIssue()).addIssueType(issueType)
-					.addIgnoreFlag(item.getItemResults().getIssue().getIgnoreAnalyzer())
+			IssueEntity issueEntity = new IssueEntityBuilder(issueEntityRepository.findById(itemId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, itemId))).addIssueType(issueType)
 					.addAutoAnalyzedFlag(true)
 					.get();
-			issueEntity.setTestItemResults(item.getItemResults());
 			issueEntityRepository.save(issueEntity);
-			item.getItemResults().setIssue(issueEntity);
-			testItemRepository.save(item);
 		});
 	}
 

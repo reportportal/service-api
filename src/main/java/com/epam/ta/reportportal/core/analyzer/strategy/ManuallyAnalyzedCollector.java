@@ -19,12 +19,10 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -48,10 +46,9 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
-		List<TestItem> items = testItemRepository.selectByAutoAnalyzedStatus(false, launchId);
-		List<Long> itemIds = items.stream().map(TestItem::getItemId).collect(Collectors.toList());
+		List<Long> itemIds = testItemRepository.selectIdsByAutoAnalyzedStatus(false, launchId);
 		logIndexer.cleanIndex(projectId, itemIds);
-		updateTestItemHandler.resetItemsIssue(items, projectId);
+		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
 		return itemIds;
 	}
 

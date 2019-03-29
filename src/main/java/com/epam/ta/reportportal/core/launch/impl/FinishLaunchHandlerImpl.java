@@ -106,9 +106,9 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 					finishLaunchRQ.getEndTime(),
 					projectDetails
 			);
-			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(launchId, JStatusEnum.PASSED) ? FAILED : PASSED);
+			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(launchId, StatusEnum.PASSED) ? FAILED : PASSED);
 		} else {
-			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(launchId, JStatusEnum.PASSED) ?
+			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(launchId, StatusEnum.PASSED) ?
 					FAILED :
 					PASSED));
 		}

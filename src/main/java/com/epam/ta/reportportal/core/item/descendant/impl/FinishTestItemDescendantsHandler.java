@@ -53,7 +53,7 @@ public class FinishTestItemDescendantsHandler extends AbstractFinishDescendantsH
 
 		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
 
-		testItemRepository.streamIdsByNotHasChildrenAndParentIdAndStatus(testItem.getItemId(), StatusEnum.IN_PROGRESS.name())
+		testItemRepository.streamIdsByNotHasChildrenAndParentIdAndStatus(testItem.getItemId(), StatusEnum.IN_PROGRESS)
 				.forEach(itemId -> updateDescendantWithoutChildren(itemId.longValue(),
 						status,
 						endTime,
@@ -73,7 +73,7 @@ public class FinishTestItemDescendantsHandler extends AbstractFinishDescendantsH
 
 	@Override
 	protected void updateDescendantsWithChildren(TestItem testItem, LocalDateTime endTime) {
-		testItemRepository.streamIdsByHasChildrenAndParentIdAndStatusOrderedByPathLevel(testItem.getItemId(), StatusEnum.IN_PROGRESS.name())
+		testItemRepository.streamIdsByHasChildrenAndParentIdAndStatusOrderedByPathLevel(testItem.getItemId(), StatusEnum.IN_PROGRESS)
 				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime));
 	}
 

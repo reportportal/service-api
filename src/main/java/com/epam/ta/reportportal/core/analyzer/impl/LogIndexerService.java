@@ -100,6 +100,8 @@ public class LogIndexerService implements LogIndexer {
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 				if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
 					List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItemRepository.findAllById(itemIds));
+					System.err.println(rqTestItems.size());
+					System.out.println(rqTestItems.get(0).getLogs().toString());
 					if (!CollectionUtils.isEmpty(rqTestItems)) {
 						IndexLaunch indexLaunch = createIndexLaunch(projectId,
 								launch.getId(),

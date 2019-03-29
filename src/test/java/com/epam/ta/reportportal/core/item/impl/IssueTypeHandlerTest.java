@@ -58,10 +58,10 @@ class IssueTypeHandlerTest {
 		when(testItemRepository.selectIssueLocatorsByProject(2L)).thenReturn(Collections.singletonList(issueType));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> issueTypeHandler.defineIssueType(1L, "not_exist")
+				() -> issueTypeHandler.defineIssueType(2L, "not_exist")
 		);
 		assertEquals(
-				"Test item status is ambiguous. Invalid test item issue type definition 'not_exist' is requested for item '1'. Valid issue types locators are: [exists]",
+				"Test items issue type cannot be resolved. Invalid test item issue type definition 'not_exist' is requested. Valid issue types' locators are: [exists]",
 				exception.getMessage()
 		);
 	}

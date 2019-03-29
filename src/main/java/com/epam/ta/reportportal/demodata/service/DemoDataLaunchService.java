@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -88,7 +87,7 @@ public class DemoDataLaunchService {
 		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.hasItemsWithStatusNotEqual(launchId, JStatusEnum.PASSED)) {
+		if (launchRepository.hasItemsWithStatusNotEqual(launchId, StatusEnum.PASSED)) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		launch.setStatus(fromStatisticsStatus);

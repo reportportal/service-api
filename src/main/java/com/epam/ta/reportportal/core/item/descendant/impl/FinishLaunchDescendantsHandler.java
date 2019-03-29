@@ -54,7 +54,7 @@ public class FinishLaunchDescendantsHandler extends AbstractFinishDescendantsHan
 
 		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
 
-		testItemRepository.streamIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(), StatusEnum.IN_PROGRESS.name())
+		testItemRepository.streamIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(), StatusEnum.IN_PROGRESS)
 				.forEach(itemId -> updateDescendantWithoutChildren(itemId.longValue(),
 						status,
 						endTime,
@@ -74,7 +74,7 @@ public class FinishLaunchDescendantsHandler extends AbstractFinishDescendantsHan
 
 	@Override
 	protected void updateDescendantsWithChildren(Launch launch, LocalDateTime endTime) {
-		testItemRepository.streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(), StatusEnum.IN_PROGRESS.name())
+		testItemRepository.streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(), StatusEnum.IN_PROGRESS)
 				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime));
 	}
 

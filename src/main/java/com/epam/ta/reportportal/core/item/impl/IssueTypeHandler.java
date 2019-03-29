@@ -53,8 +53,7 @@ public class IssueTypeHandler {
 				ofNullable(locator).orElseThrow(() -> new ReportPortalException("Locator should not be null"))
 		)
 				.orElseThrow(() -> new ReportPortalException(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, formattedSupplier(
-						"Invalid test item issue type definition '{}' is requested for item with locator - '{}'. Valid issue types locators are: {}",
-						locator,
+						"Invalid test item issue type definition '{}' is requested. Valid issue types' locators are: {}",
 						locator,
 						testItemRepository.selectIssueLocatorsByProject(projectId).stream().map(IssueType::getLocator).collect(toList())
 				)));

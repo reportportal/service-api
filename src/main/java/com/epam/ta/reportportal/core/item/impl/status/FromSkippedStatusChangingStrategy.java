@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -72,7 +71,7 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 			changeStatusRecursively(item, userId, projectId);
 			if (item.getLaunch().getStatus() != IN_PROGRESS) {
 				item.getLaunch()
-						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), JStatusEnum.PASSED) ?
+						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), StatusEnum.PASSED) ?
 								FAILED :
 								PASSED);
 			}

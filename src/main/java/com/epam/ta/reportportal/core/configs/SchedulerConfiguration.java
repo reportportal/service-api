@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Configuration
+@Profile("jobs")
 @EnableConfigurationProperties(SchedulerConfiguration.QuartzProperties.class)
 public class SchedulerConfiguration {
 

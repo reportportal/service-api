@@ -171,6 +171,7 @@ jar.dependsOn copyJacocoAgentToLibs
 //End section for external jacoco test report
 
 build.dependsOn jacocoTestReport
+
 test {
 //    testLogging.showStandardStreams = true
 

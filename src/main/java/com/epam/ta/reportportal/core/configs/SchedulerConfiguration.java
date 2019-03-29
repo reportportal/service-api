@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Configuration
-@Profile("jobs")
+@Profile("!jobs-disabled")
 @EnableConfigurationProperties(SchedulerConfiguration.QuartzProperties.class)
 public class SchedulerConfiguration {
 

@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * @author Pavel Bortnik
  */
 @Component
-@Profile("jobs")
+@Profile("!jobs-disabled")
 public class JobSchedulerInfoContributor implements InfoContributor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerInfoContributor.class);

@@ -291,7 +291,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		project.getUsers().add(projectUser);
 
 		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
-		if (ProjectRole.PROJECT_MANAGER.sameOrLowerThan(projectRole)) {
+		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 			permissions.add(BasePermission.ADMINISTRATION);
 		}
 		aclHandler.permitSharedObjects(project.getId(), name, permissions);

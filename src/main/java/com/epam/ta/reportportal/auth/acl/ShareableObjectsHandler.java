@@ -62,7 +62,7 @@ public class ShareableObjectsHandler {
 					.filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
 					.forEach(entry -> {
 						aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
-						if (ProjectRole.PROJECT_MANAGER.sameOrLowerThan(entry.getValue())) {
+						if (entry.getValue().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 							aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
 						}
 
@@ -80,10 +80,10 @@ public class ShareableObjectsHandler {
 	 */
 	public void updateAcl(Object object, Long projectId, boolean isShared) {
 		if (isShared) {
-			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((key, value) -> {
-				aclService.addPermissions(object, key, BasePermission.READ);
-				if (ProjectRole.PROJECT_MANAGER.sameOrLowerThan(value)) {
-					aclService.addPermissions(object, key, BasePermission.ADMINISTRATION);
+			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((username, projectRole) -> {
+				aclService.addPermissions(object, username, BasePermission.READ);
+				if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+					aclService.addPermissions(object, username, BasePermission.ADMINISTRATION);
 				}
 
 			});

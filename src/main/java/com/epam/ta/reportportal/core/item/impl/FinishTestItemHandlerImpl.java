@@ -53,6 +53,8 @@ import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.item.descendant.AbstractFinishDescendantsHandler.ATTRIBUTE_KEY_STATUS;
+import static com.epam.ta.reportportal.core.item.descendant.AbstractFinishDescendantsHandler.ATTRIBUTE_VALUE_INTERRUPTED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
@@ -134,9 +136,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
 
 		if (hasChildren) {
-			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishExecutionRQ.getEndTime(), projectDetails);
-			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(testItem.getItemId(), JStatusEnum.PASSED);
-			testItemResults.setStatus(isFailed ? FAILED : PASSED);
+			if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
+				finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishExecutionRQ.getEndTime(), projectDetails);
+				testItemResults.setStatus(resolveStatus(testItem.getItemId()));
+			} else {
+				testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
+			}
+
 		} else {
 			Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.get(),
 					testItem,
@@ -145,6 +151,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			);
 
 			if (testItemResults.getStatus() == IN_PROGRESS) {
+				testItem.getAttributes()
+						.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
+								&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 				testItemResults.setStatus(actualStatus.get());
 				resolvedIssue.ifPresent(issue -> {
 					issue.setTestItemResults(testItemResults);
@@ -152,8 +161,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					testItemResults.setIssue(issue);
 				});
 			} else {
-				updateFinishedItem(
-						testItemResults,
+				updateFinishedItem(testItemResults,
 						actualStatus.get(),
 						resolvedIssue,
 						testItem,
@@ -198,6 +206,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
 			finishDescendantsHandler.finishDescendants(testItem, status, endtime, projectDetails);
 		}
+	}
+
+	private StatusEnum resolveStatus(Long itemId) {
+		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, JStatusEnum.PASSED) ? FAILED : PASSED;
 	}
 
 	private boolean isIssueRequired(StatusEnum status, TestItem testItem) {

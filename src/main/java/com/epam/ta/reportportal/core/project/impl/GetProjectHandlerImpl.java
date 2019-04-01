@@ -161,6 +161,11 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
+	public List<String> getAllProjectNamesByTerm(String term) {
+		return projectRepository.findAllProjectNamesByTerm(term);
+	}
+
+	@Override
 	public void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream) {
 
 		List<Project> projects = projectRepository.findByFilter(filter);

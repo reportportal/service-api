@@ -770,13 +770,13 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.widgetType").value("activityStream"))
 				.andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
 				.andExpect(jsonPath("$.content.result[0].actionType").value("startLaunch"))
-				.andExpect(jsonPath("$.content.result[0].objectType").value("launch"))
+				.andExpect(jsonPath("$.content.result[0].objectType").value("LAUNCH"))
 				.andExpect(jsonPath("$.content.result[1].user").value("superadmin"))
 				.andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
-				.andExpect(jsonPath("$.content.result[1].objectType").value("item"))
+				.andExpect(jsonPath("$.content.result[1].objectType").value("ITEM"))
 				.andExpect(jsonPath("$.content.result[2].user").value("superadmin"))
 				.andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
-				.andExpect(jsonPath("$.content.result[2].objectType").value("launch"));
+				.andExpect(jsonPath("$.content.result[2].objectType").value("LAUNCH"));
 	}
 
 	@Sql("/db/widget/activity-stream.sql")
@@ -807,13 +807,13 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.widgetType").value("activityStream"))
 				.andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
 				.andExpect(jsonPath("$.content.result[0].actionType").value("startLaunch"))
-				.andExpect(jsonPath("$.content.result[0].objectType").value("launch"))
+				.andExpect(jsonPath("$.content.result[0].objectType").value("LAUNCH"))
 				.andExpect(jsonPath("$.content.result[1].user").value("superadmin"))
 				.andExpect(jsonPath("$.content.result[1].actionType").value("updateItem"))
-				.andExpect(jsonPath("$.content.result[1].objectType").value("item"))
+				.andExpect(jsonPath("$.content.result[1].objectType").value("ITEM"))
 				.andExpect(jsonPath("$.content.result[2].user").value("superadmin"))
 				.andExpect(jsonPath("$.content.result[2].actionType").value("deleteLaunch"))
-				.andExpect(jsonPath("$.content.result[2].objectType").value("launch"));
+				.andExpect(jsonPath("$.content.result[2].objectType").value("LAUNCH"));
 	}
 
 	@Sql("/db/widget/product-status.sql")

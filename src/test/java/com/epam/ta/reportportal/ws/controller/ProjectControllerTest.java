@@ -19,13 +19,17 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.project.*;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
+import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
+import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.rabbitmq.http.client.Client;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
@@ -44,8 +48,7 @@ import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -114,20 +117,15 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void deleteProjectPositive() throws Exception {
-		mockMvc.perform(delete("/project/test_project").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/project/3").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+
+		assertFalse(projectRepository.findById(3L).isPresent());
 	}
 
 	@Test
 	void bulkDeleteProjects() throws Exception {
-		BulkRQ<DeleteProjectRQ> bulkRQ = new BulkRQ<>();
-		Map<Long, DeleteProjectRQ> entities = new HashMap<>();
-		DeleteProjectRQ first = new DeleteProjectRQ();
-		first.setProjectName("default_personal");
-		entities.put(2L, first);
-		DeleteProjectRQ second = new DeleteProjectRQ();
-		second.setProjectName("test_project");
-		entities.put(3L, second);
-		bulkRQ.setEntities(entities);
+		DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
+		bulkRQ.setIds(Lists.newArrayList(2L, 3L));
 		mockMvc.perform(delete("/project").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());
@@ -206,12 +204,17 @@ class ProjectControllerTest extends BaseMvcTest {
 		mockMvc.perform(get("/project/names").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
+	@Test
+	void searchProjectNames() throws Exception {
+		mockMvc.perform(get("/project/names/search?term=UpEr").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
 	@Sql("/db/test-item/test-item-fill.sql")
 	@Test
 	void getProjectInfoPositive() throws Exception {
 		mockMvc.perform(get("/project/list/default_personal").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.projectId").value(2))
+				.andExpect(jsonPath("$.id").value(2))
 				.andExpect(jsonPath("$.projectName").value("default_personal"))
 				.andExpect(jsonPath("$.usersQuantity").value(1))
 				.andExpect(jsonPath("$.launchesQuantity").value(1))
@@ -223,7 +226,7 @@ class ProjectControllerTest extends BaseMvcTest {
 	void getProjectInfoWithoutLaunches() throws Exception {
 		mockMvc.perform(get("/project/list/superadmin_personal").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.projectId").value(1))
+				.andExpect(jsonPath("$.id").value(1))
 				.andExpect(jsonPath("$.projectName").value("superadmin_personal"))
 				.andExpect(jsonPath("$.usersQuantity").value(1))
 				.andExpect(jsonPath("$.launchesQuantity").value(0))
@@ -325,7 +328,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		senderCaseDTO.setSendCase("always");
 		senderCaseDTO.setRecipients(Collections.singletonList("default"));
 		senderCaseDTO.setLaunchNames(Collections.singletonList("test launch"));
-		LaunchAttribute launchAttribute = new LaunchAttribute();
+		ItemAttributeResource launchAttribute = new ItemAttributeResource();
 		launchAttribute.setKey("key");
 		launchAttribute.setValue("val");
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));

@@ -42,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -289,7 +288,7 @@ public class LaunchController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/status")
 	@ResponseStatus(OK)
-	@ApiIgnore
+
 	public Map<String, String> getStatuses(@PathVariable String projectName, @RequestParam(value = "ids") Long[] ids,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getStatuses(extractProjectDetails(user, normalizeId(projectName)), ids);

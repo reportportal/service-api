@@ -163,8 +163,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegrationsByType(
-				type,
+		return deleteIntegrationHandler.deleteProjectIntegrationsByType(type,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);

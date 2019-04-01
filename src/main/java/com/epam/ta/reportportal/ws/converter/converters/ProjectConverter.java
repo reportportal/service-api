@@ -92,11 +92,6 @@ public final class ProjectConverter {
 
 		projectConfiguration.setSubTypes(subTypes);
 
-		projectResource.setIntegrations(project.getIntegrations()
-				.stream()
-				.map(IntegrationConverter.TO_INTEGRATION_RESOURCE)
-				.collect(Collectors.toList()));
-
 		projectResource.setConfiguration(projectConfiguration);
 		projectResource.setOrganization(project.getOrganization());
 		return projectResource;

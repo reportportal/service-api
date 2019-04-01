@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -36,13 +37,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -52,6 +55,9 @@ class DeleteTestItemHandlerImplTest {
 
 	@Mock
 	private TestItemRepository testItemRepository;
+
+	@Mock
+	private LogRepository logRepository;
 
 	@Mock
 	private LogIndexer logIndexer;
@@ -139,6 +145,7 @@ class DeleteTestItemHandlerImplTest {
 		ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
 
 		TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
+		item.setItemId(123123L);
 		TestItem parent = new TestItem();
 		long parentId = 35L;
 		parent.setItemId(parentId);
@@ -148,6 +155,7 @@ class DeleteTestItemHandlerImplTest {
 
 		doNothing().when(logIndexer).cleanIndex(any(), any());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(logRepository.findIdsByTestItemId(item.getItemId())).thenReturn(Collections.emptyList());
 		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
 		doNothing().when(eventPublisher).publishEvent(any(DeleteTestItemAttachmentsEvent.class));

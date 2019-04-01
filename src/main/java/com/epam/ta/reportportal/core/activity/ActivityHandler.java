@@ -32,7 +32,7 @@ public interface ActivityHandler {
 	 * for specified
 	 * {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
-	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param filter         Filter
 	 * @param pageable       Page Details
 	 * @return Found activities
@@ -43,7 +43,7 @@ public interface ActivityHandler {
 	/**
 	 * Load {@link com.epam.ta.reportportal.ws.model.ActivityResource}
 	 *
-	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param activityId     ID of activity
 	 * @return Found Activity or NOT FOUND exception
 	 */
@@ -54,7 +54,7 @@ public interface ActivityHandler {
 	 * for specified
 	 * {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
-	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails Details of project {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param itemId         ID of test item
 	 * @param filter         Filter
 	 * @param pageable       Page Details

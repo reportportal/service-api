@@ -36,7 +36,7 @@ public interface GetTestItemHandler {
 	 * Get {@link TestItem} instance
 	 *
 	 * @param testItemId     {@link TestItem#itemId}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param user           {@link ReportPortalUser}
 	 * @return {@link TestItemResource}
 	 */
@@ -47,7 +47,7 @@ public interface GetTestItemHandler {
 	 *
 	 * @param filter         {@link Filter}
 	 * @param pageable       {@link Pageable}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param user           {@link ReportPortalUser}
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */

@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -120,7 +121,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 
 		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren
-				&& !ofNullable(testItem.getRetryOf()).isPresent()) {
+				&& !ofNullable(testItem.getRetryOf()).isPresent() && testItem.getType() != TestItemTypeEnum.SUITE) {
 			IssueEntity issueEntity = new IssueEntity();
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value

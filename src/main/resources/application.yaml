@@ -17,10 +17,6 @@ spring:
       org.quartz.jobStore.clusterCheckinInterval: "180000"
       org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
       org.quartz.scheduler.instanceName: reportportal
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: ${rp.db.url}
   jpa:
     properties:
       hibernate:
@@ -70,8 +66,16 @@ rp:
   jwt:
     signing-key: 123
 
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driverClassName: org.postgresql.Driver
+    jdbcUrl: ${rp.db.url}
+    username: ${rp.db.user}
+    password: ${rp.db.pass}
+    maximumPoolSize: 27
+
   db:
-    url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}?user=${rp.db.user}&password=${rp.db.pass}
+    url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}
     name: reportportal
     host: postgres
     port: 5432

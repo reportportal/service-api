@@ -20,7 +20,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.project.email.LaunchAttribute;
+import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
@@ -69,7 +69,7 @@ class EmailRulesValidatorTest {
 
 	@Test
 	void validateEmptyLaunchAttributes() {
-		LaunchAttribute attribute = new LaunchAttribute();
+		ItemAttributeResource attribute = new ItemAttributeResource();
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> EmailRulesValidator.validateLaunchAttribute(attribute)
 		);
@@ -91,7 +91,7 @@ class EmailRulesValidatorTest {
 
 	@Test
 	void successfullyValidateLaunchAttribute() {
-		LaunchAttribute attribute = new LaunchAttribute();
+		ItemAttributeResource attribute = new ItemAttributeResource();
 		attribute.setKey("key");
 		attribute.setValue("value");
 		EmailRulesValidator.validateLaunchAttribute(attribute);

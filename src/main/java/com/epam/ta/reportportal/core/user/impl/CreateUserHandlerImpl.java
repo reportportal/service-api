@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,10 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.*;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -48,28 +46,23 @@ import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
-import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
 
 /**
  * Implementation of Create User handler
@@ -84,8 +77,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	private final UserRepository userRepository;
 
 	private final ProjectRepository projectRepository;
-
-	private final PersonalProjectService personalProjectService;
 
 	private final MailServiceFactory emailServiceFactory;
 
@@ -102,14 +93,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
-			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory,
+	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
 			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
 			ApplicationEventPublisher eventPublisher) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
-		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
 		this.userCreationBidRepository = userCreationBidRepository;
 		this.restorePasswordBidRepository = restorePasswordBidRepository;
@@ -121,31 +110,18 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	@Override
 	public CreateUserRS createUserByAdmin(CreateUserRQFull request, ReportPortalUser creator, String basicUrl) {
+		// creator validation
 		User administrator = userRepository.findByLogin(creator.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, creator.getUsername()));
-
 		expect(administrator.getRole(), equalTo(UserRole.ADMINISTRATOR)).verify(ACCESS_DENIED,
 				Suppliers.formattedSupplier("Only administrator can create new user. Your role is - {}", administrator.getRole())
 		);
 
-		String newUsername = EntityUtils.normalizeId(request.getLogin());
+		request.setLogin(normalizeAndValidateLogin(request.getLogin()));
+		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
 
-		expect(userRepository.findByLogin(newUsername).isPresent(), equalTo(false)).verify(USER_ALREADY_EXISTS,
-				formattedSupplier("login='{}'", newUsername)
-		);
-
-		expect(newUsername, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				formattedSupplier("Username '{}' consists only of special characters", newUsername)
-		);
-
-		String email = EntityUtils.normalizeId(request.getEmail());
-		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, formattedSupplier("email = '{}'", email));
-		expect(userRepository.findByEmail(email).isPresent(), equalTo(false)).verify(USER_ALREADY_EXISTS,
-				formattedSupplier("email = '{}'", email)
-		);
-
-		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, email, basicUrl);
-		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId());
+		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
+		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId());
 		messageBus.publishActivity(userCreatedEvent);
 		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();
@@ -158,6 +134,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
 
+		userRepository.findById(loggedInUser.getUserId())
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, loggedInUser.getUsername()));
+
 		Integration integration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)
@@ -167,35 +146,17 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		EmailService emailService = emailServiceFactory.getEmailService(integration, true);
 
-		User creator = userRepository.findByLogin(loggedInUser.getUsername()).orElseThrow(() -> new ReportPortalException(ACCESS_DENIED));
+		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
 
-		String email = EntityUtils.normalizeId(request.getEmail());
-		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-
-		Optional<User> emailUser = userRepository.findByEmail(request.getEmail());
-
-		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-				formattedSupplier("email={}", request.getEmail())
-		);
-
-		ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
-		List<Project> projects = projectRepository.findUserProjects(loggedInUser.getUsername());
-
-		projects.stream()
-				.filter(it -> it.getId().equals(defaultProject.getId()))
-				.findAny()
-				.orElseThrow(() -> new ReportPortalException(ACCESS_DENIED,
-						formattedSupplier("{} is not your project", defaultProject.getName())
-				));
-
-		ProjectRole role = forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole()));
-
-		// FIXME move to controller level
-		if (creator.getRole() != UserRole.ADMINISTRATOR) {
-			expect(ofNullable(projectUser).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND))
-					.getProjectRole()
-					.sameOrHigherThan(role), equalTo(Boolean.TRUE)).verify(ACCESS_DENIED);
+		if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
+			ProjectUser projectUser = findUserConfigByLogin(defaultProject, loggedInUser.getUsername());
+			expect(projectUser, not(isNull())).verify(ACCESS_DENIED,
+					formattedSupplier("'{}' is not your project", defaultProject.getName())
+			);
+			expect(projectUser.getProjectRole(), Predicate.isEqual(ProjectRole.PROJECT_MANAGER)).verify(ACCESS_DENIED);
 		}
+
+		request.setRole(forName(request.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, request.getRole())).name());
 
 		UserCreationBid bid = UserCreationBidConverter.TO_USER.apply(request, defaultProject);
 		try {
@@ -219,7 +180,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		}
 
 		CreateUserBidRS response = new CreateUserBidRS();
-		String msg = "Bid for user creation with email '" + email
+		String msg = "Bid for user creation with email '" + request.getEmail()
 				+ "' is successfully registered. Confirmation info will be send on provided email. Expiration: 1 day.";
 
 		response.setMessage(msg);
@@ -235,77 +196,24 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 						"Impossible to register user. UUID expired or already registered."
 				));
 
-		Optional<User> user = userRepository.findByLogin(request.getLogin().toLowerCase());
-		expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", request.getLogin()));
+		CreateUserRQFull createUserRQFull = new CreateUserRQFull();
 
-		expect(request.getLogin(), Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
-				formattedSupplier("Username '{}' consists only of special characters", request.getLogin())
-		);
+		createUserRQFull.setLogin(normalizeAndValidateLogin(request.getLogin()));
+		String email = normalizeAndValidateEmail(request.getEmail());
+		expect(email, Predicate.isEqual(bid.getEmail())).verify(INCORRECT_REQUEST, "Email from bid not match.");
+		createUserRQFull.setEmail(email);
+		createUserRQFull.setFullName(request.getFullName());
+		createUserRQFull.setPassword(request.getPassword());
+		createUserRQFull.setDefaultProject(bid.getDefaultProject().getName());
+		createUserRQFull.setAccountRole(UserRole.USER.name());
+		createUserRQFull.setProjectRole(bid.getRole());
 
-		// synchronized (this)
-		Project defaultProject = projectRepository.findByName(bid.getDefaultProject().getName())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, bid.getDefaultProject().getName()));
+		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
+		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId());
 
-		// populate field from existing bid record
-		request.setDefaultProject(bid.getDefaultProject().getName());
-
-		String email = request.getEmail();
-		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
-
-		Optional<User> emailUser = userRepository.findByEmail(request.getEmail());
-		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS,
-				formattedSupplier("email='{}'", request.getEmail())
-		);
-
-		User newUser = new UserBuilder().addCreateUserRQ(request).addUserRole(UserRole.USER).get();
-
-		ProjectRole projectRole = forName(bid.getRole()).orElseThrow(() -> new ReportPortalException(ROLE_NOT_FOUND, bid.getRole()));
-
-		Set<ProjectUser> projectUsers = defaultProject.getUsers();
-
-		//@formatter:off
-		ProjectUser projectUser = new ProjectUser()
-				.withProjectRole(projectRole)
-				.withProject(defaultProject)
-				.withUser(newUser);
-
-		projectUsers
-				.add(projectUser);
-
-		newUser.setProjects(Sets.newHashSet(projectUser));
-		//@formatter:on
-
-		try {
-			userRepository.save(newUser);
-			projectRepository.save(defaultProject);
-
-			/*
-			 * Generate personal project for the user
-			 */
-			Project personalProject = personalProjectService.generatePersonalProject(newUser);
-			if (!defaultProject.getId().equals(personalProject.getId())) {
-				projectRepository.save(personalProject);
-				newUser.getProjects()
-						.add(new ProjectUser().withProject(personalProject).withUser(newUser).withProjectRole(ProjectRole.PROJECT_MANAGER));
-			}
-
-			userCreationBidRepository.deleteById(uuid);
-		} catch (DuplicateKeyException e) {
-			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
-		} catch (Exception exp) {
-			throw new ReportPortalException("Error while User creating.", exp);
-		}
-
-		final UserCreatedEvent userCreatedEvent = new UserCreatedEvent(
-				TO_ACTIVITY_RESOURCE.apply(newUser, defaultProject.getId()),
-				newUser.getId()
-		);
 		messageBus.publishActivity(userCreatedEvent);
 		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
-
-		CreateUserRS response = new CreateUserRS();
-		response.setLogin(newUser.getLogin());
-		return response;
+		return pair.getValue();
 	}
 
 	@Override
@@ -352,4 +260,21 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		return new YesNoRS(bid.isPresent());
 	}
 
+	private String normalizeAndValidateEmail(String email) {
+		String normalizedEmail = EntityUtils.normalizeId(email.trim());
+		expect(UserUtils.isEmailValid(normalizedEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, formattedSupplier("email='{}'", email));
+		Optional<User> emailUser = userRepository.findByEmail(email);
+		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", email));
+		return normalizedEmail;
+	}
+
+	private String normalizeAndValidateLogin(String login) {
+		String normalizedLogin = EntityUtils.normalizeId(login.trim());
+		Optional<User> user = userRepository.findByLogin(normalizedLogin);
+		expect(user.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS, formattedSupplier("login='{}'", login));
+		expect(normalizedLogin, Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
+				formattedSupplier("Username '{}' consists only of special characters", login)
+		);
+		return normalizedLogin;
+	}
 }

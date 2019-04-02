@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -88,7 +87,6 @@ public class UserController {
 		this.jasperReportHandler = jasperReportHandler;
 	}
 
-	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@PreAuthorize(ADMIN_ONLY)
@@ -106,7 +104,7 @@ public class UserController {
 	@Transactional
 	@PostMapping(value = "/bid")
 	@ResponseStatus(CREATED)
-	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
+	@PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
 	@ApiOperation("Register invitation for user who will be created")
 	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
@@ -121,7 +119,6 @@ public class UserController {
 		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, rqUrl.toASCIIString());
 	}
 
-	@Transactional
 	@PostMapping(value = "/registration")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Activate invitation and create user in system")
@@ -131,7 +128,7 @@ public class UserController {
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/registration")
-	@ApiIgnore
+
 	public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
 		return getUserHandler.getBidInformation(uuid);
 	}
@@ -191,7 +188,7 @@ public class UserController {
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/registration/info")
-	@ApiIgnore
+
 	public YesNoRS validateInfo(@RequestParam(value = "username", required = false) String username,
 			@RequestParam(value = "email", required = false) String email) {
 		return getUserHandler.validateInfo(username, email);
@@ -241,10 +238,18 @@ public class UserController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{userName}/projects")
 	@ResponseStatus(OK)
-	@ApiIgnore
 	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUserProjects(userName);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/search")
+	@ResponseStatus(OK)
+	@PreAuthorize(ADMIN_ONLY)
+	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getUserHandler.searchUsers(term, pageable);
 	}
 
 	@Transactional(readOnly = true)

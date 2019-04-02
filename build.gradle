@@ -36,7 +36,6 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
 
-
 /*
  * Copyright 2019 EPAM Systems
  *
@@ -116,13 +115,17 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:77b5402'
+        compile 'com.github.reportportal:commons-dao:4904c85'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:704da283'
+        compile 'com.github.reportportal:commons-model:47f9e21'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:fbf67ae9')
     }
 
+    //saucelabs
+
+    implementation 'com.saucelabs:saucerest:1.0.40'
+    
     //move this to the plugin-api
     compile('com.atlassian.fugue:fugue:2.6.1')
     compile('com.atlassian.jira:jira-rest-java-client-core:4.0.0')

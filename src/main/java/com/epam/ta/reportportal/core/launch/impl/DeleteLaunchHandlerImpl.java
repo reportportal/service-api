@@ -129,7 +129,10 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		);
 
 		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId())));
+		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> {
+			eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(r.getId()));
+			messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId()));
+		});
 		return new DeleteBulkRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 				notFound,
 				exceptions.stream().map(ex -> {

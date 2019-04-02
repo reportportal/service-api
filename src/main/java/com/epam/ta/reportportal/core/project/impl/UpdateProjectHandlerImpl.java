@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,10 +55,12 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -243,6 +245,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	@Override
 	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"There are no analyzer deployed."
+		);
 
 		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
 				equalTo(false)
@@ -251,10 +256,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		expect(
 				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
 				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
-
-		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"There are no analyzer's."
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds."
 		);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
@@ -287,10 +289,12 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		projectUser.setUser(modifyingUser);
 		projectUser.setProject(project);
 		project.getUsers().add(projectUser);
-		aclHandler.permitSharedObjects(project.getId(),
-				name,
-				ProjectRole.PROJECT_MANAGER.higherThan(projectRole) ? BasePermission.READ : BasePermission.ADMINISTRATION
-		);
+
+		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
+		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+			permissions.add(BasePermission.ADMINISTRATION);
+		}
+		aclHandler.permitSharedObjects(project.getId(), name, permissions);
 	}
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,

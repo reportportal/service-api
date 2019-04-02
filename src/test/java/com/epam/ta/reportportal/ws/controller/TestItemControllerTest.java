@@ -509,4 +509,14 @@ class TestItemControllerTest extends BaseMvcTest {
 
 		verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
 	}
+
+	@Test
+	void changeStatusNegative() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("failed");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is(400));
+	}
 }

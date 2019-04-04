@@ -69,7 +69,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 	@Test
 	void checkConnection() throws Exception {
 
-		when(pluginBox.getInstance("JIRA", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
+		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.testConnection(any(Integration.class))).thenReturn(true);
 
 		mockMvc.perform(put("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/connect").with(token(oAuthHelper.getSuperadminToken()))
@@ -83,7 +83,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		Map<String, List<String>> params = Maps.newHashMap();
 		params.put("issueType", Lists.newArrayList("ISSUE01"));
 
-		when(pluginBox.getInstance("JIRA", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
+		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getTicketFields(any(String.class), any(Integration.class))).thenReturn(Lists.newArrayList(new PostFormField()));
 
 		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/fields-set").params(CollectionUtils.toMultiValueMap(params))
@@ -93,7 +93,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 	@Test
 	void getAllowableIssueTypes() throws Exception {
 
-		when(pluginBox.getInstance("JIRA", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
+		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getIssueTypes(any(Integration.class))).thenReturn(Lists.newArrayList("type1", "type2"));
 
 		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/issue_types").with(token(oAuthHelper.getSuperadminToken())))
@@ -105,7 +105,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 
 		PostTicketRQ request = getPostTicketRQ();
 
-		when(pluginBox.getInstance("JIRA", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
+		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.submitTicket(any(PostTicketRQ.class), any(Integration.class))).thenReturn(new Ticket());
 
 		mockMvc.perform(post("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/ticket").with(token(oAuthHelper.getSuperadminToken()))
@@ -122,7 +122,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		params.put("url", Lists.newArrayList("jira.com"));
 		params.put("btsProject", Lists.newArrayList("project"));
 
-		when(pluginBox.getInstance("JIRA", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
+		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getTicket(any(String.class), any(Integration.class))).thenReturn(java.util.Optional.of(new Ticket()));
 
 		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/ticket" + ticketId).params(CollectionUtils.toMultiValueMap(params))

@@ -56,8 +56,8 @@ class PluginLoaderServiceTest {
 	@Test
 	void getNotLoadedPluginsInfoTest() {
 
-		when(pluginBox.getPluginById("JIRA")).thenReturn(Optional.ofNullable(jiraPlugin));
-		when(pluginBox.getPluginById("RALLY")).thenReturn(Optional.ofNullable(rallyPlugin));
+		when(pluginBox.getPluginById("jira")).thenReturn(Optional.ofNullable(jiraPlugin));
+		when(pluginBox.getPluginById("rally")).thenReturn(Optional.ofNullable(rallyPlugin));
 		when(jiraPlugin.getDescriptor()).thenReturn(jiraPluginDescriptor);
 		when(jiraPluginDescriptor.getVersion()).thenReturn("v1");
 		when(rallyPlugin.getDescriptor()).thenReturn(rallyPluginDescriptor);
@@ -66,17 +66,17 @@ class PluginLoaderServiceTest {
 
 		Assertions.assertFalse(notLoadedPluginsInfo.isEmpty());
 		Assertions.assertEquals(1, notLoadedPluginsInfo.size());
-		Assertions.assertEquals("RALLY", notLoadedPluginsInfo.get(0).getId());
+		Assertions.assertEquals("rally", notLoadedPluginsInfo.get(0).getId());
 	}
 
 	@Test
 	void checkAndDeleteIntegrationTypeWhenPluginPositive() {
 		IntegrationType integrationType = new IntegrationType();
 		integrationType.setId(1L);
-		integrationType.setName("JIRA");
+		integrationType.setName("jira");
 
 		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
-		when(jiraPlugin.getPluginId()).thenReturn("JIRA");
+		when(jiraPlugin.getPluginId()).thenReturn("jira");
 		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get("plugins", "file.jar"));
 		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(true);
 
@@ -89,10 +89,10 @@ class PluginLoaderServiceTest {
 	void checkAndDeleteIntegrationTypeWhenPluginNegative() {
 		IntegrationType integrationType = new IntegrationType();
 		integrationType.setId(1L);
-		integrationType.setName("JIRA");
+		integrationType.setName("jira");
 
 		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
-		when(jiraPlugin.getPluginId()).thenReturn("JIRA");
+		when(jiraPlugin.getPluginId()).thenReturn("jira");
 		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(false);
 
 		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
@@ -114,7 +114,7 @@ class PluginLoaderServiceTest {
 	private List<IntegrationType> getIntegrationTypes() {
 
 		IntegrationType jira = new IntegrationType();
-		jira.setName("JIRA");
+		jira.setName("jira");
 		IntegrationTypeDetails jiraDetails = new IntegrationTypeDetails();
 		Map<String, Object> jiraParams = Maps.newHashMap();
 		jiraParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f1");
@@ -130,7 +130,7 @@ class PluginLoaderServiceTest {
 		rallyParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v2");
 		IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
 		rallyDetails.setDetails(rallyParams);
-		rally.setName("RALLY");
+		rally.setName("rally");
 		rally.setDetails(rallyDetails);
 
 		IntegrationType noDetails = new IntegrationType();

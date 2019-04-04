@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
  */
 public class CreatePluginHandlerTest {
 
-	public static final String PLUGIN_ID = "JIRA";
+	public static final String PLUGIN_ID = "jira";
 	public static final String WRONG_PLUGIN_ID = "JERA";
 	public static final String PLUGIN_VERSION = "1.0.0";
 	public static final String FILE_NAME = "file.jar";

@@ -122,17 +122,17 @@ class CleanOutdatedPluginsJobTest {
 	private List<IntegrationType> getBrokenIntegrationType() {
 
 		IntegrationType jira = new IntegrationType();
-		jira.setName("JIRA");
+		jira.setName("jira");
 		jira.setDetails(new IntegrationTypeDetails());
 
 		IntegrationType rally = new IntegrationType();
-		rally.setName("RALLY");
+		rally.setName("rally");
 
 		return Lists.newArrayList(jira, rally);
 	}
 
 	private List<Plugin> getPlugins() {
-		return Lists.newArrayList(new Plugin("JIRA", ExtensionPoint.BTS), new Plugin("RALLY", ExtensionPoint.BTS));
+		return Lists.newArrayList(new Plugin("jira", ExtensionPoint.BTS), new Plugin("rally", ExtensionPoint.BTS));
 	}
 
 }

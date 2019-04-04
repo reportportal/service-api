@@ -191,7 +191,7 @@ public class CreatePluginHandlerTest {
 
 		assertEquals(
 				Suppliers.formattedSupplier(
-						"Error during plugin uploading: 'Unable to upload the new plugin file with id = JIRA to the data store'").get(),
+						"Error during plugin uploading: 'Unable to upload the new plugin file with id = jira to the data store'").get(),
 				exception.getMessage()
 		);
 	}

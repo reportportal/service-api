@@ -83,6 +83,11 @@ public final class ProjectConverter {
 
 		projectConfiguration.setProjectAttributes(attributes);
 
+		projectResource.setIntegrations(project.getIntegrations()
+				.stream()
+				.map(IntegrationConverter.TO_INTEGRATION_RESOURCE)
+				.collect(Collectors.toList()));
+
 		ProjectNotificationConfigDTO notificationConfig = new ProjectNotificationConfigDTO();
 		notificationConfig.setEnabled(BooleanUtils.toBoolean(attributes.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute())));
 

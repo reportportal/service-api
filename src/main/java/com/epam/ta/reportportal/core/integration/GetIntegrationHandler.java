@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -42,4 +43,6 @@ public interface GetIntegrationHandler {
 	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, String url, String btsProject);
 
 	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
+
+	List<IntegrationResource> getGlobalIntegrations();
 }

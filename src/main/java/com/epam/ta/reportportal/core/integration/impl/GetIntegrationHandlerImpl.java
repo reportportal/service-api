@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.apache.commons.collections.CollectionUtils;
@@ -40,6 +39,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_INTEGRATION_RESOURCE;
 
 /**
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
@@ -63,19 +64,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
 	@Override
 	public IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-		return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
-
+		return TO_INTEGRATION_RESOURCE.apply(integration);
 	}
 
 	@Override
 	public IntegrationResource getGlobalIntegrationById(Long integrationId) {
 		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-
-		return IntegrationConverter.TO_INTEGRATION_RESOURCE.apply(integration);
+		return TO_INTEGRATION_RESOURCE.apply(integration);
 	}
 
 	@Override
@@ -136,9 +134,16 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 		return integration;
 	}
 
+	@Override
+	public List<IntegrationResource> getGlobalIntegrations() {
+		return integrationRepository.findAllGlobal().stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
+
+	}
+
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
 		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
-				.stream().filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
+				.stream()
+				.filter(integration -> integration.getType().isEnabled() && integration.isEnabled())
 				.findFirst();
 	}
 

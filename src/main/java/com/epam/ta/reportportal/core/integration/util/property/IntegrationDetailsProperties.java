@@ -31,6 +31,7 @@ import static java.util.Optional.ofNullable;
 public enum IntegrationDetailsProperties {
 
 	FILE_ID("id"),
+	COMMANDS("allowedCommands"),
 	VERSION("version"),
 	FILE_NAME("name");
 
@@ -45,7 +46,7 @@ public enum IntegrationDetailsProperties {
 		return ofNullable(details.get(this.attribute)).map(String::valueOf);
 	}
 
-	public void setValue(@NotNull IntegrationTypeDetails integrationTypeDetails, String value) {
+	public void setValue(@NotNull IntegrationTypeDetails integrationTypeDetails, Object value) {
 
 		Map<String, Object> details = ofNullable(integrationTypeDetails.getDetails()).orElseGet(HashMap::new);
 
@@ -56,4 +57,5 @@ public enum IntegrationDetailsProperties {
 
 	public String getAttribute() {
 		return attribute;
-	}}
+	}
+}

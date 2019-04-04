@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
@@ -33,9 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,13 +51,23 @@ public class IntegrationController {
 	private final DeleteIntegrationHandler deleteIntegrationHandler;
 	private final GetIntegrationHandler getIntegrationHandler;
 	private final CreateIntegrationHandler createIntegrationHandler;
+	private final ExecuteIntegrationHandler executeIntegrationHandler;
 
 	@Autowired
 	public IntegrationController(DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
-			CreateIntegrationHandler createIntegrationHandler) {
+			CreateIntegrationHandler createIntegrationHandler, ExecuteIntegrationHandler executeIntegrationHandler) {
 		this.deleteIntegrationHandler = deleteIntegrationHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.createIntegrationHandler = createIntegrationHandler;
+		this.executeIntegrationHandler = executeIntegrationHandler;
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/global/all")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get available global integrations")
+	public List<IntegrationResource> getProjectIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return getIntegrationHandler.getGlobalIntegrations();
 	}
 
 	@Transactional
@@ -167,6 +181,17 @@ public class IntegrationController {
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);
+	}
+
+	@Transactional(readOnly = true)
+	@PutMapping(value = "{projectName}/{integrationId}/{command}", consumes = { APPLICATION_JSON_VALUE })
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Execute command to the integration instance")
+	public Object executeIntegrationCommand(@PathVariable String projectName, @PathVariable("integrationId") Long integrationId,
+			@PathVariable("command") String command, @RequestBody Map<String, ?> executionParams,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return executeIntegrationHandler.executeCommand(extractProjectDetails(user, projectName), integrationId, command, executionParams);
 	}
 
 }

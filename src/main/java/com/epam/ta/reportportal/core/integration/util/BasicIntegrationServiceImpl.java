@@ -17,7 +17,12 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -28,11 +33,33 @@ import java.util.Map;
 @Service
 public class BasicIntegrationServiceImpl implements IntegrationService {
 
+	private final IntegrationRepository integrationRepository;
+
+	@Autowired
+	public BasicIntegrationServiceImpl(IntegrationRepository integrationRepository) {
+		this.integrationRepository = integrationRepository;
+	}
+
 	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 		return integrationParams;
 	}
 
 	public boolean validateIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
+		if (projectDetails == null) {
+			if (CollectionUtils.isNotEmpty(integrationRepository.findAllGlobalByType(integration.getType()))) {
+				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Integration with type " + integration.getType().getName() + " is already exists."
+				);
+			}
+		} else {
+			if (CollectionUtils.isNotEmpty(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
+					integration.getType()
+			))) {
+				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Integration with type " + integration.getType().getName() + " is already exists."
+				);
+			}
+		}
 		return true;
 	}
 

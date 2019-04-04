@@ -84,7 +84,7 @@ rp:
   analytics:
     enableByDefault: true
   plugins:
-    path: /plugins
+    path: /Users/pavel_bortnik/IdeaProjects/service-api/plugins
   binarystore:
     master:
       host: seaweed-master

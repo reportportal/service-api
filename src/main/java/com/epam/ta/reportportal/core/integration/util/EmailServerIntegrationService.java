@@ -23,13 +23,11 @@ import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -54,36 +52,24 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class EmailServerIntegrationService implements IntegrationService {
+public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private final IntegrationRepository integrationRepository;
 	private final BasicTextEncryptor basicTextEncryptor;
 	private final MailServiceFactory emailServiceFactory;
 
 	@Autowired
 	public EmailServerIntegrationService(IntegrationRepository integrationRepository, BasicTextEncryptor basicTextEncryptor,
 			MailServiceFactory emailServiceFactory) {
-		this.integrationRepository = integrationRepository;
+		super(integrationRepository);
 		this.basicTextEncryptor = basicTextEncryptor;
 		this.emailServiceFactory = emailServiceFactory;
 	}
 
 	@Override
 	public boolean validateIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		if (projectDetails == null) {
-			if (CollectionUtils.isNotEmpty(integrationRepository.findAllGlobalByType(integration.getType()))) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Global email integration is already exists.");
-			}
-		} else {
-			if (CollectionUtils.isNotEmpty(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
-					integration.getType()
-			))) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project email integration is already exists.");
-			}
-		}
-
+		super.validateIntegration(integration, projectDetails);
 		testConnection(integration);
 		return true;
 	}

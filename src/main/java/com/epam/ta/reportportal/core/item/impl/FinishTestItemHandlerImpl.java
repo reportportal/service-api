@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -219,7 +218,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private Optional<IssueEntity> resolveIssue(StatusEnum status, TestItem testItem, @Nullable Issue issue, Long projectId) {
 
-		if (isIssueRequired(status, testItem)) {
+		if (isIssueRequired(testItem, status)) {
 			return ofNullable(issue).map(is -> {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = is.getIssueType();

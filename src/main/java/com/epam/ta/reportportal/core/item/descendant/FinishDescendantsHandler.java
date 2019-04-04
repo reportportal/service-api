@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch;
+package com.epam.ta.reportportal.core.item.descendant;
 
-import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+
+import java.util.Date;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface AfterLaunchFinishedHandler {
+public interface FinishDescendantsHandler<T> {
 
-	void handleRetriesStatistics(Launch launch);
+	void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser.ProjectDetails projectDetails);
 }

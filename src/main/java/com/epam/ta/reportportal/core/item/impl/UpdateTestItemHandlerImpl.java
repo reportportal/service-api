@@ -26,9 +26,7 @@ import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TicketRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -37,7 +35,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -88,6 +85,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
+	private final LogRepository logRepository;
+
 	private final TicketRepository ticketRepository;
 
 	private final IssueTypeHandler issueTypeHandler;
@@ -96,18 +95,23 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final IssueEntityRepository issueEntityRepository;
+
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
 	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, TestItemRepository testItemRepository,
-			TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer,
+			LogRepository logRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 		this.ticketRepository = ticketRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
+		this.issueEntityRepository = issueEntityRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
 
@@ -139,17 +143,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
 				Issue issue = issueDefinition.getIssue();
-				IssueType issueType = issueTypeHandler.defineIssueType(testItem.getItemId(),
-						projectDetails.getProjectId(),
-						issue.getIssueType()
-				);
+				IssueType issueType = issueTypeHandler.defineIssueType(projectDetails.getProjectId(), issue.getIssueType());
 
 				IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 						.addDescription(issue.getComment())
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
-				issueEntity.setIssueId(testItem.getItemId());
+				issueEntity.setTestItemResults(testItem.getItemResults());
+				issueEntityRepository.save(issueEntity);
 				testItem.getItemResults().setIssue(issueEntity);
 
 				testItemRepository.save(testItem);
@@ -157,7 +159,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
 					launchIdsToReindex.add(testItem.getLaunch().getId());
 				} else {
-					logIdsToCleanIndex.addAll(testItem.getLogs().stream().map(Log::getId).collect(toList()));
+					logIdsToCleanIndex.addAll(logRepository.findIdsByTestItemId(testItem.getItemId()));
 				}
 
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
@@ -265,19 +267,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	}
 
 	@Override
-	public void resetItemsIssue(List<TestItem> items, Long projectId) {
-		items.forEach(item -> {
-			IssueType issueType = issueTypeHandler.defineIssueType(item.getItemId(),
-					projectId,
-					TestItemIssueGroup.TO_INVESTIGATE.getLocator()
-			);
-			IssueEntity issueEntity = new IssueEntityBuilder(item.getItemResults().getIssue()).addIssueType(issueType)
-					.addIgnoreFlag(item.getItemResults().getIssue().getIgnoreAnalyzer())
+	public void resetItemsIssue(List<Long> itemIds, Long projectId) {
+		itemIds.forEach(itemId -> {
+			IssueType issueType = issueTypeHandler.defineIssueType(projectId, TestItemIssueGroup.TO_INVESTIGATE.getLocator());
+			IssueEntity issueEntity = new IssueEntityBuilder(issueEntityRepository.findById(itemId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, itemId))).addIssueType(issueType)
 					.addAutoAnalyzedFlag(true)
 					.get();
-			issueEntity.setIssueId(item.getItemId());
-			item.getItemResults().setIssue(issueEntity);
-			testItemRepository.save(item);
+			issueEntityRepository.save(issueEntity);
 		});
 	}
 

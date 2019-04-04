@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
@@ -25,12 +26,14 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -40,8 +43,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -62,6 +65,9 @@ class UserControllerTest extends BaseMvcTest {
 	private ProjectRepository projectRepository;
 
 	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
 	private IssueTypeRepository issueTypeRepository;
 
 	@Test
@@ -75,9 +81,14 @@ class UserControllerTest extends BaseMvcTest {
 		rq.setProjectRole("MEMBER");
 		rq.setDefaultProject("default_personal");
 
-		mockMvc.perform(post("/user").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+		MvcResult mvcResult = mockMvc.perform(post("/user").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
+
+		CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserRS.class);
+
+		assertNotNull(createUserRS.getId());
+		assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+		assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
 
 		final Optional<Project> projectOptional = projectRepository.findByName("default_personal");
 		assertTrue(projectOptional.isPresent());
@@ -127,8 +138,14 @@ class UserControllerTest extends BaseMvcTest {
 		rq.setPassword("testPassword");
 		rq.setFullName("Test User");
 		rq.setEmail("test@domain.com");
-		mockMvc.perform(post("/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06").contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+		MvcResult mvcResult = mockMvc.perform(post("/user/registration?uuid=e5f98deb-8966-4b2d-ba2f-35bc69d30c06").contentType(
+				APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
+
+		CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserRS.class);
+
+		assertNotNull(createUserRS.getId());
+		assertEquals(normalizeId(rq.getLogin()), createUserRS.getLogin());
+		assertTrue(userRepository.findById(createUserRS.getId()).isPresent());
 	}
 
 	@Test
@@ -307,6 +324,17 @@ class UserControllerTest extends BaseMvcTest {
 	@Test
 	void getMyself() throws Exception {
 		mockMvc.perform(get("/user").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void findUsers() throws Exception {
+		MvcResult mvcResult = mockMvc.perform(get("/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andReturn();
+		Page userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), Page.class);
+
+		Assertions.assertNotNull(userResources);
+		Assertions.assertEquals(2, userResources.getContent().size());
 	}
 
 	@Test

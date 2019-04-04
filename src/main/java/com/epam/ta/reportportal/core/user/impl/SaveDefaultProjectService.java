@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -32,12 +33,16 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.epam.reportportal.commons.Safe.safe;
@@ -62,13 +67,16 @@ public class SaveDefaultProjectService {
 
 	private final MailServiceFactory emailServiceFactory;
 
+	private final ShareableObjectsHandler aclHandler;
+
 	@Autowired
 	public SaveDefaultProjectService(ProjectRepository projectRepository, UserRepository userRepository,
-			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory) {
+			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
+		this.aclHandler = aclHandler;
 	}
 
 	@Transactional
@@ -106,8 +114,8 @@ public class SaveDefaultProjectService {
 							.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, personalProject.getName())));
 			userRepository.save(user);
 
-			ofNullable(basicUrl).ifPresent(it -> safe(
-					() -> emailServiceFactory.getDefaultEmailService(true).sendCreateUserConfirmationEmail(request, it),
+			ofNullable(basicUrl).ifPresent(it -> safe(() -> emailServiceFactory.getDefaultEmailService(true)
+							.sendCreateUserConfirmationEmail(request, it),
 					e -> response.setWarning(e.getMessage())
 			));
 		} catch (DuplicateKeyException e) {
@@ -116,6 +124,13 @@ public class SaveDefaultProjectService {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
+		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
+		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+			permissions.add(BasePermission.ADMINISTRATION);
+		}
+		aclHandler.permitSharedObjects(defaultProject.getId(), user.getLogin(), permissions);
+
+		response.setId(user.getId());
 		response.setLogin(user.getLogin());
 		return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, defaultProject.getId()), response);
 	}

@@ -31,8 +31,7 @@ import org.springframework.stereotype.Component;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
@@ -70,7 +69,12 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(item, userId, projectId);
-			item.getLaunch().setStatus(launchRepository.identifyStatus(item.getLaunch().getId()) ? PASSED : FAILED);
+			if (item.getLaunch().getStatus() != IN_PROGRESS) {
+				item.getLaunch()
+						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), StatusEnum.PASSED) ?
+								FAILED :
+								PASSED);
+			}
 		}
 	}
 }

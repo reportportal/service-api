@@ -64,7 +64,8 @@ class AnalyzerServiceServiceTest {
 
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(analyzerStatusCache, analyzerServiceClient,
+	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(analyzerStatusCache,
+			analyzerServiceClient,
 			logRepository,
 			issueTypeHandler,
 			testItemRepository,
@@ -119,7 +120,7 @@ class AnalyzerServiceServiceTest {
 
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 
-		when(issueTypeHandler.defineIssueType(anyLong(), anyLong(), eq("pb001"))).thenReturn(issueProductBug().getIssueType());
+		when(issueTypeHandler.defineIssueType(anyLong(), eq("pb001"))).thenReturn(issueProductBug().getIssueType());
 
 		AnalyzerConfig analyzerConfig = analyzerConfig();
 

@@ -127,7 +127,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param rq             {@link StartTestItemRQ}
 	 * @param launch         {@link Launch}
 	 */

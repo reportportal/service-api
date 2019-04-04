@@ -178,24 +178,4 @@ class UserFilterControllerTest extends BaseMvcTest {
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is4xxClientError());
 	}
-
-	@Test
-	void createUserFiltersZeroDescription() throws Exception {
-		String name = "userFilter";
-		UpdateUserFilterRQ request = new UpdateUserFilterRQ();
-		request.setName(name);
-		request.setObjectType("Launch");
-
-		final Order order = new Order();
-		order.setIsAsc(false);
-		order.setSortingColumnName("startTime");
-
-		request.setOrders(Lists.newArrayList(order));
-		request.setDescription("");
-		request.setConditions(Sets.newHashSet(new UserFilterCondition("name", "cnt", "test")));
-
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is4xxClientError());
-	}
 }

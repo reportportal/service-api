@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component(value = "combinedTokenStore")
-@Transactional
+@Transactional(readOnly = true)
 public class CombinedTokenStore extends JwtTokenStore {
 
 	@Autowired

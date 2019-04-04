@@ -75,7 +75,7 @@ public class PluginLoaderImpl implements PluginLoader {
 
 			ofNullable(pluginPath.getFileName()).ifPresent(name -> pluginBox.removeUploadingPlugin(name.toString()));
 
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e);
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e.getMessage());
 		}
 	}
 

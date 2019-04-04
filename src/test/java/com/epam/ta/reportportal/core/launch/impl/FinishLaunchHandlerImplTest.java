@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.launch.AfterLaunchFinishedHandler;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -63,9 +62,6 @@ class FinishLaunchHandlerImplTest {
 
 	@Mock
 	private TestItemRepository testItemRepository;
-
-	@Mock
-	private AfterLaunchFinishedHandler afterLaunchFinishedHandler;
 
 	@Mock
 	private MessageBus messageBus;

@@ -137,7 +137,34 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	@Override
 	public List<IntegrationResource> getGlobalIntegrations() {
 		return integrationRepository.findAllGlobal().stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
+	}
 
+	@Override
+	public List<IntegrationResource> getGlobalIntegrations(String pluginName) {
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
+		return integrationRepository.findAllGlobalByType(integrationType)
+				.stream()
+				.map(TO_INTEGRATION_RESOURCE)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails) {
+		return integrationRepository.findAllByProjectId(projectDetails.getProjectId())
+				.stream()
+				.map(TO_INTEGRATION_RESOURCE)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails) {
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
+		return integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integrationType)
+				.stream()
+				.map(TO_INTEGRATION_RESOURCE)
+				.collect(Collectors.toList());
 	}
 
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {

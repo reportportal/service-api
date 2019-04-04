@@ -45,4 +45,10 @@ public interface GetIntegrationHandler {
 	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 
 	List<IntegrationResource> getGlobalIntegrations();
+
+	List<IntegrationResource> getGlobalIntegrations(String pluginName);
+
+	List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails);
+
+	List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails);
 }

@@ -66,8 +66,37 @@ public class IntegrationController {
 	@GetMapping("/global/all")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available global integrations")
-	public List<IntegrationResource> getProjectIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+	public List<IntegrationResource> getGlobalIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return getIntegrationHandler.getGlobalIntegrations();
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/global/{pluginName}")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get available global integrations for plugin")
+	public List<IntegrationResource> getGlobalIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser,
+			@PathVariable String pluginName) {
+		return getIntegrationHandler.getGlobalIntegrations(pluginName);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/{projectName}/all")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Get available global integrations")
+	public List<IntegrationResource> getGlobalIntegrations(@PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
+		return getIntegrationHandler.getProjectIntegrations(extractProjectDetails(reportPortalUser, projectName));
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/{projectName}/{pluginName}")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Get available global integrations for plugin")
+	public List<IntegrationResource> getGlobalIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser,
+			@PathVariable String projectName, @PathVariable String pluginName) {
+		return getIntegrationHandler.getProjectIntegrations(pluginName, extractProjectDetails(reportPortalUser, projectName));
 	}
 
 	@Transactional

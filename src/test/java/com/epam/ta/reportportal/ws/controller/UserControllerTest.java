@@ -26,12 +26,14 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -322,6 +324,17 @@ class UserControllerTest extends BaseMvcTest {
 	@Test
 	void getMyself() throws Exception {
 		mockMvc.perform(get("/user").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void findUsers() throws Exception {
+		MvcResult mvcResult = mockMvc.perform(get("/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andReturn();
+		Page userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), Page.class);
+
+		Assertions.assertNotNull(userResources);
+		Assertions.assertEquals(2, userResources.getContent().size());
 	}
 
 	@Test

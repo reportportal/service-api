@@ -96,28 +96,6 @@ class FinishTestItemHandlerImplTest {
 	}
 
 	@Test
-	void finishAlreadyFinishedTestItem() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		item.setItemId(1L);
-		TestItemResults results = new TestItemResults();
-		results.setStatus(StatusEnum.FAILED);
-		item.setItemResults(results);
-		Launch launch = new Launch();
-		User user = new User();
-		user.setLogin("test");
-		launch.setUser(user);
-		item.setLaunch(launch);
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
-
-		final ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), 1L, new FinishTestItemRQ())
-		);
-		assertEquals("Reporting for item 1 already finished. Please, check item status.", exception.getMessage());
-	}
-
-	@Test
 	void finishStepItemWithoutProvidedStatus() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();

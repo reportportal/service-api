@@ -741,12 +741,12 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.name").value("overall statistics"))
 				.andExpect(jsonPath("$.widgetType").value("overallStatistics"))
-				.andExpect(jsonPath("$.content.result.values.statistics$defects$automation_bug$ab001").value("1"))
-				.andExpect(jsonPath("$.content.result.values.statistics$defects$product_bug$pb001").value("1"))
-				.andExpect(jsonPath("$.content.result.values.statistics$defects$to_investigate$ti001").value("1"))
-				.andExpect(jsonPath("$.content.result.values.statistics$executions$failed").value("3"))
-				.andExpect(jsonPath("$.content.result.values.statistics$executions$passed").value("2"))
-				.andExpect(jsonPath("$.content.result.values.statistics$executions$total").value("5"));
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$automation_bug$ab001").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$product_bug$pb001").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$to_investigate$ti001").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$passed").value("2"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$total").value("5"));
 	}
 
 	@Sql("/db/widget/overall-statistics.sql")

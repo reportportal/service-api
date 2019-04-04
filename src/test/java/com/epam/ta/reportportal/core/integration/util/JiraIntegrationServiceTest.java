@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
  */
 class JiraIntegrationServiceTest {
 
-	private static final String JIRA_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.JIRA.name();
+	private static final String JIRA_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.JIRA.name().toLowerCase();
 	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);

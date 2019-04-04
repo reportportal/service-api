@@ -212,13 +212,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, JStatusEnum.PASSED) ? FAILED : PASSED;
 	}
 
-	private boolean isIssueRequired(StatusEnum status, TestItem testItem) {
+	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {
 		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(testItem.getRetryOf()).isPresent();
 	}
 
 	private Optional<IssueEntity> resolveIssue(StatusEnum status, TestItem testItem, @Nullable Issue issue, Long projectId) {
 
-		if (isIssueRequired(status, testItem)) {
+		if (isIssueRequired(testItem, status)) {
 			return ofNullable(issue).map(is -> {
 				//in provided issue should be locator id or NOT_ISSUE value
 				String locator = is.getIssueType();

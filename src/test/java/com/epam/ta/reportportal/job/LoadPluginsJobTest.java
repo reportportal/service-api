@@ -67,11 +67,11 @@ class LoadPluginsJobTest {
 		when(integrationTypeRepository.findAll()).thenReturn(integrationTypes);
 		List<PluginInfo> pluginInfos = getPluginInfos();
 		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(File.createTempFile("file", ".jar")));
-		when(pluginBox.loadPlugin(any(Path.class))).thenReturn("JIRA");
+		when(pluginBox.loadPlugin(any(Path.class))).thenReturn("jira");
 		when(pluginBox.startUpPlugin(any(String.class))).thenReturn(PluginState.STARTED);
 		when(pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes)).thenReturn(pluginInfos);
 		when(pluginBox.getPluginById(any(String.class))).thenReturn(java.util.Optional.ofNullable(rallyPlugin));
-		when(rallyPlugin.getPluginId()).thenReturn("RALLY");
+		when(rallyPlugin.getPluginId()).thenReturn("rally");
 		when(pluginBox.unloadPlugin(rallyPlugin.getPluginId())).thenReturn(true);
 
 		loadPluginsJob.execute();
@@ -79,16 +79,16 @@ class LoadPluginsJobTest {
 
 	private List<IntegrationType> getIntegrationTypes() {
 		IntegrationType jira = new IntegrationType();
-		jira.setName("JIRA");
+		jira.setName("jira");
 		IntegrationType rally = new IntegrationType();
-		rally.setName("RALLY");
+		rally.setName("rally");
 		return Lists.newArrayList(jira, rally);
 	}
 
 	private List<PluginInfo> getPluginInfos() {
 
-		return Lists.newArrayList(new PluginInfo("JIRA", "v1.0", "file Id", "jira file", true),
-				new PluginInfo("RALLY", "v2.0", "file Id", "rally file", false)
+		return Lists.newArrayList(new PluginInfo("jira", "v1.0", "file Id", "jira file", true),
+				new PluginInfo("rally", "v2.0", "file Id", "rally file", false)
 		);
 	}
 

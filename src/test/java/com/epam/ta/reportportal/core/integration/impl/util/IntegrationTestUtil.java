@@ -100,7 +100,7 @@ public final class IntegrationTestUtil {
 
 		IntegrationType integrationType = new IntegrationType();
 
-		integrationType.setName("JIRA");
+		integrationType.setName("jira");
 		integrationType.setCreationDate(LocalDateTime.now());
 		integrationType.setId(1L);
 		integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);

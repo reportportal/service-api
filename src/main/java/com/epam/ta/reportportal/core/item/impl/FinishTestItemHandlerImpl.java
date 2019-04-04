@@ -120,8 +120,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItemResults.setStatus(testItemRepository.identifyStatus(testItem.getItemId()));
 		}
 
-		if (Preconditions.statusIn(FAILED, SKIPPED).test(testItemResults.getStatus()) && !hasChildren
-				&& !ofNullable(testItem.getRetryOf()).isPresent() && testItem.getType() != TestItemTypeEnum.SUITE) {
+		if (isIssueRequired(testItem, testItemResults.getStatus(), hasChildren)) {
 			IssueEntity issueEntity = new IssueEntity();
 			if (null != providedIssue) {
 				//in provided issue should be locator id or NOT_ISSUE value
@@ -174,5 +173,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
 				testItem.getItemId()
 		));
+	}
+
+	private boolean isIssueRequired(TestItem testItem, StatusEnum status, boolean hasChildren) {
+		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !hasChildren && !ofNullable(testItem.getRetryOf()).isPresent()
+				&& testItem.getType() != TestItemTypeEnum.SUITE;
 	}
 }

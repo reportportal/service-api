@@ -111,7 +111,7 @@ class CreateProjectSettingsHandlerImplTest {
 
 	private Set<ProjectIssueType> getSubTypes() {
 		HashSet<ProjectIssueType> subTypes = new HashSet<>();
-		for (int i = 1; i < 12; i++) {
+		for (int i = 1; i < 16; i++) {
 			IssueType issueType = new IssueType();
 			issueType.setId((long) i);
 			issueType.setIssueGroup(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG));

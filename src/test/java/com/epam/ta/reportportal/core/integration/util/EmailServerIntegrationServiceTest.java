@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
@@ -45,7 +44,7 @@ import static org.mockito.Mockito.*;
  */
 class EmailServerIntegrationServiceTest {
 
-	private final String integrationName = ReportPortalIntegrationEnum.EMAIL.name();
+	private final String integrationName = "email";
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
@@ -58,11 +57,7 @@ class EmailServerIntegrationServiceTest {
 	void setUp() {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
-		emailServerIntegrationService = new EmailServerIntegrationService(integrationTypeRepository,
-				integrationRepository,
-				basicTextEncryptor,
-				mailServiceFactory
-		);
+		emailServerIntegrationService = new EmailServerIntegrationService(integrationRepository, basicTextEncryptor, mailServiceFactory);
 	}
 
 	@Test
@@ -115,7 +110,10 @@ class EmailServerIntegrationServiceTest {
 
 		doNothing().when(emailService).testConnection();
 
-		Integration integration = emailServerIntegrationService.createGlobalIntegration(integrationName, IntegrationGroupEnum.NOTIFICATION, correctParams);
+		Integration integration = emailServerIntegrationService.createGlobalIntegration(integrationName,
+				IntegrationGroupEnum.NOTIFICATION,
+				correctParams
+		);
 
 		Map<String, Object> params = integration.getParams().getParams();
 		Assertions.assertNotNull(params);

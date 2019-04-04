@@ -18,9 +18,8 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.integration.plugin.PluginBox;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
@@ -47,7 +46,7 @@ import static org.mockito.Mockito.when;
  */
 class RallyIntegrationServiceTest {
 
-	private static final String RALLY_INTEGRATION_TYPE_NAME = ReportPortalIntegrationEnum.RALLY.name();
+	private static final String RALLY_INTEGRATION_TYPE_NAME = "rally";
 	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);

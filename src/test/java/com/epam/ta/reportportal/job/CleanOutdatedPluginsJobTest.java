@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.reportportal.extension.common.ExtensionPoint;
-import com.epam.ta.reportportal.core.integration.plugin.Pf4jPluginBox;
-import com.epam.ta.reportportal.core.integration.plugin.Plugin;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
@@ -122,17 +122,17 @@ class CleanOutdatedPluginsJobTest {
 	private List<IntegrationType> getBrokenIntegrationType() {
 
 		IntegrationType jira = new IntegrationType();
-		jira.setName("JIRA");
+		jira.setName("jira");
 		jira.setDetails(new IntegrationTypeDetails());
 
 		IntegrationType rally = new IntegrationType();
-		rally.setName("RALLY");
+		rally.setName("rally");
 
 		return Lists.newArrayList(jira, rally);
 	}
 
 	private List<Plugin> getPlugins() {
-		return Lists.newArrayList(new Plugin("JIRA", ExtensionPoint.BTS), new Plugin("RALLY", ExtensionPoint.BTS));
+		return Lists.newArrayList(new Plugin("jira", ExtensionPoint.BTS), new Plugin("rally", ExtensionPoint.BTS));
 	}
 
 }

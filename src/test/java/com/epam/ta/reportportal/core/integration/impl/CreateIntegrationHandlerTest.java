@@ -21,9 +21,10 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
+import com.epam.ta.reportportal.core.integration.util.BasicIntegrationServiceImpl;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -46,17 +47,21 @@ import static org.mockito.Mockito.when;
  */
 public class CreateIntegrationHandlerTest {
 
-	private final Map<ReportPortalIntegrationEnum, IntegrationService> integrationServiceMapping = mock(Map.class);
+	private final Map<String, IntegrationService> integrationServiceMapping = mock(Map.class);
 
 	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
 	private final MessageBus messageBus = mock(MessageBus.class);
 	private final IntegrationService integrationService = mock(IntegrationService.class);
+	private final IntegrationService basicIntegrationService = mock(BasicIntegrationServiceImpl.class);
 
 	private final CreateIntegrationHandler createIntegrationHandler = new CreateIntegrationHandlerImpl(integrationServiceMapping,
 			integrationRepository,
 			projectRepository,
-			messageBus
+			messageBus,
+			integrationTypeRepository,
+			basicIntegrationService
 	);
 
 	@Test
@@ -66,13 +71,13 @@ public class CreateIntegrationHandlerTest {
 		final UpdateIntegrationRQ updateIntegrationRQ = new UpdateIntegrationRQ();
 
 		updateIntegrationRQ.setEnabled(true);
-		updateIntegrationRQ.setIntegrationName(ReportPortalIntegrationEnum.EMAIL.name());
+		updateIntegrationRQ.setIntegrationName("email");
 		updateIntegrationRQ.setIntegrationParams(IntegrationTestUtil.getParams());
 
 		final long emailIntegrationId = 1L;
 
 		//when
-		when(integrationServiceMapping.get(ReportPortalIntegrationEnum.EMAIL)).thenReturn(integrationService);
+		when(integrationServiceMapping.get("email")).thenReturn(integrationService);
 
 		when(integrationService.createGlobalIntegration(updateIntegrationRQ.getIntegrationName(),
 				IntegrationGroupEnum.NOTIFICATION,

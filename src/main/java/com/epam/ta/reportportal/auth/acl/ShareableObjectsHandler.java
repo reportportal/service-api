@@ -61,9 +61,8 @@ public class ShareableObjectsHandler {
 					.stream()
 					.filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
 					.forEach(entry -> {
-						if (ProjectRole.PROJECT_MANAGER.higherThan(entry.getValue())) {
-							aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
-						} else {
+						aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
+						if (entry.getValue().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 							aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
 						}
 
@@ -81,11 +80,10 @@ public class ShareableObjectsHandler {
 	 */
 	public void updateAcl(Object object, Long projectId, boolean isShared) {
 		if (isShared) {
-			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((key, value) -> {
-				if (ProjectRole.PROJECT_MANAGER.higherThan(value)) {
-					aclService.addPermissions(object, key, BasePermission.READ);
-				} else {
-					aclService.addPermissions(object, key, BasePermission.ADMINISTRATION);
+			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((username, projectRole) -> {
+				aclService.addPermissions(object, username, BasePermission.READ);
+				if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
+					aclService.addPermissions(object, username, BasePermission.ADMINISTRATION);
 				}
 
 			});
@@ -111,9 +109,9 @@ public class ShareableObjectsHandler {
 	 * @param projectId Project
 	 * @param userName  Username
 	 */
-	public void permitSharedObjects(Long projectId, String userName, Permission permission) {
+	public void permitSharedObjects(Long projectId, String userName, List<Permission> permissions) {
 		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
-		shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, permission));
+		shareableEntities.forEach(entity -> permissions.forEach(permission -> aclService.addPermissions(entity, userName, permission)));
 	}
 
 	/**

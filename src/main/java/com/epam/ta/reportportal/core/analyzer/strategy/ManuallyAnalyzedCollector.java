@@ -18,11 +18,13 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -32,14 +34,17 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 
 	private final TestItemRepository testItemRepository;
 
+	private final LogRepository logRepository;
+
 	private final LogIndexer logIndexer;
 
 	private final UpdateTestItemHandler updateTestItemHandler;
 
 	@Autowired
-	public ManuallyAnalyzedCollector(TestItemRepository testItemRepository, LogIndexer logIndexer,
+	public ManuallyAnalyzedCollector(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
 			UpdateTestItemHandler updateTestItemHandler) {
 		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 		this.logIndexer = logIndexer;
 		this.updateTestItemHandler = updateTestItemHandler;
 	}
@@ -47,7 +52,10 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
 		List<Long> itemIds = testItemRepository.selectIdsByAutoAnalyzedStatus(false, launchId);
-		logIndexer.cleanIndex(projectId, itemIds);
+		logIndexer.cleanIndex(
+				projectId,
+				itemIds.stream().flatMap(itemId -> logRepository.findIdsByTestItemId(itemId).stream()).collect(Collectors.toList())
+		);
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
 		return itemIds;
 	}

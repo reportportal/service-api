@@ -268,7 +268,7 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	 * Validate user credentials and launch affiliation to the project
 	 *
 	 * @param launch         {@link Launch}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 */
 	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);

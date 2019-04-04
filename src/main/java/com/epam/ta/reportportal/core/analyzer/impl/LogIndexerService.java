@@ -181,7 +181,7 @@ public class LogIndexerService implements LogIndexer {
 			Launch launch = launchRepository.findById(launchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 			if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-				List<TestItem> testItems = testItemRepository.selectIdsNotInIssueByLaunch(launchId,
+				List<TestItem> testItems = testItemRepository.findAllNotInIssueByLaunch(launchId,
 						TestItemIssueGroup.TO_INVESTIGATE.getLocator()
 				);
 				List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);

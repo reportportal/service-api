@@ -24,12 +24,12 @@ import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -68,24 +69,27 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.UpdateLaunchHandler {
 
-	private LaunchRepository launchRepository;
+	private final LaunchRepository launchRepository;
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	private ProjectRepository projectRepository;
+	private final LogRepository logRepository;
 
-	private AnalyzerServiceAsync analyzerServiceAsync;
+	private final ProjectRepository projectRepository;
 
-	private LogIndexer logIndexer;
+	private final AnalyzerServiceAsync analyzerServiceAsync;
+
+	private final LogIndexer logIndexer;
 
 	@Autowired
 	private AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
-	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
 			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
@@ -148,9 +152,9 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 		analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
-		List<Long> items = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
+		List<Long> itemIds = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
-		analyzerServiceAsync.analyze(launch, items, analyzerConfig);
+		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig);
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}
@@ -181,13 +185,13 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	 * @param launch Update launch
 	 */
 	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig, Long projectId) {
-		List<Long> items = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getLocator())
-				.stream()
-				.map(TestItem::getItemId)
-				.collect(toList());
-		if (!CollectionUtils.isEmpty(items)) {
+		List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getLocator());
+		if (!CollectionUtils.isEmpty(itemIds)) {
 			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
-				logIndexer.cleanIndex(projectId, items);
+				logIndexer.cleanIndex(
+						projectId,
+						itemIds.stream().flatMap(itemId -> logRepository.findIdsByTestItemId(itemId).stream()).collect(Collectors.toList())
+				);
 			} else {
 				logIndexer.indexLogs(projectId, Collections.singletonList(launch.getId()), analyzerConfig);
 			}

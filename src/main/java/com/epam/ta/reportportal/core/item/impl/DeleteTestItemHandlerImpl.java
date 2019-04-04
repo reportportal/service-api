@@ -22,11 +22,11 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -61,6 +61,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
+	private final LogRepository logRepository;
+
 	private final LogIndexer logIndexer;
 
 	private final LaunchRepository launchRepository;
@@ -68,9 +70,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LogIndexer logIndexer, LaunchRepository launchRepository,
-			ApplicationEventPublisher eventPublisher) {
+	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
+			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 		this.logIndexer = logIndexer;
 		this.launchRepository = launchRepository;
 		this.eventPublisher = eventPublisher;
@@ -89,7 +92,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		testItemRepository.deleteById(item.getItemId());
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), item.getLogs().stream().map(Log::getId).collect(toList()));
+		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemId(item.getItemId()));
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 
@@ -116,12 +119,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
-							testItem.getItemId(),
-							projectDetails.getProjectId()
-					)
-			);
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
+					"Deleting testItem '{}' is not under specified project '{}'",
+					testItem.getItemId(),
+					projectDetails.getProjectId()
+			));
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
 						"You are not a launch owner."
@@ -134,11 +136,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-						testItem.getItemId(),
-						launch.getId()
-				)
-		);
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
+				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+				testItem.getItemId(),
+				launch.getId()
+		));
 	}
 }

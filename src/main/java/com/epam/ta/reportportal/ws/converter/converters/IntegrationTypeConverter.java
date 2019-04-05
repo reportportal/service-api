@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 
 import java.util.function.Function;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -34,7 +36,7 @@ public final class IntegrationTypeConverter {
 		resource.setEnabled(integrationType.isEnabled());
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integrationType.getCreationDate()));
 		resource.setGroupType(integrationType.getIntegrationGroup().name());
-
+		ofNullable(integrationType.getDetails()).ifPresent(it -> resource.setDetails(integrationType.getDetails().getDetails()));
 		return resource;
 	};
 

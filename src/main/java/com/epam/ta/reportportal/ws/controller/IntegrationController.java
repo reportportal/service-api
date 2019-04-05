@@ -71,7 +71,7 @@ public class IntegrationController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping("/global/{pluginName}")
+	@GetMapping("/global/all/{pluginName}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get available global integrations for plugin")
 	public List<IntegrationResource> getGlobalIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser,
@@ -80,7 +80,7 @@ public class IntegrationController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping("/{projectName}/all")
+	@GetMapping("/project/{projectName}/all")
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Get available global integrations")
@@ -90,7 +90,7 @@ public class IntegrationController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping("/{projectName}/{pluginName}")
+	@GetMapping("/project/{projectName}/all/{pluginName}")
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Get available global integrations for plugin")

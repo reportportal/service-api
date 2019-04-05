@@ -25,12 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-class IntegrationIssueConverterTest {
+class TicetConverterTest {
 
 	@Test
 	void toTicket() {
 		final Issue.ExternalSystemIssue issue = getIssue();
-		final Ticket resource = IntegrationIssueConverter.TO_TICKET.apply(issue);
+		final Ticket resource = TicetConverter.TO_TICKET.apply(issue);
 
 		assertEquals(resource.getTicketId(), issue.getTicketId());
 		assertEquals(resource.getUrl(), issue.getUrl());

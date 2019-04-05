@@ -135,7 +135,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
 
 		integration.setParams(new IntegrationParams(integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams())));
-		integrationService.validateIntegration(integration, null);
 		integration.setEnabled(updateRequest.getEnabled());
 
 		integrationRepository.save(integration);
@@ -157,11 +156,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				this.basicIntegrationService
 		);
 
-		Integration integration = integrationRepository.findGlobalById(id)
+		Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
 
 		integration.setParams(new IntegrationParams(integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams())));
-		integrationService.validateIntegration(integration, projectDetails);
 		integration.setEnabled(updateRequest.getEnabled());
 		integration.setProject(project);
 

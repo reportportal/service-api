@@ -78,7 +78,7 @@ class UpdatePluginHandlerTest {
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
 		Assertions.assertEquals(Suppliers.formattedSupplier(
-				"Enabled state of the integration type with name = '{}' has been switched to - '{}'",
+				"Enabled state of the plugin type with name = '{}' has been switched to - '{}'",
 				emailIntegrationType.getName(),
 				updatePluginStateRQ.getEnabled()
 		).get(), operationCompletionRS.getResultMessage());

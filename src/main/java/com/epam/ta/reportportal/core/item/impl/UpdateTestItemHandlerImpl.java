@@ -41,8 +41,8 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.converter.converters.IntegrationIssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.TicetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
@@ -303,7 +303,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 */
 	private Set<Ticket> collectTickets(LinkExternalIssueRQ rq, Long userId) {
 		return rq.getIssues().stream().map(it -> {
-			Ticket apply = IntegrationIssueConverter.TO_TICKET.apply(it);
+			Ticket apply = TicetConverter.TO_TICKET.apply(it);
 			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
 			apply.setSubmitDate(LocalDateTime.now());
 			apply.setBtsUrl(it.getBtsUrl());

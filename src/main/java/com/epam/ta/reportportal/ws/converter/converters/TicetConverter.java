@@ -25,9 +25,9 @@ import java.util.function.Function;
 /**
  * @author Pavel Bortnik
  */
-public final class IntegrationIssueConverter {
+public final class TicetConverter {
 
-	private IntegrationIssueConverter() {
+	private TicetConverter() {
 		//static only
 	}
 

@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,9 @@ class SaveBinaryDataJobTest {
 	@Mock
 	private DataStoreService dataStoreService;
 
+	@Mock
+	private AttachmentRepository attachmentRepository;
+
 	@InjectMocks
 	private SaveBinaryDataJob saveBinaryDataJob;
 
@@ -67,6 +72,7 @@ class SaveBinaryDataJobTest {
 		assertEquals(binaryData.getThumbnailFileId(), log.getAttachment().getThumbnailId());
 		assertEquals(file.getContentType(), log.getAttachment().getContentType());
 		verify(logRepository, times(1)).save(log);
+		verify(attachmentRepository, times(1)).save(any(Attachment.class));
 	}
 
 	@Test
@@ -84,6 +90,7 @@ class SaveBinaryDataJobTest {
 		assertThrows(ReportPortalException.class, saveBinaryDataJob::run);
 
 		verify(dataStoreService, times(2)).delete(any());
+		verify(attachmentRepository, times(1)).save(any(Attachment.class));
 	}
 
 	@Test

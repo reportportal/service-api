@@ -81,6 +81,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 			ReportPortalUser user) {
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
+		integration.getProject().getIntegrations().removeIf(it -> it.getId().equals(integration.getId()));
 		integrationRepository.deleteById(integration.getId());
 		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
 		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' has been successfully deleted.");

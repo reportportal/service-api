@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +82,35 @@ public class LogIndexerService implements LogIndexer {
 				analyzerStatusCache.indexingStarted(projectId);
 				List<IndexLaunch> indexLaunches = prepareLaunches(launchIds, analyzerConfig);
 				return indexerServiceClient.index(indexLaunches);
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				throw new ReportPortalException(e.getMessage());
+			} finally {
+				analyzerStatusCache.indexingFinished(projectId);
+			}
+		});
+	}
+
+	@Override
+	public CompletableFuture<Long> indexLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				analyzerStatusCache.indexingStarted(projectId);
+				Launch launch = launchRepository.findById(launchId)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+				if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
+					List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItemRepository.findAllById(itemIds));
+					if (!CollectionUtils.isEmpty(rqTestItems)) {
+						IndexLaunch indexLaunch = createIndexLaunch(projectId,
+								launch.getId(),
+								launch.getName(),
+								analyzerConfig,
+								rqTestItems
+						);
+						return indexerServiceClient.index(Lists.newArrayList(indexLaunch));
+					}
+				}
+				return 0L;
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
@@ -151,22 +181,27 @@ public class LogIndexerService implements LogIndexer {
 			Launch launch = launchRepository.findById(launchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 			if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-				List<TestItem> testItems = testItemRepository.selectIdsNotInIssueByLaunch(launchId,
+				List<TestItem> testItems = testItemRepository.findAllNotInIssueByLaunch(launchId,
 						TestItemIssueGroup.TO_INVESTIGATE.getLocator()
 				);
 				List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
 				if (!CollectionUtils.isEmpty(rqTestItems)) {
-					IndexLaunch rqLaunch = new IndexLaunch();
-					rqLaunch.setLaunchId(launchId);
-					rqLaunch.setLaunchName(launch.getName());
-					rqLaunch.setProjectId(launch.getProjectId());
-					rqLaunch.setAnalyzerConfig(analyzerConfig);
-					rqLaunch.setTestItems(rqTestItems);
-					return rqLaunch;
+					return createIndexLaunch(launch.getProjectId(), launch.getId(), launch.getName(), analyzerConfig, rqTestItems);
 				}
 			}
 			return null;
 		}).filter(Objects::nonNull).collect(Collectors.toList());
+	}
+
+	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, AnalyzerConfig analyzerConfig,
+			List<IndexTestItem> rqTestItems) {
+		IndexLaunch rqLaunch = new IndexLaunch();
+		rqLaunch.setLaunchId(launchId);
+		rqLaunch.setLaunchName(name);
+		rqLaunch.setProjectId(projectId);
+		rqLaunch.setAnalyzerConfig(analyzerConfig);
+		rqLaunch.setTestItems(rqTestItems);
+		return rqLaunch;
 	}
 
 	/**

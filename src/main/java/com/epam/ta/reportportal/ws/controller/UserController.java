@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,6 @@ public class UserController {
 		this.jasperReportHandler = jasperReportHandler;
 	}
 
-	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@PreAuthorize(ADMIN_ONLY)
@@ -105,7 +104,7 @@ public class UserController {
 	@Transactional
 	@PostMapping(value = "/bid")
 	@ResponseStatus(CREATED)
-	@PreAuthorize("hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')")
+	@PreAuthorize("(hasPermission(#createUserRQ.getDefaultProject(), 'projectManagerPermission')) || hasRole('ADMINISTRATOR')")
 	@ApiOperation("Register invitation for user who will be created")
 	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
@@ -120,7 +119,6 @@ public class UserController {
 		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, rqUrl.toASCIIString());
 	}
 
-	@Transactional
 	@PostMapping(value = "/registration")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Activate invitation and create user in system")
@@ -240,10 +238,18 @@ public class UserController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{userName}/projects")
 	@ResponseStatus(OK)
-
 	public Map<String, UserResource.AssignedProject> getUserProjects(@PathVariable String userName,
 			@AuthenticationPrincipal ReportPortalUser currentUser) {
 		return getUserHandler.getUserProjects(userName);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/search")
+	@ResponseStatus(OK)
+	@PreAuthorize(ADMIN_ONLY)
+	public Iterable<UserResource> findUsers(@RequestParam(value = "term") String term, Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getUserHandler.searchUsers(term, pageable);
 	}
 
 	@Transactional(readOnly = true)

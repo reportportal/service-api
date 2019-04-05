@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
  */
 public class CreatePluginHandlerTest {
 
-	public static final String PLUGIN_ID = "JIRA";
+	public static final String PLUGIN_ID = "jira";
 	public static final String WRONG_PLUGIN_ID = "JERA";
 	public static final String PLUGIN_VERSION = "1.0.0";
 	public static final String FILE_NAME = "file.jar";
@@ -191,7 +191,7 @@ public class CreatePluginHandlerTest {
 
 		assertEquals(
 				Suppliers.formattedSupplier(
-						"Error during plugin uploading: 'Unable to upload the new plugin file with id = JIRA to the data store'").get(),
+						"Error during plugin uploading: 'Unable to upload the new plugin file with id = jira to the data store'").get(),
 				exception.getMessage()
 		);
 	}

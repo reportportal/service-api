@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -31,7 +30,6 @@ import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -74,23 +72,6 @@ class RepositoryAdaptersConsumerTest {
 
 	@InjectMocks
 	private RepositoryAdaptersConsumer repositoryAdaptersConsumer;
-
-	@Disabled
-	@Test
-	void findProjectByName() {
-		String projectName = "test_project";
-		Project project = new Project();
-		project.setName(projectName);
-		project.setId(1L);
-		project.setProjectType(ProjectType.INTERNAL);
-
-		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
-
-		ProjectResource resource = repositoryAdaptersConsumer.findProjectByName(projectName);
-
-		assertEquals(resource.getProjectId(), project.getId());
-		assertEquals(resource.getProjectName(), project.getName());
-	}
 
 	@Test
 	void findNotExistProject() {

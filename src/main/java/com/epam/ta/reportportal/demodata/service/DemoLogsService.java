@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class DemoLogsService {
 
 	private static final int MAX_LOGS_COUNT = 30;
 
-	private static final int BINARY_CONTENT_PROBABILITY = 20;
+	private static final int BINARY_CONTENT_PROBABILITY = 7;
 
 	@Autowired
 	public DemoLogsService(LogRepository logRepository, DataStoreService dataStoreService) {
@@ -66,13 +66,16 @@ class DemoLogsService {
 	}
 
 	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId, Long launchId) {
+		BooleanHolder binaryDataAttached = new BooleanHolder();
+
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
 		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
 			Log log = new Log();
 			log.setLogLevel(logLevel().toInt());
 			log.setLogTime(LocalDateTime.now());
-			if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+			if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
 				attachFile(log, projectId, launchId, testItem.getItemId());
+				binaryDataAttached.setValue(true);
 			}
 			log.setTestItem(testItem);
 			log.setLogMessage(ContentUtils.getLogMessage());
@@ -86,11 +89,29 @@ class DemoLogsService {
 				log.setLogTime(LocalDateTime.now());
 				log.setTestItem(testItem);
 				log.setLogMessage(msg);
-				attachFile(log, projectId, launchId, testItem.getItemId());
+				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+					attachFile(log, projectId, launchId, testItem.getItemId());
+				}
 				return log;
 			}).collect(toList()));
 		}
 		logRepository.saveAll(logs);
+	}
+
+	private class BooleanHolder {
+		private boolean value;
+
+		public BooleanHolder() {
+			value = false;
+		}
+
+		public boolean getValue() {
+			return value;
+		}
+
+		public void setValue(boolean value) {
+			this.value = value;
+		}
 	}
 
 	private void attachFile(Log log, Long projectId, Long launchId, Long itemId) {

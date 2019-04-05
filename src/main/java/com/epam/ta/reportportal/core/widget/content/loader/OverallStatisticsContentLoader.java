@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +65,7 @@ public class OverallStatisticsContentLoader implements LoadContentStrategy {
 
 		OverallStatisticsContent content = widgetContentRepository.overallStatisticsContent(filter, sort, contentFields, latestMode, limit);
 
-		return MapUtils.isEmpty(content.getValues()) ? emptyMap() : singletonMap(RESULT, content);
+		return MapUtils.isEmpty(content.getValues()) ? emptyMap() : singletonMap(RESULT, Collections.singletonList(content));
 	}
 
 	/**

@@ -19,9 +19,8 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
@@ -135,32 +134,6 @@ class UpdateTestItemHandlerImplTest {
 	}
 
 	@Test
-	void updateStatusOnNotFinishedTestItem() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		TestItem item = new TestItem();
-		TestItemResults results = new TestItemResults();
-		item.setItemResults(results);
-		results.setStatus(StatusEnum.IN_PROGRESS);
-		Launch launch = new Launch();
-		User user = new User();
-		user.setLogin("test");
-		launch.setUser(user);
-		launch.setProjectId(1L);
-		item.setLaunch(launch);
-		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-		final UpdateTestItemRQ rq = new UpdateTestItemRQ();
-		rq.setStatus(StatusEnum.PASSED.name());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, rq, rpUser)
-		);
-		assertEquals(
-				"Error in handled Request. Please, check specified parameters: 'Unable to change status on not finished test item'",
-				exception.getMessage()
-		);
-	}
-
-	@Test
 	void defineIssuesOnNotExistProject() {
 		ReportPortalUser rpUser = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
 
@@ -174,4 +147,27 @@ class UpdateTestItemHandlerImplTest {
 		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
 	}
 
+	@Test
+	void changeNotStepItemStatus() {
+		ReportPortalUser user = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
+		UpdateTestItemRQ rq = new UpdateTestItemRQ();
+		rq.setStatus("FAILED");
+
+		long itemId = 1L;
+		TestItem item = new TestItem();
+		item.setItemId(itemId);
+		item.setHasChildren(true);
+		item.setType(TestItemTypeEnum.TEST);
+		Launch launch = new Launch();
+		launch.setId(2L);
+		item.setLaunch(launch);
+
+		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user)
+		);
+		assertEquals("Incorrect Request. Unable to change status on test item with children", exception.getMessage());
+	}
 }

@@ -22,10 +22,10 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
 import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
@@ -62,6 +62,8 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	private final TestItemRepository testItemRepository;
 
+	private final LogRepository logRepository;
+
 	private final MessageBus messageBus;
 
 	private final LogIndexer logIndexer;
@@ -69,10 +71,11 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public DeleteLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, MessageBus messageBus,
-			LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
+	public DeleteLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
+			MessageBus messageBus, LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.eventPublisher = eventPublisher;
@@ -87,8 +90,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				testItemRepository.selectIdsNotInIssueByLaunch(launchId, TO_INVESTIGATE.getLocator())
 						.stream()
-						.flatMap(it -> it.getLogs().stream())
-						.map(Log::getId)
+						.flatMap(itemId -> logRepository.findIdsByTestItemId(itemId).stream())
 						.collect(Collectors.toList())
 		);
 		eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(launch.getId()));
@@ -118,18 +120,19 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 			}
 		});
 
-		logIndexer.cleanIndex(
-				projectDetails.getProjectId(),
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				toDelete.stream()
 						.flatMap(it -> testItemRepository.selectIdsNotInIssueByLaunch(it.getId(), TO_INVESTIGATE.getLocator())
 								.stream()
-								.flatMap(item -> item.getLogs().stream()))
-						.map(Log::getId)
+								.flatMap(itemId -> logRepository.findIdsByTestItemId(itemId).stream()))
 						.collect(Collectors.toList())
 		);
 
 		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId())));
+		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> {
+			eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(r.getId()));
+			messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId()));
+		});
 		return new DeleteBulkRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 				notFound,
 				exceptions.stream().map(ex -> {

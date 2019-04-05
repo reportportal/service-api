@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -52,10 +51,7 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
 		List<Long> itemIds = testItemRepository.selectIdsByAutoAnalyzedStatus(false, launchId);
-		logIndexer.cleanIndex(
-				projectId,
-				itemIds.stream().flatMap(itemId -> logRepository.findIdsByTestItemId(itemId).stream()).collect(Collectors.toList())
-		);
+		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
 		return itemIds;
 	}

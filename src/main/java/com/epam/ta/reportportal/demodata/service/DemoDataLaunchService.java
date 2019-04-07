@@ -89,7 +89,7 @@ public class DemoDataLaunchService {
 		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.identifyStatus(launch.getId())) {
+		if (launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED)) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		launch.setStatus(fromStatisticsStatus);

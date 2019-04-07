@@ -37,6 +37,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -57,6 +58,7 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 				"Actual status: " + item.getItemResults().getStatus() + " can be switched only to: " + SKIPPED + " or " + PASSED
 		);
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
+		item.getItemResults().setStatus(providedStatus);
 
 		if (SKIPPED.equals(providedStatus)) {
 			Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunch().getId(),
@@ -69,8 +71,11 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 					addToInvestigateIssue(item, projectId);
 				}
 			} else {
-				issueEntityRepository.delete(item.getItemResults().getIssue());
-				item.getItemResults().setIssue(null);
+				ofNullable(item.getItemResults().getIssue()).map(issue -> {
+					issue.setTestItemResults(null);
+					item.getItemResults().setIssue(null);
+					return issue.getIssueId();
+				}).ifPresent(issueEntityRepository::deleteById);
 			}
 		}
 
@@ -78,10 +83,13 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 			issueEntityRepository.delete(item.getItemResults().getIssue());
 			item.getItemResults().setIssue(null);
 			changeStatusRecursively(item, userId, projectId);
-			item.getLaunch().setStatus(launchRepository.identifyStatus(item.getLaunch().getId()) ? PASSED : FAILED);
+			if (item.getLaunch().getStatus() != IN_PROGRESS) {
+				item.getLaunch()
+						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), StatusEnum.PASSED) ?
+								FAILED :
+								PASSED);
+			}
 		}
-
-		item.getItemResults().setStatus(providedStatus);
 		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(item, projectId), userId));
 	}
 }

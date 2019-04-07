@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -56,7 +57,7 @@ public class ACLContext {
 
 	@Bean
 	public AclAuthorizationStrategy aclAuthorizationStrategy() {
-		return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority("ROLE_ADMIN"));
+		return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
 	}
 
 	@Bean

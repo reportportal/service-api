@@ -52,8 +52,8 @@ public class UserFilterBuilder implements Supplier<UserFilter> {
 	}
 
 	public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
+		userFilter.setDescription(rq.getDescription());
 		ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
-		ofNullable(rq.getDescription()).ifPresent(it -> userFilter.setDescription(it));
 		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
 		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
 		addFilterConditions(rq.getConditions());

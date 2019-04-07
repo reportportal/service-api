@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.T
  * @author Andrei Varabyeu
  */
 @Service
+@Primary
 class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.StartLaunchHandler {
 
 	private final LaunchRepository launchRepository;
@@ -55,11 +57,12 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 
 	@Override
 	@Transactional
-	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
-		validateRoles(projectDetails, startLaunchRQ);
+	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+									 StartLaunchRQ request) {
+		validateRoles(projectDetails, request);
 
-		Launch launch = new LaunchBuilder().addStartRQ(startLaunchRQ)
-				.addAttributes(startLaunchRQ.getAttributes())
+		Launch launch = new LaunchBuilder().addStartRQ(request)
+				.addAttributes(request.getAttributes())
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.get();

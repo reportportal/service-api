@@ -34,7 +34,7 @@ import java.util.List;
 
 public interface FinishLaunchHandler {
 
-	Launch finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**
@@ -46,7 +46,7 @@ public interface FinishLaunchHandler {
 	 * @param user           User
 	 * @return FinishLaunchRS
 	 */
-	FinishLaunchRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams);
 
 	/**
@@ -58,7 +58,7 @@ public interface FinishLaunchHandler {
 	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**
@@ -69,6 +69,6 @@ public interface FinishLaunchHandler {
 	 * @param user           User
 	 * @return OperationCompletionsRS
 	 */
-	List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails,
+	List<OperationCompletionRS> stopLaunch(BulkRQ<String, FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 }

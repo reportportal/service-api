@@ -37,6 +37,6 @@ public interface FinishTestItemHandler {
 	 * @param finishExecutionRQ Request with finish Test Item data
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
+	OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ finishExecutionRQ);
 }

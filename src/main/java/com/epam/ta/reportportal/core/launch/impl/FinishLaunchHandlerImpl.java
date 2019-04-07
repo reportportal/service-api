@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.AfterLaunchFinishedHandler;
+import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -57,13 +58,13 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Default implementation of {@link com.epam.ta.reportportal.core.launch.FinishLaunchHandler}
+ * Default implementation of {@link FinishLaunchHandler}
  *
  * @author Pave Bortnik
  */
 @Service
 @Transactional
-public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.FinishLaunchHandler {
+public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	private static final String LAUNCH_STOP_DESCRIPTION = " stopped";
 
@@ -84,16 +85,16 @@ public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	@Override
-	public Launch finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	public Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId)
+		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
 		validateRoles(launch, user, projectDetails);
 		validate(launch, finishLaunchRQ);
 
-		if (testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
-			testItemRepository.interruptInProgressItems(launchId);
+		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
+			testItemRepository.interruptInProgressItems(launch.getId());
 		}
 
 		final String desc = launch.getDescription() != null ?
@@ -108,7 +109,7 @@ public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 		Optional<StatusEnum> statusEnum = fromValue(finishLaunchRQ.getStatus());
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.identifyStatus(launchId)) {
+		if (launchRepository.identifyStatus(launch.getId())) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		if (statusEnum.isPresent()) {
@@ -126,7 +127,7 @@ public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	@Override
-	public FinishLaunchRS finishLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
 		Launch launch = finishLaunch(launchId, finishLaunchRQ, projectDetails, user);
 		FinishLaunchRS response = new FinishLaunchRS();
@@ -137,9 +138,9 @@ public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	@Override
-	public OperationCompletionRS stopLaunch(Long launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	public OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId)
+		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
@@ -154,7 +155,7 @@ public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 				.get();
 
 		launchRepository.save(launch);
-		testItemRepository.interruptInProgressItems(launchId);
+		testItemRepository.interruptInProgressItems(launch.getId());
 
 		afterLaunchFinishedHandler.handleRetriesStatistics(launch);
 
@@ -163,7 +164,7 @@ public class FinishLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	@Override
-	public List<OperationCompletionRS> stopLaunch(BulkRQ<FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails,
+	public List<OperationCompletionRS> stopLaunch(BulkRQ<String, FinishExecutionRQ> bulkRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		return bulkRQ.getEntities()
 				.entrySet()

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -60,13 +61,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Default implementation of {@link com.epam.ta.reportportal.core.launch.UpdateLaunchHandler}
+ * Default implementation of {@link UpdateLaunchHandler}
  *
  * @author Aliaksei_Makayed
  * @author Andrei_Ramanchuk
  */
 @Service
-public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.UpdateLaunchHandler {
+public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 	private LaunchRepository launchRepository;
 
@@ -110,7 +111,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	}
 
 	@Override
-	public List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, ReportPortalUser.ProjectDetails projectDetails,
+	public List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		return rq.getEntities()
 				.entrySet()

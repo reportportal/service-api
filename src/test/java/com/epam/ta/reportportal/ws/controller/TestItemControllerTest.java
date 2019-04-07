@@ -67,7 +67,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -81,7 +81,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -94,7 +94,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setUniqueId(UUID.randomUUID().toString());
@@ -108,7 +108,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setParameters(getParameters());

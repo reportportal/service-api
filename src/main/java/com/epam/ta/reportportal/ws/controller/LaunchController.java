@@ -83,10 +83,14 @@ public class LaunchController {
 	private final GetJasperReportHandler<Launch> getJasperHandler;
 
 	@Autowired
-	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
-			DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
-			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler, ImportLaunchHandler importLaunchHandler,
-			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
+	public LaunchController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler createLaunchMessageHandler,
+							FinishLaunchHandler finishLaunchMessageHandler,
+							DeleteLaunchHandler deleteLaunchMessageHandler,
+							GetLaunchHandler getLaunchMessageHandler,
+							UpdateLaunchHandler updateLaunchHandler,
+							MergeLaunchHandler mergeLaunchesHandler,
+							ImportLaunchHandler importLaunchHandler,
+							@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
 		this.createLaunchMessageHandler = createLaunchMessageHandler;
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
 		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
@@ -96,6 +100,9 @@ public class LaunchController {
 		this.importLaunchHandler = importLaunchHandler;
 		this.getJasperHandler = getJasperHandler;
 	}
+
+
+	/* Report client API */
 
 	@Transactional
 	@PostMapping
@@ -113,7 +120,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
-	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
 		return finishLaunchMessageHandler.finishLaunch(launchId,
@@ -129,7 +136,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch for specified project")
-	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishExecutionRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return finishLaunchMessageHandler.stopLaunch(launchId,
 				finishExecutionRQ,
@@ -144,9 +151,12 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
-			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
+			@RequestBody @Validated BulkRQ<String, FinishExecutionRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
 		return finishLaunchMessageHandler.stopLaunch(rq, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
+
+
+	/* Frontend API */
 
 	@Transactional
 	@PutMapping("/{launchId}/update")
@@ -163,7 +173,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
-	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
+	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return updateLaunchHandler.updateLaunch(rq, extractProjectDetails(user, normalizeId(projectName)), user);
 	}

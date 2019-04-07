@@ -80,7 +80,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
-		Launch launch = launchRepository.findById(rq.getLaunchId())
+		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
 		validate(user, projectDetails, rq, launch);
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
@@ -91,15 +91,15 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 
-		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
+		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
 	@Override
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
-			Long parentId) {
-		TestItem parentItem = testItemRepository.findById(parentId)
+			String parentId) {
+		TestItem parentItem = testItemRepository.findByUuid(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
-		Launch launch = launchRepository.findById(rq.getLaunchId())
+		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
@@ -119,7 +119,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 			}
 		}
-		return new ItemCreatedRS(item.getItemId(), item.getUniqueId());
+		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
 	/**

@@ -77,6 +77,8 @@ public class TestItemController {
 		this.testItemsHistoryHandler = testItemsHistoryHandler;
 	}
 
+	/* Report client API */
+
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
@@ -87,23 +89,13 @@ public class TestItemController {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
-	@Transactional(readOnly = true)
-	@GetMapping("/{itemId}")
-	@ResponseStatus(OK)
-	@ApiOperation("Find test item by ID")
-	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long itemId) {
-		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
-
-	}
-
 	@Transactional
 	@PostMapping("/{parentItem}")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+										 @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
@@ -113,8 +105,21 @@ public class TestItemController {
 	@ApiOperation("Finish test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
+												@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
 		return finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
+	}
+
+
+	/* Frontend API */
+
+	@Transactional(readOnly = true)
+	@GetMapping("/{itemId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by ID")
+	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long itemId) {
+		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
+
 	}
 
 	//TODO check pre-defined filter

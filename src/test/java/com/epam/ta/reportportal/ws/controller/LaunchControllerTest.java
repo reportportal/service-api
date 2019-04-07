@@ -45,7 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
@@ -55,7 +55,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -169,8 +172,8 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkForceFinish() throws Exception {
-		final BulkRQ<FinishExecutionRQ> bulkRQ = new BulkRQ<>();
-		bulkRQ.setEntities(LongStream.of(3L, 5L).boxed().collect(toMap(it -> it, it -> {
+		final BulkRQ<String, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
+		bulkRQ.setEntities(Stream.of("3", "5").collect(toMap(it -> it, it -> {
 			FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 			finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
 			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
@@ -216,7 +219,7 @@ class LaunchControllerTest extends BaseMvcTest {
 			updateLaunchRQ.setMode(DEBUG);
 			return updateLaunchRQ;
 		}));
-		final BulkRQ<UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
+		final BulkRQ<Long, UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
 		bulkRQ.setEntities(entities);
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/update").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(bulkRQ))

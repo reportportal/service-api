@@ -36,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
+		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 
 		TestItemResults testItemResults = new TestItemResults();
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);

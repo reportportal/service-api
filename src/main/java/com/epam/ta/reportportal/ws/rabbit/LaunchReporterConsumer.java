@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -44,8 +45,9 @@ public class LaunchReporterConsumer {
 	private FinishLaunchHandler finishLaunchHandler;
 
 	@Autowired
-	public LaunchReporterConsumer(DatabaseUserDetailsService userDetailsService, StartLaunchHandler startLaunchHandler,
-			FinishLaunchHandler finishLaunchHandler) {
+	public LaunchReporterConsumer(DatabaseUserDetailsService userDetailsService,
+								  StartLaunchHandler startLaunchHandler,
+								  FinishLaunchHandler finishLaunchHandler) {
 		this.userDetailsService = userDetailsService;
 		this.startLaunchHandler = startLaunchHandler;
 		this.finishLaunchHandler = finishLaunchHandler;
@@ -60,7 +62,7 @@ public class LaunchReporterConsumer {
 
 	@RabbitListener(queues = "#{ @finishLaunchQueue.name }")
 	public void onFinishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
-			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) Long launchId) {
+			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}

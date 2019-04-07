@@ -55,13 +55,13 @@ class TestReporterConsumerTest {
 	@Test
 	void onStartStepItem() {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setType("STEP");
 		rq.setName("name");
 		rq.setDescription("description");
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 		String username = "user";
-		long parentId = 2L;
+		String parentId = "2";
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
@@ -73,7 +73,7 @@ class TestReporterConsumerTest {
 	@Test
 	void onStartParentItem() {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setType("TEST");
 		rq.setName("name");
 		rq.setDescription("description");
@@ -90,7 +90,7 @@ class TestReporterConsumerTest {
 	@Test
 	void onStartParentItemWithNegativeParentId() {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("1");
 		rq.setType("TEST");
 		rq.setName("name");
 		rq.setDescription("description");
@@ -99,7 +99,7 @@ class TestReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onStartItem(username, "test_project", -2L, rq);
+		testReporterConsumer.onStartItem(username, "test_project", "-2", rq);
 
 		verify(startTestItemHandler, times(1)).startRootItem(user, extractProjectDetails(user, "test_project"), rq);
 	}
@@ -109,7 +109,7 @@ class TestReporterConsumerTest {
 		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
 		finishTestItemRQ.setStatus("PASSED");
 		String username = "user";
-		long itemId = 1L;
+		String itemId = "1";
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);

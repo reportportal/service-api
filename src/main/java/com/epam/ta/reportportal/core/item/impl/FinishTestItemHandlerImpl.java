@@ -77,9 +77,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	//	}
 
 	@Override
-	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
+	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
-		TestItem testItem = testItemRepository.findById(testItemId)
+		TestItem testItem = testItemRepository.findByUuid(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
 		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());

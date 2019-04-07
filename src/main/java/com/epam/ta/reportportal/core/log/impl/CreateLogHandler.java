@@ -82,7 +82,7 @@ public class CreateLogHandler implements ICreateLogHandler {
 	//TODO check saving an attachment of the item of the project A in the project's B directory
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
-		TestItem testItem = testItemRepository.findById(createLogRQ.getTestItemId())
+		TestItem testItem = testItemRepository.findByUuid(createLogRQ.getTestItemId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
 
 		validate(testItem, createLogRQ);

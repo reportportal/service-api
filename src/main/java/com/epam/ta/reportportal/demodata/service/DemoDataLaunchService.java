@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
@@ -55,12 +56,13 @@ public class DemoDataLaunchService {
 	}
 
 	@Transactional
-	public Long startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
+	public Launch startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
 		StartLaunchRQ rq = new StartLaunchRQ();
 		rq.setMode(Mode.DEFAULT);
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		rq.setName(name);
 		rq.setStartTime(new Date());
+		rq.setUuid(UUID.randomUUID().toString());
 		Set<ItemAttributeResource> attributes = Sets.newHashSet(
 				new ItemAttributeResource("platform", "desktop"),
 				new ItemAttributeResource(null, "demo"),
@@ -72,22 +74,22 @@ public class DemoDataLaunchService {
 		launch.setUser(user);
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
-		return launch.getId();
+		return launch;
 	}
 
 	@Transactional
-	public void finishLaunch(Long launchId) {
-		Launch launch = launchRepository.findById(launchId)
+	public void finishLaunch(String launchId) {
+		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 
-		if (testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
-			testItemRepository.interruptInProgressItems(launchId);
+		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
+			testItemRepository.interruptInProgressItems(launch.getId());
 		}
 
 		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.identifyStatus(launchId)) {
+		if (launchRepository.identifyStatus(launch.getId())) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		launch.setStatus(fromStatisticsStatus);

@@ -63,6 +63,8 @@ public class RabbitMqConfiguration {
 	public static final String QUEUE_ACTIVITY = "activity";
 	public static final String QUEUE_START_LAUNCH = "reporting.launch.start";
 	public static final String QUEUE_FINISH_LAUNCH = "reporting.launch.finish";
+	public static final String QUEUE_STOP_LAUNCH = "reporting.launch.stop";
+	public static final String QUEUE_BULK_STOP_LAUNCH = "reporting.launch.bulkStop";
 	public static final String QUEUE_START_ITEM = "reporting.item.start";
 	public static final String QUEUE_FINISH_ITEM = "reporting.item.finish";
 	public static final String QUEUE_DELETE_ATTACHMENT = "attachment.delete";
@@ -137,6 +139,17 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
+	public Queue stopLaunchQueue() {
+		return new Queue(QUEUE_STOP_LAUNCH);
+	}
+
+	@Bean
+	public Queue bulkStopLaunchQueue() {
+		return new Queue(QUEUE_BULK_STOP_LAUNCH);
+	}
+
+
+	@Bean
 	public Queue startItemQueue() {
 		return new Queue(QUEUE_START_ITEM);
 	}
@@ -204,6 +217,16 @@ public class RabbitMqConfiguration {
 	@Bean
 	public Binding finishLaunchBinding() {
 		return BindingBuilder.bind(finishLaunchQueue()).to(reportingExchange()).with(QUEUE_FINISH_LAUNCH);
+	}
+
+	@Bean
+	public Binding stopLaunchBinding() {
+		return BindingBuilder.bind(stopLaunchQueue()).to(reportingExchange()).with(QUEUE_STOP_LAUNCH);
+	}
+
+	@Bean
+	public Binding bulkStopLaunchBinding() {
+		return BindingBuilder.bind(bulkStopLaunchQueue()).to(reportingExchange()).with(QUEUE_BULK_STOP_LAUNCH);
 	}
 
 	@Bean

@@ -84,7 +84,7 @@ public class LaunchController {
 
 	@Autowired
 	public LaunchController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler createLaunchMessageHandler,
-							FinishLaunchHandler finishLaunchMessageHandler,
+							@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchMessageHandler,
 							DeleteLaunchHandler deleteLaunchMessageHandler,
 							GetLaunchHandler getLaunchMessageHandler,
 							UpdateLaunchHandler updateLaunchHandler,

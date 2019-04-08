@@ -2,10 +2,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -17,9 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_START_LAUNCH;
 
 /**
@@ -54,19 +48,4 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
         response.setUuid(request.getUuid());
         return response;
     }
-
-    /**
-     * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role can't report
-     * launches in a debug mode.
-     *
-     * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-     * @param startLaunchRQ  {@link StartLaunchRQ}
-     */
-    private void validateRoles(ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
-        expect(
-                startLaunchRQ.getMode() == Mode.DEBUG && projectDetails.getProjectRole() == ProjectRole.CUSTOMER,
-                Predicate.isEqual(false)
-        ).verify(ErrorType.FORBIDDEN_OPERATION);
-    }
-
 }

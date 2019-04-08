@@ -76,18 +76,4 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 		response.setNumber(launch.getNumber());
 		return response;
 	}
-
-	/**
-	 * Validate {@link ReportPortalUser} credentials. User with a {@link ProjectRole#CUSTOMER} role can't report
-	 * launches in a debug mode.
-	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param startLaunchRQ  {@link StartLaunchRQ}
-	 */
-	private void validateRoles(ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
-		expect(
-				startLaunchRQ.getMode() == Mode.DEBUG && projectDetails.getProjectRole() == ProjectRole.CUSTOMER,
-				Predicate.isEqual(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION);
-	}
 }

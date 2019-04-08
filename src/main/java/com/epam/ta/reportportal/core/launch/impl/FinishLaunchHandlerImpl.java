@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +68,7 @@ import static java.util.stream.Collectors.toList;
  * @author Pave Bortnik
  */
 @Service
+@Primary
 @Transactional
 public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
@@ -137,7 +139,6 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
 		Launch launch = finishLaunch(launchId, finishLaunchRQ, projectDetails, user);
 		FinishLaunchRS response = new FinishLaunchRS();
-		response.setId(launch.getId());
 		response.setNumber(launch.getNumber());
 		response.setLink(generateLaunchLink(linkParams, String.valueOf(launch.getId())));
 		return response;
@@ -175,66 +176,5 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.stream()
 				.map(entry -> stopLaunch(entry.getKey(), entry.getValue(), projectDetails, user))
 				.collect(toList());
-	}
-
-	/**
-	 * Validate {@link Launch#status} and value of the {@link Launch#endTime}
-	 *
-	 * @param launch            {@link Launch}
-	 * @param finishExecutionRQ {@link FinishExecutionRQ}
-	 */
-	private void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
-		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
-		);
-
-		expect(finishExecutionRQ.getEndTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
-				finishExecutionRQ.getEndTime(),
-				TO_DATE.apply(launch.getStartTime()),
-				launch.getId()
-		);
-	}
-
-	/**
-	 * Validate {@link ReportPortalUser} credentials and {@link Launch} affiliation to the {@link Project}
-	 *
-	 * @param launch         {@link Launch}
-	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
-	 */
-	private void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
-				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
-						"You are not launch owner."
-				);
-			}
-		}
-	}
-
-	/**
-	 * Validate {@link Launch#status}
-	 *
-	 * @param launch               {@link Launch}
-	 * @param providedStatus       {@link StatusEnum} launch status from {@link FinishExecutionRQ}
-	 * @param fromStatisticsStatus {@link StatusEnum} identified launch status
-	 */
-	private void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
-		/* Validate provided status */
-		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
-				formattedSupplier("Cannot finish launch '{}' with status '{}'", launch.getId(), providedStatus)
-		);
-		if (PASSED.equals(providedStatus)) {
-			/* Validate actual launch status */
-			expect(launch.getStatus(), statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS,
-					formattedSupplier("Cannot finish launch '{}' with current status '{}' as 'PASSED'", launch.getId(), launch.getStatus())
-			);
-			expect(fromStatisticsStatus, statusIn(IN_PROGRESS, PASSED)).verify(INCORRECT_FINISH_STATUS, formattedSupplier(
-					"Cannot finish launch '{}' with calculated automatically status '{}' as 'PASSED'",
-					launch.getId(),
-					fromStatisticsStatus
-			));
-		}
 	}
 }

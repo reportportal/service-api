@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -65,6 +66,20 @@ public class LaunchReporterConsumer {
 			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
+	}
+
+	@RabbitListener(queues = "#{ @stopLaunchQueue.name }")
+	public void onStopLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
+							   @Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		finishLaunchHandler.stopLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
+	}
+
+	@RabbitListener(queues = "#{ @bulkStopLaunchQueue.name }")
+	public void onBulkStopLaunch(@Payload BulkRQ<String, FinishExecutionRQ> rq, @Header(MessageHeaders.USERNAME) String username,
+								 @Header(MessageHeaders.PROJECT_NAME) String projectName) {
+		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
+		finishLaunchHandler.stopLaunch(rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 }

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.integration;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 
@@ -25,13 +26,43 @@ import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
  */
 public interface CreateIntegrationHandler {
 
+	/**
+	 * Create {@link Integration} with {@link Integration#project == NULL}
+	 *
+	 * @param updateRequest
+	 * @return new {@link Integration}
+	 */
 	OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest);
 
+	/**
+	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
+	 *
+	 * @param projectDetails
+	 * @param updateRequest
+	 * @param user
+	 * @return new {@link Integration}
+	 */
 	OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
 			ReportPortalUser user);
 
+	/**
+	 * Update {@link Integration} with {@link Integration#project == NULL}
+	 *
+	 * @param id            {@link Integration#id}
+	 * @param updateRequest
+	 * @return updated {@link Integration}
+	 */
 	OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest);
 
+	/**
+	 * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
+	 *
+	 * @param id             {@link Integration#id}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param updateRequest
+	 * @param user
+	 * @return updated {@link Integration}
+	 */
 	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
 			UpdateIntegrationRQ updateRequest, ReportPortalUser user);
 }

@@ -120,6 +120,7 @@ class PluginLoaderServiceTest {
 		jiraParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f1");
 		jiraParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname1");
 		jiraParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v1");
+		jiraParams.put(IntegrationDetailsProperties.COMMANDS.getAttribute(), "");
 		jiraDetails.setDetails(jiraParams);
 		jira.setDetails(jiraDetails);
 
@@ -128,6 +129,7 @@ class PluginLoaderServiceTest {
 		rallyParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f2");
 		rallyParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname2");
 		rallyParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v2");
+		rallyParams.put(IntegrationDetailsProperties.COMMANDS.getAttribute(), "");
 		IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
 		rallyDetails.setDetails(rallyParams);
 		rally.setName("rally");

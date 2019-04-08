@@ -68,18 +68,18 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 				.filter(this::isMandatoryFieldsExist)
 				.forEach(it -> {
 
-					Map<IntegrationDetailsProperties, String> pluginProperties = retrievePluginProperties(it);
+					Map<IntegrationDetailsProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
 
-					if (!pluginWrapper.isPresent() || !pluginProperties.get(IntegrationDetailsProperties.VERSION)
+					if (!pluginWrapper.isPresent() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
 
 						PluginInfo pluginInfo = new PluginInfo(
 								it.getName(),
-								pluginProperties.get(IntegrationDetailsProperties.VERSION),
-								pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
-								pluginProperties.get(IntegrationDetailsProperties.FILE_NAME),
+								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION)),
+								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_ID)),
+								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_NAME)),
 								it.isEnabled()
 						);
 
@@ -107,13 +107,12 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 	}
 
-	private Map<IntegrationDetailsProperties, String> retrievePluginProperties(IntegrationType integrationType) {
+	private Map<IntegrationDetailsProperties, Object> retrievePluginProperties(IntegrationType integrationType) {
 
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		Map<IntegrationDetailsProperties, String> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
+		Map<IntegrationDetailsProperties, Object> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
 		Arrays.stream(IntegrationDetailsProperties.values())
 				.forEach(property -> property.getValue(details).ifPresent(value -> pluginProperties.put(property, value)));
-
 		return pluginProperties;
 	}
 

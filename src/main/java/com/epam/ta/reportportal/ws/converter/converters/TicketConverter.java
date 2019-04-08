@@ -25,9 +25,9 @@ import java.util.function.Function;
 /**
  * @author Pavel Bortnik
  */
-public final class TicetConverter {
+public final class TicketConverter {
 
-	private TicetConverter() {
+	private TicketConverter() {
 		//static only
 	}
 

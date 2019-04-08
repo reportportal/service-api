@@ -101,7 +101,7 @@ public class FileStorageController {
 	 * @param response    Response
 	 * @param inputStream Stored data
 	 */
-	public static void toResponse(HttpServletResponse response, InputStream inputStream) {
+	private void toResponse(HttpServletResponse response, InputStream inputStream) {
 		if (inputStream != null) {
 
 			try {

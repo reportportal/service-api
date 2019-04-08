@@ -114,19 +114,23 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 					));
 
 			String pluginFileName = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+					.map(String::valueOf)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 							Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
 									integrationType.getName()
-							).get()
+							)
+									.get()
 					));
 
 			if (!Files.exists(Paths.get(pluginsRootPath, pluginFileName))) {
 
 				String pluginFileId = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+						.map(String::valueOf)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 								Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
 										integrationType.getName()
-								).get()
+								)
+										.get()
 						));
 
 				try (InputStream inputStream = ofNullable(dataStore.load(pluginFileId)).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,

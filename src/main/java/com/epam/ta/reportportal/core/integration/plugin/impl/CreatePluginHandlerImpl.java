@@ -170,7 +170,6 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	private IntegrationType resolveIntegrationType(PluginInfo newPluginInfo, String newPluginFileName) {
 		IntegrationType integrationType = retrieveIntegrationType(newPluginInfo);
 		IntegrationDetailsProperties.VERSION.setValue(integrationType.getDetails(), newPluginInfo.getVersion());
-
 		return integrationType;
 	}
 
@@ -178,6 +177,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId()).map(it -> {
 			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
+					.map(String::valueOf)
 					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
 							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
 									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",

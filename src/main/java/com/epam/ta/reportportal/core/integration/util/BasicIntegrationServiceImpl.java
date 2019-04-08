@@ -17,14 +17,14 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,22 +44,23 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return integrationParams;
 	}
 
-	public boolean validateIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		if (projectDetails == null) {
-			if (CollectionUtils.isNotEmpty(integrationRepository.findAllGlobalByType(integration.getType()))) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Integration with type " + integration.getType().getName() + " is already exists."
-				);
-			}
-		} else {
-			if (CollectionUtils.isNotEmpty(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(),
-					integration.getType()
-			))) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Integration with type " + integration.getType().getName() + " is already exists."
-				);
-			}
-		}
+	public boolean validateGlobalIntegration(Integration globalIntegration) {
+
+		List<Integration> global = integrationRepository.findAllGlobalByType(globalIntegration.getType());
+		BusinessRule.expect(global, List::isEmpty).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Integration with type " + globalIntegration.getType().getName() + " is already exists"
+		);
+		return true;
+	}
+
+	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
+		List<Integration> project = integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integration.getType());
+		BusinessRule.expect(project, List::isEmpty).verify(
+				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Integration with type " + integration.getType().getName() + " is already exists for project "
+						+ projectDetails.getProjectName()
+		);
 		return true;
 	}
 

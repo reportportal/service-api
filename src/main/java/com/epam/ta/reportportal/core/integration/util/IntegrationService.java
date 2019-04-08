@@ -28,5 +28,19 @@ public interface IntegrationService {
 
 	Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
 
-	boolean validateIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails);
+	/**
+	 * Validates global integration
+	 *
+	 * @param globalIntegration Global {@link Integration}
+	 * @return Validation result
+	 */
+	boolean validateGlobalIntegration(Integration globalIntegration);
+
+	/**
+	 * Validates project integration
+	 *
+	 * @param projectIntegration Project {@link Integration}
+	 * @return Validation result
+	 */
+	boolean validateProjectIntegration(Integration projectIntegration, ReportPortalUser.ProjectDetails projectDetails);
 }

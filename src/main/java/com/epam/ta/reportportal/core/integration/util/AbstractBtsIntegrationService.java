@@ -50,7 +50,7 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 	}
 
 	@Override
-	public boolean validateIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
+	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
 		if (projectDetails == null) {
 			checkUniqueGlobalIntegration(integration);
 		} else {

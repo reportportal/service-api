@@ -68,8 +68,8 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 	}
 
 	@Override
-	public boolean validateIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		super.validateIntegration(integration, projectDetails);
+	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
+		super.validateProjectIntegration(integration, projectDetails);
 		testConnection(integration);
 		return true;
 	}

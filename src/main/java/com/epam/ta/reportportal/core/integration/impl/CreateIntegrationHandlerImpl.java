@@ -85,7 +85,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Map<String, Object> validParams = integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams());
 		Integration integration = createIntegration(integrationType, validParams);
-		integrationService.validateIntegration(integration, null);
+		integrationService.validateGlobalIntegration(integration);
 		integration.setEnabled(updateRequest.getEnabled());
 		integrationRepository.save(integration);
 
@@ -110,7 +110,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Map<String, Object> validParams = integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams());
 
 		Integration integration = createIntegration(integrationType, validParams);
-		integrationService.validateIntegration(integration, projectDetails);
+		integrationService.validateProjectIntegration(integration, projectDetails);
 		integration.setEnabled(updateRequest.getEnabled());
 		integration.setProject(project);
 

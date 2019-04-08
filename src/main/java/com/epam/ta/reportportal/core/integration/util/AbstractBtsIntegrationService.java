@@ -50,12 +50,15 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 	}
 
 	@Override
+	public boolean validateGlobalIntegration(Integration globalIntegration) {
+		checkUniqueGlobalIntegration(globalIntegration);
+		checkConnection(globalIntegration);
+		return true;
+	}
+
+	@Override
 	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		if (projectDetails == null) {
-			checkUniqueGlobalIntegration(integration);
-		} else {
-			checkUniqueProjectIntegration(integration, projectDetails.getProjectId());
-		}
+		checkUniqueProjectIntegration(integration, projectDetails.getProjectId());
 		checkConnection(integration);
 		return true;
 	}

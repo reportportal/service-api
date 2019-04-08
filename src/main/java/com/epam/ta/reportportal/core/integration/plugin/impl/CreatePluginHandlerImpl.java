@@ -168,36 +168,11 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	 * @return {@link IntegrationType}
 	 */
 	private IntegrationType resolveIntegrationType(PluginInfo newPluginInfo, String newPluginFileName) {
-
-		//		ReportPortalIntegrationEnum reportPortalIntegration = resolveIntegration(newPluginInfo, newPluginFileName);
-
 		IntegrationType integrationType = retrieveIntegrationType(newPluginInfo);
 		IntegrationDetailsProperties.VERSION.setValue(integrationType.getDetails(), newPluginInfo.getVersion());
 
 		return integrationType;
 	}
-
-	//	/**
-	//	 * Resolves the type of the plugin by it's 'id'. should be one of the {@link ReportPortalIntegrationEnum} values
-	//	 *
-	//	 * @param pluginInfo        {@link PluginInfo} with {@link PluginInfo#id}
-	//	 * @param newPluginFileName Name of the new plugin file
-	//	 * @return {@link ReportPortalIntegrationEnum} instance
-	//	 */
-	//	private ReportPortalIntegrationEnum resolveIntegration(PluginInfo pluginInfo, String newPluginFileName) {
-	//
-	//		Optional<ReportPortalIntegrationEnum> reportPortalIntegration = ReportPortalIntegrationEnum.findByName(pluginInfo.getId());
-	//
-	//		if (!reportPortalIntegration.isPresent()) {
-	//			pluginBox.removeUploadingPlugin(newPluginFileName);
-	//
-	//			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-	//					Suppliers.formattedSupplier("Unknown integration type - {}", pluginInfo.getId()).get()
-	//			);
-	//		}
-	//
-	//		return reportPortalIntegration.get();
-	//	}
 
 	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo) {
 

@@ -1,5 +1,5 @@
-insert into integration(id, project_id, type, enabled, params, creation_date)
-values (7, null, 2, true, '{"param":  "value"}', now()),
-       (8, 2, 2, true, '{"param":"value"}', now());
+INSERT INTO integration(id, project_id, type, enabled, params, creation_date)
+VALUES (7, NULL, 2, TRUE, '{"param":  "value"}', now()),
+       (8, 2, 2, TRUE, '{"param":"value"}', now());
 
-alter sequence integration_id_seq restart with 9;
+ALTER SEQUENCE integration_id_seq RESTART WITH 9;

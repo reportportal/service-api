@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -28,10 +29,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
@@ -43,14 +40,15 @@ import java.util.Optional;
  *
  * @author Andrei Varabyeu
  */
-@Service("saveBinaryDataJob")
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SaveBinaryDataJob implements Runnable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SaveBinaryDataJob.class);
 
 	@Autowired
 	private LogRepository logRepository;
+
+	@Autowired
+	private AttachmentRepository attachmentRepository;
 
 	@Autowired
 	private DataStoreService dataStoreService;
@@ -71,7 +69,6 @@ public class SaveBinaryDataJob implements Runnable {
 	private Long logId;
 
 	@Override
-	@Transactional
 	public void run() {
 
 		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectId, file);
@@ -87,6 +84,8 @@ public class SaveBinaryDataJob implements Runnable {
 						.withLaunchId(launchId)
 						.withItemId(itemId)
 						.get();
+
+				attachmentRepository.save(attachment);
 
 				log.setAttachment(attachment);
 

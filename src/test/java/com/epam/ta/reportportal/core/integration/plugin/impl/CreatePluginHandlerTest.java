@@ -197,32 +197,6 @@ public class CreatePluginHandlerTest {
 	}
 
 	@Test
-	void shouldNotLoadPluginWhenReportPortalIntegrationNotFound() throws IOException {
-
-		when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);
-
-		when(multipartFile.getInputStream()).thenReturn(inputStream);
-
-		when(pluginLoader.extractPluginInfo(Paths.get(pluginRootPath,
-				CreatePluginHandlerImpl.PLUGIN_TEMP_DIRECTORY,
-				FILE_NAME
-		))).thenReturn(pluginInfo);
-
-		when(pluginInfo.getId()).thenReturn(WRONG_PLUGIN_ID);
-		when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> createPluginHandler.uploadPlugin(multipartFile)
-		);
-
-		assertEquals(
-				Suppliers.formattedSupplier("Impossible interact with integration. Unknown integration type - {}", WRONG_PLUGIN_ID).get(),
-				exception.getMessage()
-		);
-
-	}
-
-	@Test
 	void shouldNotLoadWhenNoVersionProvided() throws IOException {
 
 		when(multipartFile.getOriginalFilename()).thenReturn(FILE_NAME);

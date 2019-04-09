@@ -78,7 +78,7 @@ class UpdatePluginHandlerTest {
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
 		Assertions.assertEquals(Suppliers.formattedSupplier(
-				"Enabled state of the integration type with name = '{}' has been switched to - '{}'",
+				"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 				emailIntegrationType.getName(),
 				updatePluginStateRQ.getEnabled()
 		).get(), operationCompletionRS.getResultMessage());
@@ -118,7 +118,9 @@ class UpdatePluginHandlerTest {
 				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
 		);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Unknown integration type - {}.",
+		assertEquals(
+				Suppliers.formattedSupplier(
+						"Impossible interact with integration. Integration type details have not been found",
 				wrongIntegrationTypeName
 				).get(),
 				exception.getMessage()

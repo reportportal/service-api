@@ -19,7 +19,9 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
@@ -45,9 +47,16 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final UserRepository userRepository;
 
+	private final DeleteProjectHandler deleteProjectHandler;
+
+	private final ProjectUserRepository projectUserRepository;
+
 	@Autowired
-	public DeleteUserHandlerImpl(UserRepository userRepository) {
+	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
+			ProjectUserRepository projectUserRepository) {
 		this.userRepository = userRepository;
+		this.deleteProjectHandler = deleteProjectHandler;
+		this.projectUserRepository = projectUserRepository;
 	}
 
 	@Override
@@ -55,8 +64,19 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
-		user.getProjects()
-				.forEach(userProject -> ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject()));
+
+		user.getProjects().forEach(userProject -> {
+			if (ProjectUtils.isPersonalForUser(userProject.getProject().getProjectType(),
+					userProject.getProject().getName(),
+					user.getLogin()
+			)) {
+				projectUserRepository.delete(userProject);
+				deleteProjectHandler.deleteProject(userProject.getProject().getId());
+			} else {
+				ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject());
+			}
+		});
+
 		userRepository.delete(user);
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}

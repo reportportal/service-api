@@ -28,8 +28,6 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
@@ -119,16 +117,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 		BusinessRule.expect(projectUser, Optional::isPresent)
 				.verify(ErrorType.PROJECT_DOESNT_CONTAIN_USER, projectName, user.getUsername());
-
-		List<Long> integrationTypeIds = project.getIntegrations()
-				.stream()
-				.map(Integration::getType)
-				.map(IntegrationType::getId)
-				.collect(Collectors.toList());
-
-		List<Integration> globalIntegrations = integrationRepository.findAllGlobalNotInIntegrationTypeIds(integrationTypeIds);
-
-		project.getIntegrations().addAll(globalIntegrations);
 
 		return projectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}

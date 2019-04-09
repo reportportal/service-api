@@ -80,18 +80,19 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	private final LogIndexer logIndexer;
 
-	@Autowired
-	private AnalyzeCollectorFactory analyzeCollectorFactory;
+	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
-			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
+			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
+			AnalyzeCollectorFactory analyzeCollectorFactory) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
+		this.analyzeCollectorFactory = analyzeCollectorFactory;
 	}
 
 	@Override
@@ -153,7 +154,8 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 		List<Long> itemIds = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
-		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig);
+		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
+				.thenApply(it -> logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}

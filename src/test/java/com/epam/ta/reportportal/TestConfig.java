@@ -49,6 +49,9 @@ public class TestConfig {
 	protected Client rabbitClient;
 
 	@MockBean(name = "analyzerRabbitTemplate")
+	protected RabbitTemplate analyzerRabbitTemplate;
+
+	@MockBean(name = "rabbitTemplate")
 	protected RabbitTemplate rabbitTemplate;
 
 	@Bean

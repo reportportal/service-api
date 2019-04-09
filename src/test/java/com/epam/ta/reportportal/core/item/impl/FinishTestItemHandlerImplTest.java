@@ -56,7 +56,7 @@ class FinishTestItemHandlerImplTest {
 	@Test
 	void finishNotExistedTestItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
-		when(repository.findById(1L)).thenReturn(Optional.empty());
+		when(repository.findByUuid("1")).thenReturn(Optional.empty());
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
 				() -> handler.finishTestItem(rpUser, extractProjectDetails(rpUser, "test_project"), "1", new FinishTestItemRQ())
@@ -68,7 +68,7 @@ class FinishTestItemHandlerImplTest {
 	void finishTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
+		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
@@ -86,7 +86,7 @@ class FinishTestItemHandlerImplTest {
 		user.setLogin("owner");
 		launch.setUser(user);
 		item.setLaunch(launch);
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
+		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
@@ -109,7 +109,7 @@ class FinishTestItemHandlerImplTest {
 		launch.setUser(user);
 		item.setLaunch(launch);
 		item.setHasChildren(false);
-		when(repository.findById(1L)).thenReturn(Optional.of(item));
+		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,

@@ -155,7 +155,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/finish").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/finish").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
@@ -165,7 +165,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/stop").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
@@ -173,7 +173,7 @@ class LaunchControllerTest extends BaseMvcTest {
 	@Test
 	void bulkForceFinish() throws Exception {
 		final BulkRQ<String, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
-		bulkRQ.setEntities(Stream.of("3", "5").collect(toMap(it -> it, it -> {
+		bulkRQ.setEntities(Stream.of("befef834-b2ef-4acf-aea3-b5a5b15fd93c", "e3adc64e-87cc-4781-b2d3-faa4ef1679dc").collect(toMap(it -> it, it -> {
 			FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 			finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
 			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));

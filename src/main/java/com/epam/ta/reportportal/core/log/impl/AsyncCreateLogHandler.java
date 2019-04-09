@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.SaveBinaryDataJob;
@@ -60,27 +59,24 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 
 	@Override
 	@Nonnull
+	//TODO check saving an attachment of the item of the project A in the project's B directory
 	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
 		TestItem testItem = testItemRepository.findByUuid(createLogRQ.getTestItemId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
-
 		validate(testItem, createLogRQ);
 
 		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
-		try {
-			logRepository.save(log);
-		} catch (Exception exc) {
-			throw new ReportPortalException("Error while Log instance creating.", exc);
-		}
+		logRepository.save(log);
+
 		if (null != file) {
 
-			Launch launch = getLaunch(testItem);
+			Long launchId = getLaunchId(testItem);
 
 			taskExecutor.execute(saveBinaryDataJob.get()
 					.withFile(file)
 					.withProjectId(projectDetails.getProjectId())
-					.withLaunchId(launch.getId())
+					.withLaunchId(launchId)
 					.withItemId(testItem.getItemId())
 					.withLogId(log.getId()));
 

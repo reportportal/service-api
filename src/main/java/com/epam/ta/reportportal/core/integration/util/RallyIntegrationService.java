@@ -20,12 +20,12 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -38,13 +38,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
 @Service
 public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
-	public RallyIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			PluginBox pluginBox) {
-		super(integrationTypeRepository, integrationRepository, pluginBox);
+	@Autowired
+	public RallyIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox) {
+		super(integrationRepository, pluginBox);
 	}
 
 	@Override
-	protected Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);

@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -73,26 +72,25 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 						Suppliers.formattedSupplier("Integration type with id - '{}' not found.", id).get()
 				));
 
-		ReportPortalIntegrationEnum reportPortalIntegration = ReportPortalIntegrationEnum.findByName(integrationType.getName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Unknown integration type - {}.", integrationType.getName()).get()
-				));
-
 		boolean isEnabled = updatePluginStateRQ.getEnabled();
 		integrationType.setEnabled(isEnabled);
-
-		if (reportPortalIntegration.isPlugin()) {
-			return handlePluginState(integrationType, isEnabled);
-		}
-
-		return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the integration type with name = '{}' has been switched to - '{}'",
-				integrationType.getName(),
-				isEnabled
-		)
-				.get());
+		return handlePluginState(integrationType, isEnabled);
 	}
 
 	private OperationCompletionRS handlePluginState(IntegrationType integrationType, boolean isEnabled) {
+
+		/*
+		 *	hack: while email and ldap isn't a plugin - it shouldn't be proceeded as a plugin
+		 *  it is configured as a integration type on the database startup
+		 *  should be replaced as a separate tables for both 'email' or 'ldap' or remove them
+		 *  and rewrite as a plugin
+		 */
+		if ("email".equalsIgnoreCase(integrationType.getName()) || "ldap".equalsIgnoreCase(integrationType.getName())) {
+			return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+					integrationType.getName(),
+					isEnabled
+			).get());
+		}
 
 		if (isEnabled) {
 			loadPlugin(integrationType);
@@ -116,19 +114,23 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 					));
 
 			String pluginFileName = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+					.map(String::valueOf)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 							Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
 									integrationType.getName()
-							).get()
+							)
+									.get()
 					));
 
 			if (!Files.exists(Paths.get(pluginsRootPath, pluginFileName))) {
 
 				String pluginFileId = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+						.map(String::valueOf)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 								Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
 										integrationType.getName()
-								).get()
+								)
+										.get()
 						));
 
 				try (InputStream inputStream = ofNullable(dataStore.load(pluginFileId)).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,

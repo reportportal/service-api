@@ -26,42 +26,21 @@ import java.util.Map;
  */
 public interface IntegrationService {
 
-	/**
-	 * Create {@link Integration} with {@link Integration#project == NULL}
-	 *
-	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
-	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
-	 * @return new {@link Integration}
-	 */
-	Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams);
+	Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
 
 	/**
-	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
+	 * Validates global integration
 	 *
-	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
-	 * @param projectDetails      {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
-	 * @return new {@link Integration}
+	 * @param globalIntegration Global {@link Integration}
+	 * @return Validation result
 	 */
-	Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
-			Map<String, Object> integrationParams);
+	boolean validateGlobalIntegration(Integration globalIntegration);
 
 	/**
-	 * Update {@link Integration} with {@link Integration#project == NULL}
+	 * Validates project integration
 	 *
-	 * @param id                {@link Integration#id}
-	 * @param integrationParams {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
-	 * @return updated {@link Integration}
+	 * @param projectIntegration Project {@link Integration}
+	 * @return Validation result
 	 */
-	Integration updateGlobalIntegration(Long id, Map<String, Object> integrationParams);
-
-	/**
-	 * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
-	 *
-	 * @param id                {@link Integration#id}
-	 * @param projectDetails    {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param integrationParams {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
-	 * @return updated {@link Integration}
-	 */
-	Integration updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, Map<String, Object> integrationParams);
+	boolean validateProjectIntegration(Integration projectIntegration, ReportPortalUser.ProjectDetails projectDetails);
 }

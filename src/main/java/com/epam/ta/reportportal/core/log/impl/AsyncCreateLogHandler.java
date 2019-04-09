@@ -75,8 +75,7 @@ public class AsyncCreateLogHandler extends CreateLogHandler {
 
 			taskExecutor.execute(saveBinaryDataJob.get()
 					.withFile(file)
-					.withProjectId(projectDetails.getProjectId())
-					.withLaunchId(launchId)
+					.withProjectId(projectDetails.getProjectId()).withLaunchId(launchId)
 					.withItemId(testItem.getItemId())
 					.withLogId(log.getId()));
 

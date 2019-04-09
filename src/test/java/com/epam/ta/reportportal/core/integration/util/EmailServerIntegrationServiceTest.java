@@ -92,8 +92,7 @@ class EmailServerIntegrationServiceTest {
 		);
 
 		//then
-		assertEquals("Forbidden operation. Email configuration is incorrect. Please, check your configuration. null",
-				exception.getMessage()
+		assertEquals("Forbidden operation. Email configuration is incorrect. Please, check your configuration. null", exception.getMessage()
 		);
 	}
 

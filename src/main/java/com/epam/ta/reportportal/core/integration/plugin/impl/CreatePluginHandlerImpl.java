@@ -176,8 +176,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo) {
 
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId()).map(it -> {
-			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
-					.map(String::valueOf)
+			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails()).map(String::valueOf)
 					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
 							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
 									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",

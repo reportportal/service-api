@@ -53,5 +53,4 @@ public enum IntegrationDetailsProperties {
 
 	public String getAttribute() {
 		return attribute;
-	}
-}
+	}}

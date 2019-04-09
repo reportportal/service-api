@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -60,17 +59,13 @@ class AnalyzerServiceServiceTest {
 
 	private LogRepository logRepository = mock(LogRepository.class);
 
-	private LogIndexer logIndexer = mock(LogIndexer.class);
-
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
 	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(analyzerStatusCache,
 			analyzerServiceClient,
 			logRepository,
 			issueTypeHandler,
-			testItemRepository,
-			messageBus,
-			logIndexer
+			testItemRepository, messageBus
 	);
 
 	@Test
@@ -131,7 +126,6 @@ class AnalyzerServiceServiceTest {
 		);
 		verify(analyzerServiceClient, times(1)).analyze(any());
 		verify(testItemRepository, times(itemsCount)).save(any());
-		verify(logIndexer, times(1)).indexLogs(eq(launch.getProjectId()), eq(singletonList(launch.getId())), eq(analyzerConfig));
 		verify(messageBus, times(4)).publishActivity(any());
 	}
 

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_START_LAUNCH;
+import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_START;
 
 /**
  * @author Konstantin Antipin
@@ -37,7 +37,7 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 
         request.setUuid(UUID.randomUUID().toString());
 
-        amqpTemplate.convertAndSend(QUEUE_START_LAUNCH, request, message -> {
+        amqpTemplate.convertAndSend(QUEUE_LAUNCH_START, request, message -> {
             Map<String, Object> headers = message.getMessageProperties().getHeaders();
             headers.put(MessageHeaders.USERNAME, user.getUsername());
             headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());

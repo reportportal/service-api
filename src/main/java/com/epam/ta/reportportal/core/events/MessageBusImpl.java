@@ -35,7 +35,7 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void publishDeleteAttachmentEvent(DeleteAttachmentEvent event) {
 
-		amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_ATTACHMENT, RabbitMqConfiguration.QUEUE_DELETE_ATTACHMENT, event);
+		amqpTemplate.convertAndSend(RabbitMqConfiguration.EXCHANGE_ATTACHMENT, RabbitMqConfiguration.QUEUE_ATTACHMENT_DELETE, event);
 
 	}
 }

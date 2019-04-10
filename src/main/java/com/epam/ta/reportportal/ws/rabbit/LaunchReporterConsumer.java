@@ -54,28 +54,28 @@ public class LaunchReporterConsumer {
 		this.finishLaunchHandler = finishLaunchHandler;
 	}
 
-	@RabbitListener(queues = "#{ @startLaunchQueue.name }")
+	@RabbitListener(queues = "#{ @launchStartQueue.name }")
 	public void onStartLaunch(@Payload StartLaunchRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName) {
 		ReportPortalUser userDetails = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		startLaunchHandler.startLaunch(userDetails, ProjectExtractor.extractProjectDetails(userDetails, projectName), rq);
 	}
 
-	@RabbitListener(queues = "#{ @finishLaunchQueue.name }")
+	@RabbitListener(queues = "#{ @launchFinishQueue.name }")
 	public void onFinishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
-	@RabbitListener(queues = "#{ @stopLaunchQueue.name }")
+	@RabbitListener(queues = "#{ @launchStopQueue.name }")
 	public void onStopLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
 							   @Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.stopLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
-	@RabbitListener(queues = "#{ @bulkStopLaunchQueue.name }")
+	@RabbitListener(queues = "#{ @launchBulkStopQueue.name }")
 	public void onBulkStopLaunch(@Payload BulkRQ<String, FinishExecutionRQ> rq, @Header(MessageHeaders.USERNAME) String username,
 								 @Header(MessageHeaders.PROJECT_NAME) String projectName) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);

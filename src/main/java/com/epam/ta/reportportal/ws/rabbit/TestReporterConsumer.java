@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.google.common.base.Strings;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
@@ -53,19 +54,19 @@ public class TestReporterConsumer {
 		this.finishTestItemHandler = finishTestItemHandler;
 	}
 
-	@RabbitListener(queues = "#{ @startItemQueue.name }")
-	public void onStartItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
-			@Header(name = MessageHeaders.PARENT_ID, required = false) String parentId, @Payload StartTestItemRQ rq) {
+	@RabbitListener(queues = "#{ @itemStartQueue.name }")
+	public void onItemRootStart(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
+								@Header(name = MessageHeaders.PARENT_ID, required = false) String parentId, @Payload StartTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, normalizeId(projectName));
-		if (null != parentId && Long.parseLong(parentId) > 0) {
+		if (null != parentId && !Strings.isNullOrEmpty(parentId)) {
 			startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
 		} else {
 			startTestItemHandler.startRootItem(user, projectDetails, rq);
 		}
 	}
 
-	@RabbitListener(queues = "#{ @finishItemQueue.name }")
+	@RabbitListener(queues = "#{ @itemFinishQueue.name }")
 	public void onFinishItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
 			@Header(MessageHeaders.ITEM_ID) String itemId, @Payload FinishTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);

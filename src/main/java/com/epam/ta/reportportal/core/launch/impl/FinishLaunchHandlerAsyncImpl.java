@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_BULK_STOP_LAUNCH;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_FINISH_LAUNCH;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_STOP_LAUNCH;
+import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_BULK_STOP;
+import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_FINISH;
+import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_STOP;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -44,7 +44,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
                                        ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
 
         // todo: may be problem - no access to repository, so no possibility to validateRoles() here
-        amqpTemplate.convertAndSend(QUEUE_FINISH_LAUNCH, request, message -> {
+        amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH, request, message -> {
             Map<String, Object> headers = message.getMessageProperties().getHeaders();
             headers.put(MessageHeaders.USERNAME, user.getUsername());
             headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
@@ -61,7 +61,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
                                             ReportPortalUser user) {
 
         // todo: may be problem - no access to repository, so no possibility to validateRoles() here
-        amqpTemplate.convertAndSend(QUEUE_STOP_LAUNCH, request, message -> {
+        amqpTemplate.convertAndSend(QUEUE_LAUNCH_STOP, request, message -> {
             Map<String, Object> headers = message.getMessageProperties().getHeaders();
             headers.put(MessageHeaders.USERNAME, user.getUsername());
             headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
@@ -78,7 +78,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
                                                   ReportPortalUser user) {
 
         // todo: may be problem - no access to repository, so no possibility to validateRoles() here
-        amqpTemplate.convertAndSend(QUEUE_BULK_STOP_LAUNCH, request, message -> {
+        amqpTemplate.convertAndSend(QUEUE_LAUNCH_BULK_STOP, request, message -> {
             Map<String, Object> headers = message.getMessageProperties().getHeaders();
             headers.put(MessageHeaders.USERNAME, user.getUsername());
             headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());

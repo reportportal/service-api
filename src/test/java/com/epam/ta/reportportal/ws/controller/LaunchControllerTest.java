@@ -263,6 +263,7 @@ class LaunchControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content", hasSize(4)));
 	}
 
+	@Disabled
 	@Test
 	void export() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))

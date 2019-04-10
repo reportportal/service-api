@@ -61,13 +61,13 @@ public class RabbitMqConfiguration {
 	 */
 	public static final String KEY_EVENTS = "broadcast.events";
 	public static final String QUEUE_ACTIVITY = "activity";
-	public static final String QUEUE_START_LAUNCH = "reporting.launch.start";
-	public static final String QUEUE_FINISH_LAUNCH = "reporting.launch.finish";
-	public static final String QUEUE_STOP_LAUNCH = "reporting.launch.stop";
-	public static final String QUEUE_BULK_STOP_LAUNCH = "reporting.launch.bulkStop";
-	public static final String QUEUE_START_ITEM = "reporting.item.start";
-	public static final String QUEUE_FINISH_ITEM = "reporting.item.finish";
-	public static final String QUEUE_DELETE_ATTACHMENT = "attachment.delete";
+	public static final String QUEUE_LAUNCH_START = "reporting.launch.start";
+	public static final String QUEUE_LAUNCH_FINISH = "reporting.launch.finish";
+	public static final String QUEUE_LAUNCH_STOP = "reporting.launch.stop";
+	public static final String QUEUE_LAUNCH_BULK_STOP = "reporting.launch.bulkStop";
+	public static final String QUEUE_ITEM_START = "reporting.item.start";
+	public static final String QUEUE_ITEM_FINISH = "reporting.item.finish";
+	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
 
 	public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
 	public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
@@ -129,34 +129,34 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public Queue startLaunchQueue() {
-		return new Queue(QUEUE_START_LAUNCH);
+	public Queue launchStartQueue() {
+		return new Queue(QUEUE_LAUNCH_START);
 	}
 
 	@Bean
-	public Queue finishLaunchQueue() {
-		return new Queue(QUEUE_FINISH_LAUNCH);
+	public Queue launchFinishQueue() {
+		return new Queue(QUEUE_LAUNCH_FINISH);
 	}
 
 	@Bean
-	public Queue stopLaunchQueue() {
-		return new Queue(QUEUE_STOP_LAUNCH);
+	public Queue launchStopQueue() {
+		return new Queue(QUEUE_LAUNCH_STOP);
 	}
 
 	@Bean
-	public Queue bulkStopLaunchQueue() {
-		return new Queue(QUEUE_BULK_STOP_LAUNCH);
+	public Queue launchBulkStopQueue() {
+		return new Queue(QUEUE_LAUNCH_BULK_STOP);
 	}
 
 
 	@Bean
-	public Queue startItemQueue() {
-		return new Queue(QUEUE_START_ITEM);
+	public Queue itemStartQueue() {
+		return new Queue(QUEUE_ITEM_START);
 	}
 
 	@Bean
-	public Queue finishItemQueue() {
-		return new Queue(QUEUE_FINISH_ITEM);
+	public Queue itemFinishQueue() {
+		return new Queue(QUEUE_ITEM_FINISH);
 	}
 
 	@Bean
@@ -181,7 +181,7 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Queue deleteAttachmentQueue() {
-		return new Queue(QUEUE_DELETE_ATTACHMENT);
+		return new Queue(QUEUE_ATTACHMENT_DELETE);
 	}
 
 	@Bean
@@ -210,33 +210,33 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public Binding startLaunchBinding() {
-		return BindingBuilder.bind(startLaunchQueue()).to(reportingExchange()).with(QUEUE_START_LAUNCH);
+	public Binding launchStartBinding() {
+		return BindingBuilder.bind(launchStartQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_START);
 	}
 
 	@Bean
-	public Binding finishLaunchBinding() {
-		return BindingBuilder.bind(finishLaunchQueue()).to(reportingExchange()).with(QUEUE_FINISH_LAUNCH);
+	public Binding launchFinishBinding() {
+		return BindingBuilder.bind(launchFinishQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_FINISH);
 	}
 
 	@Bean
-	public Binding stopLaunchBinding() {
-		return BindingBuilder.bind(stopLaunchQueue()).to(reportingExchange()).with(QUEUE_STOP_LAUNCH);
+	public Binding launchStopBinding() {
+		return BindingBuilder.bind(launchStopQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_STOP);
 	}
 
 	@Bean
-	public Binding bulkStopLaunchBinding() {
-		return BindingBuilder.bind(bulkStopLaunchQueue()).to(reportingExchange()).with(QUEUE_BULK_STOP_LAUNCH);
+	public Binding launchBulkStopBinding() {
+		return BindingBuilder.bind(launchBulkStopQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_BULK_STOP);
 	}
 
 	@Bean
-	public Binding startItemBinding() {
-		return BindingBuilder.bind(startItemQueue()).to(reportingExchange()).with(QUEUE_START_ITEM);
+	public Binding itemRootStartBinding() {
+		return BindingBuilder.bind(itemStartQueue()).to(reportingExchange()).with(QUEUE_ITEM_START);
 	}
 
 	@Bean
-	public Binding finishItemBinding() {
-		return BindingBuilder.bind(finishItemQueue()).to(reportingExchange()).with(QUEUE_FINISH_ITEM);
+	public Binding itemFinishBinding() {
+		return BindingBuilder.bind(itemFinishQueue()).to(reportingExchange()).with(QUEUE_ITEM_FINISH);
 	}
 
 	@Bean
@@ -261,7 +261,7 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Binding attachmentDeleteBinding() {
-		return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange()).with(QUEUE_DELETE_ATTACHMENT);
+		return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange()).with(QUEUE_ATTACHMENT_DELETE);
 	}
 
 	@Bean

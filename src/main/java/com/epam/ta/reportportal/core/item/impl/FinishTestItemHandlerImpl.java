@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -68,6 +69,7 @@ import static java.util.Optional.ofNullable;
  * @author Pavel Bortnik
  */
 @Service
+@Primary
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final TestItemRepository testItemRepository;

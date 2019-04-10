@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -48,6 +49,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author Pavel Bortnik
  */
 @Service
+@Primary
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private TestItemRepository testItemRepository;
@@ -81,7 +83,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId().toString()));
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(user, projectDetails, rq, launch);
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
 		testItemRepository.save(item);
@@ -98,7 +100,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
 		TestItem parentItem = testItemRepository.findByUuid(parentId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId.toString()));
+				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
 		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);

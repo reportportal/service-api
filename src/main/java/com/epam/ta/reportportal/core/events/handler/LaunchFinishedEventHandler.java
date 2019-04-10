@@ -50,15 +50,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -107,6 +105,7 @@ public class LaunchFinishedEventHandler {
 		this.logIndexer = logIndexer;
 	}
 
+	@Transactional
 	@TransactionalEventListener
 	public void onApplicationEvent(LaunchFinishedEvent event) throws ExecutionException, InterruptedException {
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
@@ -127,14 +126,14 @@ public class LaunchFinishedEventHandler {
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers() && indexedLogsCount > 0) {
 			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), null);
-			analyzerServiceAsync.analyze(launch, testItems, analyzerConfig).get();
+			analyzerServiceAsync.analyze(launch, testItems, analyzerConfig)
+					.thenApply(it -> logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
 		}
 
 		if (isNotificationsEnabled) {
 			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 					IntegrationGroupEnum.NOTIFICATION
-			)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
+			).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
 			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
 			Launch updatedLaunch = launchRepository.findById(launch.getId())

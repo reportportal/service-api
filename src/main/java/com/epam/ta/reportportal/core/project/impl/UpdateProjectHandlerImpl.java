@@ -175,7 +175,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(
+					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
@@ -217,7 +218,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				assignUser(name, projectRole, assignedUsernames, project);
 			});
 		} else {
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(
+					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
 
@@ -250,9 +252,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
-		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()), equalTo(false)).verify(
-				ErrorType.FORBIDDEN_OPERATION,
-				"Index can not be removed until auto-analysis proceeds."
+		expect(
+				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+				equalTo(false)
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds."
 		);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())

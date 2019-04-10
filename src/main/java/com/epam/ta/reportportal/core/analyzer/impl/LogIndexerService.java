@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +53,7 @@ import static java.util.stream.Collectors.toList;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
+@Transactional
 public class LogIndexerService implements LogIndexer {
 	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
@@ -81,6 +83,7 @@ public class LogIndexerService implements LogIndexer {
 			try {
 				analyzerStatusCache.indexingStarted(projectId);
 				List<IndexLaunch> indexLaunches = prepareLaunches(launchIds, analyzerConfig);
+				LOGGER.info("Start indexing for {} launches", indexLaunches.size());
 				return indexerServiceClient.index(indexLaunches);
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);

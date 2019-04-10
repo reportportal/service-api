@@ -118,7 +118,9 @@ class UpdatePluginHandlerTest {
 				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
 		);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Integration type details have not been found",
+		assertEquals(
+				Suppliers.formattedSupplier(
+						"Impossible interact with integration. Integration type details have not been found",
 				wrongIntegrationTypeName
 				).get(),
 				exception.getMessage()

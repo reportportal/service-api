@@ -63,6 +63,5 @@ public interface CreateIntegrationHandler {
 	 * @param user
 	 * @return updated {@link Integration}
 	 */
-	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdateIntegrationRQ updateRequest, ReportPortalUser user);
+	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest, ReportPortalUser user);
 }

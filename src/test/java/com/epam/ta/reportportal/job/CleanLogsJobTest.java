@@ -60,7 +60,7 @@ class CleanLogsJobTest {
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
-		attribute.setName("job.keepLogs");
+		attribute.setName("job$keepLogs");
 		projectAttribute.setAttribute(attribute);
 		projectAttribute.setValue("1 month");
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
@@ -81,7 +81,7 @@ class CleanLogsJobTest {
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
-		attribute.setName("job.keepLogs");
+		attribute.setName("job$keepLogs");
 		projectAttribute.setAttribute(attribute);
 		projectAttribute.setValue("wrong");
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));

@@ -54,7 +54,7 @@ class CleanScreenshotsJobTest {
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
-		attribute.setName("job.keepScreenshots");
+		attribute.setName("job$keepScreenshots");
 		projectAttribute.setAttribute(attribute);
 		projectAttribute.setValue("2 weeks");
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
@@ -73,7 +73,7 @@ class CleanScreenshotsJobTest {
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
-		attribute.setName("job.keepScreenshots");
+		attribute.setName("job$keepScreenshots");
 		projectAttribute.setAttribute(attribute);
 		projectAttribute.setValue("wrong");
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));

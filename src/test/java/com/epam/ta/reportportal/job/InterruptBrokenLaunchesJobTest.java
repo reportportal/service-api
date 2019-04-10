@@ -67,7 +67,7 @@ class InterruptBrokenLaunchesJobTest {
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
-		attribute.setName("job.interruptJobTime");
+		attribute.setName("job$interruptJobTime");
 		projectAttribute.setAttribute(attribute);
 		projectAttribute.setValue("1 day");
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));

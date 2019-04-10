@@ -100,10 +100,10 @@ class ProjectControllerTest extends BaseMvcTest {
 		final UpdateProjectRQ rq = new UpdateProjectRQ();
 		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
 		HashMap<String, String> projectAttributes = new HashMap<>();
-		projectAttributes.put("job.keepLogs", "2 weeks");
-		projectAttributes.put("job.interruptJobTime", "1 week");
-		projectAttributes.put("job.keepScreenshots", "3 weeks");
-		projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
+		projectAttributes.put("job$keepLogs", "2 weeks");
+		projectAttributes.put("job$interruptJobTime", "1 week");
+		projectAttributes.put("job$keepScreenshots", "3 weeks");
+		projectAttributes.put("analyzer$autoAnalyzerMode", "CURRENT_LAUNCH");
 		configuration.setProjectAttributes(projectAttributes);
 		rq.setConfiguration(configuration);
 

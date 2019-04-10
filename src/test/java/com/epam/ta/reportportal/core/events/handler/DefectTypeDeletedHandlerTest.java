@@ -130,12 +130,12 @@ class DefectTypeDeletedHandlerTest {
 	private Project getProjectWithAnalyzerAttributes(Long projectId) {
 		Project project = new Project();
 		project.setProjectAttributes(Sets.newHashSet(
-				getProjectAttribute(project, getAttribute("analyzer.isAutoAnalyzerEnabled"), "false"),
-				getProjectAttribute(project, getAttribute("analyzer.minDocFreq"), "7"),
-				getProjectAttribute(project, getAttribute("analyzer.minTermFreq"), "2"),
-				getProjectAttribute(project, getAttribute("analyzer.minShouldMatch"), "80"),
-				getProjectAttribute(project, getAttribute("analyzer.numberOfLogLines"), "5"),
-				getProjectAttribute(project, getAttribute("analyzer.indexingRunning"), "false")
+				getProjectAttribute(project, getAttribute("analyzer$isAutoAnalyzerEnabled"), "false"),
+				getProjectAttribute(project, getAttribute("analyzer$minDocFreq"), "7"),
+				getProjectAttribute(project, getAttribute("analyzer$minTermFreq"), "2"),
+				getProjectAttribute(project, getAttribute("analyzer$minShouldMatch"), "80"),
+				getProjectAttribute(project, getAttribute("analyzer$numberOfLogLines"), "5"),
+				getProjectAttribute(project, getAttribute("analyzer$indexingRunning"), "false")
 		));
 		project.setId(projectId);
 		return project;

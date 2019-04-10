@@ -170,12 +170,12 @@ class DeleteProjectHandlerImplTest {
 	private Project getProjectWithAnalyzerAttributes(Long projectId, boolean indexingRunning) {
 		Project project = new Project();
 		project.setProjectAttributes(Sets.newHashSet(
-				getProjectAttribute(project, getAttribute("analyzer.isAutoAnalyzerEnabled"), "false"),
-				getProjectAttribute(project, getAttribute("analyzer.minDocFreq"), "7"),
-				getProjectAttribute(project, getAttribute("analyzer.minTermFreq"), "2"),
-				getProjectAttribute(project, getAttribute("analyzer.minShouldMatch"), "80"),
-				getProjectAttribute(project, getAttribute("analyzer.numberOfLogLines"), "5"),
-				getProjectAttribute(project, getAttribute("analyzer.indexingRunning"), String.valueOf(indexingRunning))
+				getProjectAttribute(project, getAttribute("analyzer$isAutoAnalyzerEnabled"), "false"),
+				getProjectAttribute(project, getAttribute("analyzer$minDocFreq"), "7"),
+				getProjectAttribute(project, getAttribute("analyzer$minTermFreq"), "2"),
+				getProjectAttribute(project, getAttribute("analyzer$minShouldMatch"), "80"),
+				getProjectAttribute(project, getAttribute("analyzer$numberOfLogLines"), "5"),
+				getProjectAttribute(project, getAttribute("analyzer$indexingRunning"), String.valueOf(indexingRunning))
 		));
 		project.setId(projectId);
 		return project;

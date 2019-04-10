@@ -43,7 +43,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public final class ProjectConverter {
 
-	private final static String INDEXING_RUN = "analyzer.indexingRunning";
+	private final static String INDEXING_RUN = "analyzer$indexingRunning";
 
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;

@@ -114,18 +114,20 @@ public class LaunchFinishedEventHandler {
 		if (LaunchModeEnum.DEBUG == launch.getMode()) {
 			return;
 		}
-		Project project = projectRepository.findById(launch.getProjectId()).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
+		Project project = projectRepository.findById(launch.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 		Long indexedLogsCount = logIndexer.indexLogs(project.getId(), Lists.newArrayList(launch.getId()), analyzerConfig).get();
 
-		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes()).get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
+		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
+				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers() && indexedLogsCount > 0) {
 			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), null);
-			analyzerServiceAsync.analyze(launch, testItems, analyzerConfig).get();
-			logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig);
+			analyzerServiceAsync.analyze(launch, testItems, analyzerConfig)
+					.thenApply(it -> logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
 		}
 
 		if (isNotificationsEnabled) {
@@ -134,7 +136,8 @@ public class LaunchFinishedEventHandler {
 			).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
 			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
-			Launch updatedLaunch = launchRepository.findById(launch.getId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
+			Launch updatedLaunch = launchRepository.findById(launch.getId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
 			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
 		}
 

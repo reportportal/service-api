@@ -186,7 +186,7 @@ class LaunchFinishedEventHandlerTest {
 		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 
 		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(2)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
+		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
 		verify(analyzerServiceAsync, times(1)).analyze(any(), any(), any());
 
 	}

@@ -84,7 +84,9 @@ public class LogIndexerService implements LogIndexer {
 				analyzerStatusCache.indexingStarted(projectId);
 				List<IndexLaunch> indexLaunches = prepareLaunches(launchIds, analyzerConfig);
 				LOGGER.info("Start indexing for {} launches", indexLaunches.size());
-				return indexerServiceClient.index(indexLaunches);
+				Long indexed = indexerServiceClient.index(indexLaunches);
+				LOGGER.info("Indexed {} logs", indexed);
+				return indexed;
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());

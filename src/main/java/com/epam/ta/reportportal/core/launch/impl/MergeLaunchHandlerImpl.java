@@ -88,8 +88,8 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 				"At least one launch id should be  specified for merging"
 		);
 
-		expect(launchesIds.size() > 1, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-				"At least 2 launch id should be provided for merging"
+		expect(launchesIds.size() > 0, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"At least 1 launch id should be provided for merging"
 		);
 
 		List<Launch> launchesList = launchRepository.findAllById(launchesIds);

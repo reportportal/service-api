@@ -16,15 +16,16 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
@@ -83,6 +84,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	public EntryCreatedRS uploadPlugin(MultipartFile pluginFile) {
 
 		String newPluginFileName = pluginFile.getOriginalFilename();
+
 		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
 				.verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
@@ -166,41 +168,15 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 	 * @return {@link IntegrationType}
 	 */
 	private IntegrationType resolveIntegrationType(PluginInfo newPluginInfo, String newPluginFileName) {
-
-		ReportPortalIntegrationEnum reportPortalIntegration = resolveIntegration(newPluginInfo, newPluginFileName);
-
-		IntegrationType integrationType = retrieveIntegrationType(newPluginInfo, reportPortalIntegration);
+		IntegrationType integrationType = retrieveIntegrationType(newPluginInfo);
 		IntegrationDetailsProperties.VERSION.setValue(integrationType.getDetails(), newPluginInfo.getVersion());
-
 		return integrationType;
 	}
 
-	/**
-	 * Resolves the type of the plugin by it's 'id'. should be one of the {@link ReportPortalIntegrationEnum} values
-	 *
-	 * @param pluginInfo        {@link PluginInfo} with {@link PluginInfo#id}
-	 * @param newPluginFileName Name of the new plugin file
-	 * @return {@link ReportPortalIntegrationEnum} instance
-	 */
-	private ReportPortalIntegrationEnum resolveIntegration(PluginInfo pluginInfo, String newPluginFileName) {
-
-		Optional<ReportPortalIntegrationEnum> reportPortalIntegration = ReportPortalIntegrationEnum.findByName(pluginInfo.getId());
-
-		if (!reportPortalIntegration.isPresent()) {
-			pluginBox.removeUploadingPlugin(newPluginFileName);
-
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					Suppliers.formattedSupplier("Unknown integration type - {}", pluginInfo.getId()).get()
-			);
-		}
-
-		return reportPortalIntegration.get();
-	}
-
-	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo, ReportPortalIntegrationEnum reportPortalIntegration) {
+	private IntegrationType retrieveIntegrationType(PluginInfo pluginInfo) {
 
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId()).map(it -> {
-			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
+			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails()).map(String::valueOf)
 					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
 							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
 									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
@@ -213,7 +189,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			integrationType.setDetails(IntegrationTypeBuilder.createIntegrationTypeDetails());
 		}
 
-		integrationType.setIntegrationGroup(reportPortalIntegration.getIntegrationGroup());
+		integrationType.setIntegrationGroup(integrationType.getIntegrationGroup());
 		integrationType.setCreationDate(LocalDateTime.now());
 
 		return integrationType;
@@ -252,6 +228,15 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 			pluginBox.startUpPlugin(newLoadedPluginId.get());
 
 			integrationType.setName(newLoadedPluginId.get());
+
+			Optional<ReportPortalExtensionPoint> instance = pluginBox.getInstance(newLoadedPluginId.get(),
+					ReportPortalExtensionPoint.class
+			);
+
+			if (instance.isPresent()) {
+				IntegrationDetailsProperties.COMMANDS.setValue(integrationType.getDetails(), instance.get().getCommandNames());
+				integrationType.setIntegrationGroup(IntegrationGroupEnum.valueOf(instance.get().getIntegrationGroup().name()));
+			}
 
 			IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(), newPluginFileName);
 

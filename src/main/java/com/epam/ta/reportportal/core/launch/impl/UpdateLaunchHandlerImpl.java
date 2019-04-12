@@ -50,7 +50,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -81,18 +80,19 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	private final LogIndexer logIndexer;
 
-	@Autowired
-	private AnalyzeCollectorFactory analyzeCollectorFactory;
+	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
-			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
+			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
+			AnalyzeCollectorFactory analyzeCollectorFactory) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
+		this.analyzeCollectorFactory = analyzeCollectorFactory;
 	}
 
 	@Override
@@ -154,7 +154,8 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 		List<Long> itemIds = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
-		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig);
+		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
+				.thenApply(it -> logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}
@@ -187,11 +188,8 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig, Long projectId) {
 		List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getLocator());
 		if (!CollectionUtils.isEmpty(itemIds)) {
-			if (Mode.DEBUG.name().equals(launch.getMode().name())) {
-				logIndexer.cleanIndex(
-						projectId,
-						itemIds.stream().flatMap(itemId -> logRepository.findIdsByTestItemId(itemId).stream()).collect(Collectors.toList())
-				);
+			if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
+				logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
 			} else {
 				logIndexer.indexLogs(projectId, Collections.singletonList(launch.getId()), analyzerConfig);
 			}

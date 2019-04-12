@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.AnalyzerService;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
@@ -46,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,19 +82,15 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
 	private final MessageBus messageBus;
 
-	private final LogIndexer logIndexer;
-
 	@Autowired
 	public AnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServicesClient,
-			LogRepository logRepository, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository, MessageBus messageBus,
-			LogIndexer logIndexer) {
+			LogRepository logRepository, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository, MessageBus messageBus) {
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.analyzerServicesClient = analyzerServicesClient;
 		this.logRepository = logRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
-		this.logIndexer = logIndexer;
 	}
 
 	@Override
@@ -110,7 +104,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 			analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
 			List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
 			Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
-			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, analyzerConfig, toAnalyze, rq));
+			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, toAnalyze, rq));
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		} finally {
@@ -164,16 +158,15 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	/**
 	 * Run analyzing for a concrete launch
 	 *
-	 * @param launch         Launch
-	 * @param analyzerConfig Analyze config
-	 * @param toAnalyze      Items to analyze
-	 * @param rq             Prepared rq for sending to analyzers
+	 * @param launch    Launch
+	 * @param toAnalyze Items to analyze
+	 * @param rq        Prepared rq for sending to analyzers
 	 */
-	private void analyzeLaunch(Launch launch, AnalyzerConfig analyzerConfig, List<TestItem> toAnalyze, IndexLaunch rq) {
+	private void analyzeLaunch(Launch launch, List<TestItem> toAnalyze, IndexLaunch rq) {
+		LOGGER.info("Start analysis for launch with id '{}'", rq.getLaunchId());
 		Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
 		if (!MapUtils.isEmpty(analyzedMap)) {
 			analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
-			logIndexer.indexLogs(launch.getProjectId(), Collections.singletonList(launch.getId()), analyzerConfig);
 		}
 	}
 
@@ -188,6 +181,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		return rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
+				LOGGER.info("Analysis has found a match: {}", analyzed);
 
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 				updateTestItemIssue(projectId, analyzed, testItem);

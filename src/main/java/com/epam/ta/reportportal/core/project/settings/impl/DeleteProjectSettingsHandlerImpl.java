@@ -125,10 +125,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 						.remove("statistics$defects$" + type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase()
 								+ "$" + type.getIssueType().getLocator()));
 
-		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(
-				TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
-				project.getId(),
-				user.getUserId()
+		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
+				user.getUserId(),
+				project.getId()
 		);
 		messageBus.publishActivity(defectTypeDeletedEvent);
 		eventPublisher.publishEvent(defectTypeDeletedEvent);

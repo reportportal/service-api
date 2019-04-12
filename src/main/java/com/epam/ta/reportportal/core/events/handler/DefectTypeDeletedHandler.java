@@ -65,6 +65,7 @@ public class DefectTypeDeletedHandler {
 		this.projectRepository = projectRepository;
 	}
 
+	@Transactional
 	@Retryable(value = ReportPortalException.class, maxAttempts = 5, backoff = @Backoff(value = 5000L))
 	@TransactionalEventListener
 	public void handleDefectTypeDeleted(DefectTypeDeletedEvent event) {
@@ -78,7 +79,6 @@ public class DefectTypeDeletedHandler {
 			).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 			List<Long> launches = launchRepository.findLaunchIdsByProjectId(event.getProjectId());
-			logIndexer.deleteIndex(event.getProjectId());
 			logIndexer.indexLogs(event.getProjectId(), launches, getAnalyzerConfig(project));
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,9 +91,6 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		expect(TO_INVESTIGATE.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(INCORRECT_REQUEST,
-				"Impossible to create sub-type for 'To Investigate' type."
-		);
 		expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(INCORRECT_REQUEST,
 				"Impossible to create sub-type for 'Not Issue' type."
 		);

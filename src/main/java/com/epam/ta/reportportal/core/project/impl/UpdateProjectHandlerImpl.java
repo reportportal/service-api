@@ -74,7 +74,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
-import static com.epam.ta.reportportal.util.PersonalProjectService.PERSONAL_PROJECT_POSTFIX;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
@@ -299,8 +298,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,
 			Project project) {
-		if (ProjectType.PERSONAL.equals(project.getProjectType()) && project.getName()
-				.startsWith(userForUnassign.getLogin() + PERSONAL_PROJECT_POSTFIX)) {
+		if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), userForUnassign.getLogin())) {
 			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
 		}
 		if (ProjectType.UPSA.equals(project.getProjectType()) && UserType.UPSA.equals(userForUnassign.getUserType())) {

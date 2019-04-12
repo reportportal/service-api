@@ -21,19 +21,13 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
-import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -43,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,117 +52,37 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class EmailServerIntegrationService implements IntegrationService {
+public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private final IntegrationTypeRepository integrationTypeRepository;
-	private final IntegrationRepository integrationRepository;
 	private final BasicTextEncryptor basicTextEncryptor;
 	private final MailServiceFactory emailServiceFactory;
 
 	@Autowired
-	public EmailServerIntegrationService(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
-		this.integrationTypeRepository = integrationTypeRepository;
-		this.integrationRepository = integrationRepository;
+	public EmailServerIntegrationService(IntegrationRepository integrationRepository, BasicTextEncryptor basicTextEncryptor,
+			MailServiceFactory emailServiceFactory) {
+		super(integrationRepository);
 		this.basicTextEncryptor = basicTextEncryptor;
 		this.emailServiceFactory = emailServiceFactory;
 	}
 
-	/**
-	 * Only 1 global EMAIL server integration is allowed
-	 *
-	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
-	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
-	 * @return new {@link Integration}
-	 */
 	@Override
-	public Integration createGlobalIntegration(String integrationTypeName, Map<String, Object> integrationParams) {
-
-		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
-
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
-				IntegrationGroupEnum.NOTIFICATION
-		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
-		));
-
-		if (CollectionUtils.isNotEmpty(integrationRepository.findAllGlobalByType(integrationType))) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Global email integration is already exists.");
-		}
-
-		Integration integration = createIntegration(integrationType, retrievedParams);
+	public boolean validateGlobalIntegration(Integration integration) {
+		super.validateGlobalIntegration(integration);
 		testConnection(integration);
-		return integration;
-
+		return true;
 	}
 
-	/**
-	 * Only 1 EMAIL server integration per project is allowed
-	 *
-	 * @param integrationTypeName {@link com.epam.ta.reportportal.entity.integration.IntegrationType#name}
-	 * @param projectDetails      {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param integrationParams   {@link com.epam.ta.reportportal.entity.integration.IntegrationParams#params}
-	 * @return new {@link Integration}
-	 */
 	@Override
-	public Integration createProjectIntegration(String integrationTypeName, ReportPortalUser.ProjectDetails projectDetails,
-			Map<String, Object> integrationParams) {
-
-		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
-
-		IntegrationType integrationType = integrationTypeRepository.findByNameAndIntegrationGroup(integrationTypeName,
-				IntegrationGroupEnum.NOTIFICATION
-		).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Email server integration with name - '{}' not found.", integrationTypeName).get()
-		));
-
-		if (CollectionUtils.isNotEmpty(integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integrationType))) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project email integration is already exists.");
-		}
-
-		Integration integration = createIntegration(integrationType, retrievedParams);
+	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
+		super.validateProjectIntegration(integration, projectDetails);
 		testConnection(integration);
-		return integration;
+		return true;
 	}
 
 	@Override
-	public Integration updateGlobalIntegration(Long id, Map<String, Object> integrationParams) {
-
-		Integration integration = integrationRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
-		return updateIntegration(integration, integrationParams);
-	}
-
-	@Override
-	public Integration updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			Map<String, Object> integrationParams) {
-
-		Integration integration = integrationRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
-		return updateIntegration(integration, integrationParams);
-	}
-
-	private Integration updateIntegration(Integration integration, Map<String, Object> integrationParams) {
-
-		BusinessRule.expect(integration, it -> IntegrationGroupEnum.NOTIFICATION == it.getType().getIntegrationGroup())
-				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
-						"Unable to update integration with type - '{}'. Required type - '{}'",
-						integration.getType().getIntegrationGroup(),
-						IntegrationGroupEnum.NOTIFICATION
-				));
-
-		Map<String, Object> retrievedParams = retrieveIntegrationParams(integrationParams);
-		integration.setParams(new IntegrationParams(retrievedParams));
-
-		testConnection(integration);
-		return integration;
-
-	}
-
-	private Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
-
+	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(EmailSettingsEnum.values().length);
@@ -186,11 +99,9 @@ public class EmailServerIntegrationService implements IntegrationService {
 		int port = ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
 				25
 		)).orElse(25);
-
 		if ((port <= 0) || (port > 65535)) {
 			BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
 		}
-
 		resultParams.put(EmailSettingsEnum.PORT.getAttribute(), port);
 
 		if (!EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams).isPresent()) {
@@ -213,7 +124,6 @@ public class EmailServerIntegrationService implements IntegrationService {
 			resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
 			resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
 		}
-
 		resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
 
 		EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(integrationParams)
@@ -224,14 +134,6 @@ public class EmailServerIntegrationService implements IntegrationService {
 				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.HOST.getAttribute(), attr));
 
 		return resultParams;
-	}
-
-	private Integration createIntegration(IntegrationType integrationType, Map<String, Object> retrievedParams) {
-		Integration integration = new Integration();
-		integration.setCreationDate(LocalDateTime.now());
-		integration.setParams(new IntegrationParams(retrievedParams));
-		integration.setType(integrationType);
-		return integration;
 	}
 
 	private void testConnection(Integration integration) {

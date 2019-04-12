@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
-import com.epam.ta.reportportal.core.integration.util.property.ReportPortalIntegrationEnum;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -69,18 +68,18 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 				.filter(this::isMandatoryFieldsExist)
 				.forEach(it -> {
 
-					Map<IntegrationDetailsProperties, String> pluginProperties = retrievePluginProperties(it);
+					Map<IntegrationDetailsProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
 
-					if (!pluginWrapper.isPresent() || !pluginProperties.get(IntegrationDetailsProperties.VERSION)
+					if (!pluginWrapper.isPresent() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
 
 						PluginInfo pluginInfo = new PluginInfo(
 								it.getName(),
-								pluginProperties.get(IntegrationDetailsProperties.VERSION),
-								pluginProperties.get(IntegrationDetailsProperties.FILE_ID),
-								pluginProperties.get(IntegrationDetailsProperties.FILE_NAME),
+								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION)),
+								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_ID)),
+								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_NAME)),
 								it.isEnabled()
 						);
 
@@ -103,46 +102,39 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	}
 
 	private boolean isMandatoryFieldsExist(IntegrationType integrationType) {
-
 		Map<String, Object> details = integrationType.getDetails().getDetails();
 		return Arrays.stream(IntegrationDetailsProperties.values()).allMatch(property -> property.getValue(details).isPresent());
 
 	}
 
-	private Map<IntegrationDetailsProperties, String> retrievePluginProperties(IntegrationType integrationType) {
+	private Map<IntegrationDetailsProperties, Object> retrievePluginProperties(IntegrationType integrationType) {
 
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		Map<IntegrationDetailsProperties, String> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
+		Map<IntegrationDetailsProperties, Object> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
 		Arrays.stream(IntegrationDetailsProperties.values())
 				.forEach(property -> property.getValue(details).ifPresent(value -> pluginProperties.put(property, value)));
-
 		return pluginProperties;
 	}
 
 	private boolean isIntegrationTypeAvailableForRemoving(IntegrationType integrationType) {
-
-		return ReportPortalIntegrationEnum.findByName(integrationType.getName()).map(integration -> {
-			if (integration.isPlugin()) {
-				return pluginBox.getPluginById(integrationType.getName()).map(p -> {
-
-					if (pluginBox.unloadPlugin(p.getPluginId())) {
-						try {
-							Files.deleteIfExists(p.getPluginPath());
-							return true;
-						} catch (IOException ex) {
-							LOGGER.debug("Error has occurred during plugin removing from the root directory", ex);
-							return false;
-						}
-					} else {
+		/* hack: while email isn't a plugin - it shouldn't be proceeded as a plugin */
+		if ("email".equalsIgnoreCase(integrationType.getName()) || "ldap".equalsIgnoreCase(integrationType.getName())) {
+			return false;
+		} else {
+			return pluginBox.getPluginById(integrationType.getName()).map(p -> {
+				if (pluginBox.unloadPlugin(p.getPluginId())) {
+					try {
+						Files.deleteIfExists(p.getPluginPath());
+						return true;
+					} catch (IOException ex) {
+						LOGGER.debug("Error has occurred during plugin removing from the root directory", ex);
 						return false;
 					}
+				} else {
+					return false;
+				}
+			}).orElse(true);
 
-				}).orElse(true);
-
-			} else {
-				return false;
-			}
-		}).orElse(true);
-
+		}
 	}
 }

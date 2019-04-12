@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
@@ -93,13 +92,11 @@ public class CreateLogHandler implements ICreateLogHandler {
 			Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectDetails.getProjectId(), file);
 			maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 
-				Launch launch = getLaunch(testItem);
+				Long launchId = getLaunchId(testItem);
 
 				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
 						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
-						.withContentType(file.getContentType())
-						.withProjectId(launch.getProjectId())
-						.withLaunchId(launch.getId())
+						.withContentType(file.getContentType()).withProjectId(projectDetails.getProjectId()).withLaunchId(launchId)
 						.withItemId(testItem.getItemId())
 						.get();
 
@@ -129,17 +126,17 @@ public class CreateLogHandler implements ICreateLogHandler {
 		);
 	}
 
-	protected Launch getLaunch(TestItem testItem) {
+	protected Long getLaunchId(TestItem testItem) {
 
 		if (ofNullable(testItem.getRetryOf()).isPresent()) {
 			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
 
 			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND))).getId();
 		} else {
 			return ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND))).getId();
 		}
 	}
 }

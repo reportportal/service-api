@@ -59,7 +59,6 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 	@Override
 	public OperationCompletionRS deleteGlobalIntegration(Long integrationId) {
-
 		Integration integration = integrationRepository.findGlobalById(integrationId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 		integrationRepository.deleteById(integration.getId());
@@ -70,7 +69,6 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 
 	@Override
 	public OperationCompletionRS deleteGlobalIntegrationsByType(String type) {
-
 		IntegrationType integrationType = integrationTypeRepository.findByName(type)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
 		integrationRepository.deleteAllGlobalByIntegrationTypeId(integrationType.getId());
@@ -81,7 +79,6 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 	@Override
 	public OperationCompletionRS deleteProjectIntegration(Long integrationId, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 		integration.getProject().getIntegrations().removeIf(it -> it.getId().equals(integration.getId()));

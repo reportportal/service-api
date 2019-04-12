@@ -123,7 +123,6 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
 	 */
 	private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
 		 * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own

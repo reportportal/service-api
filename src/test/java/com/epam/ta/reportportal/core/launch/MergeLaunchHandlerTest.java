@@ -128,10 +128,12 @@ public class MergeLaunchHandlerTest extends BaseTest {
 
 	@Test
 	public void mergeItselfLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Error in handled Request. Please, check specified parameters:");
-
-		mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getDeepMergeRequest(ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build()));
+		LaunchResource launchResource = mergeLaunchHandler.mergeLaunches(
+				PROJECT1,
+				USER1,
+				getDeepMergeRequest(ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build())
+		);
+		System.out.println();
 	}
 
 	@Test

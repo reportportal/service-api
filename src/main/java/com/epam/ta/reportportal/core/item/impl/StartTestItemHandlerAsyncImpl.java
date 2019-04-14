@@ -47,6 +47,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
+		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		amqpTemplate.convertAndSend(QUEUE_ITEM_START, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
@@ -56,7 +57,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 		});
 
 		ItemCreatedRS response = new ItemCreatedRS();
-		response.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+		response.setUuid(request.getUuid());
 		return response;
 	}
 
@@ -65,6 +66,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 			String parentId) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
+		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
 		amqpTemplate.convertAndSend(QUEUE_ITEM_START, request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
@@ -74,7 +76,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 		});
 
 		ItemCreatedRS response = new ItemCreatedRS();
-		response.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+		response.setUuid(request.getUuid());
 		return response;
 	}
 }

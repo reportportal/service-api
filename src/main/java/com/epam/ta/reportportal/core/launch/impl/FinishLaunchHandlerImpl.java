@@ -95,7 +95,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 	public Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Launch launch = launchRepository.findByUuid(launchId)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
 		validate(launch, finishLaunchRQ);

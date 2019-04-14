@@ -36,7 +36,6 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
         validateRoles(projectDetails, request);
 
         request.setUuid(UUID.randomUUID().toString());
-
         amqpTemplate.convertAndSend(QUEUE_LAUNCH_START, request, message -> {
             Map<String, Object> headers = message.getMessageProperties().getHeaders();
             headers.put(MessageHeaders.USERNAME, user.getUsername());

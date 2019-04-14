@@ -55,11 +55,11 @@ public class TestReporterConsumer {
 	}
 
 	@RabbitListener(queues = "#{ @itemStartQueue.name }")
-	public void onItemRootStart(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
-								@Header(name = MessageHeaders.PARENT_ID, required = false) String parentId, @Payload StartTestItemRQ rq) {
+	public void onItemStart(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
+                            @Header(name = MessageHeaders.PARENT_ID, required = false) String parentId, @Payload StartTestItemRQ rq) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, normalizeId(projectName));
-		if (null != parentId && !Strings.isNullOrEmpty(parentId)) {
+		if (!Strings.isNullOrEmpty(parentId)) {
 			startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
 		} else {
 			startTestItemHandler.startRootItem(user, projectDetails, rq);

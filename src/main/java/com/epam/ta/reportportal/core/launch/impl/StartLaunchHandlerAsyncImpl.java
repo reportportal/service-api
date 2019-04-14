@@ -28,9 +28,6 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
     AmqpTemplate amqpTemplate;
 
     @Override
-    /**
-     * @return {@link List < TestItem >}
-     */
     public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
                                      StartLaunchRQ request) {
         validateRoles(projectDetails, request);

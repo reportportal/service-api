@@ -56,6 +56,7 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpda
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,7 +162,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
 		return new OperationCompletionRS(
-				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
+				"Notification configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
 
 	@Override
@@ -252,11 +253,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
-		expect(
-				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
 				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds."
-		);
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
@@ -385,42 +384,44 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
 
-		expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
-		cases.forEach(sendCase -> {
-			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
-			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
-					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
-			);
-			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-				EmailRulesValidator.validateRecipient(project, it);
-				return it.trim();
-			}).distinct().collect(toList()));
+		project.getSenderCases().clear();
+		if (CollectionUtils.isNotEmpty(cases)) {
+			cases.forEach(sendCase -> {
+				expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
+				expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
+				expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
+						formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
+				);
+				sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+					EmailRulesValidator.validateRecipient(project, it);
+					return it.trim();
+				}).distinct().collect(toList()));
 
-			ofNullable(sendCase.getLaunchNames()).ifPresent(launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
-				EmailRulesValidator.validateLaunchName(name);
-				return name.trim();
-			}).distinct().collect(toList())));
+				ofNullable(sendCase.getLaunchNames()).ifPresent(launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
+					EmailRulesValidator.validateLaunchName(name);
+					return name.trim();
+				}).distinct().collect(toList())));
 
-			ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
-				EmailRulesValidator.validateLaunchAttribute(attribute);
-				attribute.setValue(attribute.getValue().trim());
-			}).collect(Collectors.toSet())));
+				ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
+					EmailRulesValidator.validateLaunchAttribute(attribute);
+					attribute.setValue(attribute.getValue().trim());
+				}).collect(Collectors.toSet())));
 
-		});
+			});
 
-		/* If project email settings */
-		Set<SenderCase> withoutDuplicateCases = cases.stream()
-				.distinct()
-				.map(NotificationConfigConverter.TO_CASE_MODEL)
-				.peek(sc -> sc.setProject(project))
-				.collect(toSet());
-		if (cases.size() != withoutDuplicateCases.size()) {
-			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+			/* If project email settings */
+			Set<SenderCase> withoutDuplicateCases = cases.stream()
+					.distinct()
+					.map(NotificationConfigConverter.TO_CASE_MODEL)
+					.peek(sc -> sc.setProject(project))
+					.collect(toSet());
+			if (cases.size() != withoutDuplicateCases.size()) {
+				fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+			}
+
+			project.getSenderCases().addAll(withoutDuplicateCases);
 		}
 
-		project.getSenderCases().clear();
-		project.getSenderCases().addAll(withoutDuplicateCases);
 	}
 
 }

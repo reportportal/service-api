@@ -385,7 +385,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
 
 		project.getSenderCases().clear();
-
 		if (CollectionUtils.isNotEmpty(cases)) {
 			cases.forEach(sendCase -> {
 				expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());

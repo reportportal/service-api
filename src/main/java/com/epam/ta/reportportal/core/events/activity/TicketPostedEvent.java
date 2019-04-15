@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,14 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.POST_ISSUE
 public class TicketPostedEvent implements ActivityEvent {
 
 	private Ticket ticket;
-	private Long postedBy;
+	private Long userId;
+	private String userLogin;
 	private TestItemActivityResource testItemActivityResource;
 
-	public TicketPostedEvent(Ticket ticket, Long postedBy, TestItemActivityResource testItemActivityResource) {
+	public TicketPostedEvent(Ticket ticket, Long userId, String userLogin, TestItemActivityResource testItemActivityResource) {
 		this.ticket = ticket;
-		this.postedBy = postedBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 		this.testItemActivityResource = testItemActivityResource;
 	}
 
@@ -50,12 +52,20 @@ public class TicketPostedEvent implements ActivityEvent {
 		this.ticket = ticket;
 	}
 
-	public Long getPostedBy() {
-		return postedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setPostedBy(Long postedBy) {
-		this.postedBy = postedBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	public TestItemActivityResource getTestItemActivityResource() {
@@ -70,8 +80,7 @@ public class TicketPostedEvent implements ActivityEvent {
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(POST_ISSUE)
-				.addActivityEntityType(TICKET)
-				.addUserId(postedBy)
+				.addActivityEntityType(TICKET).addUserId(userId).addUserName(userLogin)
 				.addObjectId(testItemActivityResource.getId())
 				.addObjectName(testItemActivityResource.getName())
 				.addProjectId(testItemActivityResource.getProjectId())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DEF
 public class DefectTypeCreatedEvent implements ActivityEvent {
 
 	private IssueTypeActivityResource issueTypeActivityResource;
-	private Long createdBy;
+	private Long userId;
+	private String userLogin;
 	private Long projectId;
 
 	public DefectTypeCreatedEvent() {
 	}
 
-	public DefectTypeCreatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long createdBy, Long projectId) {
+	public DefectTypeCreatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId, String userLogin, Long projectId) {
 		this.issueTypeActivityResource = issueTypeActivityResource;
-		this.createdBy = createdBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 		this.projectId = projectId;
 	}
 
@@ -49,12 +51,12 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 		this.issueTypeActivityResource = issueTypeActivityResource;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 
 	public Long getProjectId() {
@@ -65,12 +67,19 @@ public class DefectTypeCreatedEvent implements ActivityEvent {
 		this.projectId = projectId;
 	}
 
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
+	}
+
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_DEFECT)
-				.addActivityEntityType(DEFECT_TYPE)
-				.addUserId(createdBy)
+				.addActivityEntityType(DEFECT_TYPE).addUserId(userId).addUserName(userLogin)
 				.addObjectId(issueTypeActivityResource.getId())
 				.addObjectName(issueTypeActivityResource.getLongName())
 				.addProjectId(projectId)

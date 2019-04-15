@@ -140,7 +140,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
 		projectRepository.save(project);
-		messageBus.publishActivity(new ProjectUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(project), user.getUserId()));
+		messageBus.publishActivity(new ProjectUpdatedEvent(before,
+				TO_ACTIVITY_RESOURCE.apply(project),
+				user.getUserId(),
+				user.getUsername()
+		));
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
@@ -159,7 +163,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.findAny()
 				.ifPresent(pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
 
-		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
+		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before,
+				updateProjectNotificationConfigRQ,
+				user.getUserId(),
+				user.getUsername()
+		));
 		return new OperationCompletionRS(
 				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
 	}
@@ -270,7 +278,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
 		});
 
-		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), true));
+		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
 		return new OperationCompletionRS("Log indexing has been started");
 	}
 

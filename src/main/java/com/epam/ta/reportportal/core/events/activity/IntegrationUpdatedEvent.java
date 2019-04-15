@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_BTS
 public class IntegrationUpdatedEvent implements ActivityEvent {
 
 	private IntegrationActivityResource integrationActivityResource;
-	private Long updatedBy;
+	private Long userId;
+	private String userLogin;
 
 	public IntegrationUpdatedEvent() {
 	}
 
-	public IntegrationUpdatedEvent(IntegrationActivityResource integrationActivityResource, Long updatedBy) {
+	public IntegrationUpdatedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
 		this.integrationActivityResource = integrationActivityResource;
-		this.updatedBy = updatedBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 	}
 
 	public IntegrationActivityResource getIntegrationActivityResource() {
@@ -47,20 +49,27 @@ public class IntegrationUpdatedEvent implements ActivityEvent {
 		this.integrationActivityResource = integrationActivityResource;
 	}
 
-	public Long getUpdatedBy() {
-		return updatedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(UPDATE_BTS)
-				.addActivityEntityType(INTEGRATION)
-				.addUserId(updatedBy)
+				.addActivityEntityType(INTEGRATION).addUserId(userId).addUserName(userLogin)
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
 				.addProjectId(integrationActivityResource.getProjectId())

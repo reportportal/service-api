@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,17 @@ public class ProjectIndexEvent implements ActivityEvent {
 	private Long projectId;
 	private String projectName;
 	private Long userId;
+	private String userLogin;
 	private boolean indexing;
 
 	public ProjectIndexEvent() {
 	}
 
-	public ProjectIndexEvent(Long projectId, String projectName, Long userId, boolean indexing) {
+	public ProjectIndexEvent(Long projectId, String projectName, Long userId, String userLogin, boolean indexing) {
 		this.projectId = projectId;
 		this.projectName = projectName;
 		this.userId = userId;
+		this.userLogin = userLogin;
 		this.indexing = indexing;
 	}
 
@@ -76,12 +78,20 @@ public class ProjectIndexEvent implements ActivityEvent {
 		this.indexing = indexing;
 	}
 
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
+	}
+
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
 				.addActivityEntityType(PROJECT)
-				.addUserId(userId)
+				.addUserId(userId).addUserName(userLogin)
 				.addObjectId(projectId)
 				.addObjectName(projectName)
 				.addProjectId(projectId)

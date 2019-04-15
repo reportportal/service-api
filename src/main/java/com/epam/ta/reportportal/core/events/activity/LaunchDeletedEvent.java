@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,30 +27,39 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_LAU
  * @author Andrei Varabyeu
  */
 public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> implements ActivityEvent {
-	private Long deletedBy;
+	private Long userId;
+	private String userLogin;
 
 	public LaunchDeletedEvent() {
 	}
 
-	public LaunchDeletedEvent(LaunchActivityResource before, Long deletedBy) {
+	public LaunchDeletedEvent(LaunchActivityResource before, Long userId, String userLogin) {
 		super(before);
-		this.deletedBy = deletedBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 	}
 
-	public Long getDeletedBy() {
-		return deletedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setDeletedBy(Long deletedBy) {
-		this.deletedBy = deletedBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(DELETE_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(deletedBy)
+				.addActivityEntityType(LAUNCH).addUserId(userId).addUserName(userLogin)
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())
 				.addProjectId(getBefore().getProjectId())

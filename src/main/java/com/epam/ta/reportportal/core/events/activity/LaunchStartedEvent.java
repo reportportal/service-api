@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.START_LAUN
 public class LaunchStartedEvent implements ActivityEvent {
 
 	private LaunchActivityResource launchActivityResource;
-	private Long startedBy;
+	private Long userId;
+	private String userLogin;
 
 	public LaunchStartedEvent() {
 	}
 
-	public LaunchStartedEvent(LaunchActivityResource launchActivityResource, Long startedBy) {
+	public LaunchStartedEvent(LaunchActivityResource launchActivityResource, Long userId, String userLogin) {
 		this.launchActivityResource = launchActivityResource;
-		this.startedBy = startedBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 	}
 
 	public LaunchActivityResource getLaunchActivityResource() {
@@ -47,20 +49,27 @@ public class LaunchStartedEvent implements ActivityEvent {
 		this.launchActivityResource = launchActivityResource;
 	}
 
-	public Long getStartedBy() {
-		return startedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setStartedBy(Long startedBy) {
-		this.startedBy = startedBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(START_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(startedBy)
+				.addActivityEntityType(LAUNCH).addUserId(userId).addUserName(userLogin)
 				.addObjectId(launchActivityResource.getId())
 				.addObjectName(launchActivityResource.getName())
 				.addProjectId(launchActivityResource.getProjectId())

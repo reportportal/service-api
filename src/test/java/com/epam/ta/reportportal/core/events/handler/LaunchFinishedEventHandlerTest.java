@@ -85,7 +85,6 @@ class LaunchFinishedEventHandlerTest {
 	private LogIndexer logIndexer;
 
 	private Project project = mock(Project.class);
-	private Launch launch = mock(Launch.class);
 
 	private Integration emailIntegration = mock(Integration.class);
 
@@ -113,7 +112,7 @@ class LaunchFinishedEventHandlerTest {
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent();
 		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		event.setUserId(1L);
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEBUG);
 
@@ -134,7 +133,7 @@ class LaunchFinishedEventHandlerTest {
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent();
 		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		event.setUserId(1L);
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
@@ -161,7 +160,7 @@ class LaunchFinishedEventHandlerTest {
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent();
 		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		event.setUserId(1L);
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
@@ -201,7 +200,7 @@ class LaunchFinishedEventHandlerTest {
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent();
 		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		event.setUserId(1L);
 
 		Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 		launch.setName("name1");

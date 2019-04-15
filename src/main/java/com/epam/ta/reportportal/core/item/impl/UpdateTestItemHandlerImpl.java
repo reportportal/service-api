@@ -201,7 +201,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
 					"Actual status: " + actualStatus + " can not be changed to: " + providedStatus.get()
 			);
-			strategy.changeStatus(testItem, providedStatus.get(), user.getUserId(), projectDetails.getProjectId());
+			strategy.changeStatus(testItem, providedStatus.get(), user, projectDetails.getProjectId());
 		}
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);

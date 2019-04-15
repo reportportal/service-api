@@ -124,7 +124,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId());
+		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername());
 		messageBus.publishActivity(event);
 		eventPublisher.publishEvent(event);
 
@@ -162,7 +162,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		launchRepository.save(launch);
 		testItemRepository.interruptInProgressItems(launchId);
 
-		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
+		messageBus.publishActivity(new LaunchFinishForcedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully stopped.");
 	}
 

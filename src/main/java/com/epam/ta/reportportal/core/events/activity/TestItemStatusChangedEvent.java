@@ -18,52 +18,57 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.entity.activity.ActivityDetails;
-import com.epam.ta.reportportal.entity.activity.HistoryField;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
-import java.time.LocalDateTime;
-
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.STATUS;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long changedBy;
+	private Long userId;
+	private String userLogin;
 
 	public TestItemStatusChangedEvent() {
 	}
 
-	public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after, Long changedBy) {
+	public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
 		super(before, after);
-		this.changedBy = changedBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 	}
 
-	public Long getChangedBy() {
-		return changedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setChangedBy(Long changedBy) {
-		this.changedBy = changedBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM.getValue());
-		activity.setObjectId(getAfter().getId());
-		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-		activity.setProjectId(getAfter().getProjectId());
-		activity.setUserId(changedBy);
-		activity.setCreatedAt(LocalDateTime.now());
-
-		ActivityDetails details = new ActivityDetails(getAfter().getName());
-		details.addHistoryField(HistoryField.of(STATUS, getBefore().getStatus(), getAfter().getStatus()));
-
-		activity.setDetails(details);
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addActivityEntityType(ITEM)
+				.addAction(UPDATE_ITEM)
+				.addObjectId(getAfter().getId())
+				.addProjectId(getAfter().getProjectId())
+				.addUserId(userId)
+				.addUserName(userLogin)
+				.addObjectName(getAfter().getName())
+				.addHistoryField(STATUS, getBefore().getStatus(), getAfter().getStatus())
+				.get();
 	}
 }

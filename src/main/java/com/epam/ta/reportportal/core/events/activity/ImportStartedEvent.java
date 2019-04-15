@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,16 @@ public class ImportStartedEvent implements ActivityEvent {
 
 	private Long projectId;
 	private Long userId;
+	private String userLogin;
 	private String fileName;
 
 	public ImportStartedEvent() {
 	}
 
-	public ImportStartedEvent(Long projectId, Long userId, String fileName) {
+	public ImportStartedEvent(Long projectId, Long userId, String userLogin, String fileName) {
 		this.projectId = projectId;
 		this.userId = userId;
+		this.userLogin = userLogin;
 		this.fileName = fileName;
 	}
 
@@ -65,12 +67,20 @@ public class ImportStartedEvent implements ActivityEvent {
 		this.fileName = fileName;
 	}
 
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
+	}
+
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(START_IMPORT)
 				.addActivityEntityType(IMPORT)
-				.addUserId(userId)
+				.addUserId(userId).addUserName(userLogin)
 				.addProjectId(projectId)
 				.addObjectName(fileName)
 				.get();

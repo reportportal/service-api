@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,44 +30,41 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
  */
 public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long attachedBy;
-
-	private String nameAttachedBy;
+	private Long userId;
+	private String userLogin;
 
 	public LinkTicketEvent() {
 	}
 
-	public LinkTicketEvent(Long attachedBy) {
-		this.attachedBy = attachedBy;
+	public LinkTicketEvent(Long userId) {
+		this.userId = userId;
 	}
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy) {
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId) {
 		super(before, after);
-		this.attachedBy = attachedBy;
+		this.userId = userId;
 	}
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String nameAttachedBy) {
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin) {
 		super(before, after);
-		this.nameAttachedBy = nameAttachedBy;
+		this.userLogin = userLogin;
 	}
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy, String nameAttachedBy) {
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy, String userLogin) {
 		super(before, after);
-		this.attachedBy = attachedBy;
-		this.nameAttachedBy = nameAttachedBy;
+		this.userId = attachedBy;
+		this.userLogin = userLogin;
 	}
 
-	public Long getAttachedBy() {
-		return attachedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
 	@Override
 	public Activity toActivity() {
 		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
-				.addActivityEntityType(TICKET)
-				.addUserId(attachedBy)
-				.addUserName(nameAttachedBy)
+				.addActivityEntityType(TICKET).addUserId(userId).addUserName(userLogin)
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId());

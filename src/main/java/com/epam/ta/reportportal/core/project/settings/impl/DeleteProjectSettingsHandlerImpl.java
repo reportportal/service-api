@@ -126,7 +126,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 								+ "$" + type.getIssueType().getLocator()));
 
 		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
-				user.getUserId(),
+				user.getUserId(), user.getUsername(),
 				project.getId()
 		);
 		messageBus.publishActivity(defectTypeDeletedEvent);

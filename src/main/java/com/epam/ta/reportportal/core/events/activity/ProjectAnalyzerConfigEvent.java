@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,26 +34,40 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
  */
 public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesActivityResource> implements ActivityEvent {
 
-	private Long updatedBy;
+	private Long userId;
+	private String userLogin;
 
 	public ProjectAnalyzerConfigEvent() {
 	}
 
-	public ProjectAnalyzerConfigEvent(ProjectAttributesActivityResource before, ProjectAttributesActivityResource after, Long updatedBy) {
+	public ProjectAnalyzerConfigEvent(ProjectAttributesActivityResource before, ProjectAttributesActivityResource after, Long userId,
+			String userLogin) {
 		super(before, after);
-		this.updatedBy = updatedBy;
+		this.userId = userId;
+		this.userLogin = userLogin;
 	}
 
-	public Long getUpdatedBy() {
-		return updatedBy;
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return userLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(UPDATE_ANALYZER)
-				.addActivityEntityType(PROJECT)
-				.addUserId(updatedBy)
+				.addActivityEntityType(PROJECT).addUserId(userId).addUserName(userLogin)
 				.addObjectId(getAfter().getProjectId())
 				.addObjectName(getAfter().getProjectName())
 				.addProjectId(getAfter().getProjectId())

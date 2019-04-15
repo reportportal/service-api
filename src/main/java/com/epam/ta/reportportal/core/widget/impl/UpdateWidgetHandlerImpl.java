@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,10 +107,8 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		}
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(widget),
-				widgetOptionsBefore,
-				parseWidgetOptions(widget),
-				user.getUserId()
+				TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(), user.getUsername(),
+				widgetOptionsBefore, parseWidgetOptions(widget)
 		));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}

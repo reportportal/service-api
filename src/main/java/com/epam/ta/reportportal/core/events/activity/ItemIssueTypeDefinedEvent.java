@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,52 +33,49 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  */
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long postedBy;
-
-	private String postedByName;
+	private Long userId;
+	private String userLogin;
 
 	public ItemIssueTypeDefinedEvent() {
 	}
 
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long postedBy) {
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId) {
 		super(before, after);
-		this.postedBy = postedBy;
+		this.userId = userId;
 	}
 
 	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String postedByName) {
 		super(before, after);
-		this.postedByName = postedByName;
+		this.userLogin = postedByName;
 	}
 
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long postedBy, String postedByName) {
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String postedByName) {
 		super(before, after);
-		this.postedBy = postedBy;
-		this.postedByName = postedByName;
+		this.userId = userId;
+		this.userLogin = postedByName;
 	}
 
-	public String getPostedByName() {
-		return postedByName;
+	public String getUserLogin() {
+		return userLogin;
 	}
 
-	public void setPostedByName(String postedByName) {
-		this.postedByName = postedByName;
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
-	public Long getPostedBy() {
-		return postedBy;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setPostedBy(Long postedBy) {
-		this.postedBy = postedBy;
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
-				.addActivityEntityType(ITEM_ISSUE)
-				.addUserId(postedBy)
-				.addUserName(postedByName)
+				.addActivityEntityType(ITEM_ISSUE).addUserId(userId).addUserName(userLogin)
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

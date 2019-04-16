@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_USE
 /**
  * @author Andrei Varabyeu
  */
-public class UserCreatedEvent implements ActivityEvent {
+public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private UserActivityResource userActivityResource;
-	private Long createdBy;
 
 	public UserCreatedEvent() {
 	}
 
-	public UserCreatedEvent(UserActivityResource userActivityResource, Long createdBy) {
+	public UserCreatedEvent(UserActivityResource userActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.userActivityResource = userActivityResource;
-		this.createdBy = createdBy;
 	}
 
 	public UserActivityResource getUserActivityResource() {
@@ -47,20 +46,10 @@ public class UserCreatedEvent implements ActivityEvent {
 		this.userActivityResource = userActivityResource;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_USER)
-				.addActivityEntityType(USER)
-				.addUserId(createdBy)
+				.addAction(CREATE_USER).addActivityEntityType(USER).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(userActivityResource.getId())
 				.addObjectName(userActivityResource.getFullName())
 				.addProjectId(userActivityResource.getDefaultProjectId())

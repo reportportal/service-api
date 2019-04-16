@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,36 +32,18 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
  */
 public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityResource> implements ActivityEvent {
 
-	private Long updatedBy;
-
 	public ProjectUpdatedEvent() {
 	}
 
-	/**
-	 * Create a new ApplicationEvent.
-	 *
-	 * @param before Project before update
-	 * @param after  Project after update
-	 */
-	public ProjectUpdatedEvent(ProjectAttributesActivityResource before, ProjectAttributesActivityResource after, Long updatedBy) {
-		super(before, after);
-		this.updatedBy = updatedBy;
-	}
-
-	public Long getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
+	public ProjectUpdatedEvent(ProjectAttributesActivityResource before, ProjectAttributesActivityResource after, Long userId,
+			String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_PROJECT)
-				.addActivityEntityType(PROJECT)
-				.addUserId(updatedBy)
+				.addAction(UPDATE_PROJECT).addActivityEntityType(PROJECT).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getProjectId())
 				.addObjectName(getAfter().getProjectName())
 				.addProjectId(getAfter().getProjectId())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,30 +28,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DAS
  */
 public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource> implements ActivityEvent {
 
-	private Long deletedBy;
-
 	public DashboardDeletedEvent() {
 	}
 
-	public DashboardDeletedEvent(DashboardActivityResource before, Long deletedBy) {
-		super(before);
-		this.deletedBy = deletedBy;
-	}
-
-	public Long getDeletedBy() {
-		return deletedBy;
-	}
-
-	public void setDeletedBy(Long deletedBy) {
-		this.deletedBy = deletedBy;
+	public DashboardDeletedEvent(DashboardActivityResource before, Long userId, String userLogin) {
+		super(userId, userLogin, before);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_DASHBOARD)
-				.addActivityEntityType(DASHBOARD)
-				.addUserId(deletedBy)
+				.addAction(DELETE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
 				.addProjectId(getBefore().getProjectId())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())

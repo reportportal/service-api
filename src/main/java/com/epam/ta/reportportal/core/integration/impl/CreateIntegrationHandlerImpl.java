@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -116,7 +116,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integrationRepository.save(integration);
 
-		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
+		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
+				user.getUserId(),
+				user.getUsername()
+		));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
 	}
@@ -165,7 +168,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integrationRepository.save(integration);
 
-		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
+		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
+				user.getUserId(),
+				user.getUsername()
+		));
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully updated.");
 	}

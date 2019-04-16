@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,10 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 				.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId));
 		integration.getProject().getIntegrations().removeIf(it -> it.getId().equals(integration.getId()));
 		integrationRepository.deleteById(integration.getId());
-		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration), user.getUserId()));
+		messageBus.publishActivity(new IntegrationDeletedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
+				user.getUserId(),
+				user.getUsername()
+		));
 		return new OperationCompletionRS("Integration with ID = '" + integrationId + "' has been successfully deleted.");
 	}
 
@@ -99,7 +102,7 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 		integrationRepository.deleteAllByProjectIdAndIntegrationTypeId(projectDetails.getProjectId(), integrationType.getId());
 		integrations.stream()
 				.map(TO_ACTIVITY_RESOURCE)
-				.forEach(it -> messageBus.publishActivity(new IntegrationDeletedEvent(it, user.getUserId())));
+				.forEach(it -> messageBus.publishActivity(new IntegrationDeletedEvent(it, user.getUserId(), user.getUsername())));
 
 		return new OperationCompletionRS("All integrations with type ='" + 1 + "' for project with id ='" + projectDetails.getProjectId()
 				+ "' have been successfully deleted");

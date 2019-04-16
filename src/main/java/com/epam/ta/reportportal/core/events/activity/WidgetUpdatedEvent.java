@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_WID
  */
 public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> implements ActivityEvent {
 
-	private Long updatedBy;
 	private String widgetOptionsBefore;
 	private String widgetOptionsAfter;
 
@@ -41,27 +40,32 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 	}
 
 	public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after, String widgetOptionsBefore,
-			String widgetOptionsAfter, Long updatedBy) {
-		super(before, after);
-		this.updatedBy = updatedBy;
+			String widgetOptionsAfter, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 		this.widgetOptionsBefore = widgetOptionsBefore;
 		this.widgetOptionsAfter = widgetOptionsAfter;
 	}
 
-	public Long getUpdatedBy() {
-		return updatedBy;
+	public String getWidgetOptionsBefore() {
+		return widgetOptionsBefore;
 	}
 
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
+	public void setWidgetOptionsBefore(String widgetOptionsBefore) {
+		this.widgetOptionsBefore = widgetOptionsBefore;
+	}
+
+	public String getWidgetOptionsAfter() {
+		return widgetOptionsAfter;
+	}
+
+	public void setWidgetOptionsAfter(String widgetOptionsAfter) {
+		this.widgetOptionsAfter = widgetOptionsAfter;
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_WIDGET)
-				.addActivityEntityType(WIDGET)
-				.addUserId(updatedBy)
+				.addAction(UPDATE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAU
 /**
  * @author Andrei Varabyeu
  */
-public class LaunchFinishForcedEvent implements ActivityEvent {
+public class LaunchFinishForcedEvent extends AbstractEvent implements ActivityEvent {
 
 	private LaunchActivityResource launchActivityResource;
-	private Long forcedBy;
 
 	public LaunchFinishForcedEvent() {
 	}
 
-	public LaunchFinishForcedEvent(LaunchActivityResource launchActivityResource, Long forcedBy) {
+	public LaunchFinishForcedEvent(LaunchActivityResource launchActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.launchActivityResource = launchActivityResource;
-		this.forcedBy = forcedBy;
 	}
 
 	public LaunchActivityResource getLaunchActivityResource() {
@@ -47,20 +46,10 @@ public class LaunchFinishForcedEvent implements ActivityEvent {
 		this.launchActivityResource = launchActivityResource;
 	}
 
-	public Long getForcedBy() {
-		return forcedBy;
-	}
-
-	public void setForcedBy(Long forcedBy) {
-		this.forcedBy = forcedBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(FINISH_LAUNCH)
-				.addActivityEntityType(LAUNCH)
-				.addUserId(forcedBy)
+				.addAction(FINISH_LAUNCH).addActivityEntityType(LAUNCH).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(launchActivityResource.getId())
 				.addObjectName(launchActivityResource.getName())
 				.addProjectId(launchActivityResource.getProjectId())

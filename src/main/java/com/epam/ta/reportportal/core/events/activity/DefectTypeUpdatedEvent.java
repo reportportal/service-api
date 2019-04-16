@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DEF
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeUpdatedEvent implements ActivityEvent {
+public class DefectTypeUpdatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private IssueTypeActivityResource issueTypeActivityResource;
-	private Long updatedBy;
 	private Long projectId;
 
 	public DefectTypeUpdatedEvent() {
 	}
 
-	public DefectTypeUpdatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long updatedBy, Long projectId) {
+	public DefectTypeUpdatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId, String userLogin, Long projectId) {
+		super(userId, userLogin);
 		this.issueTypeActivityResource = issueTypeActivityResource;
-		this.updatedBy = updatedBy;
 		this.projectId = projectId;
 	}
 
@@ -47,14 +46,6 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 
 	public void setIssueTypeActivityResource(IssueTypeActivityResource issueTypeActivityResource) {
 		this.issueTypeActivityResource = issueTypeActivityResource;
-	}
-
-	public Long getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
 	}
 
 	public Long getProjectId() {
@@ -68,9 +59,7 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_DEFECT)
-				.addActivityEntityType(DEFECT_TYPE)
-				.addUserId(updatedBy)
+				.addAction(UPDATE_DEFECT).addActivityEntityType(DEFECT_TYPE).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(issueTypeActivityResource.getId())
 				.addObjectName(issueTypeActivityResource.getLongName())
 				.addProjectId(projectId)

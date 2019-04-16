@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
@@ -47,12 +48,13 @@ public class FromPassedStatusChangingStrategy extends StatusChangingStrategy {
 
 	@Autowired
 	public FromPassedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository, MessageBus messageBus) {
+			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
+			MessageBus messageBus) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
 	}
 
 	@Override
-	public void changeStatus(TestItem item, StatusEnum providedStatus, Long userId, Long projectId) {
+	public void changeStatus(TestItem item, StatusEnum providedStatus, ReportPortalUser user, Long projectId) {
 		expect(providedStatus, statusIn(SKIPPED, FAILED)).verify(INCORRECT_REQUEST,
 				"Actual status: " + item.getItemResults().getStatus() + " can be switched only to: " + SKIPPED + " or " + FAILED
 		);
@@ -71,8 +73,12 @@ public class FromPassedStatusChangingStrategy extends StatusChangingStrategy {
 			addToInvestigateIssue(item, projectId);
 		}
 
-		messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(item, projectId), userId));
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+				TO_ACTIVITY_RESOURCE.apply(item, projectId),
+				user.getUserId(),
+				user.getUsername()
+		));
 
-		changeParentsStatusesToFailed(item, oldParentStatus, userId, projectId);
+		changeParentsStatusesToFailed(item, oldParentStatus, user, projectId);
 	}
 }

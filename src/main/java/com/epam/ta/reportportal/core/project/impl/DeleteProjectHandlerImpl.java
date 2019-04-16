@@ -104,7 +104,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
 		logIndexer.deleteIndex(project.getId());
-		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), false));
+		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), user.getLogin(), false));
 		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
 	}
 

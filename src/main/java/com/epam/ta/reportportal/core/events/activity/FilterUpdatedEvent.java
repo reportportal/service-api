@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,31 +30,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_FIL
  */
 public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> implements ActivityEvent {
 
-	private Long updatedBy;
-
 	public FilterUpdatedEvent() {
 	}
 
-	public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after, Long updatedBy) {
-		super(before, after);
-		this.updatedBy = updatedBy;
-	}
-
-	public Long getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
+	public FilterUpdatedEvent(UserFilterActivityResource before, UserFilterActivityResource after, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
-		//processShared
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_FILTER)
-				.addActivityEntityType(FILTER)
-				.addUserId(updatedBy)
+				.addAction(UPDATE_FILTER).addActivityEntityType(FILTER).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,10 +60,16 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
 
 		File tempFile = transferToTempFile(file);
-		messageBus.publishActivity(new ImportStartedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
+		messageBus.publishActivity(new ImportStartedEvent(user.getUserId(),
+				user.getUsername(), projectDetails.getProjectId(),
+				file.getOriginalFilename()
+		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
 		Long launchId = strategy.importLaunch(projectDetails, user, tempFile);
-		messageBus.publishActivity(new ImportFinishedEvent(projectDetails.getProjectId(), user.getUserId(), file.getOriginalFilename()));
+		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
+				user.getUsername(), projectDetails.getProjectId(),
+				file.getOriginalFilename()
+		));
 		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");
 	}
 

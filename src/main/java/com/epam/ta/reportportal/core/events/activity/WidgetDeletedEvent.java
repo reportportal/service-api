@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,30 +29,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_WID
  */
 public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> implements ActivityEvent {
 
-	private Long deletedBy;
-
 	public WidgetDeletedEvent() {
 	}
 
-	public WidgetDeletedEvent(WidgetActivityResource before, Long deletedBy) {
-		super(before);
-		this.deletedBy = deletedBy;
-	}
-
-	public Long getDeletedBy() {
-		return deletedBy;
-	}
-
-	public void setDeletedBy(Long deletedBy) {
-		this.deletedBy = deletedBy;
+	public WidgetDeletedEvent(WidgetActivityResource before, Long userId, String userLogin) {
+		super(userId, userLogin, before);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_WIDGET)
-				.addActivityEntityType(WIDGET)
-				.addUserId(deletedBy)
+				.addAction(DELETE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())
 				.addProjectId(getBefore().getProjectId())

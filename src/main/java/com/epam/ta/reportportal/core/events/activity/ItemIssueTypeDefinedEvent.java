@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,43 +33,15 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  */
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long postedBy;
-
-	private String postedByName;
-
 	public ItemIssueTypeDefinedEvent() {
 	}
 
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long postedBy) {
-		super(before, after);
-		this.postedBy = postedBy;
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String postedByName) {
-		super(before, after);
-		this.postedByName = postedByName;
-	}
-
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long postedBy, String postedByName) {
-		super(before, after);
-		this.postedBy = postedBy;
-		this.postedByName = postedByName;
-	}
-
-	public String getPostedByName() {
-		return postedByName;
-	}
-
-	public void setPostedByName(String postedByName) {
-		this.postedByName = postedByName;
-	}
-
-	public Long getPostedBy() {
-		return postedBy;
-	}
-
-	public void setPostedBy(Long postedBy) {
-		this.postedBy = postedBy;
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin) {
+		super(null, userLogin, before, after);
 	}
 
 	@Override
@@ -77,8 +49,8 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
 				.addActivityEntityType(ITEM_ISSUE)
-				.addUserId(postedBy)
-				.addUserName(postedByName)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

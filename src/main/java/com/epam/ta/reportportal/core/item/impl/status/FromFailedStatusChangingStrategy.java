@@ -80,8 +80,10 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 		}
 
 		if (PASSED.equals(providedStatus)) {
-			issueEntityRepository.delete(item.getItemResults().getIssue());
-			item.getItemResults().setIssue(null);
+			ofNullable(item.getItemResults().getIssue()).ifPresent(issue -> {
+				issueEntityRepository.delete(issue);
+				item.getItemResults().setIssue(null);
+			});
 			changeStatusRecursively(item, userId, projectId);
 			if (item.getLaunch().getStatus() != IN_PROGRESS) {
 				item.getLaunch()

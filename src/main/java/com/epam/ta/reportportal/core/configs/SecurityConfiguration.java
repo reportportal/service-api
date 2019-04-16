@@ -114,14 +114,14 @@ class SecurityConfiguration {
 
 		@Bean
 		public JwtAccessTokenConverter accessTokenConverter() {
-			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-			converter.setSigningKey(signingKey);
+			JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
+			jwtConverter.setSigningKey(signingKey);
 
-			DefaultAccessTokenConverter converter1 = new DefaultAccessTokenConverter();
-			converter1.setUserTokenConverter(new ReportPortalAuthenticationConverter());
-			converter.setAccessTokenConverter(converter1);
+			DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
+			accessTokenConverter.setUserTokenConverter(new ReportPortalAuthenticationConverter());
+			jwtConverter.setAccessTokenConverter(accessTokenConverter);
 
-			return converter;
+			return jwtConverter;
 		}
 
 		@Bean

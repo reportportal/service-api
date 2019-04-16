@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
  * @author Pavel Bortnik
  */
 @Component
+@Profile("!jobs-disabled")
 public class JobSchedulerInfoContributor implements InfoContributor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerInfoContributor.class);

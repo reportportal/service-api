@@ -14,7 +14,7 @@ spring:
     # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
     #- org.quartz.jobStore.addresses: host1,host2
     # database name
-    org.quartz.jobStore.dbName: reportportal
+    org.quartz.jobStore.dbName: ${rp.mongo.dbName}
     # Will be used to create collections like scheduler_jobs, scheduler_triggers, scheduler_calendars, scheduler_locks
     org.quartz.jobStore.collectionPrefix: scheduler
     # thread count setting is ignored by the MongoDB store but Quartz requires it

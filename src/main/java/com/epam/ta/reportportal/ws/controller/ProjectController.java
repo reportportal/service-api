@@ -284,7 +284,7 @@ public class ProjectController {
 	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(Project.class) Filter filter, @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
+			@FilterFor(Project.class) Filter filter, @FilterFor(Project.class) Queryable predefinedFilter,
 			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);

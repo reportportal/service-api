@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -123,17 +124,19 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
-		);
+		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+				);
 		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
 	}
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
-		);
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
+				);
 		Filter filter = Filter.builder()
 				.withTarget(User.class)
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
@@ -154,7 +157,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream) {
+	public void exportProjects(ReportFormat reportFormat, Queryable filter, OutputStream outputStream) {
 
 		List<Project> projects = projectRepository.findByFilter(filter);
 

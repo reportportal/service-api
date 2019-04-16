@@ -284,7 +284,8 @@ public class ProjectController {
 	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(Project.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+			@FilterFor(Project.class) Filter filter, @FilterFor(Project.class) Queryable predefinedFilter,
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
@@ -294,7 +295,7 @@ public class ProjectController {
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {
-			getProjectHandler.exportProjects(format, filter, outputStream);
+			getProjectHandler.exportProjects(format, new CompositeFilter(filter, predefinedFilter), outputStream);
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
 		}

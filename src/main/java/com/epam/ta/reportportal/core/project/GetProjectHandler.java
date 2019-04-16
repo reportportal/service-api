@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
@@ -85,10 +86,10 @@ public interface GetProjectHandler {
 	 * Export Projects info according to the {@link ReportFormat} type
 	 *
 	 * @param reportFormat {@link ReportFormat}
-	 * @param filter       {@link Filter}
+	 * @param filter       {@link Queryable}
 	 * @param outputStream {@link HttpServletResponse#getOutputStream()}
 	 */
-	void exportProjects(ReportFormat reportFormat, Filter filter, OutputStream outputStream);
+	void exportProjects(ReportFormat reportFormat, Queryable filter, OutputStream outputStream);
 
 	Map<String, Boolean> getAnalyzerIndexingStatus();
 }

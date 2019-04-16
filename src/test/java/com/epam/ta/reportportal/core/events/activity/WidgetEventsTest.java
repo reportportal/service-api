@@ -130,8 +130,11 @@ class WidgetEventsTest {
 		final String newDescription = "newDescription";
 
 		final Activity actual = new WidgetUpdatedEvent(getWidget(oldName, oldShared, oldDescription, 2, getBeforeContentFields()),
-				getWidget(newName, newShared, newDescription, 4, getAfterContentFields()), 1L, "user",
-				getBeforeOptions(), getAfterOptions()
+				getWidget(newName, newShared, newDescription, 4, getAfterContentFields()),
+				getBeforeOptions(),
+				getAfterOptions(),
+				1L,
+				"user"
 		).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_WIDGET, newName);
 		expected.getDetails()

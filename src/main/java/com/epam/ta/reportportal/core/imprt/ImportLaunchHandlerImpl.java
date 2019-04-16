@@ -60,16 +60,14 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unknown import type - " + format));
 
 		File tempFile = transferToTempFile(file);
-		messageBus.publishActivity(new ImportStartedEvent(projectDetails.getProjectId(),
-				user.getUserId(),
-				user.getUsername(),
+		messageBus.publishActivity(new ImportStartedEvent(user.getUserId(),
+				user.getUsername(), projectDetails.getProjectId(),
 				file.getOriginalFilename()
 		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
 		Long launchId = strategy.importLaunch(projectDetails, user, tempFile);
-		messageBus.publishActivity(new ImportFinishedEvent(projectDetails.getProjectId(),
-				user.getUserId(),
-				user.getUsername(),
+		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
+				user.getUsername(), projectDetails.getProjectId(),
 				file.getOriginalFilename()
 		));
 		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");

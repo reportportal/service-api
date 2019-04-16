@@ -107,8 +107,11 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		}
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(), user.getUsername(),
-				widgetOptionsBefore, parseWidgetOptions(widget)
+				TO_ACTIVITY_RESOURCE.apply(widget),
+				widgetOptionsBefore,
+				parseWidgetOptions(widget),
+				user.getUserId(),
+				user.getUsername()
 		));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
 	}

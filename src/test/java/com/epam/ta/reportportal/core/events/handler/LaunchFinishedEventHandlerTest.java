@@ -110,9 +110,7 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setUserId(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEBUG);
 
@@ -131,9 +129,7 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setUserId(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
@@ -158,9 +154,7 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setUserId(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
@@ -198,9 +192,7 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setUserId(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 		launch.setName("name1");

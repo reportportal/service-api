@@ -30,41 +30,24 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
  */
 public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
-
 	public LinkTicketEvent() {
 	}
 
-	public LinkTicketEvent(Long userId) {
-		this.userId = userId;
-	}
-
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId) {
-		super(before, after);
-		this.userId = userId;
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
 	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin) {
-		super(before, after);
-		this.userLogin = userLogin;
-	}
-
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long attachedBy, String userLogin) {
-		super(before, after);
-		this.userId = attachedBy;
-		this.userLogin = userLogin;
-	}
-
-	public Long getUserId() {
-		return userId;
+		super(null, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
 		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
-				.addActivityEntityType(TICKET).addUserId(userId).addUserName(userLogin)
+				.addActivityEntityType(TICKET)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId());

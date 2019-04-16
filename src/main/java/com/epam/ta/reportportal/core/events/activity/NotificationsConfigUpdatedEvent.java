@@ -41,18 +41,14 @@ import static java.util.Optional.ofNullable;
 public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource> implements ActivityEvent {
 
 	private ProjectNotificationConfigDTO updateProjectNotificationConfigRQ;
-	private Long userId;
-	private String userLogin;
 
 	public NotificationsConfigUpdatedEvent() {
 	}
 
 	public NotificationsConfigUpdatedEvent(ProjectResource before, ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			Long userId, String userLogin) {
-		super(before);
+		super(userId, userLogin, before);
 		this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
-		this.userId = userId;
-		this.userLogin = userLogin;
 	}
 
 	public ProjectNotificationConfigDTO getUpdateProjectNotificationConfigRQ() {
@@ -63,22 +59,6 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
 		this.updateProjectNotificationConfigRQ = updateProjectNotificationConfigRQ;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		ActivityDetails details = new ActivityDetails(getBefore().getProjectName());
@@ -87,9 +67,7 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(ActivityAction.UPDATE_PROJECT)
 				.addActivityEntityType(EMAIL_CONFIG)
-				.addProjectId(getBefore().getProjectId())
-				.addUserId(userId)
-				.addUserName(userLogin)
+				.addProjectId(getBefore().getProjectId()).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getBefore().getProjectId())
 				.addDetails(details)
 				.get();

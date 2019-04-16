@@ -29,39 +29,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_FIL
  */
 public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
-
 	public FilterDeletedEvent() {
 	}
 
 	public FilterDeletedEvent(UserFilterActivityResource before, Long userId, String userLogin) {
-		super(before);
-		this.userId = userId;
-		this.userLogin = userLogin;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
+		super(userId, userLogin, before);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_FILTER)
-				.addActivityEntityType(FILTER).addUserId(userId).addUserName(userLogin)
+				.addAction(DELETE_FILTER).addActivityEntityType(FILTER).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())
 				.addProjectId(getBefore().getProjectId())

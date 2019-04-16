@@ -26,20 +26,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DEF
 /**
  * @author Andrei Varabyeu
  */
-public class DefectTypeUpdatedEvent implements ActivityEvent {
+public class DefectTypeUpdatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private IssueTypeActivityResource issueTypeActivityResource;
-	private Long userId;
-	private String userLogin;
 	private Long projectId;
 
 	public DefectTypeUpdatedEvent() {
 	}
 
 	public DefectTypeUpdatedEvent(IssueTypeActivityResource issueTypeActivityResource, Long userId, String userLogin, Long projectId) {
+		super(userId, userLogin);
 		this.issueTypeActivityResource = issueTypeActivityResource;
-		this.userId = userId;
-		this.userLogin = userLogin;
 		this.projectId = projectId;
 	}
 
@@ -51,14 +48,6 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 		this.issueTypeActivityResource = issueTypeActivityResource;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
 	public Long getProjectId() {
 		return projectId;
 	}
@@ -67,19 +56,10 @@ public class DefectTypeUpdatedEvent implements ActivityEvent {
 		this.projectId = projectId;
 	}
 
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_DEFECT)
-				.addActivityEntityType(DEFECT_TYPE).addUserId(userId).addUserName(userLogin)
+				.addAction(UPDATE_DEFECT).addActivityEntityType(DEFECT_TYPE).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(issueTypeActivityResource.getId())
 				.addObjectName(issueTypeActivityResource.getLongName())
 				.addProjectId(projectId)

@@ -29,39 +29,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DAS
  */
 public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
-
 	public DashboardUpdatedEvent() {
 	}
 
 	public DashboardUpdatedEvent(DashboardActivityResource before, DashboardActivityResource after, Long userId, String userLogin) {
-		super(before, after);
-		this.userId = userId;
-		this.userLogin = userLogin;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_DASHBOARD)
-				.addActivityEntityType(DASHBOARD).addUserId(userId).addUserName(userLogin)
+				.addAction(UPDATE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

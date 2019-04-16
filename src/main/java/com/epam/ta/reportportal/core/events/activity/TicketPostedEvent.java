@@ -30,17 +30,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.POST_ISSUE
 /**
  * @author Andrei Varabyeu
  */
-public class TicketPostedEvent implements ActivityEvent {
+public class TicketPostedEvent extends AbstractEvent implements ActivityEvent {
 
 	private Ticket ticket;
-	private Long userId;
-	private String userLogin;
 	private TestItemActivityResource testItemActivityResource;
 
+	public TicketPostedEvent() {
+	}
+
 	public TicketPostedEvent(Ticket ticket, Long userId, String userLogin, TestItemActivityResource testItemActivityResource) {
+		super(userId, userLogin);
 		this.ticket = ticket;
-		this.userId = userId;
-		this.userLogin = userLogin;
 		this.testItemActivityResource = testItemActivityResource;
 	}
 
@@ -50,22 +50,6 @@ public class TicketPostedEvent implements ActivityEvent {
 
 	public void setTicket(Ticket ticket) {
 		this.ticket = ticket;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
 	}
 
 	public TestItemActivityResource getTestItemActivityResource() {
@@ -79,8 +63,7 @@ public class TicketPostedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(POST_ISSUE)
-				.addActivityEntityType(TICKET).addUserId(userId).addUserName(userLogin)
+				.addAction(POST_ISSUE).addActivityEntityType(TICKET).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(testItemActivityResource.getId())
 				.addObjectName(testItemActivityResource.getName())
 				.addProjectId(testItemActivityResource.getProjectId())

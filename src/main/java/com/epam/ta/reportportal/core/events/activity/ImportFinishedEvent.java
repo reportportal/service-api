@@ -26,20 +26,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_IMP
 /**
  * @author Pavel Bortnik
  */
-public class ImportFinishedEvent implements ActivityEvent {
+public class ImportFinishedEvent extends AbstractEvent implements ActivityEvent {
 
 	private Long projectId;
-	private Long userId;
-	private String userLogin;
 	private String fileName;
 
 	public ImportFinishedEvent() {
 	}
 
-	public ImportFinishedEvent(Long projectId, Long userId, String userLogin, String fileName) {
+	public ImportFinishedEvent(Long userId, String userLogin, Long projectId, String fileName) {
+		super(userId, userLogin);
 		this.projectId = projectId;
-		this.userId = userId;
-		this.userLogin = userLogin;
 		this.fileName = fileName;
 	}
 
@@ -51,14 +48,6 @@ public class ImportFinishedEvent implements ActivityEvent {
 		this.projectId = projectId;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
 	public String getFileName() {
 		return fileName;
 	}
@@ -67,20 +56,11 @@ public class ImportFinishedEvent implements ActivityEvent {
 		this.fileName = fileName;
 	}
 
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(FINISH_IMPORT)
-				.addActivityEntityType(IMPORT)
-				.addUserId(userId).addUserName(userLogin)
+				.addActivityEntityType(IMPORT).addUserId(getUserId()).addUserName(getUserLogin())
 				.addProjectId(projectId)
 				.addObjectName(fileName)
 				.get();

@@ -33,37 +33,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_WID
  */
 public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
 	private String widgetOptionsBefore;
 	private String widgetOptionsAfter;
 
 	public WidgetUpdatedEvent() {
 	}
 
-	public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after, Long userId, String userLogin,
-			String widgetOptionsBefore, String widgetOptionsAfter) {
-		super(before, after);
-		this.userId = userId;
-		this.userLogin = userLogin;
+	public WidgetUpdatedEvent(WidgetActivityResource before, WidgetActivityResource after, String widgetOptionsBefore,
+			String widgetOptionsAfter, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 		this.widgetOptionsBefore = widgetOptionsBefore;
 		this.widgetOptionsAfter = widgetOptionsAfter;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
 	}
 
 	public String getWidgetOptionsBefore() {
@@ -85,8 +65,7 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_WIDGET)
-				.addActivityEntityType(WIDGET).addUserId(userId).addUserName(userLogin)
+				.addAction(UPDATE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

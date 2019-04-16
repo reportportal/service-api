@@ -28,39 +28,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DAS
  */
 public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
-
 	public DashboardDeletedEvent() {
 	}
 
 	public DashboardDeletedEvent(DashboardActivityResource before, Long userId, String userLogin) {
-		super(before);
-		this.userId = userId;
-		this.userLogin = userLogin;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
+		super(userId, userLogin, before);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_DASHBOARD)
-				.addActivityEntityType(DASHBOARD).addUserId(userId).addUserName(userLogin)
+				.addAction(DELETE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
 				.addProjectId(getBefore().getProjectId())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())

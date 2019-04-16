@@ -28,19 +28,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAU
  *
  * @author Andrei Varabyeu
  */
-public class LaunchFinishedEvent implements ActivityEvent {
+public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent {
 
 	private LaunchActivityResource launchActivityResource;
-	private Long userId;
-	private String userLogin;
 
 	public LaunchFinishedEvent() {
 	}
 
 	public LaunchFinishedEvent(LaunchActivityResource launchActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.launchActivityResource = launchActivityResource;
-		this.userId = userId;
-		this.userLogin = userLogin;
 	}
 
 	public LaunchActivityResource getLaunchActivityResource() {
@@ -51,27 +48,10 @@ public class LaunchFinishedEvent implements ActivityEvent {
 		this.launchActivityResource = launchActivityResource;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(FINISH_LAUNCH)
-				.addActivityEntityType(LAUNCH).addUserId(userId).addUserName(userLogin)
+				.addAction(FINISH_LAUNCH).addActivityEntityType(LAUNCH).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(launchActivityResource.getId())
 				.addObjectName(launchActivityResource.getName())
 				.addProjectId(launchActivityResource.getProjectId())

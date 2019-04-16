@@ -39,7 +39,10 @@ class LinkTicketEventTest {
 
 	@Test
 	void toActivity() {
-		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS), getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET), 1L
+		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS),
+				getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET),
+				1L,
+				"user"
 		).toActivity();
 		final Activity expected = getExpectedActivity();
 		checkActivity(expected, actual);
@@ -64,6 +67,7 @@ class LinkTicketEventTest {
 		activity.setAction(ActivityAction.LINK_ISSUE.getValue());
 		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET.getValue());
 		activity.setUserId(1L);
+		activity.setUsername("user");
 		activity.setProjectId(3L);
 		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());

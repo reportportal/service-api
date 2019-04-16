@@ -27,19 +27,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_WID
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent implements ActivityEvent {
+public class WidgetCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private WidgetActivityResource widgetActivityResource;
-	private Long userId;
-	private String userLogin;
 
 	public WidgetCreatedEvent() {
 	}
 
 	public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.widgetActivityResource = widgetActivityResource;
-		this.userId = userId;
-		this.userLogin = userLogin;
 	}
 
 	public WidgetActivityResource getWidgetActivityResource() {
@@ -50,27 +47,10 @@ public class WidgetCreatedEvent implements ActivityEvent {
 		this.widgetActivityResource = widgetActivityResource;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_WIDGET)
-				.addActivityEntityType(WIDGET).addUserId(userId).addUserName(userLogin)
+				.addAction(CREATE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(widgetActivityResource.getId())
 				.addObjectName(widgetActivityResource.getName())
 				.addProjectId(widgetActivityResource.getProjectId())

@@ -30,32 +30,11 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  */
 public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
-
 	public TestItemStatusChangedEvent() {
 	}
 
 	public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
-		super(before, after);
-		this.userId = userId;
-		this.userLogin = userLogin;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
@@ -64,9 +43,7 @@ public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityReso
 				.addActivityEntityType(ITEM)
 				.addAction(UPDATE_ITEM)
 				.addObjectId(getAfter().getId())
-				.addProjectId(getAfter().getProjectId())
-				.addUserId(userId)
-				.addUserName(userLogin)
+				.addProjectId(getAfter().getProjectId()).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectName(getAfter().getName())
 				.addHistoryField(STATUS, getBefore().getStatus(), getAfter().getStatus())
 				.get();

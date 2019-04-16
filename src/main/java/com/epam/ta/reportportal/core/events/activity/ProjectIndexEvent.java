@@ -27,22 +27,19 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.GENERATE_I
 /**
  * @author Pavel Bortnik
  */
-public class ProjectIndexEvent implements ActivityEvent {
+public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
 
 	private Long projectId;
 	private String projectName;
-	private Long userId;
-	private String userLogin;
 	private boolean indexing;
 
 	public ProjectIndexEvent() {
 	}
 
-	public ProjectIndexEvent(Long projectId, String projectName, Long userId, String userLogin, boolean indexing) {
+	public ProjectIndexEvent(Long userId, String userLogin, Long projectId, String projectName, boolean indexing) {
+		super(userId, userLogin);
 		this.projectId = projectId;
 		this.projectName = projectName;
-		this.userId = userId;
-		this.userLogin = userLogin;
 		this.indexing = indexing;
 	}
 
@@ -62,14 +59,6 @@ public class ProjectIndexEvent implements ActivityEvent {
 		this.projectName = projectName;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
 	public boolean isIndexing() {
 		return indexing;
 	}
@@ -78,20 +67,11 @@ public class ProjectIndexEvent implements ActivityEvent {
 		this.indexing = indexing;
 	}
 
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
-				.addActivityEntityType(PROJECT)
-				.addUserId(userId).addUserName(userLogin)
+				.addActivityEntityType(PROJECT).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(projectId)
 				.addObjectName(projectName)
 				.addProjectId(projectId)

@@ -33,49 +33,24 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  */
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
-
 	public ItemIssueTypeDefinedEvent() {
 	}
 
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId) {
-		super(before, after);
-		this.userId = userId;
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String postedByName) {
-		super(before, after);
-		this.userLogin = postedByName;
-	}
-
-	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String postedByName) {
-		super(before, after);
-		this.userId = userId;
-		this.userLogin = postedByName;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin) {
+		super(null, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
-				.addActivityEntityType(ITEM_ISSUE).addUserId(userId).addUserName(userLogin)
+				.addActivityEntityType(ITEM_ISSUE)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

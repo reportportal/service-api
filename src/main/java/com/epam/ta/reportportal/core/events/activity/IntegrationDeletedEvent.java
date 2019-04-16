@@ -26,19 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_BTS
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationDeletedEvent implements ActivityEvent {
+public class IntegrationDeletedEvent extends AbstractEvent implements ActivityEvent {
 
 	private IntegrationActivityResource integrationActivityResource;
-	private Long userId;
-	private String userLogin;
 
 	public IntegrationDeletedEvent() {
 	}
 
 	public IntegrationDeletedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.integrationActivityResource = integrationActivityResource;
-		this.userId = userId;
-		this.userLogin = userLogin;
 	}
 
 	public IntegrationActivityResource getIntegrationActivityResource() {
@@ -49,27 +46,10 @@ public class IntegrationDeletedEvent implements ActivityEvent {
 		this.integrationActivityResource = integrationActivityResource;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_BTS)
-				.addActivityEntityType(INTEGRATION).addUserId(userId).addUserName(userLogin)
+				.addAction(DELETE_BTS).addActivityEntityType(INTEGRATION).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
 				.addProjectId(integrationActivityResource.getProjectId())

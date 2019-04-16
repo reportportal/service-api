@@ -26,19 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_USE
 /**
  * @author Andrei Varabyeu
  */
-public class UserCreatedEvent implements ActivityEvent {
+public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private UserActivityResource userActivityResource;
-	private Long creatorId;
-	private String creatorLogin;
 
 	public UserCreatedEvent() {
 	}
 
-	public UserCreatedEvent(UserActivityResource userActivityResource, Long creatorId, String creatorLogin) {
+	public UserCreatedEvent(UserActivityResource userActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.userActivityResource = userActivityResource;
-		this.creatorId = creatorId;
-		this.creatorLogin = creatorLogin;
 	}
 
 	public UserActivityResource getUserActivityResource() {
@@ -49,27 +46,10 @@ public class UserCreatedEvent implements ActivityEvent {
 		this.userActivityResource = userActivityResource;
 	}
 
-	public Long getCreatorId() {
-		return creatorId;
-	}
-
-	public void setCreatorId(Long creatorId) {
-		this.creatorId = creatorId;
-	}
-
-	public String getCreatorLogin() {
-		return creatorLogin;
-	}
-
-	public void setCreatorLogin(String creatorLogin) {
-		this.creatorLogin = creatorLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_USER)
-				.addActivityEntityType(USER).addUserId(creatorId).addUserName(creatorLogin)
+				.addAction(CREATE_USER).addActivityEntityType(USER).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(userActivityResource.getId())
 				.addObjectName(userActivityResource.getFullName())
 				.addProjectId(userActivityResource.getDefaultProjectId())

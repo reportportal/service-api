@@ -45,14 +45,14 @@ class ProjectIndexEventTest {
 
 	@Test
 	void generate() {
-		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, "user", true).toActivity();
+		final Activity actual = new ProjectIndexEvent(1L, "user", 3L, "test_project", true).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.GENERATE_INDEX);
 		checkActivity(expected, actual);
 	}
 
 	@Test
 	void delete() {
-		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, "user", false).toActivity();
+		final Activity actual = new ProjectIndexEvent(1L, "user", 3L, "test_project", false).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_INDEX);
 		checkActivity(expected, actual);
 	}

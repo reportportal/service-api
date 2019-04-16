@@ -28,26 +28,14 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DEF
  */
 public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource> implements ActivityEvent {
 
-	private Long userId;
-	private String userLogin;
 	private Long projectId;
 
 	public DefectTypeDeletedEvent() {
 	}
 
 	public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long userId, String userLogin, Long projectId) {
-		super(before);
-		this.userId = userId;
-		this.userLogin = userLogin;
+		super(userId, userLogin, before);
 		this.projectId = projectId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
 	}
 
 	public Long getProjectId() {
@@ -58,19 +46,10 @@ public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResourc
 		this.projectId = projectId;
 	}
 
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_DEFECT)
-				.addActivityEntityType(DEFECT_TYPE).addUserId(userId).addUserName(userLogin)
+				.addAction(DELETE_DEFECT).addActivityEntityType(DEFECT_TYPE).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getLongName())
 				.addProjectId(projectId)

@@ -26,19 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DAS
 /**
  * @author pavel_bortnik
  */
-public class DashboardCreatedEvent implements ActivityEvent {
+public class DashboardCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private DashboardActivityResource dashboardActivityResource;
-	private Long userId;
-	private String userLogin;
 
 	public DashboardCreatedEvent() {
 	}
 
 	public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.dashboardActivityResource = dashboardActivityResource;
-		this.userId = userId;
-		this.userLogin = userLogin;
 	}
 
 	public DashboardActivityResource getDashboardActivityResource() {
@@ -49,27 +46,10 @@ public class DashboardCreatedEvent implements ActivityEvent {
 		this.dashboardActivityResource = dashboardActivityResource;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_DASHBOARD)
-				.addActivityEntityType(DASHBOARD).addUserId(userId).addUserName(userLogin)
+				.addAction(CREATE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
 				.addProjectId(dashboardActivityResource.getProjectId())
 				.addObjectId(dashboardActivityResource.getId())
 				.addObjectName(dashboardActivityResource.getName())

@@ -46,14 +46,14 @@ class ImportEventsTest {
 
 	@Test
 	void started() {
-		final Activity actual = new ImportStartedEvent(3L, 1L, "user", FILE_NAME).toActivity();
+		final Activity actual = new ImportStartedEvent(1L, "user", 3L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.START_IMPORT);
 		checkActivity(expected, actual);
 	}
 
 	@Test
 	void finished() {
-		final Activity actual = new ImportFinishedEvent(3L, 1L, "user", FILE_NAME).toActivity();
+		final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_IMPORT);
 		checkActivity(expected, actual);
 	}

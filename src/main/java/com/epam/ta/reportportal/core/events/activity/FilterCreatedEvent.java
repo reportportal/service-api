@@ -27,19 +27,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_FIL
 /**
  * @author pavel_bortnik
  */
-public class FilterCreatedEvent implements ActivityEvent {
+public class FilterCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private UserFilterActivityResource userFilterActivityResource;
-	private Long userId;
-	private String userLogin;
 
 	public FilterCreatedEvent() {
 	}
 
 	public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.userFilterActivityResource = userFilterActivityResource;
-		this.userId = userId;
-		this.userLogin = userLogin;
 	}
 
 	public UserFilterActivityResource getUserFilterActivityResource() {
@@ -50,27 +47,10 @@ public class FilterCreatedEvent implements ActivityEvent {
 		this.userFilterActivityResource = userFilterActivityResource;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getUserLogin() {
-		return userLogin;
-	}
-
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_FILTER)
-				.addActivityEntityType(FILTER).addUserId(userId).addUserName(userLogin)
+				.addAction(CREATE_FILTER).addActivityEntityType(FILTER).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(userFilterActivityResource.getId())
 				.addObjectName(userFilterActivityResource.getName())
 				.addProjectId(userFilterActivityResource.getProjectId())

@@ -123,8 +123,10 @@ public class UpdateLaunchHandler implements IUpdateLaunchHandler {
 		ofNullable(rq.getMode()).ifPresent(launch::setMode);
 		ofNullable(rq.getDescription()).ifPresent(launch::setDescription);
 		ofNullable(rq.getTags()).ifPresent(tags -> launch.setTags(Sets.newHashSet(EntityUtils.trimStrings(rq.getTags()))));
-		reindexLogs(launch);
+
 		launchRepository.save(launch);
+		reindexLogs(launch);
+
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
 

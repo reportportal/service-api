@@ -128,7 +128,7 @@ public class MergeLaunchHandler implements IMergeLaunchHandler {
 		expect(project, notNull()).verify(PROJECT_NOT_FOUND, projectName);
 
 		Set<String> launchesIds = rq.getLaunches();
-		expect(launchesIds.size() > 1, equalTo(true)).verify(BAD_REQUEST_ERROR, rq.getLaunches());
+		expect(launchesIds.size() > 0, equalTo(true)).verify(BAD_REQUEST_ERROR, rq.getLaunches());
 		List<Launch> launchesList = launchRepository.find(launchesIds);
 		
 		validateMergingLaunches(launchesList, user, project);

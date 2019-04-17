@@ -211,10 +211,10 @@ class SecurityConfiguration {
 
 				Map<String, ReportPortalUser.ProjectDetails> collect = projects.entrySet()
 						.stream()
-						.collect(Collectors.toMap(Map.Entry::getKey,
-								e -> new ReportPortalUser.ProjectDetails(parseId(e.getValue().get("projectId")),
-										(String) e.getValue().get("projectName"),
-										ProjectRole.valueOf((String) e.getValue().get("projectRole"))
+						.collect(Collectors.toMap(Map.Entry::getKey, e -> new ReportPortalUser.ProjectDetails(
+								parseId(e.getValue().get("id")),
+								(String) e.getValue().get("name"),
+								ProjectRole.valueOf((String) e.getValue().get("role"))
 								)
 						));
 

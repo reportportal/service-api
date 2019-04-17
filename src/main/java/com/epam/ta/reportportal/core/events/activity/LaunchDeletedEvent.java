@@ -38,7 +38,10 @@ public class LaunchDeletedEvent extends BeforeEvent<LaunchActivityResource> impl
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_LAUNCH).addActivityEntityType(LAUNCH).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(DELETE_LAUNCH)
+				.addActivityEntityType(LAUNCH)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())
 				.addProjectId(getBefore().getProjectId())

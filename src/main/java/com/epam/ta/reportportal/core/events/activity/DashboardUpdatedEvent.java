@@ -39,7 +39,10 @@ public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(UPDATE_DASHBOARD)
+				.addActivityEntityType(DASHBOARD)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

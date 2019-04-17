@@ -39,7 +39,10 @@ public class WidgetDeletedEvent extends BeforeEvent<WidgetActivityResource> impl
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(DELETE_WIDGET)
+				.addActivityEntityType(WIDGET)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())
 				.addProjectId(getBefore().getProjectId())

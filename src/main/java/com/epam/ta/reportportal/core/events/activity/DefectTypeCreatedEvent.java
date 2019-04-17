@@ -59,7 +59,10 @@ public class DefectTypeCreatedEvent extends AbstractEvent implements ActivityEve
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_DEFECT).addActivityEntityType(DEFECT_TYPE).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(CREATE_DEFECT)
+				.addActivityEntityType(DEFECT_TYPE)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(issueTypeActivityResource.getId())
 				.addObjectName(issueTypeActivityResource.getLongName())
 				.addProjectId(projectId)

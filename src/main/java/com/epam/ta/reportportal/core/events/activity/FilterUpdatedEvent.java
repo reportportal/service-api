@@ -40,7 +40,10 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_FILTER).addActivityEntityType(FILTER).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(UPDATE_FILTER)
+				.addActivityEntityType(FILTER)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

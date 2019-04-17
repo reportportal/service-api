@@ -73,7 +73,8 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
 		List<IssueTypeActivityResource> issueTypeActivityResources = updateIssueSubTypeRQ.getIds()
-				.stream().map(subTypeRQ -> TO_ACTIVITY_RESOURCE.apply(validateAndUpdate(
+				.stream()
+				.map(subTypeRQ -> TO_ACTIVITY_RESOURCE.apply(validateAndUpdate(
 						subTypeRQ,
 						project.getProjectIssueTypes().stream().map(ProjectIssueType::getIssueType).collect(Collectors.toList())
 				)))
@@ -81,7 +82,8 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 
 		projectRepository.save(project);
 		issueTypeActivityResources.forEach(it -> messageBus.publishActivity(new DefectTypeUpdatedEvent(it,
-				user.getUserId(), user.getUsername(),
+				user.getUserId(),
+				user.getUsername(),
 				project.getId()
 		)));
 		return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");

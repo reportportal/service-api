@@ -43,7 +43,10 @@ public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityRe
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_PROJECT).addActivityEntityType(PROJECT).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(UPDATE_PROJECT)
+				.addActivityEntityType(PROJECT)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getProjectId())
 				.addObjectName(getAfter().getProjectName())
 				.addProjectId(getAfter().getProjectId())

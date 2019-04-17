@@ -49,7 +49,10 @@ public class DashboardCreatedEvent extends AbstractEvent implements ActivityEven
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(CREATE_DASHBOARD)
+				.addActivityEntityType(DASHBOARD)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addProjectId(dashboardActivityResource.getProjectId())
 				.addObjectId(dashboardActivityResource.getId())
 				.addObjectName(dashboardActivityResource.getName())

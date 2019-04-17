@@ -48,9 +48,7 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
-				.addActivityEntityType(ITEM_ISSUE)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
+				.addActivityEntityType(ITEM_ISSUE).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

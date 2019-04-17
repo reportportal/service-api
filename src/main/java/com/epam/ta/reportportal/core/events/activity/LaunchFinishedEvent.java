@@ -51,7 +51,10 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(FINISH_LAUNCH).addActivityEntityType(LAUNCH).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(FINISH_LAUNCH)
+				.addActivityEntityType(LAUNCH)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(launchActivityResource.getId())
 				.addObjectName(launchActivityResource.getName())
 				.addProjectId(launchActivityResource.getProjectId())

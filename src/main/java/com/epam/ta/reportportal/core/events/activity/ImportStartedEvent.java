@@ -59,8 +59,7 @@ public class ImportStartedEvent extends AbstractEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(START_IMPORT)
-				.addActivityEntityType(IMPORT).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(START_IMPORT).addActivityEntityType(IMPORT).addUserId(getUserId()).addUserName(getUserLogin())
 				.addProjectId(projectId)
 				.addObjectName(fileName)
 				.get();

@@ -71,7 +71,9 @@ public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
-				.addActivityEntityType(PROJECT).addUserId(getUserId()).addUserName(getUserLogin())
+				.addActivityEntityType(PROJECT)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(projectId)
 				.addObjectName(projectName)
 				.addProjectId(projectId)

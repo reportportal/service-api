@@ -49,7 +49,10 @@ public class IntegrationDeletedEvent extends AbstractEvent implements ActivityEv
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_BTS).addActivityEntityType(INTEGRATION).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(DELETE_BTS)
+				.addActivityEntityType(INTEGRATION)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
 				.addProjectId(integrationActivityResource.getProjectId())

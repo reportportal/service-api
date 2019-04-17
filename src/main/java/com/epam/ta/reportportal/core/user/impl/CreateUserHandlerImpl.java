@@ -212,6 +212,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId(), login);
 
+		userCreationBidRepository.deleteAllByEmail(email);
+
 		messageBus.publishActivity(userCreatedEvent);
 		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();

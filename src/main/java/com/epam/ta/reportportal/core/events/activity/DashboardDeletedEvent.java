@@ -38,7 +38,10 @@ public class DashboardDeletedEvent extends BeforeEvent<DashboardActivityResource
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_DASHBOARD).addActivityEntityType(DASHBOARD).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(DELETE_DASHBOARD)
+				.addActivityEntityType(DASHBOARD)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addProjectId(getBefore().getProjectId())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())

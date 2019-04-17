@@ -84,7 +84,9 @@ class FilterEventsTest {
 		final boolean newShared = true;
 		final String newDescription = "newDescription";
 		final Activity actual = new FilterUpdatedEvent(getUserFilter(oldName, oldShared, oldDescription),
-				getUserFilter(newName, newShared, newDescription), 1L, "user"
+				getUserFilter(newName, newShared, newDescription),
+				1L,
+				"user"
 		).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_FILTER, newName);
 		expected.getDetails()

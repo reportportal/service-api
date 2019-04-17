@@ -49,7 +49,10 @@ public class LaunchFinishForcedEvent extends AbstractEvent implements ActivityEv
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(FINISH_LAUNCH).addActivityEntityType(LAUNCH).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(FINISH_LAUNCH)
+				.addActivityEntityType(LAUNCH)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(launchActivityResource.getId())
 				.addObjectName(launchActivityResource.getName())
 				.addProjectId(launchActivityResource.getProjectId())

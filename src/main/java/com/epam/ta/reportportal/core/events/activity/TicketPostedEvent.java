@@ -63,7 +63,10 @@ public class TicketPostedEvent extends AbstractEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(POST_ISSUE).addActivityEntityType(TICKET).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(POST_ISSUE)
+				.addActivityEntityType(TICKET)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(testItemActivityResource.getId())
 				.addObjectName(testItemActivityResource.getName())
 				.addProjectId(testItemActivityResource.getProjectId())

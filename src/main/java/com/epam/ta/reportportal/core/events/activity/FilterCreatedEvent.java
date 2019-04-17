@@ -50,7 +50,10 @@ public class FilterCreatedEvent extends AbstractEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_FILTER).addActivityEntityType(FILTER).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(CREATE_FILTER)
+				.addActivityEntityType(FILTER)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(userFilterActivityResource.getId())
 				.addObjectName(userFilterActivityResource.getName())
 				.addProjectId(userFilterActivityResource.getProjectId())

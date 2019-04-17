@@ -39,7 +39,10 @@ public class FilterDeletedEvent extends BeforeEvent<UserFilterActivityResource> 
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_FILTER).addActivityEntityType(FILTER).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(DELETE_FILTER)
+				.addActivityEntityType(FILTER)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getName())
 				.addProjectId(getBefore().getProjectId())

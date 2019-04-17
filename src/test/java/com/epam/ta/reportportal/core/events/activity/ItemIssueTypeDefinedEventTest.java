@@ -46,8 +46,7 @@ class ItemIssueTypeDefinedEventTest {
 		final String newName = "newName";
 
 		final Activity actual = new ItemIssueTypeDefinedEvent(
-				getTestItem(oldName, oldDescription, oldIgnoreAnalyzer),
-				getTestItem(newName, newDescription, newIgnoreAnalyzer), 1L, "user"
+				getTestItem(oldName, oldDescription, oldIgnoreAnalyzer), getTestItem(newName, newDescription, newIgnoreAnalyzer), 1L, "user"
 		).toActivity();
 		final Activity expected = getExpectedActivity();
 		expected.getDetails().setHistory(getExpectedHistory(

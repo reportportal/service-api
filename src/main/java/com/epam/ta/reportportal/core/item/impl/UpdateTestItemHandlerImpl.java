@@ -239,7 +239,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.collect(Collectors.toList());
 
 		before.forEach(it -> new LinkTicketEvent(it,
-				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(), user.getUserId(), user.getUsername()
+				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
+				user.getUserId(),
+				user.getUsername()
 		));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))

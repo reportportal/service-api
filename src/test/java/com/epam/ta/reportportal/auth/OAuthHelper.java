@@ -52,9 +52,7 @@ public class OAuthHelper {
 	}
 
 	private OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {
-		Collection<GrantedAuthority> authorities = Arrays.stream(roles)
-				.map(it -> new SimpleGrantedAuthority(it.getAuthority()))
-				.collect(Collectors.toList());
+		Collection<GrantedAuthority> authorities = Arrays.stream(roles).map(it -> new SimpleGrantedAuthority(it.getAuthority())).collect(Collectors.toList());
 
 		Set<String> scopes = Collections.singleton("ui");
 

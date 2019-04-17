@@ -67,7 +67,9 @@ public class NotificationsConfigUpdatedEvent extends BeforeEvent<ProjectResource
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(ActivityAction.UPDATE_PROJECT)
 				.addActivityEntityType(EMAIL_CONFIG)
-				.addProjectId(getBefore().getProjectId()).addUserId(getUserId()).addUserName(getUserLogin())
+				.addProjectId(getBefore().getProjectId())
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getBefore().getProjectId())
 				.addDetails(details)
 				.get();

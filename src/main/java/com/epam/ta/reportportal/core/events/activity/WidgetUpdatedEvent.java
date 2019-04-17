@@ -65,7 +65,10 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(UPDATE_WIDGET)
+				.addActivityEntityType(WIDGET)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

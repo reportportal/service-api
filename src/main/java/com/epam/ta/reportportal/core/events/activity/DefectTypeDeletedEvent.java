@@ -49,7 +49,10 @@ public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResourc
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(DELETE_DEFECT).addActivityEntityType(DEFECT_TYPE).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(DELETE_DEFECT)
+				.addActivityEntityType(DEFECT_TYPE)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getLongName())
 				.addProjectId(projectId)

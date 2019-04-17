@@ -61,13 +61,15 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 
 		File tempFile = transferToTempFile(file);
 		messageBus.publishActivity(new ImportStartedEvent(user.getUserId(),
-				user.getUsername(), projectDetails.getProjectId(),
+				user.getUsername(),
+				projectDetails.getProjectId(),
 				file.getOriginalFilename()
 		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
 		Long launchId = strategy.importLaunch(projectDetails, user, tempFile);
 		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
-				user.getUsername(), projectDetails.getProjectId(),
+				user.getUsername(),
+				projectDetails.getProjectId(),
 				file.getOriginalFilename()
 		));
 		return new OperationCompletionRS("Launch with id = " + launchId + " is successfully imported.");

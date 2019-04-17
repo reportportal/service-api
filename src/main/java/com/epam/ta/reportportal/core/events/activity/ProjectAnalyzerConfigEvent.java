@@ -45,7 +45,10 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_ANALYZER).addActivityEntityType(PROJECT).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(UPDATE_ANALYZER)
+				.addActivityEntityType(PROJECT)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getProjectId())
 				.addObjectName(getAfter().getProjectName())
 				.addProjectId(getAfter().getProjectId())

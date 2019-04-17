@@ -87,7 +87,9 @@ class DashboardEventsTest {
 		final String newDescription = "newDescription";
 
 		final Activity actual = new DashboardUpdatedEvent(getTestDashboard(oldName, oldShared, oldDescription),
-				getTestDashboard(newName, newShared, newDescription), 1L, "user"
+				getTestDashboard(newName, newShared, newDescription),
+				1L,
+				"user"
 		).toActivity();
 		final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD, newName);
 		expected.getDetails()

@@ -45,9 +45,7 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 	public Activity toActivity() {
 		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
-				.addActivityEntityType(TICKET)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
+				.addActivityEntityType(TICKET).addUserId(getUserId()).addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId());

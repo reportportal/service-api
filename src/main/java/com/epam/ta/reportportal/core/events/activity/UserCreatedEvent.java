@@ -49,7 +49,10 @@ public class UserCreatedEvent extends AbstractEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_USER).addActivityEntityType(USER).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(CREATE_USER)
+				.addActivityEntityType(USER)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(userActivityResource.getId())
 				.addObjectName(userActivityResource.getFullName())
 				.addProjectId(userActivityResource.getDefaultProjectId())

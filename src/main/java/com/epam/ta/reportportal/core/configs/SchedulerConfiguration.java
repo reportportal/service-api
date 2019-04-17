@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.job.CleanLaunchesJob;
-import com.epam.ta.reportportal.job.CleanLogsJob;
-import com.epam.ta.reportportal.job.CleanScreenshotsJob;
-import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
+import com.epam.ta.reportportal.job.*;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
@@ -115,6 +112,12 @@ public class SchedulerConfiguration {
 		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
+	@Bean
+	public SimpleTriggerFactoryBean cleanExpiredCreationBidsTrigger(@Named("cleanExpiredCreationBidsJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.bids.cron}") String cleanBidsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanBidsCron).toMillis());
+	}
+
 	@Bean("cleanLogsJobBean")
 	public JobDetailFactoryBean cleanLogsJob() {
 		return createJobDetail(CleanLogsJob.class);
@@ -133,6 +136,11 @@ public class SchedulerConfiguration {
 	@Bean("cleanLaunchesJobBean")
 	public JobDetailFactoryBean cleanLaunchesJob() {
 		return createJobDetail(CleanLaunchesJob.class);
+	}
+
+	@Bean("cleanExpiredCreationBidsJobBean")
+	public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
+		return createJobDetail(CleanExpiredCreationBidsJob.class);
 	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {

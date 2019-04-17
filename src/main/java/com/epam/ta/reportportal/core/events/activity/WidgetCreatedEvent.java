@@ -50,7 +50,10 @@ public class WidgetCreatedEvent extends AbstractEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_WIDGET).addActivityEntityType(WIDGET).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(CREATE_WIDGET)
+				.addActivityEntityType(WIDGET)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(widgetActivityResource.getId())
 				.addObjectName(widgetActivityResource.getName())
 				.addProjectId(widgetActivityResource.getProjectId())

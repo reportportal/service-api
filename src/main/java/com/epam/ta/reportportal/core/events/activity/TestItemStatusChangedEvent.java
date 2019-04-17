@@ -43,7 +43,9 @@ public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityReso
 				.addActivityEntityType(ITEM)
 				.addAction(UPDATE_ITEM)
 				.addObjectId(getAfter().getId())
-				.addProjectId(getAfter().getProjectId()).addUserId(getUserId()).addUserName(getUserLogin())
+				.addProjectId(getAfter().getProjectId())
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectName(getAfter().getName())
 				.addHistoryField(STATUS, getBefore().getStatus(), getAfter().getStatus())
 				.get();

@@ -31,12 +31,17 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
  */
 class UserCreatedEventTest {
 
-	@Test
-	void toActivity() {
-		final Activity actual = new UserCreatedEvent(getUser(), 1L).toActivity();
-		final Activity expected = getExpectedActivity();
-		checkActivity(expected, actual);
-
+	private static Activity getExpectedActivity() {
+		Activity activity = new Activity();
+		activity.setAction(ActivityAction.CREATE_USER.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.USER.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails("Jaja Juja"));
+		return activity;
 	}
 
 	private static UserActivityResource getUser() {
@@ -47,15 +52,11 @@ class UserCreatedEventTest {
 		return user;
 	}
 
-	private static Activity getExpectedActivity() {
-		Activity activity = new Activity();
-		activity.setAction(ActivityAction.CREATE_USER.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.USER.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("Jaja Juja"));
-		return activity;
+	@Test
+	void toActivity() {
+		final Activity actual = new UserCreatedEvent(getUser(), 1L, "user").toActivity();
+		final Activity expected = getExpectedActivity();
+		checkActivity(expected, actual);
+
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_WID
 /**
  * @author pavel_bortnik
  */
-public class WidgetCreatedEvent implements ActivityEvent {
+public class WidgetCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private WidgetActivityResource widgetActivityResource;
-	private Long createdBy;
 
 	public WidgetCreatedEvent() {
 	}
 
-	public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long createdBy) {
+	public WidgetCreatedEvent(WidgetActivityResource widgetActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.widgetActivityResource = widgetActivityResource;
-		this.createdBy = createdBy;
 	}
 
 	public WidgetActivityResource getWidgetActivityResource() {
@@ -48,20 +47,13 @@ public class WidgetCreatedEvent implements ActivityEvent {
 		this.widgetActivityResource = widgetActivityResource;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_WIDGET)
 				.addActivityEntityType(WIDGET)
-				.addUserId(createdBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(widgetActivityResource.getId())
 				.addObjectName(widgetActivityResource.getName())
 				.addProjectId(widgetActivityResource.getProjectId())

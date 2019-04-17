@@ -30,29 +30,30 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
  */
 class ProjectIndexEventTest {
 
+	private static Activity getExpectedActivity(ActivityAction action) {
+		Activity activity = new Activity();
+		activity.setAction(action.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(3L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails("test_project"));
+		return activity;
+	}
+
 	@Test
 	void generate() {
-		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, true).toActivity();
+		final Activity actual = new ProjectIndexEvent(1L, "user", 3L, "test_project", true).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.GENERATE_INDEX);
 		checkActivity(expected, actual);
 	}
 
 	@Test
 	void delete() {
-		final Activity actual = new ProjectIndexEvent(3L, "test_project", 1L, false).toActivity();
+		final Activity actual = new ProjectIndexEvent(1L, "user", 3L, "test_project", false).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_INDEX);
 		checkActivity(expected, actual);
-	}
-
-	private static Activity getExpectedActivity(ActivityAction action) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(3L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("test_project"));
-		return activity;
 	}
 }

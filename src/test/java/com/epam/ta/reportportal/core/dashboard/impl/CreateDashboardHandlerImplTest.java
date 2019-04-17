@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,13 @@ import static org.mockito.Mockito.when;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
-class CreateDashboardHandlerTest {
+class CreateDashboardHandlerImplTest {
 
 	@Mock
 	private DashboardRepository dashboardRepository;
 
 	@InjectMocks
-	private CreateDashboardHandler handler;
+	private CreateDashboardHandlerImpl handler;
 
 	@Test
 	void createAlreadyExistDashboard() {

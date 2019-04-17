@@ -166,7 +166,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
-				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId()));
+				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -193,7 +193,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -201,7 +202,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
 					"Actual status: " + actualStatus + " can not be changed to: " + providedStatus.get()
 			);
-			strategy.changeStatus(testItem, providedStatus.get(), user.getUserId(), projectDetails.getProjectId());
+			strategy.changeStatus(testItem, providedStatus.get(), user, projectDetails.getProjectId());
 		}
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
@@ -239,7 +240,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		before.forEach(it -> new LinkTicketEvent(it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
-				user.getUserId()
+				user.getUserId(),
+				user.getUsername()
 		));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))

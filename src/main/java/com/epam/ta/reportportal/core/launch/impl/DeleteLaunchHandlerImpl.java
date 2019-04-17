@@ -85,7 +85,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		launchRepository.delete(launch);
 
 		eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(launch.getId()));
-		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId()));
+		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
 
@@ -114,9 +114,9 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		);
 
 		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(r -> {
-			eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(r.getId()));
-			messageBus.publishActivity(new LaunchDeletedEvent(r, user.getUserId()));
+		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(it -> {
+			eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(it.getId()));
+			messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername()));
 		});
 		return new DeleteBulkRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()), notFound, exceptions.stream().map(ex -> {
 			ErrorRS errorResponse = new ErrorRS();

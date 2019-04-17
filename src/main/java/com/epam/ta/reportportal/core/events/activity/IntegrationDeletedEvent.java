@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_BTS
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationDeletedEvent implements ActivityEvent {
+public class IntegrationDeletedEvent extends AbstractEvent implements ActivityEvent {
 
 	private IntegrationActivityResource integrationActivityResource;
-	private Long deletedBy;
 
 	public IntegrationDeletedEvent() {
 	}
 
-	public IntegrationDeletedEvent(IntegrationActivityResource integrationActivityResource, Long deletedBy) {
+	public IntegrationDeletedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.integrationActivityResource = integrationActivityResource;
-		this.deletedBy = deletedBy;
 	}
 
 	public IntegrationActivityResource getIntegrationActivityResource() {
@@ -47,20 +46,13 @@ public class IntegrationDeletedEvent implements ActivityEvent {
 		this.integrationActivityResource = integrationActivityResource;
 	}
 
-	public Long getDeletedBy() {
-		return deletedBy;
-	}
-
-	public void setDeletedBy(Long deletedBy) {
-		this.deletedBy = deletedBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(DELETE_BTS)
 				.addActivityEntityType(INTEGRATION)
-				.addUserId(deletedBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
 				.addProjectId(integrationActivityResource.getProjectId())

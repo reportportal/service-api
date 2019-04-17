@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_BTS
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationUpdatedEvent implements ActivityEvent {
+public class IntegrationUpdatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private IntegrationActivityResource integrationActivityResource;
-	private Long updatedBy;
 
 	public IntegrationUpdatedEvent() {
 	}
 
-	public IntegrationUpdatedEvent(IntegrationActivityResource integrationActivityResource, Long updatedBy) {
+	public IntegrationUpdatedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.integrationActivityResource = integrationActivityResource;
-		this.updatedBy = updatedBy;
 	}
 
 	public IntegrationActivityResource getIntegrationActivityResource() {
@@ -47,20 +46,13 @@ public class IntegrationUpdatedEvent implements ActivityEvent {
 		this.integrationActivityResource = integrationActivityResource;
 	}
 
-	public Long getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(UPDATE_BTS)
 				.addActivityEntityType(INTEGRATION)
-				.addUserId(updatedBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
 				.addProjectId(integrationActivityResource.getProjectId())

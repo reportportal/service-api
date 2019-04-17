@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl.status;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
@@ -65,7 +66,7 @@ public abstract class StatusChangingStrategy {
 		this.messageBus = messageBus;
 	}
 
-	abstract public void changeStatus(TestItem item, StatusEnum providedStatus, Long userId, Long projectId);
+	abstract public void changeStatus(TestItem item, StatusEnum providedStatus, ReportPortalUser user, Long projectId);
 
 	void addToInvestigateIssue(TestItem testItem, Long projectId) {
 		IssueEntity issueEntity = new IssueEntity();
@@ -76,7 +77,7 @@ public abstract class StatusChangingStrategy {
 		testItem.getItemResults().setIssue(issueEntity);
 	}
 
-	void changeStatusRecursively(TestItem testItem, Long userId, Long projectId) {
+	void changeStatusRecursively(TestItem testItem, ReportPortalUser user, Long projectId) {
 		TestItem parent = testItem.getParent();
 		Hibernate.initialize(parent);
 		if (parent != null) {
@@ -87,19 +88,27 @@ public abstract class StatusChangingStrategy {
 			) ? StatusEnum.FAILED : StatusEnum.PASSED;
 			if (!parent.getItemResults().getStatus().equals(newStatus) && parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS) {
 				parent.getItemResults().setStatus(newStatus);
-				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
-				changeStatusRecursively(parent, userId, projectId);
+				messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+						TO_ACTIVITY_RESOURCE.apply(parent, projectId),
+						user.getUserId(),
+						user.getUsername()
+				));
+				changeStatusRecursively(parent, user, projectId);
 			}
 		}
 	}
 
-	void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, Long userId, Long projectId) {
+	void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, ReportPortalUser user, Long projectId) {
 		if (!oldParentStatus.equals(StatusEnum.FAILED) || oldParentStatus != StatusEnum.IN_PROGRESS) {
 			TestItem parent = testItem.getParent();
 			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
 			while (parent != null) {
 				parent.getItemResults().setStatus(StatusEnum.FAILED);
-				messageBus.publishActivity(new TestItemStatusChangedEvent(before, TO_ACTIVITY_RESOURCE.apply(parent, projectId), userId));
+				messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+						TO_ACTIVITY_RESOURCE.apply(parent, projectId),
+						user.getUserId(),
+						user.getUsername()
+				));
 				parent = parent.getParent();
 			}
 			if (testItem.getLaunch().getStatus() != IN_PROGRESS) {

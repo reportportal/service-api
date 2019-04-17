@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardCreatedEvent;
 import com.epam.ta.reportportal.dao.DashboardRepository;
@@ -37,7 +38,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
  * @author Pavel Bortnik
  */
 @Service
-public class CreateDashboardHandler implements com.epam.ta.reportportal.core.dashboard.CreateDashboardHandler {
+public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
 	@Autowired
 	private DashboardRepository dashboardRepository;
@@ -63,7 +64,7 @@ public class CreateDashboardHandler implements com.epam.ta.reportportal.core.das
 				.get();
 		dashboardRepository.save(dashboard);
 		aclHandler.initAcl(dashboard, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(rq.getShare()));
-		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
+		messageBus.publishActivity(new DashboardCreatedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(dashboard.getId());
 	}
 }

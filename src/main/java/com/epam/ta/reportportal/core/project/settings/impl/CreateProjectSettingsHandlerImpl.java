@@ -137,7 +137,11 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 					widgetRepository.save(widget);
 				});
 
-		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType), project.getId(), user.getUserId()));
+		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType),
+				user.getUserId(),
+				user.getUsername(),
+				project.getId()
+		));
 		return new IssueSubTypeCreatedRS(subType.getId(), subType.getLocator());
 	}
 

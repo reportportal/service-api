@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.user.impl;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
@@ -50,7 +49,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -90,13 +88,10 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final GetIntegrationHandler getIntegrationHandler;
 
-	private final ApplicationEventPublisher eventPublisher;
-
 	@Autowired
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
-			ApplicationEventPublisher eventPublisher) {
+			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.emailServiceFactory = emailServiceFactory;
@@ -105,7 +100,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		this.messageBus = messageBus;
 		this.saveDefaultProjectService = saveDefaultProjectService;
 		this.getIntegrationHandler = getIntegrationHandler;
-		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -123,7 +117,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
 		messageBus.publishActivity(userCreatedEvent);
-		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();
 
 	}
@@ -215,7 +208,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		userCreationBidRepository.deleteAllByEmail(email);
 
 		messageBus.publishActivity(userCreatedEvent);
-		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();
 	}
 

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -36,6 +37,7 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Permission;
@@ -69,14 +71,18 @@ public class SaveDefaultProjectService {
 
 	private final ShareableObjectsHandler aclHandler;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public SaveDefaultProjectService(ProjectRepository projectRepository, UserRepository userRepository,
-			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler) {
+			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler,
+			ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
 		this.aclHandler = aclHandler;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Transactional
@@ -129,6 +135,7 @@ public class SaveDefaultProjectService {
 			permissions.add(BasePermission.ADMINISTRATION);
 		}
 		aclHandler.permitSharedObjects(defaultProject.getId(), user.getLogin(), permissions);
+		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(user.getId()));
 
 		response.setId(user.getId());
 		response.setLogin(user.getLogin());

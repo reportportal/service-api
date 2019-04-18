@@ -34,7 +34,7 @@ public class ItemAttributeConverter {
 		ItemAttribute itemAttribute = new ItemAttribute();
 		itemAttribute.setKey(it.getKey());
 		itemAttribute.setValue(it.getValue());
-		itemAttribute.setSystem(it.isSystem());
+		itemAttribute.setSystem(false);
 		return itemAttribute;
 	};
 }

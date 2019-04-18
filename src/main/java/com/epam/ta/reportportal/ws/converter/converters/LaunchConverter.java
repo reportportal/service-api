@@ -76,7 +76,8 @@ public class LaunchConverter {
 
 	private static Set<ItemAttributeResource> getAttributes(Launch launch) {
 		return ofNullable(launch.getAttributes()).map(tags -> tags.stream()
-				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem()))
+				.filter(it -> !it.isSystem())
+				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
 				.collect(toSet())).orElse(Collections.emptySet());
 	}
 }

@@ -47,7 +47,8 @@ public final class TestItemConverter {
 		resource.setUniqueId(item.getUniqueId());
 		resource.setAttributes(item.getAttributes()
 				.stream()
-				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem()))
+				.filter(it -> !it.isSystem())
+				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
 				.collect(toSet()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
 		resource.setItemId(item.getItemId());

@@ -64,7 +64,6 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -188,7 +187,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-		validateAttributes(rq.getAttributes());
 		validate(projectDetails, user, testItem);
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());

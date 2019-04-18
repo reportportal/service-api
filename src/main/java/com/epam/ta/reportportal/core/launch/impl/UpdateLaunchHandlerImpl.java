@@ -54,7 +54,6 @@ import java.util.function.Predicate;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
@@ -103,7 +102,6 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
-		validateAttributes(rq.getAttributes());
 		launch = new LaunchBuilder(launch).addMode(rq.getMode())
 				.addDescription(rq.getDescription())
 				.overwriteAttributes(rq.getAttributes())

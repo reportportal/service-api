@@ -24,9 +24,12 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
@@ -37,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -62,10 +66,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ApplicationEventPublisher eventPublisher;
 
+	private final IssueTypeRepository issueTypeRepository;
+
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
 			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher) {
+			ApplicationEventPublisher eventPublisher, IssueTypeRepository issueTypeRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
@@ -73,13 +79,24 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
+		this.issueTypeRepository = issueTypeRepository;
 	}
 
 	@Override
 	public OperationCompletionRS deleteProject(Long projectId) {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
+		Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
+				.stream()
+				.map(IssueType::getId)
+				.collect(Collectors.toSet());
+		Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
+				.stream()
+				.map(ProjectIssueType::getIssueType)
+				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+				.collect(Collectors.toSet());
 		projectRepository.deleteById(projectId);
+		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(projectId);
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
 		return new OperationCompletionRS("Project with id = '" + projectId + "' has been successfully deleted.");
@@ -104,7 +121,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
 		logIndexer.deleteIndex(project.getId());
-		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), false));
+		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), user.getLogin(), false));
 		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
 	}
 

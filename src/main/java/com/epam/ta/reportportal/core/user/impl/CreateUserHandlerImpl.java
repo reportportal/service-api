@@ -121,7 +121,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
-		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId());
+		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
 		messageBus.publishActivity(userCreatedEvent);
 		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));
 		return pair.getValue();
@@ -198,7 +198,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		CreateUserRQFull createUserRQFull = new CreateUserRQFull();
 
-		createUserRQFull.setLogin(normalizeAndValidateLogin(request.getLogin()));
+		String login = normalizeAndValidateLogin(request.getLogin());
+		createUserRQFull.setLogin(login);
 		String email = normalizeAndValidateEmail(request.getEmail());
 		expect(email, Predicate.isEqual(bid.getEmail())).verify(INCORRECT_REQUEST, "Email from bid not match.");
 		createUserRQFull.setEmail(email);
@@ -209,7 +210,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		createUserRQFull.setProjectRole(bid.getRole());
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
-		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId());
+		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId(), login);
+
+		userCreationBidRepository.deleteAllByEmail(email);
 
 		messageBus.publishActivity(userCreatedEvent);
 		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(userCreatedEvent.getUserActivityResource().getId()));

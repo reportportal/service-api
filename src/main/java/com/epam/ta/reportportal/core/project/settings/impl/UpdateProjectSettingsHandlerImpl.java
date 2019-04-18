@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 		projectRepository.save(project);
 		issueTypeActivityResources.forEach(it -> messageBus.publishActivity(new DefectTypeUpdatedEvent(it,
 				user.getUserId(),
+				user.getUsername(),
 				project.getId()
 		)));
 		return new OperationCompletionRS("Issue sub-type(s) was updated successfully.");

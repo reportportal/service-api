@@ -113,6 +113,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
+		if (rq.isHasStats() && !parentItem.isHasChildren()) {
+			parentItem.setHasChildren(true);
+		}
 		if (BooleanUtils.toBoolean(rq.isRetry())) {
 			testItemRepository.handleRetries(item.getItemId());
 			if (!launch.isHasRetries()) {
@@ -166,9 +169,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		);
 		expect(parent.getItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
-		);
-		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
-				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())
 		);
 	}
 }

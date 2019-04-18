@@ -60,6 +60,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
+		testItem.setHasStats(rq.isHasStats());
 
 		TestItemResults testItemResults = new TestItemResults();
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
@@ -79,7 +80,6 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addParent(TestItem parent) {
-		parent.setHasChildren(true);
 		testItem.setParent(parent);
 		return this;
 	}

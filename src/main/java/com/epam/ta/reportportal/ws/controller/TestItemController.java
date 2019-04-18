@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -54,6 +53,11 @@ import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAUL
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+/**
+ * Controller implementation for
+ * {@link com.epam.ta.reportportal.entity.item.TestItem} entity
+ * <p>
+ */
 @RestController
 @RequestMapping("/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
@@ -67,8 +71,8 @@ public class TestItemController {
 	private final TestItemsHistoryHandler testItemsHistoryHandler;
 
 	@Autowired
-	public TestItemController(@Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
-							  @Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
+	public TestItemController(StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
+							  FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
 							  TestItemsHistoryHandler testItemsHistoryHandler) {
 		this.startTestItemHandler = startTestItemHandler;
 		this.deleteTestItemHandler = deleteTestItemHandler;

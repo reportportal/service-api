@@ -83,8 +83,8 @@ public class LaunchController {
 	private final GetJasperReportHandler<Launch> getJasperHandler;
 
 	@Autowired
-	public LaunchController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler createLaunchMessageHandler,
-							@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchMessageHandler,
+	public LaunchController(StartLaunchHandler createLaunchMessageHandler,
+							FinishLaunchHandler finishLaunchMessageHandler,
 							DeleteLaunchHandler deleteLaunchMessageHandler,
 							GetLaunchHandler getLaunchMessageHandler,
 							UpdateLaunchHandler updateLaunchHandler,

@@ -18,52 +18,36 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.entity.activity.ActivityDetails;
-import com.epam.ta.reportportal.entity.activity.HistoryField;
+import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 
-import java.time.LocalDateTime;
-
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.STATUS;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITEM;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class TestItemStatusChangedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Long changedBy;
-
 	public TestItemStatusChangedEvent() {
 	}
 
-	public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after, Long changedBy) {
-		super(before, after);
-		this.changedBy = changedBy;
-	}
-
-	public Long getChangedBy() {
-		return changedBy;
-	}
-
-	public void setChangedBy(Long changedBy) {
-		this.changedBy = changedBy;
+	public TestItemStatusChangedEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
-		Activity activity = new Activity();
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM.getValue());
-		activity.setObjectId(getAfter().getId());
-		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-		activity.setProjectId(getAfter().getProjectId());
-		activity.setUserId(changedBy);
-		activity.setCreatedAt(LocalDateTime.now());
-
-		ActivityDetails details = new ActivityDetails(getAfter().getName());
-		details.addHistoryField(HistoryField.of(STATUS, getBefore().getStatus(), getAfter().getStatus()));
-
-		activity.setDetails(details);
-		return activity;
+		return new ActivityBuilder().addCreatedNow()
+				.addActivityEntityType(ITEM)
+				.addAction(UPDATE_ITEM)
+				.addObjectId(getAfter().getId())
+				.addProjectId(getAfter().getProjectId())
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
+				.addObjectName(getAfter().getName())
+				.addHistoryField(STATUS, getBefore().getStatus(), getAfter().getStatus())
+				.get();
 	}
 }

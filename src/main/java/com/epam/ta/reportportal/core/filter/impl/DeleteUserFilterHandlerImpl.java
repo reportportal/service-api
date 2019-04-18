@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 		);
 		userFilterRepository.delete(userFilter);
 		aclHandler.deleteAclForObject(userFilter);
-		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId()));
+		messageBus.publishActivity(new FilterDeletedEvent(TO_ACTIVITY_RESOURCE.apply(userFilter), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("User filter with ID = '" + id + "' successfully deleted.");
 	}
 }

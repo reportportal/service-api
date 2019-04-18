@@ -49,6 +49,19 @@ class ProjectConfigEventTest {
 	private static final Pair<String, String> KEEP_SCREENSHOTS = Pair.of("2 weeks", "3 weeks");
 	private static final Pair<String, String> INTERRUPT_JOB_TIME = Pair.of("1 day", "1 week");
 
+	private static Activity getExpectedActivity(ActivityAction action) {
+		Activity activity = new Activity();
+		activity.setAction(action.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(3L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails("test_project"));
+		return activity;
+	}
+
 	@Test
 	void analyzerConfigUpdate() {
 		final Activity actual = new ProjectAnalyzerConfigEvent(getProjectAttributes(getAnalyzerConfig(ANALYZER_MODE.getLeft(),
@@ -63,7 +76,7 @@ class ProjectConfigEventTest {
 				MIN_SHOULD_MATCH.getRight(),
 				NUMBER_OF_LOG_LINES.getRight(),
 				AUTO_ANALYZED_ENABLED.getRight()
-		)), 1L).toActivity();
+		)), 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_ANALYZER);
 		expected.getDetails()
 				.setHistory(getAnalyzerConfigHistory(ANALYZER_MODE,
@@ -73,20 +86,6 @@ class ProjectConfigEventTest {
 						NUMBER_OF_LOG_LINES,
 						AUTO_ANALYZED_ENABLED
 				));
-		checkActivity(expected, actual);
-	}
-
-	@Test
-	void projectConfigUpdate() {
-		final Activity actual = new ProjectUpdatedEvent(getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(),
-				KEEP_SCREENSHOTS.getLeft(),
-				INTERRUPT_JOB_TIME.getLeft()
-		)),
-				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())),
-				1L
-		).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_PROJECT);
-		expected.getDetails().setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));
 		checkActivity(expected, actual);
 	}
 
@@ -118,16 +117,19 @@ class ProjectConfigEventTest {
 		return result;
 	}
 
-	private static Activity getExpectedActivity(ActivityAction action) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.PROJECT.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(3L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("test_project"));
-		return activity;
+	@Test
+	void projectConfigUpdate() {
+		final Activity actual = new ProjectUpdatedEvent(getProjectAttributes(getProjectConfig(KEEP_LOGS.getLeft(),
+				KEEP_SCREENSHOTS.getLeft(),
+				INTERRUPT_JOB_TIME.getLeft()
+		)),
+				getProjectAttributes(getProjectConfig(KEEP_LOGS.getRight(), KEEP_SCREENSHOTS.getRight(), INTERRUPT_JOB_TIME.getRight())),
+				1L,
+				"user"
+		).toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_PROJECT);
+		expected.getDetails().setHistory(getProjectConfigHistory(KEEP_LOGS, KEEP_SCREENSHOTS, INTERRUPT_JOB_TIME));
+		checkActivity(expected, actual);
 	}
 
 	private static List<HistoryField> getAnalyzerConfigHistory(Pair<String, String> analyzerMode, Pair<String, String> minDocFreq,

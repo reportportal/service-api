@@ -31,10 +31,23 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
  */
 class LaunchEventsTest {
 
+	private static Activity getExpectedActivity(ActivityAction action, String name) {
+		Activity activity = new Activity();
+		activity.setAction(action.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails(name));
+		return activity;
+	}
+
 	@Test
 	void started() {
 		final String name = "name";
-		final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L).toActivity();
+		final Activity actual = new LaunchStartedEvent(getLaunch(name), 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.START_LAUNCH, name);
 		checkActivity(expected, actual);
 	}
@@ -42,7 +55,7 @@ class LaunchEventsTest {
 	@Test
 	void finished() {
 		final String name = "name";
-		final Activity actual = new LaunchFinishedEvent(getLaunch(name), 1L).toActivity();
+		final Activity actual = new LaunchFinishedEvent(getLaunch(name), 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
 		checkActivity(expected, actual);
 	}
@@ -50,16 +63,8 @@ class LaunchEventsTest {
 	@Test
 	void forceFinished() {
 		final String name = "name";
-		final Activity actual = new LaunchFinishForcedEvent(getLaunch(name), 1L).toActivity();
+		final Activity actual = new LaunchFinishForcedEvent(getLaunch(name), 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
-		checkActivity(expected, actual);
-	}
-
-	@Test
-	void deleted() {
-		final String name = "name";
-		final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.DELETE_LAUNCH, name);
 		checkActivity(expected, actual);
 	}
 
@@ -71,15 +76,11 @@ class LaunchEventsTest {
 		return launch;
 	}
 
-	private static Activity getExpectedActivity(ActivityAction action, String name) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(name));
-		return activity;
+	@Test
+	void deleted() {
+		final String name = "name";
+		final Activity actual = new LaunchDeletedEvent(getLaunch(name), 1L, "user").toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.DELETE_LAUNCH, name);
+		checkActivity(expected, actual);
 	}
 }

@@ -36,15 +36,17 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
  */
 class TestItemStatusChangedEventTest {
 
-	@Test
-	void toActivity() {
-
-		final String beforeStatus = "PASSED";
-		final String afterStatus = "FAILED";
-		final Activity actual = new TestItemStatusChangedEvent(getTestItem(beforeStatus), getTestItem(afterStatus), 1L).toActivity();
-		final Activity expected = getExpectedActivity();
-		expected.getDetails().setHistory(getExpectedHistory(Pair.of(beforeStatus, afterStatus)));
-		checkActivity(expected, actual);
+	private static Activity getExpectedActivity() {
+		Activity activity = new Activity();
+		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails("name"));
+		return activity;
 	}
 
 	private static TestItemActivityResource getTestItem(String status) {
@@ -61,16 +63,19 @@ class TestItemStatusChangedEventTest {
 		return testItem;
 	}
 
-	private static Activity getExpectedActivity() {
-		Activity activity = new Activity();
-		activity.setAction(ActivityAction.UPDATE_ITEM.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.ITEM.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("name"));
-		return activity;
+	@Test
+	void toActivity() {
+
+		final String beforeStatus = "PASSED";
+		final String afterStatus = "FAILED";
+		final Activity actual = new TestItemStatusChangedEvent(getTestItem(beforeStatus),
+				getTestItem(afterStatus),
+				1L,
+				"user"
+		).toActivity();
+		final Activity expected = getExpectedActivity();
+		expected.getDetails().setHistory(getExpectedHistory(Pair.of(beforeStatus, afterStatus)));
+		checkActivity(expected, actual);
 	}
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> status) {

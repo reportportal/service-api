@@ -32,28 +32,29 @@ class ImportEventsTest {
 
 	private static final String FILE_NAME = "C:\\Windows\\winhlp32.exe";
 
+	private static Activity getExpectedActivity(ActivityAction action) {
+		Activity activity = new Activity();
+		activity.setAction(action.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails(ImportEventsTest.FILE_NAME));
+		return activity;
+	}
+
 	@Test
 	void started() {
-		final Activity actual = new ImportStartedEvent(3L, 1L, FILE_NAME).toActivity();
+		final Activity actual = new ImportStartedEvent(1L, "user", 3L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.START_IMPORT);
 		checkActivity(expected, actual);
 	}
 
 	@Test
 	void finished() {
-		final Activity actual = new ImportFinishedEvent(3L, 1L, FILE_NAME).toActivity();
+		final Activity actual = new ImportFinishedEvent(1L, "user", 3L, FILE_NAME).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_IMPORT);
 		checkActivity(expected, actual);
-	}
-
-	private static Activity getExpectedActivity(ActivityAction action) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.IMPORT.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(ImportEventsTest.FILE_NAME));
-		return activity;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_FIL
 /**
  * @author pavel_bortnik
  */
-public class FilterCreatedEvent implements ActivityEvent {
+public class FilterCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private UserFilterActivityResource userFilterActivityResource;
-	private Long createdBy;
 
 	public FilterCreatedEvent() {
 	}
 
-	public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long createdBy) {
+	public FilterCreatedEvent(UserFilterActivityResource userFilterActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.userFilterActivityResource = userFilterActivityResource;
-		this.createdBy = createdBy;
 	}
 
 	public UserFilterActivityResource getUserFilterActivityResource() {
@@ -48,20 +47,13 @@ public class FilterCreatedEvent implements ActivityEvent {
 		this.userFilterActivityResource = userFilterActivityResource;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_FILTER)
 				.addActivityEntityType(FILTER)
-				.addUserId(createdBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(userFilterActivityResource.getId())
 				.addObjectName(userFilterActivityResource.getName())
 				.addProjectId(userFilterActivityResource.getProjectId())

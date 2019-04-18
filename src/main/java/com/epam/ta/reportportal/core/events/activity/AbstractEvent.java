@@ -13,30 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.google.common.base.Preconditions;
-
 /**
- * @author Andrei Varabyeu
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class AroundEvent<T> extends BeforeEvent<T> {
+public abstract class AbstractEvent {
 
-	private T after;
+	private Long userId;
+	private String UserLogin;
 
-	public AroundEvent() {
+	public AbstractEvent() {
 	}
 
-	public AroundEvent(Long userId, String userLogin, T before, T after) {
-		super(userId, userLogin, before);
-		this.after = Preconditions.checkNotNull(after);
+	public AbstractEvent(Long userId, String userLogin) {
+		this.userId = userId;
+		UserLogin = userLogin;
 	}
 
-	public T getAfter() {
-		return after;
+	public Long getUserId() {
+		return userId;
 	}
 
-	public void setAfter(T after) {
-		this.after = after;
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserLogin() {
+		return UserLogin;
+	}
+
+	public void setUserLogin(String userLogin) {
+		UserLogin = userLogin;
 	}
 }

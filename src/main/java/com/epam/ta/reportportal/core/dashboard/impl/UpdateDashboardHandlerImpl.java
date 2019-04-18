@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
+import com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
@@ -48,7 +49,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
  * @author Pavel Bortnik
  */
 @Service
-public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.dashboard.UpdateDashboardHandler {
+public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
 	@Autowired
 	private DashboardWidgetRepository dashboardWidgetRepository;
@@ -67,8 +68,8 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	private ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	public UpdateDashboardHandler(DashboardRepository dashboardRepository, MessageBus messageBus, GetDashboardHandler getDashboardHandler,
-			GetWidgetHandler getWidgetHandler, ShareableObjectsHandler aclHandler) {
+	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus,
+			GetDashboardHandler getDashboardHandler, GetWidgetHandler getWidgetHandler, ShareableObjectsHandler aclHandler) {
 		this.dashboardRepository = dashboardRepository;
 		this.messageBus = messageBus;
 		this.getDashboardHandler = getDashboardHandler;
@@ -89,7 +90,11 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 			aclHandler.updateAcl(dashboard, projectDetails.getProjectId(), dashboard.isShared());
 		}
 
-		messageBus.publishActivity(new DashboardUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
+		messageBus.publishActivity(new DashboardUpdatedEvent(before,
+				TO_ACTIVITY_RESOURCE.apply(dashboard),
+				user.getUserId(),
+				user.getUsername()
+		));
 		return new OperationCompletionRS("Dashboard with ID = '" + dashboard.getId() + "' successfully updated");
 	}
 
@@ -115,7 +120,8 @@ public class UpdateDashboardHandler implements com.epam.ta.reportportal.core.das
 	}
 
 	@Override
-	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS removeWidget(Long widgetId, Long dashboardId, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
 		Dashboard dashboard = getDashboardHandler.getPermitted(dashboardId, projectDetails);
 		Widget widget = getWidgetHandler.getPermitted(widgetId, projectDetails);
 

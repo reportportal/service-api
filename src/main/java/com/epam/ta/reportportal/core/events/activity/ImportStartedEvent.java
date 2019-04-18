@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,17 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.START_IMPO
 /**
  * @author Pavel Bortnik
  */
-public class ImportStartedEvent implements ActivityEvent {
+public class ImportStartedEvent extends AbstractEvent implements ActivityEvent {
 
 	private Long projectId;
-	private Long userId;
 	private String fileName;
 
 	public ImportStartedEvent() {
 	}
 
-	public ImportStartedEvent(Long projectId, Long userId, String fileName) {
+	public ImportStartedEvent(Long userId, String userLogin, Long projectId, String fileName) {
+		super(userId, userLogin);
 		this.projectId = projectId;
-		this.userId = userId;
 		this.fileName = fileName;
 	}
 
@@ -47,14 +46,6 @@ public class ImportStartedEvent implements ActivityEvent {
 
 	public void setProjectId(Long projectId) {
 		this.projectId = projectId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
 	}
 
 	public String getFileName() {
@@ -68,9 +59,7 @@ public class ImportStartedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(START_IMPORT)
-				.addActivityEntityType(IMPORT)
-				.addUserId(userId)
+				.addAction(START_IMPORT).addActivityEntityType(IMPORT).addUserId(getUserId()).addUserName(getUserLogin())
 				.addProjectId(projectId)
 				.addObjectName(fileName)
 				.get();

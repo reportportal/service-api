@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,24 +28,14 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.DELETE_DEF
  */
 public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResource> implements ActivityEvent {
 
-	private Long deletedBy;
 	private Long projectId;
 
 	public DefectTypeDeletedEvent() {
 	}
 
-	public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long deletedBy, Long projectId) {
-		super(before);
-		this.deletedBy = deletedBy;
+	public DefectTypeDeletedEvent(IssueTypeActivityResource before, Long userId, String userLogin, Long projectId) {
+		super(userId, userLogin, before);
 		this.projectId = projectId;
-	}
-
-	public Long getDeletedBy() {
-		return deletedBy;
-	}
-
-	public void setDeletedBy(Long deletedBy) {
-		this.deletedBy = deletedBy;
 	}
 
 	public Long getProjectId() {
@@ -61,7 +51,8 @@ public class DefectTypeDeletedEvent extends BeforeEvent<IssueTypeActivityResourc
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(DELETE_DEFECT)
 				.addActivityEntityType(DEFECT_TYPE)
-				.addUserId(deletedBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getBefore().getId())
 				.addObjectName(getBefore().getLongName())
 				.addProjectId(projectId)

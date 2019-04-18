@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 		userFilterRepository.save(filter);
 		aclHandler.initAcl(filter, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createFilterRQ.getShare()));
-		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId()));
+		messageBus.publishActivity(new FilterCreatedEvent(TO_ACTIVITY_RESOURCE.apply(filter), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(filter.getId());
 	}
 
@@ -127,7 +127,11 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
 		}
 
-		messageBus.publishActivity(new FilterUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(updated), user.getUserId()));
+		messageBus.publishActivity(new FilterUpdatedEvent(before,
+				TO_ACTIVITY_RESOURCE.apply(updated),
+				user.getUserId(),
+				user.getUsername()
+		));
 		return new OperationCompletionRS("User filter with ID = '" + updated.getId() + "' successfully updated.");
 	}
 

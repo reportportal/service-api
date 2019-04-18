@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_BTS
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationCreatedEvent implements ActivityEvent {
+public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private IntegrationActivityResource integrationActivityResource;
-	private Long createdBy;
 
 	public IntegrationCreatedEvent() {
 	}
 
-	public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource, Long createdBy) {
+	public IntegrationCreatedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.integrationActivityResource = integrationActivityResource;
-		this.createdBy = createdBy;
 	}
 
 	public IntegrationActivityResource getIntegrationActivityResource() {
@@ -47,20 +46,13 @@ public class IntegrationCreatedEvent implements ActivityEvent {
 		this.integrationActivityResource = integrationActivityResource;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_BTS)
 				.addActivityEntityType(INTEGRATION)
-				.addUserId(createdBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
 				.addProjectId(integrationActivityResource.getProjectId())

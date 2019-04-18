@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 		dashboardRepository.delete(dashboard);
 		widgetRepository.deleteAll(ownedWidgets);
 
-		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId()));
+		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");
 	}
 }

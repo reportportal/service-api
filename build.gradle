@@ -101,7 +101,7 @@ dependencies {
     } else {
         compile 'com.github.reportportal:commons-dao:a90a581'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:66dc055'
+        compile 'com.github.reportportal:commons-model:2ab4bae2'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }

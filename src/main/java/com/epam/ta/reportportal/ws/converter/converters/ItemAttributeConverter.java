@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.ItemAttributesRQ;
 
 import java.util.function.Function;
 
@@ -34,7 +35,11 @@ public class ItemAttributeConverter {
 		ItemAttribute itemAttribute = new ItemAttribute();
 		itemAttribute.setKey(it.getKey());
 		itemAttribute.setValue(it.getValue());
-		itemAttribute.setSystem(false);
+		if (it instanceof ItemAttributesRQ) {
+			itemAttribute.setSystem(((ItemAttributesRQ) it).isSystem());
+		} else {
+			itemAttribute.setSystem(false);
+		}
 		return itemAttribute;
 	};
 }

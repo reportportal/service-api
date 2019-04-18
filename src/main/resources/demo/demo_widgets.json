@@ -1,20 +1,41 @@
 [
   {
-    "name": "LAUNCH STATISTICS",
+    "name": "LAUNCH STATISTICS AREA",
     "widgetType": "launchStatistics",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
         "statistics$executions$total",
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$pb001",
-        "statistics$defects$automation_bug$ab001"
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$to_investigate$total"
       ],
       "widgetOptions": {
-        "timeline": "WEEK"
+        "timeline": "WEEK",
+        "viewMode": "area"
+      }
+    }
+  },
+  {
+    "name": "LAUNCH STATISTICS BAR",
+    "widgetType": "launchStatistics",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped"
+      ],
+      "widgetOptions": {
+        "timeline": "WEEK",
+        "viewMode": "bar"
       }
     }
   },
@@ -23,7 +44,7 @@
     "widgetType": "investigatedTrend",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
       ],
       "widgetOptions": {
@@ -32,30 +53,11 @@
     }
   },
   {
-    "name": "OVERALL STATISTICS PANEL",
-    "widgetType": "overallStatistics",
-    "share": true,
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-        "statistics$executions$total",
-        "statistics$executions$passed",
-        "statistics$executions$failed",
-        "statistics$executions$skipped",
-        "statistics$defects$product_bug$pb001",
-        "statistics$defects$automation_bug$ab001"
-      ],
-      "widgetOptions": {
-        "latest": ""
-      }
-    }
-  },
-  {
     "name": "TEST CASES GROWTH TREND CHART",
     "widgetType": "casesTrend",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
         "statistics$executions$total"
       ],
@@ -64,14 +66,59 @@
     }
   },
   {
+    "name": "OVERALL STATISTICS PANEL",
+    "widgetType": "overallStatistics",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$to_investigate$total"
+      ],
+      "widgetOptions": {
+        "latest": false,
+        "viewMode": "panel"
+      }
+    }
+  },
+  {
     "name": "LAUNCHES DURATION CHART",
     "widgetType": "launchesDurationChart",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
       ],
       "widgetOptions": {
+        "latest": false
+      }
+    }
+  },
+  {
+    "name": "OVERALL STATISTICS DONUT",
+    "widgetType": "overallStatistics",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$to_investigate$total"
+      ],
+      "widgetOptions": {
+        "latest": false,
+        "viewMode": "donut"
       }
     }
   },
@@ -80,7 +127,7 @@
     "widgetType": "bugTrend",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
         "statistics$defects$to_investigate$total",
         "statistics$defects$product_bug$total",
@@ -97,10 +144,11 @@
     "widgetType": "launchesTable",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
         "name",
         "status",
+        "startTime",
         "endTime",
         "lastModified",
         "number",
@@ -111,99 +159,25 @@
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$pb001",
-        "statistics$defects$automation_bug$ab001"
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total"
       ],
       "widgetOptions": {
       }
     }
   },
   {
-    "name": "ACTIVITY STREAM",
-    "share": true,
-    "widgetType": "activityStream",
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-      ],
-      "widgetOptions": {
-        "user": "default",
-        "actionType": [
-          "createLaunch",
-          "createWidget",
-          "updateDashboard"
-        ]
-      }
-    }
-  },
-  {
-    "name": "FLAKY TEST CASES",
-    "widgetType": "flakyTestCases",
+    "name": "MOST FAILED TEST CASES",
+    "widgetType": "topTestCases",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 30,
       "contentFields": [
-      ],
-      "widgetOptions": {
-        "launchNameFilter": "Demo Api Tests"
-      }
-    }
-  },
-  {
-    "name": "LAUNCHES COMPARISON CHART",
-    "widgetType": "launchesComparisonChart",
-    "share": true,
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-        "statistics$executions$total",
-        "statistics$executions$passed",
-        "statistics$executions$failed",
-        "statistics$executions$skipped",
-        "statistics$defects$product_bug$pb001",
-        "statistics$defects$automation_bug$ab001"
-      ],
-      "widgetOptions": {
-        "launchNameFilter": "Demo Api Tests"
-      }
-    }
-  },
-  {
-    "name": "MOST TIME CONSUMING",
-    "widgetType": "mostTimeConsuming",
-    "share": true,
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-      ],
-      "widgetOptions": {
-        "launchNameFilter": "Demo Api Tests"
-      }
-    }
-  },
-  {
-    "name": "NOT PASSED",
-    "share": true,
-    "widgetType": "notPassed",
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-      ],
-      "widgetOptions": {
-      }
-    }
-  },
-  {
-    "name": "PASSING RATE PER LAUNCH",
-    "share": true,
-    "widgetType": "passingRatePerLaunch",
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
+        "statistics$executions$failed"
       ],
       "widgetOptions": {
         "launchNameFilter": "Demo Api Tests",
-        "viewMode": "pie"
+        "includeMethods": false
       }
     }
   },
@@ -212,60 +186,27 @@
     "share": true,
     "widgetType": "passingRateSummary",
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 50,
       "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed"
       ],
       "widgetOptions": {
+        "viewMode": "pie"
       }
     }
   },
   {
-    "name": "UNIQUE BUG TABLE",
-    "widgetType": "uniqueBugTable",
+    "name": "FLAKY TEST CASES",
+    "widgetType": "flakyTestCases",
     "share": true,
     "contentParameters": {
-      "itemsCount": 10,
+      "itemsCount": 30,
       "contentFields": [
       ],
       "widgetOptions": {
         "launchNameFilter": "Demo Api Tests",
-        "latest": ""
-      }
-    }
-  },
-  {
-    "name": "TOP TEST CASES",
-    "widgetType": "topTestCases",
-    "share": true,
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-        "statistics$executions$failed"
-      ],
-      "widgetOptions": {
-        "launchNameFilter": "Demo Api Tests"
-      }
-    }
-  },
-  {
-    "name": "PRODUCT STATUS",
-    "widgetType": "productStatus",
-    "share": true,
-    "contentParameters": {
-      "itemsCount": 10,
-      "contentFields": [
-        "statistics$executions$total",
-        "statistics$executions$passed",
-        "statistics$executions$failed",
-        "statistics$executions$skipped",
-        "statistics$defects$product_bug$pb001",
-        "statistics$defects$automation_bug$ab001"
-      ],
-      "widgetOptions": {
-        "strategy": "launch",
-        "customColumns": {
-          "firstColumn": "build"
-        }
+        "includeMethods": false
       }
     }
   }

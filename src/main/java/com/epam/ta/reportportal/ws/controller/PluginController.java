@@ -82,7 +82,7 @@ public class PluginController {
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Update Report Portal plugin state")
+	@ApiOperation("Get all available plugins")
 	@PreAuthorize(ADMIN_ONLY)
 	public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
 		return getPluginHandler.getPlugins();

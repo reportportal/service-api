@@ -13,11 +13,11 @@ class ItemAttributeConverterTest {
 
 	@Test
 	void fromResource() {
-		ItemAttributeResource resource = new ItemAttributeResource("key", "val", false);
+		ItemAttributeResource resource = new ItemAttributeResource("key", "val");
 		final ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(resource);
 
 		assertEquals(itemAttribute.getKey(), resource.getKey());
 		assertEquals(itemAttribute.getValue(), resource.getValue());
-		assertEquals(itemAttribute.isSystem(), resource.isSystem());
+		assertEquals(itemAttribute.isSystem(), false);
 	}
 }

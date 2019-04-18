@@ -25,10 +25,7 @@ import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
-import com.epam.ta.reportportal.ws.model.ParameterResource;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.time.LocalDateTime;
@@ -101,7 +98,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addAttributes(Set<ItemAttributeResource> attributes) {
+	public TestItemBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
 		ofNullable(attributes).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
 			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 			itemAttribute.setTestItem(testItem);

@@ -23,10 +23,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -79,6 +76,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		startLaunchRQ.setName(name);
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setMode(DEFAULT);
+		startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
 		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startLaunchRQ))

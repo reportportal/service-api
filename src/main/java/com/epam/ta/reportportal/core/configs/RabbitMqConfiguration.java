@@ -47,6 +47,9 @@ import java.net.URI;
 @Conditional(Conditions.NotTestCondition.class)
 public class RabbitMqConfiguration {
 
+    public static final long DEAD_LETTER_DELAY_MILLIS = 3_000L;
+	public static final long DEAD_LETTER_MAX_RETRY = 5L;
+
 	/**
 	 * Exchanges
 	 */
@@ -55,19 +58,20 @@ public class RabbitMqConfiguration {
 	public static final String EXCHANGE_PLUGINS = "plugins";
 	public static final String EXCHANGE_REPORTING = "reporting";
 	public static final String EXCHANGE_ATTACHMENT = "direct.attachment";
+	public static final String EXCHANGE_DLQ = "dead.letter";
 
 	/**
 	 * Queues
 	 */
 	public static final String KEY_EVENTS = "broadcast.events";
 	public static final String QUEUE_ACTIVITY = "activity";
+	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
 	public static final String QUEUE_LAUNCH_START = "reporting.launch.start";
 	public static final String QUEUE_LAUNCH_FINISH = "reporting.launch.finish";
 	public static final String QUEUE_LAUNCH_STOP = "reporting.launch.stop";
 	public static final String QUEUE_LAUNCH_BULK_STOP = "reporting.launch.bulkStop";
 	public static final String QUEUE_ITEM_START = "reporting.item.start";
 	public static final String QUEUE_ITEM_FINISH = "reporting.item.finish";
-	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
 
 	public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
 	public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
@@ -79,6 +83,18 @@ public class RabbitMqConfiguration {
 	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
 
 	public static final String QUEUE_QUERY_RQ = "query-rq";
+
+	/**
+	 * Dead letter queues
+	 * Could be all messages in single DLQ, but better keep them by kind
+	 */
+	public static final String QUEUE_ITEM_START_DLQ = "reporting.item.start.dlq";
+	public static final String QUEUE_ITEM_FINISH_DLQ = "reporting.item.finish.dlq";
+	public static final String QUEUE_LAUNCH_FINISH_DLQ = "reporting.launch.finish.dlq";
+	public static final String QUEUE_LAUNCH_STOP_DLQ = "reporting.launch.stop.dlq";
+	public static final String QUEUE_LAUNCH_BULK_STOP_DLQ = "reporting.launch.bulkStop.dlq";
+
+
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -116,8 +132,8 @@ public class RabbitMqConfiguration {
 		factory.setConnectionFactory(connectionFactory);
 		factory.setDefaultRequeueRejected(false);
 		factory.setMessageConverter(jsonMessageConverter());
-		factory.setConcurrentConsumers(3);
-		factory.setMaxConcurrentConsumers(10);
+		factory.setConcurrentConsumers(1);
+		factory.setMaxConcurrentConsumers(1);
 		return factory;
 	}
 
@@ -128,6 +144,46 @@ public class RabbitMqConfiguration {
 		return rabbitTemplate;
 	}
 
+
+
+	/* Exchanges definition */
+
+
+	@Bean
+	public FanoutExchange eventsExchange() {
+		return new FanoutExchange(EXCHANGE_EVENTS, false, false);
+	}
+
+	@Bean
+	public TopicExchange pluginsExchange() {
+		return new TopicExchange(EXCHANGE_PLUGINS, false, false);
+	}
+
+	@Bean
+	public DirectExchange activityExchange() {
+		return new DirectExchange(EXCHANGE_ACTIVITY, true, false);
+	}
+
+	@Bean
+	public DirectExchange reportingExchange() {
+		return new DirectExchange(EXCHANGE_REPORTING, true, false);
+	}
+
+	@Bean
+	public DirectExchange attachmentExchange() {
+		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
+	}
+
+	@Bean
+	public DirectExchange deadLetterExchange() {
+		return new DirectExchange(EXCHANGE_DLQ, true, false);
+	}
+
+
+
+	/* Queues definition */
+
+
 	@Bean
 	public Queue launchStartQueue() {
 		return new Queue(QUEUE_LAUNCH_START);
@@ -135,29 +191,106 @@ public class RabbitMqConfiguration {
 
 	@Bean
 	public Queue launchFinishQueue() {
-		return new Queue(QUEUE_LAUNCH_FINISH);
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH_DLQ)
+//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue launchFinishDLQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_DLQ)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH)
+				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
 	}
 
 	@Bean
 	public Queue launchStopQueue() {
-		return new Queue(QUEUE_LAUNCH_STOP);
+		return QueueBuilder.durable(QUEUE_LAUNCH_STOP)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_STOP_DLQ)
+//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue launchStopDLQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_STOP_DLQ)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_STOP)
+				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
 	}
 
 	@Bean
 	public Queue launchBulkStopQueue() {
-		return new Queue(QUEUE_LAUNCH_BULK_STOP);
+		return QueueBuilder.durable(QUEUE_LAUNCH_BULK_STOP)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_BULK_STOP_DLQ)
+//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
 	}
 
+	@Bean
+	public Queue launchBulkStopDLQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_BULK_STOP_DLQ)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_BULK_STOP)
+				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
 
 	@Bean
 	public Queue itemStartQueue() {
-		return new Queue(QUEUE_ITEM_START);
+		return QueueBuilder.durable(QUEUE_ITEM_START)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START_DLQ)
+//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue itemStartDLQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_START_DLQ)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START)
+				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
 	}
 
 	@Bean
 	public Queue itemFinishQueue() {
-		return new Queue(QUEUE_ITEM_FINISH);
+		return QueueBuilder.durable(QUEUE_ITEM_FINISH)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH_DLQ)
+//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
 	}
+
+	@Bean
+	public Queue itemFinishDLQueue() {
+        return QueueBuilder.durable(QUEUE_ITEM_FINISH_DLQ)
+                .withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+                .withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH)
+                .withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+                .build();
+	}
+
+//	@Bean
+//	// Using stateless RetryOperationsInterceptor is not good approach, for it works through Thread.sleep()
+//	// thus blocking thread on retry operations
+//	RetryOperationsInterceptor interceptor() {
+//		FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+//		backOffPolicy.setBackOffPeriod(1000);
+//
+//		return RetryInterceptorBuilder.stateless()
+//				.backOffPolicy(backOffPolicy)
+//				.maxAttempts(5)
+//				.build();
+//	}
 
 	@Bean
 	public Queue pluginsPongQueue() {
@@ -184,30 +317,41 @@ public class RabbitMqConfiguration {
 		return new Queue(QUEUE_ATTACHMENT_DELETE);
 	}
 
+
 	@Bean
-	public FanoutExchange eventsExchange() {
-		return new FanoutExchange(EXCHANGE_EVENTS, false, false);
+	public Queue projectRepoQueue() {
+		return new Queue(PROJECTS_FIND_BY_NAME);
 	}
 
 	@Bean
-	public TopicExchange pluginsExchange() {
-		return new TopicExchange(EXCHANGE_PLUGINS, false, false);
+	public Queue dataStorageQueue() {
+		return new Queue(DATA_STORAGE_FETCH_DATA_QUEUE);
 	}
 
 	@Bean
-	public DirectExchange activityExchange() {
-		return new DirectExchange(EXCHANGE_ACTIVITY, true, false);
+	public Queue integrationRepoQueue() {
+		return new Queue(INTEGRATION_FIND_ONE);
 	}
 
 	@Bean
-	public DirectExchange reportingExchange() {
-		return new DirectExchange(EXCHANGE_REPORTING, true, false);
+	public Queue logRepoQueue() {
+		return new Queue(LOGS_FIND_BY_TEST_ITEM_REF_QUEUE);
 	}
 
 	@Bean
-	public DirectExchange attachmentExchange() {
-		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
+	public Queue testItemRepoQueue() {
+		return new Queue(TEST_ITEMS_FIND_ONE_QUEUE);
 	}
+
+	@Bean
+	public Queue queryQueue() {
+		return new Queue(QUEUE_QUERY_RQ);
+	}
+
+
+
+	/* Bindings */
+
 
 	@Bean
 	public Binding launchStartBinding() {
@@ -265,33 +409,28 @@ public class RabbitMqConfiguration {
 	}
 
 	@Bean
-	public Queue projectRepoQueue() {
-		return new Queue(PROJECTS_FIND_BY_NAME);
+	public Binding launchFinishDLQBinding() {
+		return BindingBuilder.bind(launchFinishDLQueue()).to(deadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ);
 	}
 
 	@Bean
-	public Queue dataStorageQueue() {
-		return new Queue(DATA_STORAGE_FETCH_DATA_QUEUE);
+	public Binding launchStopDLQBinding() {
+		return BindingBuilder.bind(launchStopDLQueue()).to(deadLetterExchange()).with(QUEUE_LAUNCH_STOP_DLQ);
 	}
 
 	@Bean
-	public Queue integrationRepoQueue() {
-		return new Queue(INTEGRATION_FIND_ONE);
+	public Binding launchBulkStopDLQBinding() {
+		return BindingBuilder.bind(launchBulkStopDLQueue()).to(deadLetterExchange()).with(QUEUE_LAUNCH_BULK_STOP_DLQ);
 	}
 
 	@Bean
-	public Queue logRepoQueue() {
-		return new Queue(LOGS_FIND_BY_TEST_ITEM_REF_QUEUE);
+	public Binding itemStartDLQBinding() {
+		return BindingBuilder.bind(itemStartDLQueue()).to(deadLetterExchange()).with(QUEUE_ITEM_START_DLQ);
 	}
 
 	@Bean
-	public Queue testItemRepoQueue() {
-		return new Queue(TEST_ITEMS_FIND_ONE_QUEUE);
-	}
-
-	@Bean
-	public Queue queryQueue() {
-		return new Queue(QUEUE_QUERY_RQ);
+	public Binding itemFinishDLQBinding() {
+		return BindingBuilder.bind(itemFinishDLQueue()).to(deadLetterExchange()).with(QUEUE_ITEM_FINISH_DLQ);
 	}
 
 }

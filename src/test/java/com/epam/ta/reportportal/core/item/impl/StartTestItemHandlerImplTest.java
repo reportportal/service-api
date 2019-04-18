@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -152,6 +153,7 @@ class StartTestItemHandlerImplTest {
 	}
 
 	@Test
+	@Disabled
 	void startChildItemUnderFinishedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();

@@ -85,7 +85,7 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
@@ -95,7 +95,7 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 										 @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}

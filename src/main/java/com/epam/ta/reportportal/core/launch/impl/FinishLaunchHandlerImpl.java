@@ -16,20 +16,17 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishForcedEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.item.descendant.FinishDescendantsHandler;
+import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -46,17 +43,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
-import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
@@ -76,17 +66,17 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
-	private final FinishDescendantsHandler<Launch> finishDescendantsHandler;
+	private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
 	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public FinishLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			@Qualifier("finishLaunchDescendantsHandler") FinishDescendantsHandler<Launch> finishDescendantsHandler, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher) {
+								   @Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus,
+								   ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.finishDescendantsHandler = finishDescendantsHandler;
+		this.finishHierarchyHandler = finishHierarchyHandler;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
@@ -104,7 +94,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 		Long id = launch.getId();
 		if (launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-			finishDescendantsHandler.finishDescendants(launch,
+			finishHierarchyHandler.finishDescendants(launch,
 					status.orElse(StatusEnum.INTERRUPTED),
 					finishLaunchRQ.getEndTime(),
 					projectDetails

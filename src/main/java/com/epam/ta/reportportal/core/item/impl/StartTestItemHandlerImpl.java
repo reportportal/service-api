@@ -32,6 +32,8 @@ import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 @Primary
 class StartTestItemHandlerImpl implements StartTestItemHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
 	private TestItemRepository testItemRepository;
 
@@ -93,6 +97,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 
+        LOGGER.debug("Created new root TestItem {}", item.getUuid());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
@@ -121,6 +126,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 			}
 		}
+
+        LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
@@ -151,7 +158,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * Verifies if the start of a child item is allowed. Conditions are
 	 * - the item's parent should not be a retry
 	 * - the item's start time must be same or later than the parent's
-	 * - the parent item must be in progress
 	 * - the parent item hasn't any logs
 	 *
 	 * @param rq     Start child item request
@@ -165,9 +171,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				rq.getStartTime(),
 				parent.getStartTime(),
 				parent.getItemId()
-		);
-		expect(parent.getItemResults().getStatus(), Preconditions.statusIn(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
-				formattedSupplier("Parent Item '{}' is not in progress", parent.getItemId())
 		);
 		expect(logRepository.hasLogs(parent.getItemId()), equalTo(false)).verify(START_ITEM_NOT_ALLOWED,
 				formattedSupplier("Parent Item '{}' already has log items", parent.getItemId())

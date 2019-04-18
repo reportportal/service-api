@@ -65,7 +65,7 @@ class TestReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onItemStart(username, "test_project", parentId, rq);
+		testReporterConsumer.onItemStart(username, "test_project", parentId, rq, null);
 
 		verify(startTestItemHandler, times(1)).startChildItem(user, extractProjectDetails(user, "test_project"), rq, parentId);
 	}
@@ -82,7 +82,7 @@ class TestReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onItemStart(username, "test_project", null, rq);
+		testReporterConsumer.onItemStart(username, "test_project", null, rq, null);
 
 		verify(startTestItemHandler, times(1)).startRootItem(user, extractProjectDetails(user, "test_project"), rq);
 	}
@@ -97,7 +97,7 @@ class TestReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ);
+		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, null);
 
 		verify(finishTestItemHandler, times(1)).finishTestItem(user, extractProjectDetails(user, "test_project"), itemId, finishTestItemRQ);
 	}

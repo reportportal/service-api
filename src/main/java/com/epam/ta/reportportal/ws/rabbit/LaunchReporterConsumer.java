@@ -24,13 +24,19 @@ import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.DEAD_LETTER_MAX_RETRY;
 
 /**
  * @author Pavel Bortnik
@@ -38,6 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional
 public class LaunchReporterConsumer {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchReporterConsumer.class);
 
 	private DatabaseUserDetailsService userDetailsService;
 
@@ -63,21 +71,52 @@ public class LaunchReporterConsumer {
 
 	@RabbitListener(queues = "#{ @launchFinishQueue.name }")
 	public void onFinishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
-			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
+			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId,
+			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
+		if (xdHeader != null) {
+			long count = (Long) xdHeader.get(0).get("count");
+			if (count > DEAD_LETTER_MAX_RETRY) {
+				LOGGER.error("Dropping finish request for Launch {}, on maximum retry attempts {}", launchId, DEAD_LETTER_MAX_RETRY);
+				return;
+			}
+			LOGGER.warn("Retrying finish request  for Launch {}, attempt {}", launchId, count);
+		}
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@RabbitListener(queues = "#{ @launchStopQueue.name }")
 	public void onStopLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
-							   @Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId) {
+							   @Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId,
+							   @Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
+		if (xdHeader != null) {
+			long count = (Long) xdHeader.get(0).get("count");
+			if (count > DEAD_LETTER_MAX_RETRY) {
+				LOGGER.error("Dropping stop request for Launch {}, on maximum retry attempts {}", launchId, DEAD_LETTER_MAX_RETRY);
+				return;
+			}
+			LOGGER.warn("Retrying stop request  for Launch {}, attempt {}", launchId, count);
+		}
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.stopLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@RabbitListener(queues = "#{ @launchBulkStopQueue.name }")
 	public void onBulkStopLaunch(@Payload BulkRQ<String, FinishExecutionRQ> rq, @Header(MessageHeaders.USERNAME) String username,
-								 @Header(MessageHeaders.PROJECT_NAME) String projectName) {
+								 @Header(MessageHeaders.PROJECT_NAME) String projectName,
+								 @Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
+		/*
+		 * don't do any processing before xdHeader check, to safeguard from DLQ infinite cycling if any
+		 * occasional exception happens. So we omit preparing launchId(s) from rq for LOGGER
+		 */
+		if (xdHeader != null) {
+			long count = (Long) xdHeader.get(0).get("count");
+			if (count > DEAD_LETTER_MAX_RETRY) {
+				LOGGER.error("Dropping bulk stop request,on maximum retry attempts {}", DEAD_LETTER_MAX_RETRY);
+				return;
+			}
+			LOGGER.warn("Retrying bulk stop request, attempt {}", count);
+		}
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
 		finishLaunchHandler.stopLaunch(rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
 	}

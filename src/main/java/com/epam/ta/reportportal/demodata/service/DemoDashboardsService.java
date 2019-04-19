@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.UserPreferenceBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
@@ -66,6 +67,8 @@ class DemoDashboardsService {
 
 	private final UserFilterRepository userFilterRepository;
 
+	private final UserPreferenceRepository userPreferenceRepository;
+
 	private final DashboardRepository dashboardRepository;
 
 	private final DashboardWidgetRepository dashboardWidgetRepository;
@@ -80,10 +83,12 @@ class DemoDashboardsService {
 
 	private Resource resource;
 
-	public DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
-			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository, ProjectRepository projectRepository,
-			ShareableObjectsHandler aclHandler, ObjectMapper objectMapper) {
+	@Autowired
+	public DemoDashboardsService(UserFilterRepository userFilterRepository, UserPreferenceRepository userPreferenceRepository,
+			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
+			ProjectRepository projectRepository, ShareableObjectsHandler aclHandler, ObjectMapper objectMapper) {
 		this.userFilterRepository = userFilterRepository;
+		this.userPreferenceRepository = userPreferenceRepository;
 		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
@@ -91,8 +96,6 @@ class DemoDashboardsService {
 		this.aclHandler = aclHandler;
 		this.objectMapper = objectMapper;
 	}
-
-	@Autowired
 
 	@Value("classpath:demo/demo_widgets.json")
 	public void setResource(Resource resource) {
@@ -136,8 +139,7 @@ class DemoDashboardsService {
 		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
-						.withCondition(Condition.EQUALS)
-						.withSearchCriteria(CRITERIA_NAME).withValue(FILTER_NAME)
+						.withCondition(Condition.EQUALS).withSearchCriteria(CRITERIA_NAME).withValue(FILTER_NAME)
 						.build())
 				.build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
 
@@ -164,6 +166,10 @@ class DemoDashboardsService {
 		userFilter.setShared(SHARED);
 
 		userFilterRepository.save(userFilter);
+		userPreferenceRepository.save(new UserPreferenceBuilder().withFilter(userFilter)
+				.withUser(user.getUserId())
+				.withProject(project.getId())
+				.get());
 		aclHandler.initAcl(userFilter, user.getUsername(), project.getId(), SHARED);
 
 		return userFilter;

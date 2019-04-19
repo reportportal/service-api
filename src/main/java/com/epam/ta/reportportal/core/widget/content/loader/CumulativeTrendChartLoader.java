@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
-import com.epam.ta.reportportal.entity.widget.content.CumulativeTrendChartContent;
+import com.epam.ta.reportportal.entity.widget.content.CumulativeTrendChartEntry;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -64,13 +64,14 @@ public class CumulativeTrendChartLoader implements LoadContentStrategy {
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
-		Map<String, List<CumulativeTrendChartContent>> result = widgetContentRepository.cumulativeTrendStatistics(filter,
+		List<CumulativeTrendChartEntry> result = widgetContentRepository.cumulativeTrendStatistics(
+				filter,
 				contentFields,
 				sort,
 				WidgetOptionUtil.getValueByKey(ATTRIBUTE_KEY, widgetOptions),
 				limit
 		);
-		return MapUtils.isEmpty(result) ? emptyMap() : singletonMap(RESULT, result);
+		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
 	}
 
 	/**

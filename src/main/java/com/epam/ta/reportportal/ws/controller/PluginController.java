@@ -83,7 +83,6 @@ public class PluginController {
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get all available plugins")
-	@PreAuthorize(ADMIN_ONLY)
 	public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
 		return getPluginHandler.getPlugins();
 	}

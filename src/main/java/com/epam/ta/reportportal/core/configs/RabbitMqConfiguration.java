@@ -132,8 +132,8 @@ public class RabbitMqConfiguration {
 		factory.setConnectionFactory(connectionFactory);
 		factory.setDefaultRequeueRejected(false);
 		factory.setMessageConverter(jsonMessageConverter());
-		factory.setConcurrentConsumers(1);
-		factory.setMaxConcurrentConsumers(1);
+		factory.setConcurrentConsumers(3);
+		factory.setMaxConcurrentConsumers(10);
 		return factory;
 	}
 
@@ -194,7 +194,6 @@ public class RabbitMqConfiguration {
 		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH_DLQ)
-//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 				.build();
 	}
 
@@ -212,7 +211,6 @@ public class RabbitMqConfiguration {
 		return QueueBuilder.durable(QUEUE_LAUNCH_STOP)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_STOP_DLQ)
-//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 				.build();
 	}
 
@@ -230,7 +228,6 @@ public class RabbitMqConfiguration {
 		return QueueBuilder.durable(QUEUE_LAUNCH_BULK_STOP)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_BULK_STOP_DLQ)
-//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 				.build();
 	}
 
@@ -248,7 +245,6 @@ public class RabbitMqConfiguration {
 		return QueueBuilder.durable(QUEUE_ITEM_START)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
 				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START_DLQ)
-//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 				.build();
 	}
 
@@ -266,7 +262,6 @@ public class RabbitMqConfiguration {
 		return QueueBuilder.durable(QUEUE_ITEM_FINISH)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
 				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH_DLQ)
-//				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 				.build();
 	}
 

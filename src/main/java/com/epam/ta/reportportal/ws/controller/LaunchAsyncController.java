@@ -70,7 +70,6 @@ public class LaunchAsyncController {
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
 	}
 
-	@Transactional
 	@PostMapping
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
@@ -81,7 +80,6 @@ public class LaunchAsyncController {
 		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
-	@Transactional
 	@PutMapping(value = "/{launchId}/finish")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)

@@ -60,7 +60,7 @@ class DemoLogsService {
 
 	private static final int MAX_LOGS_COUNT = 30;
 
-	private static final int BINARY_CONTENT_PROBABILITY = 20;
+	private static final int BINARY_CONTENT_PROBABILITY = 7;
 
 	@Autowired
 	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, DataStoreService dataStoreService) {

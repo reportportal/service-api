@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_ITEM_START;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_START;
 
 /**
  * @author Konstantin Antipin

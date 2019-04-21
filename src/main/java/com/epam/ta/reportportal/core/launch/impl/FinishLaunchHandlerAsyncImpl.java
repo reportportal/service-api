@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_BULK_STOP;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_FINISH;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_STOP;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_BULK_STOP;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_FINISH;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_STOP;
 import static java.util.stream.Collectors.toList;
 
 /**

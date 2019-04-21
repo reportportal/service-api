@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_ITEM_FINISH;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH;
 
 /**
  * @author Konstantin Antipin

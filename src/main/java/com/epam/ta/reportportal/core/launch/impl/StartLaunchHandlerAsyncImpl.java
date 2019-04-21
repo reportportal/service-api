@@ -10,11 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_LAUNCH_START;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_START;
 
 /**
  * @author Konstantin Antipin

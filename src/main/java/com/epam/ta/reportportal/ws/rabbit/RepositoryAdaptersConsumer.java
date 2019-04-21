@@ -24,11 +24,11 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.DATA_STORAGE_FETCH_DATA_QUEUE;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.INTEGRATION_FIND_ONE;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.PROJECTS_FIND_BY_NAME;
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.TEST_ITEMS_FIND_ONE_QUEUE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.DATA_STORAGE_FETCH_DATA_QUEUE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.INTEGRATION_FIND_ONE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.PROJECTS_FIND_BY_NAME;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.TEST_ITEMS_FIND_ONE_QUEUE;
 
 import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_INTEGRATION_RESOURCE;
 

@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
 
 /**
  * @author Pavel Bortnik

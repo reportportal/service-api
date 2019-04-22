@@ -26,11 +26,11 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -72,20 +72,17 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final UserRepository userRepository;
 
-	private final GetJasperReportHandler<Project> jasperReportHandler;
-
-	private final IntegrationRepository integrationRepository;
+	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	private final ProjectConverter projectConverter;
 
 	@Autowired
 	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler,
-			IntegrationRepository integrationRepository, ProjectConverter projectConverter) {
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
+			ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.jasperReportHandler = jasperReportHandler;
-		this.integrationRepository = integrationRepository;
 		this.projectConverter = projectConverter;
 	}
 
@@ -124,19 +121,19 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
-		);
+		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+				);
 		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
 	}
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
-		);
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
+				);
 		Filter filter = Filter.builder()
 				.withTarget(User.class)
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
@@ -159,7 +156,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	@Override
 	public void exportProjects(ReportFormat reportFormat, Queryable filter, OutputStream outputStream) {
 
-		List<Project> projects = projectRepository.findByFilter(filter);
+		List<ProjectInfo> projects = projectRepository.findProjectInfoByFilter(filter);
 
 		List<? extends Map<String, ?>> data = projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 

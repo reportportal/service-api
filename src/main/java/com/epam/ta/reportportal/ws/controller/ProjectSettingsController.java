@@ -116,7 +116,7 @@ public class ProjectSettingsController {
 	}
 
 	@PutMapping("/pattern/{id}")
-	@ResponseStatus(CREATED)
+	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Update pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName, @PathVariable Long id,

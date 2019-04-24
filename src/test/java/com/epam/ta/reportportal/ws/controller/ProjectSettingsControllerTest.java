@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,5 +102,78 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+	}
+
+	@Test
+	void createPatternTemplate() throws Exception {
+		CreatePatternTemplateRQ createPatternTemplateRQ = new CreatePatternTemplateRQ();
+		createPatternTemplateRQ.setEnabled(true);
+		createPatternTemplateRQ.setName("another_name");
+		createPatternTemplateRQ.setType("string");
+		createPatternTemplateRQ.setValue("qwe");
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(createPatternTemplateRQ))).andExpect(status().isCreated());
+	}
+
+	@Test
+	void createPatternTemplateWithWrongType() throws Exception {
+		CreatePatternTemplateRQ createPatternTemplateRQ = new CreatePatternTemplateRQ();
+		createPatternTemplateRQ.setEnabled(true);
+		createPatternTemplateRQ.setName("name");
+		createPatternTemplateRQ.setType("dd");
+		createPatternTemplateRQ.setValue("qwe");
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(createPatternTemplateRQ))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void createPatternTemplateWithDuplicateName() throws Exception {
+		CreatePatternTemplateRQ createPatternTemplateRQ = new CreatePatternTemplateRQ();
+		createPatternTemplateRQ.setEnabled(true);
+		createPatternTemplateRQ.setName("some_name");
+		createPatternTemplateRQ.setType("string");
+		createPatternTemplateRQ.setValue("qwe");
+
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/pattern").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(createPatternTemplateRQ))).andExpect(status().isConflict());
+	}
+
+	@Test
+	void updatePatternTemplate() throws Exception {
+
+		UpdatePatternTemplateRQ updatePatternTemplateRQ = new UpdatePatternTemplateRQ();
+		updatePatternTemplateRQ.setName("another_name");
+		updatePatternTemplateRQ.setEnabled(true);
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/1").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isOk());
+	}
+
+	@Test
+	void updatePatternTemplateWithTheSameName() throws Exception {
+
+		UpdatePatternTemplateRQ updatePatternTemplateRQ = new UpdatePatternTemplateRQ();
+		updatePatternTemplateRQ.setName("some_name");
+		updatePatternTemplateRQ.setEnabled(true);
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/1").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isOk());
+	}
+
+	@Test
+	void updatePatternTemplateWithDuplicateName() throws Exception {
+
+		UpdatePatternTemplateRQ updatePatternTemplateRQ = new UpdatePatternTemplateRQ();
+		updatePatternTemplateRQ.setName("some_name");
+		updatePatternTemplateRQ.setEnabled(true);
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/settings/pattern/2").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(updatePatternTemplateRQ))).andExpect(status().isConflict());
 	}
 }

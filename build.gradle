@@ -99,9 +99,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:0c69992'
+        compile 'com.github.reportportal:commons-dao:72ba62e5'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:e3ff6dd8'
+        compile 'com.github.reportportal:commons-model:9dad1152'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }

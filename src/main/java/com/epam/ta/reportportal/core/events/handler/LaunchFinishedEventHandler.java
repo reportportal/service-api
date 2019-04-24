@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -89,11 +90,13 @@ public class LaunchFinishedEventHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final PatternAnalyzer patternAnalyzer;
+
 	@Autowired
 	public LaunchFinishedEventHandler(ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler,
 			MailServiceFactory mailServiceFactory, UserRepository userRepository, LaunchRepository launchRepository,
 			Provider<HttpServletRequest> currentRequest, AnalyzeCollectorFactory analyzeCollectorFactory,
-			AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer) {
+			AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer, PatternAnalyzer patternAnalyzer) {
 		this.projectRepository = projectRepository;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.mailServiceFactory = mailServiceFactory;
@@ -103,6 +106,7 @@ public class LaunchFinishedEventHandler {
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
+		this.patternAnalyzer = patternAnalyzer;
 	}
 
 	@Transactional
@@ -139,6 +143,13 @@ public class LaunchFinishedEventHandler {
 			Launch updatedLaunch = launchRepository.findById(launch.getId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
 			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
+		}
+
+		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
+				.get(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute()));
+
+		if (isPatternAnalysisEnabled) {
+			patternAnalyzer.analyzeTestItems(launch.getId(), project.getId());
 		}
 
 	}

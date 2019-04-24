@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.project.settings;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -34,4 +35,12 @@ public interface UpdateProjectSettingsHandler {
 	 */
 	OperationCompletionRS updateProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateIssueSubTypeRQ rq);
+
+	/**
+	 * @param projectDetails
+	 * @param updatePatternTemplateRQ
+	 * @return
+	 */
+	OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			UpdatePatternTemplateRQ updatePatternTemplateRQ);
 }

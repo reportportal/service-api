@@ -33,4 +33,13 @@ public interface DeleteProjectSettingsHandler {
 	 * @return OperationCompletionRS
 	 */
 	OperationCompletionRS deleteProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
+
+	/**
+	 * @param projectDetails
+	 * @param user
+	 * @param id
+	 * @return
+	 */
+	OperationCompletionRS deletePatternTemplate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
+
 }

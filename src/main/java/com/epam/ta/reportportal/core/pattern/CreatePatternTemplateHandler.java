@@ -9,9 +9,11 @@ import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTem
 public interface CreatePatternTemplateHandler {
 
 	/**
-	 * @param projectId
-	 * @param createPatternTemplateRQ
-	 * @return
+	 * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity for specified {@link com.epam.ta.reportportal.entity.project.Project}
+	 *
+	 * @param projectId               {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#projectId}
+	 * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
+	 * @return {@link EntryCreatedRS}
 	 */
 	EntryCreatedRS createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ);
 }

@@ -39,9 +39,11 @@ public interface CreateProjectSettingsHandler {
 			CreateIssueSubTypeRQ rq);
 
 	/**
-	 * @param projectDetails
-	 * @param createPatternTemplateRQ
-	 * @return
+	 * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity
+	 *
+	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
+	 * @return {@link EntryCreatedRS}
 	 */
 	EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails, CreatePatternTemplateRQ createPatternTemplateRQ);
 }

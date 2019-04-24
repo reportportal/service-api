@@ -12,10 +12,12 @@ import java.util.List;
 public interface PatternAnalysisSelector {
 
 	/**
-	 * @param launchId
-	 * @param issueType
-	 * @param patternTemplate
-	 * @return
+	 * Select {@link PatternTemplateTestItemPojo} matched by {@link PatternTemplate#value}
+	 *
+	 * @param launchId        {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @param issueType       {@link IssueType}
+	 * @param patternTemplate {@link PatternTemplate}
+	 * @return {@link PatternTemplateTestItemPojo} that contains item ID, which was matched by pattern and ID of the matched pattern
 	 */
 	List<PatternTemplateTestItemPojo> selectItemsByPattern(Long launchId, IssueType issueType, PatternTemplate patternTemplate);
 }

@@ -37,9 +37,11 @@ public interface UpdateProjectSettingsHandler {
 			UpdateIssueSubTypeRQ rq);
 
 	/**
-	 * @param projectDetails
-	 * @param updatePatternTemplateRQ
-	 * @return
+	 * Update {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
+	 *
+	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
+	 * @return    {@link OperationCompletionRS}
 	 */
 	OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
 			UpdatePatternTemplateRQ updatePatternTemplateRQ);

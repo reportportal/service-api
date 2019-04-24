@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ class LogIndexerServiceTest {
 
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private LogIndexerService logIndexerService = new LogIndexerService(testItemRepository,
-			launchRepository,
-			indexerServiceClient,
-			logRepository,
+	private LogPreparerService logPreparerService = mock(LogPreparerService.class);
+
+	private LogIndexerService logIndexerService = new LogIndexerService(launchRepository, testItemRepository,
+			indexerServiceClient, logPreparerService,
 			analyzerStatusCache
 	);
 
@@ -72,7 +72,9 @@ class LogIndexerServiceTest {
 	void testIndexLogsWithNonExistentLaunchId() {
 		Long launchId = 1L;
 		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
-		Long result = logIndexerService.indexLogs(1L, Collections.singletonList(launchId), analyzerConfig()).exceptionally(it -> 0L).join();
+		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig())
+				.exceptionally(it -> 0L)
+				.join();
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
 		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
@@ -82,7 +84,7 @@ class LogIndexerServiceTest {
 	void testIndexLogsWithoutTestItems() {
 		Long launchId = 2L;
 		when(launchRepository.findById(launchId)).thenReturn(Optional.of(createLaunch(launchId)));
-		Long result = logIndexerService.indexLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
+		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
 		verify(analyzerStatusCache, times(1)).indexingFinished(1L);

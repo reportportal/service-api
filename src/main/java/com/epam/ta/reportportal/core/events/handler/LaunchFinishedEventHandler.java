@@ -42,7 +42,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -56,7 +55,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -118,16 +120,16 @@ public class LaunchFinishedEventHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-		Long indexedLogsCount = logIndexer.indexLogs(project.getId(), Lists.newArrayList(launch.getId()), analyzerConfig).get();
+		logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).get();
 
 		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
 				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
-		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers() && indexedLogsCount > 0) {
-			List<Long> testItems = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
+		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
+			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), null);
-			analyzerServiceAsync.analyze(launch, testItems, analyzerConfig)
-					.thenApply(it -> logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
+			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
+					.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 		}
 
 		if (isNotificationsEnabled) {

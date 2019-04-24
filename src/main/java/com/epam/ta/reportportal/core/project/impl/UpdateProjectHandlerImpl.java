@@ -263,7 +263,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		logIndexer.deleteIndex(projectDetails.getProjectId());
 
-		logIndexer.indexLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
+		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
 			mailServiceFactory.getDefaultEmailService(true)
 					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
 		});

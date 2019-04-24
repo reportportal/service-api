@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class ToInvestigateCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
-		return testItemRepository.selectItemsInIssueByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE.getLocator())
+		return testItemRepository.findAllNotInIssueGroupByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE)
 				.stream()
 				.filter(it -> !it.getItemResults().getIssue().getIgnoreAnalyzer())
 				.map(TestItem::getItemId)

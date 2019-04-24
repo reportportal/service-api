@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,8 +46,8 @@ public class Predicates {
 	 * Checks if the test item is suitable for indexing in analyzer.
 	 */
 	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
-			&& testItem.getItemResults().getIssue() != null && !TestItemIssueGroup.TO_INVESTIGATE.getLocator()
-			.equals(testItem.getItemResults().getIssue().getIssueType().getLocator()) && !testItem.getItemResults()
+			&& testItem.getItemResults().getIssue() != null && !TestItemIssueGroup.TO_INVESTIGATE.equals(testItem.getItemResults()
+			.getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()) && !testItem.getItemResults()
 			.getIssue()
 			.getIgnoreAnalyzer();
 

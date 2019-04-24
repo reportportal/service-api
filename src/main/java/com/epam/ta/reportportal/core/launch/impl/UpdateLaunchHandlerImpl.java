@@ -189,7 +189,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 	 * @param launch Update launch
 	 */
 	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig, Long projectId) {
-		List<TestItem> items = testItemRepository.findAllNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getValue());
+		List<TestItem> items = testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE);
 		if (!CollectionUtils.isEmpty(items)) {
 			if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
 				logIndexer.cleanIndex(projectId,

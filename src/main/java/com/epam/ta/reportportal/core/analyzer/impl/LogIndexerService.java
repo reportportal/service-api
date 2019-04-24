@@ -93,7 +93,7 @@ public class LogIndexerService implements LogIndexer {
 				Launch launch = launchRepository.findById(launchId)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 				Optional<IndexLaunch> indexLaunch = logPreparerService.prepare(launch,
-						testItemRepository.findAllNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getValue()),
+						testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE),
 						analyzerConfig
 				);
 				return indexLaunch.map(it -> {
@@ -164,7 +164,7 @@ public class LogIndexerService implements LogIndexer {
 	private List<IndexLaunch> prepareLaunches(List<Launch> launches, AnalyzerConfig analyzerConfig) {
 		return launches.stream()
 				.map(it -> logPreparerService.prepare(it,
-						testItemRepository.findAllNotInIssueByLaunch(it.getId(), TestItemIssueGroup.TO_INVESTIGATE.getValue()),
+						testItemRepository.findAllNotInIssueGroupByLaunch(it.getId(), TestItemIssueGroup.TO_INVESTIGATE),
 						analyzerConfig
 				))
 				.filter(Optional::isPresent)

@@ -40,6 +40,7 @@ public class LogBuilder implements Supplier<Log> {
 		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
 		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
 		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
+		log.setUuid(createLogRQ.getUuid());
 		return this;
 	}
 

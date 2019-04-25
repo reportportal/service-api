@@ -23,6 +23,7 @@ public final class MessageHeaders {
 
 	public static final String USERNAME = "username";
 	public static final String PROJECT_NAME = "projectName";
+	public static final String PROJECT_ID = "projectId";
 	public static final String LAUNCH_ID = "launchId";
 	public static final String ITEM_ID = "itemId";
 	public static final String PARENT_ID = "parentId";

@@ -18,27 +18,18 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
 import com.epam.ta.reportportal.core.log.IGetLogHandler;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
-import com.epam.ta.reportportal.ws.resolver.FilterFor;
-import com.epam.ta.reportportal.ws.resolver.SortFor;
-import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.SortDefault;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,23 +40,21 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
-import java.io.Serializable;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_TEST_ITEM_ID;
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 
 /**
- * @author Pavel Bortnik
+ * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/{projectName}/log")
+@RequestMapping("/{projectName}/async/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-public class LogController {
+public class LogAsyncController {
 
 	private final ICreateLogHandler createLogHandler;
 	private final IDeleteLogHandler deleteLogHandler;
@@ -73,7 +62,7 @@ public class LogController {
 	private final Validator validator;
 
 	@Autowired
-	public LogController(@Autowired ICreateLogHandler createLogHandler, IDeleteLogHandler deleteLogHandler, IGetLogHandler getLogHandler,
+	public LogAsyncController(@Autowired @Qualifier("asyncCreateLogHandler") ICreateLogHandler createLogHandler, IDeleteLogHandler deleteLogHandler, IGetLogHandler getLogHandler,
 			Validator validator) {
 		this.createLogHandler = createLogHandler;
 		this.deleteLogHandler = deleteLogHandler;
@@ -89,7 +78,7 @@ public class LogController {
 	@ApiOperation("Create log")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@Transactional
-	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
+	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
 		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
@@ -111,7 +100,7 @@ public class LogController {
 		 */
 		Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
 		BatchSaveOperatingRS response = new BatchSaveOperatingRS();
-		EntryCreatedRS responseItem;
+		EntryCreatedAsyncRS responseItem;
 		/* Go through all provided save log request items */
 		for (SaveLogRQ createLogRq : createLogRQs) {
 			try {
@@ -145,44 +134,4 @@ public class LogController {
 		}
 		return new ResponseEntity<>(response, CREATED);
 	}
-
-
-	/* Frontend API */
-
-	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
-	@ApiOperation("Delete log")
-	@Transactional
-	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable Long logId,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLogHandler.deleteLog(logId, extractProjectDetails(user, projectName), user);
-	}
-
-	@RequestMapping(method = RequestMethod.GET)
-	@ApiOperation("Get logs by filter")
-	@Transactional(readOnly = true)
-	public Iterable<LogResource> getLogs(@PathVariable String projectName,
-			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_TEST_ITEM_ID) Long testStepId,
-			@FilterFor(Log.class) Filter filter, @SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLogs(testStepId, extractProjectDetails(user, projectName), filter, pageable);
-	}
-
-	@GetMapping(value = "/{logId}/page")
-	@ApiOperation("Get logs by filter")
-	@Transactional(readOnly = true)
-	public Map<String, Serializable> getPageNumber(@PathVariable String projectName, @PathVariable Long logId,
-			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return ImmutableMap.<String, Serializable>builder().put("number",
-				getLogHandler.getPageNumber(logId, extractProjectDetails(user, projectName), filter, pageable)
-		).build();
-	}
-
-	@GetMapping(value = "/{logId}")
-	@ApiOperation("Get log")
-	@Transactional(readOnly = true)
-	public LogResource getLog(@PathVariable String projectName, @PathVariable Long logId, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
-	}
-
-
 }

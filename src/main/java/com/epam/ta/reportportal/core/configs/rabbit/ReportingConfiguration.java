@@ -47,15 +47,17 @@ public class ReportingConfiguration {
 	public static final String QUEUE_LAUNCH_BULK_STOP = "reporting.launch.bulkStop";
 	public static final String QUEUE_ITEM_START = "reporting.item.start";
 	public static final String QUEUE_ITEM_FINISH = "reporting.item.finish";
+	public static final String QUEUE_LOG = "reporting.log";
 
 	/**
 	 * Dead letter queues
 	 */
-	public static final String QUEUE_ITEM_START_DLQ = "reporting.item.start.dlq";
-	public static final String QUEUE_ITEM_FINISH_DLQ = "reporting.item.finish.dlq";
 	public static final String QUEUE_LAUNCH_FINISH_DLQ = "reporting.launch.finish.dlq";
 	public static final String QUEUE_LAUNCH_STOP_DLQ = "reporting.launch.stop.dlq";
 	public static final String QUEUE_LAUNCH_BULK_STOP_DLQ = "reporting.launch.bulkStop.dlq";
+	public static final String QUEUE_ITEM_START_DLQ = "reporting.item.start.dlq";
+	public static final String QUEUE_ITEM_FINISH_DLQ = "reporting.item.finish.dlq";
+	public static final String QUEUE_LOG_DLQ = "reporting.log.dlq";
 
 
 	/** Exchanges definition */
@@ -162,6 +164,23 @@ public class ReportingConfiguration {
                 .build();
 	}
 
+	@Bean
+	public Queue logQueue() {
+		return QueueBuilder.durable(QUEUE_LOG)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LOG_DLQ)
+				.build();
+	}
+
+	@Bean
+	public Queue logDLQueue() {
+		return QueueBuilder.durable(QUEUE_LOG_DLQ)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LOG)
+				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
 //	@Bean
 //	// Using stateless RetryOperationsInterceptor is not good approach, for it works through Thread.sleep()
 //	// thus blocking thread on retry operations
@@ -208,6 +227,12 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
+	public Binding logBinding() {
+		return BindingBuilder.bind(logQueue()).to(reportingExchange()).with(QUEUE_LOG);
+	}
+
+
+	@Bean
 	public Binding launchFinishDLQBinding() {
 		return BindingBuilder.bind(launchFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ);
 	}
@@ -230,5 +255,10 @@ public class ReportingConfiguration {
 	@Bean
 	public Binding itemFinishDLQBinding() {
 		return BindingBuilder.bind(itemFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_FINISH_DLQ);
+	}
+
+	@Bean
+	public Binding logDLQBinding() {
+		return BindingBuilder.bind(logDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_DLQ);
 	}
 }

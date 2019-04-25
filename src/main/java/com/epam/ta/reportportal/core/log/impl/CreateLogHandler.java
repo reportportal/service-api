@@ -16,34 +16,28 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.ICreateLogHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static java.util.Optional.ofNullable;
+import javax.inject.Provider;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -51,92 +45,63 @@ import static java.util.Optional.ofNullable;
  * @author Henadzi Vrubleuski
  * @author Andrei Varabyeu
  */
-@Service("createLogHandler")
+@Service
+@Primary
 public class CreateLogHandler implements ICreateLogHandler {
 
-	protected TestItemRepository testItemRepository;
-
-	protected LogRepository logRepository;
-
-	private DataStoreService dataStoreService;
+	@Autowired
+	TestItemRepository testItemRepository;
 
 	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
-	}
+	TestItemService testItemService;
 
 	@Autowired
-	public void setLogRepository(LogRepository logRepository) {
-		this.logRepository = logRepository;
-	}
+	LaunchRepository launchRepository;
 
 	@Autowired
-	public void setDataStoreService(DataStoreService dataStoreService) {
-		this.dataStoreService = dataStoreService;
-	}
+	LogRepository logRepository;
+
+	/**
+	 * We are using {@link Provider} there because we need
+	 * {@link SaveLogBinaryDataTask} with scope prototype. Since current class is in
+	 * singleton scope, we have to find a way to get new instance of job for new
+	 * execution
+	 */
+	@Autowired
+	private Provider<SaveLogBinaryDataTask> saveLogBinaryDataTask;
+
+	@Autowired
+	@Qualifier("saveLogsTaskExecutor")
+	private TaskExecutor taskExecutor;
 
 	@Override
 	@Nonnull
-
 	//TODO check saving an attachment of the item of the project A in the project's B directory
-	public EntryCreatedRS createLog(@Nonnull SaveLogRQ createLogRQ, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
+	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 
-		TestItem testItem = testItemRepository.findByUuid(createLogRQ.getTestItemId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, createLogRQ.getTestItemId()));
+		TestItem testItem = testItemRepository.findByUuid(request.getTestItemId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, request.getTestItemId()));
 
-		validate(testItem, createLogRQ);
+		validate(request);
 
-		Log log = new LogBuilder().addSaveLogRq(createLogRQ).addTestItem(testItem).get();
-
-		ofNullable(file).ifPresent(f -> {
-			Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectDetails.getProjectId(), file);
-			maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
-
-				Long launchId = getLaunchId(testItem);
-
-				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
-						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
-						.withContentType(file.getContentType()).withProjectId(projectDetails.getProjectId()).withLaunchId(launchId)
-						.withItemId(testItem.getItemId())
-						.get();
-
-				log.setAttachment(attachment);
-			});
-		});
-
+		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(testItem).get();
 		logRepository.save(log);
 
-		return new EntryCreatedRS(log.getId());
-	}
+		if (null != file) {
 
-	/**
-	 * Validates business rules related to test item of this log
-	 *
-	 * @param testItem  Test item
-	 * @param saveLogRQ Save log request
-	 */
-	protected void validate(TestItem testItem, SaveLogRQ saveLogRQ) {
-		expect(saveLogRQ.getLogTime(), Preconditions.sameTimeOrLater(testItem.getStartTime())).verify(
-				ErrorType.LOGGING_IS_NOT_ALLOWED,
-				Suppliers.formattedSupplier("Log has incorrect log time. Log time should be after parent item's start time.")
-		);
-		expect(LogLevel.toCustomLogLevel(saveLogRQ.getLevel()), Predicates.notNull()).verify(
-				ErrorType.BAD_SAVE_LOG_REQUEST,
-				Suppliers.formattedSupplier("Cannot convert '{}' to valid 'LogLevel'", saveLogRQ.getLevel())
-		);
-	}
+			Long launchId = testItemService.getEffectiveLaunch(testItem).getId();
 
-	protected Long getLaunchId(TestItem testItem) {
+			taskExecutor.execute(saveLogBinaryDataTask.get()
+					.withFile(file)
+					.withProjectId(projectDetails.getProjectId())
+					.withLaunchId(launchId)
+					.withItemId(testItem.getItemId())
+					.withLogId(log.getId()));
 
-		if (ofNullable(testItem.getRetryOf()).isPresent()) {
-			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
-
-			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND))).getId();
-		} else {
-			return ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND))).getId();
 		}
+
+		return new EntryCreatedAsyncRS(log.getId());
 	}
+
+
 }

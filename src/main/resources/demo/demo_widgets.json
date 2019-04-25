@@ -1,7 +1,7 @@
 [
   {
     "name": "LAUNCH STATISTICS AREA",
-    "widgetType": "launchStatistics",
+    "widgetType": "statisticTrend",
     "share": true,
     "contentParameters": {
       "itemsCount": 50,
@@ -16,26 +16,27 @@
         "statistics$defects$to_investigate$total"
       ],
       "widgetOptions": {
-        "timeline": "WEEK",
-        "viewMode": "area"
+        "timeline": "launch",
+        "viewMode": "area-spline",
+        "zoom": false
       }
     }
   },
   {
     "name": "LAUNCH STATISTICS BAR",
-    "widgetType": "launchStatistics",
+    "widgetType": "launchTrend",
     "share": true,
     "contentParameters": {
       "itemsCount": 50,
       "contentFields": [
-        "statistics$executions$total",
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped"
       ],
       "widgetOptions": {
-        "timeline": "WEEK",
-        "viewMode": "bar"
+        "timeline": "launch",
+        "viewMode": "bar",
+        "zoom": false
       }
     }
   },
@@ -160,7 +161,9 @@
         "statistics$executions$failed",
         "statistics$executions$skipped",
         "statistics$defects$product_bug$total",
-        "statistics$defects$automation_bug$total"
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$to_investigate$total"
       ],
       "widgetOptions": {
       }

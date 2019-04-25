@@ -7,9 +7,9 @@ package com.epam.ta.reportportal.core.configs.rabbit;
  * @author Konstantin Antipin
  */
 public class DeserializablePair<L, R> {
-	private L left = null;
+	private L left;
 
-	private R right = null;
+	private R right;
 
 	public DeserializablePair() {}
 

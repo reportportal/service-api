@@ -90,17 +90,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Iterable<UserResource> getProjectUsers(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		if (CollectionUtils.isEmpty(project.getUsers())) {
 			return Collections.emptyList();
 		}
-		filter.withCondition(new FilterCondition(Condition.EQUALS,
-				false,
-				String.valueOf(projectDetails.getProjectId()),
-				CRITERIA_PROJECT_ID
-		));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID));
 		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
 	}
@@ -124,19 +120,19 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	@Override
 	public List<String> getUserNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
-		);
+		BusinessRule.expect(value.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
+				);
 		return userRepository.findNamesByProject(projectDetails.getProjectId(), value);
 	}
 
 	@Override
 	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
-		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
-		);
+		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
+				);
 		Filter filter = Filter.builder()
 				.withTarget(User.class)
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))

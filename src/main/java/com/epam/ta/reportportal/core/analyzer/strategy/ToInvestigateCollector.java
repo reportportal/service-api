@@ -41,7 +41,7 @@ public class ToInvestigateCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
-		return testItemRepository.findAllNotInIssueGroupByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE)
+		return testItemRepository.findAllInIssueGroupByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE)
 				.stream()
 				.filter(it -> !it.getItemResults().getIssue().getIgnoreAnalyzer())
 				.map(TestItem::getItemId)

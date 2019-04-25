@@ -49,7 +49,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -158,7 +157,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		List<Long> itemIds = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
 		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-				.thenApply(it -> logIndexer.indexLaunchesLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
+				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}

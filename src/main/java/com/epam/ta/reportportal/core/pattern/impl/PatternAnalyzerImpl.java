@@ -2,14 +2,13 @@ package com.epam.ta.reportportal.core.pattern.impl;
 
 import com.epam.ta.reportportal.core.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.core.pattern.selector.PatternAnalysisSelector;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -24,7 +23,7 @@ import java.util.Map;
 @Service
 public class PatternAnalyzerImpl implements PatternAnalyzer {
 
-	private final IssueTypeRepository issueTypeRepository;
+	private final IssueGroupRepository issueGroupRepository;
 
 	private final PatternTemplateRepository patternTemplateRepository;
 
@@ -33,25 +32,24 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 	private final TaskExecutor patternAnalysisTaskExecutor;
 
 	@Autowired
-	public PatternAnalyzerImpl(IssueTypeRepository issueTypeRepository, PatternTemplateRepository patternTemplateRepository,
+	public PatternAnalyzerImpl(IssueGroupRepository issueGroupRepository, PatternTemplateRepository patternTemplateRepository,
 			@Qualifier("patternAnalysisSelectorMapping") Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
 			TaskExecutor patternAnalysisTaskExecutor) {
-		this.issueTypeRepository = issueTypeRepository;
+		this.issueGroupRepository = issueGroupRepository;
 		this.patternTemplateRepository = patternTemplateRepository;
 		this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
 		this.patternAnalysisTaskExecutor = patternAnalysisTaskExecutor;
 	}
 
 	@Override
-	public void analyzeTestItems(Long launchId, Long projectId) {
+	public void analyzeTestItems(Launch launch) {
 
-		IssueType issueType = issueTypeRepository.findByLocator(TestItemIssueGroup.TO_INVESTIGATE.getLocator())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, TestItemIssueGroup.TO_INVESTIGATE.getValue()));
+		IssueGroup issueGroup = issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
 
-		patternTemplateRepository.findAllByProjectIdAndEnabled(projectId, true)
+		patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
 				.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> {
 					List<PatternTemplateTestItemPojo> patternTemplateTestItems = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType())
-							.selectItemsByPattern(launchId, issueType, patternTemplate);
+							.selectItemsByPattern(launch.getId(), issueGroup, patternTemplate);
 					patternTemplateRepository.saveInBatch(patternTemplateTestItems);
 
 				}));

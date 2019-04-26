@@ -16,15 +16,19 @@ public class PatternTemplateBuilder implements Supplier<PatternTemplate> {
 
 	private PatternTemplate patternTemplate;
 
-	public PatternTemplateBuilder(CreatePatternTemplateRQ createPatternTemplateRQ) {
+	public PatternTemplateBuilder() {
 		patternTemplate = new PatternTemplate();
-		patternTemplate.setTemplateType(PatternTemplateType.fromString(createPatternTemplateRQ.getType())
+	}
+
+	public PatternTemplateBuilder withCreateRequest(CreatePatternTemplateRQ createRequest) {
+		patternTemplate.setTemplateType(PatternTemplateType.fromString(createRequest.getType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createPatternTemplateRQ.getType()).get()
+						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createRequest.getType()).get()
 				)));
-		patternTemplate.setName(createPatternTemplateRQ.getName());
-		patternTemplate.setValue(createPatternTemplateRQ.getValue());
-		patternTemplate.setEnabled(createPatternTemplateRQ.getEnabled());
+		patternTemplate.setName(createRequest.getName());
+		patternTemplate.setValue(createRequest.getValue());
+		patternTemplate.setEnabled(createRequest.getEnabled());
+		return this;
 	}
 
 	public PatternTemplateBuilder withName(String name) {

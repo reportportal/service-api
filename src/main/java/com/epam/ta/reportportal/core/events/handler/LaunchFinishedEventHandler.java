@@ -149,7 +149,7 @@ public class LaunchFinishedEventHandler {
 				.get(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute()));
 
 		if (isPatternAnalysisEnabled) {
-			patternAnalyzer.analyzeTestItems(launch.getId(), project.getId());
+			patternAnalyzer.analyzeTestItems(launch);
 		}
 
 	}

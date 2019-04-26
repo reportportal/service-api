@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.pattern.selector.impl;
 import com.epam.ta.reportportal.core.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +26,9 @@ public class RegexPatternAnalysisSelector implements PatternAnalysisSelector {
 	}
 
 	@Override
-	public List<PatternTemplateTestItemPojo> selectItemsByPattern(Long launchId, IssueType issueType, PatternTemplate patternTemplate) {
-		return testItemRepository.selectIdsByLaunchIdAndIssueTypeIdAndLogLevelAndLogMessageRegexPattern(launchId,
-				issueType.getId(),
+	public List<PatternTemplateTestItemPojo> selectItemsByPattern(Long launchId, IssueGroup issueGroup, PatternTemplate patternTemplate) {
+		return testItemRepository.selectIdsByRegexPatternMatchedLogMessage(launchId,
+				issueGroup.getId(),
 				LogLevel.ERROR.toInt(),
 				patternTemplate.getValue()
 		).stream().map(itemId -> new PatternTemplateTestItemPojo(patternTemplate.getId(), itemId)).collect(Collectors.toList());

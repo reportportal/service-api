@@ -3,9 +3,11 @@ package com.epam.ta.reportportal.core.pattern;
 import com.epam.ta.reportportal.core.pattern.impl.PatternAnalyzerImpl;
 import com.epam.ta.reportportal.core.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.pattern.selector.impl.StringPartPatternAnalysisSelector;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
+import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
@@ -16,7 +18,6 @@ import org.springframework.core.task.TaskExecutor;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Optional.ofNullable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -27,15 +28,16 @@ class PatternAnalyzerTest {
 
 	private final PatternAnalysisSelector stringSelector = mock(StringPartPatternAnalysisSelector.class);
 
-	private final IssueTypeRepository issueTypeRepository = mock(IssueTypeRepository.class);
+	private final IssueGroupRepository issueGroupRepository = mock(IssueGroupRepository.class);
 	private final PatternTemplateRepository patternTemplateRepository = mock(PatternTemplateRepository.class);
 
 	private final TaskExecutor taskExecutor = mock(TaskExecutor.class);
 
-	private final IssueType issueType = mock(IssueType.class);
+	private final IssueGroup issueGroup = mock(IssueGroup.class);
+	private final Launch launch = mock(Launch.class);
 
 	private final Map<PatternTemplateType, PatternAnalysisSelector> analysisSelectorMapping = mock(Map.class);
-	private final PatternAnalyzer patternAnalyzer = new PatternAnalyzerImpl(issueTypeRepository,
+	private final PatternAnalyzer patternAnalyzer = new PatternAnalyzerImpl(issueGroupRepository,
 			patternTemplateRepository,
 			analysisSelectorMapping,
 			taskExecutor
@@ -43,18 +45,18 @@ class PatternAnalyzerTest {
 
 	@Test
 	void analyzeTestItems() {
-		when(issueTypeRepository.findByLocator(any(String.class))).thenReturn(ofNullable(issueType));
+		when(issueGroupRepository.findByTestItemIssueGroup(any(TestItemIssueGroup.class))).thenReturn(issueGroup);
 		when(patternTemplateRepository.findAllByProjectIdAndEnabled(1L, true)).thenReturn(getPatternTemplates());
 
 		when(analysisSelectorMapping.get(PatternTemplateType.STRING)).thenReturn(stringSelector);
 
-		when(stringSelector.selectItemsByPattern(any(Long.class), any(IssueType.class), any(PatternTemplate.class))).thenReturn(
+		when(stringSelector.selectItemsByPattern(any(Long.class), any(IssueGroup.class), any(PatternTemplate.class))).thenReturn(
 				getPatternTemplateTestItemPojos(1L));
-		when(stringSelector.selectItemsByPattern(any(Long.class), any(IssueType.class), any(PatternTemplate.class))).thenReturn(
+		when(stringSelector.selectItemsByPattern(any(Long.class), any(IssueGroup.class), any(PatternTemplate.class))).thenReturn(
 				getPatternTemplateTestItemPojos(2L));
 		doNothing().when(taskExecutor).execute(any());
 
-		patternAnalyzer.analyzeTestItems(1L, 1L);
+		patternAnalyzer.analyzeTestItems(launch);
 	}
 
 	private List<PatternTemplate> getPatternTemplates() {

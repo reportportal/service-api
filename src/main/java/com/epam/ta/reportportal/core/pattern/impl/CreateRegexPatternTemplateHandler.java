@@ -46,7 +46,9 @@ public class CreateRegexPatternTemplateHandler implements CreatePatternTemplateH
 				equalTo(false)
 		).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createPatternTemplateRQ.getName());
 
-		PatternTemplate patternTemplate = new PatternTemplateBuilder(createPatternTemplateRQ).withProjectId(projectId).get();
+		PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ)
+				.withProjectId(projectId)
+				.get();
 		patternTemplateRepository.save(patternTemplate);
 
 		return new EntryCreatedRS(patternTemplate.getId());

@@ -22,11 +22,14 @@ import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandl
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.UpdateProjectSettingsHandler;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,8 +76,7 @@ public class ProjectSettingsController {
 	@PreAuthorize(PROJECT_MANAGER)
 	@ApiOperation("Creation of custom project specific issue sub-type")
 	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectName,
-			@RequestBody @Validated CreateIssueSubTypeRQ request,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@RequestBody @Validated CreateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
 		return createHandler.createProjectIssueSubType(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, request);
 	}
 
@@ -102,5 +104,32 @@ public class ProjectSettingsController {
 	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
 	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return getHandler.getProjectSettings(extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+	}
+
+	@PostMapping("/pattern")
+	@ResponseStatus(CREATED)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Create pattern template for items' log messages pattern analysis")
+	public EntryCreatedRS createPatternTemplate(@PathVariable String projectName,
+			@RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return createHandler.createPatternTemplate(extractProjectDetails(user, projectName), createPatternTemplateRQ);
+	}
+
+	@PutMapping("/pattern/{id}")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Update pattern template for items' log messages pattern analysis")
+	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
+			@RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateHandler.updatePatternTemplate(id, extractProjectDetails(user, projectName), updatePatternTemplateRQ);
+	}
+
+	@DeleteMapping("/pattern/{id}")
+	@ResponseStatus(OK)
+	@PreAuthorize(PROJECT_MANAGER)
+	@ApiOperation("Delete pattern template for items' log messages pattern analysis")
+	public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteHandler.deletePatternTemplate(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, id);
 	}
 }

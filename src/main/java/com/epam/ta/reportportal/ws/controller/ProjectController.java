@@ -116,7 +116,7 @@ public class ProjectController {
 	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
+		return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, user);
 	}
 
 	@Transactional
@@ -127,10 +127,7 @@ public class ProjectController {
 	public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectNotificationConfig(ProjectExtractor.extractProjectDetails(user, projectName),
-				user,
-				updateProjectNotificationConfigRQ
-		);
+		return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user, updateProjectNotificationConfigRQ);
 	}
 
 	@Transactional
@@ -175,7 +172,7 @@ public class ProjectController {
 	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+		return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -193,7 +190,7 @@ public class ProjectController {
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.unassignUsers(ProjectExtractor.extractProjectDetails(user, projectName), unassignUsersRQ, user);
+		return updateProjectHandler.unassignUsers(normalizeId(projectName), unassignUsersRQ, user);
 	}
 
 	@Transactional

@@ -57,7 +57,7 @@ public class ChartInvestigatedContentLoader extends AbstractStatisticsContentLoa
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+			String attributeValue, int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 

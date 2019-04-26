@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,8 +80,9 @@ public class WidgetController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@RequestParam(required = false, name = "attributeValue") String attributeValue,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user, attributeValue);
 	}
 
 	@Transactional(readOnly = true)

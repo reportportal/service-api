@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,12 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 
 	@Override
 	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget) {
+			Widget widget, String attributeValue) {
 		Map<Filter, Sort> filterSortMap = buildFilterSortMap(widget, projectDetails.getProjectId());
 		return loadContentStrategy.loadContent(Lists.newArrayList(widget.getContentFields()),
 				filterSortMap,
 				widget.getWidgetOptions(),
+				attributeValue,
 				widget.getItemsCount()
 		);
 	}

@@ -58,7 +58,7 @@ public class LineChartContentLoader extends AbstractStatisticsContentLoader impl
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+			String attributeValue, int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 

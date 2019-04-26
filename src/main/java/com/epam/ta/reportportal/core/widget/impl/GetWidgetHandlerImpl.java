@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -111,7 +111,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			String attributeValue) {
 		Widget widget = getPermitted(widgetId, projectDetails);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
@@ -119,13 +120,19 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
+		if (widgetType != WidgetType.CUMULATIVE) {
+			if (attributeValue != null) {
+				throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Widget does not support two-level architecture.");
+			}
+		}
+
 		Map<String, ?> content;
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
 			content = Collections.emptyMap();
 		} else {
 			content = buildFilterStrategyMapping.get(widgetType)
-					.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+					.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget, attributeValue);
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -157,7 +164,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.get();
 
 		return buildFilterStrategyMapping.get(widgetType)
-				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget, null);
 	}
 
 	@Override

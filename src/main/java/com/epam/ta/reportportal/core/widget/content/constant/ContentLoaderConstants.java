@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,8 @@ public final class ContentLoaderConstants {
 	public static final String LAUNCH_NAME_FIELD = "launchNameFilter";
 	public static final String USER = "user";
 	public static final String ACTION_TYPE = "actionType";
-	public static final String ATTRIBUTE_KEY = "attributeKey";
+	public static final String PRIMARY_ATTRIBUTE_KEY = "primaryAttributeKey";
+	public static final String SUB_ATTRIBUTE_KEY = "subAttributeKey";
 	public static final String ITEM_TYPE = "type";
 	public static final String INCLUDE_METHODS = "includeMethods";
 	public static final String FLAKY = "flaky";

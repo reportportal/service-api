@@ -13,8 +13,7 @@ import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTem
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import javax.persistence.PersistenceException;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
@@ -35,8 +34,8 @@ public class CreateRegexPatternTemplateHandler implements CreatePatternTemplateH
 	public EntryCreatedRS createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
 
 		try {
-			Pattern.compile(createPatternTemplateRQ.getValue());
-		} catch (PatternSyntaxException ex) {
+			patternTemplateRepository.validateRegex(createPatternTemplateRQ.getValue());
+		} catch (PersistenceException ex) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Provided regex pattern - '{}' is invalid", createPatternTemplateRQ.getValue()).get()
 			);

@@ -87,17 +87,13 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Iterable<UserResource> getProjectUsers(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		if (CollectionUtils.isEmpty(project.getUsers())) {
 			return Collections.emptyList();
 		}
-		filter.withCondition(new FilterCondition(Condition.EQUALS,
-				false,
-				String.valueOf(projectDetails.getProjectId()),
-				CRITERIA_PROJECT_ID
-		));
+		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID));
 		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
 	}

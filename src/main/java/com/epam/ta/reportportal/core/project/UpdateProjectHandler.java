@@ -34,37 +34,35 @@ public interface UpdateProjectHandler {
 	/**
 	 * Update specified project(projectName, customer and addInfo)
 	 *
-	 * @param projectDetails  Project Details
+	 * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
 	 * @param updateProjectRQ Project data
 	 * @param user            ReportPortal user
 	 * @return Operation result
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS updateProject(ReportPortalUser.ProjectDetails projectDetails, UpdateProjectRQ updateProjectRQ,
-			ReportPortalUser user);
+	OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, ReportPortalUser user);
 
 	/**
 	 * Update specified project email configuration
 	 *
-	 * @param projectDetails                    Project Name
+	 * @param projectName                       Project Name
 	 * @param updateProjectNotificationConfigRQ Request Data
 	 * @param user                              User performing that update
 	 * @return Operation Result
 	 */
-	OperationCompletionRS updateProjectNotificationConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ);
 
 	/**
 	 * Un-assign specified user from project
 	 *
-	 * @param projectDetails  Project Details
+	 * @param projectName     {@link com.epam.ta.reportportal.entity.project.Project#name}
 	 * @param modifier        Modifier User
 	 * @param unassignUsersRQ Request Data
 	 * @return Operation Result
 	 * @throws ReportPortalException
 	 */
-	OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
-			ReportPortalUser modifier);
+	OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ, ReportPortalUser modifier);
 
 	/**
 	 * Assign specified user from project

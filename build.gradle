@@ -99,9 +99,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:07f90765'
+        compile 'com.github.reportportal:commons-dao:b2676d3'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:e3ff6dd8'
+        compile 'com.github.reportportal:commons-model:9dad1152'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }
@@ -259,11 +259,11 @@ private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
 
 task copyTestDatabaseScripts {
     def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
-    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/pattern-analysis-impl-db/migrations/1_initialize_schema.up.sql"
     copyFromUrl(initScriptPath, initScriptUrl)
 
     def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
-    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql"
+    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/pattern-analysis-impl-db/migrations/3_default_data.up.sql"
     copyFromUrl(dataScriptPath, dataScriptUrl)
 }
 

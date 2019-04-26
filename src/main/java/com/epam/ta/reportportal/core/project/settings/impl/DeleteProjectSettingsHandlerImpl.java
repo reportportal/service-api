@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.project.settings.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
@@ -24,6 +25,7 @@ import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -65,18 +67,22 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
 	private final IssueEntityRepository issueEntityRepository;
 
+	private final PatternTemplateRepository patternTemplateRepository;
+
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public DeleteProjectSettingsHandlerImpl(ProjectRepository projectRepository, StatisticsFieldRepository statisticsFieldRepository,
 			WidgetRepository widgetRepository, MessageBus messageBus, IssueTypeRepository issueTypeRepository,
-			IssueEntityRepository issueEntityRepository, ApplicationEventPublisher eventPublisher) {
+			IssueEntityRepository issueEntityRepository, PatternTemplateRepository patternTemplateRepository,
+			ApplicationEventPublisher eventPublisher) {
 		this.projectRepository = projectRepository;
 		this.statisticsFieldRepository = statisticsFieldRepository;
 		this.widgetRepository = widgetRepository;
 		this.messageBus = messageBus;
 		this.issueTypeRepository = issueTypeRepository;
 		this.issueEntityRepository = issueEntityRepository;
+		this.patternTemplateRepository = patternTemplateRepository;
 		this.eventPublisher = eventPublisher;
 	}
 
@@ -91,12 +97,14 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, id));
 
-		expect(type.getIssueType().getLocator(), not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
-				PRODUCT_BUG.getLocator(),
-				SYSTEM_ISSUE.getLocator(),
-				NO_DEFECT.getLocator(),
-				TO_INVESTIGATE.getLocator()
-		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		expect(type.getIssueType().getLocator(),
+				not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
+						PRODUCT_BUG.getLocator(),
+						SYSTEM_ISSUE.getLocator(),
+						NO_DEFECT.getLocator(),
+						TO_INVESTIGATE.getLocator()
+				)))
+		).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		String issueField =
 				"statistics$defects$" + TestItemIssueGroup.fromValue(type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue())
@@ -133,5 +141,18 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		messageBus.publishActivity(defectTypeDeletedEvent);
 		eventPublisher.publishEvent(defectTypeDeletedEvent);
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
+	}
+
+	@Override
+	public OperationCompletionRS deletePatternTemplate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id) {
+		PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT,
+						id,
+						projectDetails.getProjectName()
+				));
+		patternTemplateRepository.deleteById(patternTemplate.getId());
+
+		return new OperationCompletionRS(Suppliers.formattedSupplier("Pattern template with id = '{}' has been successfully removed.", id)
+				.get());
 	}
 }

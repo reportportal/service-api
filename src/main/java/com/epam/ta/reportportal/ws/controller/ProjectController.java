@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -81,13 +80,13 @@ public class ProjectController {
 	private final GetUserHandler getUserHandler;
 	private final GetPreferenceHandler getPreference;
 	private final UpdatePreferenceHandler updatePreference;
-	private final GetJasperReportHandler<Project> jasperReportHandler;
+	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	@Autowired
 	public ProjectController(GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
 			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler) {
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
 		this.getProjectHandler = getProjectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
@@ -281,7 +280,7 @@ public class ProjectController {
 	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(Project.class) Filter filter, @FilterFor(Project.class) Queryable predefinedFilter,
+			@FilterFor(ProjectInfo.class) Filter filter, @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
 			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);

@@ -26,11 +26,11 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -72,20 +72,17 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 	private final UserRepository userRepository;
 
-	private final GetJasperReportHandler<Project> jasperReportHandler;
-
-	private final IntegrationRepository integrationRepository;
+	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	private final ProjectConverter projectConverter;
 
 	@Autowired
 	public GetProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler,
-			IntegrationRepository integrationRepository, ProjectConverter projectConverter) {
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler,
+			ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.jasperReportHandler = jasperReportHandler;
-		this.integrationRepository = integrationRepository;
 		this.projectConverter = projectConverter;
 	}
 
@@ -155,7 +152,7 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	@Override
 	public void exportProjects(ReportFormat reportFormat, Queryable filter, OutputStream outputStream) {
 
-		List<Project> projects = projectRepository.findByFilter(filter);
+		List<ProjectInfo> projects = projectRepository.findProjectInfoByFilter(filter);
 
 		List<? extends Map<String, ?>> data = projects.stream().map(jasperReportHandler::convertParams).collect(Collectors.toList());
 

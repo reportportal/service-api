@@ -53,6 +53,7 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -127,7 +128,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
-		List<Long> launchIdsToReindex = new ArrayList<>();
+		// key - launch id, value - list of item ids
+		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
 		List<Long> logIdsToCleanIndex = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
@@ -156,7 +158,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					launchIdsToReindex.add(testItem.getLaunch().getId());
+					Long launchId = testItem.getLaunch().getId();
+					Long itemId = testItem.getItemId();
+					if (logsToReindexMap.containsKey(launchId)) {
+						logsToReindexMap.get(launchId).add(itemId);
+					} else {
+						List<Long> itemIds = Lists.newArrayList();
+						itemIds.add(itemId);
+						logsToReindexMap.put(launchId, itemIds);
+					}
 				} else {
 					logIdsToCleanIndex.addAll(logRepository.findIdsByTestItemId(testItem.getItemId()));
 				}
@@ -171,8 +181,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(errors.isEmpty(), equalTo(true)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		if (!launchIdsToReindex.isEmpty()) {
-			logIndexer.indexLogs(project.getId(), launchIdsToReindex, analyzerConfig);
+		if (!logsToReindexMap.isEmpty()) {
+			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
 		}
 		if (!logIdsToCleanIndex.isEmpty()) {
 			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);

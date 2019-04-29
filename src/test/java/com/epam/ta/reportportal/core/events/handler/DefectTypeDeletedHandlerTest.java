@@ -123,7 +123,7 @@ class DefectTypeDeletedHandlerTest {
 
 		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
 
-		verify(logIndexer, times(1)).indexLogs(eq(projectId), eq(launchIds), any());
+		verify(logIndexer, times(1)).indexLaunchesLogs(eq(projectId), eq(launchIds), any());
 	}
 
 	private Project getProjectWithAnalyzerAttributes(Long projectId) {

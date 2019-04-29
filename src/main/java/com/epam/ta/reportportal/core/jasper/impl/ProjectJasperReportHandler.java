@@ -18,11 +18,9 @@ package com.epam.ta.reportportal.core.jasper.impl;
 
 import com.epam.ta.reportportal.core.jasper.JasperReportRender;
 import com.epam.ta.reportportal.core.jasper.constants.ProjectReportConstants;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.jasper.ReportType;
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.google.common.collect.Sets;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -43,21 +41,18 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service("projectJasperReportHandler")
-public class ProjectJasperReportHandler extends AbstractJasperReportHandler<Project> {
+public class ProjectJasperReportHandler extends AbstractJasperReportHandler<ProjectInfo> {
 
 	private static final String UNSUPPORTED_REPORT_FORMAT_MESSAGE_EXCEPTION = "Report format - {} is not supported for project reports.";
 
 	private final Set<ReportFormat> availableReportFormats;
 
-	private final LaunchRepository launchRepository;
-
 	private final JasperReportRender reportRender;
 
 	@Autowired
-	public ProjectJasperReportHandler(JasperReportRender reportRender, LaunchRepository launchRepository) {
+	public ProjectJasperReportHandler(JasperReportRender reportRender) {
 		super(UNSUPPORTED_REPORT_FORMAT_MESSAGE_EXCEPTION);
 		this.reportRender = reportRender;
-		this.launchRepository = launchRepository;
 		availableReportFormats = Sets.immutableEnumSet(ReportFormat.CSV);
 	}
 
@@ -68,18 +63,17 @@ public class ProjectJasperReportHandler extends AbstractJasperReportHandler<Proj
 	}
 
 	@Override
-	public Map<String, Object> convertParams(Project project) {
+	public Map<String, Object> convertParams(ProjectInfo project) {
 		Map<String, Object> params = new HashMap<>();
 
-		params.put(ProjectReportConstants.PROJECT_TYPE, project.getProjectType().name());
+		params.put(ProjectReportConstants.PROJECT_TYPE, project.getProjectType());
 		params.put(ProjectReportConstants.PROJECT_NAME, project.getName());
 		params.put(ProjectReportConstants.ORGANIZATION, ofNullable(project.getOrganization()).orElse(EMPTY_STRING));
-		params.put(ProjectReportConstants.MEMBERS, ofNullable(project.getUsers()).map(Set::size).orElse(0));
-		params.put(ProjectReportConstants.LAUNCHES, launchRepository.countLaunches(project.getId(), LaunchModeEnum.DEFAULT.name()));
+		params.put(ProjectReportConstants.MEMBERS, project.getUsersQuantity());
+		params.put(ProjectReportConstants.LAUNCHES, project.getLaunchesQuantity());
 
-		launchRepository.findLastRun(project.getId(), LaunchModeEnum.DEFAULT.name()).ifPresent(l -> params.put(
-				ProjectReportConstants.LAST_LAUNCH_DATE,
-				DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.of(l.getStartTime(), ZoneOffset.UTC))
+		ofNullable(project.getLastRun()).ifPresent(lastRun -> params.put(ProjectReportConstants.LAST_LAUNCH_DATE,
+				DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.of(lastRun, ZoneOffset.UTC))
 		));
 
 		return params;

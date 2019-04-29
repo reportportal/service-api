@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.impl.LogPreparerService;
+import com.epam.ta.reportportal.core.analyzer.impl.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -80,21 +80,21 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 
 	private final LogIndexer logIndexer;
 
-	private final LogPreparerService logPreparerService;
+	private final LaunchPreparerService launchPreparerService;
 
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
 			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
-			LogPreparerService logPreparerService, AnalyzeCollectorFactory analyzeCollectorFactory) {
+			LaunchPreparerService launchPreparerService, AnalyzeCollectorFactory analyzeCollectorFactory) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
-		this.logPreparerService = logPreparerService;
+		this.launchPreparerService = launchPreparerService;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 	}
 
@@ -195,7 +195,7 @@ public class UpdateLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 						logRepository.findIdsByTestItemIds(items.stream().map(TestItem::getItemId).collect(toList()))
 				);
 			} else {
-				logPreparerService.prepare(launch, items, analyzerConfig).ifPresent(it -> logIndexer.indexPreparedLogs(projectId, it));
+				launchPreparerService.prepare(launch, items, analyzerConfig).ifPresent(it -> logIndexer.indexPreparedLogs(projectId, it));
 			}
 		}
 	}

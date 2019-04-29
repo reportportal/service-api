@@ -52,17 +52,17 @@ public class LogIndexerService implements LogIndexer {
 
 	private final IndexerServiceClient indexerServiceClient;
 
-	private final LogPreparerService logPreparerService;
+	private final LaunchPreparerService launchPreparerService;
 
 	private final AnalyzerStatusCache analyzerStatusCache;
 
 	@Autowired
 	public LogIndexerService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			IndexerServiceClient indexerServiceClient, LogPreparerService logPreparerService, AnalyzerStatusCache analyzerStatusCache) {
+			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService, AnalyzerStatusCache analyzerStatusCache) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.indexerServiceClient = indexerServiceClient;
-		this.logPreparerService = logPreparerService;
+		this.launchPreparerService = launchPreparerService;
 		this.analyzerStatusCache = analyzerStatusCache;
 	}
 
@@ -92,7 +92,7 @@ public class LogIndexerService implements LogIndexer {
 				analyzerStatusCache.indexingStarted(projectId);
 				Launch launch = launchRepository.findById(launchId)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				Optional<IndexLaunch> indexLaunch = logPreparerService.prepare(launch,
+				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
 						testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE),
 						analyzerConfig
 				);
@@ -118,7 +118,7 @@ public class LogIndexerService implements LogIndexer {
 				analyzerStatusCache.indexingStarted(projectId);
 				Launch launch = launchRepository.findById(launchId)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				return logPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
+				return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
 						.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
 						.orElse(0L);
 			} catch (Exception e) {
@@ -163,7 +163,7 @@ public class LogIndexerService implements LogIndexer {
 	 */
 	private List<IndexLaunch> prepareLaunches(List<Launch> launches, AnalyzerConfig analyzerConfig) {
 		return launches.stream()
-				.map(it -> logPreparerService.prepare(it,
+				.map(it -> launchPreparerService.prepare(it,
 						testItemRepository.findAllNotInIssueGroupByLaunch(it.getId(), TestItemIssueGroup.TO_INVESTIGATE),
 						analyzerConfig
 				))

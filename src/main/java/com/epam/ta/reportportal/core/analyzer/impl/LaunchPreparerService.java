@@ -39,12 +39,12 @@ import static java.util.stream.Collectors.toList;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
-public class LogPreparerService {
+public class LaunchPreparerService {
 
 	private final LogRepository logRepository;
 
 	@Autowired
-	public LogPreparerService(LogRepository logRepository) {
+	public LaunchPreparerService(LogRepository logRepository) {
 		this.logRepository = logRepository;
 	}
 

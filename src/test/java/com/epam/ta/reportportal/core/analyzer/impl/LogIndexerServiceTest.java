@@ -61,10 +61,10 @@ class LogIndexerServiceTest {
 
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private LogPreparerService logPreparerService = mock(LogPreparerService.class);
+	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
 	private LogIndexerService logIndexerService = new LogIndexerService(launchRepository, testItemRepository,
-			indexerServiceClient, logPreparerService,
+			indexerServiceClient, launchPreparerService,
 			analyzerStatusCache
 	);
 

@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.Random;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
@@ -48,6 +49,8 @@ public class DemoDataLaunchService {
 
 	private final TestItemRepository testItemRepository;
 
+	private String[] platformValues = { "linux", "windows", "macos", "ios", "android" };
+
 	@Autowired
 	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository) {
 		this.launchRepository = launchRepository;
@@ -62,7 +65,7 @@ public class DemoDataLaunchService {
 		rq.setName(name);
 		rq.setStartTime(new Date());
 		Set<ItemAttributesRQ> attributes = Sets.newHashSet(
-				new ItemAttributesRQ("platform", "desktop"),
+				new ItemAttributesRQ("platform", platformValues[new Random().nextInt(platformValues.length)]),
 				new ItemAttributesRQ(null, "demo"),
 				new ItemAttributesRQ("build", "3.0.1." + i)
 		);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,19 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.GENERATE_I
 /**
  * @author Pavel Bortnik
  */
-public class ProjectIndexEvent implements ActivityEvent {
+public class ProjectIndexEvent extends AbstractEvent implements ActivityEvent {
 
 	private Long projectId;
 	private String projectName;
-	private Long userId;
 	private boolean indexing;
 
 	public ProjectIndexEvent() {
 	}
 
-	public ProjectIndexEvent(Long projectId, String projectName, Long userId, boolean indexing) {
+	public ProjectIndexEvent(Long userId, String userLogin, Long projectId, String projectName, boolean indexing) {
+		super(userId, userLogin);
 		this.projectId = projectId;
 		this.projectName = projectName;
-		this.userId = userId;
 		this.indexing = indexing;
 	}
 
@@ -60,14 +59,6 @@ public class ProjectIndexEvent implements ActivityEvent {
 		this.projectName = projectName;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
 	public boolean isIndexing() {
 		return indexing;
 	}
@@ -81,7 +72,8 @@ public class ProjectIndexEvent implements ActivityEvent {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(indexing ? GENERATE_INDEX : DELETE_INDEX)
 				.addActivityEntityType(PROJECT)
-				.addUserId(userId)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(projectId)
 				.addObjectName(projectName)
 				.addProjectId(projectId)

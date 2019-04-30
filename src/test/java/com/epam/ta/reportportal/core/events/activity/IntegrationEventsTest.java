@@ -31,24 +31,30 @@ import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.c
  */
 class IntegrationEventsTest {
 
+	private static Activity getExpectedActivity(ActivityAction action) {
+		Activity activity = new Activity();
+		activity.setAction(action.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails("type:test_project"));
+		return activity;
+	}
+
 	@Test
 	void created() {
-		final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L).toActivity();
+		final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.CREATE_BTS);
 		checkActivity(expected, actual);
 	}
 
 	@Test
 	void deleted() {
-		final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L).toActivity();
+		final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.DELETE_BTS);
-		checkActivity(expected, actual);
-	}
-
-	@Test
-	void updated() {
-		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), 1L).toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_BTS);
 		checkActivity(expected, actual);
 	}
 
@@ -61,15 +67,10 @@ class IntegrationEventsTest {
 		return integration;
 	}
 
-	private static Activity getExpectedActivity(ActivityAction action) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.INTEGRATION.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("type:test_project"));
-		return activity;
+	@Test
+	void updated() {
+		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), 1L, "user").toActivity();
+		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_BTS);
+		checkActivity(expected, actual);
 	}
 }

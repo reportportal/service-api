@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,13 +165,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					testItemResults.setIssue(issue);
 				});
 			} else {
-				updateFinishedItem(testItemResults,
-						actualStatus.get(),
-						resolvedIssue,
-						testItem,
-						user.getUserId(),
-						projectDetails.getProjectId()
-				);
+				updateFinishedItem(testItemResults, actualStatus.get(), resolvedIssue, testItem, user, projectDetails.getProjectId());
 			}
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
@@ -244,14 +238,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private void updateFinishedItem(TestItemResults testItemResults, StatusEnum actualStatus, Optional<IssueEntity> resolvedIssue,
-			TestItem testItem, Long userId, Long projectId) {
+			TestItem testItem, ReportPortalUser user, Long projectId) {
 		if (testItemResults.getStatus() != actualStatus || resolvedIssue.isPresent()) {
 
 			deleteOldIssueIndex(resolvedIssue, actualStatus, testItem, testItemResults, projectId);
 
 			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(testItemResults.getStatus()));
 			if (statusChangingStrategy.isPresent()) {
-				statusChangingStrategy.get().changeStatus(testItem, actualStatus, userId, projectId);
+				statusChangingStrategy.get().changeStatus(testItem, actualStatus, user, projectId);
 			} else {
 				testItemResults.setStatus(actualStatus);
 			}

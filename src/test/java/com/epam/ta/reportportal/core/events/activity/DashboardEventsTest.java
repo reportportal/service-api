@@ -36,11 +36,24 @@ import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetails
  */
 class DashboardEventsTest {
 
+	private static Activity getExpectedDashboardActivity(ActivityAction action, String name) {
+		Activity activity = new Activity();
+		activity.setAction(action.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails(name));
+		return activity;
+	}
+
 	@Test
 	void created() {
 		final String name = "name";
 
-		final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"), 1L).toActivity();
+		final Activity actual = new DashboardCreatedEvent(getTestDashboard(name, false, "description"), 1L, "user").toActivity();
 		final Activity expected = getExpectedDashboardActivity(ActivityAction.CREATE_DASHBOARD, name);
 		checkActivity(actual, expected);
 	}
@@ -49,30 +62,8 @@ class DashboardEventsTest {
 	void deleted() {
 		final String name = "name";
 
-		final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"), 1L).toActivity();
+		final Activity actual = new DashboardDeletedEvent(getTestDashboard(name, false, "description"), 1L, "user").toActivity();
 		final Activity expected = getExpectedDashboardActivity(ActivityAction.DELETE_DASHBOARD, name);
-		checkActivity(actual, expected);
-	}
-
-	@Test
-	void updated() {
-		final String oldName = "oldName";
-		final boolean oldShared = true;
-		final String oldDescription = "oldDescription";
-		final String newName = "newName";
-		final boolean newShared = false;
-		final String newDescription = "newDescription";
-
-		final Activity actual = new DashboardUpdatedEvent(getTestDashboard(oldName, oldShared, oldDescription),
-				getTestDashboard(newName, newShared, newDescription),
-				1L
-		).toActivity();
-		final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD, newName);
-		expected.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(oldName, newName),
-						Pair.of(oldShared, newShared),
-						Pair.of(oldDescription, newDescription)
-				));
 		checkActivity(actual, expected);
 	}
 
@@ -86,16 +77,27 @@ class DashboardEventsTest {
 		return dashboard;
 	}
 
-	private static Activity getExpectedDashboardActivity(ActivityAction action, String name) {
-		Activity activity = new Activity();
-		activity.setAction(action.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.DASHBOARD.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails(name));
-		return activity;
+	@Test
+	void updated() {
+		final String oldName = "oldName";
+		final boolean oldShared = true;
+		final String oldDescription = "oldDescription";
+		final String newName = "newName";
+		final boolean newShared = false;
+		final String newDescription = "newDescription";
+
+		final Activity actual = new DashboardUpdatedEvent(getTestDashboard(oldName, oldShared, oldDescription),
+				getTestDashboard(newName, newShared, newDescription),
+				1L,
+				"user"
+		).toActivity();
+		final Activity expected = getExpectedDashboardActivity(ActivityAction.UPDATE_DASHBOARD, newName);
+		expected.getDetails()
+				.setHistory(getExpectedHistory(Pair.of(oldName, newName),
+						Pair.of(oldShared, newShared),
+						Pair.of(oldDescription, newDescription)
+				));
+		checkActivity(actual, expected);
 	}
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> shared,

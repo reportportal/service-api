@@ -82,7 +82,7 @@ public final class NotificationConfigConverter {
 					return launchAttributeRule;
 				})
 				.collect(Collectors.toSet())));
-		senderCase.setLaunchNames(Sets.newHashSet(resource.getLaunchNames()));
+		ofNullable(resource.getLaunchNames()).ifPresent(launchNames -> senderCase.setLaunchNames(Sets.newHashSet(launchNames)));
 		senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
 		senderCase.setSendCase(SendCase.findByName(resource.getSendCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

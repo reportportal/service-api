@@ -41,11 +41,19 @@ class TicketPostedEventTest {
 	private static final String NEW_TICKET_ID = "125";
 	private static final String NEW_TICKET_URL = "http:/example.com/ticket/125";
 
-	@Test
-	void toActivity() {
-		final Activity actual = new TicketPostedEvent(getTicket(), 1L, getTestItem()).toActivity();
-		final Activity expected = getExpectedActivity();
-		checkActivity(expected, actual);
+	private static Activity getExpectedActivity() {
+		Activity activity = new Activity();
+		activity.setAction(ActivityAction.POST_ISSUE.getValue());
+		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET.getValue());
+		activity.setUserId(1L);
+		activity.setUsername("user");
+		activity.setProjectId(3L);
+		activity.setObjectId(2L);
+		activity.setCreatedAt(LocalDateTime.now());
+		activity.setDetails(new ActivityDetails("name"));
+		activity.getDetails()
+				.setHistory(getExpectedHistory(Pair.of(EXISTED_TICKETS, EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));
+		return activity;
 	}
 
 	private static Ticket getTicket() {
@@ -71,18 +79,11 @@ class TicketPostedEventTest {
 		return testItem;
 	}
 
-	private static Activity getExpectedActivity() {
-		Activity activity = new Activity();
-		activity.setAction(ActivityAction.POST_ISSUE.getValue());
-		activity.setActivityEntityType(Activity.ActivityEntityType.TICKET.getValue());
-		activity.setUserId(1L);
-		activity.setProjectId(3L);
-		activity.setObjectId(2L);
-		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("name"));
-		activity.getDetails()
-				.setHistory(getExpectedHistory(Pair.of(EXISTED_TICKETS, EXISTED_TICKETS + "," + NEW_TICKET_ID + ":" + NEW_TICKET_URL)));
-		return activity;
+	@Test
+	void toActivity() {
+		final Activity actual = new TicketPostedEvent(getTicket(), 1L, "user", getTestItem()).toActivity();
+		final Activity expected = getExpectedActivity();
+		checkActivity(expected, actual);
 	}
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> tickets) {

@@ -57,3 +57,9 @@ values (2, 1),
        (3, 1);
 
 alter sequence issue_type_id_seq restart with 9;
+
+insert into pattern_template(id, name, "value", type, enabled, project_id)
+values (1, 'some_name', 'value', 'STRING', true, 2),
+       (2, 'simple_name', 'value', 'STRING', true, 2),
+       (3, 'another_name', 'value', 'STRING', true, 1);
+alter sequence pattern_template_id_seq restart with 4;

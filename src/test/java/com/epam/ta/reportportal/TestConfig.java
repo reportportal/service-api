@@ -18,7 +18,8 @@ package com.epam.ta.reportportal;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
-import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
+import com.epam.ta.reportportal.core.configs.ExecutorConfiguration;
+import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,8 +41,7 @@ import org.springframework.context.annotation.*;
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*"),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ResourceCopierBeanTest.TestConfig.class),
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) }, includeFilters = {
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SaveLogBinaryDataTaskAsync.class) })
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) })
 @PropertySource("classpath:test-application.properties")
 public class TestConfig {
 

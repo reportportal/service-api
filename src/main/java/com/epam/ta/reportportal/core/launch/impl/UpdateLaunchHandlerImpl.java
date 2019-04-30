@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.impl.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
@@ -31,6 +32,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -48,14 +50,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
@@ -81,18 +81,21 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 	private final LogIndexer logIndexer;
 
+	private final LaunchPreparerService launchPreparerService;
+
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
 			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
-			AnalyzeCollectorFactory analyzeCollectorFactory) {
+			LaunchPreparerService launchPreparerService, AnalyzeCollectorFactory analyzeCollectorFactory) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
+		this.launchPreparerService = launchPreparerService;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 	}
 
@@ -104,13 +107,12 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
-		validateAttributes(rq.getAttributes());
 		launch = new LaunchBuilder(launch).addMode(rq.getMode())
 				.addDescription(rq.getDescription())
 				.overwriteAttributes(rq.getAttributes())
 				.get();
-		reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
 		launchRepository.save(launch);
+		reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
 
@@ -156,7 +158,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		List<Long> itemIds = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
 
 		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-				.thenApply(it -> logIndexer.indexLogs(project.getId(), Collections.singletonList(launch.getId()), analyzerConfig));
+				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}
@@ -187,12 +189,14 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	 * @param launch Update launch
 	 */
 	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig, Long projectId) {
-		List<Long> itemIds = testItemRepository.selectIdsNotInIssueByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE.getLocator());
-		if (!CollectionUtils.isEmpty(itemIds)) {
+		List<TestItem> items = testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE);
+		if (!CollectionUtils.isEmpty(items)) {
 			if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
-				logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
+				logIndexer.cleanIndex(projectId,
+						logRepository.findIdsByTestItemIds(items.stream().map(TestItem::getItemId).collect(toList()))
+				);
 			} else {
-				logIndexer.indexLogs(projectId, Collections.singletonList(launch.getId()), analyzerConfig);
+				launchPreparerService.prepare(launch, items, analyzerConfig).ifPresent(it -> logIndexer.indexPreparedLogs(projectId, it));
 			}
 		}
 	}

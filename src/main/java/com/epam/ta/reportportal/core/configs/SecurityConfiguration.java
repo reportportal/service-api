@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,23 +102,28 @@ class SecurityConfiguration {
 		}
 
 		@Bean
+		public static RoleHierarchy userRoleHierarchy() {
+			return new UserRoleHierarchy();
+		}
+
+		@Bean
 		public TokenStore tokenStore() {
 			return new CombinedTokenStore(accessTokenConverter());
 		}
 
 		@Bean
 		public JwtAccessTokenConverter accessTokenConverter() {
-			JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-			converter.setSigningKey(signingKey);
+			JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
+			jwtConverter.setSigningKey(signingKey);
 
-			DefaultAccessTokenConverter converter1 = new DefaultAccessTokenConverter();
+			DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
 			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
 			defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
-			converter1.setUserTokenConverter(defaultUserAuthenticationConverter);
+			accessTokenConverter.setUserTokenConverter(defaultUserAuthenticationConverter);
 
-			converter.setAccessTokenConverter(converter1);
+			jwtConverter.setAccessTokenConverter(accessTokenConverter);
 
-			return converter;
+			return jwtConverter;
 		}
 
 		@Bean
@@ -129,11 +134,6 @@ class SecurityConfiguration {
 			defaultTokenServices.setSupportRefreshToken(true);
 			defaultTokenServices.setTokenEnhancer(accessTokenConverter());
 			return defaultTokenServices;
-		}
-
-		@Bean
-		public static RoleHierarchy userRoleHierarchy() {
-			return new UserRoleHierarchy();
 		}
 
 		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {

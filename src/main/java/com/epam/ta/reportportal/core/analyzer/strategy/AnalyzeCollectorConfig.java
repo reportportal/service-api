@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ public class AnalyzeCollectorConfig implements ApplicationContextAware {
 	public Map<AnalyzeItemsMode, AnalyzeItemsCollector> getAnalyzerModeMapping() {
 		Map<AnalyzeItemsMode, AnalyzeItemsCollector> mapping = new HashMap<>();
 		mapping.put(AnalyzeItemsMode.TO_INVESTIGATE, applicationContext.getBean(ToInvestigateCollector.class));
-		mapping.put(AnalyzeItemsMode.AUTO_ANALYZED, applicationContext.getBean(ToInvestigateCollector.class));
-		mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED, applicationContext.getBean(ToInvestigateCollector.class));
+		mapping.put(AnalyzeItemsMode.AUTO_ANALYZED, applicationContext.getBean(AutoAnalyzedCollector.class));
+		mapping.put(AnalyzeItemsMode.MANUALLY_ANALYZED, applicationContext.getBean(ManuallyAnalyzedCollector.class));
 		return mapping;
 	}
 

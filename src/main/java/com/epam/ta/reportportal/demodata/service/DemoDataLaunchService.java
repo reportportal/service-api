@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
@@ -63,10 +63,10 @@ public class DemoDataLaunchService {
 		rq.setName(name);
 		rq.setStartTime(new Date());
 		rq.setUuid(UUID.randomUUID().toString());
-		Set<ItemAttributeResource> attributes = Sets.newHashSet(
-				new ItemAttributeResource("platform", "desktop"),
-				new ItemAttributeResource(null, "demo"),
-				new ItemAttributeResource("build", "3.0.1." + i)
+		Set<ItemAttributesRQ> attributes = Sets.newHashSet(
+				new ItemAttributesRQ("platform", "desktop"),
+				new ItemAttributesRQ(null, "demo"),
+				new ItemAttributesRQ("build", "3.0.1." + i)
 		);
 
 		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.project.settings;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -34,4 +35,14 @@ public interface UpdateProjectSettingsHandler {
 	 */
 	OperationCompletionRS updateProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateIssueSubTypeRQ rq);
+
+	/**
+	 * Update {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
+	 *
+	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
+	 * @return    {@link OperationCompletionRS}
+	 */
+	OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			UpdatePatternTemplateRQ updatePatternTemplateRQ);
 }

@@ -82,7 +82,8 @@ class UserControllerTest extends BaseMvcTest {
 		rq.setDefaultProject("default_personal");
 
 		MvcResult mvcResult = mockMvc.perform(post("/user").with(token(oAuthHelper.getSuperadminToken()))
-				.contentType(APPLICATION_JSON).content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
 
 		CreateUserRS createUserRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserRS.class);
 

@@ -56,6 +56,7 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpda
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,24 +132,27 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateProject(ReportPortalUser.ProjectDetails projectDetails, UpdateProjectRQ updateProjectRQ,
-			ReportPortalUser user) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, ReportPortalUser user) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
 
-		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
+		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
 		projectRepository.save(project);
-		messageBus.publishActivity(new ProjectUpdatedEvent(before, TO_ACTIVITY_RESOURCE.apply(project), user.getUserId()));
+		messageBus.publishActivity(new ProjectUpdatedEvent(before,
+				TO_ACTIVITY_RESOURCE.apply(project),
+				user.getUserId(),
+				user.getUsername()
+		));
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectNotificationConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	public OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
@@ -159,19 +163,21 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.findAny()
 				.ifPresent(pa -> pa.setValue(String.valueOf(updateProjectNotificationConfigRQ.isEnabled())));
 
-		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before, updateProjectNotificationConfigRQ, user.getUserId()));
-		return new OperationCompletionRS(
-				"EMail configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
+		messageBus.publishActivity(new NotificationsConfigUpdatedEvent(before,
+				updateProjectNotificationConfigRQ,
+				user.getUserId(),
+				user.getUsername()
+		));
+		return new OperationCompletionRS("Notification configuration of project - '" + projectName + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
-			ReportPortalUser user) {
+	public OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ, ReportPortalUser user) {
 		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
 				"Request should contain at least one username."
 		);
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
@@ -180,25 +186,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					"User should not unassign himself from project."
 			);
 		}
-		List<ProjectUser> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
-		unassignUsersRQ.getUsernames().forEach(username -> {
-			User userForUnassign = userRepository.findByLogin(username)
-					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
-			validateUnassigningUser(modifier, userForUnassign, projectDetails, project);
-			ProjectUser projectUser = project.getUsers()
-					.stream()
-					.filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
-					.findFirst()
-					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
-			project.getUsers().remove(projectUser);
-			userForUnassign.getProjects().remove(projectUser);
-			unassignUsers.add(projectUser);
-			aclHandler.preventSharedObjects(project.getId(), username);
-		});
 
-		projectUserRepository.deleteAll(unassignUsers);
-		ProjectUtils.excludeProjectRecipients(unassignUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
-		unassignUsers.forEach(it -> preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), it.getUser().getId()));
+		List<ProjectUser> unassignedUsers = unassignUsers(unassignUsersRQ.getUsernames(), modifier, project, user);
+		projectUserRepository.deleteAll(unassignedUsers);
+		ProjectUtils.excludeProjectRecipients(unassignedUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
+		unassignedUsers.forEach(it -> preferenceRepository.removeByProjectIdAndUserId(project.getId(), it.getUser().getId()));
 
 		return new OperationCompletionRS(
 				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
@@ -252,11 +244,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
 
-		expect(
-				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
 				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds."
-		);
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
@@ -265,13 +255,62 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 		logIndexer.deleteIndex(projectDetails.getProjectId());
 
-		logIndexer.indexLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
+		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
 			mailServiceFactory.getDefaultEmailService(true)
 					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
 		});
 
-		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), true));
+		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
 		return new OperationCompletionRS("Log indexing has been started");
+	}
+
+	private List<ProjectUser> unassignUsers(List<String> usernames, User modifier, Project project, ReportPortalUser user) {
+		List<ProjectUser> unassignedUsers = Lists.newArrayListWithExpectedSize(usernames.size());
+		if (modifier.getRole() == UserRole.ADMINISTRATOR) {
+			usernames.forEach(username -> {
+				User userForUnassign = userRepository.findByLogin(username)
+						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+				validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+				unassignedUsers.add(unassignUser(project, username, userForUnassign));
+
+			});
+		} else {
+			ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, project.getName());
+
+			usernames.forEach(username -> {
+				User userForUnassign = userRepository.findByLogin(username)
+						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+				ProjectUser projectUser = userForUnassign.getProjects()
+						.stream()
+						.filter(it -> Objects.equals(it.getProject().getId(), project.getId()))
+						.findFirst()
+						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
+								userForUnassign.getLogin(),
+								String.format("User not found in project %s", project.getName())
+						));
+
+				expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
+						ACCESS_DENIED);
+
+				validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+				unassignedUsers.add(unassignUser(project, username, userForUnassign));
+
+			});
+		}
+
+		return unassignedUsers;
+	}
+
+	private ProjectUser unassignUser(Project project, String username, User userForUnassign) {
+		ProjectUser projectUser = project.getUsers()
+				.stream()
+				.filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+		project.getUsers().remove(projectUser);
+		userForUnassign.getProjects().remove(projectUser);
+		aclHandler.preventSharedObjects(project.getId(), username);
+		return projectUser;
 	}
 
 	private void assignUser(String name, ProjectRole projectRole, List<String> assignedUsernames, Project project) {
@@ -296,8 +335,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		aclHandler.permitSharedObjects(project.getId(), name, permissions);
 	}
 
-	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails,
-			Project project) {
+	private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId, Project project) {
 		if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), userForUnassign.getLogin())) {
 			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
 		}
@@ -307,24 +345,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
 			fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(), String.format("User not found in project %s", project.getName()));
 		}
-
-		ProjectUser projectUser = userForUnassign.getProjects()
-				.stream()
-				.filter(it -> Objects.equals(it.getProject().getId(), projectDetails.getProjectId()))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
-						userForUnassign.getLogin(),
-						String.format("User not found in project %s", project.getName())
-				));
-
-		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
-					ACCESS_DENIED);
-		}
 	}
 
-	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser user) {
 
 		if (null != userRoles && !user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
 			expect(userRoles.get(user.getUsername()), isNull()).verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
@@ -340,7 +363,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				expect(updatingProjectUser, notNull()).verify(ErrorType.USER_NOT_FOUND, key);
 
 				if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-					ProjectRole principalRole = projectDetails.getProjectRole();
+					ProjectRole principalRole = ProjectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
 					ProjectRole updatingUserRole = ofNullable(ProjectUtils.findUserConfigByLogin(project,
 							key
 					)).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();
@@ -385,42 +408,44 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {
 
-		expect(cases, Preconditions.NOT_EMPTY_COLLECTION).verify(BAD_REQUEST_ERROR, "At least one rule should be present.");
-		cases.forEach(sendCase -> {
-			expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
-			expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
-			expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
-					formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
-			);
-			sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
-				EmailRulesValidator.validateRecipient(project, it);
-				return it.trim();
-			}).distinct().collect(toList()));
+		project.getSenderCases().clear();
+		if (CollectionUtils.isNotEmpty(cases)) {
+			cases.forEach(sendCase -> {
+				expect(findByName(sendCase.getSendCase()).isPresent(), equalTo(true)).verify(BAD_REQUEST_ERROR, sendCase.getSendCase());
+				expect(sendCase.getRecipients(), notNull()).verify(BAD_REQUEST_ERROR, "Recipients list should not be null");
+				expect(sendCase.getRecipients().isEmpty(), equalTo(false)).verify(BAD_REQUEST_ERROR,
+						formattedSupplier("Empty recipients list for email case '{}' ", sendCase)
+				);
+				sendCase.setRecipients(sendCase.getRecipients().stream().map(it -> {
+					EmailRulesValidator.validateRecipient(project, it);
+					return it.trim();
+				}).distinct().collect(toList()));
 
-			ofNullable(sendCase.getLaunchNames()).ifPresent(launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
-				EmailRulesValidator.validateLaunchName(name);
-				return name.trim();
-			}).distinct().collect(toList())));
+				ofNullable(sendCase.getLaunchNames()).ifPresent(launchNames -> sendCase.setLaunchNames(launchNames.stream().map(name -> {
+					EmailRulesValidator.validateLaunchName(name);
+					return name.trim();
+				}).distinct().collect(toList())));
 
-			ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
-				EmailRulesValidator.validateLaunchAttribute(attribute);
-				attribute.setValue(attribute.getValue().trim());
-			}).collect(Collectors.toSet())));
+				ofNullable(sendCase.getAttributes()).ifPresent(attributes -> sendCase.setAttributes(attributes.stream().peek(attribute -> {
+					EmailRulesValidator.validateLaunchAttribute(attribute);
+					attribute.setValue(attribute.getValue().trim());
+				}).collect(Collectors.toSet())));
 
-		});
+			});
 
-		/* If project email settings */
-		Set<SenderCase> withoutDuplicateCases = cases.stream()
-				.distinct()
-				.map(NotificationConfigConverter.TO_CASE_MODEL)
-				.peek(sc -> sc.setProject(project))
-				.collect(toSet());
-		if (cases.size() != withoutDuplicateCases.size()) {
-			fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+			/* If project email settings */
+			Set<SenderCase> withoutDuplicateCases = cases.stream()
+					.distinct()
+					.map(NotificationConfigConverter.TO_CASE_MODEL)
+					.peek(sc -> sc.setProject(project))
+					.collect(toSet());
+			if (cases.size() != withoutDuplicateCases.size()) {
+				fail().withError(BAD_REQUEST_ERROR, "Project email settings contain duplicate cases");
+			}
+
+			project.getSenderCases().addAll(withoutDuplicateCases);
 		}
 
-		project.getSenderCases().clear();
-		project.getSenderCases().addAll(withoutDuplicateCases);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.epam.ta.reportportal.core.project.settings.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
+import com.epam.ta.reportportal.core.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -26,16 +28,21 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.project.config.CreateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeCreatedRS;
+import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,15 +80,20 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 
 	private final IssueTypeRepository issueTypeRepository;
 
+	private final Map<PatternTemplateType, CreatePatternTemplateHandler> createPatternTemplateMapping;
+
 	private final MessageBus messageBus;
 
 	@Autowired
 	public CreateProjectSettingsHandlerImpl(ProjectRepository projectRepository, WidgetRepository widgetRepository,
-			IssueGroupRepository issueGroupRepository, IssueTypeRepository issueTypeRepository, MessageBus messageBus) {
+			IssueGroupRepository issueGroupRepository, IssueTypeRepository issueTypeRepository,
+			@Qualifier("createPatternTemplateMapping") Map<PatternTemplateType, CreatePatternTemplateHandler> createPatternTemplateMapping,
+			MessageBus messageBus) {
 		this.projectRepository = projectRepository;
 		this.widgetRepository = widgetRepository;
 		this.issueGroupRepository = issueGroupRepository;
 		this.issueTypeRepository = issueTypeRepository;
+		this.createPatternTemplateMapping = createPatternTemplateMapping;
 		this.messageBus = messageBus;
 	}
 
@@ -91,9 +103,6 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		expect(TO_INVESTIGATE.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(INCORRECT_REQUEST,
-				"Impossible to create sub-type for 'To Investigate' type."
-		);
 		expect(NOT_ISSUE_FLAG.getValue().equalsIgnoreCase(rq.getTypeRef()), equalTo(false)).verify(INCORRECT_REQUEST,
 				"Impossible to create sub-type for 'Not Issue' type."
 		);
@@ -140,8 +149,22 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 					widgetRepository.save(widget);
 				});
 
-		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType), project.getId(), user.getUserId()));
+		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType),
+				user.getUserId(),
+				user.getUsername(),
+				project.getId()
+		));
 		return new IssueSubTypeCreatedRS(subType.getId(), subType.getLocator());
+	}
+
+	@Override
+	public EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails,
+			CreatePatternTemplateRQ createPatternTemplateRQ) {
+
+		return createPatternTemplateMapping.get(PatternTemplateType.fromString(createPatternTemplateRQ.getType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createPatternTemplateRQ.getType()).get()
+				))).createPatternTemplate(projectDetails.getProjectId(), createPatternTemplateRQ);
 	}
 
 	private static String shortUUID() {

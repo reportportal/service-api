@@ -38,7 +38,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -68,8 +68,7 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 
 	@Autowired
 	public MergeLaunchHandlerImpl(LaunchRepository launchRepository, ProjectRepository projectRepository,
-			LaunchMergeFactory launchMergeFactory,
-			LaunchConverter launchConverter, LogIndexer logIndexer) {
+			LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
 		this.projectRepository = projectRepository;
 		this.launchMergeFactory = launchMergeFactory;
@@ -88,8 +87,8 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 				"At least one launch id should be  specified for merging"
 		);
 
-		expect(launchesIds.size() > 1, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-				"At least 2 launch id should be provided for merging"
+		expect(launchesIds.size() > 0, equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"At least 1 launch id should be provided for merging"
 		);
 
 		List<Launch> launchesList = launchRepository.findAllById(launchesIds);
@@ -108,9 +107,9 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
 		launchRepository.save(newLaunch);
+		logIndexer.cleanIndex(project.getId(), new ArrayList<>(launchesIds));
 		launchRepository.deleteAll(launchesList);
-
-		logIndexer.indexLogs(project.getId(), Collections.singletonList(newLaunch.getId()), AnalyzerUtils.getAnalyzerConfig(project));
+		logIndexer.indexLaunchLogs(project.getId(), newLaunch.getId(), AnalyzerUtils.getAnalyzerConfig(project));
 
 		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}
@@ -120,10 +119,9 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 	 *
 	 * @param launches       {@link List} of the {@link Launch}
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.auth.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
 	 */
 	private void validateMergingLaunches(List<Launch> launches, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(launches.size(), not(equalTo(0))).verify(BAD_REQUEST_ERROR, launches);
 
 		/*
 		 * ADMINISTRATOR and PROJECT_MANAGER+ users have permission to merge not-only-own

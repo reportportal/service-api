@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,16 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_DAS
 /**
  * @author pavel_bortnik
  */
-public class DashboardCreatedEvent implements ActivityEvent {
+public class DashboardCreatedEvent extends AbstractEvent implements ActivityEvent {
 
 	private DashboardActivityResource dashboardActivityResource;
-	private Long createdBy;
 
 	public DashboardCreatedEvent() {
 	}
 
-	public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long createdBy) {
+	public DashboardCreatedEvent(DashboardActivityResource dashboardActivityResource, Long userId, String userLogin) {
+		super(userId, userLogin);
 		this.dashboardActivityResource = dashboardActivityResource;
-		this.createdBy = createdBy;
 	}
 
 	public DashboardActivityResource getDashboardActivityResource() {
@@ -47,20 +46,13 @@ public class DashboardCreatedEvent implements ActivityEvent {
 		this.dashboardActivityResource = dashboardActivityResource;
 	}
 
-	public Long getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(Long createdBy) {
-		this.createdBy = createdBy;
-	}
-
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_DASHBOARD)
 				.addActivityEntityType(DASHBOARD)
-				.addUserId(createdBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addProjectId(dashboardActivityResource.getProjectId())
 				.addObjectId(dashboardActivityResource.getId())
 				.addObjectName(dashboardActivityResource.getName())

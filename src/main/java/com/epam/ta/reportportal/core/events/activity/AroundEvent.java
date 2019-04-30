@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,11 +24,11 @@ public class AroundEvent<T> extends BeforeEvent<T> {
 
 	private T after;
 
-	AroundEvent() {
+	public AroundEvent() {
 	}
 
-	AroundEvent(T before, T after) {
-		super(before);
+	public AroundEvent(Long userId, String userLogin, T before, T after) {
+		super(userId, userLogin, before);
 		this.after = Preconditions.checkNotNull(after);
 	}
 

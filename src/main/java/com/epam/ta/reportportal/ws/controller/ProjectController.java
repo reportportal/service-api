@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -81,13 +80,13 @@ public class ProjectController {
 	private final GetUserHandler getUserHandler;
 	private final GetPreferenceHandler getPreference;
 	private final UpdatePreferenceHandler updatePreference;
-	private final GetJasperReportHandler<Project> jasperReportHandler;
+	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	@Autowired
 	public ProjectController(GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
 			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler) {
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
 		this.getProjectHandler = getProjectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
@@ -116,7 +115,7 @@ public class ProjectController {
 	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
+		return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, user);
 	}
 
 	@Transactional
@@ -127,10 +126,7 @@ public class ProjectController {
 	public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectNotificationConfig(ProjectExtractor.extractProjectDetails(user, projectName),
-				user,
-				updateProjectNotificationConfigRQ
-		);
+		return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user, updateProjectNotificationConfigRQ);
 	}
 
 	@Transactional
@@ -175,7 +171,7 @@ public class ProjectController {
 	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+		return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -193,7 +189,7 @@ public class ProjectController {
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.unassignUsers(ProjectExtractor.extractProjectDetails(user, projectName), unassignUsersRQ, user);
+		return updateProjectHandler.unassignUsers(normalizeId(projectName), unassignUsersRQ, user);
 	}
 
 	@Transactional
@@ -284,7 +280,8 @@ public class ProjectController {
 	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(Project.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
+			@FilterFor(ProjectInfo.class) Filter filter, @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
@@ -294,7 +291,7 @@ public class ProjectController {
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {
-			getProjectHandler.exportProjects(format, filter, outputStream);
+			getProjectHandler.exportProjects(format, new CompositeFilter(filter, predefinedFilter), outputStream);
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,22 +29,11 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_DAS
  */
 public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource> implements ActivityEvent {
 
-	private Long updatedBy;
-
 	public DashboardUpdatedEvent() {
 	}
 
-	public DashboardUpdatedEvent(DashboardActivityResource before, DashboardActivityResource after, Long updatedBy) {
-		super(before, after);
-		this.updatedBy = updatedBy;
-	}
-
-	public Long getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(Long updatedBy) {
-		this.updatedBy = updatedBy;
+	public DashboardUpdatedEvent(DashboardActivityResource before, DashboardActivityResource after, Long userId, String userLogin) {
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
@@ -52,7 +41,8 @@ public class DashboardUpdatedEvent extends AroundEvent<DashboardActivityResource
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(UPDATE_DASHBOARD)
 				.addActivityEntityType(DASHBOARD)
-				.addUserId(updatedBy)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
@@ -56,14 +56,14 @@ final class ContentUtils {
 		//static only
 	}
 
-	static Set<ItemAttributeResource> getAttributesInRange(int limit) {
+	static Set<ItemAttributesRQ> getAttributesInRange(int limit) {
 		List<Pair<String, String>> content = readAttributes("demo/content/attributes.txt");
 		int fromIndex = random.nextInt(content.size() - limit);
 		return content.subList(fromIndex, fromIndex + limit).stream().map(it -> {
 			if (it.getKey().isEmpty()) {
-				return new ItemAttributeResource(null, it.getValue());
+				return new ItemAttributesRQ(null, it.getValue());
 			} else {
-				return new ItemAttributeResource(it.getKey(), it.getValue());
+				return new ItemAttributesRQ(it.getKey(), it.getValue());
 			}
 		}).collect(Collectors.toSet());
 

@@ -53,6 +53,7 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,6 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -128,7 +128,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
-		List<Long> launchIdsToReindex = new ArrayList<>();
+		// key - launch id, value - list of item ids
+		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
 		List<Long> logIdsToCleanIndex = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
@@ -157,7 +158,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					launchIdsToReindex.add(testItem.getLaunch().getId());
+					Long launchId = testItem.getLaunch().getId();
+					Long itemId = testItem.getItemId();
+					if (logsToReindexMap.containsKey(launchId)) {
+						logsToReindexMap.get(launchId).add(itemId);
+					} else {
+						List<Long> itemIds = Lists.newArrayList();
+						itemIds.add(itemId);
+						logsToReindexMap.put(launchId, itemIds);
+					}
 				} else {
 					logIdsToCleanIndex.addAll(logRepository.findIdsByTestItemId(testItem.getItemId()));
 				}
@@ -166,14 +175,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
 
-				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId()));
+				events.add(new ItemIssueTypeDefinedEvent(before, after, user.getUserId(), user.getUsername()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
 		});
 		expect(errors.isEmpty(), equalTo(true)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		if (!launchIdsToReindex.isEmpty()) {
-			logIndexer.indexLogs(project.getId(), launchIdsToReindex, analyzerConfig);
+		if (!logsToReindexMap.isEmpty()) {
+			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
 		}
 		if (!logIdsToCleanIndex.isEmpty()) {
 			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
@@ -188,12 +197,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-		validateAttributes(rq.getAttributes());
 		validate(projectDetails, user, testItem);
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -201,7 +210,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
 					"Actual status: " + actualStatus + " can not be changed to: " + providedStatus.get()
 			);
-			strategy.changeStatus(testItem, providedStatus.get(), user.getUserId(), projectDetails.getProjectId());
+			strategy.changeStatus(testItem, providedStatus.get(), user, projectDetails.getProjectId());
 		}
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
@@ -239,7 +248,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		before.forEach(it -> new LinkTicketEvent(it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
-				user.getUserId()
+				user.getUserId(),
+				user.getUsername()
 		));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))

@@ -84,9 +84,6 @@ class LaunchFinishedEventHandlerTest {
 	@Mock
 	private LogIndexer logIndexer;
 
-	private Project project = mock(Project.class);
-	private Launch launch = mock(Launch.class);
-
 	private Integration emailIntegration = mock(Integration.class);
 
 	private EmailService emailService = mock(EmailService.class);
@@ -111,9 +108,7 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEBUG);
 
@@ -132,18 +127,19 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
+		Project project = new Project();
+		project.setId(1L);
+		project.setProjectAttributes(getProjectAttributesWithDisabledNotifications());
+
 		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(launch);
-		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
-		when(project.getProjectAttributes()).thenReturn(getProjectAttributesWithDisabledNotifications());
-		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
+		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.of(project));
+		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
+		verify(logIndexer, times(1)).indexLaunchLogs(eq(1L), eq(1L), any(AnalyzerConfig.class));
 
 		verify(getIntegrationHandler, times(0)).getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 				IntegrationGroupEnum.NOTIFICATION
@@ -159,16 +155,16 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
+		Project project = new Project();
+		project.setId(1L);
+		project.setProjectAttributes(getProjectAttributesWithEnabledNotifications());
+
 		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(launch);
 		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
-		when(project.getProjectAttributes()).thenReturn(getProjectAttributesWithEnabledNotifications());
-		when(project.getId()).thenReturn(1L);
 		when(getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)).thenReturn(Optional.ofNullable(emailIntegration));
@@ -183,10 +179,10 @@ class LaunchFinishedEventHandlerTest {
 
 		when(analyzerServiceAsync.analyze(any(Launch.class), anyList(), any(AnalyzerConfig.class))).thenReturn(analyze);
 
-		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
+		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 
 		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
+		verify(logIndexer, times(1)).indexLaunchLogs(eq(1L), eq(1L), any(AnalyzerConfig.class));
 		verify(analyzerServiceAsync, times(1)).analyze(any(), any(), any());
 
 	}
@@ -199,18 +195,18 @@ class LaunchFinishedEventHandlerTest {
 		resource.setName("name");
 		resource.setProjectId(1L);
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(resource);
-		event.setFinishedBy(1L);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 		launch.setName("name1");
 
+		Project project = new Project();
+		project.setId(1L);
+		project.setProjectAttributes(getProjectAttributesWithEnabledNotificationsAndDisabledAutoAnalyzer());
+		project.setSenderCases(getSenderCases());
+
 		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(Optional.ofNullable(launch));
 		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
-		when(project.getSenderCases()).thenReturn(getSenderCases());
-		when(project.getProjectAttributes()).thenReturn(getProjectAttributesWithEnabledNotificationsAndDisabledAutoAnalyzer());
-		when(project.getId()).thenReturn(1L);
 		when(getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)).thenReturn(Optional.ofNullable(emailIntegration));
@@ -221,9 +217,9 @@ class LaunchFinishedEventHandlerTest {
 		when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("url"));
 		when(httpServletRequest.getHeaderNames()).thenReturn(Collections.enumeration(Lists.newArrayList("authorization")));
 		when(httpServletRequest.getHeaders(anyString())).thenReturn(Collections.emptyEnumeration());
-		when(logIndexer.indexLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
+		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(1)).indexLogs(any(Long.class), anyList(), any(AnalyzerConfig.class));
+		verify(logIndexer, times(1)).indexLaunchLogs(eq(1L), eq(1L), any(AnalyzerConfig.class));
 		verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
 
 	}

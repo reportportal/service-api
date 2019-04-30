@@ -76,7 +76,7 @@ class DefectTypeDeletedHandlerTest {
 
 		ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
-				() -> handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, projectId))
+				() -> handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId))
 		);
 
 		assertEquals("Project '2' not found. Did you use correct project name?", exception.getMessage());
@@ -89,7 +89,7 @@ class DefectTypeDeletedHandlerTest {
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
 		when(analyzerServiceClient.hasClients()).thenReturn(false);
 
-		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, projectId));
+		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
 
 		verifyZeroInteractions(logIndexer);
 	}
@@ -106,7 +106,7 @@ class DefectTypeDeletedHandlerTest {
 
 		ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
-				() -> handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, projectId))
+				() -> handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId))
 		);
 		assertEquals("Forbidden operation. Index can not be removed until auto-analysis proceeds.", exception.getMessage());
 	}
@@ -121,10 +121,9 @@ class DefectTypeDeletedHandlerTest {
 		List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
 		when(launchRepository.findLaunchIdsByProjectId(projectId)).thenReturn(launchIds);
 
-		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, projectId));
+		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
 
-		verify(logIndexer, times(1)).deleteIndex(projectId);
-		verify(logIndexer, times(1)).indexLogs(eq(projectId), eq(launchIds), any());
+		verify(logIndexer, times(1)).indexLaunchesLogs(eq(projectId), eq(launchIds), any());
 	}
 
 	private Project getProjectWithAnalyzerAttributes(Long projectId) {

@@ -47,7 +47,8 @@ public final class TestItemConverter {
 		resource.setUniqueId(item.getUniqueId());
 		resource.setAttributes(item.getAttributes()
 				.stream()
-				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue(), it.isSystem()))
+				.filter(it -> !it.isSystem())
+				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
 				.collect(toSet()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getItemResults().getEndTime()));
 		resource.setItemId(item.getItemId());
@@ -65,6 +66,10 @@ public final class TestItemConverter {
 			resource.setParent(item.getParent().getItemId());
 		}
 		ofNullable(item.getLaunch()).ifPresent(l -> resource.setLaunchId(l.getId()));
+		resource.setPatternTemplates(item.getPatternTemplateTestItems()
+				.stream()
+				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
+				.collect(toSet()));
 		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.events.AttachDefaultPhotoEvent;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -43,7 +42,6 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -75,18 +73,15 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private final ApplicationEventPublisher eventPublisher;
-
 	private final DataStoreService dataStoreService;
 
 	private final DataEncoder dataEncoder;
 
 	@Autowired
-	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, ApplicationEventPublisher eventPublisher,
-			DataStoreService dataStoreService, DataEncoder dataEncoder) {
+	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, DataStoreService dataStoreService,
+			DataEncoder dataEncoder) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
-		this.eventPublisher = eventPublisher;
 		this.dataStoreService = dataStoreService;
 		this.dataEncoder = dataEncoder;
 	}
@@ -161,7 +156,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 			user.setAttachment(null);
 			user.setAttachmentThumbnail(null);
 		});
-		eventPublisher.publishEvent(new AttachDefaultPhotoEvent(user.getId()));
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
 	}
 

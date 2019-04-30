@@ -757,7 +757,7 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.name").value("overall statistics"))
 				.andExpect(jsonPath("$.widgetType").value("overallStatistics"))
-				.andExpect(jsonPath("$.content").isEmpty());
+				.andExpect(jsonPath("$.content").isNotEmpty());
 	}
 
 	@Sql("/db/widget/activity-stream.sql")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer;
 
+import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.List;
@@ -38,9 +39,13 @@ public interface LogIndexer {
 	 * @param analyzerConfig - anlayzer config
 	 * @return The count of indexed test items
 	 */
-	CompletableFuture<Long> indexLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig);
+	CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig);
 
-	CompletableFuture<Long> indexLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig);
+	CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig);
+
+	CompletableFuture<Long> indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig);
+
+	CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch);
 
 	/**
 	 * Delete index of specified project

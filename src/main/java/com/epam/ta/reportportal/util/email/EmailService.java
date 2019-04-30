@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -60,7 +61,6 @@ public class EmailService extends JavaMailSenderImpl {
 	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
-
 	/* Default value for FROM project notifications field */
 	private String from;
 
@@ -131,12 +131,15 @@ public class EmailService extends JavaMailSenderImpl {
 		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
 			email.put(
 					"attributes",
-					launch.getAttributes().stream().collect(toMap(tag -> tag.getKey().concat(":").concat(tag.getValue()), tag -> format(
-							FILTER_TAG_FORMAT,
-							basicUrl,
-							urlPathSegmentEscaper().escape(tag.getKey()),
-							urlPathSegmentEscaper().escape(tag.getValue())
-					)))
+					launch.getAttributes()
+							.stream()
+							.filter(it -> !it.isSystem())
+							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()), attribute -> format(
+									FILTER_TAG_FORMAT,
+									basicUrl,
+									urlPathSegmentEscaper().escape(attribute.getKey()),
+									urlPathSegmentEscaper().escape(attribute.getValue())
+							)))
 			);
 		}
 
@@ -147,17 +150,17 @@ public class EmailService extends JavaMailSenderImpl {
 				.filter(s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(s.getStatisticsField().getName()))
 				.collect(Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter, (prev, curr) -> prev));
 
-		email.put("total", ofNullable(statistics.get("statistics$executions$total")).orElse(0));
-		email.put("passed", ofNullable(statistics.get("statistics$executions$passed")).orElse(0));
-		email.put("failed", ofNullable(statistics.get("statistics$executions$failed")).orElse(0));
-		email.put("skipped", ofNullable(statistics.get("statistics$executions$skipped")).orElse(0));
+		email.put("total", ofNullable(statistics.get(EXECUTIONS_TOTAL)).orElse(0));
+		email.put("passed", ofNullable(statistics.get(EXECUTIONS_PASSED)).orElse(0));
+		email.put("failed", ofNullable(statistics.get(EXECUTIONS_FAILED)).orElse(0));
+		email.put("skipped", ofNullable(statistics.get(EXECUTIONS_SKIPPED)).orElse(0));
 
 		/* Launch issue statistics global counters */
-		email.put("productBugTotal", ofNullable(statistics.get("statistics$product_bug$total")).orElse(0));
-		email.put("automationBugTotal", ofNullable(statistics.get("statistics$product_bug$total")).orElse(0));
-		email.put("systemIssueTotal", ofNullable(statistics.get("statistics$system_issue$total")).orElse(0));
-		email.put("noDefectTotal", ofNullable(statistics.get("statistics$no_defect$total")).orElse(0));
-		email.put("toInvestigateTotal", ofNullable(statistics.get("statistics$to_investigate$total")).orElse(0));
+		email.put("productBugTotal", ofNullable(statistics.get(DEFECTS_PRODUCT_BUG_TOTAL)).orElse(0));
+		email.put("automationBugTotal", ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0));
+		email.put("systemIssueTotal", ofNullable(statistics.get(DEFECTS_SYSTEM_ISSUE_TOTAL)).orElse(0));
+		email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
+		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
 
 
 
@@ -172,10 +175,14 @@ public class EmailService extends JavaMailSenderImpl {
 	}
 
 	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics, String regex) {
-		Optional<Map<String, Integer>> pb = ofNullable(statistics.entrySet().stream().filter(entry -> {
+		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
 			Pattern pattern = Pattern.compile(regex);
 			return pattern.matcher(entry.getKey()).matches();
-		}).collect(Collectors.toMap(Map.Entry::getKey, entry -> ofNullable(entry.getValue()).orElse(0), (prev, curr) -> prev)));
+		}).collect(Collectors.toMap(
+				entry -> StringUtils.substringAfterLast(entry.getKey(), "$"),
+				entry -> ofNullable(entry.getValue()).orElse(0),
+				(prev, curr) -> prev
+		)));
 
 		pb.ifPresent(stats -> email.put(statisticsName, stats));
 	}

@@ -38,8 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -86,20 +86,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	public OperationCompletionRS deleteProject(Long projectId) {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectId));
-		Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
-				.stream()
-				.map(IssueType::getId)
-				.collect(Collectors.toSet());
-		Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
-				.stream()
-				.map(ProjectIssueType::getIssueType)
-				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
-				.collect(Collectors.toSet());
-		projectRepository.deleteById(projectId);
-		issueTypeRepository.deleteAll(issueTypesToRemove);
-		logIndexer.deleteIndex(projectId);
-		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
-		return new OperationCompletionRS("Project with id = '" + projectId + "' has been successfully deleted.");
+		return deleteProject(project);
 	}
 
 	@Override
@@ -128,20 +115,43 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 	@Override
 	public DeleteBulkRS deleteProjects(DeleteBulkRQ deleteBulkRQ) {
 		List<ReportPortalException> exceptions = Lists.newArrayList();
+		List<Long> notFound = Lists.newArrayList();
 		List<Long> deleted = Lists.newArrayList();
 		deleteBulkRQ.getIds().forEach(projectId -> {
 			try {
-				deleteProject(projectId);
-				deleted.add(projectId);
+				Optional<Project> project = projectRepository.findById(projectId);
+				if (project.isPresent()) {
+					deleteProject(project.get());
+					deleted.add(projectId);
+				} else {
+					notFound.add(projectId);
+				}
 			} catch (ReportPortalException ex) {
 				exceptions.add(ex);
 			}
 		});
-		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {
+		return new DeleteBulkRS(deleted, notFound, exceptions.stream().map(ex -> {
 			ErrorRS errorResponse = new ErrorRS();
 			errorResponse.setErrorType(ex.getErrorType());
 			errorResponse.setMessage(ex.getMessage());
 			return errorResponse;
 		}).collect(Collectors.toList()));
+	}
+
+	private OperationCompletionRS deleteProject(Project project) {
+		Set<Long> defaultIssueTypeIds = issueTypeRepository.getDefaultIssueTypes()
+				.stream()
+				.map(IssueType::getId)
+				.collect(Collectors.toSet());
+		Set<IssueType> issueTypesToRemove = project.getProjectIssueTypes()
+				.stream()
+				.map(ProjectIssueType::getIssueType)
+				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
+				.collect(Collectors.toSet());
+		projectRepository.deleteById(project.getId());
+		issueTypeRepository.deleteAll(issueTypesToRemove);
+		logIndexer.deleteIndex(project.getId());
+		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
+		return new OperationCompletionRS("Project with id = '" + project.getId() + "' has been successfully deleted.");
 	}
 }

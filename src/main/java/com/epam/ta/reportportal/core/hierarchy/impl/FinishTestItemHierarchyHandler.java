@@ -27,10 +27,8 @@ import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntityPojo;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -39,10 +37,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.CANCELLED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.INTERRUPTED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.STOPPED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static java.util.Optional.ofNullable;
 
@@ -100,10 +95,10 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 		if (ANCESTOR_PROPOGATED_STATUSES.contains(status)) {
 			LocalDateTime localDateTime = TO_LOCAL_DATE_TIME.apply(endDate);
 
-			Launch launch = entity.getLaunch();
-			launch.setStatus(status);
-			launch.setEndTime(localDateTime);
-			launchRepository.save(launch);
+//			Launch launch = entity.getLaunch();
+//			launch.setStatus(status);
+//			launch.setEndTime(localDateTime);
+//			launchRepository.save(launch);
 
 			testItemRepository.selectPathNames(entity.getPath()).keySet().forEach(id -> {
 				testItemRepository.updateStatusAndEndTimeById(id, JStatusEnum.valueOf(status.name()), localDateTime);

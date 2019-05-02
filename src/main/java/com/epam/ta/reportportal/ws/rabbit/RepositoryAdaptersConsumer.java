@@ -24,7 +24,17 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.DATA_STORAGE_FETCH_DATA_QUEUE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.INTEGRATION_FIND_ONE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.PROJECTS_FIND_BY_NAME;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.TEST_ITEMS_FIND_ONE_QUEUE;
+
 import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_INTEGRATION_RESOURCE;
+
+import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.IS_LOAD_BINARY_DATA;
+import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.ITEM_REF;
+import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.LIMIT;
 
 /**
  * @author Pavel Bortnik
@@ -72,65 +82,34 @@ public class RepositoryAdaptersConsumer {
 		this.dataStoreService = dataStoreService;
 	}
 
-	@RabbitListener(queues = RabbitConstants.QueueNames.PROJECTS_FIND_BY_NAME)
+	@RabbitListener(queues = PROJECTS_FIND_BY_NAME)
 	public ProjectResource findProjectByName(@Payload String projectName) {
 		return projectRepository.findByName(projectName).map(it -> projectConverter.TO_PROJECT_RESOURCE.apply(it)).orElse(null);
 	}
 
-	@RabbitListener(queues = RabbitConstants.QueueNames.INTEGRATION_FIND_ONE)
+	@RabbitListener(queues = INTEGRATION_FIND_ONE)
 	public IntegrationResource findIntegrationById(@Payload Long integrationId) {
 		return integrationRepository.findById(integrationId).map(TO_INTEGRATION_RESOURCE).orElse(null);
 	}
 
-	@RabbitListener(queues = RabbitConstants.QueueNames.TEST_ITEMS_FIND_ONE_QUEUE)
+	@RabbitListener(queues = TEST_ITEMS_FIND_ONE_QUEUE)
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		return testItemRepository.findById(itemId).map(it -> itemResourceAssembler.toResource(it)).orElse(null);
 	}
 
-	@RabbitListener(queues = RabbitConstants.QueueNames.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE)
-	public List<LogResource> findLogsByTestItem(@Header(RabbitConstants.MessageHeaders.ITEM_REF) Long itemRef,
-			@Header(RabbitConstants.MessageHeaders.LIMIT) Integer limit,
-			@Header(RabbitConstants.MessageHeaders.IS_LOAD_BINARY_DATA) boolean loadBinaryData) {
+	@RabbitListener(queues = LOGS_FIND_BY_TEST_ITEM_REF_QUEUE)
+	public List<LogResource> findLogsByTestItem(@Header(ITEM_REF) Long itemRef,
+			@Header(LIMIT) Integer limit,
+			@Header(IS_LOAD_BINARY_DATA) boolean loadBinaryData) {
 		List<Log> logs = logRepository.findByTestItemId(itemRef, limit /*, loadBinaryData*/);
 		return logs.stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
 
 	//TODO think about how to work with such content
 
-	@RabbitListener(queues = RabbitConstants.QueueNames.DATA_STORAGE_FETCH_DATA_QUEUE)
+	@RabbitListener(queues = DATA_STORAGE_FETCH_DATA_QUEUE)
 	public InputStream fetchData(String dataId) {
 		return dataStoreService.load(dataId);
-	}
-
-	public class RabbitConstants {
-
-		private RabbitConstants() {
-			//static only
-		}
-
-		public final class QueueNames {
-
-			public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
-			public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
-			public static final String TEST_ITEMS_FIND_ONE_QUEUE = "repository.find.item";
-			public static final String INTEGRATION_FIND_ONE = "repository.find.integration";
-			public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
-
-			private QueueNames() {
-				//static only
-			}
-		}
-
-		public final class MessageHeaders {
-
-			public static final String ITEM_REF = "itemRef";
-			public static final String LIMIT = "limit";
-			public static final String IS_LOAD_BINARY_DATA = "isLoadBinaryData";
-
-			private MessageHeaders() {
-				//static only
-			}
-		}
 	}
 
 }

@@ -31,7 +31,7 @@ import java.util.Arrays;
  *
  * @author Andrei Varabyeu
  */
-class Conditions {
+public class Conditions {
 
 	public static class NotTestCondition implements ConfigurationCondition {
 

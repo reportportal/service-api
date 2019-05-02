@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.configs;
+package com.epam.ta.reportportal.core.configs.rabbit;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.rabbitmq.http.client.Client;
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -40,7 +40,6 @@ import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.A
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-@EnableRabbit
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
 public class AnalyzerRabbitMqConfiguration {

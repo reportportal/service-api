@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.item.descendant;
+package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
@@ -48,7 +49,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public abstract class AbstractFinishDescendantsHandler<T> implements FinishDescendantsHandler<T> {
+public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarchyHandler<T> {
 
 	public static final String ATTRIBUTE_KEY_STATUS = "status";
 	public static final String ATTRIBUTE_VALUE_INTERRUPTED = "interrupted";
@@ -56,13 +57,15 @@ public abstract class AbstractFinishDescendantsHandler<T> implements FinishDesce
 	public static final int INSERT_ATTRIBUTES_BATCH_SIZE = 75;
 	public static final int INSERT_ISSUE_BATCH_SIZE = 75;
 
+	protected final LaunchRepository launchRepository;
 	protected final TestItemRepository testItemRepository;
 	protected final ItemAttributeRepository itemAttributeRepository;
 	protected final IssueEntityRepository issueEntityRepository;
 	private final IssueTypeHandler issueTypeHandler;
 
-	public AbstractFinishDescendantsHandler(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler) {
+	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
+										  IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler) {
+		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.issueEntityRepository = issueEntityRepository;

@@ -47,7 +47,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public Long importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
 		try {
 			return processZipFile(file, projectDetails, user);
 		} finally {
@@ -59,11 +59,11 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private Long processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		//copy of the launch's id to use it in catch block if something goes wrong
-		Long savedLaunchId = null;
+		String savedLaunchId = null;
 		try (ZipFile zipFile = new ZipFile(zip)) {
-			Long launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)));
+			String launchId = startLaunch(projectDetails, user, zip.getName().substring(0, zip.getName().indexOf("." + ZIP_EXTENSION)));
 			savedLaunchId = launchId;
 			CompletableFuture[] futures = zipFile.stream().filter(isFile.and(isXml)).map(zipEntry -> {
 				XunitParseJob job = xmlParseJobProvider.get()

@@ -16,15 +16,35 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.log.impl.CreateLogHandler;
-import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
+import com.epam.ta.reportportal.core.item.TestItemService;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
+import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 
 /**
  * @author Pavel Bortnik
@@ -34,14 +54,71 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class LogReporterConsumer {
 
-	private DatabaseUserDetailsService userDetailsService;
+	private static final Logger LOGGER = LoggerFactory.getLogger(LogReporterConsumer.class);
 
-	private CreateLogHandler createLogHandler;
+	@Autowired
+	private LogRepository logRepository;
 
-	public void onLogCreate(@Payload SaveLogRQ rq, @Header(MessageHeaders.USERNAME) String username,
-			@Header(MessageHeaders.PROJECT_NAME) String projectName) {
-		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		createLogHandler.createLog(rq, null, ProjectExtractor.extractProjectDetails(user, projectName));
+	@Autowired
+	private AttachmentRepository attachmentRepository;
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private TestItemService testItemService;
+
+	@Autowired
+	private DataStoreService dataStoreService;
+
+	@RabbitListener(queues = "#{ @logQueue.name }")
+	public void onLogCreate(@Payload DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload, @Header(MessageHeaders.PROJECT_ID) Long projectId,
+			@Header(MessageHeaders.ITEM_ID) String itemId,
+			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
+
+		if (xdHeader != null) {
+			long count = (Long) xdHeader.get(0).get("count");
+			if (count > DEAD_LETTER_MAX_RETRY) {
+				LOGGER.error("Dropping log request TestItem {}, on maximum retry attempts {}", itemId, DEAD_LETTER_MAX_RETRY);
+				cleanup(payload);
+				return;
+			}
+			LOGGER.warn("Retrying log request TestItem {}, attempt {}", itemId, count);
+		}
+
+		SaveLogRQ request = payload.getLeft();
+		BinaryDataMetaInfo metaInfo = payload.getRight();
+
+		Log log = new LogBuilder().addSaveLogRq(request).get();
+		TestItem testItem = testItemRepository.findByUuid(itemId)
+				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
+		log.setTestItem(testItem);
+
+		// attachment
+		if (metaInfo != null) {
+			Launch launch = testItemService.getEffectiveLaunch(testItem);
+
+			Attachment attachment = new AttachmentBuilder().withFileId(metaInfo.getFileId())
+					.withThumbnailId(metaInfo.getThumbnailFileId())
+					.withContentType(metaInfo.getContentType())
+					.withProjectId(projectId)
+					.withLaunchId(launch.getId())
+					.withItemId(testItem.getItemId())
+					.get();
+
+			attachmentRepository.save(attachment);
+			log.setAttachment(attachment);
+		}
+
+		logRepository.save(log);
 	}
 
+	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
+		// we need to delete only binary data, log and attachment shouldn't be dirty created
+		if (payload.getRight() != null) {
+			BinaryDataMetaInfo metaInfo = payload.getRight();
+			dataStoreService.delete(metaInfo.getFileId());
+			dataStoreService.delete(metaInfo.getThumbnailFileId());
+		}
+	}
 }

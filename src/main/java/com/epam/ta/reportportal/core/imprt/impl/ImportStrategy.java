@@ -31,7 +31,7 @@ public interface ImportStrategy {
 	 * @param projectDetails project
 	 * @param user           user
 	 * @param file           zip file that contains xml test reports
-	 * @return launch id
+	 * @return launch uuid
 	 */
-	Long importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file);
+	String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file);
 }

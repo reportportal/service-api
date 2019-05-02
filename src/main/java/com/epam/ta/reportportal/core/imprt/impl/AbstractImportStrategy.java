@@ -77,20 +77,20 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 		return results;
 	}
 
-	protected Long startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
+	protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(initialStartTime);
 		startLaunchRQ.setName(launchName);
 		startLaunchRQ.setMode(Mode.DEFAULT);
-		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
+		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getUuid();
 	}
 
-	protected void finishLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			ParseResults results) {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(results.getEndTime());
 		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user);
-		Launch launch = launchRepository.findById(launchId)
+		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		launch.setStartTime(results.getStartTime());
 		launchRepository.save(launch);
@@ -114,9 +114,9 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 	 * a default date if the launch is broken, time should be updated to not to broke
 	 * the statistics
 	 */
-	protected void updateBrokenLaunch(Long savedLaunchId) {
+	protected void updateBrokenLaunch(String savedLaunchId) {
 		if (savedLaunchId != null) {
-			Launch launch = launchRepository.findById(savedLaunchId)
+			Launch launch = launchRepository.findByUuid(savedLaunchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 			launch.setStartTime(LocalDateTime.now());
 			launch.setStatus(StatusEnum.INTERRUPTED);

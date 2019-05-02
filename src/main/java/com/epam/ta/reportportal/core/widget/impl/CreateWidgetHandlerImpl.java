@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
+import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -61,13 +63,16 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private final ShareableObjectsHandler aclHandler;
 
+	private final UpdateUserFilterHandler updateUserFilterHandler;
+
 	@Autowired
 	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
-			ShareableObjectsHandler aclHandler) {
+			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.aclHandler = aclHandler;
+		this.updateUserFilterHandler = updateUserFilterHandler;
 	}
 
 	@Override
@@ -87,6 +92,12 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 				.get();
 		widgetRepository.save(widget);
 		aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createWidgetRQ.getShare()));
+		if (widget.isShared()) {
+			ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
+					projectDetails.getProjectId(),
+					widget.isShared()
+			));
+		}
 		messageBus.publishActivity(new WidgetCreatedEvent(TO_ACTIVITY_RESOURCE.apply(widget), user.getUserId(), user.getUsername()));
 		return new EntryCreatedRS(widget.getId());
 	}

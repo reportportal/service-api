@@ -61,7 +61,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -328,11 +327,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		projectUser.setProject(project);
 		project.getUsers().add(projectUser);
 
-		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
 		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-			permissions.add(BasePermission.ADMINISTRATION);
+			aclHandler.permitSharedObjects(project.getId(), name, BasePermission.ADMINISTRATION);
+		} else {
+			aclHandler.permitSharedObjects(project.getId(), name, BasePermission.READ);
 		}
-		aclHandler.permitSharedObjects(project.getId(), name, permissions);
 	}
 
 	private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId, Project project) {

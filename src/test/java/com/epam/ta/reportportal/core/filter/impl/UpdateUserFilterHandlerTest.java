@@ -66,6 +66,7 @@ class UpdateUserFilterHandlerTest {
 	private MessageBus messageBus = mock(MessageBus.class);
 
 	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(getUserFilterHandler,
+			getShareableEntityHandler,
 			userFilterRepository,
 			aclHandler,
 			messageBus

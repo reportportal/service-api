@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.data.domain.Pageable;
@@ -29,24 +28,6 @@ import java.util.Map;
  * @author Pavel Bortnik
  */
 public interface GetWidgetHandler {
-
-	/**
-	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
-	 *
-	 * @param widgetId       Widget id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @return Allowed widget.
-	 */
-	Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails);
-
-	/**
-	 * Get widget on which user have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
-	 *
-	 * @param widgetId       Widget id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @return Allowed widget.
-	 */
-	Widget getAdministrated(Long widgetId, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Get widget by id

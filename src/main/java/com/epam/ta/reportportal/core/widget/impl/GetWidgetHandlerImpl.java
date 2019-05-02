@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.widget.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
@@ -39,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -47,8 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -65,6 +63,9 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
 	private Set<WidgetType> unfilteredWidgetTypes;
+
+	@Autowired
+	private GetShareableEntityHandler<Widget> getShareableEntityHandler;
 
 	@Autowired
 	private WidgetRepository widgetRepository;
@@ -91,28 +92,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	@PostAuthorize(CAN_READ_OBJECT)
-	public Widget getPermitted(Long widgetId, ReportPortalUser.ProjectDetails projectDetails) {
-		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
-						widgetId,
-						projectDetails.getProjectName()
-				));
-	}
-
-	@Override
-	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
-	public Widget getAdministrated(Long widgetId, ReportPortalUser.ProjectDetails projectDetails) {
-		return widgetRepository.findByIdAndProjectId(widgetId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT,
-						widgetId,
-						projectDetails.getProjectName()
-				));
-	}
-
-	@Override
 	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Widget widget = getPermitted(widgetId, projectDetails);
+		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,

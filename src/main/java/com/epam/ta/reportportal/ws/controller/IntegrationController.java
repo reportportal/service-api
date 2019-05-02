@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
@@ -104,7 +105,7 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create global Report Portal integration instance")
 	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
+	public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.createGlobalIntegration(updateRequest);
 	}
@@ -114,7 +115,7 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create global Report Portal integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS createProjectIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
+	public EntryCreatedRS createProjectIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), updateRequest, user);
 

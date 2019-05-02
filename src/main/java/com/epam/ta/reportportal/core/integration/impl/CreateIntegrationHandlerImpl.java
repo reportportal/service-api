@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
@@ -41,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -74,10 +76,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS createGlobalIntegration(UpdateIntegrationRQ updateRequest) {
+	public EntryCreatedRS createGlobalIntegration(UpdateIntegrationRQ updateRequest) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getIntegrationName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
+		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getPluginName())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getPluginName()));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
@@ -87,21 +89,22 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Integration integration = createIntegration(integrationType, validParams);
 		integrationService.validateGlobalIntegration(integration);
 		integration.setEnabled(updateRequest.getEnabled());
+		integration.setName(updateRequest.getName());
 		integrationRepository.save(integration);
 
-		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
+		return new EntryCreatedRS(integration.getId());
 
 	}
 
 	@Override
-	public OperationCompletionRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
+	public EntryCreatedRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
 			ReportPortalUser user) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getIntegrationName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
+		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getPluginName())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getPluginName()));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
@@ -112,6 +115,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Integration integration = createIntegration(integrationType, validParams);
 		integrationService.validateProjectIntegration(integration, projectDetails);
 		integration.setEnabled(updateRequest.getEnabled());
+		integration.setName(updateRequest.getName());
 		integration.setProject(project);
 
 		integrationRepository.save(integration);
@@ -121,14 +125,14 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				user.getUsername()
 		));
 
-		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully created.");
+		return new EntryCreatedRS(integration.getId());
 	}
 
 	@Override
 	public OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getIntegrationName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
+		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getPluginName())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getPluginName()));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
@@ -136,10 +140,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationRepository.findGlobalById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
-
-		integration.setParams(new IntegrationParams(integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams())));
+		Map<String, Object> retrievedParams = integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams());
+		integration.setParams(getIntegrationParams(integration, retrievedParams));
 		integration.setEnabled(updateRequest.getEnabled());
-
+		integration.setName(updateRequest.getName());
 		integrationRepository.save(integration);
 
 		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully updated.");
@@ -152,8 +156,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getIntegrationName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getIntegrationName()));
+		IntegrationType integrationType = integrationTypeRepository.findByName(updateRequest.getPluginName())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, updateRequest.getPluginName()));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
@@ -161,11 +165,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
-
-		integration.setParams(new IntegrationParams(integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams())));
+		Map<String, Object> retrievedParams = integrationService.retrieveIntegrationParams(updateRequest.getIntegrationParams());
+		integration.setParams(getIntegrationParams(integration, retrievedParams));
 		integration.setEnabled(updateRequest.getEnabled());
+		integration.setName(updateRequest.getName());
 		integration.setProject(project);
-
 		integrationRepository.save(integration);
 
 		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
@@ -182,6 +186,13 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		integration.setParams(new IntegrationParams(integrationParams));
 		integration.setType(integrationType);
 		return integration;
+	}
+
+	private IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
+		return ofNullable(integration.getParams()).map(params -> new IntegrationParams(ofNullable(params.getParams()).map(paramsMap -> {
+			paramsMap.putAll(retrievedParams);
+			return paramsMap;
+		}).orElse(retrievedParams))).orElseGet(() -> new IntegrationParams(retrievedParams));
 	}
 
 }

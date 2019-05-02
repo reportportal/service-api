@@ -27,7 +27,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createGlobalIntegration() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("email");
+		request.setPluginName("email");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -44,7 +44,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createGlobalIntegrationNegative() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("unknown");
+		request.setPluginName("unknown");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -59,7 +59,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createProjectIntegration() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("email");
+		request.setPluginName("email");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -76,7 +76,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createProjectIntegrationNegative() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("unknown");
+		request.setPluginName("unknown");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -91,7 +91,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void updateGlobalIntegration() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("email");
+		request.setPluginName("email");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -108,7 +108,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void updateGlobalIntegrationNegative() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("unknown");
+		request.setPluginName("unknown");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -123,7 +123,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void updateProjectIntegration() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("email");
+		request.setPluginName("email");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -140,7 +140,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void updateProjectIntegrationNegative() throws Exception {
 		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
-		request.setIntegrationName("unknown");
+		request.setPluginName("unknown");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");

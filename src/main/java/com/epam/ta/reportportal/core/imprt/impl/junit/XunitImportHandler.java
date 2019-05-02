@@ -66,11 +66,11 @@ public class XunitImportHandler extends DefaultHandler {
 	//initial info
 	private ReportPortalUser.ProjectDetails projectDetails;
 	private ReportPortalUser user;
-	private Long launchId;
+	private String launchId;
 	private String uuid;
 
 	//need to know item's id to attach System.out/System.err logs
-	private Long currentId;
+	private String currentId;
 
 	private LocalDateTime startSuiteTime;
 
@@ -78,7 +78,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private long currentDuration;
 
 	//items structure ids
-	private Deque<Long> itemsIds;
+	private Deque<String> itemsIds;
 	private StatusEnum status;
 	private StringBuilder message;
 	private LocalDateTime startItemTime;
@@ -178,7 +178,7 @@ public class XunitImportHandler extends DefaultHandler {
 			startItemTime = LocalDateTime.now();
 		}
 		StartTestItemRQ rq = buildStartTestRq(name);
-		Long id = startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
+		String id = startTestItemHandler.startRootItem(user, projectDetails, rq).getUuid();
 		itemsIds.push(id);
 	}
 
@@ -203,7 +203,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void startTestItem(String name) {
 		StartTestItemRQ rq = buildStartTestRq(name);
-		Long id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemsIds.peek()).getId();
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemsIds.peek()).getUuid();
 		itemsIds.push(id);
 	}
 
@@ -213,7 +213,7 @@ public class XunitImportHandler extends DefaultHandler {
 		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(name);
-		Long id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemsIds.peek()).getId();
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemsIds.peek()).getUuid();
 		currentDuration = toMillis(duration);
 		currentId = id;
 		itemsIds.push(id);
@@ -248,7 +248,7 @@ public class XunitImportHandler extends DefaultHandler {
 		}
 	}
 
-	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, Long launchId, ReportPortalUser user) {
+	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user) {
 		this.projectDetails = projectDetails;
 		this.launchId = launchId;
 		this.user = user;

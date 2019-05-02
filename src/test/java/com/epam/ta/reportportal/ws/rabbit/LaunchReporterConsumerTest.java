@@ -80,8 +80,8 @@ class LaunchReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		long launchId = 1L;
-		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId);
+		String launchId = "1";
+		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, null);
 
 		verify(finishLaunchHandler, times(1)).finishLaunch(eq(launchId), eq(finishExecutionRQ), any(), eq(user));
 	}

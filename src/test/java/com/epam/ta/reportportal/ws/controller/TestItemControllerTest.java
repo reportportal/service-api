@@ -67,7 +67,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -81,7 +81,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -94,13 +94,13 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setUniqueId(UUID.randomUUID().toString());
 		rq.setParameters(getParameters());
 		rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
 	}
@@ -108,12 +108,12 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setParameters(getParameters());
 		rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
 	}
@@ -123,7 +123,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("PASSED");
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
@@ -132,7 +132,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	void finishRootTestItemWithoutStatus() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
@@ -145,7 +145,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Issue issue = new Issue();
 		issue.setIssueType("pb001");
 		rq.setIssue(issue);
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
@@ -155,7 +155,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("FAILED");
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}

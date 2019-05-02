@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import org.slf4j.Logger;
@@ -50,6 +52,8 @@ class DemoLogsService {
 
 	private LogRepository logRepository;
 
+	private LaunchRepository launchRepository;
+
 	private DataStoreService dataStoreService;
 
 	private static final int MIN_LOGS_COUNT = 5;
@@ -59,22 +63,24 @@ class DemoLogsService {
 	private static final int BINARY_CONTENT_PROBABILITY = 7;
 
 	@Autowired
-	public DemoLogsService(LogRepository logRepository, DataStoreService dataStoreService) {
+	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, DataStoreService dataStoreService) {
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
+		this.launchRepository = launchRepository;
 		this.dataStoreService = dataStoreService;
 	}
 
-	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId, Long launchId) {
-		BooleanHolder binaryDataAttached = new BooleanHolder();
+	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId, String launchId) {
+        BooleanHolder binaryDataAttached = new BooleanHolder();
 
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
+		Launch launch = launchRepository.findByUuid(launchId).get();
 		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
 			Log log = new Log();
 			log.setLogLevel(logLevel().toInt());
 			log.setLogTime(LocalDateTime.now());
 			if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-				attachFile(log, projectId, launchId, testItem.getItemId());
+				attachFile(log, projectId, launch.getId(), testItem.getItemId());
 				binaryDataAttached.setValue(true);
 			}
 			log.setTestItem(testItem);
@@ -90,7 +96,7 @@ class DemoLogsService {
 				log.setTestItem(testItem);
 				log.setLogMessage(msg);
 				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-					attachFile(log, projectId, launchId, testItem.getItemId());
+					attachFile(log, projectId, launch.getId(), testItem.getItemId());
 				}
 				return log;
 			}).collect(toList()));

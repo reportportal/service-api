@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.item.descendant.impl;
+package com.epam.ta.reportportal.core.hierarchy.impl;
 
-import com.epam.ta.reportportal.core.item.descendant.AbstractFinishDescendantsHandler;
+import com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
@@ -29,7 +30,9 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.NotSupportedException;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,13 +42,13 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVEST
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service("finishLaunchDescendantsHandler")
-public class FinishLaunchDescendantsHandler extends AbstractFinishDescendantsHandler<Launch> {
+@Service("finishLaunchHierarchyHandler")
+public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler<Launch> {
 
 	@Autowired
-	public FinishLaunchDescendantsHandler(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository) {
-		super(testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler);
+	public FinishLaunchHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
+										IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository) {
+		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler);
 	}
 
 	@Override
@@ -83,4 +86,8 @@ public class FinishLaunchDescendantsHandler extends AbstractFinishDescendantsHan
 		return FAILED.equals(status) || evaluateSkippedAttributeValue(status, launch.getId());
 	}
 
+	@Override
+	public void setAncestorsStatus(Launch entity, StatusEnum status, Date endDate) {
+		throw new NotSupportedException("Launch has not ancestors");
+	}
 }

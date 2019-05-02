@@ -64,6 +64,6 @@ public interface UpdateLaunchHandler {
 	 * @param user           User
 	 * @return OperationCompletionRS
 	 */
-	List<OperationCompletionRS> updateLaunch(BulkRQ<UpdateLaunchRQ> rq, ReportPortalUser.ProjectDetails projectDetails,
+	List<OperationCompletionRS> updateLaunch(BulkRQ<Long, UpdateLaunchRQ> rq, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 }

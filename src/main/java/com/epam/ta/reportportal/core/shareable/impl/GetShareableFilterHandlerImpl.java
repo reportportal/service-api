@@ -29,7 +29,7 @@ public class GetShareableFilterHandlerImpl implements GetShareableEntityHandler<
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
 	public UserFilter getPermitted(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-		return filterRepository.findById(id)
+		return filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						id,
 						projectDetails.getProjectName()
@@ -39,7 +39,7 @@ public class GetShareableFilterHandlerImpl implements GetShareableEntityHandler<
 	@Override
 	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
 	public UserFilter getAdministrated(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-		return filterRepository.findById(id)
+		return filterRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
 						id,
 						projectDetails.getProjectName()

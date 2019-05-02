@@ -115,9 +115,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:8d869b'
+        compile 'com.github.reportportal:commons-dao:7a297e6'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:7f4748'
+        compile 'com.github.reportportal:commons-model:685d16f'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }
@@ -275,7 +275,7 @@ private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
 
 task copyTestDatabaseScripts {
     def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
-    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/async-for-reporting-clients2/migrations/1_initialize_schema.up.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
     copyFromUrl(initScriptPath, initScriptUrl)
 
     def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"

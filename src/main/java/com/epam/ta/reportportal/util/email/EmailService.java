@@ -17,6 +17,8 @@ package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
@@ -35,10 +37,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -101,15 +100,15 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @param url        ReportPortal URL
 	 * @param launch     Launch
 	 */
-	public void sendLaunchFinishNotification(final String[] recipients, final String url, final String projectName, final Launch launch) {
-		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, projectName.toUpperCase(), launch.getName(), launch.getNumber());
+	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Project project, final Launch launch) {
+		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, project.getName().toUpperCase(), launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
 			setFrom(message);
 
-			String text = mergeFinishLaunchText(url, launch);
+			String text = mergeFinishLaunchText(url, launch, project.getProjectIssueTypes());
 			message.setText(text, true);
 
 			attachSocialImages(message);
@@ -118,7 +117,7 @@ public class EmailService extends JavaMailSenderImpl {
 	}
 
 	@VisibleForTesting
-	String mergeFinishLaunchText(String url, Launch launch) {
+	String mergeFinishLaunchText(String url, Launch launch, Set<ProjectIssueType> projectIssueTypes) {
 		Map<String, Object> email = new HashMap<>();
 		/* Email fields values */
 		String basicUrl = format(URL_FORMAT, url);
@@ -162,24 +161,26 @@ public class EmailService extends JavaMailSenderImpl {
 		email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
 		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
 
-
+		Map<String, String> locatorsMapping = projectIssueTypes.stream()
+				.collect(toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
 
 		/* Launch issue statistics custom sub-types */
-		fillEmail(email, "pbInfo", statistics, IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX);
-		fillEmail(email, "abInfo", statistics, IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX);
-		fillEmail(email, "siInfo", statistics, IssueRegexConstant.SYSTEM_ISSUE_REGEX);
-		fillEmail(email, "ndInfo", statistics, IssueRegexConstant.NO_DEFECT_ISSUE_REGEX);
-		fillEmail(email, "tiInfo", statistics, IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX);
+		fillEmail(email, "pbInfo", statistics, locatorsMapping, IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX);
+		fillEmail(email, "abInfo", statistics, locatorsMapping, IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX);
+		fillEmail(email, "siInfo", statistics, locatorsMapping, IssueRegexConstant.SYSTEM_ISSUE_REGEX);
+		fillEmail(email, "ndInfo", statistics, locatorsMapping, IssueRegexConstant.NO_DEFECT_ISSUE_REGEX);
+		fillEmail(email, "tiInfo", statistics, locatorsMapping, IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX);
 
 		return templateEngine.merge("finish-launch-template.ftl", email);
 	}
 
-	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics, String regex) {
+	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics,
+			Map<String, String> locatorsMapping, String regex) {
 		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
 			Pattern pattern = Pattern.compile(regex);
 			return pattern.matcher(entry.getKey()).matches();
 		}).collect(Collectors.toMap(
-				entry -> StringUtils.substringAfterLast(entry.getKey(), "$"),
+				entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
 				entry -> ofNullable(entry.getValue()).orElse(0),
 				(prev, curr) -> prev
 		)));

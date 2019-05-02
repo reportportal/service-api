@@ -42,7 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
@@ -150,7 +150,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/finish").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/finish").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
@@ -160,15 +160,15 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/stop").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
 
 	@Test
 	void bulkForceFinish() throws Exception {
-		final BulkRQ<FinishExecutionRQ> bulkRQ = new BulkRQ<>();
-		bulkRQ.setEntities(LongStream.of(3L, 5L).boxed().collect(toMap(it -> it, it -> {
+		final BulkRQ<String, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
+		bulkRQ.setEntities(Stream.of("befef834-b2ef-4acf-aea3-b5a5b15fd93c", "e3adc64e-87cc-4781-b2d3-faa4ef1679dc").collect(toMap(it -> it, it -> {
 			FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 			finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
 			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
@@ -214,7 +214,7 @@ class LaunchControllerTest extends BaseMvcTest {
 			updateLaunchRQ.setMode(DEBUG);
 			return updateLaunchRQ;
 		}));
-		final BulkRQ<UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
+		final BulkRQ<Long, UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
 		bulkRQ.setEntities(entities);
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/update").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(bulkRQ))
@@ -258,6 +258,7 @@ class LaunchControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content", hasSize(4)));
 	}
 
+	@Disabled
 	@Test
 	void export() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))

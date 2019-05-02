@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
@@ -60,12 +61,13 @@ public class DemoDataLaunchService {
 	}
 
 	@Transactional
-	public Long startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
+	public Launch startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
 		StartLaunchRQ rq = new StartLaunchRQ();
 		rq.setMode(Mode.DEFAULT);
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		rq.setName(name);
 		rq.setStartTime(new Date());
+		rq.setUuid(UUID.randomUUID().toString());
 		LocalDateTime now = LocalDateTime.now();
 		Set<ItemAttributesRQ> attributes = Sets.newHashSet(
 				new ItemAttributesRQ("platform", platformValues[new Random().nextInt(platformValues.length)]),
@@ -78,22 +80,22 @@ public class DemoDataLaunchService {
 		launch.setUser(user);
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
-		return launch.getId();
+		return launch;
 	}
 
 	@Transactional
-	public void finishLaunch(Long launchId) {
-		Launch launch = launchRepository.findById(launchId)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+	public void finishLaunch(String launchId) {
+		Launch launch = launchRepository.findByUuid(launchId)
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
-		if (testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
-			testItemRepository.interruptInProgressItems(launchId);
+		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
+			testItemRepository.interruptInProgressItems(launch.getId());
 		}
 
 		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.hasItemsWithStatusNotEqual(launchId, StatusEnum.PASSED)) {
+		if (launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED)) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		launch.setStatus(fromStatisticsStatus);

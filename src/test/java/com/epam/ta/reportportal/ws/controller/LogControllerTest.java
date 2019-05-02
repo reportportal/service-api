@@ -43,7 +43,7 @@ class LogControllerTest extends BaseMvcTest {
 	@Test
 	void createLogPositive() throws Exception {
 		SaveLogRQ rq = new SaveLogRQ();
-		rq.setTestItemId(2L);
+		rq.setTestItemId("f3960757-1a06-405e-9eb7-607c34683154");
 		rq.setLevel("ERROR");
 		rq.setMessage("log message");
 		rq.setLogTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));

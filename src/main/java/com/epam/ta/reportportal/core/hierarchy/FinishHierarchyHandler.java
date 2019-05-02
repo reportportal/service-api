@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.item.descendant;
+package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -24,7 +24,9 @@ import java.util.Date;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface FinishDescendantsHandler<T> {
+public interface FinishHierarchyHandler<T> {
 
 	void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser.ProjectDetails projectDetails);
+
+	void setAncestorsStatus(T entity, StatusEnum statusEnum, Date endDate);
 }

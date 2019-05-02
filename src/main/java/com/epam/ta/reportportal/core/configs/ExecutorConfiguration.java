@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.job.SaveBinaryDataJob;
+import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
+import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Andrei Varabyeu
  */
 @Configuration
-public class JobsConfiguration {
+public class ExecutorConfiguration {
 
 	@Bean
 	public TaskScheduler taskScheduler() {
@@ -56,10 +57,16 @@ public class JobsConfiguration {
 		return executor;
 	}
 
-	@Bean(name = "saveBinaryDataJob")
+	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	public SaveBinaryDataJob saveBinaryDataJob() {
-		return new SaveBinaryDataJob();
+	public SaveLogBinaryDataTask saveLogBinaryDataTask() {
+		return new SaveLogBinaryDataTask();
+	}
+
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public SaveLogBinaryDataTaskAsync saveLogBinaryDataTaskAsync() {
+		return new SaveLogBinaryDataTaskAsync();
 	}
 
 	@EnableScheduling

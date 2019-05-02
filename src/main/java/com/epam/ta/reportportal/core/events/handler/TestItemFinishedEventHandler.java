@@ -53,7 +53,7 @@ public class TestItemFinishedEventHandler {
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 
-		logIndexer.indexLogs(
+		logIndexer.indexItemsLogs(
 				itemFinishedEvent.getProjectId(),
 				itemFinishedEvent.getLaunchId(),
 				Lists.newArrayList(itemFinishedEvent.getItemId()),

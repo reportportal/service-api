@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.job;
+package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
@@ -34,15 +34,18 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Optional;
 
 /**
- * Save binary data job. Expected to be executed asynchronously. Statefull, so
+ * Save binary data task. Expected to be executed asynchronously. Statefull, so
  * cannot be a singleton bean. Saves binary data, then updates related log entry
  * with saved data id
  *
+ * NOTE: run asynchronously in sense of run in Executor. This class is not used with RabbitMQ.
+ * It is original implementation for synchronous LogController
+ *
  * @author Andrei Varabyeu
  */
-public class SaveBinaryDataJob implements Runnable {
+public class SaveLogBinaryDataTask implements Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SaveBinaryDataJob.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SaveLogBinaryDataTask.class);
 
 	@Autowired
 	private LogRepository logRepository;
@@ -101,31 +104,31 @@ public class SaveBinaryDataJob implements Runnable {
 		});
 	}
 
-	public SaveBinaryDataJob withFile(MultipartFile file) {
+	public SaveLogBinaryDataTask withFile(MultipartFile file) {
 		Preconditions.checkNotNull(file, "Binary data shouldn't be null");
 		this.file = file;
 		return this;
 	}
 
-	public SaveBinaryDataJob withProjectId(Long projectId) {
+	public SaveLogBinaryDataTask withProjectId(Long projectId) {
 		Preconditions.checkNotNull(projectId, "Project id should not be null");
 		this.projectId = projectId;
 		return this;
 	}
 
-	public SaveBinaryDataJob withLaunchId(Long launchId) {
+	public SaveLogBinaryDataTask withLaunchId(Long launchId) {
 		Preconditions.checkNotNull(launchId, "Launch id shouldn't be null");
 		this.launchId = launchId;
 		return this;
 	}
 
-	public SaveBinaryDataJob withItemId(Long itemId) {
+	public SaveLogBinaryDataTask withItemId(Long itemId) {
 		Preconditions.checkNotNull(itemId, "Item id shouldn't be null");
 		this.itemId = itemId;
 		return this;
 	}
 
-	public SaveBinaryDataJob withLogId(Long logId) {
+	public SaveLogBinaryDataTask withLogId(Long logId) {
 		Preconditions.checkNotNull(logId, "Log id shouldn't be null");
 		this.logId = logId;
 		return this;

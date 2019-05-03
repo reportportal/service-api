@@ -226,7 +226,6 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/usernames/search")
 	@ResponseStatus(OK)
-
 	@PreAuthorize(PROJECT_MANAGER)
 	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -266,7 +265,6 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/list")
 	@ResponseStatus(HttpStatus.OK)
-
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
 			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {

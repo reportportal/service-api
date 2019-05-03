@@ -63,6 +63,18 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		return true;
 	}
 
+	@Override
+	public boolean checkConnection(Integration integration) {
+		Optional<BtsExtension> extension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
+		expect(extension, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName())
+		);
+		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Connection refused."
+		);
+		return true;
+	}
+
 	private void checkUniqueGlobalIntegration(Integration integration) {
 		String url = BtsConstants.URL.getParam(integration.getParams(), String.class)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
@@ -81,15 +93,5 @@ public abstract class AbstractBtsIntegrationService implements IntegrationServic
 		expect(integrationRepository.findProjectBtsByUrlAndLinkedProject(url, btsProject, projectId),
 				not(isPresent())
 		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, url + " & " + btsProject);
-	}
-
-	private void checkConnection(Integration integration) {
-		Optional<BtsExtension> extension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
-		expect(extension, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName())
-		);
-		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Connection refused."
-		);
 	}
 }

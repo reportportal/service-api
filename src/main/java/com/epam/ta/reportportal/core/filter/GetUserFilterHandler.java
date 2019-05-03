@@ -33,16 +33,6 @@ import java.util.List;
 public interface GetUserFilterHandler {
 
 	/**
-	 * Get {@link UserFilterResource} by id
-	 *
-	 * @param filterId       Filter id
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return {@link UserFilterResource}
-	 */
-	UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
-
-	/**
 	 * Get shared and own {@link UserFilterResource} objects
 	 *
 	 * @param projectName Project Name

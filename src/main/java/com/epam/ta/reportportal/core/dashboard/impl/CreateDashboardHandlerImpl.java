@@ -40,14 +40,16 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
 @Service
 public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 
-	@Autowired
-	private DashboardRepository dashboardRepository;
+	private final DashboardRepository dashboardRepository;
+	private final MessageBus messageBus;
+	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	private MessageBus messageBus;
-
-	@Autowired
-	private ShareableObjectsHandler aclHandler;
+	public CreateDashboardHandlerImpl(DashboardRepository dashboardRepository, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
+		this.dashboardRepository = dashboardRepository;
+		this.messageBus = messageBus;
+		this.aclHandler = aclHandler;
+	}
 
 	@Override
 	public EntryCreatedRS createDashboard(ReportPortalUser.ProjectDetails projectDetails, CreateDashboardRQ rq, ReportPortalUser user) {
@@ -55,8 +57,7 @@ public class CreateDashboardHandlerImpl implements CreateDashboardHandler {
 		BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
-				.verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 
 		Dashboard dashboard = new DashboardBuilder().addDashboardRq(rq)
 				.addProject(projectDetails.getProjectId())

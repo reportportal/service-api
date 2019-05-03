@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.core.dashboard.impl;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
-import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardDeletedEvent;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -44,27 +44,28 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
 @Service
 public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 
-	@Autowired
-	private GetDashboardHandler getDashboardHandler;
+	private final GetShareableEntityHandler<Dashboard> getShareableEntityHandler;
+	private final DashboardRepository dashboardRepository;
+	private final DashboardWidgetRepository dashboardWidgetRepository;
+	private final WidgetRepository widgetRepository;
+	private final ShareableObjectsHandler aclHandler;
+	private final MessageBus messageBus;
 
 	@Autowired
-	private DashboardRepository dashboardRepository;
-
-	@Autowired
-	private DashboardWidgetRepository dashboardWidgetRepository;
-
-	@Autowired
-	private WidgetRepository widgetRepository;
-
-	@Autowired
-	private ShareableObjectsHandler aclHandler;
-
-	@Autowired
-	private MessageBus messageBus;
+	public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
+			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
+			ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+		this.getShareableEntityHandler = getShareableEntityHandler;
+		this.dashboardRepository = dashboardRepository;
+		this.dashboardWidgetRepository = dashboardWidgetRepository;
+		this.widgetRepository = widgetRepository;
+		this.aclHandler = aclHandler;
+		this.messageBus = messageBus;
+	}
 
 	@Override
 	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Dashboard dashboard = getDashboardHandler.getAdministrated(dashboardId, projectDetails);
+		Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
 
 		List<Widget> ownedWidgets = dashboard.getDashboardWidgets()
 				.stream()

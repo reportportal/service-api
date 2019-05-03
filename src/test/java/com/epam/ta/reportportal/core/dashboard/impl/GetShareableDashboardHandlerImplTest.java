@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.dashboard.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.shareable.impl.GetShareableDashboardHandlerImpl;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -39,13 +40,13 @@ import static org.mockito.Mockito.when;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
-class GetDashboardHandlerImplTest {
+class GetShareableDashboardHandlerImplTest {
 
 	@Mock
 	private DashboardRepository dashboardRepository;
 
 	@InjectMocks
-	private GetDashboardHandlerImpl handler;
+	private GetShareableDashboardHandlerImpl handler;
 
 	@Test
 	void getPermittedNotFound() {

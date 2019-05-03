@@ -99,7 +99,7 @@ class EmailServerIntegrationServiceTest {
 	@Test
 	void retrieveIntegrationParams() {
 		Map<String, Object> map = emailServerIntegrationService.retrieveIntegrationParams(getParams());
-		assertEquals(map, defaultParams());
+		assertEquals(defaultParams(), map);
 	}
 
 	@Test
@@ -128,12 +128,8 @@ class EmailServerIntegrationServiceTest {
 	private Map<String, Object> defaultParams() {
 		Map<String, Object> res = Maps.newHashMap();
 		res.put("protocol", "value2");
-		res.put("password", null);
-		res.put("authEnabled", false);
-		res.put("port", 25);
 		res.put("host", "value3");
 		res.put("from", "from@mail.com");
-		res.put("username", null);
 		return res;
 	}
 

@@ -121,8 +121,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void updateProjectIntegration() throws Exception {
-		CreateIntegrationRQ request = new CreateIntegrationRQ();
-		request.setPluginName("email");
+		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");

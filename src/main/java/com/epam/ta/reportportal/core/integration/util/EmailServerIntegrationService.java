@@ -70,14 +70,14 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 	@Override
 	public boolean validateGlobalIntegration(Integration integration) {
 		super.validateGlobalIntegration(integration);
-		testConnection(integration);
+		checkConnection(integration);
 		return true;
 	}
 
 	@Override
 	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
 		super.validateProjectIntegration(integration, projectDetails);
-		testConnection(integration);
+		checkConnection(integration);
 		return true;
 	}
 
@@ -134,7 +134,8 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 		return resultParams;
 	}
 
-	private void testConnection(Integration integration) {
+	@Override
+	public boolean checkConnection(Integration integration) {
 		Optional<EmailService> emailService = emailServiceFactory.getEmailService(integration);
 		if (emailService.isPresent()) {
 			try {
@@ -146,6 +147,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 				);
 			}
 		}
+		return true;
 	}
 
 }

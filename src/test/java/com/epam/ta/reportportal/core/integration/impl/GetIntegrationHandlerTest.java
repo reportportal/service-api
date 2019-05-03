@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
+import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
@@ -42,12 +44,16 @@ import static org.mockito.Mockito.when;
  */
 public class GetIntegrationHandlerTest {
 
+	private final Map<String, IntegrationService> integrationServiceMapming = mock(Map.class);
+	private final IntegrationService basicIntegrationService = mock(IntegrationService.class);
 	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
 	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler = mock(GetBugTrackingSystemHandler.class);
 
-	private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(integrationRepository,
+	private final GetIntegrationHandler getIntegrationHandler = new GetIntegrationHandlerImpl(integrationServiceMapming,
+			basicIntegrationService,
+			integrationRepository,
 			integrationTypeRepository,
 			projectRepository,
 			getBugTrackingSystemHandler

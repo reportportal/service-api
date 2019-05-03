@@ -114,12 +114,29 @@ public class IntegrationController {
 	@Transactional
 	@PostMapping(value = "/{projectName}")
 	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Create global Report Portal integration instance")
+	@ApiOperation("Create project Report Portal integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
 	public EntryCreatedRS createProjectIntegration(@RequestBody @Valid CreateIntegrationRQ createRequest, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), createRequest, user);
 
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/{integrationId}/connection/test")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Create global Report Portal integration instance")
+	public boolean testIntegrationConnection(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getIntegrationHandler.testConnection(integrationId);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "{projectName}/{integrationId}/connection/test")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Create global Report Portal integration instance")
+	public boolean testIntegrationConnection(@PathVariable Long integrationId, @PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getIntegrationHandler.testConnection(integrationId, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)

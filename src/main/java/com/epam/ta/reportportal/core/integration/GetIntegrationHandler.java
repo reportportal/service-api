@@ -51,4 +51,21 @@ public interface GetIntegrationHandler {
 	List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails);
 
 	List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails);
+
+	/**
+	 * Test global integration connection
+	 *
+	 * @param integrationId Integration id
+	 * @return True if a connection is established
+	 */
+	boolean testConnection(Long integrationId);
+
+	/**
+	 * Test project integration connection
+	 *
+	 * @param integrationId  Integration id
+	 * @param projectDetails Project details
+	 * @return True if a connection is established
+	 */
+	boolean testConnection(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 }

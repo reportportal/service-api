@@ -43,4 +43,12 @@ public interface IntegrationService {
 	 * @return Validation result
 	 */
 	boolean validateProjectIntegration(Integration projectIntegration, ReportPortalUser.ProjectDetails projectDetails);
+
+	/**
+	 * Test integration connection
+	 *
+	 * @param integration Integration
+	 * @return True if connection is established
+	 */
+	boolean checkConnection(Integration integration);
 }

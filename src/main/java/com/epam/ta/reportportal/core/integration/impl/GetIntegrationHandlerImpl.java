@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -34,9 +35,11 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,14 +51,20 @@ import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConver
 @Service
 public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
+	private final Map<String, IntegrationService> integrationServiceMapping;
+	private final IntegrationService basicIntegrationService;
 	private final IntegrationRepository integrationRepository;
 	private final IntegrationTypeRepository integrationTypeRepository;
 	private final ProjectRepository projectRepository;
 	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
 
 	@Autowired
-	public GetIntegrationHandlerImpl(IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
-			ProjectRepository projectRepository, GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
+	public GetIntegrationHandlerImpl(@Qualifier("integrationServiceMapping") Map<String, IntegrationService> integrationServiceMapping,
+			@Qualifier("basicIntegrationServiceImpl") IntegrationService integrationService, IntegrationRepository integrationRepository,
+			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository,
+			GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
+		this.integrationServiceMapping = integrationServiceMapping;
+		this.basicIntegrationService = integrationService;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.projectRepository = projectRepository;
@@ -167,6 +176,28 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 				.collect(Collectors.toList());
 	}
 
+	@Override
+	public boolean testConnection(Long integrationId) {
+		Integration integration = integrationRepository.findGlobalById(integrationId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
+				this.basicIntegrationService
+		);
+		return integrationService.checkConnection(integration);
+	}
+
+	@Override
+	public boolean testConnection(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
+		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
+				this.basicIntegrationService
+		);
+		return integrationService.checkConnection(integration);
+	}
+
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
 		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
 				.stream()
@@ -175,12 +206,10 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	private void validateIntegration(Integration integration) {
-		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName()).get()
 		);
-		BusinessRule.expect(integration, Integration::isEnabled).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(integration, Integration::isEnabled).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
 		);
 	}

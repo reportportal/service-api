@@ -59,37 +59,6 @@ class JiraIntegrationServiceTest {
 	}
 
 	@Test
-	void testParametersWithoutProject() {
-		Map<String, Object> params = getCorrectJiraIntegrationParams();
-		params.remove(BtsProperties.PROJECT.getName());
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. JIRA project value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithoutURL() {
-		Map<String, Object> params = getCorrectJiraIntegrationParams();
-		params.remove(BtsProperties.URL.getName());
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. JIRA URL value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithouAuthType() {
-		Map<String, Object> params = getCorrectJiraIntegrationParams();
-		params.remove(BtsProperties.AUTH_TYPE.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. No auth property provided for Jira integration", exception.getMessage());
-	}
-
-	@Test
 	void testParametersWithoutUsername() {
 		Map<String, Object> params = getCorrectJiraIntegrationParams();
 		params.remove(BtsProperties.USER_NAME.getName());

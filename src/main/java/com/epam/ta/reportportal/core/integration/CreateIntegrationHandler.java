@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.integration.CreateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 
 /**
@@ -30,27 +31,27 @@ public interface CreateIntegrationHandler {
 	/**
 	 * Create {@link Integration} with {@link Integration#project == NULL}
 	 *
-	 * @param updateRequest
+	 * @param createRequest {@link CreateIntegrationRQ}
 	 * @return {@link EntryCreatedRS}
 	 */
-	EntryCreatedRS createGlobalIntegration(UpdateIntegrationRQ updateRequest);
+	EntryCreatedRS createGlobalIntegration(CreateIntegrationRQ createRequest);
 
 	/**
 	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
 	 *
-	 * @param projectDetails
-	 * @param updateRequest
-	 * @param user
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param createRequest  {@link CreateIntegrationRQ}
+	 * @param user           {@link ReportPortalUser}
 	 * @return {@link EntryCreatedRS}
 	 */
-	EntryCreatedRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest,
+	EntryCreatedRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, CreateIntegrationRQ createRequest,
 			ReportPortalUser user);
 
 	/**
 	 * Update {@link Integration} with {@link Integration#project == NULL}
 	 *
 	 * @param id            {@link Integration#id}
-	 * @param updateRequest
+	 * @param updateRequest {@link UpdateIntegrationRQ}
 	 * @return updated {@link Integration}
 	 */
 	OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest);
@@ -60,9 +61,10 @@ public interface CreateIntegrationHandler {
 	 *
 	 * @param id             {@link Integration#id}
 	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param updateRequest
-	 * @param user
+	 * @param updateRequest  {@link UpdateIntegrationRQ}
+	 * @param user           {@link ReportPortalUser}
 	 * @return updated {@link Integration}
 	 */
-	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, UpdateIntegrationRQ updateRequest, ReportPortalUser user);
+	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
+			UpdateIntegrationRQ updateRequest, ReportPortalUser user);
 }

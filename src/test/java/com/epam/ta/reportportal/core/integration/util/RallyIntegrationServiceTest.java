@@ -49,39 +49,6 @@ class RallyIntegrationServiceTest {
 	}
 
 	@Test
-	void testParametersWithoutProject() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.PROJECT.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. RALLY project value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithouUrl() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.URL.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. RALLY URL value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithouAuth() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.AUTH_TYPE.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. No auth property provided for Rally integration", exception.getMessage());
-	}
-
-	@Test
 	void testParametersWithoutKey() {
 		Map<String, Object> params = getCorrectRallyIntegrationParams();
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());

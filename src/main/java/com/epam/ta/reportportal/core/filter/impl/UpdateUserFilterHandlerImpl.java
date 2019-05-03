@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
@@ -82,8 +83,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
-				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
+		), BooleanUtils::isFalse).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())
@@ -162,7 +162,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 			CriteriaHolder criteriaHolder = filterTarget.getCriteriaByFilter(c.getFilteringField())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-							"Unable to find filtering field '" + c.getFilteringField() + "'"
+							Suppliers.formattedSupplier("Filter parameter {} is not defined", c.getFilteringField()).get()
 					));
 
 			Condition condition = Condition.findByMarker(c.getCondition())

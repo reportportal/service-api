@@ -221,8 +221,8 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipient);
-			Map<String, String> email = new HashMap<>();
-			email.put("indexedLogsCount", String.valueOf(ofNullable(indexedLogsCount).orElse(0L)));
+			Map<String, Object> email = new HashMap<>();
+			email.put("indexedLogsCount", ofNullable(indexedLogsCount).orElse(0L));
 			setFrom(message);
 			String text = templateEngine.merge("index-finished-template.ftl", email);
 			message.setText(text, true);

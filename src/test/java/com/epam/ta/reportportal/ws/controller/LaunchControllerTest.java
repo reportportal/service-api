@@ -52,10 +52,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -163,15 +160,15 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/stop").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/stop").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
 
 	@Test
 	void bulkForceFinish() throws Exception {
-		final BulkRQ<String, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
-		bulkRQ.setEntities(Stream.of("befef834-b2ef-4acf-aea3-b5a5b15fd93c", "e3adc64e-87cc-4781-b2d3-faa4ef1679dc").collect(toMap(it -> it, it -> {
+		final BulkRQ<Long, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
+		bulkRQ.setEntities(Stream.of(3L, 5L).collect(toMap(it -> it, it -> {
 			FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 			finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
 			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));

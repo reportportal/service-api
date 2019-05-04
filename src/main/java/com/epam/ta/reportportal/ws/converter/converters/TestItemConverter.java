@@ -45,6 +45,7 @@ public final class TestItemConverter {
 		TestItemResource resource = new TestItemResource();
 		resource.setDescription(item.getDescription());
 		resource.setUniqueId(item.getUniqueId());
+		resource.setUuid(item.getUuid());
 		resource.setAttributes(item.getAttributes()
 				.stream()
 				.filter(it -> !it.isSystem())

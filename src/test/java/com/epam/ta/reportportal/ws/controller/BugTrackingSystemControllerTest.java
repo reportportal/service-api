@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.ws.model.externalsystem.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -47,6 +48,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 	private ObjectMapper objectMapper;
 
 	@Test
+	@Ignore
 	void updateGlobalBtsIntegration() throws Exception {
 
 		UpdateBugTrackingSystemRQ request = getUpdateRQ();
@@ -57,6 +59,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Ignore
 	void updateProjectBtsIntegration() throws Exception {
 
 		UpdateBugTrackingSystemRQ request = getUpdateRQ();
@@ -67,6 +70,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Ignore
 	void checkConnection() throws Exception {
 
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));

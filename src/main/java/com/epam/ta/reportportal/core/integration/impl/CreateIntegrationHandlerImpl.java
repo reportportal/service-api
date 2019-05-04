@@ -33,8 +33,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.CreateIntegrationRQ;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -77,10 +76,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public EntryCreatedRS createGlobalIntegration(CreateIntegrationRQ createRequest) {
+	public EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(createRequest.getPluginName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, createRequest.getPluginName()));
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
@@ -98,14 +97,14 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public EntryCreatedRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, CreateIntegrationRQ createRequest,
-			ReportPortalUser user) {
+	public EntryCreatedRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, IntegrationRQ createRequest,
+			String pluginName, ReportPortalUser user) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(createRequest.getPluginName())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, createRequest.getPluginName()));
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
@@ -130,7 +129,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateGlobalIntegration(Long id, UpdateIntegrationRQ updateRequest) {
+	public OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest) {
 
 		Integration integration = integrationRepository.findGlobalById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
@@ -149,7 +148,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 	@Override
 	public OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdateIntegrationRQ updateRequest, ReportPortalUser user) {
+			IntegrationRQ updateRequest, ReportPortalUser user) {
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));

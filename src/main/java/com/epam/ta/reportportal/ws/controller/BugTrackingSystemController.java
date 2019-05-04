@@ -20,9 +20,9 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
-import com.epam.ta.reportportal.core.bts.handler.UpdateBugTrackingSystemHandler;
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.externalsystem.*;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
+import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
+import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,10 +34,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Controller implementation for working with external systems.
@@ -51,52 +49,49 @@ public class BugTrackingSystemController {
 
 	private final CreateTicketHandler createTicketHandler;
 	private final GetTicketHandler getTicketHandler;
-	private final UpdateBugTrackingSystemHandler updateBugTrackingSystemHandler;
 
 	@Autowired
-	public BugTrackingSystemController(CreateTicketHandler createTicketHandler, GetTicketHandler getTicketHandler,
-			UpdateBugTrackingSystemHandler updateBugTrackingSystemHandler) {
+	public BugTrackingSystemController(CreateTicketHandler createTicketHandler, GetTicketHandler getTicketHandler) {
 		this.createTicketHandler = createTicketHandler;
 		this.getTicketHandler = getTicketHandler;
-		this.updateBugTrackingSystemHandler = updateBugTrackingSystemHandler;
 	}
 
-	@Transactional
-	@PutMapping(value = "/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Update global bug tracking system integration form fields")
-	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS updateGlobalBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
-			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.updateGlobalBugTrackingSystem(updateRequest, integrationId);
-	}
-
-	@Transactional
-	@PutMapping(value = "/{projectName}/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Update project bug tracking system integration form fields")
-	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS updateProjectBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
-			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(updateRequest,
-				integrationId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
-				user
-		);
-	}
-
-	@Transactional(readOnly = true)
-	@PutMapping(value = "/{projectName}/{integrationId}/connect", consumes = { APPLICATION_JSON_VALUE })
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Check connection to the integration instance")
-	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
-			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateBugTrackingSystemHandler.testIntegrationConnection(connectionTestRQ,
-				integrationId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
-		);
-	}
+	//	@Transactional
+	//	@PutMapping(value = "/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
+	//	@ResponseStatus(HttpStatus.OK)
+	//	@ApiOperation("Update global bug tracking system integration form fields")
+	//	@PreAuthorize(ADMIN_ONLY)
+	//	public OperationCompletionRS updateGlobalBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
+	//			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return updateBugTrackingSystemHandler.updateGlobalBugTrackingSystem(updateRequest, integrationId);
+	//	}
+	//
+	//	@Transactional
+	//	@PutMapping(value = "/{projectName}/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
+	//	@ResponseStatus(HttpStatus.OK)
+	//	@ApiOperation("Update project bug tracking system integration form fields")
+	//	@PreAuthorize(PROJECT_MANAGER)
+	//	public OperationCompletionRS updateProjectBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
+	//			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(updateRequest,
+	//				integrationId,
+	//				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+	//				user
+	//		);
+	//	}
+	//
+	//	@Transactional(readOnly = true)
+	//	@PutMapping(value = "/{projectName}/{integrationId}/connect", consumes = { APPLICATION_JSON_VALUE })
+	//	@ResponseStatus(HttpStatus.OK)
+	//	@ApiOperation("Check connection to the integration instance")
+	//	@PreAuthorize(PROJECT_MANAGER)
+	//	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
+	//			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
+	//		return updateBugTrackingSystemHandler.testIntegrationConnection(connectionTestRQ,
+	//				integrationId,
+	//				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+	//		);
+	//	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{projectName}/{integrationId}/fields-set")

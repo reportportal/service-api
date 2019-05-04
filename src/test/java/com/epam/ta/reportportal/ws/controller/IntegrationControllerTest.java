@@ -1,8 +1,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.integration.CreateIntegrationRQ;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +26,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void createGlobalIntegration() throws Exception {
-		CreateIntegrationRQ request = new CreateIntegrationRQ();
-		request.setPluginName("email");
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -37,30 +35,28 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 		doNothing().when(emailService).testConnection();
 
-		mockMvc.perform(post("/integration").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(post("/integration/email").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isConflict());
 	}
 
 	@Test
 	void createGlobalIntegrationNegative() throws Exception {
-		CreateIntegrationRQ request = new CreateIntegrationRQ();
-		request.setPluginName("unknown");
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
 		request.setIntegrationParams(params);
 		request.setEnabled(true);
 
-		mockMvc.perform(post("/integration").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(post("/integration/unknown").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
 	}
 
 	@Test
 	void createProjectIntegration() throws Exception {
-		CreateIntegrationRQ request = new CreateIntegrationRQ();
-		request.setPluginName("email");
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -69,29 +65,28 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 		doNothing().when(emailService).testConnection();
 
-		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL + "/email").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isConflict());
 	}
 
 	@Test
 	void createProjectIntegrationNegative() throws Exception {
-		CreateIntegrationRQ request = new CreateIntegrationRQ();
-		request.setPluginName("unknown");
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
 		request.setIntegrationParams(params);
 		request.setEnabled(true);
 
-		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL).with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(post("/integration" + DEFAULT_PROJECT_BASE_URL + "/unknown").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isNotFound());
 	}
 
 	@Test
 	void updateGlobalIntegration() throws Exception {
-		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -107,7 +102,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void updateGlobalIntegrationNegative() throws Exception {
-		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -121,7 +116,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void updateProjectIntegration() throws Exception {
-		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -137,7 +132,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 	@Test
 	void updateProjectIntegrationNegative() throws Exception {
-		UpdateIntegrationRQ request = new UpdateIntegrationRQ();
+		IntegrationRQ request = new IntegrationRQ();
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");

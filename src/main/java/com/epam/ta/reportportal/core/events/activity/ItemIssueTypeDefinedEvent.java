@@ -20,8 +20,11 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import org.apache.commons.collections.MapUtils;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM_ISSUE;
@@ -32,6 +35,8 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  * @author Andrei Varabyeu
  */
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
+
+	private Map<String, String> relevantItemInfo;
 
 	public ItemIssueTypeDefinedEvent() {
 	}
@@ -44,17 +49,34 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		super(null, userLogin, before, after);
 	}
 
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin,
+			Map<String, String> relevantItemInfo) {
+		super(null, userLogin, before, after);
+		this.relevantItemInfo = relevantItemInfo;
+	}
+
+	public Map<String, String> getRelevantItemInfo() {
+		return relevantItemInfo;
+	}
+
+	public void setRelevantItemInfo(Map<String, String> relevantItemInfo) {
+		this.relevantItemInfo = relevantItemInfo;
+	}
+
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
-				.addActivityEntityType(ITEM_ISSUE).addUserId(getUserId()).addUserName(getUserLogin())
+				.addActivityEntityType(ITEM_ISSUE)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())
 				.addHistoryField(processIssueDescription(getBefore().getIssueDescription(), getAfter().getIssueDescription()))
 				.addHistoryField(processIssueTypes(getBefore().getIssueTypeLongName(), getAfter().getIssueTypeLongName()))
 				.addHistoryField(processIgnoredAnalyzer(getBefore().isIgnoreAnalyzer(), getAfter().isIgnoreAnalyzer()))
+				.addHistoryField(processRelevantItem(relevantItemInfo))
 				.get();
 	}
 
@@ -80,4 +102,19 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		}
 		return Optional.empty();
 	}
+
+	private Optional<HistoryField> processRelevantItem(Map<String, String> relevantItemInfo) {
+		if (MapUtils.isEmpty(relevantItemInfo)) {
+			return Optional.empty();
+		}
+		return Optional.of(HistoryField.of(
+				RELEVANT_ITEM,
+				null,
+				relevantItemInfo.entrySet()
+						.stream()
+						.map(it -> it.getKey().concat(":").concat(it.getValue()))
+						.collect(Collectors.joining(", "))
+		));
+	}
+
 }

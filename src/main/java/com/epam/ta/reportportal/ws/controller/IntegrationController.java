@@ -123,14 +123,6 @@ public class IntegrationController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/{integrationId}/connection/test")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Create global Report Portal integration instance")
-	public boolean testIntegrationConnection(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return getIntegrationHandler.testConnection(integrationId);
-	}
-
-	@Transactional(readOnly = true)
 	@GetMapping(value = "{projectName}/{integrationId}/connection/test")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Create global Report Portal integration instance")

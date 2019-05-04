@@ -176,11 +176,6 @@ class IntegrationControllerTest extends BaseMvcTest {
 		mockMvc.perform(get("/integration/7").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
-	@Test
-	void testGlobalIntegrationConnection() throws Exception {
-		mockMvc.perform(get("/integration/7/connection/test").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
-
 
 	@Test
 	void getGlobalIntegrationNegative() throws Exception {

@@ -1,7 +1,6 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -10,7 +9,6 @@ import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,17 +22,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.DATA_STORAGE_FETCH_DATA_QUEUE;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.INTEGRATION_FIND_ONE;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.LOGS_FIND_BY_TEST_ITEM_REF_QUEUE;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.PROJECTS_FIND_BY_NAME;
-import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.TEST_ITEMS_FIND_ONE_QUEUE;
-
-import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_INTEGRATION_RESOURCE;
-
-import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.IS_LOAD_BINARY_DATA;
-import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.ITEM_REF;
-import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.LIMIT;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.*;
+import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.*;
 
 /**
  * @author Pavel Bortnik
@@ -42,8 +31,6 @@ import static com.epam.ta.reportportal.ws.rabbit.MessageHeaders.LIMIT;
 @Component
 @Transactional
 public class RepositoryAdaptersConsumer {
-
-	private IntegrationRepository integrationRepository;
 
 	private LogRepository logRepository;
 
@@ -57,24 +44,15 @@ public class RepositoryAdaptersConsumer {
 
 	private TestItemResourceAssembler itemResourceAssembler;
 
-	@Autowired
-	public void setIntegrationRepository(IntegrationRepository integrationRepository) {
-		this.integrationRepository = integrationRepository;
-	}
-
-	@Autowired
-	public void setLogRepository(LogRepository logRepository) {
+	public RepositoryAdaptersConsumer(LogRepository logRepository, ProjectRepository projectRepository,
+			TestItemRepository testItemRepository, DataStoreService dataStoreService, ProjectConverter projectConverter,
+			TestItemResourceAssembler itemResourceAssembler) {
 		this.logRepository = logRepository;
-	}
-
-	@Autowired
-	public void setProjectRepository(ProjectRepository projectRepository) {
 		this.projectRepository = projectRepository;
-	}
-
-	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
+		this.dataStoreService = dataStoreService;
+		this.projectConverter = projectConverter;
+		this.itemResourceAssembler = itemResourceAssembler;
 	}
 
 	@Autowired
@@ -87,19 +65,13 @@ public class RepositoryAdaptersConsumer {
 		return projectRepository.findByName(projectName).map(it -> projectConverter.TO_PROJECT_RESOURCE.apply(it)).orElse(null);
 	}
 
-	@RabbitListener(queues = INTEGRATION_FIND_ONE)
-	public IntegrationResource findIntegrationById(@Payload Long integrationId) {
-		return integrationRepository.findById(integrationId).map(TO_INTEGRATION_RESOURCE).orElse(null);
-	}
-
 	@RabbitListener(queues = TEST_ITEMS_FIND_ONE_QUEUE)
 	public TestItemResource findTestItem(@Payload Long itemId) {
 		return testItemRepository.findById(itemId).map(it -> itemResourceAssembler.toResource(it)).orElse(null);
 	}
 
 	@RabbitListener(queues = LOGS_FIND_BY_TEST_ITEM_REF_QUEUE)
-	public List<LogResource> findLogsByTestItem(@Header(ITEM_REF) Long itemRef,
-			@Header(LIMIT) Integer limit,
+	public List<LogResource> findLogsByTestItem(@Header(ITEM_REF) Long itemRef, @Header(LIMIT) Integer limit,
 			@Header(IS_LOAD_BINARY_DATA) boolean loadBinaryData) {
 		List<Log> logs = logRepository.findByTestItemId(itemRef, limit /*, loadBinaryData*/);
 		return logs.stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());

@@ -103,7 +103,7 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 							.withValue(value)
 							.build())
 					.withCondition(FilterCondition.builder().eq(CRITERIA_ITEM_ATTRIBUTE_SYSTEM, Boolean.FALSE.toString()).build()));
-			content = widgetContentRepository.cumulativeTrendStatistics(filter, contentFields, sort, storedAttributes.get(0), null, limit);
+			content = widgetContentRepository.cumulativeTrendStatistics(filter, contentFields, sort, storedAttributes.get(1), null, limit);
 		}
 		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);
 	}

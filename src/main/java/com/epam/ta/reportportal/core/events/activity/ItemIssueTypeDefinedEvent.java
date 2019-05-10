@@ -15,16 +15,14 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.analyzer.model.RelevantItemInfo;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
-import org.apache.commons.collections.MapUtils;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.*;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM_ISSUE;
@@ -36,7 +34,7 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  */
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
-	private Map<String, String> relevantItemInfo;
+	private RelevantItemInfo relevantItemInfo;
 
 	public ItemIssueTypeDefinedEvent() {
 	}
@@ -50,16 +48,16 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 	}
 
 	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin,
-			Map<String, String> relevantItemInfo) {
+			RelevantItemInfo relevantItemInfo) {
 		super(null, userLogin, before, after);
 		this.relevantItemInfo = relevantItemInfo;
 	}
 
-	public Map<String, String> getRelevantItemInfo() {
+	public RelevantItemInfo getRelevantItemInfo() {
 		return relevantItemInfo;
 	}
 
-	public void setRelevantItemInfo(Map<String, String> relevantItemInfo) {
+	public void setRelevantItemInfo(RelevantItemInfo relevantItemInfo) {
 		this.relevantItemInfo = relevantItemInfo;
 	}
 
@@ -103,18 +101,11 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		return Optional.empty();
 	}
 
-	private Optional<HistoryField> processRelevantItem(Map<String, String> relevantItemInfo) {
-		if (MapUtils.isEmpty(relevantItemInfo)) {
+	private Optional<HistoryField> processRelevantItem(RelevantItemInfo relevantItemInfo) {
+		if (null == relevantItemInfo) {
 			return Optional.empty();
 		}
-		return Optional.of(HistoryField.of(
-				RELEVANT_ITEM,
-				null,
-				relevantItemInfo.entrySet()
-						.stream()
-						.map(it -> it.getKey().concat(":").concat(it.getValue()))
-						.collect(Collectors.joining(", "))
-		));
+		return Optional.of(HistoryField.of(RELEVANT_ITEM, null, relevantItemInfo.toString()));
 	}
 
 }

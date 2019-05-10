@@ -67,7 +67,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String attributeValue, int limit) {
+			int limit) {
 		validateFilterSortMapping(filterSortMapping);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
@@ -93,8 +93,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
 	 */
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
-		expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true)).verify(
-				ErrorType.BAD_REQUEST_ERROR,
+		expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
 				"Filter-Sort mapping should not be empty"
 		);
 	}

@@ -24,12 +24,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Strategy definition interface for loading widget content.
- *
- * @author Pavel Bortnik
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface LoadContentStrategy {
+public interface MultilevelLoadContentStrategy {
 
-	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit);
-
+	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
+			String[] attributes, int limit);
 }

@@ -68,8 +68,7 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
-			String attributeValue, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
 		validateFilterSortMapping(filterSortMap);
 		validateWidgetOptions(widgetOptions);

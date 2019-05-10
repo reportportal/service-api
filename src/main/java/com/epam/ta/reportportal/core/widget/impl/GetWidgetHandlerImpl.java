@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
+	private Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy;
+
 	private Set<WidgetType> unfilteredWidgetTypes;
 
 	@Autowired
@@ -86,14 +90,19 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Autowired
+	@Qualifier("multilevelContentLoader")
+	public void setMultilevelLoadContentStrategy(Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy) {
+		this.multilevelLoadContentStrategy = multilevelLoadContentStrategy;
+	}
+
+	@Autowired
 	@Qualifier("unfilteredWidgetTypes")
 	public void setUnfilteredWidgetTypes(Set<WidgetType> unfilteredWidgetTypes) {
 		this.unfilteredWidgetTypes = unfilteredWidgetTypes;
 	}
 
 	@Override
-	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			String attributeValue) {
+	public WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
@@ -101,19 +110,44 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
-		if (widgetType != WidgetType.CUMULATIVE) {
-			if (attributeValue != null) {
-				throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, "Widget does not support two-level architecture.");
-			}
+		Map<String, ?> content;
+
+		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
+			content = Collections.emptyMap();
+		} else {
+			content = loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+					widget.getWidgetOptions(),
+					widget.getItemsCount()
+			);
 		}
+
+		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
+		resource.setContent(content);
+		return resource;
+	}
+
+	@Override
+	public WidgetResource getWidget(Long widgetId, String[] attributes, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
+
+		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						"Unsupported widget type {}" + widget.getWidgetType()
+				));
 
 		Map<String, ?> content;
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
 			content = Collections.emptyMap();
 		} else {
-			content = buildFilterStrategyMapping.get(widgetType)
-					.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget, attributeValue);
+			content = multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+					widget.getWidgetOptions(),
+					attributes,
+					widget.getItemsCount()
+			);
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -144,8 +178,11 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.addFilters(userFilter)
 				.get();
 
-		return buildFilterStrategyMapping.get(widgetType)
-				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget, null);
+		return loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+				buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+				widget.getWidgetOptions(),
+				widget.getItemsCount()
+		);
 	}
 
 	@Override

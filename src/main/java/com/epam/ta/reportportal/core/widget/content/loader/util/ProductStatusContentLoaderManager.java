@@ -49,13 +49,13 @@ public class ProductStatusContentLoaderManager implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String attributeValue, int limit) {
+			int limit) {
 
 		String strategy = WidgetOptionUtil.getValueByKey("strategy", widgetOptions);
 
 		return ofNullable(productStatusContentLoader.get(strategy)).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 				"Wrong strategy type. Allowed: \"filter\", \"launch\". But found: " + strategy
 		))
-				.loadContent(contentFields, filterSortMapping, widgetOptions, attributeValue, limit);
+				.loadContent(contentFields, filterSortMapping, widgetOptions, limit);
 	}
 }

@@ -20,10 +20,10 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.google.common.collect.Sets;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -37,10 +37,9 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 public class ActivityFilterStrategy extends AbstractStatisticsFilterStrategy {
 
 	@Override
-	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget, String attributeValue) {
+	public Map<Filter, Sort> buildFilter(ReportPortalUser.ProjectDetails projectDetails, Widget widget) {
 
-		return super.buildFilterAndLoadContent(loadContentStrategy, projectDetails, widget, attributeValue);
+		return super.buildFilter(projectDetails, widget);
 	}
 
 	@Override

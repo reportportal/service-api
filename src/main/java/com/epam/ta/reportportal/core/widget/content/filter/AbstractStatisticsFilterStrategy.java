@@ -19,11 +19,9 @@ package com.epam.ta.reportportal.core.widget.content.filter;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.springframework.data.domain.Sort;
@@ -42,15 +40,8 @@ import static java.util.Optional.ofNullable;
 public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
 
 	@Override
-	public Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget, String attributeValue) {
-		Map<Filter, Sort> filterSortMap = buildFilterSortMap(widget, projectDetails.getProjectId());
-		return loadContentStrategy.loadContent(Lists.newArrayList(widget.getContentFields()),
-				filterSortMap,
-				widget.getWidgetOptions(),
-				attributeValue,
-				widget.getItemsCount()
-		);
+	public Map<Filter, Sort> buildFilter(ReportPortalUser.ProjectDetails projectDetails, Widget widget) {
+		return buildFilterSortMap(widget, projectDetails.getProjectId());
 	}
 
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {

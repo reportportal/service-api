@@ -80,9 +80,16 @@ public class WidgetController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
-			@RequestParam(required = false, name = "attributeValue") String attributeValue,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user, attributeValue);
+		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
+	}
+
+	@GetMapping(value = "multilevel/{widgetId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Get multilevel widget by ID")
+	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@RequestParam(required = false, name = "attributes") String[] attributes, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidget(widgetId, attributes, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

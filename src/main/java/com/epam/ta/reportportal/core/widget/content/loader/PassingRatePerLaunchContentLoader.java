@@ -62,7 +62,7 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String attributeValue, int limit) {
+			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 		validateWidgetOptions(widgetOptions);

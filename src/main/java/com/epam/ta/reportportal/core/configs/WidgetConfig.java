@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.configs;
 import com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
@@ -73,9 +74,15 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.TOP_TEST_CASES, applicationContext.getBean(TopTestCasesContentLoader.class))
 				.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRatePerLaunchContentLoader.class))
 				.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(ProductStatusContentLoaderManager.class))
-				.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartLoader.class))
 				.put(WidgetType.MOST_TIME_CONSUMING, applicationContext.getBean(MostTimeConsumingContentLoader.class))
 				.build();
+	}
+
+	@Bean("multilevelContentLoader")
+	public Map<WidgetType, MultilevelLoadContentStrategy> multilevelContentLoader() {
+		return ImmutableMap.<WidgetType, MultilevelLoadContentStrategy>builder().put(WidgetType.CUMULATIVE,
+				applicationContext.getBean(CumulativeTrendChartLoader.class)
+		).build();
 	}
 
 	@Bean("buildFilterStrategy")

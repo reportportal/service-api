@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import org.springframework.data.domain.Sort;
 
 import java.util.Map;
 
@@ -34,7 +36,6 @@ public interface BuildFilterStrategy {
 	 *
 	 * @return
 	 */
-	Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget, String attributeValue);
+	Map<Filter, Sort> buildFilter(ReportPortalUser.ProjectDetails projectDetails, Widget widget);
 
 }

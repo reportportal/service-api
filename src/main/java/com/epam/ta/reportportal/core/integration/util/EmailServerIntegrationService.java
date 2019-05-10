@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.util.email.EmailService;
@@ -56,30 +54,11 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private final BasicTextEncryptor basicTextEncryptor;
-	private final MailServiceFactory emailServiceFactory;
+	@Autowired
+	private BasicTextEncryptor basicTextEncryptor;
 
 	@Autowired
-	public EmailServerIntegrationService(IntegrationRepository integrationRepository, BasicTextEncryptor basicTextEncryptor,
-			MailServiceFactory emailServiceFactory) {
-		super(integrationRepository);
-		this.basicTextEncryptor = basicTextEncryptor;
-		this.emailServiceFactory = emailServiceFactory;
-	}
-
-	@Override
-	public boolean validateGlobalIntegration(Integration integration) {
-		super.validateGlobalIntegration(integration);
-		checkConnection(integration);
-		return true;
-	}
-
-	@Override
-	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		super.validateProjectIntegration(integration, projectDetails);
-		checkConnection(integration);
-		return true;
-	}
+	private MailServiceFactory emailServiceFactory;
 
 	@Override
 	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {

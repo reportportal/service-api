@@ -16,16 +16,28 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -33,12 +45,13 @@ import java.util.Map;
 @Service
 public class BasicIntegrationServiceImpl implements IntegrationService {
 
-	private final IntegrationRepository integrationRepository;
+	private final String TEST_CONNECTION_COMMAND = "testConnection";
 
 	@Autowired
-	public BasicIntegrationServiceImpl(IntegrationRepository integrationRepository) {
-		this.integrationRepository = integrationRepository;
-	}
+	private IntegrationRepository integrationRepository;
+
+	@Autowired
+	private PluginBox pluginBox;
 
 	@Override
 	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
@@ -46,30 +59,67 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 	}
 
 	@Override
-	public boolean validateGlobalIntegration(Integration globalIntegration) {
+	public Integration createIntegration(IntegrationRQ integrationRq, IntegrationType integrationType) {
+		Integration integration = new Integration();
+		integration.setCreationDate(LocalDateTime.now());
+		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRq.getIntegrationParams());
+		integration.setParams(new IntegrationParams(integrationParams));
+		integration.setType(integrationType);
+		integration.setEnabled(integrationRq.getEnabled());
+		integration.setName(integrationRq.getName());
+		return integration;
+	}
 
-		List<Integration> global = integrationRepository.findAllGlobalByType(globalIntegration.getType());
-		BusinessRule.expect(global, List::isEmpty).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Integration with type " + globalIntegration.getType().getName() + " is already exists"
+	@Override
+	public Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ) {
+		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRQ.getIntegrationParams());
+		IntegrationParams params = getIntegrationParams(integration, integrationParams);
+		integration.setParams(params);
+		integration.setEnabled(integrationRQ.getEnabled());
+		integration.setName(integrationRQ.getName());
+		return integration;
+	}
+
+	@Override
+	public boolean validateIntegration(Integration integration) {
+		List<Integration> global = integrationRepository.findAllGlobalByType(integration.getType());
+		BusinessRule.expect(global, List::isEmpty).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Integration with type " + integration.getType().getName() + " is already exists"
 		);
 		return true;
 	}
 
 	@Override
-	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		List<Integration> project = integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integration.getType());
-		BusinessRule.expect(project, List::isEmpty).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Integration with type " + integration.getType().getName() + " is already exists for project "
-						+ projectDetails.getProjectName()
+	public boolean validateIntegration(Integration integration, Project project) {
+		List<Integration> integrations = integrationRepository.findAllByProjectIdAndType(project.getId(), integration.getType());
+		BusinessRule.expect(integrations, List::isEmpty).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Integration with type " + integration.getType().getName() + " is already exists for project " + project.getName()
 		);
 		return true;
 	}
 
 	@Override
 	public boolean checkConnection(Integration integration) {
-		//with plugin logic, check connection is on plugin's side
-		return true;
+		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						"Plugin for {} isn't installed",
+						integration.getType().getName()
+				));
+
+		PluginCommand commandToExecute = Optional.ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND))
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						"Command {} is not found in plugin {}.",
+						TEST_CONNECTION_COMMAND,
+						integration.getType().getName()
+				));
+
+		return (Boolean) commandToExecute.executeCommand(integration, integration.getParams().getParams());
+	}
+
+	public static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
+		return ofNullable(integration.getParams()).map(params -> new IntegrationParams(ofNullable(params.getParams()).map(paramsMap -> {
+			paramsMap.putAll(retrievedParams);
+			return paramsMap;
+		}).orElse(retrievedParams))).orElseGet(() -> new IntegrationParams(retrievedParams));
 	}
 }

@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.integration.util;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.util.email.EmailService;
@@ -31,7 +33,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
@@ -54,11 +55,16 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	@Autowired
 	private BasicTextEncryptor basicTextEncryptor;
 
-	@Autowired
 	private MailServiceFactory emailServiceFactory;
+
+	public EmailServerIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
+			BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
+		super(integrationRepository, pluginBox);
+		this.basicTextEncryptor = basicTextEncryptor;
+		this.emailServiceFactory = emailServiceFactory;
+	}
 
 	@Override
 	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {

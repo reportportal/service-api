@@ -47,11 +47,15 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	private final String TEST_CONNECTION_COMMAND = "testConnection";
 
-	@Autowired
-	private IntegrationRepository integrationRepository;
+	protected IntegrationRepository integrationRepository;
+
+	protected PluginBox pluginBox;
 
 	@Autowired
-	private PluginBox pluginBox;
+	public BasicIntegrationServiceImpl(IntegrationRepository integrationRepository, PluginBox pluginBox) {
+		this.integrationRepository = integrationRepository;
+		this.pluginBox = pluginBox;
+	}
 
 	@Override
 	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {

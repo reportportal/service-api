@@ -40,13 +40,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 @Service
 public abstract class AbstractBtsIntegrationService extends BasicIntegrationServiceImpl {
 
-	private final IntegrationRepository integrationRepository;
-
-	private final PluginBox pluginBox;
-
-	AbstractBtsIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox) {
-		this.integrationRepository = integrationRepository;
-		this.pluginBox = pluginBox;
+	public AbstractBtsIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox) {
+		super(integrationRepository, pluginBox);
 	}
 
 	@Override

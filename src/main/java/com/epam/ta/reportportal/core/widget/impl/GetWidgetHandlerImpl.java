@@ -48,9 +48,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static freemarker.template.utility.Collections12.singletonMap;
 
@@ -110,6 +112,10 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
+		expect(widgetType.isSupportMultilevelStructure(), Predicate.isEqual(false)).verify(ErrorType.INCORRECT_REQUEST,
+				"Unsupported widget type '" + widgetType + "'"
+		);
+
 		Map<String, ?> content;
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
@@ -136,6 +142,10 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
+
+		expect(widgetType.isSupportMultilevelStructure(), Predicate.isEqual(true)).verify(ErrorType.INCORRECT_REQUEST,
+				"Widget type '" + widgetType + "' does not support multilevel structure."
+		);
 
 		Map<String, ?> content;
 

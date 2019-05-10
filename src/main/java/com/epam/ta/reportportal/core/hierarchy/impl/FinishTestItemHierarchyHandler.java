@@ -96,14 +96,16 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 		if (ANCESTOR_PROPOGATED_STATUSES.contains(status)) {
 			LocalDateTime localDateTime = TO_LOCAL_DATE_TIME.apply(endDate);
 
-			Launch launch = entity.getLaunch();
-			launch.setStatus(status);
-			launch.setEndTime(localDateTime);
-			launchRepository.save(launch);
-
 			testItemRepository.selectPathNames(entity.getPath()).keySet().forEach(id -> {
 				testItemRepository.updateStatusAndEndTimeById(id, JStatusEnum.valueOf(status.name()), localDateTime);
 			});
+
+			Launch launch = entity.getLaunch();
+			if (launch.getStatus() != IN_PROGRESS) {
+				launch.setStatus(status);
+				launch.setEndTime(localDateTime);
+				launchRepository.save(launch);
+			}
 		}
 	}
 }

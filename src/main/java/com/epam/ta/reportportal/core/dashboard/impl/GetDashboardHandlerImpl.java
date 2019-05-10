@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,14 @@ import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.dashboard.GetDashboardHandler;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.entity.dashboard.Dashboard;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.DashboardConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_ADMINISTRATE_OBJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT;
 
 /**
  * @author Pavel Bortnik
@@ -48,20 +42,6 @@ public class GetDashboardHandlerImpl implements GetDashboardHandler {
 	@Autowired
 	public void setDashboardRepository(DashboardRepository dashboardRepository) {
 		this.dashboardRepository = dashboardRepository;
-	}
-
-	@Override
-	@PostAuthorize(CAN_READ_OBJECT)
-	public Dashboard getPermitted(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails) {
-		return dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT, dashboardId, projectDetails.getProjectName()));
-	}
-
-	@Override
-	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
-	public Dashboard getAdministrated(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails) {
-		return dashboardRepository.findByIdAndProjectId(dashboardId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT, dashboardId, projectDetails.getProjectName()));
 	}
 
 	@Override

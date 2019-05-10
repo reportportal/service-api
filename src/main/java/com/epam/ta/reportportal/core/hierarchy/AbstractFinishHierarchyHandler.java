@@ -41,7 +41,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
-import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;
+import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.SUITE;
 import static com.epam.ta.reportportal.jooq.enums.JStatusEnum.FAILED;
 import static com.epam.ta.reportportal.jooq.enums.JStatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -107,7 +107,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 			List<ItemAttributePojo> itemAttributes, List<IssueEntityPojo> issueEntities) {
 		testItemRepository.updateStatusAndEndTimeById(itemId, JStatusEnum.valueOf(status.name()), endTime);
 		issueType.ifPresent(it -> {
-			if (STEP.sameLevel(testItemRepository.getTypeByItemId(itemId))) {
+			if (!SUITE.sameLevel(testItemRepository.getTypeByItemId(itemId))) {
 				issueEntities.add(new IssueEntityPojo(itemId, it.getId(), null, false, false));
 			}
 		});

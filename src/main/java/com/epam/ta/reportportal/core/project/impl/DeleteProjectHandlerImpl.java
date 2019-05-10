@@ -148,7 +148,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 				.map(ProjectIssueType::getIssueType)
 				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
 				.collect(Collectors.toSet());
-		projectRepository.deleteById(project.getId());
+		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(project.getId());
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));

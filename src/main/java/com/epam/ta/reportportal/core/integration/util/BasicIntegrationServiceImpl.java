@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,12 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		this.integrationRepository = integrationRepository;
 	}
 
+	@Override
 	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
 		return integrationParams;
 	}
 
+	@Override
 	public boolean validateGlobalIntegration(Integration globalIntegration) {
 
 		List<Integration> global = integrationRepository.findAllGlobalByType(globalIntegration.getType());
@@ -54,6 +56,7 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return true;
 	}
 
+	@Override
 	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
 		List<Integration> project = integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integration.getType());
 		BusinessRule.expect(project, List::isEmpty).verify(
@@ -64,4 +67,9 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return true;
 	}
 
+	@Override
+	public boolean checkConnection(Integration integration) {
+		//with plugin logic, check connection is on plugin's side
+		return true;
+	}
 }

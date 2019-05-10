@@ -139,7 +139,8 @@ public class LaunchFinishedEventHandler {
 		if (isNotificationsEnabled) {
 			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 					IntegrationGroupEnum.NOTIFICATION
-			).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
+			)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
 			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 
 			Launch updatedLaunch = launchRepository.findById(launch.getId())
@@ -258,7 +259,7 @@ public class LaunchFinishedEventHandler {
 							.build()
 							.toUriString();
 
-					emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project.getName(), launch);
+					emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project, launch);
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}

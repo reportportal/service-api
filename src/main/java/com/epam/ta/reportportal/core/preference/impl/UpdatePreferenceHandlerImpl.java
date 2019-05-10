@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.preference.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserPreferenceRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.preference.UserPreference;
@@ -39,18 +39,18 @@ import org.springframework.stereotype.Service;
 public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
 	private final UserPreferenceRepository userPreferenceRepository;
-
-	private final GetUserFilterHandler getUserFilterHandler;
+	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
 	@Autowired
-	public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository, GetUserFilterHandler getUserFilterHandler) {
+	public UpdatePreferenceHandlerImpl(UserPreferenceRepository userPreferenceRepository,
+			GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
 		this.userPreferenceRepository = userPreferenceRepository;
-		this.getUserFilterHandler = getUserFilterHandler;
+		this.getShareableEntityHandler = getShareableEntityHandler;
 	}
 
 	@Override
 	public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
-		UserFilter filter = getUserFilterHandler.getFilter(filterId, projectDetails, user);
+		UserFilter filter = getShareableEntityHandler.getAdministrated(filterId, projectDetails);
 		UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
 				.withProject(projectDetails.getProjectId())
 				.withFilter(filter)

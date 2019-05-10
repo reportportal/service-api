@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,6 @@ import java.util.List;
  * @author Aliaksei_Makayed
  */
 public interface GetUserFilterHandler {
-
-	/**
-	 * Get {@link UserFilterResource} by id
-	 *
-	 * @param filterId       Filter id
-	 * @param projectDetails Project Details
-	 * @param user           User
-	 * @return {@link UserFilterResource}
-	 */
-	UserFilter getFilter(Long filterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get shared and own {@link UserFilterResource} objects

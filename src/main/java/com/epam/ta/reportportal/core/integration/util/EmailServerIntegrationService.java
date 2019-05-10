@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,14 +70,14 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 	@Override
 	public boolean validateGlobalIntegration(Integration integration) {
 		super.validateGlobalIntegration(integration);
-		testConnection(integration);
+		checkConnection(integration);
 		return true;
 	}
 
 	@Override
 	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
 		super.validateProjectIntegration(integration, projectDetails);
-		testConnection(integration);
+		checkConnection(integration);
 		return true;
 	}
 
@@ -96,35 +96,33 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 			resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from);
 		});
 
-		int port = ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
-				25
-		)).orElse(25);
-		if ((port <= 0) || (port > 65535)) {
-			BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
-		}
-		resultParams.put(EmailSettingsEnum.PORT.getAttribute(), port);
+		ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).ifPresent(p -> {
+			int port = IntegerUtils.parseInt(String.valueOf(p), -1);
+			if ((port <= 0) || (port > 65535)) {
+				BusinessRule.fail().withError(ErrorType.INCORRECT_REQUEST, "Incorrect 'Port' value. Allowed value is [1..65535]");
+			}
+			resultParams.put(EmailSettingsEnum.PORT.getAttribute(), p);
+		});
 
-		if (!EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams).isPresent()) {
-			resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), "smtp");
-		} else {
-			resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams).get());
-		}
+		EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams)
+				.ifPresent(protocol -> resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), protocol));
 
-		Boolean isAuthEnabled = ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
-				String.valueOf(e))).orElse(false);
-		if (isAuthEnabled) {
-			EmailSettingsEnum.USERNAME.getAttribute(integrationParams)
-					.ifPresent(username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
-			EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
-					.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
-							basicTextEncryptor.encrypt(password)
-					));
-		} else {
-			/* Auto-drop values on switched-off authentication */
-			resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
-			resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
-		}
-		resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
+		ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).ifPresent(authEnabledAttribute -> {
+			boolean isAuthEnabled = BooleanUtils.toBoolean(String.valueOf(authEnabledAttribute));
+			if (isAuthEnabled) {
+				EmailSettingsEnum.USERNAME.getAttribute(integrationParams)
+						.ifPresent(username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
+				EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
+						.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
+								basicTextEncryptor.encrypt(password)
+						));
+			} else {
+				/* Auto-drop values on switched-off authentication */
+				resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
+				resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
+			}
+			resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);
+		});
 
 		EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(integrationParams)
 				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute(), BooleanUtils.toBoolean(attr)));
@@ -136,7 +134,8 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 		return resultParams;
 	}
 
-	private void testConnection(Integration integration) {
+	@Override
+	public boolean checkConnection(Integration integration) {
 		Optional<EmailService> emailService = emailServiceFactory.getEmailService(integration);
 		if (emailService.isPresent()) {
 			try {
@@ -148,6 +147,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 				);
 			}
 		}
+		return true;
 	}
 
 }

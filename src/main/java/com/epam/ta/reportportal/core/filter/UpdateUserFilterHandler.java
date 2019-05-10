@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package com.epam.ta.reportportal.core.filter;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -65,4 +67,12 @@ public interface UpdateUserFilterHandler {
 	List<OperationCompletionRS> updateUserFilter(CollectionsRQ<BulkUpdateFilterRQ> updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
+	/**
+	 * Update {@link UserFilter#isShared()} state
+	 *
+	 * @param filters   {@link Collection} of {@link UserFilter}
+	 * @param projectId {@link com.epam.ta.reportportal.entity.project.Project#id}
+	 * @param isShared  flag that indicates whether filter should be shared or unshared
+	 */
+	void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
@@ -58,13 +59,15 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 public class UserFilterController {
 
 	private final GetUserFilterHandler getFilterHandler;
+	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final DeleteUserFilterHandler deleteFilterHandler;
 	private final UpdateUserFilterHandler updateUserFilterHandler;
 
 	@Autowired
-	public UserFilterController(GetUserFilterHandler getFilterHandler, DeleteUserFilterHandler deleteFilterHandler,
-			UpdateUserFilterHandler updateUserFilterHandler) {
+	public UserFilterController(GetUserFilterHandler getFilterHandler, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+			DeleteUserFilterHandler deleteFilterHandler, UpdateUserFilterHandler updateUserFilterHandler) {
 		this.getFilterHandler = getFilterHandler;
+		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.deleteFilterHandler = deleteFilterHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
 	}
@@ -84,7 +87,7 @@ public class UserFilterController {
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		UserFilter filter = getFilterHandler.getFilter(filterId, extractProjectDetails(user, projectName), user);
+		UserFilter filter = getShareableEntityHandler.getAdministrated(filterId, extractProjectDetails(user, projectName));
 		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
 	}
 

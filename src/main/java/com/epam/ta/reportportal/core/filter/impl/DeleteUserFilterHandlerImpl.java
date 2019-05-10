@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterDeletedEvent;
 import com.epam.ta.reportportal.core.filter.DeleteUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -38,25 +39,22 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 public class DeleteUserFilterHandlerImpl implements DeleteUserFilterHandler {
 
 	private final UserFilterRepository userFilterRepository;
-
-	private final GetUserFilterHandler getFilterHandler;
-
+	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final MessageBus messageBus;
-
 	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
 	public DeleteUserFilterHandlerImpl(UserFilterRepository userFilterRepository, GetUserFilterHandler getFilterHandler,
-			MessageBus messageBus, ShareableObjectsHandler aclHandler) {
+			GetShareableEntityHandler<UserFilter> getShareableEntityHandler, MessageBus messageBus, ShareableObjectsHandler aclHandler) {
 		this.userFilterRepository = userFilterRepository;
-		this.getFilterHandler = getFilterHandler;
+		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.messageBus = messageBus;
 		this.aclHandler = aclHandler;
 	}
 
 	@Override
 	public OperationCompletionRS deleteFilter(Long id, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		UserFilter userFilter = getFilterHandler.getFilter(id, projectDetails, user);
+		UserFilter userFilter = getShareableEntityHandler.getAdministrated(id, projectDetails);
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				id,
 				projectDetails.getProjectId(),

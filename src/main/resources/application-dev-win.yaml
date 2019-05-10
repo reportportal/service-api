@@ -9,6 +9,8 @@ rp:
     host: localhost
   plugins:
     path: plugins
+  datasource:
+    maximumPoolSize: 5
 logging:
   level:
     org:

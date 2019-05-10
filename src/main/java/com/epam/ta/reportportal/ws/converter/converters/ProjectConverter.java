@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +67,7 @@ public final class ProjectConverter {
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
 				.stream()
 				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(
-						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
 
@@ -76,12 +75,16 @@ public final class ProjectConverter {
 
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
 
-		attributes.put(
-				INDEXING_RUN,
+		attributes.put(INDEXING_RUN,
 				String.valueOf(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
 		);
 
 		projectConfiguration.setProjectAttributes(attributes);
+
+		projectConfiguration.setPatterns(project.getPatternTemplates()
+				.stream()
+				.map(PatternTemplateConverter.TO_RESOURCE)
+				.collect(Collectors.toList()));
 
 		projectResource.setIntegrations(project.getIntegrations()
 				.stream()

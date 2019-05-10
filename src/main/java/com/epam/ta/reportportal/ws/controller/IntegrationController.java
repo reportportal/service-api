@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,9 @@ import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.integration.CreateIntegrationRQ;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import io.swagger.annotations.ApiOperation;
@@ -104,20 +106,37 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create global Report Portal integration instance")
 	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS createGlobalIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
+	public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid CreateIntegrationRQ createRequest,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.createGlobalIntegration(updateRequest);
+		return createIntegrationHandler.createGlobalIntegration(createRequest);
 	}
 
 	@Transactional
 	@PostMapping(value = "/{projectName}")
 	@ResponseStatus(HttpStatus.CREATED)
-	@ApiOperation("Create global Report Portal integration instance")
+	@ApiOperation("Create project Report Portal integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS createProjectIntegration(@RequestBody @Valid UpdateIntegrationRQ updateRequest,
-			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), updateRequest, user);
+	public EntryCreatedRS createProjectIntegration(@RequestBody @Valid CreateIntegrationRQ createRequest, @PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), createRequest, user);
 
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/{integrationId}/connection/test")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Create global Report Portal integration instance")
+	public boolean testIntegrationConnection(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getIntegrationHandler.testConnection(integrationId);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "{projectName}/{integrationId}/connection/test")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Create global Report Portal integration instance")
+	public boolean testIntegrationConnection(@PathVariable Long integrationId, @PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getIntegrationHandler.testConnection(integrationId, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -206,8 +225,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegrationsByType(
-				type,
+		return deleteIntegrationHandler.deleteProjectIntegrationsByType(type,
 				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);

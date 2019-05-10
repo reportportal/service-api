@@ -33,16 +33,13 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.epam.reportportal.commons.Safe.safe;
@@ -124,11 +121,11 @@ public class SaveDefaultProjectService {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 
-		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
 		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-			permissions.add(BasePermission.ADMINISTRATION);
+			aclHandler.permitSharedObjects(defaultProject.getId(), user.getLogin(), BasePermission.ADMINISTRATION);
+		} else {
+			aclHandler.permitSharedObjects(defaultProject.getId(), user.getLogin(), BasePermission.READ);
 		}
-		aclHandler.permitSharedObjects(defaultProject.getId(), user.getLogin(), permissions);
 
 		response.setId(user.getId());
 		response.setLogin(user.getLogin());

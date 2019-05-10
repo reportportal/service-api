@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class SortArgumentResolver extends SortHandlerMethodArgumentResolver {
 			return Sort.by(StreamSupport.stream(defaultSort.spliterator(), false).map(order -> {
 				Optional<CriteriaHolder> criteriaHolder = filterTarget.getCriteriaByFilter(order.getProperty());
 				BusinessRule.expect(criteriaHolder, Preconditions.IS_PRESENT)
-						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, "Unable to find sort parameter '" + order.getProperty() + "'");
+						.verify(ErrorType.INCORRECT_SORTING_PARAMETERS, order.getProperty());
 				return new Sort.Order(order.getDirection(), order.getProperty());
 			}).collect(toList()));
 		} else {

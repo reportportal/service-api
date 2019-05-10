@@ -17,17 +17,10 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
-import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import org.junit.jupiter.api.Test;
@@ -53,9 +46,6 @@ import static org.mockito.Mockito.when;
 class RepositoryAdaptersConsumerTest {
 
 	@Mock
-	private IntegrationRepository integrationRepository;
-
-	@Mock
 	private LogRepository logRepository;
 
 	@Mock
@@ -66,9 +56,6 @@ class RepositoryAdaptersConsumerTest {
 
 	@Mock
 	private DataStoreService dataStoreService;
-
-	@InjectMocks
-	private TestItemResourceAssembler testItemResourceAssembler;
 
 	@InjectMocks
 	private RepositoryAdaptersConsumer repositoryAdaptersConsumer;
@@ -82,37 +69,6 @@ class RepositoryAdaptersConsumerTest {
 		ProjectResource resource = repositoryAdaptersConsumer.findProjectByName(projectName);
 
 		assertNull(resource);
-	}
-
-	@Test
-	void findIntegration() {
-		Integration integration = new Integration();
-		long id = 2L;
-		integration.setId(id);
-		IntegrationType type = new IntegrationType();
-		type.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
-		integration.setType(type);
-		Project project = new Project();
-		project.setId(1L);
-		integration.setProject(project);
-		integration.setEnabled(true);
-
-		when(integrationRepository.findById(integration.getId())).thenReturn(Optional.of(integration));
-
-		IntegrationResource resource = repositoryAdaptersConsumer.findIntegrationById(id);
-
-		assertEquals(resource.getId(), integration.getId());
-		assertEquals(resource.getProjectId(), integration.getProject().getId());
-		assertEquals(resource.getEnabled(), integration.isEnabled());
-		assertEquals(resource.getIntegrationType().getGroupType(), integration.getType().getIntegrationGroup().name());
-	}
-
-	@Test
-	void findNotExistIntegration() {
-		long id = 1L;
-		when(integrationRepository.findById(id)).thenReturn(Optional.empty());
-
-		assertNull(repositoryAdaptersConsumer.findIntegrationById(id));
 	}
 
 	@Test

@@ -177,20 +177,15 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
-	public boolean testConnection(Long integrationId) {
-		Integration integration = integrationRepository.findGlobalById(integrationId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
-
-		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
-				this.basicIntegrationService
-		);
-		return integrationService.checkConnection(integration);
-	}
-
-	@Override
 	public boolean testConnection(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+		Optional<Integration> optionalIntegration = integrationRepository.findByIdAndProjectId(integrationId,
+				projectDetails.getProjectId()
+		);
+		if (!optionalIntegration.isPresent()) {
+			optionalIntegration = integrationRepository.findGlobalById(integrationId);
+		}
+		BusinessRule.expect(optionalIntegration, Optional::isPresent).verify(ErrorType.INTEGRATION_NOT_FOUND, integrationId);
+		Integration integration = optionalIntegration.get();
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
 				this.basicIntegrationService

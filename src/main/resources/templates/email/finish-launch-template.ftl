@@ -196,6 +196,9 @@
                                         <!-- TO INVESTIGATE bugs section -->
                                         <#assign name="To Investigate">
                                         <@maintype name="${name}" counter="${toInvestigateTotal}" />
+                                        <#if tiInfo??>
+                                            <@subtypes sbt=tiInfo/>
+                                        </#if>
                                         </tbody>
                                     </table>
                                 </td>

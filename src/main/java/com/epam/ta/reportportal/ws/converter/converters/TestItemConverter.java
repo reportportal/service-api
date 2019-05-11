@@ -89,10 +89,9 @@ public final class TestItemConverter {
 			resource.setIgnoreAnalyzer(issue.getIgnoreAnalyzer());
 			resource.setIssueDescription(issue.getIssueDescription());
 			resource.setIssueTypeLongName(issue.getIssueType().getLongName());
-			resource.setTickets(issue.getTickets()
-					.stream()
-					.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
-					.collect(Collectors.joining(",")));
+			ofNullable(issue.getTickets()).ifPresent(it -> resource.setTickets(it.stream()
+					.map(ticket -> ticket.getTicketId().concat(":").concat(ticket.getUrl()))
+					.collect(Collectors.joining(", "))));
 		}
 		return resource;
 	};

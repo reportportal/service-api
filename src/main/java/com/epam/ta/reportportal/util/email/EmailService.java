@@ -159,7 +159,7 @@ public class EmailService extends JavaMailSenderImpl {
 		email.put("automationBugTotal", ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0));
 		email.put("systemIssueTotal", ofNullable(statistics.get(DEFECTS_SYSTEM_ISSUE_TOTAL)).orElse(0));
 		email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
-		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
+		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0));
 
 		Map<String, String> locatorsMapping = projectIssueTypes.stream()
 				.collect(toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
@@ -221,8 +221,8 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipient);
-			Map<String, String> email = new HashMap<>();
-			email.put("indexedLogsCount", String.valueOf(ofNullable(indexedLogsCount).orElse(0L)));
+			Map<String, Object> email = new HashMap<>();
+			email.put("indexedLogsCount", ofNullable(indexedLogsCount).orElse(0L));
 			setFrom(message);
 			String text = templateEngine.merge("index-finished-template.ftl", email);
 			message.setText(text, true);

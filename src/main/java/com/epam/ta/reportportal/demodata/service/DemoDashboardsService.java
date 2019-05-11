@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
@@ -80,6 +81,7 @@ class DemoDashboardsService {
 
 	private Resource resource;
 
+	@Autowired
 	public DemoDashboardsService(UserFilterRepository userFilterRepository, DashboardRepository dashboardRepository,
 			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository, ProjectRepository projectRepository,
 			ShareableObjectsHandler aclHandler, ObjectMapper objectMapper) {
@@ -92,20 +94,22 @@ class DemoDashboardsService {
 		this.objectMapper = objectMapper;
 	}
 
-	@Autowired
-
 	@Value("classpath:demo/demo_widgets.json")
 	public void setResource(Resource resource) {
 		this.resource = resource;
 	}
 
 	@Transactional
-	public Dashboard generate(ReportPortalUser user, Long projectId) {
+	public Optional<Dashboard> generate(ReportPortalUser user, Long projectId) {
 		Project project = projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
+
+		if (dashboardRepository.existsByNameAndProjectId(DASHBOARD_NAME, projectId)) {
+			return Optional.empty();
+		}
 
 		UserFilter filter = createDemoFilter(user, project);
 		List<Widget> widgets = createWidgets(user, projectId, filter);
-		return createDemoDashboard(widgets, user, project, DASHBOARD_NAME);
+		return Optional.of(createDemoDashboard(widgets, user, project, DASHBOARD_NAME));
 	}
 
 	private List<Widget> createWidgets(ReportPortalUser user, Long projectId, UserFilter filter) {
@@ -137,7 +141,8 @@ class DemoDashboardsService {
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
 						.withCondition(Condition.EQUALS)
-						.withSearchCriteria(CRITERIA_NAME).withValue(FILTER_NAME)
+						.withSearchCriteria(CRITERIA_NAME)
+						.withValue(FILTER_NAME)
 						.build())
 				.build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
 

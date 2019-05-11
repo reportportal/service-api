@@ -24,7 +24,7 @@
   },
   {
     "name": "LAUNCH STATISTICS BAR",
-    "widgetType": "launchTrend",
+    "widgetType": "statisticTrend",
     "share": true,
     "contentParameters": {
       "itemsCount": 50,

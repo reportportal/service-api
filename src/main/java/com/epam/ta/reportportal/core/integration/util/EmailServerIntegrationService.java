@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -33,7 +33,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
@@ -56,29 +55,15 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private final BasicTextEncryptor basicTextEncryptor;
-	private final MailServiceFactory emailServiceFactory;
+	private BasicTextEncryptor basicTextEncryptor;
 
-	@Autowired
-	public EmailServerIntegrationService(IntegrationRepository integrationRepository, BasicTextEncryptor basicTextEncryptor,
-			MailServiceFactory emailServiceFactory) {
-		super(integrationRepository);
+	private MailServiceFactory emailServiceFactory;
+
+	public EmailServerIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
+			BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
+		super(integrationRepository, pluginBox);
 		this.basicTextEncryptor = basicTextEncryptor;
 		this.emailServiceFactory = emailServiceFactory;
-	}
-
-	@Override
-	public boolean validateGlobalIntegration(Integration integration) {
-		super.validateGlobalIntegration(integration);
-		checkConnection(integration);
-		return true;
-	}
-
-	@Override
-	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		super.validateProjectIntegration(integration, projectDetails);
-		checkConnection(integration);
-		return true;
 	}
 
 	@Override

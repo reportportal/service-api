@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -38,8 +38,9 @@ import static org.mockito.Mockito.when;
 class BasicIntegrationServiceImplTest {
 
 	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+	private final PluginBox pluginBox = mock(PluginBox.class);
 
-	private final BasicIntegrationServiceImpl basicIntegrationService = new BasicIntegrationServiceImpl(integrationRepository);
+	private final BasicIntegrationServiceImpl basicIntegrationService = new BasicIntegrationServiceImpl(integrationRepository, pluginBox);
 
 	@Test
 	void retrieveIntegrationParams() {
@@ -57,7 +58,7 @@ class BasicIntegrationServiceImplTest {
 		when(integrationRepository.findAllGlobalByType(integrationType)).thenReturn(Lists.newArrayList());
 
 		//when
-		boolean b = basicIntegrationService.validateGlobalIntegration(integration);
+		boolean b = basicIntegrationService.validateIntegration(integration);
 
 		//then
 		assertTrue(b);
@@ -74,7 +75,7 @@ class BasicIntegrationServiceImplTest {
 
 		//when
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> basicIntegrationService.validateGlobalIntegration(integration)
+				() -> basicIntegrationService.validateIntegration(integration)
 		);
 
 		//then
@@ -87,12 +88,14 @@ class BasicIntegrationServiceImplTest {
 		Integration integration = new Integration();
 		IntegrationType integrationType = new IntegrationType();
 		integration.setType(integrationType);
-		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "default", ProjectRole.MEMBER);
+
+		Project project = new Project();
+		project.setId(1L);
 
 		when(integrationRepository.findAllByProjectIdAndType(1L, integrationType)).thenReturn(Lists.newArrayList());
 
 		//when
-		boolean b = basicIntegrationService.validateProjectIntegration(integration, projectDetails);
+		boolean b = basicIntegrationService.validateIntegration(integration, project);
 
 		//then
 		assertTrue(b);
@@ -105,18 +108,20 @@ class BasicIntegrationServiceImplTest {
 		IntegrationType integrationType = new IntegrationType();
 		integrationType.setName("email");
 		integration.setType(integrationType);
-		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "default", ProjectRole.MEMBER);
+
+		Project project = new Project();
+		project.setId(1L);
+		project.setName("default");
 
 		when(integrationRepository.findAllByProjectIdAndType(1L, integrationType)).thenReturn(Lists.newArrayList(new Integration()));
 
 		//when
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> basicIntegrationService.validateProjectIntegration(integration, projectDetails)
+				() -> basicIntegrationService.validateIntegration(integration, project)
 		);
 
 		//then
-		assertEquals(
-				"Impossible interact with integration. Integration with type email is already exists for project default",
+		assertEquals("Impossible interact with integration. Integration with type email is already exists for project default",
 				exception.getMessage()
 		);
 	}

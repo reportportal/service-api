@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
+import com.epam.ta.reportportal.core.analyzer.model.RelevantItemInfo;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
@@ -184,12 +185,15 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 				LOGGER.info("Analysis has found a match: {}", analyzed);
 
 				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-				updateTestItemIssue(projectId, analyzed, testItem);
+				RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
 				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
 				testItemRepository.save(testItem);
-				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance));
-				messageBus.publishActivity(new LinkTicketEvent(before, after, analyzerInstance));
+				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+				ofNullable(after.getTickets()).ifPresent(it -> messageBus.publishActivity(new LinkTicketEvent(before,
+						after,
+						analyzerInstance
+				)));
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());
@@ -203,7 +207,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	 * @param testItem  - Test item to be updated
 	 * @return Updated issue entity
 	 */
-	private IssueEntity updateTestItemIssue(Long projectId, AnalyzedItemRs rs, TestItem testItem) {
+	private RelevantItemInfo updateTestItemIssue(Long projectId, AnalyzedItemRs rs, TestItem testItem) {
 		IssueType issueType = issueTypeHandler.defineIssueType(projectId, rs.getLocator());
 		IssueEntity issueEntity = new IssueEntityBuilder(testItem.getItemResults().getIssue()).addIssueType(issueType)
 				.addIgnoreFlag(testItem.getItemResults().getIssue().getIgnoreAnalyzer())
@@ -212,8 +216,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		issueEntity.setIssueId(testItem.getItemId());
 		issueEntity.setTestItemResults(testItem.getItemResults());
 		testItem.getItemResults().setIssue(issueEntity);
-		ofNullable(rs.getRelevantItemId()).ifPresent(relevantItemId -> updateIssueFromRelevantItem(issueEntity, relevantItemId));
-		return issueEntity;
+		return ofNullable(rs.getRelevantItemId()).map(relevantItemId -> updateIssueFromRelevantItem(issueEntity, relevantItemId))
+				.orElse(null);
+
 	}
 
 	/**
@@ -222,14 +227,17 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	 * @param issue          Issue to update
 	 * @param relevantItemId Relevant item id
 	 */
-	private void updateIssueFromRelevantItem(IssueEntity issue, Long relevantItemId) {
+	private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, Long relevantItemId) {
 		TestItem relevantItem = testItemRepository.findById(relevantItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, relevantItemId));
+
 		if (relevantItem.getItemResults().getIssue() != null) {
 			issue.setIssueDescription(emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getItemResults()
 					.getIssue()
 					.getIssueDescription())));
 			issue.setTickets(Sets.newHashSet(relevantItem.getItemResults().getIssue().getTickets()));
 		}
+
+		return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
 	}
 }

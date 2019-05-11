@@ -69,9 +69,16 @@ public class CleanScreenshotsJobTest {
 		project.setConfiguration(configuration);
 
 		GridFSDBFile grid = new GridFSDBFile();
-		grid.put("_id", name);
+		grid.put("_id", "name");
+		grid.put("filename", "photo_1");
+
+		GridFSDBFile grid2 = new GridFSDBFile();
+		grid2.put("_id", "not_photo");
+		grid2.put("filename", "file123");
+
 		List<GridFSDBFile> list = new ArrayList<>();
 		list.add(grid);
+		list.add(grid2);
 
 		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 		when(gridFS.findModifiedLaterAgo(any(Duration.class), anyString())).thenReturn(list);

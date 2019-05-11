@@ -78,8 +78,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRQ.getIntegrationParams());
 		IntegrationParams params = getIntegrationParams(integration, integrationParams);
 		integration.setParams(params);
-		integration.setEnabled(integrationRQ.getEnabled());
-		integration.setName(integrationRQ.getName());
+		Optional.ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
+		Optional.ofNullable(integrationRQ.getName()).ifPresent(integration::setName);
 		return integration;
 	}
 

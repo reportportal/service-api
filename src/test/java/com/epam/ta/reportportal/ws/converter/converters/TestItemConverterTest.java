@@ -72,7 +72,7 @@ class TestItemConverterTest {
 		assertEquals(activityResource.getStatus(), item.getItemResults().getStatus().name());
 		assertEquals(
 				activityResource.getTickets(),
-				item.getItemResults().getIssue().getTickets().stream().map(it -> it.getTicketId().concat(":").concat(it.getUrl())).collect(Collectors.joining(","))
+				item.getItemResults().getIssue().getTickets().stream().map(it -> it.getTicketId().concat(":").concat(it.getUrl())).collect(Collectors.joining(", "))
 		);
 		assertEquals(activityResource.isIgnoreAnalyzer(), item.getItemResults().getIssue().getIgnoreAnalyzer());
 		assertEquals(activityResource.isAutoAnalyzed(), item.getItemResults().getIssue().getAutoAnalyzed());

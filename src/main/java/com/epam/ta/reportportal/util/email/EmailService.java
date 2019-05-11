@@ -159,7 +159,7 @@ public class EmailService extends JavaMailSenderImpl {
 		email.put("automationBugTotal", ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0));
 		email.put("systemIssueTotal", ofNullable(statistics.get(DEFECTS_SYSTEM_ISSUE_TOTAL)).orElse(0));
 		email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
-		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
+		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0));
 
 		Map<String, String> locatorsMapping = projectIssueTypes.stream()
 				.collect(toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));

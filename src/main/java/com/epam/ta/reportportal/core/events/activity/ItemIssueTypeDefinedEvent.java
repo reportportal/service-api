@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
+import com.epam.ta.reportportal.core.analyzer.model.RelevantItemInfo;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
@@ -33,6 +34,8 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ITE
  */
 public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
+	private RelevantItemInfo relevantItemInfo;
+
 	public ItemIssueTypeDefinedEvent() {
 	}
 
@@ -44,17 +47,34 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		super(null, userLogin, before, after);
 	}
 
+	public ItemIssueTypeDefinedEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin,
+			RelevantItemInfo relevantItemInfo) {
+		super(null, userLogin, before, after);
+		this.relevantItemInfo = relevantItemInfo;
+	}
+
+	public RelevantItemInfo getRelevantItemInfo() {
+		return relevantItemInfo;
+	}
+
+	public void setRelevantItemInfo(RelevantItemInfo relevantItemInfo) {
+		this.relevantItemInfo = relevantItemInfo;
+	}
+
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(getAfter().isAutoAnalyzed() ? ANALYZE_ITEM : UPDATE_ITEM)
-				.addActivityEntityType(ITEM_ISSUE).addUserId(getUserId()).addUserName(getUserLogin())
+				.addActivityEntityType(ITEM_ISSUE)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())
 				.addHistoryField(processIssueDescription(getBefore().getIssueDescription(), getAfter().getIssueDescription()))
 				.addHistoryField(processIssueTypes(getBefore().getIssueTypeLongName(), getAfter().getIssueTypeLongName()))
 				.addHistoryField(processIgnoredAnalyzer(getBefore().isIgnoreAnalyzer(), getAfter().isIgnoreAnalyzer()))
+				.addHistoryField(processRelevantItem(relevantItemInfo))
 				.get();
 	}
 
@@ -80,4 +100,12 @@ public class ItemIssueTypeDefinedEvent extends AroundEvent<TestItemActivityResou
 		}
 		return Optional.empty();
 	}
+
+	private Optional<HistoryField> processRelevantItem(RelevantItemInfo relevantItemInfo) {
+		if (null == relevantItemInfo) {
+			return Optional.empty();
+		}
+		return Optional.of(HistoryField.of(RELEVANT_ITEM, null, relevantItemInfo.toString()));
+	}
+
 }

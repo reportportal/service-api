@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
  * @author Andrei_Kliashchonak
  */
 
-public interface FinishLaunchHandler extends TerminateLaunchHandler {
+public interface FinishLaunchHandler {
 
 	Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);

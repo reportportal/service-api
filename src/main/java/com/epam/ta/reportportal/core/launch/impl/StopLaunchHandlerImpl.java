@@ -33,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.STOPPED;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;

@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface StopLaunchHandler extends TerminateLaunchHandler {
+public interface StopLaunchHandler {
 
 	/**
 	 * Stop Launch instance by user

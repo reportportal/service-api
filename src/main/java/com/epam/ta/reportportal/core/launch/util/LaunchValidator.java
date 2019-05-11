@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch;
+package com.epam.ta.reportportal.core.launch.util;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
@@ -39,7 +39,11 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface TerminateLaunchHandler {
+public class LaunchValidator {
+
+	private LaunchValidator() {
+		//static only
+	}
 
 	/**
 	 * Validate {@link Launch#status} and value of the {@link Launch#endTime}
@@ -47,7 +51,7 @@ public interface TerminateLaunchHandler {
 	 * @param launch            {@link Launch}
 	 * @param finishExecutionRQ {@link FinishExecutionRQ}
 	 */
-	default void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
+	public static void validate(Launch launch, FinishExecutionRQ finishExecutionRQ) {
 		expect(launch.getStatus(), equalTo(IN_PROGRESS)).verify(FINISH_LAUNCH_NOT_ALLOWED,
 				formattedSupplier("Launch '{}' already finished with status '{}'", launch.getId(), launch.getStatus())
 		);
@@ -66,7 +70,7 @@ public interface TerminateLaunchHandler {
 	 * @param user           {@link ReportPortalUser}
 	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
 	 */
-	default void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public static void validateRoles(Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
@@ -84,7 +88,7 @@ public interface TerminateLaunchHandler {
 	 * @param providedStatus       {@link StatusEnum} launch status from {@link FinishExecutionRQ}
 	 * @param fromStatisticsStatus {@link StatusEnum} identified launch status
 	 */
-	default void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
+	public static void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
 		/* Validate provided status */
 		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
 				formattedSupplier("Cannot finish launch '{}' with status '{}'", launch.getId(), providedStatus)

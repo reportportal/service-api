@@ -41,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
+import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;

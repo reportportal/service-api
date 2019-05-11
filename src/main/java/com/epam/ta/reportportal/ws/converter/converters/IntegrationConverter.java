@@ -38,6 +38,7 @@ public final class IntegrationConverter {
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
+		resource.setName(integration.getName());
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
 		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -83,13 +85,13 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
-	@Autowired
-	private ItemAttributeRepository itemAttributeRepository;
+	private final ItemAttributeRepository itemAttributeRepository;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
 			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
-			LaunchPreparerService launchPreparerService, AnalyzeCollectorFactory analyzeCollectorFactory) {
+			LaunchPreparerService launchPreparerService, AnalyzeCollectorFactory analyzeCollectorFactory,
+			ItemAttributeRepository itemAttributeRepository) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
@@ -98,6 +100,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		this.logIndexer = logIndexer;
 		this.launchPreparerService = launchPreparerService;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
+		this.itemAttributeRepository = itemAttributeRepository;
 	}
 
 	@Override
@@ -164,15 +167,68 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
 	}
 
-	public List<Long> bulkUpdateAttributes(BulkUpdateItemAttributeRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	@Override
+	public OperationCompletionRS bulkUpdateAttributes(BulkUpdateItemAttributeRQ bulkUpdateRq,
+			ReportPortalUser.ProjectDetails projectDetails) {
 		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
 				projectDetails.getProjectId()
 		);
 
 		List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
 
-		return null;
+		if (!Objects.isNull(bulkUpdateRq.getDescription()) && !Objects.isNull(bulkUpdateRq.getDescription().getDescription())) {
+			if (BulkUpdateItemAttributeRQ.Action.UPDATE == bulkUpdateRq.getDescription().getAction()) {
+				launches.forEach(it -> it.setDescription(it.getDescription() + " " + bulkUpdateRq.getDescription().getDescription()));
+			}
+			if (BulkUpdateItemAttributeRQ.Action.CREATE == bulkUpdateRq.getDescription().getAction()) {
+				launches.forEach(it -> it.setDescription(bulkUpdateRq.getDescription().getDescription()));
+			}
+		}
+
+		bulkUpdateRq.getAttributes().forEach(it -> {
+			if (BulkUpdateItemAttributeRQ.Action.DELETE == it.getAction()) {
+				List<ItemAttribute> attributes = launches.stream()
+						.map(launch -> launch.getAttributes()
+								.stream()
+								.filter(attr -> attr.getKey().equals(it.getFrom().getKey()) && attr.getValue()
+										.equals(it.getFrom().getValue()) && !attr.isSystem())
+								.findAny()
+								.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot delete not common attribute")))
+						.collect(toList());
+				itemAttributeRepository.deleteInBatch(attributes);
+			}
+			if (BulkUpdateItemAttributeRQ.Action.UPDATE == it.getAction()) {
+				List<ItemAttribute> attributes = launches.stream()
+						.map(launch -> launch.getAttributes()
+								.stream()
+								.filter(attr -> attr.getKey().equals(it.getFrom().getKey()) && attr.getValue()
+										.equals(it.getFrom().getValue()) && !attr.isSystem())
+								.findAny()
+								.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot update not common attribute")))
+						.peek(attr -> {
+							attr.setKey(it.getTo().getKey());
+							attr.setValue(it.getTo().getValue());
+						})
+						.collect(toList());
+				itemAttributeRepository.saveAll(attributes);
+			}
+			if (BulkUpdateItemAttributeRQ.Action.CREATE == it.getAction()) {
+				List<ItemAttribute> attributes = launches.stream()
+						.filter(launch -> launch.getAttributes()
+								.stream()
+								.noneMatch(attr -> attr.getKey().equals(it.getTo().getKey()) && attr.getValue()
+										.equals(it.getTo().getValue()) && !attr.isSystem()))
+						.map(launch -> {
+							ItemAttribute itemAttribute = new ItemAttribute(it.getTo().getKey(), it.getTo().getValue(), false);
+							itemAttribute.setLaunch(launch);
+							return itemAttribute;
+						})
+						.collect(toList());
+				itemAttributeRepository.saveAll(attributes);
+			}
+		});
+
+		return new OperationCompletionRS("Attributes successfully updated");
 	}
 
 	/**

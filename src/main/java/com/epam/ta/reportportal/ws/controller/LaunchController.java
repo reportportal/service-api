@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -250,9 +250,9 @@ public class LaunchController {
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ResponseStatus(OK)
 	@ApiOperation("Bulk update attributes")
-	public List<Long> bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkUpdateItemAttributeRQ bulkUpdateRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return null;
+	public OperationCompletionRS bulkUpdate(@PathVariable String projectName,
+			@RequestBody @Validated BulkUpdateItemAttributeRQ bulkUpdateRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.bulkUpdateAttributes(bulkUpdateRQ, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)

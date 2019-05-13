@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -46,6 +47,7 @@ import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
@@ -97,12 +99,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final IssueEntityRepository issueEntityRepository;
 
+	private final ItemAttributeRepository itemAttributeRepository;
+
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
 	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, TestItemRepository testItemRepository,
 			LogRepository logRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
+			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository, ItemAttributeRepository itemAttributeRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
@@ -112,6 +116,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.issueEntityRepository = issueEntityRepository;
+		this.itemAttributeRepository = itemAttributeRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
 
@@ -201,8 +206,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
-					INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -286,6 +290,70 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					.get();
 			issueEntityRepository.save(issueEntity);
 		});
+	}
+
+	@Override
+	public OperationCompletionRS bulkUpdateAttributes(BulkUpdateItemAttributeRQ bulkUpdateRq,
+			ReportPortalUser.ProjectDetails projectDetails) {
+		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
+				projectDetails.getProjectId()
+		);
+
+		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
+
+		if (!Objects.isNull(bulkUpdateRq.getDescription()) && !Objects.isNull(bulkUpdateRq.getDescription().getDescription())) {
+			if (BulkUpdateItemAttributeRQ.Action.UPDATE == bulkUpdateRq.getDescription().getAction()) {
+				items.forEach(it -> it.setDescription(it.getDescription() + " " + bulkUpdateRq.getDescription().getDescription()));
+			}
+			if (BulkUpdateItemAttributeRQ.Action.CREATE == bulkUpdateRq.getDescription().getAction()) {
+				items.forEach(it -> it.setDescription(bulkUpdateRq.getDescription().getDescription()));
+			}
+		}
+
+		bulkUpdateRq.getAttributes().forEach(it -> {
+			if (BulkUpdateItemAttributeRQ.Action.DELETE == it.getAction()) {
+				List<ItemAttribute> attributes = items.stream()
+						.map(item -> item.getAttributes()
+								.stream()
+								.filter(attr -> attr.getKey().equals(it.getFrom().getKey()) && attr.getValue()
+										.equals(it.getFrom().getValue()) && !attr.isSystem())
+								.findAny()
+								.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot delete not common attribute")))
+						.collect(toList());
+				itemAttributeRepository.deleteInBatch(attributes);
+			}
+			if (BulkUpdateItemAttributeRQ.Action.UPDATE == it.getAction()) {
+				List<ItemAttribute> attributes = items.stream()
+						.map(item -> item.getAttributes()
+								.stream()
+								.filter(attr -> attr.getKey().equals(it.getFrom().getKey()) && attr.getValue()
+										.equals(it.getFrom().getValue()) && !attr.isSystem())
+								.findAny()
+								.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot update not common attribute")))
+						.peek(attr -> {
+							attr.setKey(it.getTo().getKey());
+							attr.setValue(it.getTo().getValue());
+						})
+						.collect(toList());
+				itemAttributeRepository.saveAll(attributes);
+			}
+			if (BulkUpdateItemAttributeRQ.Action.CREATE == it.getAction()) {
+				List<ItemAttribute> attributes = items.stream()
+						.filter(launch -> launch.getAttributes()
+								.stream()
+								.noneMatch(attr -> attr.getKey().equals(it.getTo().getKey()) && attr.getValue()
+										.equals(it.getTo().getValue()) && !attr.isSystem()))
+						.map(item -> {
+							ItemAttribute itemAttribute = new ItemAttribute(it.getTo().getKey(), it.getTo().getValue(), false);
+							itemAttribute.setTestItem(item);
+							return itemAttribute;
+						})
+						.collect(toList());
+				itemAttributeRepository.saveAll(attributes);
+			}
+		});
+
+		return new OperationCompletionRS("Attributes successfully updated");
 	}
 
 	/**

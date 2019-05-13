@@ -70,10 +70,12 @@ public class CleanScreenshotsJob implements Job {
 				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
 				if (!period.isZero()) {
 					gridFS.findModifiedLaterAgo(period, project.getId()).forEach(file -> {
-						count.incrementAndGet();
-						gridFS.deleteData(file.getId().toString());
-						/* Clear binary_content fields from log repository */
-						logRepository.removeBinaryContent(file.getId().toString());
+						if (!file.getFilename().startsWith("photo_")) {
+							count.incrementAndGet();
+							gridFS.deleteData(file.getId().toString());
+							/* Clear binary_content fields from log repository */
+							logRepository.removeBinaryContent(file.getId().toString());
+						}
 					});
 				}
 			} catch (Exception e) {

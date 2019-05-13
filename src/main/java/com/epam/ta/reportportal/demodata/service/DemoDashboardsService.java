@@ -103,7 +103,7 @@ class DemoDashboardsService {
 	public Optional<Dashboard> generate(ReportPortalUser user, Long projectId) {
 		Project project = projectRepository.findById(projectId).orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectId));
 
-		if (dashboardRepository.existsByNameAndProjectId(DASHBOARD_NAME, projectId)) {
+		if (dashboardRepository.existsByNameAndOwnerAndProjectId(DASHBOARD_NAME, user.getUsername(), projectId)) {
 			return Optional.empty();
 		}
 

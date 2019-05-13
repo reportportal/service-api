@@ -301,12 +301,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
 
-		if (!Objects.isNull(bulkUpdateRq.getDescription()) && !Objects.isNull(bulkUpdateRq.getDescription().getDescription())) {
+		if (!Objects.isNull(bulkUpdateRq.getDescription()) && !Objects.isNull(bulkUpdateRq.getDescription().getComment())) {
 			if (BulkUpdateItemAttributeRQ.Action.UPDATE == bulkUpdateRq.getDescription().getAction()) {
-				items.forEach(it -> it.setDescription(it.getDescription() + " " + bulkUpdateRq.getDescription().getDescription()));
+				items.forEach(it -> it.setDescription(it.getDescription() + " " + bulkUpdateRq.getDescription().getComment()));
 			}
 			if (BulkUpdateItemAttributeRQ.Action.CREATE == bulkUpdateRq.getDescription().getAction()) {
-				items.forEach(it -> it.setDescription(bulkUpdateRq.getDescription().getDescription()));
+				items.forEach(it -> it.setDescription(bulkUpdateRq.getDescription().getComment()));
 			}
 		}
 

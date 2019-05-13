@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
@@ -72,6 +73,9 @@ public class RallyIntegrationService extends AbstractBtsIntegrationService {
 		BtsProperties.PROJECT.getParam(integrationParams)
 				.ifPresent(btsProject -> resultParams.put(BtsProperties.PROJECT.getName(), btsProject));
 		BtsProperties.URL.getParam(integrationParams).ifPresent(btsProject -> resultParams.put(BtsProperties.URL.getName(), btsProject));
+
+		Optional.ofNullable(integrationParams.get("defectFormFields"))
+				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
 
 		return resultParams;
 	}

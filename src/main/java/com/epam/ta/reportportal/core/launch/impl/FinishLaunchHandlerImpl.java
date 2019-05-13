@@ -30,7 +30,11 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +48,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -72,8 +75,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	@Autowired
 	public FinishLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-								   @Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus,
-								   ApplicationEventPublisher eventPublisher) {
+			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus,
+			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -84,8 +87,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 	@Override
 	public Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Launch launch = launchRepository.findByUuid(launchId)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
 		validate(launch, finishLaunchRQ);
@@ -101,9 +103,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			);
 			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED);
 		} else {
-			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ?
-					FAILED :
-					PASSED));
+			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
 		}
 
 		final String desc = launch.getDescription() != null ?
@@ -135,8 +135,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	public OperationCompletionRS stopLaunch(String launchId, FinishExecutionRQ finishLaunchRQ,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 

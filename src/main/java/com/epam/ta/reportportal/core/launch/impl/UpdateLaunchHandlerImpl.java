@@ -25,10 +25,7 @@ import com.epam.ta.reportportal.core.analyzer.impl.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -42,6 +39,7 @@ import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -84,6 +82,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	private final LaunchPreparerService launchPreparerService;
 
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
+
+	@Autowired
+	private ItemAttributeRepository itemAttributeRepository;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
@@ -161,6 +162,17 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
+	}
+
+	public List<Long> bulkUpdateAttributes(BulkUpdateItemAttributeRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
+				projectDetails.getProjectId()
+		);
+
+		List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
+
+		return null;
 	}
 
 	/**

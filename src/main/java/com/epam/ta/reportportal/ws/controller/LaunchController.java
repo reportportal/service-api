@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -83,14 +85,10 @@ public class LaunchController {
 	private final GetJasperReportHandler<Launch> getJasperHandler;
 
 	@Autowired
-	public LaunchController(StartLaunchHandler createLaunchMessageHandler,
-							FinishLaunchHandler finishLaunchMessageHandler,
-							DeleteLaunchHandler deleteLaunchMessageHandler,
-							GetLaunchHandler getLaunchMessageHandler,
-							UpdateLaunchHandler updateLaunchHandler,
-							MergeLaunchHandler mergeLaunchesHandler,
-							ImportLaunchHandler importLaunchHandler,
-							@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
+	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
+			DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
+			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler, ImportLaunchHandler importLaunchHandler,
+			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
 		this.createLaunchMessageHandler = createLaunchMessageHandler;
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
 		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
@@ -173,8 +171,8 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
-	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq,
-			@AuthenticationPrincipal ReportPortalUser user) {
+	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName,
+			@RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateLaunchHandler.updateLaunch(rq, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
@@ -245,6 +243,16 @@ public class LaunchController {
 			@RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
 			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), key, value);
+	}
+
+	@Transactional
+	@PutMapping(value = "/attribute")
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ResponseStatus(OK)
+	@ApiOperation("Bulk update attributes")
+	public List<Long> bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkUpdateItemAttributeRQ bulkUpdateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return null;
 	}
 
 	@Transactional(readOnly = true)
@@ -343,5 +351,4 @@ public class LaunchController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
 	}
-
 }

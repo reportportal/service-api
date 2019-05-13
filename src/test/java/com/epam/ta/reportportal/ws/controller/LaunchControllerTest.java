@@ -23,7 +23,11 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.BulkRQ;
+import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
+import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -52,10 +56,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -171,12 +172,13 @@ class LaunchControllerTest extends BaseMvcTest {
 	@Test
 	void bulkForceFinish() throws Exception {
 		final BulkRQ<String, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
-		bulkRQ.setEntities(Stream.of("befef834-b2ef-4acf-aea3-b5a5b15fd93c", "e3adc64e-87cc-4781-b2d3-faa4ef1679dc").collect(toMap(it -> it, it -> {
-			FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-			finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-			return finishExecutionRQ;
-		})));
+		bulkRQ.setEntities(Stream.of("befef834-b2ef-4acf-aea3-b5a5b15fd93c", "e3adc64e-87cc-4781-b2d3-faa4ef1679dc")
+				.collect(toMap(it -> it, it -> {
+					FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
+					finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
+					finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+					return finishExecutionRQ;
+				})));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/stop").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());

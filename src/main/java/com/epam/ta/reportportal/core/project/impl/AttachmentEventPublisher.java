@@ -16,21 +16,24 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.job.PageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class AttachmentEventPublisher {
+
+	private static final Integer ATTACHMENTS_BATCH_SIZE = 300;
 
 	private final AttachmentRepository attachmentRepository;
 
@@ -44,30 +47,29 @@ public class AttachmentEventPublisher {
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	public void publishDeleteProjectAttachmentsEvent(Long projectId) {
-
-		try (Stream<Long> ids = attachmentRepository.streamIdsByProjectId(projectId)) {
-			ids.forEach(this::publishDeleteAttachmentEvent);
-		}
-
+		PageUtil.iterateOverPages(ATTACHMENTS_BATCH_SIZE,
+				pageable -> attachmentRepository.findIdsByProjectId(projectId, pageable),
+				this::publishDeleteAttachmentEvent
+		);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	public void publishDeleteLaunchAttachmentsEvent(Long launchId) {
-
-		try (Stream<Long> ids = attachmentRepository.streamIdsByLaunchId(launchId)) {
-			ids.forEach(this::publishDeleteAttachmentEvent);
-		}
+		PageUtil.iterateOverPages(ATTACHMENTS_BATCH_SIZE,
+				pageable -> attachmentRepository.findIdsByLaunchId(launchId, pageable),
+				this::publishDeleteAttachmentEvent
+		);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	public void publishDeleteItemAttachmentsEvent(Long itemId) {
-
-		try (Stream<Long> ids = attachmentRepository.streamIdsByItemId(itemId)) {
-			ids.forEach(this::publishDeleteAttachmentEvent);
-		}
+		PageUtil.iterateOverPages(ATTACHMENTS_BATCH_SIZE,
+				pageable -> attachmentRepository.findIdsByTestItemId(itemId, pageable),
+				this::publishDeleteAttachmentEvent
+		);
 	}
 
-	private void publishDeleteAttachmentEvent(Long id) {
-		messageBus.publishDeleteAttachmentEvent(new DeleteAttachmentEvent(id));
+	private void publishDeleteAttachmentEvent(List<Long> ids) {
+		messageBus.publishDeleteAttachmentEvent(new DeleteAttachmentEvent(ids));
 	}
 }

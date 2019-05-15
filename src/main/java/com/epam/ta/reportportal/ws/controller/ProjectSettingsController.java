@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.*;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -112,7 +111,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Create pattern template for items' log messages pattern analysis")
 	public EntryCreatedRS createPatternTemplate(@PathVariable String projectName,
 			@RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return createHandler.createPatternTemplate(extractProjectDetails(user, projectName), createPatternTemplateRQ, user);
+		return createHandler.createPatternTemplate(normalizeId(projectName), createPatternTemplateRQ, user);
 	}
 
 	@PutMapping("/pattern/{id}")
@@ -121,7 +120,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Update pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
 			@RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateHandler.updatePatternTemplate(id, extractProjectDetails(user, projectName), updatePatternTemplateRQ, user);
+		return updateHandler.updatePatternTemplate(id, normalizeId(projectName), updatePatternTemplateRQ, user);
 	}
 
 	@DeleteMapping("/pattern/{id}")
@@ -130,6 +129,6 @@ public class ProjectSettingsController {
 	@ApiOperation("Delete pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteHandler.deletePatternTemplate(extractProjectDetails(user, normalizeId(projectName)), user, id);
+		return deleteHandler.deletePatternTemplate(normalizeId(projectName), user, id);
 	}
 }

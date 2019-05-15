@@ -38,11 +38,11 @@ public interface UpdateProjectSettingsHandler {
 	/**
 	 * Update {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
 	 *
-	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
 	 * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
 	 * @param user                    {@link ReportPortalUser}
 	 * @return {@link OperationCompletionRS}
 	 */
-	OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user);
+	OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
+			ReportPortalUser user);
 }

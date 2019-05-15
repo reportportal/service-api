@@ -40,11 +40,10 @@ public interface CreateProjectSettingsHandler {
 	/**
 	 * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity
 	 *
-	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param projectName             {@link com.epam.ta.reportportal.entity.project.Project#name}
 	 * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
 	 * @param user                    {@link ReportPortalUser}
 	 * @return {@link EntryCreatedRS}
 	 */
-	EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails, CreatePatternTemplateRQ createPatternTemplateRQ,
-			ReportPortalUser user);
+	EntryCreatedRS createPatternTemplate(String projectName, CreatePatternTemplateRQ createPatternTemplateRQ, ReportPortalUser user);
 }

@@ -102,21 +102,20 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user) {
+	public OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
+			ReportPortalUser user) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT,
-						id,
-						projectDetails.getProjectName()
-				));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getId()));
 
 		if (!patternTemplate.getName().equalsIgnoreCase(updatePatternTemplateRQ.getName())) {
 
-			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectDetails.getProjectId(),
+			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(project.getId(),
 					updatePatternTemplateRQ.getName()
-			), equalTo(false))
-					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
+			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
 		}
 
 		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
@@ -147,12 +146,14 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 				"You cannot change sub-type references to global type."
 		);
 
-		expect(exist.getLocator(), not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
-				PRODUCT_BUG.getLocator(),
-				SYSTEM_ISSUE.getLocator(),
-				NO_DEFECT.getLocator(),
-				TO_INVESTIGATE.getLocator()
-		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		expect(exist.getLocator(),
+				not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
+						PRODUCT_BUG.getLocator(),
+						SYSTEM_ISSUE.getLocator(),
+						NO_DEFECT.getLocator(),
+						TO_INVESTIGATE.getLocator()
+				)))
+		).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		ofNullable(issueSubTypeRQ.getLongName()).ifPresent(exist::setLongName);
 		ofNullable(issueSubTypeRQ.getShortName()).ifPresent(exist::setShortName);

@@ -100,12 +100,14 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, id));
 
-		expect(type.getIssueType().getLocator(), not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
-				PRODUCT_BUG.getLocator(),
-				SYSTEM_ISSUE.getLocator(),
-				NO_DEFECT.getLocator(),
-				TO_INVESTIGATE.getLocator()
-		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		expect(type.getIssueType().getLocator(),
+				not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
+						PRODUCT_BUG.getLocator(),
+						SYSTEM_ISSUE.getLocator(),
+						NO_DEFECT.getLocator(),
+						TO_INVESTIGATE.getLocator()
+				)))
+		).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		String issueField =
 				"statistics$defects$" + TestItemIssueGroup.fromValue(type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue())
@@ -145,12 +147,13 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS deletePatternTemplate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id) {
-		PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT,
-						id,
-						projectDetails.getProjectName()
-				));
+	public OperationCompletionRS deletePatternTemplate(String projectName, ReportPortalUser user, Long id) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		PatternTemplate patternTemplate = patternTemplateRepository.findByIdAndProjectId(id, project.getId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getName()));
 		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
 		patternTemplateRepository.deleteById(patternTemplate.getId());

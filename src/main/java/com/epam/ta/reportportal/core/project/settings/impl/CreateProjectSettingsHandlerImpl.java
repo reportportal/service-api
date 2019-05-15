@@ -160,13 +160,16 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 	}
 
 	@Override
-	public EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails,
-			CreatePatternTemplateRQ createPatternTemplateRQ, ReportPortalUser user) {
+	public EntryCreatedRS createPatternTemplate(String projectName, CreatePatternTemplateRQ createPatternTemplateRQ,
+			ReportPortalUser user) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		PatternTemplate patternTemplate = createPatternTemplateMapping.get(PatternTemplateType.fromString(createPatternTemplateRQ.getType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createPatternTemplateRQ.getType()).get()
-				))).createPatternTemplate(projectDetails.getProjectId(), createPatternTemplateRQ);
+				))).createPatternTemplate(project.getId(), createPatternTemplateRQ);
 
 		messageBus.publishActivity(new PatternCreatedEvent(user.getUserId(),
 				user.getUsername(),

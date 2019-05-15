@@ -180,8 +180,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
@@ -209,8 +208,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				assignUser(name, projectRole, assignedUsernames, project);
 			});
 		} else {
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
 
@@ -234,30 +232,29 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user) {
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer deployed."
 		);
 
-		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
-				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until index generation proceeds."
+		);
+
+		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
 
-		List<Long> launches = launchRepository.findLaunchIdsByProjectId(projectDetails.getProjectId());
+		logIndexer.deleteIndex(project.getId());
 
-		logIndexer.deleteIndex(projectDetails.getProjectId());
-
-		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
-			mailServiceFactory.getDefaultEmailService(true)
-					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
-		});
+		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project))
+				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
+						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
 		return new OperationCompletionRS("Log indexing has been started");

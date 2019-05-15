@@ -68,6 +68,7 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 
 				String encryptedPassword = basicTextEncryptor.encrypt(BtsProperties.PASSWORD.getParam(integrationParams)
 						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Password value cannot be NULL")));
+
 				resultParams.put(BtsProperties.PASSWORD.getName(), encryptedPassword);
 
 			} else if (AuthType.OAUTH.equals(authType)) {

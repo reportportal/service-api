@@ -72,8 +72,10 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
-	public IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
+	public IntegrationResource getProjectIntegrationById(Long integrationId, String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 		return TO_INTEGRATION_RESOURCE.apply(integration);
 	}
@@ -159,28 +161,30 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
-	public List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails) {
-		return integrationRepository.findAllByProjectId(projectDetails.getProjectId())
-				.stream()
-				.map(TO_INTEGRATION_RESOURCE)
-				.collect(Collectors.toList());
+	public List<IntegrationResource> getProjectIntegrations(String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		return integrationRepository.findAllByProjectId(project.getId()).stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
 	}
 
 	@Override
-	public List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails) {
+	public List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
-		return integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integrationType)
+		return integrationRepository.findAllByProjectIdAndType(project.getId(), integrationType)
 				.stream()
 				.map(TO_INTEGRATION_RESOURCE)
 				.collect(Collectors.toList());
 	}
 
 	@Override
-	public boolean testConnection(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-		Optional<Integration> optionalIntegration = integrationRepository.findByIdAndProjectId(integrationId,
-				projectDetails.getProjectId()
-		);
+	public boolean testConnection(Long integrationId, String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		Optional<Integration> optionalIntegration = integrationRepository.findByIdAndProjectId(integrationId, project.getId());
 		if (!optionalIntegration.isPresent()) {
 			optionalIntegration = integrationRepository.findGlobalById(integrationId);
 		}

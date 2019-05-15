@@ -87,9 +87,9 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS deleteProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public OperationCompletionRS deleteProjectIssueSubType(String projectName, ReportPortalUser user, Long id) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
 		ProjectIssueType type = project.getProjectIssueTypes()
 				.stream()
@@ -97,14 +97,12 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ISSUE_TYPE_NOT_FOUND, id));
 
-		expect(type.getIssueType().getLocator(),
-				not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
-						PRODUCT_BUG.getLocator(),
-						SYSTEM_ISSUE.getLocator(),
-						NO_DEFECT.getLocator(),
-						TO_INVESTIGATE.getLocator()
-				)))
-		).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		expect(type.getIssueType().getLocator(), not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
+				PRODUCT_BUG.getLocator(),
+				SYSTEM_ISSUE.getLocator(),
+				NO_DEFECT.getLocator(),
+				TO_INVESTIGATE.getLocator()
+		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		String issueField =
 				"statistics$defects$" + TestItemIssueGroup.fromValue(type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue())
@@ -125,7 +123,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
 		issueTypeRepository.delete(type.getIssueType());
 
-		widgetRepository.findAllByProjectId(projectDetails.getProjectId())
+		widgetRepository.findAllByProjectId(project.getId())
 				.stream()
 				.filter(widget -> LAUNCHES_TABLE.getType().equals(widget.getWidgetType()) || STATISTIC_TREND.getType()
 						.equals(widget.getWidgetType()))

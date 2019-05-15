@@ -50,7 +50,7 @@ rp:
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
-    host: rabbitmq
+    host: localhost
     port: 5672
     user: rabbitmq
     pass: rabbitmq
@@ -72,7 +72,7 @@ rp:
   db:
     url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}
     name: reportportal
-    host: postgres
+    host: localhost
     port: 5432
     user: rpuser
     pass: rppass

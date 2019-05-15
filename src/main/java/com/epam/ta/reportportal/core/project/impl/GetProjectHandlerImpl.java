@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
-import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -55,7 +54,6 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
@@ -103,14 +101,6 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-
-		Optional<ProjectUser> projectUser = project.getUsers()
-				.stream()
-				.filter(it -> it.getId().getUserId().equals(user.getUserId()))
-				.findAny();
-
-		BusinessRule.expect(projectUser, Optional::isPresent)
-				.verify(ErrorType.PROJECT_DOESNT_CONTAIN_USER, projectName, user.getUsername());
 
 		return projectConverter.TO_PROJECT_RESOURCE.apply(project);
 	}

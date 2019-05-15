@@ -133,7 +133,7 @@ public class BugTrackingSystemController {
 	@GetMapping(value = "/{projectName}/ticket/{ticketId}")
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Get ticket from the bts integration")
-	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @RequestParam(value = "url") String btsUrl,
+	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @RequestParam(value = "btsUrl") String btsUrl,
 			@RequestParam(value = "btsProject") String btsProject, @AuthenticationPrincipal ReportPortalUser user) {
 		return getTicketHandler.getTicket(ticketId, btsUrl, btsProject, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}

@@ -43,7 +43,9 @@ public interface CreateProjectSettingsHandler {
 	 *
 	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
+	 * @param user                    {@link ReportPortalUser}
 	 * @return {@link EntryCreatedRS}
 	 */
-	EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails, CreatePatternTemplateRQ createPatternTemplateRQ);
+	EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails, CreatePatternTemplateRQ createPatternTemplateRQ,
+			ReportPortalUser user);
 }

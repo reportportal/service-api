@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.PatternUpdatedEvent;
 import com.epam.ta.reportportal.core.project.settings.UpdateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -30,9 +31,11 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
+import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
@@ -100,7 +103,7 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 
 	@Override
 	public OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdatePatternTemplateRQ updatePatternTemplateRQ) {
+			UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user) {
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT,
@@ -115,8 +118,14 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
 		}
 
+		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
+
 		patternTemplate.setName(updatePatternTemplateRQ.getName());
 		patternTemplate.setEnabled(updatePatternTemplateRQ.getEnabled());
+
+		PatternTemplateActivityResource after = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
+
+		messageBus.publishActivity(new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after));
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Pattern template with ID = '{}' has been successfully updated", id)
 				.get());

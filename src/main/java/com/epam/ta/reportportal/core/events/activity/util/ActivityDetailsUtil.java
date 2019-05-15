@@ -48,6 +48,9 @@ public class ActivityDetailsUtil {
 	public static final String WIDGET_OPTIONS = "widgetOptions";
 	public static final String STATUS = "status";
 	public static final String RELEVANT_ITEM = "relevantItem";
+	public static final String ENABLED = "enabled";
+	public static final String ITEM_IDS = "itemIds";
+	public static final String LAUNCH_ID = "launchId";
 
 	public static Optional<HistoryField> processName(String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
@@ -65,9 +68,9 @@ public class ActivityDetailsUtil {
 		return Optional.empty();
 	}
 
-	public static Optional<HistoryField> processShared(boolean oldShared, boolean newShared) {
-		if (oldShared != newShared) {
-			return Optional.of(HistoryField.of(SHARE, String.valueOf(oldShared), String.valueOf(newShared)));
+	public static Optional<HistoryField> processBoolean(String type, boolean previous, boolean current) {
+		if (previous != current) {
+			return Optional.of(HistoryField.of(type, String.valueOf(previous), String.valueOf(current)));
 		}
 		return Optional.empty();
 	}

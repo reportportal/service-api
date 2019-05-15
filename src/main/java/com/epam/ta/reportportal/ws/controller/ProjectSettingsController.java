@@ -112,7 +112,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Create pattern template for items' log messages pattern analysis")
 	public EntryCreatedRS createPatternTemplate(@PathVariable String projectName,
 			@RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return createHandler.createPatternTemplate(extractProjectDetails(user, projectName), createPatternTemplateRQ);
+		return createHandler.createPatternTemplate(extractProjectDetails(user, projectName), createPatternTemplateRQ, user);
 	}
 
 	@PutMapping("/pattern/{id}")
@@ -121,7 +121,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Update pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
 			@RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateHandler.updatePatternTemplate(id, extractProjectDetails(user, projectName), updatePatternTemplateRQ);
+		return updateHandler.updatePatternTemplate(id, extractProjectDetails(user, projectName), updatePatternTemplateRQ, user);
 	}
 
 	@DeleteMapping("/pattern/{id}")

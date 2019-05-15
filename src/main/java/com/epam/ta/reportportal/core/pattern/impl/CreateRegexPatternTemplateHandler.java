@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,7 @@ public class CreateRegexPatternTemplateHandler implements CreatePatternTemplateH
 	}
 
 	@Override
-	public EntryCreatedRS createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
+	public PatternTemplate createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
 
 		try {
 			patternTemplateRepository.validateRegex(createPatternTemplateRQ.getValue());
@@ -64,8 +63,6 @@ public class CreateRegexPatternTemplateHandler implements CreatePatternTemplateH
 		PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ)
 				.withProjectId(projectId)
 				.get();
-		patternTemplateRepository.save(patternTemplate);
-
-		return new EntryCreatedRS(patternTemplate.getId());
+		return patternTemplateRepository.save(patternTemplate);
 	}
 }

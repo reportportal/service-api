@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeDeletedEvent;
+import com.epam.ta.reportportal.core.events.activity.PatternDeletedEvent;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -29,8 +30,10 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -150,8 +153,11 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 						id,
 						projectDetails.getProjectName()
 				));
+		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
+
 		patternTemplateRepository.deleteById(patternTemplate.getId());
 
+		messageBus.publishActivity(new PatternDeletedEvent(user.getUserId(), user.getUsername(), before));
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Pattern template with id = '{}' has been successfully removed.", id)
 				.get());
 	}

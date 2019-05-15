@@ -56,7 +56,7 @@ class PatternAnalyzerTest {
 	private final PatternAnalyzer patternAnalyzer = new PatternAnalyzerImpl(issueGroupRepository,
 			patternTemplateRepository,
 			analysisSelectorMapping,
-			taskExecutor
+			taskExecutor, messageBus
 	);
 
 	@Test

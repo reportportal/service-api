@@ -41,8 +41,9 @@ public interface UpdateProjectSettingsHandler {
 	 *
 	 * @param projectDetails          {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param updatePatternTemplateRQ {@link UpdatePatternTemplateRQ}
-	 * @return    {@link OperationCompletionRS}
+	 * @param user                    {@link ReportPortalUser}
+	 * @return {@link OperationCompletionRS}
 	 */
 	OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdatePatternTemplateRQ updatePatternTemplateRQ);
+			UpdatePatternTemplateRQ updatePatternTemplateRQ, ReportPortalUser user);
 }

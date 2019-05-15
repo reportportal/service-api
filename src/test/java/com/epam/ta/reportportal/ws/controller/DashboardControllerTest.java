@@ -98,7 +98,7 @@ class DashboardControllerTest extends BaseMvcTest {
 	@Test
 	void addWidget() throws Exception {
 		AddWidgetRq rq = new AddWidgetRq();
-		rq.setAddWidget(new DashboardResource.WidgetObjectModel(10L, new Size(5, 5), new Position(0, 0)));
+		rq.setAddWidget(new DashboardResource.WidgetObjectModel("kek", 10L, new Size(5, 5), new Position(0, 0)));
 
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/dashboard/17/add").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)

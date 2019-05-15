@@ -25,9 +25,9 @@ import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.junit.jupiter.api.Test;
 
@@ -65,19 +65,26 @@ public class GetIntegrationHandlerTest {
 		final long emailIntegrationId = 1L;
 		final long projectId = 1L;
 
+		Project project = new Project();
+		project.setId(projectId);
+		project.setName(TEST_PROJECT_NAME);
+
 		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
 				UserRole.ADMINISTRATOR,
 				ProjectRole.PROJECT_MANAGER,
 				projectId
 		);
 
+		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
+
 		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
 				projectId
-		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
+		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(
+				emailIntegrationId,
+				projectId
+		)));
 
-		IntegrationResource integrationResource = getIntegrationHandler.getProjectIntegrationById(emailIntegrationId,
-				ProjectExtractor.extractProjectDetails(user, TEST_PROJECT_NAME)
-		);
+		IntegrationResource integrationResource = getIntegrationHandler.getProjectIntegrationById(emailIntegrationId, TEST_PROJECT_NAME);
 
 		assertNotNull(integrationResource);
 		assertEquals(emailIntegrationId, (long) integrationResource.getId());

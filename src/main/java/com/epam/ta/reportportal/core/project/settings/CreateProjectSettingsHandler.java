@@ -30,13 +30,12 @@ public interface CreateProjectSettingsHandler {
 	/**
 	 * Create issue sub-type for specified project
 	 *
-	 * @param projectDetails
-	 * @param user
-	 * @param rq
+	 * @param projectName Project name
+	 * @param user        User
+	 * @param rq          Create issue sub type rq
 	 * @return EntryCreatedRS
 	 */
-	IssueSubTypeCreatedRS createProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			CreateIssueSubTypeRQ rq);
+	IssueSubTypeCreatedRS createProjectIssueSubType(String projectName, ReportPortalUser user, CreateIssueSubTypeRQ rq);
 
 	/**
 	 * Create {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} entity

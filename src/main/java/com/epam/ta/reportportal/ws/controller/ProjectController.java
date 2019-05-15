@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -162,7 +161,7 @@ public class ProjectController {
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Starts reindex all project data in ML")
 	public OperationCompletionRS indexProjectData(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.indexProjectData(ProjectExtractor.extractProjectDetails(user, projectName), user);
+		return updateProjectHandler.indexProjectData(normalizeId(projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -179,7 +178,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProject(EntityUtils.normalizeId(projectName), user);
+		return getProjectHandler.getProject(normalizeId(projectName), user);
 	}
 
 	@Transactional

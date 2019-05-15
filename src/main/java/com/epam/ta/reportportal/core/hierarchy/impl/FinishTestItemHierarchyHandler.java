@@ -61,7 +61,7 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 
 		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
 
-		testItemRepository.streamIdsByNotHasChildrenAndParentIdAndStatus(testItem.getItemId(), StatusEnum.IN_PROGRESS)
+		testItemRepository.streamIdsByNotHasChildrenAndParentPathAndStatus(testItem.getPath(), StatusEnum.IN_PROGRESS)
 				.forEach(itemId -> updateDescendantWithoutChildren(itemId.longValue(),
 						status,
 						endTime,
@@ -81,7 +81,7 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 
 	@Override
 	protected void updateDescendantsWithChildren(TestItem testItem, LocalDateTime endTime) {
-		testItemRepository.streamIdsByHasChildrenAndParentIdAndStatusOrderedByPathLevel(testItem.getItemId(), StatusEnum.IN_PROGRESS)
+		testItemRepository.streamIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(), StatusEnum.IN_PROGRESS)
 				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime));
 	}
 

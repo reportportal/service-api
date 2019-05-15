@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,14 +39,13 @@ public interface CreateIntegrationHandler {
 	/**
 	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
 	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param createRequest  {@link IntegrationRQ}
-	 * @param pluginName     Plugin name
-	 * @param user           {@link ReportPortalUser}
+	 * @param projectName   Project name
+	 * @param createRequest {@link IntegrationRQ}
+	 * @param pluginName    Plugin name
+	 * @param user          {@link ReportPortalUser}
 	 * @return {@link EntryCreatedRS}
 	 */
-	EntryCreatedRS createProjectIntegration(ReportPortalUser.ProjectDetails projectDetails, IntegrationRQ createRequest, String pluginName,
-			ReportPortalUser user);
+	EntryCreatedRS createProjectIntegration(String projectName, IntegrationRQ createRequest, String pluginName, ReportPortalUser user);
 
 	/**
 	 * Update {@link Integration} with {@link Integration#project == NULL}
@@ -60,12 +59,11 @@ public interface CreateIntegrationHandler {
 	/**
 	 * Updated {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID
 	 *
-	 * @param id             {@link Integration#id}
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param updateRequest  {@link IntegrationRQ}
-	 * @param user           {@link ReportPortalUser}
+	 * @param id            {@link Integration#id}
+	 * @param projectName   Project name
+	 * @param updateRequest {@link IntegrationRQ}
+	 * @param user          {@link ReportPortalUser}
 	 * @return updated {@link Integration}
 	 */
-	OperationCompletionRS updateProjectIntegration(Long id, ReportPortalUser.ProjectDetails projectDetails, IntegrationRQ updateRequest,
-			ReportPortalUser user);
+	OperationCompletionRS updateProjectIntegration(Long id, String projectName, IntegrationRQ updateRequest, ReportPortalUser user);
 }

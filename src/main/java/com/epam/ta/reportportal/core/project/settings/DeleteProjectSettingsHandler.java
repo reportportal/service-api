@@ -27,12 +27,12 @@ public interface DeleteProjectSettingsHandler {
 	/**
 	 * Remove specified issue sub-type for specified project
 	 *
-	 * @param projectDetails
-	 * @param user
-	 * @param id
+	 * @param projectName Project name
+	 * @param user        User
+	 * @param id          Issue id
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
+	OperationCompletionRS deleteProjectIssueSubType(String projectName, ReportPortalUser user, Long id);
 
 	/**
 	 * Delete {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
@@ -40,7 +40,7 @@ public interface DeleteProjectSettingsHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param user           {@link ReportPortalUser}
 	 * @param id             {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#id}
-	 * @return     {@link OperationCompletionRS}
+	 * @return {@link OperationCompletionRS}
 	 */
 	OperationCompletionRS deletePatternTemplate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
 

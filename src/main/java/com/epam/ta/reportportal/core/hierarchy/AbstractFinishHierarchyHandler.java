@@ -63,8 +63,9 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected final IssueEntityRepository issueEntityRepository;
 	private final IssueTypeHandler issueTypeHandler;
 
-	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-										  IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler) {
+	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
+			IssueTypeHandler issueTypeHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
@@ -75,7 +76,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected abstract void updateDescendantsWithoutChildren(Long projectId, T entity, StatusEnum status, LocalDateTime endTime,
 			boolean isIssueRequired, List<ItemAttributePojo> itemAttributes, List<IssueEntityPojo> issueEntities);
 
-	protected abstract void updateDescendantsWithChildren(T entity, LocalDateTime endTime);
+	protected abstract void updateDescendantsWithChildren(T entity, LocalDateTime endTime, List<ItemAttributePojo> itemAttributes);
 
 	protected abstract boolean isIssueRequired(StatusEnum status, T entity);
 
@@ -100,7 +101,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 				itemAttributes,
 				issueEntities
 		);
-		updateDescendantsWithChildren(entity, endTime);
+		itemAttributes.clear();
+		updateDescendantsWithChildren(entity, endTime, itemAttributes);
 	}
 
 	protected void updateDescendantWithoutChildren(Long itemId, StatusEnum status, LocalDateTime endTime, Optional<IssueType> issueType,
@@ -111,7 +113,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 				issueEntities.add(new IssueEntityPojo(itemId, it.getId(), null, false, false));
 			}
 		});
-		itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, true));
+		itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false));
 		if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
 			itemAttributeRepository.saveMultiple(itemAttributes);
 			itemAttributes.clear();
@@ -122,9 +124,14 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		}
 	}
 
-	protected void updateDescendantWithChildren(Long itemId, LocalDateTime endTime) {
+	protected void updateDescendantWithChildren(Long itemId, LocalDateTime endTime, List<ItemAttributePojo> itemAttributes) {
 		boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, PASSED);
 		testItemRepository.updateStatusAndEndTimeById(itemId, isFailed ? FAILED : PASSED, endTime);
+		itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false));
+		if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
+			itemAttributeRepository.saveMultiple(itemAttributes);
+			itemAttributes.clear();
+		}
 	}
 
 	protected boolean evaluateSkippedAttributeValue(StatusEnum status, Long launchId) {

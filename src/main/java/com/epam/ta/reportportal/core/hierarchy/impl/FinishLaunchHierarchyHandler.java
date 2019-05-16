@@ -46,8 +46,9 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVEST
 public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler<Launch> {
 
 	@Autowired
-	public FinishLaunchHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-										IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository) {
+	public FinishLaunchHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ItemAttributeRepository itemAttributeRepository, IssueTypeHandler issueTypeHandler,
+			IssueEntityRepository issueEntityRepository) {
 		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler);
 	}
 
@@ -76,9 +77,12 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
 	}
 
 	@Override
-	protected void updateDescendantsWithChildren(Launch launch, LocalDateTime endTime) {
+	protected void updateDescendantsWithChildren(Launch launch, LocalDateTime endTime, List<ItemAttributePojo> itemAttributes) {
 		testItemRepository.streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(), StatusEnum.IN_PROGRESS)
-				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime));
+				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime, itemAttributes));
+		if (!itemAttributes.isEmpty()) {
+			itemAttributeRepository.saveMultiple(itemAttributes);
+		}
 	}
 
 	@Override

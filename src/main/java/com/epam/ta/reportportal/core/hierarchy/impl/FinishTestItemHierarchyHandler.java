@@ -80,9 +80,12 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 	}
 
 	@Override
-	protected void updateDescendantsWithChildren(TestItem testItem, LocalDateTime endTime) {
+	protected void updateDescendantsWithChildren(TestItem testItem, LocalDateTime endTime, List<ItemAttributePojo> itemAttributes) {
 		testItemRepository.streamIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(), StatusEnum.IN_PROGRESS)
-				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime));
+				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime, itemAttributes));
+		if (!itemAttributes.isEmpty()) {
+			itemAttributeRepository.saveMultiple(itemAttributes);
+		}
 	}
 
 	@Override

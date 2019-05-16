@@ -72,8 +72,8 @@ public class TestItemController {
 
 	@Autowired
 	public TestItemController(StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
-							  FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
-							  TestItemsHistoryHandler testItemsHistoryHandler) {
+			FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
+			TestItemsHistoryHandler testItemsHistoryHandler) {
 		this.startTestItemHandler = startTestItemHandler;
 		this.deleteTestItemHandler = deleteTestItemHandler;
 		this.finishTestItemHandler = finishTestItemHandler;
@@ -100,7 +100,7 @@ public class TestItemController {
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-										 @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
@@ -110,7 +110,7 @@ public class TestItemController {
 	@ApiOperation("Finish test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-												@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
+			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
 		return finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
 	}
 
@@ -180,6 +180,15 @@ public class TestItemController {
 			@RequestParam(value = "ids") Long[] ids,
 			@RequestParam(value = "is_full", required = false, defaultValue = "false") boolean showBrokenLaunches) {
 		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName), ids, historyDepth, showBrokenLaunches);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/ticket/ids")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute keys of specified launch")
+	public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectName,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "term") String term) {
+		return getTestItemHandler.getTicketIds(id, term);
 	}
 
 	@Transactional(readOnly = true)

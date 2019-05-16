@@ -83,6 +83,13 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		Dashboard dashboard = getShareableDashboardHandler.getAdministrated(dashboardId, projectDetails);
 		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
+		if(!dashboard.getName().equals(rq.getName())) {
+			BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
+					user.getUsername(),
+					projectDetails.getProjectId()
+			), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+		}
+
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
 		dashboardRepository.save(dashboard);
 

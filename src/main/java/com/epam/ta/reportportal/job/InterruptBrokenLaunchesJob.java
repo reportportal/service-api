@@ -71,16 +71,11 @@ public class InterruptBrokenLaunchesJob implements Job {
 		this.projectRepository = projectRepository;
 	}
 
-	//	@Autowired
-	//	private IRetriesLaunchHandler retriesLaunchHandler;
-
 	@Override
-	//	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
 	@Transactional
 	public void execute(JobExecutionContext context) {
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
 				pageable
 		), projects -> projects.forEach(project -> {
 			project.getProjectAttributes()
@@ -164,7 +159,6 @@ public class InterruptBrokenLaunchesJob implements Job {
 		launchRepository.findById(launchId).ifPresent(l -> {
 			l.setStatus(StatusEnum.INTERRUPTED);
 			l.setEndTime(LocalDateTime.now());
-			//			retriesLaunchHandler.handleRetries(l);
 			launchRepository.save(l);
 		});
 

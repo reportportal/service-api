@@ -283,7 +283,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	void unlinkExternalIssues() throws Exception {
 		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
 		rq.setTestItemIds(Collections.singletonList(3L));
-		rq.setIssueIds(Collections.singletonList("ticket"));
+		rq.setTicketIds(Collections.singletonList("ticket"));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
@@ -293,7 +293,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	void unlinkExternalIssuesNegative() throws Exception {
 		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
 		rq.setTestItemIds(Collections.singletonList(2L));
-		rq.setIssueIds(Collections.singletonList("ticket"));
+		rq.setTicketIds(Collections.singletonList("ticket"));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());

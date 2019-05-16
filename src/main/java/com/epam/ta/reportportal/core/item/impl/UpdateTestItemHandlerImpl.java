@@ -264,7 +264,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
+				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getTicketIds().contains(it.getTicketId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -356,10 +356,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

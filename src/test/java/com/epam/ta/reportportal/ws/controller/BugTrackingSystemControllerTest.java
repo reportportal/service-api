@@ -129,7 +129,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		final String ticketId = "/ticket_id";
 
 		Map<String, List<String>> params = Maps.newHashMap();
-		params.put("url", Lists.newArrayList("jira.com"));
+		params.put("btsUrl", Lists.newArrayList("jira.com"));
 		params.put("btsProject", Lists.newArrayList("project"));
 
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));

@@ -50,7 +50,7 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
 	@Override
 	public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
-		UserFilter filter = getShareableEntityHandler.getAdministrated(filterId, projectDetails);
+		UserFilter filter = getShareableEntityHandler.getPermitted(filterId, projectDetails);
 		UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
 				.withProject(projectDetails.getProjectId())
 				.withFilter(filter)

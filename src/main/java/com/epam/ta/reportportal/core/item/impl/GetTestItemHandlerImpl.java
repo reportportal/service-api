@@ -16,15 +16,19 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -72,13 +76,17 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TestItemResourceAssembler itemResourceAssembler;
 
+	private final TicketRepository ticketRepository;
+
 	@Autowired
 	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler) {
+			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler,
+			TicketRepository ticketRepository) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
+		this.ticketRepository = ticketRepository;
 	}
 
 	@Override
@@ -95,6 +103,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		validate(launchId, projectDetails, user);
 		Page<TestItem> testItemPage = testItemRepository.findByFilter(filter, pageable);
 		return PagedResourcesAssembler.pageConverter(itemResourceAssembler::toResource).apply(testItemPage);
+	}
+
+	@Override
+	public List<String> getTicketIds(Long launchId, String term) {
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+				);
+		return ticketRepository.findByTerm(launchId, term);
 	}
 
 	@Override

@@ -55,6 +55,15 @@ public interface GetTestItemHandler {
 			ReportPortalUser user, Long launchId);
 
 	/**
+	 * Get tickets that contains a term as a part inside for specified launch
+	 *
+	 * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}
+	 * @param term     part of {@link com.epam.ta.reportportal.entity.bts.Ticket#ticketId} to search
+	 * @return {@link List} of {@link com.epam.ta.reportportal.entity.bts.Ticket#ticketId}
+	 */
+	List<String> getTicketIds(Long launchId, String term);
+
+	/**
 	 * Get specified attribute keys
 	 *
 	 * @param launchId {@link com.epam.ta.reportportal.entity.launch.Launch#id}

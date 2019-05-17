@@ -87,7 +87,7 @@ public class UserFilterController {
 	@ApiOperation("Get specified user filter by id")
 	public UserFilterResource getFilter(@PathVariable String projectName, @PathVariable Long filterId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		UserFilter filter = getShareableEntityHandler.getAdministrated(filterId, extractProjectDetails(user, projectName));
+		UserFilter filter = getShareableEntityHandler.getPermitted(filterId, extractProjectDetails(user, projectName));
 		return UserFilterConverter.TO_FILTER_RESOURCE.apply(filter);
 	}
 

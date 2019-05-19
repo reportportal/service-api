@@ -35,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
@@ -96,9 +97,13 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 		if (ANCESTOR_PROPOGATED_STATUSES.contains(status)) {
 			LocalDateTime localDateTime = TO_LOCAL_DATE_TIME.apply(endDate);
 
-			testItemRepository.selectPathNames(entity.getPath()).keySet().forEach(id -> {
-				testItemRepository.updateStatusAndEndTimeById(id, JStatusEnum.valueOf(status.name()), localDateTime);
-			});
+			// update status of items bottom-up till the first in-progress item
+			for (Map.Entry<Long, StatusEnum> entry : testItemRepository.selectPathStatusesAscending(entity.getPath()).entrySet()) {
+				if (StatusEnum.IN_PROGRESS.equals(entry.getValue())) {
+					break;
+				}
+				testItemRepository.updateStatusAndEndTimeById(entry.getKey(), JStatusEnum.valueOf(status.name()), localDateTime);
+			}
 
 			Launch launch = entity.getLaunch();
 			if (launch.getStatus() != IN_PROGRESS) {

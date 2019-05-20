@@ -77,9 +77,9 @@ public interface UpdateProjectHandler {
 	/**
 	 * Index logs for specified project
 	 *
-	 * @param projectDetails Project details
-	 * @param user           User
+	 * @param projectName Project name
+	 * @param user        User
 	 * @return Operation Result
 	 */
-	OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user);
 }

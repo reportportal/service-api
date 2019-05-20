@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -79,8 +78,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRQ.getIntegrationParams());
 		IntegrationParams params = getIntegrationParams(integration, integrationParams);
 		integration.setParams(params);
-		integration.setEnabled(integrationRQ.getEnabled());
-		integration.setName(integrationRQ.getName());
+		Optional.ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
+		Optional.ofNullable(integrationRQ.getName()).ifPresent(integration::setName);
 		return integration;
 	}
 
@@ -121,9 +120,10 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 	}
 
 	public static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
-		return ofNullable(integration.getParams()).map(params -> new IntegrationParams(ofNullable(params.getParams()).map(paramsMap -> {
-			paramsMap.putAll(retrievedParams);
-			return paramsMap;
-		}).orElse(retrievedParams))).orElseGet(() -> new IntegrationParams(retrievedParams));
+		if (integration.getParams() != null && integration.getParams().getParams() != null) {
+			integration.getParams().getParams().putAll(retrievedParams);
+			return integration.getParams();
+		}
+		return new IntegrationParams(retrievedParams);
 	}
 }

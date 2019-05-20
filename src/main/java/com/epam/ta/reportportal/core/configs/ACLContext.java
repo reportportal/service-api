@@ -32,6 +32,7 @@ import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.sql.DataSource;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableAutoConfiguration
@@ -47,7 +48,7 @@ public class ACLContext {
 
 	@Bean
 	public CaffeineCache coffeinCache() {
-		return new CaffeineCache("aclCache", Caffeine.newBuilder().build());
+		return new CaffeineCache("aclCache", Caffeine.newBuilder().maximumSize(5_000).expireAfterAccess(1, TimeUnit.HOURS).build());
 	}
 
 	@Bean

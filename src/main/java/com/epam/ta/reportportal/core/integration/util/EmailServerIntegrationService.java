@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -42,9 +43,9 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -131,6 +132,24 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
 				);
 			}
+			try {
+				EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams()).ifPresent(authEnabled -> {
+					if (BooleanUtils.toBoolean(authEnabled)) {
+						String sendTo = EmailSettingsEnum.USERNAME.getAttribute(integration.getParams().getParams())
+								.orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+										"Email server username is not specified."
+								));
+						emailService.get().sendConnectionTestEmail(sendTo);
+					}
+				});
+			} catch (Exception ex) {
+				fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+						formattedSupplier("Unable to send connection test email. " + ex.getMessage())
+				);
+			}
+
+		} else {
+			return false;
 		}
 		return true;
 	}

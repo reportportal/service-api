@@ -56,6 +56,7 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpda
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
@@ -234,30 +235,30 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user) {
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer deployed."
 		);
 
-		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
-				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until index generation proceeds."
+		);
+
+		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
 
-		List<Long> launches = launchRepository.findLaunchIdsByProjectId(projectDetails.getProjectId());
+		logIndexer.deleteIndex(project.getId());
 
-		logIndexer.deleteIndex(projectDetails.getProjectId());
-
-		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
-			mailServiceFactory.getDefaultEmailService(true)
-					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
-		});
+		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project))
+				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
+						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
 		return new OperationCompletionRS("Log indexing has been started");
@@ -381,28 +382,36 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
-		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
-			verifyProjectAttributes(attributes);
-			attributes.forEach((attribute, value) -> project.getProjectAttributes()
-					.stream()
-					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
-					.findFirst()
-					.ifPresent(attr -> attr.setValue(value)));
-		}));
+		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> retrieveProjectAttributes(
+				attributes).forEach((attribute, value) -> project.getProjectAttributes()
+				.stream()
+				.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
+				.findFirst()
+				.ifPresent(attr -> attr.setValue(value)))));
 	}
 
-	private void verifyProjectAttributes(Map<String, String> attributes) {
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> expect(keepLogs,
-				KeepLogsDelay::isPresent
-		).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs));
-		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> expect(interruptedJob,
-				InterruptionJobDelay::isPresent
-		).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob));
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(keepScreenshots -> expect(keepScreenshots,
-				KeepScreenshotsDelay::isPresent
-		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
-		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
-				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
+	private Map<String, String> retrieveProjectAttributes(Map<String, String> attributes) {
+
+		Map<String, String> retrievedAttributes = Maps.newHashMapWithExpectedSize(attributes.size());
+
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> {
+			expect(keepLogs, KeepLogsDelay::isPresent).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs);
+			retrievedAttributes.put(ProjectAttributeEnum.KEEP_LOGS.getAttribute(), keepLogs);
+		});
+		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> {
+			expect(interruptedJob, InterruptionJobDelay::isPresent).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob);
+			retrievedAttributes.put(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute(), interruptedJob);
+		});
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(keepScreenshots -> {
+			expect(keepScreenshots, KeepScreenshotsDelay::isPresent).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots);
+			retrievedAttributes.put(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute(), keepScreenshots);
+		});
+		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> {
+			expect(AnalyzeMode.fromString(analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode);
+			retrievedAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), analyzerMode);
+		});
+
+		return retrievedAttributes;
 	}
 
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {

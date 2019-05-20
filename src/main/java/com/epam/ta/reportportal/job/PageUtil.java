@@ -26,7 +26,7 @@ import java.util.function.Function;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class PageUtil {
+public class PageUtil {
 
 	private PageUtil() {
 		//static only
@@ -41,7 +41,7 @@ class PageUtil {
 	 * @param consumer Page processor
 	 * @param <T>      Type of page entity
 	 */
-	static <T> void iterateOverPages(Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
+	public static <T> void iterateOverPages(Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
 		iterateOverPages(DEFAULT_PAGE_SIZE, getFunc, consumer);
 	}
 
@@ -53,7 +53,7 @@ class PageUtil {
 	 * @param consumer Page processor
 	 * @param <T>      Type of page entity
 	 */
-	static <T> void iterateOverPages(int pageSize, Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
+	public static <T> void iterateOverPages(int pageSize, Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
 		//first page
 		Page<T> pageData = getFunc.apply(PageRequest.of(0, pageSize));
 		List<T> content = pageData.getContent();

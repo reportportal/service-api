@@ -267,7 +267,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
+				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getTicketIds().contains(it.getTicketId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}

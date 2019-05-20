@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
@@ -180,6 +181,15 @@ public class TestItemController {
 			@RequestParam(value = "ids") Long[] ids,
 			@RequestParam(value = "is_full", required = false, defaultValue = "false") boolean showBrokenLaunches) {
 		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName), ids, historyDepth, showBrokenLaunches);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/ticket/ids")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute keys of specified launch")
+	public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectName,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "term") String term) {
+		return getTestItemHandler.getTicketIds(id, normalizeId(term));
 	}
 
 	@Transactional(readOnly = true)

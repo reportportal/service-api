@@ -23,23 +23,13 @@ import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.issue.IssueEntityPojo;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigInteger;
+import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -48,44 +38,10 @@ import static java.util.Optional.ofNullable;
 @Service("finishTestItemHierarchyHandler")
 public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandler<TestItem> {
 
-	private static final List<StatusEnum> ANCESTOR_PROPOGATED_STATUSES = Arrays.asList(FAILED, STOPPED, INTERRUPTED, CANCELLED);
-
-	public FinishTestItemHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-										  IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler) {
+	public FinishTestItemHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
+			IssueTypeHandler issueTypeHandler) {
 		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler);
-	}
-
-	@Override
-	protected void updateDescendantsWithoutChildren(Long projectId, TestItem testItem, StatusEnum status, LocalDateTime endTime,
-			boolean isIssueRequired, List<ItemAttributePojo> itemAttributes, List<IssueEntityPojo> issueEntities) {
-
-		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
-
-		testItemRepository.streamIdsByNotHasChildrenAndParentPathAndStatus(testItem.getPath(), StatusEnum.IN_PROGRESS)
-				.forEach(itemId -> updateDescendantWithoutChildren(itemId.longValue(),
-						status,
-						endTime,
-						issueType,
-						itemAttributes,
-						issueEntities
-				));
-
-		if (!itemAttributes.isEmpty()) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-		}
-		if (!issueEntities.isEmpty()) {
-			issueEntityRepository.saveMultiple(issueEntities);
-		}
-
-	}
-
-	@Override
-	protected void updateDescendantsWithChildren(TestItem testItem, LocalDateTime endTime, List<ItemAttributePojo> itemAttributes) {
-		testItemRepository.streamIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(), StatusEnum.IN_PROGRESS)
-				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime, itemAttributes));
-		if (!itemAttributes.isEmpty()) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-		}
 	}
 
 	@Override
@@ -95,20 +51,12 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 	}
 
 	@Override
-	public void setAncestorsStatus(TestItem entity, StatusEnum status, Date endDate) {
-		if (ANCESTOR_PROPOGATED_STATUSES.contains(status)) {
-			LocalDateTime localDateTime = TO_LOCAL_DATE_TIME.apply(endDate);
-
-			testItemRepository.selectPathNames(entity.getPath()).keySet().forEach(id -> {
-				testItemRepository.updateStatusAndEndTimeById(id, JStatusEnum.valueOf(status.name()), localDateTime);
-			});
-
-			Launch launch = entity.getLaunch();
-			if (launch.getStatus() != IN_PROGRESS) {
-				launch.setStatus(status);
-				launch.setEndTime(localDateTime);
-				launchRepository.save(launch);
-			}
-		}
+	protected Stream<Long> retrieveItemIds(TestItem testItem, StatusEnum status, boolean hasChildren) {
+		return hasChildren ?
+				testItemRepository.streamIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(),
+						StatusEnum.IN_PROGRESS
+				).map(BigInteger::longValue) :
+				testItemRepository.streamIdsByNotHasChildrenAndParentPathAndStatus(testItem.getPath(), status).map(BigInteger::longValue);
 	}
+
 }

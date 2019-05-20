@@ -23,21 +23,14 @@ import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
-import com.epam.ta.reportportal.entity.item.issue.IssueEntityPojo;
-import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotSupportedException;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -53,45 +46,16 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
 	}
 
 	@Override
-	protected void updateDescendantsWithoutChildren(Long projectId, Launch launch, StatusEnum status, LocalDateTime endTime,
-			boolean isIssueRequired, List<ItemAttributePojo> itemAttributes, List<IssueEntityPojo> issueEntities) {
-
-		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
-
-		testItemRepository.streamIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(), StatusEnum.IN_PROGRESS)
-				.forEach(itemId -> updateDescendantWithoutChildren(itemId.longValue(),
-						status,
-						endTime,
-						issueType,
-						itemAttributes,
-						issueEntities
-				));
-
-		if (!itemAttributes.isEmpty()) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-		}
-		if (!issueEntities.isEmpty()) {
-			issueEntityRepository.saveMultiple(issueEntities);
-		}
-
-	}
-
-	@Override
-	protected void updateDescendantsWithChildren(Launch launch, LocalDateTime endTime, List<ItemAttributePojo> itemAttributes) {
-		testItemRepository.streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(), StatusEnum.IN_PROGRESS)
-				.forEach(itemId -> updateDescendantWithChildren(itemId.longValue(), endTime, itemAttributes));
-		if (!itemAttributes.isEmpty()) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-		}
-	}
-
-	@Override
 	protected boolean isIssueRequired(StatusEnum status, Launch launch) {
 		return FAILED.equals(status) || evaluateSkippedAttributeValue(status, launch.getId());
 	}
 
 	@Override
-	public void setAncestorsStatus(Launch entity, StatusEnum status, Date endDate) {
-		throw new NotSupportedException("Launch has not ancestors");
+	protected Stream<Long> retrieveItemIds(Launch launch, StatusEnum status, boolean hasChildren) {
+		return hasChildren ?
+				testItemRepository.streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(), status)
+						.map(BigInteger::longValue) :
+				testItemRepository.streamIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(), status).map(BigInteger::longValue);
 	}
+
 }

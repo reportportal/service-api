@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.PatternUpdatedEvent;
 import com.epam.ta.reportportal.core.project.settings.UpdateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -30,9 +31,11 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
+import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
@@ -99,25 +102,30 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 	}
 
 	@Override
-	public OperationCompletionRS updatePatternTemplate(Long id, ReportPortalUser.ProjectDetails projectDetails,
-			UpdatePatternTemplateRQ updatePatternTemplateRQ) {
+	public OperationCompletionRS updatePatternTemplate(Long id, String projectName, UpdatePatternTemplateRQ updatePatternTemplateRQ,
+			ReportPortalUser user) {
+
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT,
-						id,
-						projectDetails.getProjectName()
-				));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getId()));
 
 		if (!patternTemplate.getName().equalsIgnoreCase(updatePatternTemplateRQ.getName())) {
 
-			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectDetails.getProjectId(),
+			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(project.getId(),
 					updatePatternTemplateRQ.getName()
-			), equalTo(false))
-					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
+			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
 		}
+
+		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
 		patternTemplate.setName(updatePatternTemplateRQ.getName());
 		patternTemplate.setEnabled(updatePatternTemplateRQ.getEnabled());
+
+		PatternTemplateActivityResource after = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
+
+		messageBus.publishActivity(new PatternUpdatedEvent(user.getUserId(), user.getUsername(), before, after));
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Pattern template with ID = '{}' has been successfully updated", id)
 				.get());
@@ -138,12 +146,14 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 				"You cannot change sub-type references to global type."
 		);
 
-		expect(exist.getLocator(), not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
-				PRODUCT_BUG.getLocator(),
-				SYSTEM_ISSUE.getLocator(),
-				NO_DEFECT.getLocator(),
-				TO_INVESTIGATE.getLocator()
-		)))).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
+		expect(exist.getLocator(),
+				not(in(Sets.newHashSet(AUTOMATION_BUG.getLocator(),
+						PRODUCT_BUG.getLocator(),
+						SYSTEM_ISSUE.getLocator(),
+						NO_DEFECT.getLocator(),
+						TO_INVESTIGATE.getLocator()
+				)))
+		).verify(FORBIDDEN_OPERATION, "You cannot remove predefined global issue types.");
 
 		ofNullable(issueSubTypeRQ.getLongName()).ifPresent(exist::setLongName);
 		ofNullable(issueSubTypeRQ.getShortName()).ifPresent(exist::setShortName);

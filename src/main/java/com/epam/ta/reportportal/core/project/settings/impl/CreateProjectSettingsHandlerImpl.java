@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
+import com.epam.ta.reportportal.core.events.activity.PatternCreatedEvent;
 import com.epam.ta.reportportal.core.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
@@ -28,11 +29,13 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ValidationConstraints;
@@ -157,13 +160,22 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 	}
 
 	@Override
-	public EntryCreatedRS createPatternTemplate(ReportPortalUser.ProjectDetails projectDetails,
-			CreatePatternTemplateRQ createPatternTemplateRQ) {
+	public EntryCreatedRS createPatternTemplate(String projectName, CreatePatternTemplateRQ createPatternTemplateRQ,
+			ReportPortalUser user) {
 
-		return createPatternTemplateMapping.get(PatternTemplateType.fromString(createPatternTemplateRQ.getType())
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		PatternTemplate patternTemplate = createPatternTemplateMapping.get(PatternTemplateType.fromString(createPatternTemplateRQ.getType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createPatternTemplateRQ.getType()).get()
-				))).createPatternTemplate(projectDetails.getProjectId(), createPatternTemplateRQ);
+				))).createPatternTemplate(project.getId(), createPatternTemplateRQ);
+
+		messageBus.publishActivity(new PatternCreatedEvent(user.getUserId(),
+				user.getUsername(),
+				PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate)
+		));
+		return new EntryCreatedRS(patternTemplate.getId());
 	}
 
 	private static String shortUUID() {

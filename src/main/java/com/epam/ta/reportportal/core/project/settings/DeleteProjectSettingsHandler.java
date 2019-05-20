@@ -37,11 +37,11 @@ public interface DeleteProjectSettingsHandler {
 	/**
 	 * Delete {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
 	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param user           {@link ReportPortalUser}
-	 * @param id             {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#id}
+	 * @param projectName {@link com.epam.ta.reportportal.entity.project.Project#name}
+	 * @param user        {@link ReportPortalUser}
+	 * @param id          {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#id}
 	 * @return {@link OperationCompletionRS}
 	 */
-	OperationCompletionRS deletePatternTemplate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
+	OperationCompletionRS deletePatternTemplate(String projectName, ReportPortalUser user, Long id);
 
 }

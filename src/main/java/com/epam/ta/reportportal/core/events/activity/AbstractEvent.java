@@ -22,14 +22,14 @@ package com.epam.ta.reportportal.core.events.activity;
 public abstract class AbstractEvent {
 
 	private Long userId;
-	private String UserLogin;
+	private String userLogin;
 
 	public AbstractEvent() {
 	}
 
 	public AbstractEvent(Long userId, String userLogin) {
 		this.userId = userId;
-		UserLogin = userLogin;
+		this.userLogin = userLogin;
 	}
 
 	public Long getUserId() {
@@ -41,10 +41,10 @@ public abstract class AbstractEvent {
 	}
 
 	public String getUserLogin() {
-		return UserLogin;
+		return userLogin;
 	}
 
 	public void setUserLogin(String userLogin) {
-		UserLogin = userLogin;
+		this.userLogin = userLogin;
 	}
 }

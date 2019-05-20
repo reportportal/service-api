@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ public class CreateStringPatternTemplateHandler implements CreatePatternTemplate
 	}
 
 	@Override
-	public EntryCreatedRS createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
+	public PatternTemplate createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
 
 		BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, createPatternTemplateRQ.getName()),
 				equalTo(false)
@@ -52,9 +51,6 @@ public class CreateStringPatternTemplateHandler implements CreatePatternTemplate
 		PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ)
 				.withProjectId(projectId)
 				.get();
-		patternTemplateRepository.save(patternTemplate);
-
-		return new EntryCreatedRS(patternTemplate.getId());
-
+		return patternTemplateRepository.save(patternTemplate);
 	}
 }

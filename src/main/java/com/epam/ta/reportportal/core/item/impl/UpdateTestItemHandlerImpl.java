@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENCE;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -99,14 +100,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final IssueEntityRepository issueEntityRepository;
 
-	private final ItemAttributeRepository itemAttributeRepository;
-
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
 	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, TestItemRepository testItemRepository,
 			LogRepository logRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository, ItemAttributeRepository itemAttributeRepository,
+			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
@@ -116,7 +115,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.issueEntityRepository = issueEntityRepository;
-		this.itemAttributeRepository = itemAttributeRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
 
@@ -206,7 +204,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -312,44 +311,35 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		bulkUpdateRq.getAttributes().forEach(it -> {
 			if (BulkUpdateItemAttributeRQ.Action.DELETE == it.getAction()) {
-				List<ItemAttribute> attributes = items.stream()
-						.map(item -> item.getAttributes()
-								.stream()
-								.filter(attr -> attr.getKey().equals(it.getFrom().getKey()) && attr.getValue()
-										.equals(it.getFrom().getValue()) && !attr.isSystem())
-								.findAny()
-								.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot delete not common attribute")))
-						.collect(toList());
-				itemAttributeRepository.deleteInBatch(attributes);
+				items.forEach(item -> {
+					ItemAttribute toDelete = item.getAttributes()
+							.stream()
+							.filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, it.getFrom()))
+							.findAny()
+							.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot delete not common attribute"));
+					item.getAttributes().remove(toDelete);
+				});
 			}
 			if (BulkUpdateItemAttributeRQ.Action.UPDATE == it.getAction()) {
-				List<ItemAttribute> attributes = items.stream()
-						.map(item -> item.getAttributes()
-								.stream()
-								.filter(attr -> attr.getKey().equals(it.getFrom().getKey()) && attr.getValue()
-										.equals(it.getFrom().getValue()) && !attr.isSystem())
-								.findAny()
-								.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot update not common attribute")))
-						.peek(attr -> {
+				items.forEach(item -> item.getAttributes()
+						.stream()
+						.filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, it.getFrom()))
+						.findAny()
+						.map(attr -> {
 							attr.setKey(it.getTo().getKey());
 							attr.setValue(it.getTo().getValue());
+							return attr;
 						})
-						.collect(toList());
-				itemAttributeRepository.saveAll(attributes);
+						.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot update not common attribute")));
 			}
 			if (BulkUpdateItemAttributeRQ.Action.CREATE == it.getAction()) {
-				List<ItemAttribute> attributes = items.stream()
-						.filter(launch -> launch.getAttributes()
-								.stream()
-								.noneMatch(attr -> attr.getKey().equals(it.getTo().getKey()) && attr.getValue()
-										.equals(it.getTo().getValue()) && !attr.isSystem()))
-						.map(item -> {
+				items.stream()
+						.filter(item -> item.getAttributes().stream().noneMatch(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, it.getTo())))
+						.forEach(item -> {
 							ItemAttribute itemAttribute = new ItemAttribute(it.getTo().getKey(), it.getTo().getValue(), false);
 							itemAttribute.setTestItem(item);
-							return itemAttribute;
-						})
-						.collect(toList());
-				itemAttributeRepository.saveAll(attributes);
+							item.getAttributes().add(itemAttribute);
+						});
 			}
 		});
 
@@ -424,10 +414,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

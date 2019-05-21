@@ -25,6 +25,8 @@ import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
+import com.mongodb.DBCursor;
+import com.mongodb.gridfs.GridFSDBFile;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -33,8 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.job.PageUtil.deleteOverPages;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -69,13 +74,16 @@ public class CleanScreenshotsJob implements Job {
 
 				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
 				if (!period.isZero()) {
-					gridFS.findModifiedLaterAgo(period, project.getId()).forEach(file -> {
-						if (!file.getFilename().startsWith("photo_")) {
-							count.incrementAndGet();
-							gridFS.deleteData(file.getId().toString());
-							/* Clear binary_content fields from log repository */
-							logRepository.removeBinaryContent(file.getId().toString());
-						}
+					deleteOverPages(pageable -> gridFS.findModifiedLaterAgo(period, project.getId(), pageable), dbObjects -> {
+						List<String> fileIds = dbObjects.stream()
+								.map(it -> (GridFSDBFile) it)
+								.filter(it -> !it.getFilename().startsWith("photo_"))
+								.map(it -> it.getId().toString())
+								.collect(Collectors.toList());
+						gridFS.deleteData(fileIds);
+						logRepository.removeBinaryContent(fileIds);
+						count.addAndGet(fileIds.size());
+
 					});
 				}
 			} catch (Exception e) {

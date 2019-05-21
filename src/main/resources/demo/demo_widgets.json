@@ -49,7 +49,7 @@
       "contentFields": [
       ],
       "widgetOptions": {
-        "timeline": "DAY"
+        "timeline": "day"
       }
     }
   },

@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.AddWidgetRq;
 import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -83,7 +84,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		Dashboard dashboard = getShareableDashboardHandler.getAdministrated(dashboardId, projectDetails);
 		DashboardActivityResource before = TO_ACTIVITY_RESOURCE.apply(dashboard);
 
-		if(!dashboard.getName().equals(rq.getName())) {
+		if (!dashboard.getName().equals(rq.getName())) {
 			BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
 					user.getUsername(),
 					projectDetails.getProjectId()
@@ -124,7 +125,8 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 						)
 				);
 		Widget widget = getShareableWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId(), projectDetails);
-		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget);
+		boolean isCreatedOnDashboard = CollectionUtils.isEmpty(widget.getDashboardWidgets());
+		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget, isCreatedOnDashboard);
 		dashboardWidgetRepository.save(dashboardWidget);
 		return new OperationCompletionRS(
 				"Widget with ID = '" + widget.getId() + "' was successfully added to the dashboard with ID = '" + dashboard.getId() + "'");

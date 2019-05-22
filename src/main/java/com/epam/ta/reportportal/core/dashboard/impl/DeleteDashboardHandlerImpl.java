@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -67,23 +68,18 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	public OperationCompletionRS deleteDashboard(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
 
-		List<Widget> ownedWidgets = dashboard.getDashboardWidgets()
-				.stream()
+		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
+		List<Widget> widgets = dashboardWidgets.stream()
+				.filter(DashboardWidget::isCreatedOn)
 				.map(DashboardWidget::getWidget)
-				.filter(widget -> widget.getOwner().equalsIgnoreCase(user.getUsername()))
+				.peek(aclHandler::deleteAclForObject)
 				.collect(Collectors.toList());
-
-		Set<DashboardWidget> dashboardWidgets = ownedWidgets.stream()
-				.flatMap(it -> it.getDashboardWidgets().stream())
-				.collect(Collectors.toSet());
-		dashboardWidgets.addAll(dashboard.getDashboardWidgets());
+		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 
 		aclHandler.deleteAclForObject(dashboard);
-		ownedWidgets.forEach(it -> aclHandler.deleteAclForObject(it));
-
 		dashboardWidgetRepository.deleteAll(dashboardWidgets);
 		dashboardRepository.delete(dashboard);
-		widgetRepository.deleteAll(ownedWidgets);
+		widgetRepository.deleteAll(widgets);
 
 		messageBus.publishActivity(new DashboardDeletedEvent(TO_ACTIVITY_RESOURCE.apply(dashboard), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("Dashboard with ID = '" + dashboardId + "' successfully deleted.");

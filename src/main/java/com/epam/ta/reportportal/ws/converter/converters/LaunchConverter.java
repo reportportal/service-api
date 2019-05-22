@@ -71,7 +71,7 @@ public class LaunchConverter {
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(launch.getId());
 		resource.setProjectId(launch.getProjectId());
-		resource.setName(launch.getName());
+		resource.setName(launch.getName() + " #" + launch.getNumber());
 		return resource;
 	};
 

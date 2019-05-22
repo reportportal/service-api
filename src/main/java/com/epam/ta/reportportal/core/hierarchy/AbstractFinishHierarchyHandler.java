@@ -35,12 +35,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy.SKIPPED_ISSUE_KEY;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.SUITE;
 import static com.epam.ta.reportportal.jooq.enums.JStatusEnum.FAILED;
 import static com.epam.ta.reportportal.jooq.enums.JStatusEnum.PASSED;
@@ -63,8 +65,9 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected final IssueEntityRepository issueEntityRepository;
 	private final IssueTypeHandler issueTypeHandler;
 
-	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
-										  IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler) {
+	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
+			IssueTypeHandler issueTypeHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
@@ -72,12 +75,9 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		this.issueTypeHandler = issueTypeHandler;
 	}
 
-	protected abstract void updateDescendantsWithoutChildren(Long projectId, T entity, StatusEnum status, LocalDateTime endTime,
-			boolean isIssueRequired, List<ItemAttributePojo> itemAttributes, List<IssueEntityPojo> issueEntities);
-
-	protected abstract void updateDescendantsWithChildren(T entity, LocalDateTime endTime);
-
 	protected abstract boolean isIssueRequired(StatusEnum status, T entity);
+
+	protected abstract Stream<Long> retrieveItemIds(T entity, StatusEnum status, boolean hasChildren);
 
 	@Override
 	public void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser.ProjectDetails projectDetails) {
@@ -87,44 +87,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(endDate);
 		boolean isIssueRequired = isIssueRequired(status, entity);
 
-		List<IssueEntityPojo> issueEntities = isIssueRequired ?
-				Lists.newArrayListWithExpectedSize(INSERT_ISSUE_BATCH_SIZE) :
-				Collections.emptyList();
-		List<ItemAttributePojo> itemAttributes = Lists.newArrayListWithExpectedSize(INSERT_ATTRIBUTES_BATCH_SIZE);
-
-		updateDescendantsWithoutChildren(projectDetails.getProjectId(),
-				entity,
-				status,
-				endTime,
-				isIssueRequired,
-				itemAttributes,
-				issueEntities
-		);
+		updateDescendantsWithoutChildren(projectDetails.getProjectId(), entity, status, endTime, isIssueRequired);
 		updateDescendantsWithChildren(entity, endTime);
-	}
-
-	protected void updateDescendantWithoutChildren(Long itemId, StatusEnum status, LocalDateTime endTime, Optional<IssueType> issueType,
-			List<ItemAttributePojo> itemAttributes, List<IssueEntityPojo> issueEntities) {
-		testItemRepository.updateStatusAndEndTimeById(itemId, JStatusEnum.valueOf(status.name()), endTime);
-		issueType.ifPresent(it -> {
-			if (!SUITE.sameLevel(testItemRepository.getTypeByItemId(itemId))) {
-				issueEntities.add(new IssueEntityPojo(itemId, it.getId(), null, false, false));
-			}
-		});
-		itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, true));
-		if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-			itemAttributes.clear();
-		}
-		if (issueEntities.size() >= INSERT_ISSUE_BATCH_SIZE) {
-			issueEntityRepository.saveMultiple(issueEntities);
-			issueEntities.clear();
-		}
-	}
-
-	protected void updateDescendantWithChildren(Long itemId, LocalDateTime endTime) {
-		boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, PASSED);
-		testItemRepository.updateStatusAndEndTimeById(itemId, isFailed ? FAILED : PASSED, endTime);
 	}
 
 	protected boolean evaluateSkippedAttributeValue(StatusEnum status, Long launchId) {
@@ -143,5 +107,60 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		}
 		return Optional.empty();
 
+	}
+
+	private void updateDescendantsWithoutChildren(Long projectId, T entity, StatusEnum status, LocalDateTime endTime,
+			boolean isIssueRequired) {
+
+		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
+		List<IssueEntityPojo> issueEntities = issueType.isPresent() ?
+				Lists.newArrayListWithExpectedSize(INSERT_ISSUE_BATCH_SIZE) :
+				Collections.emptyList();
+		List<ItemAttributePojo> itemAttributes = Lists.newArrayListWithExpectedSize(INSERT_ATTRIBUTES_BATCH_SIZE);
+
+		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, false).forEach(itemId -> {
+			testItemRepository.updateStatusAndEndTimeById(itemId, JStatusEnum.valueOf(status.name()), endTime);
+			itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false));
+			if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
+				itemAttributeRepository.saveMultiple(itemAttributes);
+				itemAttributes.clear();
+			}
+			issueType.ifPresent(it -> {
+				if (!SUITE.sameLevel(testItemRepository.getTypeByItemId(itemId))) {
+					issueEntities.add(new IssueEntityPojo(itemId, it.getId(), null, false, false));
+				}
+				if (issueEntities.size() >= INSERT_ISSUE_BATCH_SIZE) {
+					issueEntityRepository.saveMultiple(issueEntities);
+					issueEntities.clear();
+				}
+			});
+
+		});
+
+		if (!itemAttributes.isEmpty()) {
+			itemAttributeRepository.saveMultiple(itemAttributes);
+		}
+		if (!issueEntities.isEmpty()) {
+			issueEntityRepository.saveMultiple(issueEntities);
+		}
+	}
+
+	private void updateDescendantsWithChildren(T entity, LocalDateTime endTime) {
+
+		List<ItemAttributePojo> itemAttributes = Lists.newArrayListWithExpectedSize(INSERT_ATTRIBUTES_BATCH_SIZE);
+
+		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, true).forEach(itemId -> {
+			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, PASSED);
+			testItemRepository.updateStatusAndEndTimeById(itemId, isFailed ? FAILED : PASSED, endTime);
+			itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false));
+			if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
+				itemAttributeRepository.saveMultiple(itemAttributes);
+				itemAttributes.clear();
+			}
+		});
+
+		if (!itemAttributes.isEmpty()) {
+			itemAttributeRepository.saveMultiple(itemAttributes);
+		}
 	}
 }

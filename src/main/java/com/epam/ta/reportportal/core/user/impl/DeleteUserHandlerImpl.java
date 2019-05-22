@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -51,12 +52,15 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ProjectUserRepository projectUserRepository;
 
+	private final ShareableObjectsHandler shareableObjectsHandler;
+
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ProjectUserRepository projectUserRepository) {
+			ProjectUserRepository projectUserRepository, ShareableObjectsHandler shareableObjectsHandler) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.projectUserRepository = projectUserRepository;
+		this.shareableObjectsHandler = shareableObjectsHandler;
 	}
 
 	@Override
@@ -73,6 +77,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 				projectUserRepository.delete(userProject);
 				deleteProjectHandler.deleteProject(userProject.getProject().getId());
 			} else {
+				shareableObjectsHandler.preventSharedObjects(userProject.getId().getProjectId(), user.getLogin());
 				ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject());
 			}
 		});

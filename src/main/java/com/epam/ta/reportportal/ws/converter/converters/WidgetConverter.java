@@ -85,7 +85,8 @@ public class WidgetConverter {
 	 * @param widget    Widget
 	 * @return many-to-many object representation
 	 */
-	public static DashboardWidget toDashboardWidget(DashboardResource.WidgetObjectModel model, Dashboard dashboard, Widget widget) {
+	public static DashboardWidget toDashboardWidget(DashboardResource.WidgetObjectModel model, Dashboard dashboard, Widget widget,
+			boolean isCreatedOn) {
 
 		DashboardWidgetId id = new DashboardWidgetId();
 		id.setDashboardId(dashboard.getId());
@@ -100,6 +101,8 @@ public class WidgetConverter {
 		dashboardWidget.setHeight(model.getWidgetSize().getHeight());
 		dashboardWidget.setDashboard(dashboard);
 		dashboardWidget.setWidget(widget);
+		dashboardWidget.setCreatedOn(isCreatedOn);
+		dashboardWidget.setWidgetOwner(widget.getOwner());
 
 		return dashboardWidget;
 	}

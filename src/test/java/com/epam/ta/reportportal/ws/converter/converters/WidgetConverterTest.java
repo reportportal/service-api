@@ -24,6 +24,7 @@ import java.util.HashMap;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -81,8 +82,9 @@ class WidgetConverterTest {
 		final Widget widget = new Widget();
 		widget.setName("name");
 		widget.setShared(true);
+		widget.setOwner("default");
 
-		final DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(widgetObjectModel, dashboard, widget);
+		final DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(widgetObjectModel, dashboard, widget, true);
 
 		assertThat(dashboardWidget.getDashboard()).isEqualToComparingFieldByField(dashboard);
 		assertThat(dashboardWidget.getWidget()).isEqualToComparingFieldByField(widget);
@@ -91,6 +93,8 @@ class WidgetConverterTest {
 		assertEquals(dashboardWidget.getPositionX(), widgetObjectModel.getWidgetPosition().getX());
 		assertEquals(dashboardWidget.getPositionY(), widgetObjectModel.getWidgetPosition().getY());
 		assertEquals(dashboardWidget.getWidgetName(), widget.getName());
+		assertEquals("default", dashboardWidget.getWidgetOwner());
+		assertTrue(dashboardWidget.isCreatedOn());
 	}
 
 	private Widget getWidget() {

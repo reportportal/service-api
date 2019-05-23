@@ -81,7 +81,10 @@ public class CleanScreenshotsJobTest {
 		grid2.put("_id", "not_photo");
 		grid2.put("filename", "file123");
 
-		when(gridFS.findFirstModifiedLater(any(), eq(project.getName()), any())).thenReturn(Arrays.asList(grid, grid2));
+		when(gridFS.findFirstModifiedLater(any(), eq(project.getName()), eq(150))).thenReturn(
+				Arrays.asList(grid, grid2),
+				Lists.newArrayList()
+		);
 		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanScreenshotsJob.execute(null);

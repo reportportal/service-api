@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -41,8 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_KEY_STATUS;
-import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_VALUE_INTERRUPTED;
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
@@ -94,9 +91,6 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 					projectDetails
 			);
 			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED);
-			ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
-			interruptedAttribute.setLaunch(launch);
-			launch.getAttributes().add(interruptedAttribute);
 		} else {
 			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
 		}

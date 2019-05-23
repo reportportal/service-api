@@ -52,11 +52,4 @@ public class PageUtilTest extends BaseDaoContextTest {
 		PageUtil.iterateOverPages(pageable -> logRepository.findAll(pageable), logs2::addAll);
 		Assertions.assertThat(logs2).isEqualTo(logs);
 	}
-
-	@Test
-	public void testDeleteOverPages() {
-		PageUtil.deleteOverPages(pageable -> logRepository.findAll(pageable), it -> logRepository.delete(it));
-		Assertions.assertThat(logRepository.findAll()).isEmpty();
-	}
-
 }

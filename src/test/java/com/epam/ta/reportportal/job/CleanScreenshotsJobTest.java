@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.database.DataStorage;
 import com.epam.ta.reportportal.database.dao.LogRepository;
 import com.epam.ta.reportportal.database.dao.ProjectRepository;
 import com.epam.ta.reportportal.database.entity.Project;
+import com.google.common.collect.Lists;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,7 +81,7 @@ public class CleanScreenshotsJobTest {
 		grid2.put("_id", "not_photo");
 		grid2.put("filename", "file123");
 
-		when(gridFS.findModifiedLaterAgo(any(), eq(project.getName()), any())).thenReturn(new PageImpl<>(Arrays.asList(grid, grid2)));
+		when(gridFS.findFirstModifiedLater(any(), eq(project.getName()), any())).thenReturn(Arrays.asList(grid, grid2));
 		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanScreenshotsJob.execute(null);

@@ -76,7 +76,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.2.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile('com.github.reportportal:commons-dao:4.3.2')
+        compile('com.github.reportportal:commons-dao:6c11680c')
         compile('com.github.reportportal:commons-rules:4.2.0')
         compile 'com.github.reportportal:commons-model:4.2.0'
         compile('com.github.reportportal:commons:3.1.0')

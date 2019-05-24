@@ -62,37 +62,4 @@ class PageUtil {
 			consumer.accept(pageData.getContent());
 		}
 	}
-
-	/**
-	 * Iterates over all pages found for deleting
-	 *
-	 * @param getFunc  Get Page function
-	 * @param consumer Page processor
-	 * @param <T>      Type of page entity
-	 */
-	static <T> void deleteOverPages(Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
-		deleteOverPages(DEFAULT_PAGE_SIZE, getFunc, consumer);
-	}
-
-	/**
-	 * Iterates over all pages found for deleting
-	 *
-	 * @param pageSize page size
-	 * @param getFunc  Get Page function
-	 * @param consumer Page processor
-	 * @param <T>      Type of page entity
-	 */
-	static <T> void deleteOverPages(int pageSize, Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
-		//first page
-		PageRequest page = new PageRequest(0, pageSize);
-		Page<T> pageData = getFunc.apply(page);
-		List<T> content = pageData.getContent();
-		consumer.accept(content);
-
-		while (!pageData.isLast()) {
-			pageData = getFunc.apply(page);
-			consumer.accept(pageData.getContent());
-		}
-	}
-
 }

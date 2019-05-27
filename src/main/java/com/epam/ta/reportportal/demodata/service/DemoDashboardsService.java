@@ -184,30 +184,33 @@ class DemoDashboardsService {
 
 		dashboardRepository.save(dashboard);
 
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(0), 0, 0, 6, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(1), 6, 0, 6, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(2), 0, 5, 7, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(3), 7, 5, 5, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(4), 0, 10, 5, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(5), 5, 10, 7, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(6), 0, 15, 6, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(7), 6, 15, 6, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(8), 0, 20, 12, 4));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(9), 0, 24, 7, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(10), 7, 24, 5, 5));
-		dashboard.addWidget(createDashboardWidget(dashboard, widgets.get(11), 0, 29, 12, 4));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(0), 0, 0, 6, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(1), 6, 0, 6, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(2), 0, 5, 7, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(3), 7, 5, 5, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(4), 0, 10, 5, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(5), 5, 10, 7, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(6), 0, 15, 6, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(7), 6, 15, 6, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(8), 0, 20, 12, 4));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(9), 0, 24, 7, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(10), 7, 24, 5, 5));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(11), 0, 29, 12, 4));
 
 		aclHandler.initAcl(dashboard, user.getUsername(), project.getId(), SHARED);
 		return dashboard;
 	}
 
-	private DashboardWidget createDashboardWidget(Dashboard dashboard, Widget widget, int posX, int posY, int width, int height) {
+	private DashboardWidget createDashboardWidget(String owner, Dashboard dashboard, Widget widget, int posX, int posY, int width,
+			int height) {
 		DashboardWidget dashboardWidget = new DashboardWidget();
 		dashboardWidget.setId(new DashboardWidgetId(dashboard.getId(), widget.getId()));
 
 		dashboardWidget.setDashboard(dashboard);
 		dashboardWidget.setWidget(widget);
 		dashboardWidget.setWidgetName(widget.getName());
+		dashboardWidget.setCreatedOn(true);
+		dashboardWidget.setWidgetOwner(owner);
 		dashboardWidget.setHeight(height);
 		dashboardWidget.setWidth(width);
 		dashboardWidget.setPositionX(posX);

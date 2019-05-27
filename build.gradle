@@ -98,9 +98,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:fba7703'
+        compile 'com.github.reportportal:commons-dao:dc069098'
         compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:265795c'
+        compile 'com.github.reportportal:commons-model:8ccbb15'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }
@@ -205,22 +205,6 @@ task wrapper(type: Wrapper) {
     gradleVersion = '4.7'
 }
 
-/*
- * Copyright 2019 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 //Start section for external jacoco test report
 tasks.withType(JavaCompile) {
     if (isDebugMode) {
@@ -274,11 +258,11 @@ private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
 
 task copyTestDatabaseScripts {
     def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
-    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/dashboard-widget-removing-db/migrations/1_initialize_schema.up.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
     copyFromUrl(initScriptPath, initScriptUrl)
 
     def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
-    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/dashboard-widget-removing-db/migrations/3_default_data.up.sql"
+    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql"
     copyFromUrl(dataScriptPath, dataScriptUrl)
 }
 

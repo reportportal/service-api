@@ -283,7 +283,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/attribute").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -316,7 +316,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/attribute").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 
@@ -346,7 +346,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/attribute").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 

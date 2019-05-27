@@ -48,7 +48,9 @@ public class ACLContext {
 
 	@Bean
 	public CaffeineCache coffeinCache() {
-		return new CaffeineCache("aclCache", Caffeine.newBuilder().maximumSize(5_000).expireAfterAccess(1, TimeUnit.HOURS).build());
+		return new CaffeineCache("aclCache",
+				Caffeine.newBuilder().expireAfterAccess(1L, TimeUnit.HOURS).maximumSize(5000).initialCapacity(2000).build()
+		);
 	}
 
 	@Bean

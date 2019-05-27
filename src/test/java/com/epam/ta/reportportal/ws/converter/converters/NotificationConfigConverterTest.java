@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;

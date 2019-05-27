@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
@@ -86,5 +86,5 @@ public interface UpdateTestItemHandler {
 	 */
 	void resetItemsIssue(List<Long> itemIds, Long projectId);
 
-	OperationCompletionRS bulkUpdateAttributes(BulkUpdateItemAttributeRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails);
+	OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails);
 }

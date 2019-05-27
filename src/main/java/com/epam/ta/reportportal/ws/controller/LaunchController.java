@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -244,9 +243,9 @@ public class LaunchController {
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ResponseStatus(OK)
 	@ApiOperation("Bulk update attributes")
-	public OperationCompletionRS bulkUpdate(@PathVariable String projectName,
-			@RequestBody @Validated BulkUpdateItemAttributeRQ bulkUpdateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.bulkUpdateAttributes(bulkUpdateRQ, extractProjectDetails(user, projectName));
+	public OperationCompletionRS bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.bulkInfoUpdate(bulkInfoUpdateRQ, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)

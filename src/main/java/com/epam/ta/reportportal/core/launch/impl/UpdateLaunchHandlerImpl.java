@@ -39,11 +39,13 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ItemUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -53,14 +55,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_ATTRIBUTE_EQUIVALENCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -168,56 +168,36 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS bulkUpdateAttributes(BulkUpdateItemAttributeRQ bulkUpdateRq,
-			ReportPortalUser.ProjectDetails projectDetails) {
+	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
 				projectDetails.getProjectId()
 		);
 
 		List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
-
-		if (!Objects.isNull(bulkUpdateRq.getDescription()) && !Objects.isNull(bulkUpdateRq.getDescription().getComment())) {
-			if (BulkUpdateItemAttributeRQ.Action.UPDATE == bulkUpdateRq.getDescription().getAction()) {
-				launches.forEach(it -> it.setDescription(it.getDescription() + " " + bulkUpdateRq.getDescription().getComment()));
-			}
-			if (BulkUpdateItemAttributeRQ.Action.CREATE == bulkUpdateRq.getDescription().getAction()) {
-				launches.forEach(it -> it.setDescription(bulkUpdateRq.getDescription().getComment()));
-			}
-		}
+		launches.forEach(it -> ItemUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+				.ifPresent(it::setDescription));
 
 		bulkUpdateRq.getAttributes().forEach(it -> {
-			if (BulkUpdateItemAttributeRQ.Action.DELETE == it.getAction()) {
-				launches.forEach(launch -> {
-					ItemAttribute toDelete = launch.getAttributes()
-							.stream()
-							.filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, it.getFrom()))
-							.findAny()
-							.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot delete not common attribute"));
-					launch.getAttributes().remove(toDelete);
-				});
-			}
-			if (BulkUpdateItemAttributeRQ.Action.UPDATE == it.getAction()) {
-				launches.forEach(launch -> launch.getAttributes()
-						.stream()
-						.filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, it.getFrom()))
-						.findAny()
-						.map(attr -> {
-							attr.setKey(it.getTo().getKey());
-							attr.setValue(it.getTo().getValue());
-							return attr;
-						})
-						.orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot update not common attribute")));
-			}
-			if (BulkUpdateItemAttributeRQ.Action.CREATE == it.getAction()) {
-				launches.stream()
-						.filter(launch -> launch.getAttributes()
-								.stream()
-								.noneMatch(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, it.getTo())))
-						.forEach(launch -> {
-							ItemAttribute itemAttribute = new ItemAttribute(it.getTo().getKey(), it.getTo().getValue(), false);
-							itemAttribute.setLaunch(launch);
-							launch.getAttributes().add(itemAttribute);
-						});
+			switch (it.getAction()) {
+				case DELETE: {
+					launches.forEach(launch -> {
+						ItemAttribute toDelete = ItemUtils.findAttributeByResource(launch.getAttributes(), it.getFrom());
+						launch.getAttributes().remove(toDelete);
+					});
+					break;
+				}
+				case UPDATE: {
+					launches.forEach(launch -> ItemUtils.updateAttribute(launch.getAttributes(), it));
+					break;
+				}
+				case CREATE: {
+					launches.stream().filter(launch -> ItemUtils.containsAttribute(launch.getAttributes(), it.getTo())).forEach(launch -> {
+						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+						itemAttribute.setLaunch(launch);
+						launch.getAttributes().add(itemAttribute);
+					});
+					break;
+				}
 			}
 		});
 

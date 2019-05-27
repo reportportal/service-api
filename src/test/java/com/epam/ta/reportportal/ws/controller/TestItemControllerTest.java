@@ -21,10 +21,10 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -533,16 +533,16 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkUpdateItemAttributes() throws Exception {
-		BulkUpdateItemAttributeRQ request = new BulkUpdateItemAttributeRQ();
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
 		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
 		request.setIds(launchIds);
-		BulkUpdateItemAttributeRQ.Description description = new BulkUpdateItemAttributeRQ.Description();
-		description.setAction(BulkUpdateItemAttributeRQ.Action.CREATE);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.CREATE);
 		String comment = "created";
 		description.setComment(comment);
 		request.setDescription(description);
 		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
-		updateItemAttributeRQ.setAction(BulkUpdateItemAttributeRQ.Action.UPDATE);
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.UPDATE);
 		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
@@ -567,16 +567,16 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkCreateAttributes() throws Exception {
-		BulkUpdateItemAttributeRQ request = new BulkUpdateItemAttributeRQ();
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
 		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
 		request.setIds(launchIds);
-		BulkUpdateItemAttributeRQ.Description description = new BulkUpdateItemAttributeRQ.Description();
-		description.setAction(BulkUpdateItemAttributeRQ.Action.UPDATE);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
 		String comment = "updated";
 		description.setComment(comment);
 		request.setDescription(description);
 		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
-		updateItemAttributeRQ.setAction(BulkUpdateItemAttributeRQ.Action.CREATE);
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
 		updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 
@@ -597,16 +597,16 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkDeleteAttributes() throws Exception {
-		BulkUpdateItemAttributeRQ request = new BulkUpdateItemAttributeRQ();
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
 		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
 		request.setIds(launchIds);
-		BulkUpdateItemAttributeRQ.Description description = new BulkUpdateItemAttributeRQ.Description();
-		description.setAction(BulkUpdateItemAttributeRQ.Action.CREATE);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.CREATE);
 		String comment = "created";
 		description.setComment(comment);
 		request.setDescription(description);
 		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
-		updateItemAttributeRQ.setAction(BulkUpdateItemAttributeRQ.Action.DELETE);
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.DELETE);
 		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
 		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
 

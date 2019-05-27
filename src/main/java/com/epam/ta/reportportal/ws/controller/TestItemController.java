@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.attribute.BulkUpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
@@ -218,9 +217,9 @@ public class TestItemController {
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ResponseStatus(OK)
 	@ApiOperation("Bulk update attributes")
-	public OperationCompletionRS bulkUpdate(@PathVariable String projectName,
-			@RequestBody @Validated BulkUpdateItemAttributeRQ bulkUpdateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateTestItemHandler.bulkUpdateAttributes(bulkUpdateRQ, extractProjectDetails(user, projectName));
+	public OperationCompletionRS bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateTestItemHandler.bulkInfoUpdate(bulkInfoUpdateRQ, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional

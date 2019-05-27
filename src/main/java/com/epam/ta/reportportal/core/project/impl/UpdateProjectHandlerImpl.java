@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
@@ -56,7 +57,6 @@ import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpda
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
@@ -136,15 +136,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
-
-		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
+		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
 		projectRepository.save(project);
-		messageBus.publishActivity(new ProjectUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(project),
-				user.getUserId(),
-				user.getUsername()
-		));
+		ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
+
+		messageBus.publishActivity(new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+		messageBus.publishActivity(new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
@@ -181,8 +180,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		User modifier = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
@@ -210,8 +208,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				assignUser(name, projectRole, assignedUsernames, project);
 			});
 		} else {
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(
-					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
 
@@ -243,8 +240,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(
-				ErrorType.FORBIDDEN_OPERATION,
+		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
 				"Index can not be removed until index generation proceeds."
 		);
 
@@ -382,36 +378,37 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
-		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> retrieveProjectAttributes(
-				attributes).forEach((attribute, value) -> project.getProjectAttributes()
-				.stream()
-				.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
-				.findFirst()
-				.ifPresent(attr -> attr.setValue(value)))));
+		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
+			verifyProjectAttributes(attributes);
+			attributes.forEach((attribute, value) -> project.getProjectAttributes()
+					.stream()
+					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
+					.findFirst()
+					.ifPresent(attr -> attr.setValue(value)));
+		}));
 	}
 
-	private Map<String, String> retrieveProjectAttributes(Map<String, String> attributes) {
+	private void verifyProjectAttributes(Map<String, String> attributes) {
+		Set<String> incompatibleAttributes = attributes.keySet()
+				.stream()
+				.filter(it -> !ProjectAttributeEnum.isPresent(it))
+				.collect(toSet());
+		expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
 
-		Map<String, String> retrievedAttributes = Maps.newHashMapWithExpectedSize(attributes.size());
-
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> {
-			expect(keepLogs, KeepLogsDelay::isPresent).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs);
-			retrievedAttributes.put(ProjectAttributeEnum.KEEP_LOGS.getAttribute(), keepLogs);
-		});
-		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> {
-			expect(interruptedJob, InterruptionJobDelay::isPresent).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob);
-			retrievedAttributes.put(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute(), interruptedJob);
-		});
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(keepScreenshots -> {
-			expect(keepScreenshots, KeepScreenshotsDelay::isPresent).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots);
-			retrievedAttributes.put(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute(), keepScreenshots);
-		});
-		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> {
-			expect(AnalyzeMode.fromString(analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode);
-			retrievedAttributes.put(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute(), analyzerMode);
-		});
-
-		return retrievedAttributes;
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> expect(keepLogs,
+				KeepLogsDelay::isPresent
+		).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs));
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute())).ifPresent(keepLaunches -> expect(keepLaunches,
+				KeepLaunchDelay::isPresent
+		).verify(BAD_REQUEST_ERROR, keepLaunches));
+		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> expect(interruptedJob,
+				InterruptionJobDelay::isPresent
+		).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob));
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(keepScreenshots -> expect(keepScreenshots,
+				KeepScreenshotsDelay::isPresent
+		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
+		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
+				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
 	}
 
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {

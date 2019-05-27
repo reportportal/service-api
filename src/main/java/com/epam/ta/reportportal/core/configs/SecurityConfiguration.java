@@ -162,8 +162,9 @@ class SecurityConfiguration {
 							"/**/user/password/reset/*",
 							"/**/user/password/reset**",
 							"/**/user/password/restore**",
-
-							"/documentation.html"
+							"/documentation.html",
+							"/health",
+							"/info"
 					)
 					.permitAll()
 					/* set of special endpoints for another microservices from RP ecosystem */

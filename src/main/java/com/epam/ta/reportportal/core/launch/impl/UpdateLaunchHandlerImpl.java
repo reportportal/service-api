@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -38,7 +39,10 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
+import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -161,6 +165,43 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 
 		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
+	}
+
+	@Override
+	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
+		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
+				projectDetails.getProjectId()
+		);
+
+		List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
+		launches.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+				.ifPresent(it::setDescription));
+
+		bulkUpdateRq.getAttributes().forEach(it -> {
+			switch (it.getAction()) {
+				case DELETE: {
+					launches.forEach(launch -> {
+						ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(launch.getAttributes(), it.getFrom());
+						launch.getAttributes().remove(toDelete);
+					});
+					break;
+				}
+				case UPDATE: {
+					launches.forEach(launch -> ItemInfoUtils.updateAttribute(launch.getAttributes(), it));
+					break;
+				}
+				case CREATE: {
+					launches.stream().filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo())).forEach(launch -> {
+						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+						itemAttribute.setLaunch(launch);
+						launch.getAttributes().add(itemAttribute);
+					});
+					break;
+				}
+			}
+		});
+
+		return new OperationCompletionRS("Attributes successfully updated");
 	}
 
 	/**

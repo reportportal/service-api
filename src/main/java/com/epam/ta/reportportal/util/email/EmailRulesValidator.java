@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.util.email;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;

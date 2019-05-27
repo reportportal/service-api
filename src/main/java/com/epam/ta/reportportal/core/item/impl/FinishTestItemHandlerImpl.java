@@ -19,12 +19,13 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
-import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
+import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -90,9 +91,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	@Autowired
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
-			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler,
-			LogIndexer logIndexer, Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
-			IssueEntityRepository issueEntityRepository, LogRepository logRepository, ApplicationEventPublisher eventPublisher) {
+			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
+			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
+			LogRepository logRepository, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -141,29 +142,34 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
 				finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishExecutionRQ.getEndTime(), projectDetails);
 				testItemResults.setStatus(resolveStatus(testItem.getItemId()));
+				ItemAttribute itemAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
+				itemAttribute.setTestItem(testItem);
+				testItem.getAttributes().add(itemAttribute);
 			} else {
 				testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
 			}
-
 		} else {
-			Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.get(),
+			Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.orElse(INTERRUPTED),
 					testItem,
 					finishExecutionRQ.getIssue(),
 					projectDetails.getProjectId()
 			);
 
 			if (testItemResults.getStatus() == IN_PROGRESS) {
-				testItem.getAttributes()
-						.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
-								&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
-				testItemResults.setStatus(actualStatus.get());
+				testItemResults.setStatus(actualStatus.orElse(INTERRUPTED));
 				resolvedIssue.ifPresent(issue -> {
 					issue.setTestItemResults(testItemResults);
 					issueEntityRepository.save(issue);
 					testItemResults.setIssue(issue);
 				});
 			} else {
-				updateFinishedItem(testItemResults, actualStatus.get(), resolvedIssue, testItem, user, projectDetails.getProjectId());
+				updateFinishedItem(testItemResults,
+						actualStatus.orElse(INTERRUPTED),
+						resolvedIssue,
+						testItem,
+						user,
+						projectDetails.getProjectId()
+				);
 			}
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
@@ -192,10 +198,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		}
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-				testItem.getItemId()
-		));
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+				formattedSupplier(
+						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+						testItem.getItemId()
+				)
+		);
 	}
 
 	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser.ProjectDetails projectDetails) {

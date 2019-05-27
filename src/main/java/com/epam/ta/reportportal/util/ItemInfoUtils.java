@@ -31,10 +31,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ *
+ * Util class. Contains methods for updating
+ * {@link com.epam.ta.reportportal.entity.launch.Launch}/{@link com.epam.ta.reportportal.entity.item.TestItem} attributes and description.
  */
-public class ItemUtils {
+public class ItemInfoUtils {
 
-	private ItemUtils() {
+	private ItemInfoUtils() {
 		//static only
 	}
 

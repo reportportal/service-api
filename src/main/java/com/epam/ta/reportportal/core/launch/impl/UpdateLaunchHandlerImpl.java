@@ -39,7 +39,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ItemUtils;
+import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
@@ -174,24 +174,24 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		);
 
 		List<Launch> launches = launchRepository.findAllById(bulkUpdateRq.getIds());
-		launches.forEach(it -> ItemUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+		launches.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
 				.ifPresent(it::setDescription));
 
 		bulkUpdateRq.getAttributes().forEach(it -> {
 			switch (it.getAction()) {
 				case DELETE: {
 					launches.forEach(launch -> {
-						ItemAttribute toDelete = ItemUtils.findAttributeByResource(launch.getAttributes(), it.getFrom());
+						ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(launch.getAttributes(), it.getFrom());
 						launch.getAttributes().remove(toDelete);
 					});
 					break;
 				}
 				case UPDATE: {
-					launches.forEach(launch -> ItemUtils.updateAttribute(launch.getAttributes(), it));
+					launches.forEach(launch -> ItemInfoUtils.updateAttribute(launch.getAttributes(), it));
 					break;
 				}
 				case CREATE: {
-					launches.stream().filter(launch -> ItemUtils.containsAttribute(launch.getAttributes(), it.getTo())).forEach(launch -> {
+					launches.stream().filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo())).forEach(launch -> {
 						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
 						itemAttribute.setLaunch(launch);
 						launch.getAttributes().add(itemAttribute);

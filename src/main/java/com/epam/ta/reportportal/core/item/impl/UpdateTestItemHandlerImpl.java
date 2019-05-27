@@ -40,7 +40,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.util.ItemUtils;
+import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
@@ -299,23 +299,23 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		);
 
 		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
-		items.forEach(it -> ItemUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription()).ifPresent(it::setDescription));
+		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription()).ifPresent(it::setDescription));
 
 		bulkUpdateRq.getAttributes().forEach(it -> {
 			switch (it.getAction()) {
 				case DELETE: {
 					items.forEach(item -> {
-						ItemAttribute toDelete = ItemUtils.findAttributeByResource(item.getAttributes(), it.getFrom());
+						ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(item.getAttributes(), it.getFrom());
 						item.getAttributes().remove(toDelete);
 					});
 					break;
 				}
 				case UPDATE: {
-					items.forEach(item -> ItemUtils.updateAttribute(item.getAttributes(), it));
+					items.forEach(item -> ItemInfoUtils.updateAttribute(item.getAttributes(), it));
 					break;
 				}
 				case CREATE: {
-					items.stream().filter(item -> ItemUtils.containsAttribute(item.getAttributes(), it.getTo())).forEach(item -> {
+					items.stream().filter(item -> ItemInfoUtils.containsAttribute(item.getAttributes(), it.getTo())).forEach(item -> {
 						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
 						itemAttribute.setTestItem(item);
 						item.getAttributes().add(itemAttribute);

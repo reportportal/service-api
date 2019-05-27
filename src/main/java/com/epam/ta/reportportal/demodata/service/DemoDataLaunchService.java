@@ -80,7 +80,7 @@ public class DemoDataLaunchService {
 	@Transactional
 	public void finishLaunch(String launchId) {
 		Launch launch = launchRepository.findByUuid(launchId)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
 			testItemRepository.interruptInProgressItems(launch.getId());

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -39,10 +40,13 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
@@ -286,6 +290,42 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					.get();
 			issueEntityRepository.save(issueEntity);
 		});
+	}
+
+	@Override
+	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
+		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
+				projectDetails.getProjectId()
+		);
+
+		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
+		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription()).ifPresent(it::setDescription));
+
+		bulkUpdateRq.getAttributes().forEach(it -> {
+			switch (it.getAction()) {
+				case DELETE: {
+					items.forEach(item -> {
+						ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(item.getAttributes(), it.getFrom());
+						item.getAttributes().remove(toDelete);
+					});
+					break;
+				}
+				case UPDATE: {
+					items.forEach(item -> ItemInfoUtils.updateAttribute(item.getAttributes(), it));
+					break;
+				}
+				case CREATE: {
+					items.stream().filter(item -> ItemInfoUtils.containsAttribute(item.getAttributes(), it.getTo())).forEach(item -> {
+						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+						itemAttribute.setTestItem(item);
+						item.getAttributes().add(itemAttribute);
+					});
+					break;
+				}
+			}
+		});
+
+		return new OperationCompletionRS("Attributes successfully updated");
 	}
 
 	/**

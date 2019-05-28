@@ -10,10 +10,10 @@
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$total",
-        "statistics$defects$automation_bug$total",
-        "statistics$defects$system_issue$total",
-        "statistics$defects$to_investigate$total"
+        "statistics$defects$product_bug$pb001",
+        "statistics$defects$automation_bug$ab001",
+        "statistics$defects$system_issue$si001",
+        "statistics$defects$to_investigate$ti001"
       ],
       "widgetOptions": {
         "timeline": "launch",
@@ -77,10 +77,10 @@
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$total",
-        "statistics$defects$automation_bug$total",
-        "statistics$defects$system_issue$total",
-        "statistics$defects$to_investigate$total"
+        "statistics$defects$product_bug$pb001",
+        "statistics$defects$automation_bug$ab001",
+        "statistics$defects$system_issue$si001",
+        "statistics$defects$to_investigate$ti001"
       ],
       "widgetOptions": {
         "latest": false,
@@ -112,10 +112,10 @@
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$total",
-        "statistics$defects$automation_bug$total",
-        "statistics$defects$system_issue$total",
-        "statistics$defects$to_investigate$total"
+        "statistics$defects$product_bug$pb001",
+        "statistics$defects$automation_bug$ab001",
+        "statistics$defects$system_issue$si001",
+        "statistics$defects$to_investigate$ti001"
       ],
       "widgetOptions": {
         "latest": false,

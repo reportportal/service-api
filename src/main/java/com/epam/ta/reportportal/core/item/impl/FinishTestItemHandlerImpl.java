@@ -126,53 +126,22 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * When status provided, no matter test item has or not descendants, test
 	 * item status is resolved to provided
 	 *
-	 * @param testItem          Test item id
-	 * @param finishExecutionRQ Finish test item request
-	 * @return TestItemResults object
+	 * @param testItem         {@link TestItem}
+	 * @param finishTestItemRQ {@link FinishTestItemRQ}
+	 * @return TestItemResults {@link TestItemResults}
 	 */
 	private TestItemResults processItemResults(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, TestItem testItem,
-			FinishTestItemRQ finishExecutionRQ, boolean hasChildren) {
+			FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
 
-		verifyTestItem(user, testItem, fromValue(finishExecutionRQ.getStatus()), testItem.isHasChildren());
+		verifyTestItem(user, testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
 
-		TestItemResults testItemResults = ofNullable(testItem.getItemResults()).orElseGet(TestItemResults::new);
-		Optional<StatusEnum> actualStatus = fromValue(finishExecutionRQ.getStatus());
-
+		TestItemResults testItemResults;
 		if (hasChildren) {
-			if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
-				finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishExecutionRQ.getEndTime(), projectDetails);
-				testItemResults.setStatus(resolveStatus(testItem.getItemId()));
-				ItemAttribute itemAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
-				itemAttribute.setTestItem(testItem);
-				testItem.getAttributes().add(itemAttribute);
-			} else {
-				testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
-			}
+			testItemResults = processParentItemResult(testItem, finishTestItemRQ, projectDetails);
 		} else {
-			Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.orElse(INTERRUPTED),
-					testItem,
-					finishExecutionRQ.getIssue(),
-					projectDetails.getProjectId()
-			);
-
-			if (testItemResults.getStatus() == IN_PROGRESS) {
-				testItemResults.setStatus(actualStatus.orElse(INTERRUPTED));
-				resolvedIssue.ifPresent(issue -> {
-					issue.setTestItemResults(testItemResults);
-					issueEntityRepository.save(issue);
-					testItemResults.setIssue(issue);
-				});
-			} else {
-				updateFinishedItem(testItemResults,
-						actualStatus.orElse(INTERRUPTED),
-						resolvedIssue,
-						testItem,
-						user,
-						projectDetails.getProjectId()
-				);
-			}
+			testItemResults = processChildItemResult(testItem, finishTestItemRQ, user, projectDetails);
 		}
-		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishExecutionRQ.getEndTime()));
+		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
 		return testItemResults;
 	}
 
@@ -206,8 +175,65 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		);
 	}
 
+	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ,
+			ReportPortalUser.ProjectDetails projectDetails) {
+
+		TestItemResults testItemResults = testItem.getItemResults();
+		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
+
+		if (testItemRepository.hasChildrenWithStatus(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
+			ItemAttribute itemAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
+			itemAttribute.setTestItem(testItem);
+			testItem.getAttributes().add(itemAttribute);
+
+			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), projectDetails);
+			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
+		} else {
+			testItem.getAttributes()
+					.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
+							&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
+			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
+		}
+
+		return testItemResults;
+	}
+
+	private TestItemResults processChildItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
+		TestItemResults testItemResults = testItem.getItemResults();
+		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
+		Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.orElse(INTERRUPTED),
+				testItem,
+				finishTestItemRQ.getIssue(),
+				projectDetails.getProjectId()
+		);
+
+		if (testItemResults.getStatus() == IN_PROGRESS) {
+			testItemResults.setStatus(actualStatus.orElse(INTERRUPTED));
+			resolvedIssue.ifPresent(issue -> {
+				issue.setTestItemResults(testItemResults);
+				issueEntityRepository.save(issue);
+				testItemResults.setIssue(issue);
+			});
+		} else {
+			updateFinishedItem(testItemResults,
+					actualStatus.orElse(INTERRUPTED),
+					resolvedIssue,
+					testItem,
+					user,
+					projectDetails.getProjectId()
+			);
+		}
+
+		testItem.getAttributes()
+				.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
+						&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
+
+		return testItemResults;
+	}
+
 	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser.ProjectDetails projectDetails) {
-		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
+		if (testItemRepository.hasChildrenWithStatus(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
 			finishHierarchyHandler.finishDescendants(testItem, status, endtime, projectDetails);
 		}
 	}

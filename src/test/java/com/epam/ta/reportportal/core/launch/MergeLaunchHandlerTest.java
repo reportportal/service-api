@@ -106,31 +106,34 @@ public class MergeLaunchHandlerTest extends BaseTest {
 	public void nonFinishedLaunch() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("Unable to perform operation for non-finished launch.");
-		mergeLaunchHandler.mergeLaunches(
-				PROJECT1, USER1, getMergeRequest(ImmutableList.<String>builder().add(IN_PROGRESS_ID).add(MERGE_LAUNCH_1).build()));
+		mergeLaunchHandler.mergeLaunches(PROJECT1,
+				USER1,
+				getMergeRequest(ImmutableList.<String>builder().add(IN_PROGRESS_ID).add(MERGE_LAUNCH_1).build())
+		);
 	}
 
 	@Test
 	public void fromDifferentProjects() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("Impossible to merge launches from different projects.");
-		mergeLaunchHandler.mergeLaunches(
-				PROJECT1, USER1, getMergeRequest(ImmutableList.<String>builder().add(DIFF_PROJECT_LAUNCH_ID).add(MERGE_LAUNCH_1).build()));
+		mergeLaunchHandler.mergeLaunches(PROJECT1,
+				USER1,
+				getMergeRequest(ImmutableList.<String>builder().add(DIFF_PROJECT_LAUNCH_ID).add(MERGE_LAUNCH_1).build())
+		);
 	}
 
 	@Test
 	public void notOwner() {
 		thrown.expect(ReportPortalException.class);
 		thrown.expectMessage("You are not an owner of launches");
-		mergeLaunchHandler.mergeLaunches(
-				PROJECT1, NOT_OWNER, getMergeRequest(ImmutableList.<String>builder().add(MERGE_LAUNCH_1).add(MERGE_LAUNCH_2).build()));
+		mergeLaunchHandler.mergeLaunches(PROJECT1,
+				NOT_OWNER,
+				getMergeRequest(ImmutableList.<String>builder().add(MERGE_LAUNCH_1).add(MERGE_LAUNCH_2).build())
+		);
 	}
 
 	@Test
 	public void mergeItselfLaunch() {
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage("Error in handled Request. Please, check specified parameters:");
-
 		mergeLaunchHandler.mergeLaunches(PROJECT1, USER1, getDeepMergeRequest(ImmutableList.<String>builder().add(MERGE_LAUNCH_2).build()));
 	}
 

@@ -117,7 +117,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		if (attributes != null) {
 			final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
 					.stream()
-					.filter(ItemAttribute::isSystem).collect(Collectors.toSet());
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet());
 			attributes.stream().map(val -> {
 				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 				itemAttribute.setTestItem(testItem);

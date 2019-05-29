@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -237,6 +238,16 @@ public class LaunchController {
 		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), key, value);
 	}
 
+	@Transactional
+	@PutMapping(value = "/info")
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ResponseStatus(OK)
+	@ApiOperation("Bulk update attributes and description")
+	public OperationCompletionRS bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.bulkInfoUpdate(bulkInfoUpdateRQ, extractProjectDetails(user, projectName));
+	}
+
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/owners")
 	@ResponseStatus(OK)
@@ -333,5 +344,4 @@ public class LaunchController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
 	}
-
 }

@@ -53,6 +53,7 @@ public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityRe
 				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), INTERRUPT_JOB_TIME.getAttribute()))
 				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_SCREENSHOTS.getAttribute()))
 				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LOGS.getAttribute()))
+				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LAUNCHES.getAttribute()))
 				.get();
 	}
 }

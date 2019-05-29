@@ -52,7 +52,7 @@ public class XunitParseJob implements Callable<ParseResults> {
 		return new ParseResults(handler.getStartSuiteTime(), handler.getCommonDuration());
 	}
 
-	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, Long launchId, ReportPortalUser user,
+	public XunitParseJob withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user,
 			InputStream xmlInputStream) {
 		this.xmlInputStream = xmlInputStream;
 		this.handler = handler.withParameters(projectDetails, launchId, user);

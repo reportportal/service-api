@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.core.log.ICreateLogHandler;
 import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
 import com.epam.ta.reportportal.core.log.IGetLogHandler;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
@@ -38,7 +37,6 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.MediaType;
@@ -46,21 +44,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolation;
-import javax.validation.Path;
 import javax.validation.Validator;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_TEST_ITEM_ID;
+import static com.epam.ta.reportportal.util.ControllerUtils.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -78,13 +73,16 @@ public class LogController {
 	private final Validator validator;
 
 	@Autowired
-	public LogController(@Autowired @Qualifier("asyncCreateLogHandler") ICreateLogHandler createLogHandler, IDeleteLogHandler deleteLogHandler, IGetLogHandler getLogHandler,
+	public LogController(@Autowired ICreateLogHandler createLogHandler, IDeleteLogHandler deleteLogHandler, IGetLogHandler getLogHandler,
 			Validator validator) {
 		this.createLogHandler = createLogHandler;
 		this.deleteLogHandler = deleteLogHandler;
 		this.getLogHandler = getLogHandler;
 		this.validator = validator;
 	}
+
+
+	/* Report client API */
 
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
@@ -93,7 +91,7 @@ public class LogController {
 	@Transactional
 	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		validateSaveRQ(createLogRQ);
+		validateSaveRQ(validator, createLogRQ);
 		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
 	}
 
@@ -117,7 +115,7 @@ public class LogController {
 		/* Go through all provided save log request items */
 		for (SaveLogRQ createLogRq : createLogRQs) {
 			try {
-				validateSaveRQ(createLogRq);
+				validateSaveRQ(validator, createLogRq);
 				String filename = createLogRq.getFile() == null ? null : createLogRq.getFile().getName();
 				if (StringUtils.isEmpty(filename)) {
 					/*
@@ -147,6 +145,9 @@ public class LogController {
 		}
 		return new ResponseEntity<>(response, CREATED);
 	}
+
+
+	/* Frontend API */
 
 	@RequestMapping(value = "/{logId}", method = RequestMethod.DELETE)
 	@ApiOperation("Delete log")
@@ -183,55 +184,5 @@ public class LogController {
 		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
 	}
 
-	/**
-	 * Tries to find request part or file with specified name in multipart attachments
-	 * map.
-	 *
-	 * @param filename File name
-	 * @param files    Files map
-	 * @return Found file
-	 */
-	private MultipartFile findByFileName(String filename, Map<String, MultipartFile> files) {
-		/* Request part name? */
-		if (files.containsKey(filename)) {
-			return files.get(filename);
-		}
-		/* Filename? */
-		for (MultipartFile file : files.values()) {
-			if (filename.equals(file.getOriginalFilename())) {
-				return file;
-			}
-		}
-		return null;
-	}
 
-	private void validateSaveRQ(SaveLogRQ saveLogRQ) {
-		Set<ConstraintViolation<SaveLogRQ>> constraintViolations = validator.validate(saveLogRQ);
-		if (constraintViolations != null && !constraintViolations.isEmpty()) {
-			StringBuilder messageBuilder = new StringBuilder();
-			for (ConstraintViolation<SaveLogRQ> constraintViolation : constraintViolations) {
-				messageBuilder.append("[");
-				messageBuilder.append("Incorrect value in save log request '");
-				messageBuilder.append(constraintViolation.getInvalidValue());
-				messageBuilder.append("' in field '");
-				Iterator<Path.Node> iterator = constraintViolation.getPropertyPath().iterator();
-				messageBuilder.append(iterator.hasNext() ? iterator.next().getName() : "");
-				messageBuilder.append("'.]");
-			}
-			throw new ReportPortalException(ErrorType.INCORRECT_REQUEST, messageBuilder.toString());
-		}
-	}
-
-	private Map<String, MultipartFile> getUploadedFiles(HttpServletRequest request) {
-		Map<String, MultipartFile> uploadedFiles = new HashMap<>();
-		if (request instanceof MultipartHttpServletRequest) {
-			MultiValueMap<String, MultipartFile> multiFileMap = (((MultipartHttpServletRequest) request)).getMultiFileMap();
-			for (List<MultipartFile> multipartFiles : multiFileMap.values()) {
-				for (MultipartFile file : multipartFiles) {
-					uploadedFiles.put(file.getOriginalFilename(), file);
-				}
-			}
-		}
-		return uploadedFiles;
-	}
 }

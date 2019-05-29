@@ -44,6 +44,7 @@ public final class LogConverter {
 
 		LogResource resource = new LogResource();
 		resource.setId(model.getId());
+		resource.setUuid(model.getUuid());
 		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
 		resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
 
@@ -57,7 +58,7 @@ public final class LogConverter {
 			resource.setBinaryContent(binaryContent);
 		}
 
-		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setTestItem(testItem.getItemId()));
+		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
 		return resource;
 	};

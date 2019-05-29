@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
@@ -53,6 +53,11 @@ import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAUL
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+/**
+ * Controller implementation for
+ * {@link com.epam.ta.reportportal.entity.item.TestItem} entity
+ * <p>
+ */
 @RestController
 @RequestMapping("/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
@@ -77,24 +82,16 @@ public class TestItemController {
 		this.testItemsHistoryHandler = testItemsHistoryHandler;
 	}
 
+	/* Report client API */
+
 	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
-	}
-
-	@Transactional(readOnly = true)
-	@GetMapping("/{itemId}")
-	@ResponseStatus(OK)
-	@ApiOperation("Find test item by ID")
-	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long itemId) {
-		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
-
 	}
 
 	@Transactional
@@ -102,8 +99,8 @@ public class TestItemController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
@@ -113,8 +110,21 @@ public class TestItemController {
 	@ApiOperation("Finish test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
+			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
 		return finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
+	}
+
+
+	/* Frontend API */
+
+	@Transactional(readOnly = true)
+	@GetMapping("/{itemId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by ID")
+	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long itemId) {
+		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
+
 	}
 
 	//TODO check pre-defined filter
@@ -173,6 +183,15 @@ public class TestItemController {
 	}
 
 	@Transactional(readOnly = true)
+	@GetMapping("/ticket/ids")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute keys of specified launch")
+	public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectName,
+			@RequestParam(value = "launch") Long id, @RequestParam(value = "term") String term) {
+		return getTestItemHandler.getTicketIds(id, normalizeId(term));
+	}
+
+	@Transactional(readOnly = true)
 	@GetMapping("/attribute/keys")
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute keys of specified launch")
@@ -191,6 +210,16 @@ public class TestItemController {
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE) String value) {
 		return getTestItemHandler.getAttributeValues(id, key, value);
+	}
+
+	@Transactional
+	@PutMapping(value = "/info")
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ResponseStatus(OK)
+	@ApiOperation("Bulk update attributes and description")
+	public OperationCompletionRS bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateTestItemHandler.bulkInfoUpdate(bulkInfoUpdateRQ, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional

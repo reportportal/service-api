@@ -37,10 +37,12 @@ public interface GetProjectHandler {
 	/**
 	 * Get project users info
 	 *
-	 * @param projectDetails Project details
+	 * @param projectName {@link com.epam.ta.reportportal.entity.project.Project#name}
+	 * @param filter      {@link Filter}
+	 * @param pageable    {@link Pageable}
 	 * @return list of {@link UserResource}
 	 */
-	Iterable<UserResource> getProjectUsers(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
+	Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable);
 
 	/**
 	 * Get project resource information

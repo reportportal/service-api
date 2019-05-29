@@ -3,7 +3,8 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
@@ -63,7 +64,7 @@ class LaunchBuilderTest {
 		request.setName(name);
 		final LocalDateTime now = LocalDateTime.now();
 		request.setStartTime(Date.from(now.atZone(ZoneId.of("UTC")).toInstant()));
-		request.setAttributes(Sets.newHashSet(new ItemAttributeResource("key", "value")));
+		request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
 		final Launch launch = new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes()).get();
 

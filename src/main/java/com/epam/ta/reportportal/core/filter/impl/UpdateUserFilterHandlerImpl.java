@@ -22,11 +22,12 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
 import com.epam.ta.reportportal.commons.querygen.FilterTarget;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.FilterCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
-import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -39,10 +40,12 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -56,18 +59,15 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 @Service
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
-	private final GetUserFilterHandler getUserFilterHandler;
-
+	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final UserFilterRepository userFilterRepository;
-
 	private final ShareableObjectsHandler aclHandler;
-
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(GetUserFilterHandler getUserFilterHandler, UserFilterRepository userFilterRepository,
-			ShareableObjectsHandler aclHandler, MessageBus messageBus) {
-		this.getUserFilterHandler = getUserFilterHandler;
+	public UpdateUserFilterHandlerImpl(GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+			UserFilterRepository userFilterRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
 		this.aclHandler = aclHandler;
 		this.messageBus = messageBus;
@@ -82,8 +82,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse)
-				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
+		), BooleanUtils::isFalse).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())
@@ -100,7 +99,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	public OperationCompletionRS updateUserFilter(Long userFilterId, UpdateUserFilterRQ updateRQ,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		validateFilterRq(updateRQ);
-		UserFilter userFilter = getUserFilterHandler.getFilter(userFilterId, projectDetails, user);
+		UserFilter userFilter = getShareableEntityHandler.getAdministrated(userFilterId, projectDetails);
 		expect(userFilter.getProject().getId(), Predicate.isEqual(projectDetails.getProjectId())).verify(USER_FILTER_NOT_FOUND,
 				userFilterId,
 				projectDetails.getProjectId(),
@@ -141,6 +140,19 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
+	@Override
+	public void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared) {
+		List<UserFilter> filtersToSave = Lists.newArrayListWithCapacity(filters.size());
+		filters.forEach(filter -> {
+			if (filter.isShared() != isShared) {
+				filter.setShared(isShared);
+				aclHandler.updateAcl(filter, projectId, filter.isShared());
+				filtersToSave.add(filter);
+			}
+		});
+		userFilterRepository.saveAll(filtersToSave);
+	}
+
 	/**
 	 * Validation of update filter rq
 	 *
@@ -162,7 +174,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 			CriteriaHolder criteriaHolder = filterTarget.getCriteriaByFilter(c.getFilteringField())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-							"Unable to find filtering field '" + c.getFilteringField() + "'"
+							Suppliers.formattedSupplier("Filter parameter '{}' is not defined", c.getFilteringField()).get()
 					));
 
 			Condition condition = Condition.findByMarker(c.getCondition())

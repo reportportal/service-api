@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.SHARE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,10 +66,10 @@ class ActivityDetailsUtilTest {
 
 	@Test
 	void processShared() {
-		final Optional<HistoryField> historyField = ActivityDetailsUtil.processShared(false, true);
+		final Optional<HistoryField> historyField = ActivityDetailsUtil.processBoolean(SHARE, false, true);
 		assertTrue(historyField.isPresent());
 		assertThat(historyField.get()).isEqualToIgnoringGivenFields(getExpected("share"), "mapper");
-		final Optional<HistoryField> sameValue = ActivityDetailsUtil.processShared(false, false);
+		final Optional<HistoryField> sameValue = ActivityDetailsUtil.processBoolean(SHARE, false, false);
 		assertFalse(sameValue.isPresent());
 	}
 

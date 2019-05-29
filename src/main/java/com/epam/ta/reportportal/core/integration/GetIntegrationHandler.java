@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,11 +30,11 @@ import java.util.Optional;
 public interface GetIntegrationHandler {
 
 	/**
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param integrationId Integration id
+	 * @param projectName   Project name
 	 * @return {@link IntegrationResource}
 	 */
-	IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	IntegrationResource getProjectIntegrationById(Long integrationId, String projectName);
 
 	IntegrationResource getGlobalIntegrationById(Long integrationId);
 
@@ -48,7 +48,30 @@ public interface GetIntegrationHandler {
 
 	List<IntegrationResource> getGlobalIntegrations(String pluginName);
 
-	List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails);
+	/**
+	 * Get project integrations
+	 *
+	 * @param projectName Project nam
+	 * @return List of integrations
+	 */
+	List<IntegrationResource> getProjectIntegrations(String projectName);
 
-	List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails);
+	/**
+	 * Get project integrations with plugin
+	 *
+	 * @param pluginName  Plugin name
+	 * @param projectName Project nam
+	 * @return List of integrations
+	 */
+	List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName);
+
+	/**
+	 * Test integration connection. Firstly tries to find a project integration.
+	 * If doesn't exist it tries to find Global integration
+	 *
+	 * @param integrationId Integration id
+	 * @param projectName   Project name
+	 * @return True if a connection is established
+	 */
+	boolean testConnection(Long integrationId, String projectName);
 }

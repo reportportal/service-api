@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,21 @@ public interface DeleteProjectSettingsHandler {
 	/**
 	 * Remove specified issue sub-type for specified project
 	 *
-	 * @param projectDetails
-	 * @param user
-	 * @param id
+	 * @param projectName Project name
+	 * @param user        User
+	 * @param id          Issue id
 	 * @return OperationCompletionRS
 	 */
-	OperationCompletionRS deleteProjectIssueSubType(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long id);
+	OperationCompletionRS deleteProjectIssueSubType(String projectName, ReportPortalUser user, Long id);
+
+	/**
+	 * Delete {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate} by ID and project ID
+	 *
+	 * @param projectName {@link com.epam.ta.reportportal.entity.project.Project#name}
+	 * @param user        {@link ReportPortalUser}
+	 * @param id          {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#id}
+	 * @return {@link OperationCompletionRS}
+	 */
+	OperationCompletionRS deletePatternTemplate(String projectName, ReportPortalUser user, Long id);
+
 }

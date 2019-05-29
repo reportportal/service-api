@@ -3,6 +3,6 @@ server:
 
 rp:
   db:
-    url: jdbc:postgresql://postgresql:5432/reportportal?user=rpuser&password=rppass
+    host: postgres
   amqp:
-    url: amqp://guest:guest@rabbitmq:5672
+    host: rabbitmq

@@ -36,7 +36,6 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
 
-//apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -99,9 +98,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-model:4.0.0'
         compile 'com.epam.reportportal:commons:3.1.0'
     } else {
-        compile 'com.github.reportportal:commons-dao:6ebab51'
-        compile 'com.github.reportportal:commons-rules:574fb3a'
-        compile 'com.github.reportportal:commons-model:5e2f1321'
+        compile 'com.github.reportportal:commons-dao:f5cf9085'
+        compile 'com.github.reportportal:commons-rules:2250f5b'
+        compile 'com.github.reportportal:commons-model:1d72a05'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }

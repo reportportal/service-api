@@ -11,9 +11,13 @@ rp:
     api-address: http://rabbitmq:rabbitmq@localhost:15672/api
   db:
     url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
+  plugins:
+    path: /Users/pavel_bortnik/IdeaProjects/service-api/plugins
+  binarystore:
+    path: /Users/pavel_bortnik/IdeaProjects/service-api/data/storage
 
 logging:
   level:
     org:
       hibernate:
-        SQL: debug
+        SQL: info

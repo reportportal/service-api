@@ -26,9 +26,10 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -60,6 +62,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
+		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 		testItem.setHasStats(rq.isHasStats());
 
 		TestItemResults testItemResults = new TestItemResults();
@@ -101,7 +104,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addAttributes(Set<ItemAttributeResource> attributes) {
+	public TestItemBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
 		ofNullable(attributes).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
 			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 			itemAttribute.setTestItem(testItem);
@@ -114,7 +117,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		if (attributes != null) {
 			final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
 					.stream()
-					.filter(ItemAttribute::isSystem).collect(Collectors.toSet());
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet());
 			attributes.stream().map(val -> {
 				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 				itemAttribute.setTestItem(testItem);

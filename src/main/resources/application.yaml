@@ -1,9 +1,7 @@
-hibernate:
-  generate_statistics: true
-
 info:
   build:
     version: ${rp.api.version:5.0}
+
 spring:
   application:
     name: api
@@ -17,6 +15,7 @@ spring:
       org.quartz.jobStore.clusterCheckinInterval: "180000"
       org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
       org.quartz.scheduler.instanceName: reportportal
+
   jpa:
     properties:
       hibernate:
@@ -28,15 +27,13 @@ spring:
 
   rabbitmq:
     addresses: ${rp.amqp.addresses}
+
 logging:
   level:
-    #    org.springframework.context.support: warn
-    #    com.novemberain.quartz : debug
-    org.springframework.security: debug
-    #    com.epam.ta.reportportal.exception.ReportPortalException: fatal
+    org.hibernate: info
+    org.hibernate.stat: info
+    org.springframework.security: info
     org.springframework.web.bind: fatal
-    #    com.epam.ta.reportportal.commons.exception.rest: fatal
-    #    org.jooq.tools.LoggerListener: debug
     root: info
 
 
@@ -53,18 +50,20 @@ rp:
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
-
     host: rabbitmq
     port: 5672
     user: rabbitmq
     pass: rabbitmq
-
     apiport: 15672
     apiuser: rabbitmq
     apipass: rabbitmq
 
   jwt:
     signing-key: 123
+
+  header:
+    cache:
+      photo: 86400
 
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

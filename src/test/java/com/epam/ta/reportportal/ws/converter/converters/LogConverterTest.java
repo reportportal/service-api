@@ -40,10 +40,11 @@ class LogConverterTest {
 		final LogResource resource = LogConverter.TO_RESOURCE.apply(log);
 
 		assertEquals(resource.getId(), log.getId());
+		assertEquals(resource.getUuid(), log.getUuid());
 		assertEquals(resource.getMessage(), log.getLogMessage());
 		assertEquals(resource.getLevel(), LogLevel.toLevel(log.getLogLevel()).toString());
 		assertEquals(resource.getLogTime(), Date.from(log.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
-		assertEquals(resource.getTestItem(), log.getTestItem().getItemId());
+		assertEquals(resource.getItemId(), log.getTestItem().getItemId());
 
 		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
 
@@ -66,6 +67,7 @@ class LogConverterTest {
 		log.setAttachment(attachment);
 		log.setLogTime(LocalDateTime.now());
 		log.setId(2L);
+		log.setUuid("uuid");
 		log.setLastModified(LocalDateTime.now());
 		return log;
 	}

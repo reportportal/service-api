@@ -38,14 +38,12 @@ class WidgetBuilderTest {
 		contentParameters.setWidgetOptions(widgetOptions);
 		widgetRQ.setContentParameters(contentParameters);
 		final String owner = "owner";
-		final long projectId = 1L;
 		final UserFilter userFilter = new UserFilter();
 		userFilter.setId(1L);
 
 		final Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ)
 				.addFilters(Collections.singletonList(userFilter))
 				.addOwner(owner)
-				.addProject(projectId)
 				.get();
 
 		assertEquals(name, widget.getName());

@@ -79,7 +79,7 @@ public class DefectTypeDeletedHandler {
 			).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
 			List<Long> launches = launchRepository.findLaunchIdsByProjectId(event.getProjectId());
-			logIndexer.indexLogs(event.getProjectId(), launches, getAnalyzerConfig(project));
+			logIndexer.indexLaunchesLogs(event.getProjectId(), launches, getAnalyzerConfig(project));
 		}
 	}
 

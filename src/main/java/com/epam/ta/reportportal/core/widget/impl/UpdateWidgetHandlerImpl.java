@@ -25,7 +25,8 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
-import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
+import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -45,12 +46,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -58,40 +61,37 @@ import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.T
 @Service
 public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
+	private final UpdateUserFilterHandler updateUserFilterHandler;
 	private final WidgetRepository widgetRepository;
-
 	private final UserFilterRepository filterRepository;
-
 	private final MessageBus messageBus;
-
 	private final ObjectMapper objectMapper;
-
-	private final GetWidgetHandler getWidgetHandler;
-
+	private final GetShareableEntityHandler<Widget> getShareableEntityHandler;
 	private final ShareableObjectsHandler aclHandler;
 
 	@Autowired
-	public UpdateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
-			ObjectMapper objectMapper, GetWidgetHandler getWidgetHandler, ShareableObjectsHandler aclHandler) {
+	public UpdateWidgetHandlerImpl(UpdateUserFilterHandler updateUserFilterHandler, WidgetRepository widgetRepository,
+			UserFilterRepository filterRepository, MessageBus messageBus, ObjectMapper objectMapper,
+			GetShareableEntityHandler<Widget> getShareableEntityHandler, ShareableObjectsHandler aclHandler) {
+		this.updateUserFilterHandler = updateUserFilterHandler;
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.objectMapper = objectMapper;
-		this.getWidgetHandler = getWidgetHandler;
+		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.aclHandler = aclHandler;
 	}
 
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		Widget widget = getWidgetHandler.getAdministrated(widgetId, projectDetails);
+		Widget widget = getShareableEntityHandler.getAdministrated(widgetId, projectDetails);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
 					user.getUsername(),
 					projectDetails.getProjectId()
-			), BooleanUtils::isFalse)
-					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
+			), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
 		}
 
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
@@ -104,14 +104,38 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
 		if (before.isShared() != widget.isShared()) {
 			aclHandler.updateAcl(widget, projectDetails.getProjectId(), widget.isShared());
+			if (widget.isShared()) {
+				ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
+						projectDetails.getProjectId(),
+						true
+				));
+			}
 		}
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(widget),
 				widgetOptionsBefore,
-				parseWidgetOptions(widget), user.getUserId(), user.getUsername()
+				parseWidgetOptions(widget),
+				user.getUserId(),
+				user.getUsername()
 		));
 		return new OperationCompletionRS("Widget with ID = '" + widget.getId() + "' successfully updated.");
+	}
+
+	@Override
+	public void updateSharing(Collection<Widget> widgets, Long projectId, boolean isShared) {
+		widgets.forEach(widget -> {
+			if (isShared != widget.isShared()) {
+				widget.setShared(isShared);
+				aclHandler.updateAcl(widget, projectId, widget.isShared());
+				if (widget.isShared()) {
+					ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
+							projectId,
+							widget.isShared()
+					));
+				}
+			}
+		});
 	}
 
 	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {

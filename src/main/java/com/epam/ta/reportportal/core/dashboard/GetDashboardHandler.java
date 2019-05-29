@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.dashboard;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
 import org.springframework.data.domain.Pageable;
@@ -29,24 +28,6 @@ import org.springframework.data.domain.Pageable;
  * @author Aliaksei_Makayed
  */
 public interface GetDashboardHandler {
-
-	/**
-	 * Get dashboard on which use have {@link com.epam.ta.reportportal.auth.permissions.AclReadPermission} by id
-	 *
-	 * @param dashboardId    Dashboard id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @return dashboard
-	 */
-	Dashboard getPermitted(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails);
-
-	/**
-	 * Get dashboard on which use have {@link com.epam.ta.reportportal.auth.permissions.AclFullPermission} by id
-	 *
-	 * @param dashboardId    Dashboard id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @return dashboard
-	 */
-	Dashboard getAdministrated(Long dashboardId, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Get permitted projects for concrete user for concrete project

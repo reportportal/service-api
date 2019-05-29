@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.integration.util.validator.IntegrationValidator;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -34,9 +35,11 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,14 +51,20 @@ import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConver
 @Service
 public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 
+	private final Map<String, IntegrationService> integrationServiceMapping;
+	private final IntegrationService basicIntegrationService;
 	private final IntegrationRepository integrationRepository;
 	private final IntegrationTypeRepository integrationTypeRepository;
 	private final ProjectRepository projectRepository;
 	private final GetBugTrackingSystemHandler getBugTrackingSystemHandler;
 
 	@Autowired
-	public GetIntegrationHandlerImpl(IntegrationRepository integrationRepository, IntegrationTypeRepository integrationTypeRepository,
-			ProjectRepository projectRepository, GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
+	public GetIntegrationHandlerImpl(@Qualifier("integrationServiceMapping") Map<String, IntegrationService> integrationServiceMapping,
+			@Qualifier("basicIntegrationServiceImpl") IntegrationService integrationService, IntegrationRepository integrationRepository,
+			IntegrationTypeRepository integrationTypeRepository, ProjectRepository projectRepository,
+			GetBugTrackingSystemHandler getBugTrackingSystemHandler) {
+		this.integrationServiceMapping = integrationServiceMapping;
+		this.basicIntegrationService = integrationService;
 		this.integrationRepository = integrationRepository;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.projectRepository = projectRepository;
@@ -63,8 +72,10 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
-	public IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
+	public IntegrationResource getProjectIntegrationById(Long integrationId, String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
 		return TO_INTEGRATION_RESOURCE.apply(integration);
 	}
@@ -150,21 +161,40 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
-	public List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails) {
-		return integrationRepository.findAllByProjectId(projectDetails.getProjectId())
+	public List<IntegrationResource> getProjectIntegrations(String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		return integrationRepository.findAllByProjectId(project.getId()).stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
+		return integrationRepository.findAllByProjectIdAndType(project.getId(), integrationType)
 				.stream()
 				.map(TO_INTEGRATION_RESOURCE)
 				.collect(Collectors.toList());
 	}
 
 	@Override
-	public List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails) {
-		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
-		return integrationRepository.findAllByProjectIdAndType(projectDetails.getProjectId(), integrationType)
-				.stream()
-				.map(TO_INTEGRATION_RESOURCE)
-				.collect(Collectors.toList());
+	public boolean testConnection(Long integrationId, String projectName) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
+
+		Optional<Integration> optionalIntegration = integrationRepository.findByIdAndProjectId(integrationId, project.getId());
+		if (!optionalIntegration.isPresent()) {
+			optionalIntegration = integrationRepository.findGlobalById(integrationId);
+		}
+		BusinessRule.expect(optionalIntegration, Optional::isPresent).verify(ErrorType.INTEGRATION_NOT_FOUND, integrationId);
+		Integration integration = optionalIntegration.get();
+
+		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
+				this.basicIntegrationService
+		);
+		return integrationService.checkConnection(integration);
 	}
 
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
@@ -175,12 +205,10 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	private void validateIntegration(Integration integration) {
-		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName()).get()
 		);
-		BusinessRule.expect(integration, Integration::isEnabled).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(integration, Integration::isEnabled).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
 		);
 	}

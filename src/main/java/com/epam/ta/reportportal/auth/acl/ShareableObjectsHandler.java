@@ -61,9 +61,10 @@ public class ShareableObjectsHandler {
 					.stream()
 					.filter(entry -> !entry.getKey().equalsIgnoreCase(owner))
 					.forEach(entry -> {
-						aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
 						if (entry.getValue().sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 							aclService.addPermissions(object, entry.getKey(), BasePermission.ADMINISTRATION);
+						} else {
+							aclService.addPermissions(object, entry.getKey(), BasePermission.READ);
 						}
 
 					});
@@ -81,9 +82,10 @@ public class ShareableObjectsHandler {
 	public void updateAcl(Object object, Long projectId, boolean isShared) {
 		if (isShared) {
 			userRepository.findUsernamesWithProjectRolesByProjectId(projectId).forEach((username, projectRole) -> {
-				aclService.addPermissions(object, username, BasePermission.READ);
 				if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 					aclService.addPermissions(object, username, BasePermission.ADMINISTRATION);
+				} else {
+					aclService.addPermissions(object, username, BasePermission.READ);
 				}
 
 			});
@@ -109,9 +111,9 @@ public class ShareableObjectsHandler {
 	 * @param projectId Project
 	 * @param userName  Username
 	 */
-	public void permitSharedObjects(Long projectId, String userName, List<Permission> permissions) {
+	public void permitSharedObjects(Long projectId, String userName, Permission permission) {
 		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
-		shareableEntities.forEach(entity -> permissions.forEach(permission -> aclService.addPermissions(entity, userName, permission)));
+		shareableEntities.forEach(entity -> aclService.addPermissions(entity, userName, permission));
 	}
 
 	/**

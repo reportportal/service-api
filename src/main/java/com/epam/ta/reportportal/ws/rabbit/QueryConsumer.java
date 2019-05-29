@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import static com.epam.ta.reportportal.core.configs.RabbitMqConfiguration.QUEUE_QUERY_RQ;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.QUEUE_QUERY_RQ;
 
 @Component
 public class QueryConsumer {

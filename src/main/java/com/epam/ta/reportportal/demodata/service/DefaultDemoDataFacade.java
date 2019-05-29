@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -96,19 +97,19 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
 		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			Long launchId = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
-			generateSuites(suitesStructure, i, launchId, user, projectDetails);
-			demoDataLaunchService.finishLaunch(launchId);
-			return launchId;
+			Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
+			generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
+			demoDataLaunchService.finishLaunch(launch.getUuid());
+			return launch.getId();
 		}).collect(toList());
 	}
 
-	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, Long launchId, ReportPortalUser user,
+	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		suitesStructure.entrySet().stream().limit(i + 1).forEach(suites -> {
-			Long suiteItemId = demoDataTestItemService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
+			String suiteItemId = demoDataTestItemService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
 			suites.getValue().forEach((key, value) -> {
-				Long testItemId = demoDataTestItemService.startTestItem(suiteItemId, launchId, key, TEST, user, projectDetails);
+				String testItemId = demoDataTestItemService.startTestItem(suiteItemId, launchId, key, TEST, user, projectDetails);
 				Optional<StatusEnum> beforeClassStatus = Optional.empty();
 				boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				if (isGenerateClass) {
@@ -121,9 +122,9 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					if (isGenerateBeforeMethod) {
 						generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_METHOD, status());
 					}
-					Long stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
+					String stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
 					StatusEnum status = status();
-					demoLogsService.generateDemoLogs(testItemRepository.findById(stepId).get(), status, projectDetails.getProjectId(), launchId);
+					demoLogsService.generateDemoLogs(testItemRepository.findByUuid(stepId).get(), status, projectDetails.getProjectId(), launchId);
 					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
 						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());
@@ -138,10 +139,10 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 		});
 	}
 
-	private void generateStepItem(Long parentId, Long launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
+	private void generateStepItem(String parentId, String launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
 			TestItemTypeEnum type, StatusEnum status) {
 
-		Long beforeMethodId = demoDataTestItemService.startTestItem(parentId,
+		String beforeMethodId = demoDataTestItemService.startTestItem(parentId,
 				launchId,
 				type.name().toLowerCase(),
 				type,

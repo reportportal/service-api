@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
@@ -49,38 +50,32 @@ public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);
 
-		String authName = BtsProperties.AUTH_TYPE.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"No auth property provided for Rally integration"
-				));
-		AuthType authType = AuthType.findByName(authName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
+		BtsProperties.AUTH_TYPE.getParam(integrationParams).ifPresent(authName -> {
+			AuthType authType = AuthType.findByName(authName)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
 
-		if (AuthType.OAUTH.equals(authType)) {
-			resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
-					BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
-							.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-									"AccessKey value cannot be NULL"
-							))
-			);
-		} else {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					"Unsupported auth type for Rally integration - " + authType.name()
-			);
-		}
+			if (AuthType.OAUTH.equals(authType)) {
+				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
+						BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
+								.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+										"AccessKey value cannot be NULL"
+								))
+				);
+			} else {
+				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Unsupported auth type for Rally integration - " + authType.name()
+				);
+			}
 
-		resultParams.put(BtsProperties.AUTH_TYPE.getName(), authName);
+			resultParams.put(BtsProperties.AUTH_TYPE.getName(), authName);
+		});
 
-		resultParams.put(BtsProperties.PROJECT.getName(),
-				BtsProperties.PROJECT.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-								"RALLY project value cannot be NULL"
-						))
-		);
-		resultParams.put(BtsProperties.URL.getName(),
-				BtsProperties.URL.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "RALLY URL value cannot be NULL"))
-		);
+		BtsProperties.PROJECT.getParam(integrationParams)
+				.ifPresent(btsProject -> resultParams.put(BtsProperties.PROJECT.getName(), btsProject));
+		BtsProperties.URL.getParam(integrationParams).ifPresent(btsProject -> resultParams.put(BtsProperties.URL.getName(), btsProject));
+
+		Optional.ofNullable(integrationParams.get("defectFormFields"))
+				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
 
 		return resultParams;
 	}

@@ -30,8 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -53,14 +53,13 @@ class DeleteProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.deleteProjectIssueSubType(extractProjectDetails(user, "test_project"), user, 1L)
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteProjectIssueSubType(TEST_PROJECT_NAME, user, 1L)
 		);
 
-		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
@@ -68,11 +67,10 @@ class DeleteProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
-		ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.deleteProjectIssueSubType(extractProjectDetails(user, "test_project"), user, 1L)
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteProjectIssueSubType(TEST_PROJECT_NAME, user, 1L)
 		);
 
 		assertEquals("Issue Type '1' not found.", exception.getMessage());

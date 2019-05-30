@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
-import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
-import com.epam.ta.reportportal.core.log.IGetLogHandler;
+import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
@@ -55,20 +53,13 @@ import static org.springframework.http.HttpStatus.CREATED;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogAsyncController {
 
-	private final ICreateLogHandler createLogHandler;
-	private final IDeleteLogHandler deleteLogHandler;
-	private final IGetLogHandler getLogHandler;
+	private final CreateLogHandler createLogHandler;
 	private final Validator validator;
 
-	@Autowired
-	public LogAsyncController(@Autowired @Qualifier("asyncCreateLogHandler") ICreateLogHandler createLogHandler, IDeleteLogHandler deleteLogHandler, IGetLogHandler getLogHandler,
-			Validator validator) {
+	public LogAsyncController(@Autowired @Qualifier("asyncCreateLogHandler") CreateLogHandler createLogHandler, Validator validator) {
 		this.createLogHandler = createLogHandler;
-		this.deleteLogHandler = deleteLogHandler;
-		this.getLogHandler = getLogHandler;
 		this.validator = validator;
 	}
-
 
 	/* Report client API */
 
@@ -114,7 +105,8 @@ public class LogAsyncController {
 				} else {
 					/* Find by request part */
 					MultipartFile data = findByFileName(filename, uploadedFiles);
-					BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+					BusinessRule.expect(data, Predicates.notNull()).verify(
+							ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
 							Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
 					);
 					/*

@@ -80,7 +80,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByLaunchId(launchId));
+		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findItemLogIdsByLaunchId(launchId));
 
 		launchRepository.delete(launch);
 
@@ -110,7 +110,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 		});
 
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findIdsByLaunchIds(toDelete.stream().map(Launch::getId).collect(Collectors.toList()))
+				logRepository.findItemLogIdsByLaunchIds(toDelete.stream().map(Launch::getId).collect(Collectors.toList()))
 		);
 
 		launchRepository.deleteAll(toDelete);

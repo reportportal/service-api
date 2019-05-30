@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> 
 	public BinaryDataMetaInfo get() {
 		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectId, file);
 		return maybeBinaryDataMetaInfo.orElseGet(() -> {
-			LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ", projectId, request.getTestItemId());
+			LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ", projectId, request.getItemId());
 			throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED);
 		});
 	}

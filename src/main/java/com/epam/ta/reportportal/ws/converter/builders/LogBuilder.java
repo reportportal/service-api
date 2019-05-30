@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
@@ -46,6 +47,11 @@ public class LogBuilder implements Supplier<Log> {
 
 	public LogBuilder addTestItem(TestItem testItem) {
 		log.setTestItem(testItem);
+		return this;
+	}
+
+	public LogBuilder addLaunch(Launch launch) {
+		log.setLaunch(launch);
 		return this;
 	}
 

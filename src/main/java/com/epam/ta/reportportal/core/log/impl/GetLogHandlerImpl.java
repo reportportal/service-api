@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,10 +18,8 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.log.IGetLogHandler;
+import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -36,6 +34,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LOG_NOT_FOUND;
+import static java.util.Optional.ofNullable;
 
 /**
  * Implementation of GET log operations
@@ -44,20 +43,18 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LOG_NOT_FOUND;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLogHandler implements IGetLogHandler {
+public class GetLogHandlerImpl implements GetLogHandler {
 
 	private final LogRepository logRepository;
 
-	public GetLogHandler(LogRepository logRepository) {
+	public GetLogHandlerImpl(LogRepository logRepository) {
 		this.logRepository = logRepository;
 	}
 
 	@Override
-	public Iterable<LogResource> getLogs(Long testStepId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
-			Pageable pageable) {
-
-		Page<Log> logs = logRepository.findByFilter(filterable, pageable);
-		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logs);
+	public Iterable<LogResource> getLogs(ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
+		Page<Log> logPage = logRepository.findByFilter(filterable, pageable);
+		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logPage);
 	}
 
 	@Override
@@ -67,10 +64,7 @@ public class GetLogHandler implements IGetLogHandler {
 
 	@Override
 	public LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-
-		Log log = findAndValidate(logId, projectDetails, user);
-
-		return LogConverter.TO_RESOURCE.apply(log);
+		return LogConverter.TO_RESOURCE.apply(findAndValidate(logId, projectDetails, user));
 	}
 
 	/**
@@ -82,13 +76,13 @@ public class GetLogHandler implements IGetLogHandler {
 	 * @return Log - validate Log item in accordance with specified ID
 	 */
 	private Log findAndValidate(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-
 		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 
-		final TestItem testItem = log.getTestItem();
-		Launch launch = testItem.getLaunch();
+		Long launchProjectId = ofNullable(log.getTestItem()).map(it -> it.getLaunch().getProjectId())
+				.orElseGet(() -> log.getLaunch().getProjectId());
 
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+		expect(launchProjectId, equalTo(projectDetails.getProjectId())).verify(
+				FORBIDDEN_OPERATION,
 				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
 		);
 

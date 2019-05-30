@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,9 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +33,7 @@ import java.util.Optional;
  * Save binary data task. Expected to be executed asynchronously. Statefull, so
  * cannot be a singleton bean. Saves binary data, then updates related log entry
  * with saved data id
- *
+ * <p>
  * NOTE: run asynchronously in sense of run in Executor. This class is not used with RabbitMQ.
  * It is original implementation for synchronous LogController
  *
@@ -48,10 +44,7 @@ public class SaveLogBinaryDataTask implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SaveLogBinaryDataTask.class);
 
 	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private AttachmentRepository attachmentRepository;
+	private CreateAttachmentHandler createAttachmentHandler;
 
 	@Autowired
 	private DataStoreService dataStoreService;
@@ -78,8 +71,6 @@ public class SaveLogBinaryDataTask implements Runnable {
 
 		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
 			try {
-				Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
-
 				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
 						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
 						.withContentType(file.getContentType())
@@ -88,11 +79,7 @@ public class SaveLogBinaryDataTask implements Runnable {
 						.withItemId(itemId)
 						.get();
 
-				attachmentRepository.save(attachment);
-
-				log.setAttachment(attachment);
-
-				logRepository.save(log);
+				createAttachmentHandler.create(attachment, logId);
 			} catch (Exception exception) {
 
 				LOGGER.error("Cannot save log to database, remove files ", exception);
@@ -123,7 +110,7 @@ public class SaveLogBinaryDataTask implements Runnable {
 	}
 
 	public SaveLogBinaryDataTask withItemId(Long itemId) {
-		Preconditions.checkNotNull(itemId, "Item id shouldn't be null");
+		//		Preconditions.checkNotNull(itemId, "Item id shouldn't be null");
 		this.itemId = itemId;
 		return this;
 	}

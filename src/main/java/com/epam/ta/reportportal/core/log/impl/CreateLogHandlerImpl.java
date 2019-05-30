@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.TestItemService;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
+import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -38,6 +38,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
+import java.util.Optional;
+import java.util.function.Predicate;
+
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -47,7 +51,7 @@ import javax.inject.Provider;
  */
 @Service
 @Primary
-public class CreateLogHandler implements ICreateLogHandler {
+public class CreateLogHandlerImpl implements CreateLogHandler {
 
 	@Autowired
 	TestItemRepository testItemRepository;
@@ -78,30 +82,35 @@ public class CreateLogHandler implements ICreateLogHandler {
 	@Nonnull
 	//TODO check saving an attachment of the item of the project A in the project's B directory
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
+		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
+		Optional<Launch> launchOptional = launchRepository.findByUuid(request.getItemId());
 
-		TestItem testItem = testItemRepository.findByUuid(request.getTestItemId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, request.getTestItemId()));
+		expect(itemOptional.isPresent() ^ launchOptional.isPresent(), Predicate.isEqual(true)).verify(ErrorType.TEST_ITEM_NOT_FOUND,
+				request.getItemId()
+		);
 
 		validate(request);
 
-		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(testItem).get();
+		LogBuilder logBuilder = new LogBuilder().addSaveLogRq(request);
+		itemOptional.ifPresent(logBuilder::addTestItem);
+		launchOptional.ifPresent(logBuilder::addLaunch);
+		Log log = logBuilder.get();
 		logRepository.save(log);
 
 		if (null != file) {
 
-			Long launchId = testItemService.getEffectiveLaunch(testItem).getId();
+			Long launchId = itemOptional.map(it -> testItemService.getEffectiveLaunch(it).getId())
+					.orElseGet(() -> launchOptional.get().getId());
 
 			taskExecutor.execute(saveLogBinaryDataTask.get()
 					.withFile(file)
 					.withProjectId(projectDetails.getProjectId())
-					.withLaunchId(launchId)
-					.withItemId(testItem.getItemId())
+					.withLaunchId(launchId).withItemId(itemOptional.map(TestItem::getItemId).orElse(null))
 					.withLogId(log.getId()));
 
 		}
 
 		return new EntryCreatedAsyncRS(log.getId());
 	}
-
 
 }

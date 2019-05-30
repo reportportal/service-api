@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
+import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -87,13 +88,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final LogRepository logRepository;
 
+	private final ChangeStatusHandler changeStatusHandler;
+
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, ApplicationEventPublisher eventPublisher) {
+			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -101,6 +104,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 		this.issueEntityRepository = issueEntityRepository;
 		this.logRepository = logRepository;
+		this.changeStatusHandler = changeStatusHandler;
 		this.eventPublisher = eventPublisher;
 	}
 
@@ -133,38 +137,44 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private TestItemResults processItemResults(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, TestItem testItem,
 			FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
 
-		verifyTestItem(user, testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
+		Launch launch = retrieveLaunch(testItem);
+
+		verifyTestItem(launch, user, testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
 
 		TestItemResults testItemResults;
 		if (hasChildren) {
-			testItemResults = processParentItemResult(testItem, finishTestItemRQ, projectDetails);
+			testItemResults = processParentItemResult(testItem, finishTestItemRQ, launch, user, projectDetails);
 		} else {
-			testItemResults = processChildItemResult(testItem, finishTestItemRQ, user, projectDetails);
+			testItemResults = processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
 		return testItemResults;
 	}
 
+	private Launch retrieveLaunch(TestItem testItem) {
+		return ofNullable(testItem.getRetryOf()).map(retryParentId -> {
+			TestItem retryParent = testItemRepository.findById(retryParentId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+
+			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+		})
+				.orElseGet(() -> ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND))));
+	}
+
 	/**
 	 * Validation procedure for specified test item
 	 *
+	 * @param launch       {@link Launch}
 	 * @param user         Report portal user
 	 * @param testItem     Test item
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		Launch launch;
-		if (ofNullable(testItem.getRetryOf()).isPresent()) {
-			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+	private void verifyTestItem(Launch launch, ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
+			boolean hasChildren) {
 
-			launch = ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
-		} else {
-			launch = ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
-		}
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
 		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
@@ -175,18 +185,18 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		);
 	}
 
-	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ,
-			ReportPortalUser.ProjectDetails projectDetails) {
+	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, Launch launch,
+			ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
 		TestItemResults testItemResults = testItem.getItemResults();
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
-		if (testItemRepository.hasChildrenWithStatus(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
+		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
 			ItemAttribute itemAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
 			itemAttribute.setTestItem(testItem);
 			testItem.getAttributes().add(itemAttribute);
 
-			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), projectDetails);
+			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
 			testItem.getAttributes()
@@ -195,11 +205,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
 		}
 
+		changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
+		changeStatusHandler.changeLaunchStatus(launch);
+
 		return testItemResults;
 	}
 
 	private TestItemResults processChildItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
+			ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
 		TestItemResults testItemResults = testItem.getItemResults();
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 		Optional<IssueEntity> resolvedIssue = resolveIssue(actualStatus.orElse(INTERRUPTED),
@@ -215,6 +228,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				issueEntityRepository.save(issue);
 				testItemResults.setIssue(issue);
 			});
+			changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
+			changeStatusHandler.changeLaunchStatus(launch);
 		} else {
 			updateFinishedItem(testItemResults,
 					actualStatus.orElse(INTERRUPTED),
@@ -232,9 +247,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItemResults;
 	}
 
-	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser.ProjectDetails projectDetails) {
-		if (testItemRepository.hasChildrenWithStatus(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
-			finishHierarchyHandler.finishDescendants(testItem, status, endtime, projectDetails);
+	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
+		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
+			finishHierarchyHandler.finishDescendants(testItem, status, endtime, user, projectDetails);
 		}
 	}
 

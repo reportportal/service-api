@@ -22,7 +22,9 @@ package com.epam.ta.reportportal.core.events.activity.util;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.google.common.base.Strings;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ActivityDetailsUtil {
 
@@ -73,5 +75,28 @@ public class ActivityDetailsUtil {
 			return Optional.of(HistoryField.of(type, String.valueOf(previous), String.valueOf(current)));
 		}
 		return Optional.empty();
+	}
+
+	public static Optional<HistoryField> processParameter(Map<String, String> oldConfig, Map<String, String> newConfig,
+			String parameterName) {
+		String before = oldConfig.get(parameterName);
+		String after = newConfig.get(parameterName);
+		if (after != null && !after.equals(before)) {
+			return Optional.of(HistoryField.of(parameterName, before, after));
+		}
+		return Optional.empty();
+	}
+
+	public static boolean configEquals(Map<String, String> before, Map<String, String> after, String prefix) {
+		Map<String, String> beforeJobConfig = extractConfigByPrefix(before, prefix);
+		Map<String, String> afterJobConfig = extractConfigByPrefix(after, prefix);
+		return beforeJobConfig.equals(afterJobConfig);
+	}
+
+	private static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
+		return config.entrySet()
+				.stream()
+				.filter(entry -> entry.getKey().startsWith(prefix))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 }

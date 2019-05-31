@@ -30,11 +30,11 @@ import java.util.Optional;
 public interface GetIntegrationHandler {
 
 	/**
-	 * @param integrationId  Integration id
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param integrationId Integration id
+	 * @param projectName   Project name
 	 * @return {@link IntegrationResource}
 	 */
-	IntegrationResource getProjectIntegrationById(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	IntegrationResource getProjectIntegrationById(Long integrationId, String projectName);
 
 	IntegrationResource getGlobalIntegrationById(Long integrationId);
 
@@ -48,24 +48,30 @@ public interface GetIntegrationHandler {
 
 	List<IntegrationResource> getGlobalIntegrations(String pluginName);
 
-	List<IntegrationResource> getProjectIntegrations(ReportPortalUser.ProjectDetails projectDetails);
-
-	List<IntegrationResource> getProjectIntegrations(String pluginName, ReportPortalUser.ProjectDetails projectDetails);
+	/**
+	 * Get project integrations
+	 *
+	 * @param projectName Project nam
+	 * @return List of integrations
+	 */
+	List<IntegrationResource> getProjectIntegrations(String projectName);
 
 	/**
-	 * Test global integration connection
+	 * Get project integrations with plugin
+	 *
+	 * @param pluginName  Plugin name
+	 * @param projectName Project nam
+	 * @return List of integrations
+	 */
+	List<IntegrationResource> getProjectIntegrations(String pluginName, String projectName);
+
+	/**
+	 * Test integration connection. Firstly tries to find a project integration.
+	 * If doesn't exist it tries to find Global integration
 	 *
 	 * @param integrationId Integration id
+	 * @param projectName   Project name
 	 * @return True if a connection is established
 	 */
-	boolean testConnection(Long integrationId);
-
-	/**
-	 * Test project integration connection
-	 *
-	 * @param integrationId  Integration id
-	 * @param projectDetails Project details
-	 * @return True if a connection is established
-	 */
-	boolean testConnection(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+	boolean testConnection(Long integrationId, String projectName);
 }

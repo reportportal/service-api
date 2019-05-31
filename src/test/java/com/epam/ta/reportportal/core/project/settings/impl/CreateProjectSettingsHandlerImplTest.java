@@ -37,8 +37,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -60,14 +60,13 @@ class CreateProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.createProjectIssueSubType(extractProjectDetails(user, "test_project"), user, new CreateIssueSubTypeRQ())
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, new CreateIssueSubTypeRQ())
 		);
 
-		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
@@ -75,14 +74,13 @@ class CreateProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(new Project()));
 
 		CreateIssueSubTypeRQ createIssueSubTypeRQ = new CreateIssueSubTypeRQ();
 		createIssueSubTypeRQ.setTypeRef("wrongType");
 
-		ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.createProjectIssueSubType(extractProjectDetails(user, "test_project"), user, createIssueSubTypeRQ)
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, createIssueSubTypeRQ)
 		);
 
 		assertEquals("Error in handled Request. Please, check specified parameters: 'wrongType'", exception.getMessage());
@@ -96,14 +94,13 @@ class CreateProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
 		CreateIssueSubTypeRQ createIssueSubTypeRQ = new CreateIssueSubTypeRQ();
 		createIssueSubTypeRQ.setTypeRef("product_bug");
 
-		ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
-				() -> handler.createProjectIssueSubType(extractProjectDetails(user, "test_project"), user, createIssueSubTypeRQ)
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createProjectIssueSubType(TEST_PROJECT_NAME, user, createIssueSubTypeRQ)
 		);
 
 		assertEquals("Incorrect Request. Sub Issues count is bound of size limit", exception.getMessage());

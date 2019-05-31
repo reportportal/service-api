@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.pattern;
 
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.pattern.impl.PatternAnalyzerImpl;
 import com.epam.ta.reportportal.core.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.pattern.selector.impl.StringPartPatternAnalysisSelector;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.*;
 class PatternAnalyzerTest {
 
 	private final PatternAnalysisSelector stringSelector = mock(StringPartPatternAnalysisSelector.class);
+	private final MessageBus messageBus = mock(MessageBus.class);
 
 	private final IssueGroupRepository issueGroupRepository = mock(IssueGroupRepository.class);
 	private final PatternTemplateRepository patternTemplateRepository = mock(PatternTemplateRepository.class);
@@ -55,8 +57,7 @@ class PatternAnalyzerTest {
 	private final Map<PatternTemplateType, PatternAnalysisSelector> analysisSelectorMapping = mock(Map.class);
 	private final PatternAnalyzer patternAnalyzer = new PatternAnalyzerImpl(issueGroupRepository,
 			patternTemplateRepository,
-			analysisSelectorMapping,
-			taskExecutor
+			analysisSelectorMapping, taskExecutor, messageBus
 	);
 
 	@Test

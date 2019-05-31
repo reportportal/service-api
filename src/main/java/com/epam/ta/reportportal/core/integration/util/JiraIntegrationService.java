@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
@@ -67,6 +68,7 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 
 				String encryptedPassword = basicTextEncryptor.encrypt(BtsProperties.PASSWORD.getParam(integrationParams)
 						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Password value cannot be NULL")));
+
 				resultParams.put(BtsProperties.PASSWORD.getName(), encryptedPassword);
 
 			} else if (AuthType.OAUTH.equals(authType)) {
@@ -87,7 +89,10 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 
 		BtsProperties.PROJECT.getParam(integrationParams)
 				.ifPresent(btsProject -> resultParams.put(BtsProperties.PROJECT.getName(), btsProject));
-		BtsProperties.URL.getParam(integrationParams).ifPresent(btsProject -> resultParams.put(BtsProperties.URL.getName(), btsProject));
+		BtsProperties.URL.getParam(integrationParams).ifPresent(url -> resultParams.put(BtsProperties.URL.getName(), url));
+
+		Optional.ofNullable(integrationParams.get("defectFormFields"))
+				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
 
 		return resultParams;
 	}

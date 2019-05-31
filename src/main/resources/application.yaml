@@ -30,8 +30,8 @@ spring:
 
 logging:
   level:
-    org.hibernate: debug
-    org.hibernate.stat: debug
+    org.hibernate: info
+    org.hibernate.stat: info
     org.springframework.security: info
     org.springframework.web.bind: fatal
     root: info
@@ -60,6 +60,10 @@ rp:
 
   jwt:
     signing-key: 123
+
+  header:
+    cache:
+      photo: 86400
 
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

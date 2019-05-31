@@ -72,6 +72,9 @@ class FinishLaunchHandlerImplTest {
 	@InjectMocks
 	private FinishLaunchHandlerImpl handler;
 
+	@InjectMocks
+	private StopLaunchHandlerImpl stopLaunchHandler;
+
 	@Test
 	void finishLaunch() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
@@ -114,9 +117,11 @@ class FinishLaunchHandlerImplTest {
 
 		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final OperationCompletionRS response = handler.stopLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"),
+		final OperationCompletionRS response = stopLaunchHandler.stopLaunch(1L,
+				finishExecutionRQ,
+				extractProjectDetails(rpUser, "test_project"),
 				rpUser
 		);
 		assertNotNull(response);
@@ -128,17 +133,20 @@ class FinishLaunchHandlerImplTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		Map<String, FinishExecutionRQ> entities = new HashMap<>();
-		entities.put("1", finishExecutionRQ);
+		Map<Long, FinishExecutionRQ> entities = new HashMap<>();
+		entities.put(1L, finishExecutionRQ);
 
-		BulkRQ<String, FinishExecutionRQ> bulkRq = new BulkRQ<>();
+		BulkRQ<Long, FinishExecutionRQ> bulkRq = new BulkRQ<>();
 		bulkRq.setEntities(entities);
 
 		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
+		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final List<OperationCompletionRS> response = handler.stopLaunch(bulkRq, extractProjectDetails(rpUser, "test_project"), rpUser);
+		final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(bulkRq,
+				extractProjectDetails(rpUser, "test_project"),
+				rpUser
+		);
 		assertNotNull(response);
 		assertEquals(1, response.size());
 	}
@@ -176,7 +184,7 @@ class FinishLaunchHandlerImplTest {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
-		final ReportPortalUser rpUser = getRpUser("now owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 

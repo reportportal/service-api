@@ -174,7 +174,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 			CriteriaHolder criteriaHolder = filterTarget.getCriteriaByFilter(c.getFilteringField())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-							Suppliers.formattedSupplier("Filter parameter {} is not defined", c.getFilteringField()).get()
+							Suppliers.formattedSupplier("Filter parameter '{}' is not defined", c.getFilteringField()).get()
 					));
 
 			Condition condition = Condition.findByMarker(c.getCondition())

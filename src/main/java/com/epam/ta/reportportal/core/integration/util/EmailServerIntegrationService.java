@@ -16,13 +16,14 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -33,7 +34,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
@@ -43,9 +43,9 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -56,29 +56,15 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private final BasicTextEncryptor basicTextEncryptor;
-	private final MailServiceFactory emailServiceFactory;
+	private BasicTextEncryptor basicTextEncryptor;
 
-	@Autowired
-	public EmailServerIntegrationService(IntegrationRepository integrationRepository, BasicTextEncryptor basicTextEncryptor,
-			MailServiceFactory emailServiceFactory) {
-		super(integrationRepository);
+	private MailServiceFactory emailServiceFactory;
+
+	public EmailServerIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
+			BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
+		super(integrationRepository, pluginBox);
 		this.basicTextEncryptor = basicTextEncryptor;
 		this.emailServiceFactory = emailServiceFactory;
-	}
-
-	@Override
-	public boolean validateGlobalIntegration(Integration integration) {
-		super.validateGlobalIntegration(integration);
-		checkConnection(integration);
-		return true;
-	}
-
-	@Override
-	public boolean validateProjectIntegration(Integration integration, ReportPortalUser.ProjectDetails projectDetails) {
-		super.validateProjectIntegration(integration, projectDetails);
-		checkConnection(integration);
-		return true;
 	}
 
 	@Override
@@ -146,6 +132,24 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
 				);
 			}
+			try {
+				EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams()).ifPresent(authEnabled -> {
+					if (BooleanUtils.toBoolean(authEnabled)) {
+						String sendTo = EmailSettingsEnum.USERNAME.getAttribute(integration.getParams().getParams())
+								.orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+										"Email server username is not specified."
+								));
+						emailService.get().sendConnectionTestEmail(sendTo);
+					}
+				});
+			} catch (Exception ex) {
+				fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+						formattedSupplier("Unable to send connection test email. " + ex.getMessage())
+				);
+			}
+
+		} else {
+			return false;
 		}
 		return true;
 	}

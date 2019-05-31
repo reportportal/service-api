@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.core.project.settings.DeleteProjectSettingsHandler;
@@ -39,7 +38,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -77,7 +76,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Creation of custom project specific issue sub-type")
 	public IssueSubTypeCreatedRS createProjectIssueSubType(@PathVariable String projectName,
 			@RequestBody @Validated CreateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
-		return createHandler.createProjectIssueSubType(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, request);
+		return createHandler.createProjectIssueSubType(normalizeId(projectName), user, request);
 	}
 
 	@PutMapping("/sub-type")
@@ -86,7 +85,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Update of custom project specific issue sub-type")
 	public OperationCompletionRS updateProjectIssueSubType(@PathVariable String projectName,
 			@RequestBody @Validated UpdateIssueSubTypeRQ request, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateHandler.updateProjectIssueSubType(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, request);
+		return updateHandler.updateProjectIssueSubType(normalizeId(projectName), user, request);
 	}
 
 	@DeleteMapping("/sub-type/{id}")
@@ -95,7 +94,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Delete custom project specific issue sub-type")
 	public OperationCompletionRS deleteProjectIssueSubType(@PathVariable String projectName, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteHandler.deleteProjectIssueSubType(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, id);
+		return deleteHandler.deleteProjectIssueSubType(normalizeId(projectName), user, id);
 	}
 
 	@GetMapping
@@ -103,7 +102,7 @@ public class ProjectSettingsController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
 	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getHandler.getProjectSettings(extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+		return getHandler.getProjectSettings(projectName);
 	}
 
 	@PostMapping("/pattern")
@@ -112,7 +111,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Create pattern template for items' log messages pattern analysis")
 	public EntryCreatedRS createPatternTemplate(@PathVariable String projectName,
 			@RequestBody @Validated CreatePatternTemplateRQ createPatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return createHandler.createPatternTemplate(extractProjectDetails(user, projectName), createPatternTemplateRQ);
+		return createHandler.createPatternTemplate(normalizeId(projectName), createPatternTemplateRQ, user);
 	}
 
 	@PutMapping("/pattern/{id}")
@@ -121,7 +120,7 @@ public class ProjectSettingsController {
 	@ApiOperation("Update pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS updatePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
 			@RequestBody @Validated UpdatePatternTemplateRQ updatePatternTemplateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateHandler.updatePatternTemplate(id, extractProjectDetails(user, projectName), updatePatternTemplateRQ);
+		return updateHandler.updatePatternTemplate(id, normalizeId(projectName), updatePatternTemplateRQ, user);
 	}
 
 	@DeleteMapping("/pattern/{id}")
@@ -130,6 +129,6 @@ public class ProjectSettingsController {
 	@ApiOperation("Delete pattern template for items' log messages pattern analysis")
 	public OperationCompletionRS deletePatternTemplate(@PathVariable String projectName, @PathVariable Long id,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteHandler.deletePatternTemplate(extractProjectDetails(user, EntityUtils.normalizeId(projectName)), user, id);
+		return deleteHandler.deletePatternTemplate(normalizeId(projectName), user, id);
 	}
 }

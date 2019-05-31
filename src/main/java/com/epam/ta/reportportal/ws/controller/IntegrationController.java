@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
@@ -24,9 +23,8 @@ import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.integration.CreateIntegrationRQ;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
-import com.epam.ta.reportportal.ws.model.integration.UpdateIntegrationRQ;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -86,9 +85,9 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Get available global integrations")
-	public List<IntegrationResource> getGlobalIntegrations(@PathVariable String projectName,
+	public List<IntegrationResource> getProjectIntegrations(@PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
-		return getIntegrationHandler.getProjectIntegrations(extractProjectDetails(reportPortalUser, projectName));
+		return getIntegrationHandler.getProjectIntegrations(normalizeId(projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -96,47 +95,40 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Get available global integrations for plugin")
-	public List<IntegrationResource> getGlobalIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser,
+	public List<IntegrationResource> getProjectIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser,
 			@PathVariable String projectName, @PathVariable String pluginName) {
-		return getIntegrationHandler.getProjectIntegrations(pluginName, extractProjectDetails(reportPortalUser, projectName));
+		return getIntegrationHandler.getProjectIntegrations(pluginName, normalizeId(projectName));
 	}
 
 	@Transactional
-	@PostMapping
+	@PostMapping(value = "/{pluginName}")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create global Report Portal integration instance")
 	@PreAuthorize(ADMIN_ONLY)
-	public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid CreateIntegrationRQ createRequest,
+	public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid IntegrationRQ createRequest, @PathVariable String pluginName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.createGlobalIntegration(createRequest);
+		return createIntegrationHandler.createGlobalIntegration(createRequest, pluginName);
 	}
 
 	@Transactional
-	@PostMapping(value = "/{projectName}")
+	@PostMapping(value = "/{projectName}/{pluginName}")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ApiOperation("Create project Report Portal integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public EntryCreatedRS createProjectIntegration(@RequestBody @Valid CreateIntegrationRQ createRequest, @PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.createProjectIntegration(extractProjectDetails(user, projectName), createRequest, user);
+	public EntryCreatedRS createProjectIntegration(@RequestBody @Valid IntegrationRQ createRequest, @PathVariable String pluginName,
+			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return createIntegrationHandler.createProjectIntegration(normalizeId(projectName), createRequest, pluginName, user);
 
-	}
-
-	@Transactional(readOnly = true)
-	@GetMapping(value = "/{integrationId}/connection/test")
-	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Create global Report Portal integration instance")
-	public boolean testIntegrationConnection(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-		return getIntegrationHandler.testConnection(integrationId);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "{projectName}/{integrationId}/connection/test")
 	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Create global Report Portal integration instance")
 	public boolean testIntegrationConnection(@PathVariable Long integrationId, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getIntegrationHandler.testConnection(integrationId, extractProjectDetails(user, projectName));
+		return getIntegrationHandler.testConnection(integrationId, normalizeId(projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -155,9 +147,7 @@ public class IntegrationController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	public IntegrationResource getProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getIntegrationHandler.getProjectIntegrationById(integrationId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
-		);
+		return getIntegrationHandler.getProjectIntegrationById(integrationId, normalizeId(projectName));
 	}
 
 	@Transactional
@@ -165,8 +155,8 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update global Report Portal integration instance")
 	@PreAuthorize(ADMIN_ONLY)
-	public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId,
-			@RequestBody @Valid UpdateIntegrationRQ updateRequest, @AuthenticationPrincipal ReportPortalUser user) {
+	public OperationCompletionRS updateGlobalIntegration(@PathVariable Long integrationId, @RequestBody @Valid IntegrationRQ updateRequest,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return createIntegrationHandler.updateGlobalIntegration(integrationId, updateRequest);
 
 	}
@@ -176,14 +166,9 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update global Report Portal integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
-	public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId,
-			@RequestBody @Valid UpdateIntegrationRQ updateRequest, @PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.updateProjectIntegration(integrationId,
-				extractProjectDetails(user, projectName),
-				updateRequest,
-				user
-		);
+	public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId, @RequestBody @Valid IntegrationRQ updateRequest,
+			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
+		return createIntegrationHandler.updateProjectIntegration(integrationId, normalizeId(projectName), updateRequest, user);
 
 	}
 
@@ -212,10 +197,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegration(integrationId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
-				user
-		);
+		return deleteIntegrationHandler.deleteProjectIntegration(integrationId, normalizeId(projectName), user);
 	}
 
 	@Transactional
@@ -225,10 +207,7 @@ public class IntegrationController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteAllProjectIntegrations(@PathVariable String type, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteIntegrationHandler.deleteProjectIntegrationsByType(type,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
-				user
-		);
+		return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectName), user);
 	}
 
 	@Transactional(readOnly = true)

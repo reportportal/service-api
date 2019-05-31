@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
@@ -135,15 +136,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
-
-		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
+		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
 		projectRepository.save(project);
-		messageBus.publishActivity(new ProjectUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(project),
-				user.getUserId(),
-				user.getUsername()
-		));
+		ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
+
+		messageBus.publishActivity(new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+		messageBus.publishActivity(new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
@@ -234,30 +234,30 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user) {
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer deployed."
 		);
 
-		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
-				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()),
+		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until index generation proceeds."
+		);
+
+		expect(
+				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
 				equalTo(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
 
-		List<Long> launches = launchRepository.findLaunchIdsByProjectId(projectDetails.getProjectId());
+		logIndexer.deleteIndex(project.getId());
 
-		logIndexer.deleteIndex(projectDetails.getProjectId());
-
-		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
-			mailServiceFactory.getDefaultEmailService(true)
-					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
-		});
+		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project))
+				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
+						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
 		return new OperationCompletionRS("Log indexing has been started");
@@ -392,9 +392,18 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void verifyProjectAttributes(Map<String, String> attributes) {
+		Set<String> incompatibleAttributes = attributes.keySet()
+				.stream()
+				.filter(it -> !ProjectAttributeEnum.isPresent(it))
+				.collect(toSet());
+		expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
+
 		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> expect(keepLogs,
 				KeepLogsDelay::isPresent
 		).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs));
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute())).ifPresent(keepLaunches -> expect(keepLaunches,
+				KeepLaunchDelay::isPresent
+		).verify(BAD_REQUEST_ERROR, keepLaunches));
 		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> expect(interruptedJob,
 				InterruptionJobDelay::isPresent
 		).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob));

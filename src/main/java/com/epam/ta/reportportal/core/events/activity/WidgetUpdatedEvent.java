@@ -72,7 +72,7 @@ public class WidgetUpdatedEvent extends AroundEvent<WidgetActivityResource> impl
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())
-				.addHistoryField(processShared(getBefore().isShared(), getAfter().isShared()))
+				.addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
 				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
 				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
 				.addHistoryField(processItemsCount(getBefore().getItemsCount(), getAfter().getItemsCount()))

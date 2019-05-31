@@ -44,6 +44,7 @@ public final class LogConverter {
 
 		LogResource resource = new LogResource();
 		resource.setId(model.getId());
+		resource.setUuid(model.getUuid());
 		resource.setMessage(ofNullable(model.getLogMessage()).orElse("NULL"));
 		resource.setLogTime(EntityUtils.TO_DATE.apply(model.getLogTime()));
 

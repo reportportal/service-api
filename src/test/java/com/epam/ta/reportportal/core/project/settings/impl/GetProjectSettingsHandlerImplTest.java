@@ -29,8 +29,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.TEST_PROJECT_NAME;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -52,12 +52,10 @@ class GetProjectSettingsHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(repository.findById(projectId)).thenReturn(Optional.empty());
+		when(repository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getProjectSettings(extractProjectDetails(user, "test_project"))
-		);
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getProjectSettings(TEST_PROJECT_NAME));
 
-		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
 	}
 }

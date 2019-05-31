@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Preconditions;
@@ -43,12 +43,20 @@ public class LaunchConverter {
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;
 
+	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
+		LaunchActivityResource resource = new LaunchActivityResource();
+		resource.setId(launch.getId());
+		resource.setProjectId(launch.getProjectId());
+		resource.setName(launch.getName() + " #" + launch.getNumber());
+		return resource;
+	};
 	public Function<Launch, LaunchResource> TO_RESOURCE = db -> {
 
 		Preconditions.checkNotNull(db);
 
 		LaunchResource resource = new LaunchResource();
 		resource.setLaunchId(db.getId());
+		resource.setUuid(db.getUuid());
 		resource.setName(db.getName());
 		resource.setNumber(db.getNumber());
 		resource.setDescription(db.getDescription());
@@ -63,14 +71,6 @@ public class LaunchConverter {
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
-		return resource;
-	};
-
-	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
-		LaunchActivityResource resource = new LaunchActivityResource();
-		resource.setId(launch.getId());
-		resource.setProjectId(launch.getProjectId());
-		resource.setName(launch.getName());
 		return resource;
 	};
 

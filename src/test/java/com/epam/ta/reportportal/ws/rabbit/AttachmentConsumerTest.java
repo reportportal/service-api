@@ -20,12 +20,14 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -47,18 +49,18 @@ class AttachmentConsumerTest {
 
 	@Test
 	void consume() {
-		long id = 1L;
-		DeleteAttachmentEvent event = new DeleteAttachmentEvent(id);
+		ArrayList<Long> ids = Lists.newArrayList(1L);
+		DeleteAttachmentEvent event = new DeleteAttachmentEvent(ids);
 
 		Attachment attachment = new Attachment();
 		attachment.setFileId("fileId");
 		attachment.setThumbnailId("thimbnailId");
-		attachment.setId(event.getId());
-		when(attachmentRepository.findById(event.getId())).thenReturn(Optional.of(attachment));
+		attachment.setId(1L);
+		when(attachmentRepository.findById(1L)).thenReturn(Optional.of(attachment));
 
 		attachmentConsumer.onEvent(event);
 
-		verify(attachmentRepository, times(1)).deleteById(event.getId());
+		verify(attachmentRepository, times(1)).deleteAllByIds(any());
 		verify(dataStoreService, times(1)).delete(attachment.getFileId());
 		verify(dataStoreService, times(1)).delete(attachment.getThumbnailId());
 	}

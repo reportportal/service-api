@@ -37,25 +37,25 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 @Qualifier("finishTestItemHandlerAsync")
 public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 
-    @Autowired
-    @Qualifier(value = "rabbitTemplate")
-    AmqpTemplate amqpTemplate;
+	@Autowired
+	@Qualifier(value = "rabbitTemplate")
+	AmqpTemplate amqpTemplate;
 
+	@Override
+	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
+			FinishTestItemRQ request) {
 
-    @Override
-    public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId, FinishTestItemRQ request) {
+		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
+		amqpTemplate.convertAndSend(QUEUE_ITEM_FINISH, request, message -> {
+			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.USERNAME, user.getUsername());
+			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+			headers.put(MessageHeaders.ITEM_ID, testItemId);
+			return message;
+		});
 
-        // todo: may be problem - no access to repository, so no possibility to validateRoles() here
-        amqpTemplate.convertAndSend(QUEUE_ITEM_FINISH, request, message -> {
-            Map<String, Object> headers = message.getMessageProperties().getHeaders();
-            headers.put(MessageHeaders.USERNAME, user.getUsername());
-            headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-            headers.put(MessageHeaders.ITEM_ID, testItemId);
-            return message;
-        });
+		OperationCompletionRS response = new OperationCompletionRS("Accepted finish request for test item ID = " + testItemId);
+		return response;
 
-        OperationCompletionRS response = new OperationCompletionRS();
-        return response;
-
-    }
+	}
 }

@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.base.Preconditions;
 
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Bortnik
@@ -40,6 +43,17 @@ public final class IssueConverter {
 	};
 
 	/**
+	 * Converts external system from db to model
+	 */
+	public static final Function<Ticket, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setTicketId(externalSystemIssue.getTicketId());
+		ticket.setBtsUrl(externalSystemIssue.getBtsUrl());
+		ticket.setUrl(externalSystemIssue.getUrl());
+		ticket.setBtsProject(externalSystemIssue.getBtsProject());
+		return ticket;
+	};
+	/**
 	 * Converts issue from db to model
 	 */
 	public static final Function<IssueEntity, Issue> TO_MODEL = issueEntity -> {
@@ -50,24 +64,9 @@ public final class IssueConverter {
 		issue.setIgnoreAnalyzer(issueEntity.getIgnoreAnalyzer());
 		issue.setComment(issueEntity.getIssueDescription());
 
-		//TODO EXTERNAL SYSTEMS CONVERTER
-		//		Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = issueEntity.getExternalSystemIssues();
-		//		if (null != externalSystemIssues) {
-		//			issue.setExternalSystemIssues(externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
-		//		}
+		Optional.ofNullable(issueEntity.getTickets()).ifPresent(tickets -> {
+			issue.setExternalSystemIssues(tickets.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
+		});
 		return issue;
 	};
-	//
-	//	/**
-	//	 * Converts external system from db to model
-	//	 */
-	//	public static final Function<TestItemIssue.ExternalSystemIssue, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
-	//		Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
-	//		issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
-	//		issueResource.setTicketId(externalSystemIssue.getTicketId());
-	//		issueResource.setSubmitter(externalSystemIssue.getSubmitter());
-	//		issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-	//		issueResource.setUrl(externalSystemIssue.getUrl());
-	//		return issueResource;
-	//	};
 }

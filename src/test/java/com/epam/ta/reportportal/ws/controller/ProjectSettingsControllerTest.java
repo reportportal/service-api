@@ -58,7 +58,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 	void createSubType() throws Exception {
 		CreateIssueSubTypeRQ rq = new CreateIssueSubTypeRQ();
 		rq.setTypeRef("PRODUCT_BUG");
-		rq.setColor("color");
+		rq.setColor("#eeeeee");
 		rq.setLongName("LongName");
 		rq.setShortName("name");
 		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/settings/sub-type").contentType(APPLICATION_JSON)
@@ -93,7 +93,7 @@ class ProjectSettingsControllerTest extends BaseMvcTest {
 	void updateSubType() throws Exception {
 		UpdateIssueSubTypeRQ request = new UpdateIssueSubTypeRQ();
 		final UpdateOneIssueSubTypeRQ updateOneIssueSubTypeRQ = new UpdateOneIssueSubTypeRQ();
-		updateOneIssueSubTypeRQ.setColor("updated");
+		updateOneIssueSubTypeRQ.setColor("#000000");
 		updateOneIssueSubTypeRQ.setLocator("custom_ti");
 		updateOneIssueSubTypeRQ.setLongName("updated");
 		updateOneIssueSubTypeRQ.setShortName("upd");

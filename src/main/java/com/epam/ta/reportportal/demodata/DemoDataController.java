@@ -20,15 +20,14 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
 import com.epam.ta.reportportal.demodata.service.DemoDataService;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * @author Ihar Kahadouski
@@ -40,16 +39,17 @@ class DemoDataController {
 
 	private final DemoDataService demoDataService;
 
-	@Autowired
-	DemoDataController(DemoDataService demoDataService) {
+	private final ProjectExtractor projectExtractor;
+
+	DemoDataController(DemoDataService demoDataService, ProjectExtractor projectExtractor) {
 		this.demoDataService = demoDataService;
+		this.projectExtractor = projectExtractor;
 	}
 
 	@PostMapping
 	@ApiOperation(value = "generate")
-
 	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return demoDataService.generate(demoDataRq, extractProjectDetails(user, projectName), user);
+		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectName), user);
 	}
 }

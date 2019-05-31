@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.integration.impl;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -52,9 +53,16 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 	@Override
 	public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId, String command,
 			Map<String, ?> executionParams) {
+		Optional<Integration> optionalIntegration = integrationRepository.findByIdAndProjectId(integrationId,
+				projectDetails.getProjectId()
+		);
+		if (!optionalIntegration.isPresent()) {
+			optionalIntegration = integrationRepository.findGlobalById(integrationId);
+		}
 
-		Integration integration = integrationRepository.findById(integrationId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+		BusinessRule.expect(optionalIntegration, Optional::isPresent).verify(ErrorType.INTEGRATION_NOT_FOUND, integrationId);
+
+		Integration integration = optionalIntegration.get();
 
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,

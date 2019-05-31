@@ -73,16 +73,17 @@ INSERT INTO public.dashboard (id, name, description, creation_date) VALUES
 (17, 'test default shared dashboard', 'default dashboard', '2019-01-10 13:02:20.397000'),
 (18, 'test default private dashboard', 'default dashboard', '2019-01-10 13:02:27.659000');
 
-INSERT INTO public.dashboard_widget (dashboard_id, widget_id, widget_name, widget_width, widget_height, widget_position_x, widget_position_y) VALUES
-(13, 5, 'activity stream12', 5, 5, 0, 0),
-(13, 7, 'INVESTIGATED PERCENTAGE OF LAUNCHES', 6, 3, 0, 0),
-(14, 5, 'activity stream12', 5, 5, 0, 0),
-(14, 6, 'LAUNCH STATISTICS', 4, 6, 0, 0),
-(15, 8, 'TEST CASES GROWTH TREND CHART', 7, 3, 0, 0),
-(16, 9, 'LAUNCHES DURATION CHART', 3, 7, 0, 0),
-(17, 12, 'ACTIVITY STREAM', 2, 8, 0, 0),
-(18, 10, 'FAILED CASES TREND CHART', 6, 5, 0, 0),
-(18, 11, 'LAUNCH STATISTICS', 5, 5, 0, 0);
+INSERT INTO public.dashboard_widget (dashboard_id, widget_id, widget_name, widget_owner, widget_width, widget_height, widget_position_x,
+                                     widget_position_y)
+VALUES (13, 5, 'activity stream12', 'superadmin', 5, 5, 0, 0),
+       (13, 7, 'INVESTIGATED PERCENTAGE OF LAUNCHES', 'superadmin', 6, 3, 0, 0),
+       (14, 5, 'activity stream12', 'superadmin', 5, 5, 0, 0),
+       (14, 6, 'LAUNCH STATISTICS', 'superadmin', 4, 6, 0, 0),
+       (15, 8, 'TEST CASES GROWTH TREND CHART', 'jaja_user', 7, 3, 0, 0),
+       (16, 9, 'LAUNCHES DURATION CHART', 'jaja_user', 3, 7, 0, 0),
+       (17, 12, 'ACTIVITY STREAM', 'default', 2, 8, 0, 0),
+       (18, 10, 'FAILED CASES TREND CHART', 'default', 6, 5, 0, 0),
+       (18, 11, 'LAUNCH STATISTICS', 'default', 5, 5, 0, 0);
 
 INSERT INTO public.acl_sid (id, principal, sid) VALUES
 (1, true, 'superadmin'),

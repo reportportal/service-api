@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -45,6 +45,7 @@ public final class TestItemConverter {
 		TestItemResource resource = new TestItemResource();
 		resource.setDescription(item.getDescription());
 		resource.setUniqueId(item.getUniqueId());
+		resource.setUuid(item.getUuid());
 		resource.setAttributes(item.getAttributes()
 				.stream()
 				.filter(it -> !it.isSystem())
@@ -88,10 +89,9 @@ public final class TestItemConverter {
 			resource.setIgnoreAnalyzer(issue.getIgnoreAnalyzer());
 			resource.setIssueDescription(issue.getIssueDescription());
 			resource.setIssueTypeLongName(issue.getIssueType().getLongName());
-			resource.setTickets(issue.getTickets()
-					.stream()
-					.map(it -> it.getTicketId().concat(":").concat(it.getUrl()))
-					.collect(Collectors.joining(",")));
+			ofNullable(issue.getTickets()).ifPresent(it -> resource.setTickets(it.stream()
+					.map(ticket -> ticket.getTicketId().concat(":").concat(ticket.getUrl()))
+					.collect(Collectors.joining(", "))));
 		}
 		return resource;
 	};

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.pattern;
 
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 
 /**
@@ -29,7 +29,7 @@ public interface CreatePatternTemplateHandler {
 	 *
 	 * @param projectId               {@link com.epam.ta.reportportal.entity.pattern.PatternTemplate#projectId}
 	 * @param createPatternTemplateRQ {@link CreatePatternTemplateRQ}
-	 * @return {@link EntryCreatedRS}
+	 * @return {@link java.util.regex.Pattern}
 	 */
-	EntryCreatedRS createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ);
+	PatternTemplate createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ);
 }

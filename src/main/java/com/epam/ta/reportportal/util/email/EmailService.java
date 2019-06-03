@@ -57,7 +57,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
 	private static final String URL_FORMAT = "%s/launches/all";
-	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
+	private static final String FILTER_ATTRIBUTE_FORMAT = "%s?filter.has.attributeKey=%s&filter.has.attributeValue=%s&filter.eq.attributeSystem=false";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
 	/* Default value for FROM project notifications field */
@@ -134,7 +134,7 @@ public class EmailService extends JavaMailSenderImpl {
 							.stream()
 							.filter(it -> !it.isSystem())
 							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()), attribute -> format(
-									FILTER_TAG_FORMAT,
+									FILTER_ATTRIBUTE_FORMAT,
 									basicUrl,
 									urlPathSegmentEscaper().escape(attribute.getKey()),
 									urlPathSegmentEscaper().escape(attribute.getValue())
@@ -179,7 +179,8 @@ public class EmailService extends JavaMailSenderImpl {
 		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
 			Pattern pattern = Pattern.compile(regex);
 			return pattern.matcher(entry.getKey()).matches();
-		}).collect(Collectors.toMap(entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
+		}).collect(Collectors.toMap(
+				entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
 				entry -> ofNullable(entry.getValue()).orElse(0),
 				(prev, curr) -> prev
 		)));

@@ -41,8 +41,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_KEY;
-import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
+import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -94,17 +93,16 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 			).verify(ErrorType.BAD_REQUEST_ERROR, ATTRIBUTES);
 
 			requestAttributesMapping.forEach((key, value) -> filter.withCondition(FilterCondition.builder()
-							.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_KEY)
+					.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_KEY)
+					.withCondition(Condition.HAS)
+					.withValue(key)
+					.build())
+					.withCondition(FilterCondition.builder()
+							.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_VALUE)
 							.withCondition(Condition.HAS)
-							.withValue(key)
+							.withValue(value)
 							.build())
-							.withCondition(FilterCondition.builder()
-									.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_VALUE)
-									.withCondition(Condition.HAS)
-									.withValue(value)
-									.build())
-					//					.withCondition(FilterCondition.builder().eq(CRITERIA_ITEM_ATTRIBUTE_SYSTEM, Boolean.FALSE.toString()).build())
-			);
+					.withCondition(FilterCondition.builder().eq(CRITERIA_ITEM_ATTRIBUTE_SYSTEM, Boolean.FALSE.toString()).build()));
 			content = widgetContentRepository.cumulativeTrendStatistics(filter, contentFields, sort, storedAttributes.get(1), null, limit);
 		}
 		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);

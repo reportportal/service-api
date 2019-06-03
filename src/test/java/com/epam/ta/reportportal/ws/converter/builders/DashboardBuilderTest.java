@@ -51,8 +51,7 @@ class DashboardBuilderTest {
 		updateDashboardRQ.setName(name);
 		updateDashboardRQ.setDescription(description);
 		updateDashboardRQ.setShare(share);
-		updateDashboardRQ.setWidgets(Collections.singletonList(new DashboardResource.WidgetObjectModel("kek",
-				1L,
+		updateDashboardRQ.setWidgets(Collections.singletonList(new DashboardResource.WidgetObjectModel("kek", 1L,
 				new Size(10, 20),
 				new Position(30, 40)
 		)));

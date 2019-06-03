@@ -143,8 +143,7 @@ class FinishLaunchHandlerImplTest {
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(
-				bulkRq,
+		final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(bulkRq,
 				extractProjectDetails(rpUser, "test_project"),
 				rpUser
 		);

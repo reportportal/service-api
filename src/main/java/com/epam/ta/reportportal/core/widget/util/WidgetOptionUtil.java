@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -70,5 +71,17 @@ public final class WidgetOptionUtil {
 
 		return ofNullable(widgetOptions).map(wo -> MapUtils.isNotEmpty(wo.getOptions()) && ofNullable(wo.getOptions()
 				.get(key)).map(v -> BooleanUtils.toBoolean(String.valueOf(v))).orElse(false)).orElse(false);
+	}
+
+	public static List<String> getListByKey(String key, WidgetOptions widgetOptions) {
+		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
+				.orElse(null));
+
+		value.ifPresent(v -> expect(v, List.class::isInstance).verify(
+				ErrorType.OBJECT_RETRIEVAL_ERROR,
+				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. List expected.", key)
+		));
+
+		return (List<String>) value.orElse(null);
 	}
 }

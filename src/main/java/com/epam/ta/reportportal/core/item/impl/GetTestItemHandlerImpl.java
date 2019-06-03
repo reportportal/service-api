@@ -107,10 +107,10 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-				);
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(
+				ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+		);
 		return ticketRepository.findByTerm(launchId, term);
 	}
 

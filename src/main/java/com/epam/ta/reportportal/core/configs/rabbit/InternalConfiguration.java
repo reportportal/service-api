@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.events.MessageBusImpl;
 import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
 import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

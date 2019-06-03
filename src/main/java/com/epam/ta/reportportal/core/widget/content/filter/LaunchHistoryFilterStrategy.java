@@ -47,7 +47,8 @@ public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widget.getWidgetOptions());
 		Filter filter = super.buildDefaultFilter(widget, projectId);
 		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME))
-				.withCondition(new FilterCondition(Condition.IN,
+				.withCondition(new FilterCondition(
+						Condition.IN,
 						false,
 						Stream.of(StatusEnum.FAILED, StatusEnum.PASSED, StatusEnum.STOPPED).map(Enum::name).collect(joining(",")),
 						CRITERIA_LAUNCH_STATUS

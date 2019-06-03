@@ -113,7 +113,8 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 
 		if (!patternTemplate.getName().equalsIgnoreCase(updatePatternTemplateRQ.getName())) {
 
-			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(project.getId(),
+			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(
+					project.getId(),
 					updatePatternTemplateRQ.getName()
 			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
 		}

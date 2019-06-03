@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
@@ -43,6 +42,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static java.util.Collections.emptyMap;
@@ -68,7 +68,6 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
-
 		validateFilterSortMapping(filterSortMapping);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
@@ -79,8 +78,7 @@ public class ActivityContentLoader implements LoadContentStrategy {
 
 		final List<String> actionTypes = (List<String>) widgetOptions.getOptions().get(ACTION_TYPE);
 
-		BusinessRule.expect(actionTypes, CollectionUtils::isNotEmpty)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "At least 1 action type should be provided.");
+		expect(actionTypes, CollectionUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "At least 1 action type should be provided.");
 
 		filter.withCondition(new FilterCondition(Condition.IN, false, String.join(CONTENT_FIELDS_DELIMITER, actionTypes), CRITERIA_ACTION));
 
@@ -95,8 +93,9 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
 	 */
 	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
-		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
+		expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"Filter-Sort mapping should not be empty"
+		);
 	}
 
 	/**

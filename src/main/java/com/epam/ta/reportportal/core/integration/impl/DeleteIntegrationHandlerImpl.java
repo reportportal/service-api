@@ -103,7 +103,8 @@ public class DeleteIntegrationHandlerImpl implements DeleteIntegrationHandler {
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 		IntegrationType integrationType = integrationTypeRepository.findByName(type)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, type));
-		List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(project.getId(),
+		List<Integration> integrations = integrationRepository.findAllByProjectIdAndInIntegrationTypeIds(
+				project.getId(),
 				Collections.singletonList(integrationType.getId())
 		);
 		integrationRepository.deleteAllByProjectIdAndIntegrationTypeId(project.getId(), integrationType.getId());

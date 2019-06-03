@@ -69,10 +69,8 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 		Dashboard dashboard = getShareableEntityHandler.getAdministrated(dashboardId, projectDetails);
 
 		Set<DashboardWidget> dashboardWidgets = dashboard.getDashboardWidgets();
-		List<Widget> widgets = dashboardWidgets.stream()
-				.filter(DashboardWidget::isCreatedOn)
-				.map(DashboardWidget::getWidget)
-				.peek(aclHandler::deleteAclForObject)
+		List<Widget> widgets = dashboardWidgets.stream().filter(DashboardWidget::isCreatedOn)
+				.map(DashboardWidget::getWidget).peek(aclHandler::deleteAclForObject)
 				.collect(Collectors.toList());
 		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 

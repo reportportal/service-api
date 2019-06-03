@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.ws.converter.converters.WidgetConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +48,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static freemarker.template.utility.Collections12.singletonMap;
 
@@ -61,6 +65,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
+
+	private Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy;
 
 	private Set<WidgetType> unfilteredWidgetTypes;
 
@@ -86,6 +92,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Autowired
+	@Qualifier("multilevelContentLoader")
+	public void setMultilevelLoadContentStrategy(Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy) {
+		this.multilevelLoadContentStrategy = multilevelLoadContentStrategy;
+	}
+
+	@Autowired
 	@Qualifier("unfilteredWidgetTypes")
 	public void setUnfilteredWidgetTypes(Set<WidgetType> unfilteredWidgetTypes) {
 		this.unfilteredWidgetTypes = unfilteredWidgetTypes;
@@ -100,13 +112,52 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 						"Unsupported widget type {}" + widget.getWidgetType()
 				));
 
+		expect(widgetType.isSupportMultilevelStructure(), Predicate.isEqual(false)).verify(ErrorType.INCORRECT_REQUEST,
+				"Unsupported widget type '" + widgetType + "'"
+		);
+
 		Map<String, ?> content;
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
 			content = Collections.emptyMap();
 		} else {
-			content = buildFilterStrategyMapping.get(widgetType)
-					.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+			content = loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+					widget.getWidgetOptions(),
+					widget.getItemsCount()
+			);
+		}
+
+		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
+		resource.setContent(content);
+		return resource;
+	}
+
+	@Override
+	public WidgetResource getWidget(Long widgetId, String[] attributes, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
+
+		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						"Unsupported widget type {}" + widget.getWidgetType()
+				));
+
+		expect(widgetType.isSupportMultilevelStructure(), Predicate.isEqual(true)).verify(ErrorType.INCORRECT_REQUEST,
+				"Widget type '" + widgetType + "' does not support multilevel structure."
+		);
+
+		Map<String, ?> content;
+
+		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
+			content = Collections.emptyMap();
+		} else {
+			content = multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+					widget.getWidgetOptions(),
+					attributes,
+					widget.getItemsCount()
+			);
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -137,8 +188,11 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.addFilters(userFilter)
 				.get();
 
-		return buildFilterStrategyMapping.get(widgetType)
-				.buildFilterAndLoadContent(loadContentStrategy.get(widgetType), projectDetails, widget);
+		return loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+				buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+				widget.getWidgetOptions(),
+				widget.getItemsCount()
+		);
 	}
 
 	@Override

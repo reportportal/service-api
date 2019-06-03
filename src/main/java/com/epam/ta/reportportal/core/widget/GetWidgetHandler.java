@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,6 +38,17 @@ public interface GetWidgetHandler {
 	 * @return WidgetResource
 	 */
 	WidgetResource getWidget(Long widgetId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+
+	/**
+	 * Get specified widget level by id and attributes
+	 *
+	 * @param widgetId       Widget id
+	 * @param projectDetails Project details
+	 * @param attributes     Attributes
+	 * @param user           User
+	 * @return WidgetResource
+	 */
+	WidgetResource getWidget(Long widgetId, String[] attributes, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get content for building preview while creating widget

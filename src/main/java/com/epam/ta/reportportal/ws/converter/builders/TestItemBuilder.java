@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,9 +116,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	public TestItemBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
 		if (attributes != null) {
 			final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
-					.stream()
-					.filter(ItemAttribute::isSystem)
-					.collect(Collectors.toSet());
+					.stream().filter(ItemAttribute::isSystem).collect(Collectors.toSet());
 			attributes.stream().map(val -> {
 				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 				itemAttribute.setTestItem(testItem);

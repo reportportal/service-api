@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
+
 		String contentField = validateContentFields(contentFields);
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		filter.withCondition(new FilterCondition(Condition.EQUALS,

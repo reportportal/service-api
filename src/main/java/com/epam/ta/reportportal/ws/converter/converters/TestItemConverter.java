@@ -62,6 +62,7 @@ public final class TestItemConverter {
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
 		resource.setType(item.getType() != null ? item.getType().name() : null);
 		resource.setHasChildren(item.isHasChildren());
+		resource.setHasStats(item.isHasStats());
 
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());

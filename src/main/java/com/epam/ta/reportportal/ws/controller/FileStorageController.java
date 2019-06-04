@@ -25,8 +25,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,11 +42,6 @@ import java.io.InputStream;
 @RestController
 @RequestMapping("/data")
 public class FileStorageController {
-
-	public static final String MAX_AGE_PREFIX = "private, max-age=";
-
-	@Value("${rp.header.cache.photo}")
-	private String photoCacheAge;
 
 	private final EditUserHandler editUserHandler;
 
@@ -74,7 +67,6 @@ public class FileStorageController {
 	@GetMapping(value = "/photo")
 	@ApiOperation("Get photo of current user")
 	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
-		response.setHeader(HttpHeaders.CACHE_CONTROL, MAX_AGE_PREFIX + photoCacheAge);
 		toResponse(response, getFileHandler.getUserPhoto(user));
 	}
 
@@ -86,7 +78,6 @@ public class FileStorageController {
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		response.setHeader(HttpHeaders.CACHE_CONTROL, MAX_AGE_PREFIX + photoCacheAge);
 		toResponse(response, getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user));
 	}
 

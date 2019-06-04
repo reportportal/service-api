@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
-import com.epam.ta.reportportal.core.configs.RabbitMqConfiguration;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -32,6 +31,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.EXCHANGE_PLUGINS;
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.KEY_PLUGINS_PING;
 
 public class RabbitAwarePluginBox extends AbstractScheduledService implements PluginBox {
 
@@ -71,8 +73,8 @@ public class RabbitAwarePluginBox extends AbstractScheduledService implements Pl
 	protected void runOneIteration() {
 		try {
 			this.messageBus.publish(
-					RabbitMqConfiguration.EXCHANGE_PLUGINS,
-					RabbitMqConfiguration.KEY_PLUGINS_PING,
+					EXCHANGE_PLUGINS,
+					KEY_PLUGINS_PING,
 					Collections.singletonMap("ok", UUID.randomUUID().toString())
 			);
 		} catch (Exception e) {

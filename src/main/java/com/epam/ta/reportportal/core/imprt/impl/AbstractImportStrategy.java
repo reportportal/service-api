@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,20 +77,20 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 		return results;
 	}
 
-	protected Long startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
+	protected String startLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String launchName) {
 		StartLaunchRQ startLaunchRQ = new StartLaunchRQ();
 		startLaunchRQ.setStartTime(initialStartTime);
 		startLaunchRQ.setName(launchName);
 		startLaunchRQ.setMode(Mode.DEFAULT);
-		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getId();
+		return startLaunchHandler.startLaunch(user, projectDetails, startLaunchRQ).getUuid();
 	}
 
-	protected void finishLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			ParseResults results) {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(results.getEndTime());
 		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user);
-		Launch launch = launchRepository.findById(launchId)
+		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		launch.setStartTime(results.getStartTime());
 		launchRepository.save(launch);
@@ -114,9 +114,9 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 	 * a default date if the launch is broken, time should be updated to not to broke
 	 * the statistics
 	 */
-	protected void updateBrokenLaunch(Long savedLaunchId) {
+	protected void updateBrokenLaunch(String savedLaunchId) {
 		if (savedLaunchId != null) {
-			Launch launch = launchRepository.findById(savedLaunchId)
+			Launch launch = launchRepository.findByUuid(savedLaunchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 			launch.setStartTime(LocalDateTime.now());
 			launch.setStatus(StatusEnum.INTERRUPTED);

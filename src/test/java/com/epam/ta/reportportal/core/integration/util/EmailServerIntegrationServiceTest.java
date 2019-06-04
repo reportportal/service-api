@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.mail.MessagingException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,6 +45,7 @@ class EmailServerIntegrationServiceTest {
 	private final String integrationName = "email";
 
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
+	private final PluginBox pluginBox = mock(PluginBox.class);
 	private MailServiceFactory mailServiceFactory = mock(MailServiceFactory.class);
 	private EmailService emailService = mock(EmailService.class);
 
@@ -52,7 +55,11 @@ class EmailServerIntegrationServiceTest {
 	void setUp() {
 		BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
 		basicTextEncryptor.setPassword("123");
-		emailServerIntegrationService = new EmailServerIntegrationService(integrationRepository, basicTextEncryptor, mailServiceFactory);
+		emailServerIntegrationService = new EmailServerIntegrationService(integrationRepository,
+				pluginBox,
+				basicTextEncryptor,
+				mailServiceFactory
+		);
 	}
 
 	@Test
@@ -68,7 +75,7 @@ class EmailServerIntegrationServiceTest {
 		doNothing().when(emailService).testConnection();
 		when(mailServiceFactory.getEmailService(integration)).thenReturn(Optional.of(emailService));
 
-		boolean b = emailServerIntegrationService.validateGlobalIntegration(integration);
+		boolean b = emailServerIntegrationService.validateIntegration(integration);
 
 		//then
 		assertTrue(b);
@@ -88,18 +95,19 @@ class EmailServerIntegrationServiceTest {
 		doThrow(MessagingException.class).when(emailService).testConnection();
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> emailServerIntegrationService.validateGlobalIntegration(integration)
+				() -> emailServerIntegrationService.retrieveIntegrationParams(new HashMap<>())
 		);
 
 		//then
-		assertEquals("Forbidden operation. Email configuration is incorrect. Please, check your configuration. null", exception.getMessage()
+		assertEquals("Error in handled Request. Please, check specified parameters: 'No integration params provided'",
+				exception.getMessage()
 		);
 	}
 
 	@Test
 	void retrieveIntegrationParams() {
 		Map<String, Object> map = emailServerIntegrationService.retrieveIntegrationParams(getParams());
-		assertEquals(map, defaultParams());
+		assertEquals(defaultParams(), map);
 	}
 
 	@Test
@@ -128,12 +136,8 @@ class EmailServerIntegrationServiceTest {
 	private Map<String, Object> defaultParams() {
 		Map<String, Object> res = Maps.newHashMap();
 		res.put("protocol", "value2");
-		res.put("password", null);
-		res.put("authEnabled", false);
-		res.put("port", 25);
 		res.put("host", "value3");
 		res.put("from", "from@mail.com");
-		res.put("username", null);
 		return res;
 	}
 

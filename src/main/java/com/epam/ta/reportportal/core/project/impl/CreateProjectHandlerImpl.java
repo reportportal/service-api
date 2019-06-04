@@ -99,7 +99,6 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		project.setProjectType(projectType);
 
 		project.setProjectAttributes(projectAttributes);
-		ProjectUtils.setDefaultNotificationConfiguration(project);
 
 		ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser).withProjectRole(ProjectRole.PROJECT_MANAGER);
 

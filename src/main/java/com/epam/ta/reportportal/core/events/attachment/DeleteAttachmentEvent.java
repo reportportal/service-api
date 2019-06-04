@@ -17,27 +17,31 @@
 package com.epam.ta.reportportal.core.events.attachment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DeleteAttachmentEvent {
 
-	@JsonProperty(value = "id")
-	private Long id;
+	@JsonProperty(value = "ids")
+	private List<Long> ids;
 
 	public DeleteAttachmentEvent() {
+		ids = Lists.newArrayList();
 	}
 
-	public DeleteAttachmentEvent(Long id) {
-		this.id = id;
+	public DeleteAttachmentEvent(List<Long> ids) {
+		this.ids = ids;
 	}
 
-	public Long getId() {
-		return id;
+	public List<Long> getIds() {
+		return ids;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setIds(List<Long> ids) {
+		this.ids = ids;
 	}
 }

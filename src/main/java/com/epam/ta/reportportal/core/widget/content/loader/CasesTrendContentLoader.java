@@ -57,7 +57,8 @@ public class CasesTrendContentLoader extends AbstractStatisticsContentLoader imp
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
+	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+			int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 

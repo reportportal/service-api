@@ -24,7 +24,8 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.base.Preconditions;
@@ -94,7 +95,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 		return this;
 	}
 
-	public LaunchBuilder addAttributes(Set<ItemAttributeResource> attributes) {
+	public LaunchBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
 		ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
 			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
 			itemAttribute.setLaunch(launch);

@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
@@ -28,7 +27,6 @@ import com.epam.ta.reportportal.core.preference.UpdatePreferenceHandler;
 import com.epam.ta.reportportal.core.project.*;
 import com.epam.ta.reportportal.core.user.GetUserHandler;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectInfo;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -81,13 +79,13 @@ public class ProjectController {
 	private final GetUserHandler getUserHandler;
 	private final GetPreferenceHandler getPreference;
 	private final UpdatePreferenceHandler updatePreference;
-	private final GetJasperReportHandler<Project> jasperReportHandler;
+	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	@Autowired
 	public ProjectController(GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
 			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference,
-			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<Project> jasperReportHandler) {
+			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
 		this.getProjectHandler = getProjectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
@@ -116,7 +114,7 @@ public class ProjectController {
 	@ApiOperation(value = "Update project")
 	public OperationCompletionRS updateProject(@PathVariable String projectName, @RequestBody @Validated UpdateProjectRQ updateProjectRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProject(ProjectExtractor.extractProjectDetails(user, projectName), updateProjectRQ, user);
+		return updateProjectHandler.updateProject(normalizeId(projectName), updateProjectRQ, user);
 	}
 
 	@Transactional
@@ -127,10 +125,7 @@ public class ProjectController {
 	public OperationCompletionRS updateProjectNotificationConfig(@PathVariable String projectName,
 			@RequestBody @Validated ProjectNotificationConfigDTO updateProjectNotificationConfigRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.updateProjectNotificationConfig(ProjectExtractor.extractProjectDetails(user, projectName),
-				user,
-				updateProjectNotificationConfigRQ
-		);
+		return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user, updateProjectNotificationConfigRQ);
 	}
 
 	@Transactional
@@ -166,7 +161,7 @@ public class ProjectController {
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Starts reindex all project data in ML")
 	public OperationCompletionRS indexProjectData(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.indexProjectData(ProjectExtractor.extractProjectDetails(user, projectName), user);
+		return updateProjectHandler.indexProjectData(normalizeId(projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -175,7 +170,7 @@ public class ProjectController {
 	@ApiOperation("Get users assigned on current project")
 	public Iterable<UserResource> getProjectUsers(@PathVariable String projectName, @FilterFor(User.class) Filter filter,
 			@SortFor(User.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProjectUsers(ProjectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+		return getProjectHandler.getProjectUsers(normalizeId(projectName), filter, pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -183,7 +178,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProject(EntityUtils.normalizeId(projectName), user);
+		return getProjectHandler.getProject(normalizeId(projectName), user);
 	}
 
 	@Transactional
@@ -193,7 +188,7 @@ public class ProjectController {
 	@ApiOperation("Un assign users")
 	public OperationCompletionRS unassignProjectUsers(@PathVariable String projectName,
 			@RequestBody @Validated UnassignUsersRQ unassignUsersRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateProjectHandler.unassignUsers(ProjectExtractor.extractProjectDetails(user, projectName), unassignUsersRQ, user);
+		return updateProjectHandler.unassignUsers(normalizeId(projectName), unassignUsersRQ, user);
 	}
 
 	@Transactional
@@ -230,7 +225,6 @@ public class ProjectController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/usernames/search")
 	@ResponseStatus(OK)
-
 	@PreAuthorize(PROJECT_MANAGER)
 	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
@@ -270,7 +264,6 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/list")
 	@ResponseStatus(HttpStatus.OK)
-
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
 			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -284,7 +277,7 @@ public class ProjectController {
 	@ApiOperation(value = "Exports information about all projects", notes = "Allowable only for users with administrator role")
 	public void exportProjects(
 			@ApiParam(allowableValues = "csv") @RequestParam(value = "view", required = false, defaultValue = "csv") String view,
-			@FilterFor(Project.class) Filter filter, @FilterFor(Project.class) Queryable predefinedFilter,
+			@FilterFor(ProjectInfo.class) Filter filter, @FilterFor(ProjectInfo.class) Queryable predefinedFilter,
 			@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response) {
 
 		ReportFormat format = jasperReportHandler.getReportFormat(view);

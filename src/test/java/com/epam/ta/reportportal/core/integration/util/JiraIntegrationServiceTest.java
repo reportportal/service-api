@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,37 +56,6 @@ class JiraIntegrationServiceTest {
 	void testParameters() {
 		Map<String, Object> res = jiraIntegrationService.retrieveIntegrationParams(getCorrectJiraIntegrationParams());
 		assertThat(res.keySet(), hasSize(5));
-	}
-
-	@Test
-	void testParametersWithoutProject() {
-		Map<String, Object> params = getCorrectJiraIntegrationParams();
-		params.remove(BtsProperties.PROJECT.getName());
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. JIRA project value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithoutURL() {
-		Map<String, Object> params = getCorrectJiraIntegrationParams();
-		params.remove(BtsProperties.URL.getName());
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. JIRA URL value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithouAuthType() {
-		Map<String, Object> params = getCorrectJiraIntegrationParams();
-		params.remove(BtsProperties.AUTH_TYPE.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. No auth property provided for Jira integration", exception.getMessage());
 	}
 
 	@Test

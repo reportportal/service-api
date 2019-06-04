@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,39 +46,6 @@ class RallyIntegrationServiceTest {
 	void testParameters() {
 		Map<String, Object> res = rallyIntegrationService.retrieveIntegrationParams(getCorrectRallyIntegrationParams());
 		assertThat(res.keySet(), hasSize(4));
-	}
-
-	@Test
-	void testParametersWithoutProject() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.PROJECT.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. RALLY project value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithouUrl() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.URL.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. RALLY URL value cannot be NULL", exception.getMessage());
-	}
-
-	@Test
-	void testParametersWithouAuth() {
-		Map<String, Object> params = getCorrectRallyIntegrationParams();
-		params.remove(BtsProperties.AUTH_TYPE.getName());
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Impossible interact with integration. No auth property provided for Rally integration", exception.getMessage());
 	}
 
 	@Test

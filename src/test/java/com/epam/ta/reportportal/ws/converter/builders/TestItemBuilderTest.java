@@ -7,9 +7,10 @@ import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,7 @@ class TestItemBuilderTest {
 				.addType(typeValue)
 				.addLaunch(launch)
 				.addParameters(Collections.singletonList(parameterResource))
-				.addAttributes(Sets.newHashSet(new ItemAttributeResource("key", "value")))
+				.addAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")))
 				.addParent(parent)
 				.get();
 

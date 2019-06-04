@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public Long importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
 		try {
 			return processXmlFile(file, projectDetails, user);
 		} finally {
@@ -52,11 +52,11 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private Long processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		//copy of the launch's id to use it in catch block if something goes wrong
-		Long savedLaunchId = null;
+		String savedLaunchId = null;
 		try (InputStream xmlStream = new FileInputStream(xml)) {
-			Long launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)));
+			String launchId = startLaunch(projectDetails, user, xml.getName().substring(0, xml.getName().indexOf("." + XML_EXTENSION)));
 			savedLaunchId = launchId;
 			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
 			ParseResults parseResults = job.call();

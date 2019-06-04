@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ public class DemoDataRq {
 	private int launchesQuantity = 10;
 
 	@JsonProperty(defaultValue = "true")
-	private boolean isCreateDashboard = true;
+	private boolean createDashboard = true;
 
 	public boolean isCreateDashboard() {
-		return isCreateDashboard;
+		return createDashboard;
 	}
 
 	public void setCreateDashboard(boolean createDashboard) {
-		isCreateDashboard = createDashboard;
+		this.createDashboard = createDashboard;
 	}
 
 	public int getLaunchesQuantity() {
@@ -48,7 +48,7 @@ public class DemoDataRq {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("DemoDataRq{");
 		sb.append("launchesQuantity=").append(launchesQuantity);
-		sb.append(", isCreateDashboard=").append(isCreateDashboard);
+		sb.append(", createDashboard=").append(createDashboard);
 		sb.append('}');
 		return sb.toString();
 	}

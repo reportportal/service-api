@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
+import com.epam.ta.reportportal.core.analyzer.model.RelevantItemInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -93,4 +94,12 @@ public class AnalyzerUtils {
 		analyzerConfig.setIndexingRunning(BooleanUtils.toBoolean(configParameters.get(INDEXING_RUNNING.getAttribute())));
 		return analyzerConfig;
 	}
+
+	public static final Function<TestItem, RelevantItemInfo> TO_RELEVANT_ITEM_INFO = item -> {
+		RelevantItemInfo relevantItemInfo = new RelevantItemInfo();
+		relevantItemInfo.setItemId(String.valueOf(item.getItemId()));
+		relevantItemInfo.setPath(item.getPath());
+		relevantItemInfo.setLaunchId(String.valueOf(item.getLaunch().getId()));
+		return relevantItemInfo;
+	};
 }

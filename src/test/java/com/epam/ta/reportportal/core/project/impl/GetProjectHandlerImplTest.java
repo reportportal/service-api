@@ -58,19 +58,21 @@ class GetProjectHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+		String projectName = "test_project";
+		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getProjectUsers(extractProjectDetails(user, "test_project"),
-						Filter.builder()
-								.withTarget(User.class)
-								.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
-								.build(),
-						PageRequest.of(0, 10)
-				)
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
+					handler.getProjectUsers(projectName,
+							Filter.builder()
+									.withTarget(User.class)
+									.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())
+									.build(),
+							PageRequest.of(0, 10)
+					);
+				}
 		);
 
-		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
+		assertEquals("Project 'test_project' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
@@ -78,9 +80,10 @@ class GetProjectHandlerImplTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		String projectName = "test_project";
+		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));
 
-		Iterable<UserResource> users = handler.getProjectUsers(extractProjectDetails(user, "test_project"),
+		Iterable<UserResource> users = handler.getProjectUsers(projectName,
 				Filter.builder()
 						.withTarget(User.class)
 						.withCondition(FilterCondition.builder().eq(CRITERIA_ROLE, UserRole.USER.name()).build())

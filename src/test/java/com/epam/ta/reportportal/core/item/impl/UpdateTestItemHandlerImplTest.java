@@ -26,10 +26,8 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -67,21 +65,6 @@ class UpdateTestItemHandlerImplTest {
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
 		);
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
-	}
-
-	@Test
-	void updateTestItemWithSystemAttributes() {
-		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-		when(itemRepository.findById(1L)).thenReturn(Optional.of(new TestItem()));
-		final UpdateTestItemRQ updateTestItemRQ = new UpdateTestItemRQ();
-		updateTestItemRQ.setAttributes(Sets.newHashSet(new ItemAttributeResource("key", "value", true),
-				new ItemAttributeResource("key", "value", false)
-		));
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, updateTestItemRQ, rpUser)
-		);
-		assertEquals("Forbidden operation. System attributes is not applicable here", exception.getMessage());
 	}
 
 	@Test

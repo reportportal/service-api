@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.epam.ta.reportportal;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
-import com.epam.ta.reportportal.job.SaveBinaryDataJob;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,8 +39,7 @@ import org.springframework.context.annotation.*;
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*"),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ResourceCopierBeanTest.TestConfig.class),
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) }, includeFilters = {
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SaveBinaryDataJob.class) })
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) })
 @PropertySource("classpath:test-application.properties")
 public class TestConfig {
 
@@ -49,6 +47,9 @@ public class TestConfig {
 	protected Client rabbitClient;
 
 	@MockBean(name = "analyzerRabbitTemplate")
+	protected RabbitTemplate analyzerRabbitTemplate;
+
+	@MockBean(name = "rabbitTemplate")
 	protected RabbitTemplate rabbitTemplate;
 
 	@Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ public class LogBuilder implements Supplier<Log> {
 		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
 		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
 		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
+		log.setUuid(createLogRQ.getUuid());
 		return this;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
@@ -32,8 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
@@ -48,6 +51,9 @@ public class DemoDataLaunchService {
 
 	private final TestItemRepository testItemRepository;
 
+	private String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
+			"windows 10", "windows 7", "windows server", "debian", "alpine" };
+
 	@Autowired
 	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository) {
 		this.launchRepository = launchRepository;
@@ -55,16 +61,18 @@ public class DemoDataLaunchService {
 	}
 
 	@Transactional
-	public Long startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
+	public Launch startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
 		StartLaunchRQ rq = new StartLaunchRQ();
 		rq.setMode(Mode.DEFAULT);
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		rq.setName(name);
 		rq.setStartTime(new Date());
-		Set<ItemAttributeResource> attributes = Sets.newHashSet(
-				new ItemAttributeResource("platform", "desktop"),
-				new ItemAttributeResource(null, "demo"),
-				new ItemAttributeResource("build", "3.0.1." + i)
+		rq.setUuid(UUID.randomUUID().toString());
+		LocalDateTime now = LocalDateTime.now();
+		Set<ItemAttributesRQ> attributes = Sets.newHashSet(
+				new ItemAttributesRQ("platform", platformValues[new Random().nextInt(platformValues.length)]),
+				new ItemAttributesRQ(null, "demo"),
+				new ItemAttributesRQ("build", "3." + now.getDayOfMonth() + "." + now.getHour() + "." + i)
 		);
 
 		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
@@ -72,22 +80,22 @@ public class DemoDataLaunchService {
 		launch.setUser(user);
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
-		return launch.getId();
+		return launch;
 	}
 
 	@Transactional
-	public void finishLaunch(Long launchId) {
-		Launch launch = launchRepository.findById(launchId)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
+	public void finishLaunch(String launchId) {
+		Launch launch = launchRepository.findByUuid(launchId)
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
-		if (testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
-			testItemRepository.interruptInProgressItems(launchId);
+		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
+			testItemRepository.interruptInProgressItems(launch.getId());
 		}
 
 		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.hasItemsWithStatusNotEqual(launchId, StatusEnum.PASSED)) {
+		if (launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED)) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		launch.setStatus(fromStatisticsStatus);

@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
+import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
@@ -61,7 +62,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.Permission;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -112,9 +112,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectConverter projectConverter;
 
 	@Autowired
-	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
+	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
+			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
 			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
-			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler, ProjectConverter projectConverter) {
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
+			ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
@@ -130,28 +132,26 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	@Override
-	public OperationCompletionRS updateProject(ReportPortalUser.ProjectDetails projectDetails, UpdateProjectRQ updateProjectRQ,
-			ReportPortalUser user) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public OperationCompletionRS updateProject(String projectName, UpdateProjectRQ updateProjectRQ, ReportPortalUser user) {
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
-
-		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, projectDetails, user);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
+		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
 		projectRepository.save(project);
-		messageBus.publishActivity(new ProjectUpdatedEvent(before,
-				TO_ACTIVITY_RESOURCE.apply(project),
-				user.getUserId(),
-				user.getUsername()
-		));
+		ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
+
+		messageBus.publishActivity(new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
+		messageBus.publishActivity(new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
+
 		return new OperationCompletionRS("Project with name = '" + project.getName() + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS updateProjectNotificationConfig(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	public OperationCompletionRS updateProjectNotificationConfig(String projectName, ReportPortalUser user,
 			ProjectNotificationConfigDTO updateProjectNotificationConfigRQ) {
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectResource before = projectConverter.TO_PROJECT_RESOURCE.apply(project);
 
 		updateSenderCases(project, updateProjectNotificationConfigRQ.getSenderCases());
@@ -167,52 +167,41 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				user.getUserId(),
 				user.getUsername()
 		));
-		return new OperationCompletionRS(
-				"Notification configuration of project with id = '" + projectDetails.getProjectId() + "' is successfully updated.");
+		return new OperationCompletionRS("Notification configuration of project - '" + projectName + "' is successfully updated.");
 	}
 
 	@Override
-	public OperationCompletionRS unassignUsers(ReportPortalUser.ProjectDetails projectDetails, UnassignUsersRQ unassignUsersRQ,
-			ReportPortalUser user) {
+	public OperationCompletionRS unassignUsers(String projectName, UnassignUsersRQ unassignUsersRQ, ReportPortalUser user) {
 		expect(unassignUsersRQ.getUsernames(), not(List::isEmpty)).verify(BAD_REQUEST_ERROR,
 				"Request should contain at least one username."
 		);
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		User modifier = userRepository.findById(user.getUserId()).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
+		User modifier = userRepository.findById(user.getUserId())
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, user.getUsername()));
 		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(unassignUsersRQ.getUsernames(), not(contains(equalTo(modifier.getLogin())))).verify(
+					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not unassign himself from project."
 			);
 		}
-		List<ProjectUser> unassignUsers = new ArrayList<>(unassignUsersRQ.getUsernames().size());
-		unassignUsersRQ.getUsernames().forEach(username -> {
-			User userForUnassign = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
-			validateUnassigningUser(modifier, userForUnassign, projectDetails, project);
-			ProjectUser projectUser = project.getUsers()
-					.stream()
-					.filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
-					.findFirst()
-					.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
-			project.getUsers().remove(projectUser);
-			userForUnassign.getProjects().remove(projectUser);
-			unassignUsers.add(projectUser);
-			aclHandler.preventSharedObjects(project.getId(), username);
-		});
 
-		projectUserRepository.deleteAll(unassignUsers);
-		ProjectUtils.excludeProjectRecipients(unassignUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
-		unassignUsers.forEach(it -> preferenceRepository.removeByProjectIdAndUserId(projectDetails.getProjectId(), it.getUser().getId()));
+		List<ProjectUser> unassignedUsers = unassignUsers(unassignUsersRQ.getUsernames(), modifier, project, user);
+		projectUserRepository.deleteAll(unassignedUsers);
+		ProjectUtils.excludeProjectRecipients(unassignedUsers.stream().map(ProjectUser::getUser).collect(Collectors.toSet()), project);
+		unassignedUsers.forEach(it -> preferenceRepository.removeByProjectIdAndUserId(project.getId(), it.getUser().getId()));
 
 		return new OperationCompletionRS(
-				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='" + project.getName() + "'");
+				"User(s) with username(s)='" + unassignUsersRQ.getUsernames() + "' was successfully un-assigned from project='"
+						+ project.getName() + "'");
 	}
 
 	@Override
 	public OperationCompletionRS assignUsers(String projectName, AssignUsersRQ assignUsersRQ, ReportPortalUser user) {
 
 		if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
-			Project project = projectRepository.findByName(normalizeId(projectName)).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+			Project project = projectRepository.findByName(normalizeId(projectName))
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
 
 			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
 			assignUsersRQ.getUserNames().forEach((name, role) -> {
@@ -220,12 +209,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				assignUser(name, projectRole, assignedUsernames, project);
 			});
 		} else {
-			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
+			expect(assignUsersRQ.getUserNames().keySet(), not(Preconditions.contains(equalTo(user.getUsername())))).verify(
+					UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 					"User should not assign himself to project."
 			);
 
 			ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
-			Project project = projectRepository.findById(projectDetails.getProjectId()).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
+			Project project = projectRepository.findById(projectDetails.getProjectId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
 
 			List<String> assignedUsernames = project.getUsers().stream().map(u -> u.getUser().getLogin()).collect(toList());
 			assignUsersRQ.getUserNames().forEach((name, role) -> {
@@ -238,38 +229,87 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		}
 
 		return new OperationCompletionRS(
-				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='" + normalizeId(projectName) + "'");
+				"User(s) with username='" + assignUsersRQ.getUserNames().keySet() + "' was successfully assigned to project='"
+						+ normalizeId(projectName) + "'");
 	}
 
 	@Override
-	public OperationCompletionRS indexProjectData(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	public OperationCompletionRS indexProjectData(String projectName, ReportPortalUser user) {
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer deployed."
 		);
 
-		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(projectDetails.getProjectId())).orElse(false),
-				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+		Project project = projectRepository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(projectDetails.getProjectId()), equalTo(false)).verify(
-				ErrorType.FORBIDDEN_OPERATION,
-				"Index can not be removed until auto-analysis proceeds."
+		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until index generation proceeds."
 		);
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		expect(
+				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
+				equalTo(false)
+		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
 
-		List<Long> launches = launchRepository.findLaunchIdsByProjectId(projectDetails.getProjectId());
+		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
 
-		logIndexer.deleteIndex(projectDetails.getProjectId());
+		logIndexer.deleteIndex(project.getId());
 
-		logIndexer.indexLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project)).thenAcceptAsync(indexedCount -> {
-			mailServiceFactory.getDefaultEmailService(true)
-					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount);
-		});
+		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project))
+				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
+						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
 		return new OperationCompletionRS("Log indexing has been started");
+	}
+
+	private List<ProjectUser> unassignUsers(List<String> usernames, User modifier, Project project, ReportPortalUser user) {
+		List<ProjectUser> unassignedUsers = Lists.newArrayListWithExpectedSize(usernames.size());
+		if (modifier.getRole() == UserRole.ADMINISTRATOR) {
+			usernames.forEach(username -> {
+				User userForUnassign = userRepository.findByLogin(username)
+						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+				validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+				unassignedUsers.add(unassignUser(project, username, userForUnassign));
+
+			});
+		} else {
+			ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, project.getName());
+
+			usernames.forEach(username -> {
+				User userForUnassign = userRepository.findByLogin(username)
+						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+				ProjectUser projectUser = userForUnassign.getProjects()
+						.stream()
+						.filter(it -> Objects.equals(it.getProject().getId(), project.getId()))
+						.findFirst()
+						.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
+								userForUnassign.getLogin(),
+								String.format("User not found in project %s", project.getName())
+						));
+
+				expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
+						ACCESS_DENIED);
+
+				validateUnassigningUser(modifier, userForUnassign, project.getId(), project);
+				unassignedUsers.add(unassignUser(project, username, userForUnassign));
+
+			});
+		}
+
+		return unassignedUsers;
+	}
+
+	private ProjectUser unassignUser(Project project, String username, User userForUnassign) {
+		ProjectUser projectUser = project.getUsers()
+				.stream()
+				.filter(it -> it.getUser().getLogin().equalsIgnoreCase(username))
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, username));
+		project.getUsers().remove(projectUser);
+		userForUnassign.getProjects().remove(projectUser);
+		aclHandler.preventSharedObjects(project.getId(), username);
+		return projectUser;
 	}
 
 	private void assignUser(String name, ProjectRole projectRole, List<String> assignedUsernames, Project project) {
@@ -287,14 +327,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		projectUser.setProject(project);
 		project.getUsers().add(projectUser);
 
-		List<Permission> permissions = Lists.newArrayList(BasePermission.READ);
 		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
-			permissions.add(BasePermission.ADMINISTRATION);
+			aclHandler.permitSharedObjects(project.getId(), name, BasePermission.ADMINISTRATION);
+		} else {
+			aclHandler.permitSharedObjects(project.getId(), name, BasePermission.READ);
 		}
-		aclHandler.permitSharedObjects(project.getId(), name, permissions);
 	}
 
-	private void validateUnassigningUser(User modifier, User userForUnassign, ReportPortalUser.ProjectDetails projectDetails, Project project) {
+	private void validateUnassigningUser(User modifier, User userForUnassign, Long projectId, Project project) {
 		if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), userForUnassign.getLogin())) {
 			fail().withError(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT, "Unable to unassign user from his personal project");
 		}
@@ -304,24 +344,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		if (!ProjectUtils.doesHaveUser(project, userForUnassign.getLogin())) {
 			fail().withError(USER_NOT_FOUND, userForUnassign.getLogin(), String.format("User not found in project %s", project.getName()));
 		}
-
-		ProjectUser projectUser = userForUnassign.getProjects()
-				.stream()
-				.filter(it -> Objects.equals(it.getProject().getId(), projectDetails.getProjectId()))
-				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND,
-						userForUnassign.getLogin(),
-						String.format("User not found in project %s", project.getName())
-				));
-
-		if (!UserRole.ADMINISTRATOR.equals(modifier.getRole())) {
-			expect(projectDetails.getProjectRole().sameOrHigherThan(projectUser.getProjectRole()), BooleanUtils::isTrue).verify(
-					ACCESS_DENIED);
-		}
 	}
 
-	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser user) {
 
 		if (null != userRoles && !user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
 			expect(userRoles.get(user.getUsername()), isNull()).verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
@@ -337,8 +362,10 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				expect(updatingProjectUser, notNull()).verify(ErrorType.USER_NOT_FOUND, key);
 
 				if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-					ProjectRole principalRole = projectDetails.getProjectRole();
-					ProjectRole updatingUserRole = ofNullable(ProjectUtils.findUserConfigByLogin(project, key)).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();
+					ProjectRole principalRole = ProjectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
+					ProjectRole updatingUserRole = ofNullable(ProjectUtils.findUserConfigByLogin(project,
+							key
+					)).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();
 					/*
 					 * Validate principal role level is high enough
 					 */
@@ -365,9 +392,18 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void verifyProjectAttributes(Map<String, String> attributes) {
+		Set<String> incompatibleAttributes = attributes.keySet()
+				.stream()
+				.filter(it -> !ProjectAttributeEnum.isPresent(it))
+				.collect(toSet());
+		expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
+
 		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> expect(keepLogs,
 				KeepLogsDelay::isPresent
 		).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs));
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute())).ifPresent(keepLaunches -> expect(keepLaunches,
+				KeepLaunchDelay::isPresent
+		).verify(BAD_REQUEST_ERROR, keepLaunches));
 		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> expect(interruptedJob,
 				InterruptionJobDelay::isPresent
 		).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -52,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -75,6 +75,7 @@ public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
 	private final FinishLaunchHandler finishLaunchMessageHandler;
+	private final StopLaunchHandler stopLaunchHandler;
 	private final DeleteLaunchHandler deleteLaunchMessageHandler;
 	private final GetLaunchHandler getLaunchMessageHandler;
 	private final UpdateLaunchHandler updateLaunchHandler;
@@ -82,13 +83,13 @@ public class LaunchController {
 	private final ImportLaunchHandler importLaunchHandler;
 	private final GetJasperReportHandler<Launch> getJasperHandler;
 
-	@Autowired
 	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
-			DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
+			StopLaunchHandler stopLaunchHandler, DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
 			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler, ImportLaunchHandler importLaunchHandler,
 			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
 		this.createLaunchMessageHandler = createLaunchMessageHandler;
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
+		this.stopLaunchHandler = stopLaunchHandler;
 		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
 		this.getLaunchMessageHandler = getLaunchMessageHandler;
 		this.updateLaunchHandler = updateLaunchHandler;
@@ -96,6 +97,8 @@ public class LaunchController {
 		this.importLaunchHandler = importLaunchHandler;
 		this.getJasperHandler = getJasperHandler;
 	}
+
+	/* Report client API */
 
 	@Transactional
 	@PostMapping
@@ -113,7 +116,7 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Finish launch for specified project")
-	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
 		return finishLaunchMessageHandler.finishLaunch(launchId,
@@ -124,6 +127,8 @@ public class LaunchController {
 		);
 	}
 
+	/* Frontend API */
+
 	@Transactional
 	@PutMapping("/{launchId}/stop")
 	@PreAuthorize(ALLOWED_TO_REPORT)
@@ -131,11 +136,7 @@ public class LaunchController {
 	@ApiOperation("Force finish launch for specified project")
 	public OperationCompletionRS forceFinishLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@RequestBody @Validated FinishExecutionRQ finishExecutionRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return finishLaunchMessageHandler.stopLaunch(launchId,
-				finishExecutionRQ,
-				extractProjectDetails(user, normalizeId(projectName)),
-				user
-		);
+		return stopLaunchHandler.stopLaunch(launchId, finishExecutionRQ, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional
@@ -144,8 +145,8 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Force finish launch")
 	public List<OperationCompletionRS> bulkForceFinish(@PathVariable String projectName,
-			@RequestBody @Validated BulkRQ<FinishExecutionRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
-		return finishLaunchMessageHandler.stopLaunch(rq, extractProjectDetails(user, normalizeId(projectName)), user);
+			@RequestBody @Validated BulkRQ<Long, FinishExecutionRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
+		return stopLaunchHandler.stopLaunch(rq, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional
@@ -163,8 +164,8 @@ public class LaunchController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
 	@ApiOperation("Updates launches for specified project")
-	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName, @RequestBody @Validated BulkRQ<UpdateLaunchRQ> rq,
-			@AuthenticationPrincipal ReportPortalUser user) {
+	public List<OperationCompletionRS> updateLaunches(@PathVariable String projectName,
+			@RequestBody @Validated BulkRQ<Long, UpdateLaunchRQ> rq, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateLaunchHandler.updateLaunch(rq, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
@@ -235,6 +236,16 @@ public class LaunchController {
 			@RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
 			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getAttributeValues(extractProjectDetails(user, normalizeId(projectName)), key, value);
+	}
+
+	@Transactional
+	@PutMapping(value = "/info")
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@ResponseStatus(OK)
+	@ApiOperation("Bulk update attributes and description")
+	public OperationCompletionRS bulkUpdate(@PathVariable String projectName, @RequestBody @Validated BulkInfoUpdateRQ bulkInfoUpdateRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.bulkInfoUpdate(bulkInfoUpdateRQ, extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -333,5 +344,4 @@ public class LaunchController {
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
 	}
-
 }

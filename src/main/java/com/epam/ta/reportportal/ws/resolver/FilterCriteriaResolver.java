@@ -1,10 +1,11 @@
 package com.epam.ta.reportportal.ws.resolver;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
@@ -77,6 +78,10 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 							StringUtils.substringAfter(stringCondition, NOT_FILTER_MARKER) :
 							stringCondition);
 					String criteria = tokens[2];
+					BusinessRule.expect(parameter.getValue()[0], StringUtils::isNotBlank)
+							.verify(ErrorType.BAD_REQUEST_ERROR,
+									Suppliers.formattedSupplier("Filter criteria - '{}' value should be not empty", parameter.getKey()).get()
+							);
 					return new FilterCondition(condition, isNegative, parameter.getValue()[0], criteria);
 
 				})

@@ -18,9 +18,10 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.AssignUsersRQ;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.UnassignUsersRQ;
@@ -91,7 +92,7 @@ class ProjectControllerTest extends BaseMvcTest {
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
-		assertEquals(12, createdProjectOptional.get().getProjectAttributes().size());
+		assertEquals(13, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
 	}
 
@@ -100,10 +101,43 @@ class ProjectControllerTest extends BaseMvcTest {
 		final UpdateProjectRQ rq = new UpdateProjectRQ();
 		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
 		HashMap<String, String> projectAttributes = new HashMap<>();
+		projectAttributes.put("notifications.enabled", "false");
+		projectAttributes.put("job.keepLaunches", "2 weeks");
 		projectAttributes.put("job.keepLogs", "2 weeks");
 		projectAttributes.put("job.interruptJobTime", "1 week");
 		projectAttributes.put("job.keepScreenshots", "3 weeks");
 		projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
+		projectAttributes.put("analyzer.minDocFreq", "7");
+		projectAttributes.put("analyzer.minTermFreq", "10");
+		projectAttributes.put("analyzer.minShouldMatch", "5");
+		projectAttributes.put("analyzer.numberOfLogLines", "5");
+		projectAttributes.put("analyzer.isAutoAnalyzerEnabled", "false");
+		configuration.setProjectAttributes(projectAttributes);
+		rq.setConfiguration(configuration);
+
+		HashMap<String, String> userRoles = new HashMap<>();
+		userRoles.put("test_user", "PROJECT_MANAGER");
+		rq.setUserRoles(userRoles);
+		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+
+		Project project = projectRepository.findByName("test_project").get();
+		projectAttributes.forEach((key, value) -> {
+			Optional<ProjectAttribute> pa = project.getProjectAttributes()
+					.stream()
+					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(key))
+					.findAny();
+			assertTrue(pa.isPresent());
+			assertEquals(value, pa.get().getValue());
+		});
+	}
+
+	@Test
+	void updateProjectConfigValidationTest() throws Exception {
+		UpdateProjectRQ rq = new UpdateProjectRQ();
+		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
+		HashMap<String, String> projectAttributes = new HashMap<>();
+		projectAttributes.put("notifications.enabled", "false");
+		projectAttributes.put("job.keepLogs", "incorrect");
 		configuration.setProjectAttributes(projectAttributes);
 		rq.setConfiguration(configuration);
 
@@ -112,7 +146,42 @@ class ProjectControllerTest extends BaseMvcTest {
 		rq.setUserRoles(userRoles);
 		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void updateProjectConfigurationIncorrectAttributeTest() throws Exception {
+		UpdateProjectRQ rq = new UpdateProjectRQ();
+		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
+		HashMap<String, String> projectAttributes = new HashMap<>();
+		projectAttributes.put("incorrect", "false");
+		projectAttributes.put("job.keepLogs", "2 weeks");
+		configuration.setProjectAttributes(projectAttributes);
+		rq.setConfiguration(configuration);
+
+		HashMap<String, String> userRoles = new HashMap<>();
+		userRoles.put("test_user", "PROJECT_MANAGER");
+		rq.setUserRoles(userRoles);
+		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void updateProjectConfigurationNullValueTest() throws Exception {
+		UpdateProjectRQ rq = new UpdateProjectRQ();
+		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
+		HashMap<String, String> projectAttributes = new HashMap<>();
+		projectAttributes.put("job.keepLogs", null);
+		configuration.setProjectAttributes(projectAttributes);
+		rq.setConfiguration(configuration);
+
+		HashMap<String, String> userRoles = new HashMap<>();
+		userRoles.put("test_user", "PROJECT_MANAGER");
+		rq.setUserRoles(userRoles);
+		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
 
 	@Test

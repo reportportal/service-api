@@ -19,8 +19,8 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
-import com.epam.ta.reportportal.core.item.descendant.FinishDescendantsHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -53,8 +54,8 @@ import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.item.descendant.AbstractFinishDescendantsHandler.ATTRIBUTE_KEY_STATUS;
-import static com.epam.ta.reportportal.core.item.descendant.AbstractFinishDescendantsHandler.ATTRIBUTE_VALUE_INTERRUPTED;
+import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_KEY_STATUS;
+import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler.ATTRIBUTE_VALUE_INTERRUPTED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
@@ -68,13 +69,14 @@ import static java.util.Optional.ofNullable;
  * @author Pavel Bortnik
  */
 @Service
+@Primary
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
 	private final IssueTypeHandler issueTypeHandler;
 
-	private final FinishDescendantsHandler<TestItem> finishDescendantsHandler;
+	private final FinishHierarchyHandler<TestItem> finishHierarchyHandler;
 
 	private final LogIndexer logIndexer;
 
@@ -88,12 +90,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	@Autowired
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
-			@Qualifier("finishTestItemDescendantsHandler") FinishDescendantsHandler<TestItem> finishDescendantsHandler,
+			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler,
 			LogIndexer logIndexer, Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping,
 			IssueEntityRepository issueEntityRepository, LogRepository logRepository, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
-		this.finishDescendantsHandler = finishDescendantsHandler;
+		this.finishHierarchyHandler = finishHierarchyHandler;
 		this.logIndexer = logIndexer;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 		this.issueEntityRepository = issueEntityRepository;
@@ -102,9 +104,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	@Override
-	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Long testItemId,
+	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
-		TestItem testItem = testItemRepository.findById(testItemId)
+		TestItem testItem = testItemRepository.findByUuid(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
 		TestItemResults testItemResults = processItemResults(user, projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
@@ -198,7 +200,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser.ProjectDetails projectDetails) {
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), StatusEnum.IN_PROGRESS)) {
-			finishDescendantsHandler.finishDescendants(testItem, status, endtime, projectDetails);
+			finishHierarchyHandler.finishDescendants(testItem, status, endtime, projectDetails);
 		}
 	}
 

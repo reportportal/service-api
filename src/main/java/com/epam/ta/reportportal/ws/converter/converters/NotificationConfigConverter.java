@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.entity.project.email.LaunchAttributeRule;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -82,7 +82,7 @@ public final class NotificationConfigConverter {
 					return launchAttributeRule;
 				})
 				.collect(Collectors.toSet())));
-		senderCase.setLaunchNames(Sets.newHashSet(resource.getLaunchNames()));
+		ofNullable(resource.getLaunchNames()).ifPresent(launchNames -> senderCase.setLaunchNames(Sets.newHashSet(launchNames)));
 		senderCase.setRecipients(Sets.newHashSet(resource.getRecipients()));
 		senderCase.setSendCase(SendCase.findByName(resource.getSendCase())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,

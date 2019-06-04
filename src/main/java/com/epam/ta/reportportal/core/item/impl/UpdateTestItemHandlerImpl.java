@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -39,10 +40,13 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ItemInfoUtils;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
@@ -53,6 +57,7 @@ import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,7 +69,6 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.launch.util.AttributesValidator.validateAttributes;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -128,7 +132,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
-		List<Long> launchIdsToReindex = new ArrayList<>();
+		// key - launch id, value - list of item ids
+		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
 		List<Long> logIdsToCleanIndex = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
@@ -157,7 +162,15 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					launchIdsToReindex.add(testItem.getLaunch().getId());
+					Long launchId = testItem.getLaunch().getId();
+					Long itemId = testItem.getItemId();
+					if (logsToReindexMap.containsKey(launchId)) {
+						logsToReindexMap.get(launchId).add(itemId);
+					} else {
+						List<Long> itemIds = Lists.newArrayList();
+						itemIds.add(itemId);
+						logsToReindexMap.put(launchId, itemIds);
+					}
 				} else {
 					logIdsToCleanIndex.addAll(logRepository.findIdsByTestItemId(testItem.getItemId()));
 				}
@@ -172,8 +185,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(errors.isEmpty(), equalTo(true)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		if (!launchIdsToReindex.isEmpty()) {
-			logIndexer.indexLogs(project.getId(), launchIdsToReindex, analyzerConfig);
+		if (!logsToReindexMap.isEmpty()) {
+			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
 		}
 		if (!logIdsToCleanIndex.isEmpty()) {
 			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
@@ -188,7 +201,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
-		validateAttributes(rq.getAttributes());
 		validate(projectDetails, user, testItem);
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
@@ -238,11 +250,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());
 
-		before.forEach(it -> new LinkTicketEvent(it,
+		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(
+				it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
 				user.getUserId(),
 				user.getUsername()
-		));
+		)));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
@@ -256,7 +269,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItems.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getIssueIds().contains(it.getTicketId()));
+				testItem.getItemResults().getIssue().getTickets().removeIf(it -> rq.getTicketIds().contains(it.getTicketId()));
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -278,6 +291,43 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					.get();
 			issueEntityRepository.save(issueEntity);
 		});
+	}
+
+	@Override
+	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
+		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
+				projectDetails.getProjectId()
+		);
+
+		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
+		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+				.ifPresent(it::setDescription));
+
+		bulkUpdateRq.getAttributes().forEach(it -> {
+			switch (it.getAction()) {
+				case DELETE: {
+					items.forEach(item -> {
+						ItemAttribute toDelete = ItemInfoUtils.findAttributeByResource(item.getAttributes(), it.getFrom());
+						item.getAttributes().remove(toDelete);
+					});
+					break;
+				}
+				case UPDATE: {
+					items.forEach(item -> ItemInfoUtils.updateAttribute(item.getAttributes(), it));
+					break;
+				}
+				case CREATE: {
+					items.stream().filter(item -> ItemInfoUtils.containsAttribute(item.getAttributes(), it.getTo())).forEach(item -> {
+						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+						itemAttribute.setTestItem(item);
+						item.getAttributes().add(itemAttribute);
+					});
+					break;
+				}
+			}
+		});
+
+		return new OperationCompletionRS("Attributes successfully updated");
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ package com.epam.ta.reportportal.core.events.activity.util;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.google.common.base.Strings;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ActivityDetailsUtil {
 
@@ -47,6 +49,10 @@ public class ActivityDetailsUtil {
 	public static final String CONTENT_FIELDS = "contentFields";
 	public static final String WIDGET_OPTIONS = "widgetOptions";
 	public static final String STATUS = "status";
+	public static final String RELEVANT_ITEM = "relevantItem";
+	public static final String ENABLED = "enabled";
+	public static final String ITEM_IDS = "itemIds";
+	public static final String LAUNCH_ID = "launchId";
 
 	public static Optional<HistoryField> processName(String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {
@@ -64,10 +70,33 @@ public class ActivityDetailsUtil {
 		return Optional.empty();
 	}
 
-	public static Optional<HistoryField> processShared(boolean oldShared, boolean newShared) {
-		if (oldShared != newShared) {
-			return Optional.of(HistoryField.of(SHARE, String.valueOf(oldShared), String.valueOf(newShared)));
+	public static Optional<HistoryField> processBoolean(String type, boolean previous, boolean current) {
+		if (previous != current) {
+			return Optional.of(HistoryField.of(type, String.valueOf(previous), String.valueOf(current)));
 		}
 		return Optional.empty();
+	}
+
+	public static Optional<HistoryField> processParameter(Map<String, String> oldConfig, Map<String, String> newConfig,
+			String parameterName) {
+		String before = oldConfig.get(parameterName);
+		String after = newConfig.get(parameterName);
+		if (after != null && !after.equals(before)) {
+			return Optional.of(HistoryField.of(parameterName, before, after));
+		}
+		return Optional.empty();
+	}
+
+	public static boolean configEquals(Map<String, String> before, Map<String, String> after, String prefix) {
+		Map<String, String> beforeJobConfig = extractConfigByPrefix(before, prefix);
+		Map<String, String> afterJobConfig = extractConfigByPrefix(after, prefix);
+		return beforeJobConfig.equals(afterJobConfig);
+	}
+
+	private static Map<String, String> extractConfigByPrefix(Map<String, String> config, String prefix) {
+		return config.entrySet()
+				.stream()
+				.filter(entry -> entry.getKey().startsWith(prefix))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 }

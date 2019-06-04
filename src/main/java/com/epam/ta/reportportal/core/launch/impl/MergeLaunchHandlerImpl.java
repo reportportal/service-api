@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -110,7 +109,7 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 		launchRepository.save(newLaunch);
 		logIndexer.cleanIndex(project.getId(), new ArrayList<>(launchesIds));
 		launchRepository.deleteAll(launchesList);
-		logIndexer.indexLogs(project.getId(), Collections.singletonList(newLaunch.getId()), AnalyzerUtils.getAnalyzerConfig(project));
+		logIndexer.indexLaunchLogs(project.getId(), newLaunch.getId(), AnalyzerUtils.getAnalyzerConfig(project));
 
 		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}

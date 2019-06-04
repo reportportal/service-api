@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.project.settings;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectSettingsResource;
 
 /**
@@ -27,8 +26,8 @@ public interface GetProjectSettingsHandler {
 	/**
 	 * Provide additional settings for specified project
 	 *
-	 * @param projectDetails
+	 * @param projectName Project name
 	 * @return ProjectSettingsResource
 	 */
-	ProjectSettingsResource getProjectSettings(ReportPortalUser.ProjectDetails projectDetails);
+	ProjectSettingsResource getProjectSettings(String projectName);
 }

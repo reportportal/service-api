@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.project.settings.impl;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.project.settings.GetProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -43,9 +42,9 @@ public class GetProjectSettingsHandlerImpl implements GetProjectSettingsHandler 
 	}
 
 	@Override
-	public ProjectSettingsResource getProjectSettings(ReportPortalUser.ProjectDetails projectDetails) {
-		Project project = repository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+	public ProjectSettingsResource getProjectSettings(String projectName) {
+		Project project = repository.findByName(projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		return ProjectSettingsConverter.TO_PROJECT_SETTINGS_RESOURCE.apply(project);
 	}
 }

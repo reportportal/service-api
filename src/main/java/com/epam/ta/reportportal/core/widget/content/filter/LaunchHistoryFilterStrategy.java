@@ -21,14 +21,19 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.stream.Stream;
+
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LAUNCH_NAME_FIELD;
+import static java.util.stream.Collectors.joining;
 
 /**
  * @author Pavel Bortnik
@@ -41,7 +46,13 @@ public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 		validateWidgetOptions(widget.getWidgetOptions());
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widget.getWidgetOptions());
 		Filter filter = super.buildDefaultFilter(widget, projectId);
-		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME));
+		return filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME))
+				.withCondition(new FilterCondition(
+						Condition.IN,
+						false,
+						Stream.of(StatusEnum.FAILED, StatusEnum.PASSED, StatusEnum.STOPPED).map(Enum::name).collect(joining(",")),
+						CRITERIA_LAUNCH_STATUS
+				));
 	}
 
 	/**

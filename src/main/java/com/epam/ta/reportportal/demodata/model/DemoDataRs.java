@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,23 +28,24 @@ import java.util.List;
 public class DemoDataRs {
 
 	@JsonProperty
-	private List<Long> dashboards;
+	private Long dashboardId;
+
 	@JsonProperty
-	private List<Long> launches;
+	private List<Long> launchIds;
 
-	public List<Long> getDashboards() {
-		return dashboards;
+	public Long getDashboardId() {
+		return dashboardId;
 	}
 
-	public void setDashboards(List<Long> dashboards) {
-		this.dashboards = dashboards;
+	public void setDashboardId(Long dashboardId) {
+		this.dashboardId = dashboardId;
 	}
 
-	public List<Long> getLaunches() {
-		return launches;
+	public List<Long> getLaunchIds() {
+		return launchIds;
 	}
 
-	public void setLaunches(List<Long> launches) {
-		this.launches = launches;
+	public void setLaunchIds(List<Long> launchIds) {
+		this.launchIds = launchIds;
 	}
 }

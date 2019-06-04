@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -97,8 +97,11 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));
-		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream().map(Launch::getDescription).collect(joining("\n\n"))));
-		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse("Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
+		startRQ.setDescription(ofNullable(mergeLaunchesRQ.getDescription()).orElse(launches.stream()
+				.map(Launch::getDescription)
+				.collect(joining("\n\n"))));
+		startRQ.setName(ofNullable(mergeLaunchesRQ.getName()).orElse(
+				"Merged: " + launches.stream().map(Launch::getName).distinct().collect(joining(", "))));
 		startRQ.setStartTime(startTime);
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)
 				.addProject(projectId)
@@ -128,16 +131,17 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		if (attributesFromRq == null) {
 			mergedAttributes.addAll(launchesToMerge.stream()
 					.map(Launch::getAttributes)
-					.flatMap(Collection::stream).peek(it -> it.setLaunch(resultedLaunch))
+					.flatMap(Collection::stream)
+					.peek(it -> it.setLaunch(resultedLaunch))
 					.collect(Collectors.toSet()));
 		} else {
 			mergedAttributes.addAll(launchesToMerge.stream()
 					.map(Launch::getAttributes)
 					.flatMap(Collection::stream)
-					.filter(ItemAttribute::isSystem).peek(it -> it.setLaunch(resultedLaunch))
+					.filter(ItemAttribute::isSystem)
+					.peek(it -> it.setLaunch(resultedLaunch))
 					.collect(Collectors.toSet()));
 			mergedAttributes.addAll(attributesFromRq.stream()
-					.filter(attr -> !attr.isSystem())
 					.map(FROM_RESOURCE)
 					.peek(attr -> attr.setLaunch(resultedLaunch))
 					.collect(Collectors.toSet()));

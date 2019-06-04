@@ -23,10 +23,13 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -40,20 +43,16 @@ import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.stream.Collectors.toMap;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -79,6 +78,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		startLaunchRQ.setName(name);
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setMode(DEFAULT);
+		startLaunchRQ.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
 		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startLaunchRQ))
@@ -152,7 +152,7 @@ class LaunchControllerTest extends BaseMvcTest {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/3/finish").contentType(APPLICATION_JSON)
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/finish").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(finishExecutionRQ))).andExpect(status().is(200));
 	}
@@ -169,8 +169,8 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void bulkForceFinish() throws Exception {
-		final BulkRQ<FinishExecutionRQ> bulkRQ = new BulkRQ<>();
-		bulkRQ.setEntities(LongStream.of(3L, 5L).boxed().collect(toMap(it -> it, it -> {
+		final BulkRQ<Long, FinishExecutionRQ> bulkRQ = new BulkRQ<>();
+		bulkRQ.setEntities(Stream.of(3L, 5L).collect(toMap(it -> it, it -> {
 			FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 			finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
 			finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
@@ -216,7 +216,7 @@ class LaunchControllerTest extends BaseMvcTest {
 			updateLaunchRQ.setMode(DEBUG);
 			return updateLaunchRQ;
 		}));
-		final BulkRQ<UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
+		final BulkRQ<Long, UpdateLaunchRQ> bulkRQ = new BulkRQ<>();
 		bulkRQ.setEntities(entities);
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/update").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(bulkRQ))
@@ -260,9 +260,104 @@ class LaunchControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content", hasSize(4)));
 	}
 
+	@Disabled
 	@Test
 	void export() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	void bulkUpdateItemAttributes() throws Exception {
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+		request.setIds(launchIds);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.CREATE);
+		String comment = "created";
+		description.setComment(comment);
+		request.setDescription(description);
+		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.UPDATE);
+		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+		updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
+		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		List<Launch> launches = launchRepository.findAllById(launchIds);
+		launches.forEach(it -> launchRepository.refresh(it));
+
+		launches.forEach(it -> {
+			assertTrue(it.getAttributes()
+					.stream()
+					.noneMatch(attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue") && !attr.isSystem()));
+			assertTrue(it.getAttributes()
+					.stream()
+					.anyMatch(attr -> "updatedKey".equals(attr.getKey()) && attr.getValue().equals("updatedValue") && !attr.isSystem()));
+			assertEquals(comment, it.getDescription());
+		});
+	}
+
+	@Test
+	void bulkCreateAttributes() throws Exception {
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+		request.setIds(launchIds);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
+		String comment = "updated";
+		description.setComment(comment);
+		request.setDescription(description);
+		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
+		updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		List<Launch> launches = launchRepository.findAllById(launchIds);
+		launches.forEach(it -> launchRepository.refresh(it));
+
+		launches.forEach(it -> {
+			assertTrue(it.getAttributes()
+					.stream()
+					.anyMatch(attr -> "createdKey".equals(attr.getKey()) && attr.getValue().equals("createdValue") && !attr.isSystem()));
+			assertTrue(it.getDescription().length() > comment.length() && it.getDescription().contains(comment));
+		});
+	}
+
+	@Test
+	void bulkDeleteAttributes() throws Exception {
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L);
+		request.setIds(launchIds);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.CREATE);
+		String comment = "created";
+		description.setComment(comment);
+		request.setDescription(description);
+		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.DELETE);
+		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/info").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		List<Launch> launches = launchRepository.findAllById(launchIds);
+		launches.forEach(it -> launchRepository.refresh(it));
+
+		launches.forEach(it -> {
+			assertTrue(it.getAttributes()
+					.stream()
+					.noneMatch(attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue") && !attr.isSystem()));
+			assertEquals(comment, it.getDescription());
+		});
 	}
 }

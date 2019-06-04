@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ package com.epam.ta.reportportal.demodata.service;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.demodata.model.DemoDataRs;
-import com.epam.ta.reportportal.entity.dashboard.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,11 +41,10 @@ public class DemoDataService {
 
 	public DemoDataRs generate(DemoDataRq demoDataRq, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
-		final List<Long> launches = demoDataFacade.generateDemoLaunches(demoDataRq, user, projectDetails);
-		demoDataRs.setLaunches(launches);
+		final List<Long> launchIds = demoDataFacade.generateDemoLaunches(demoDataRq, user, projectDetails);
+		demoDataRs.setLaunchIds(launchIds);
 		if (demoDataRq.isCreateDashboard()) {
-			Dashboard demoDashboard = demoDashboardsService.generate(user, projectDetails.getProjectId());
-			demoDataRs.setDashboards(Collections.singletonList(demoDashboard.getId()));
+			demoDashboardsService.generate(user, projectDetails.getProjectId()).ifPresent(it -> demoDataRs.setDashboardId(it.getId()));
 		}
 
 		return demoDataRs;

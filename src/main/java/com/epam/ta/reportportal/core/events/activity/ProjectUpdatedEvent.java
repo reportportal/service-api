@@ -20,7 +20,8 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
-import static com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent.processParameter;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.configEquals;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_PROJECT;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
@@ -42,17 +43,24 @@ public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityRe
 
 	@Override
 	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_PROJECT)
-				.addActivityEntityType(PROJECT)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getAfter().getProjectId())
-				.addObjectName(getAfter().getProjectName())
-				.addProjectId(getAfter().getProjectId())
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), INTERRUPT_JOB_TIME.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_SCREENSHOTS.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LOGS.getAttribute()))
-				.get();
+		return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.JOB) ?
+				null :
+				new ActivityBuilder().addCreatedNow()
+						.addAction(UPDATE_PROJECT)
+						.addActivityEntityType(PROJECT)
+						.addUserId(getUserId())
+						.addUserName(getUserLogin())
+						.addObjectId(getAfter().getProjectId())
+						.addObjectName(getAfter().getProjectName())
+						.addProjectId(getAfter().getProjectId())
+						.addHistoryField(processParameter(getBefore().getConfig(),
+								getAfter().getConfig(),
+								INTERRUPT_JOB_TIME.getAttribute()
+						))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_SCREENSHOTS.getAttribute()))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LOGS.getAttribute()))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), KEEP_LAUNCHES.getAttribute()))
+						.get();
 	}
+
 }

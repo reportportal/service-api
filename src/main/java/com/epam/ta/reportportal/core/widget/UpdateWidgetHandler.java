@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,11 @@
 package com.epam.ta.reportportal.core.widget;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+
+import java.util.Collection;
 
 /**
  * @author Pavel Bortnik
@@ -31,4 +34,12 @@ public interface UpdateWidgetHandler {
 	OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
+	/**
+	 * Update {@link Widget#isShared()} state
+	 *
+	 * @param widgets   {@link Collection} of {@link Widget}
+	 * @param projectId {@link com.epam.ta.reportportal.entity.project.Project#id}
+	 * @param isShared  flag that indicates whether widget should be shared or unshared
+	 */
+	void updateSharing(Collection<Widget> widgets, Long projectId, boolean isShared);
 }

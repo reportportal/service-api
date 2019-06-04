@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
@@ -42,8 +43,7 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 	private final BasicTextEncryptor basicTextEncryptor;
 
 	@Autowired
-	public JiraIntegrationService(IntegrationRepository integrationRepository,
-			PluginBox pluginBox, BasicTextEncryptor basicTextEncryptor) {
+	public JiraIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox, BasicTextEncryptor basicTextEncryptor) {
 		super(integrationRepository, pluginBox);
 		this.basicTextEncryptor = basicTextEncryptor;
 	}
@@ -54,46 +54,45 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);
 
-		String authName = BtsProperties.AUTH_TYPE.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"No auth property provided for Jira integration"
-				));
-		AuthType authType = AuthType.findByName(authName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
+		BtsProperties.AUTH_TYPE.getParam(integrationParams).ifPresent(authName -> {
+			AuthType authType = AuthType.findByName(authName)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
 
-		if (AuthType.BASIC.equals(authType)) {
-			resultParams.put(BtsProperties.USER_NAME.getName(),
-					BtsProperties.USER_NAME.getParam(integrationParams)
-							.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Username value cannot be NULL"))
-			);
+			if (AuthType.BASIC.equals(authType)) {
+				resultParams.put(BtsProperties.USER_NAME.getName(),
+						BtsProperties.USER_NAME.getParam(integrationParams)
+								.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+										"Username value cannot be NULL"
+								))
+				);
 
-			String encryptedPassword = basicTextEncryptor.encrypt(BtsProperties.PASSWORD.getParam(integrationParams)
-					.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Password value cannot be NULL")));
-			resultParams.put(BtsProperties.PASSWORD.getName(), encryptedPassword);
+				String encryptedPassword = basicTextEncryptor.encrypt(BtsProperties.PASSWORD.getParam(integrationParams)
+						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Password value cannot be NULL")));
 
-		} else if (AuthType.OAUTH.equals(authType)) {
-			resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
-					BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
-							.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-									"AccessKey value cannot be NULL"
-							))
-			);
-		} else {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					"Unsupported auth type for Jira integration - " + authType.name()
-			);
-		}
+				resultParams.put(BtsProperties.PASSWORD.getName(), encryptedPassword);
 
-		resultParams.put(BtsProperties.AUTH_TYPE.getName(), authName);
+			} else if (AuthType.OAUTH.equals(authType)) {
+				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
+						BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
+								.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+										"AccessKey value cannot be NULL"
+								))
+				);
+			} else {
+				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Unsupported auth type for Jira integration - " + authType.name()
+				);
+			}
 
-		resultParams.put(BtsProperties.PROJECT.getName(),
-				BtsProperties.PROJECT.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "JIRA project value cannot be NULL"))
-		);
-		resultParams.put(BtsProperties.URL.getName(),
-				BtsProperties.URL.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "JIRA URL value cannot be NULL"))
-		);
+			resultParams.put(BtsProperties.AUTH_TYPE.getName(), authName);
+		});
+
+		BtsProperties.PROJECT.getParam(integrationParams)
+				.ifPresent(btsProject -> resultParams.put(BtsProperties.PROJECT.getName(), btsProject));
+		BtsProperties.URL.getParam(integrationParams).ifPresent(url -> resultParams.put(BtsProperties.URL.getName(), url));
+
+		Optional.ofNullable(integrationParams.get("defectFormFields"))
+				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
 
 		return resultParams;
 	}

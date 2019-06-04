@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public Long startRootItem(String rootItemName, Long launchId, TestItemTypeEnum type, ReportPortalUser user,
+	public String startRootItem(String rootItemName, String launchId, TestItemTypeEnum type, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
@@ -64,18 +64,18 @@ public class DemoDataTestItemService {
 			rq.setDescription(ContentUtils.getSuiteDescription());
 		}
 
-		return startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
+		return startTestItemHandler.startRootItem(user, projectDetails, rq).getUuid();
 	}
 
 	@Transactional
-	public void finishRootItem(Long rootItemId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public void finishRootItem(String rootItemId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(new Date());
 		finishTestItemHandler.finishTestItem(user, projectDetails, rootItemId, rq);
 	}
 
 	@Transactional
-	public Long startTestItem(Long rootItemId, Long launchId, String name, TestItemTypeEnum type, ReportPortalUser user,
+	public String startTestItem(String rootItemId, String launchId, String name, TestItemTypeEnum type, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
@@ -93,11 +93,11 @@ public class DemoDataTestItemService {
 		rq.setName(name);
 		rq.setType(type.name());
 
-		return startTestItemHandler.startChildItem(user, projectDetails, rq, rootItemId).getId();
+		return startTestItemHandler.startChildItem(user, projectDetails, rq, rootItemId).getUuid();
 	}
 
 	@Transactional
-	public void finishTestItem(Long testItemId, StatusEnum status, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public void finishTestItem(String testItemId, StatusEnum status, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(new Date());
 		rq.setStatus(status.name());

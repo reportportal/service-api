@@ -20,7 +20,9 @@ import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import com.google.common.collect.Sets;
@@ -54,7 +56,13 @@ class EmailServiceTest {
 
 		when(templateEngine.merge(any(String.class), any(Map.class))).thenReturn("EMAIL MESSAGE");
 
-		String url = emailService.mergeFinishLaunchText("url", getLaunch());
+		ProjectIssueType projectIssueType = new ProjectIssueType();
+		IssueType issueType = new IssueType();
+		issueType.setLocator("pb001");
+		issueType.setLongName("ProductBug");
+		projectIssueType.setIssueType(issueType);
+
+		String url = emailService.mergeFinishLaunchText("url", getLaunch(), Sets.newHashSet(projectIssueType));
 
 		System.out.println(url);
 	}

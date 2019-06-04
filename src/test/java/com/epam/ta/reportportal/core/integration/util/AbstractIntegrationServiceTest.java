@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -27,7 +26,6 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +68,7 @@ class AbstractIntegrationServiceTest {
 	void validateJira() {
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
 		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
-		abstractIntegrationService.validateGlobalIntegration(getCorrectJira());
+		abstractIntegrationService.validateIntegration(getCorrectJira());
 	}
 
 	@Test
@@ -78,7 +76,7 @@ class AbstractIntegrationServiceTest {
 		Integration correctJira = getCorrectJira();
 		correctJira.getParams().getParams().remove(BtsProperties.PROJECT.getName());
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> abstractIntegrationService.validateGlobalIntegration(correctJira)
+				() -> abstractIntegrationService.validateIntegration(correctJira)
 		);
 		assertEquals("Impossible interact with integration. BTS project is not specified.", exception.getMessage());
 	}
@@ -88,7 +86,7 @@ class AbstractIntegrationServiceTest {
 		Integration jira = getCorrectJira();
 		jira.getParams().getParams().remove(BtsProperties.URL.getName());
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> abstractIntegrationService.validateGlobalIntegration(jira)
+				() -> abstractIntegrationService.validateIntegration(jira)
 		);
 		assertEquals("Impossible interact with integration. Url is not specified.", exception.getMessage());
 	}
@@ -103,26 +101,9 @@ class AbstractIntegrationServiceTest {
 
 		//then
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> abstractIntegrationService.validateGlobalIntegration(jira)
+				() -> abstractIntegrationService.validateIntegration(jira)
 		);
 		assertEquals("Integration 'jira-url & jira-project' already exists. You couldn't create the duplicate.", exception.getMessage());
-	}
-
-	@Test
-	void validateJiraAuthUnspecified() {
-		//given
-		Integration jira = getCorrectJira();
-		jira.getParams().getParams().remove(BtsProperties.AUTH_TYPE.getName());
-
-		//when
-		when(integrationRepository.findGlobalBtsByUrlAndLinkedProject("jira-url", "jira-project")).thenReturn(Optional.empty());
-		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(Optional.ofNullable(btsExtension));
-
-		//then
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> abstractIntegrationService.validateGlobalIntegration(jira)
-		);
-		assertEquals("Impossible interact with integration. Connection refused.", exception.getMessage());
 	}
 
 	@Test
@@ -140,16 +121,16 @@ class AbstractIntegrationServiceTest {
 		when(btsExtension.testConnection(any(Integration.class))).thenReturn(true);
 
 		//then
-		abstractIntegrationService.validateProjectIntegration(correctJira,
-				new ReportPortalUser.ProjectDetails(projectId, "default", ProjectRole.PROJECT_MANAGER)
-		);
+		abstractIntegrationService.validateIntegration(correctJira, project);
 	}
 
 	@Test
 	void validateProjectJiraDuplicate() {
 		//given
 		Integration jira = getCorrectJira();
-		final long projectId = 1L;
+		Project project = new Project();
+		long projectId = 1L;
+		project.setId(projectId);
 
 		//when
 		when(integrationRepository.findProjectBtsByUrlAndLinkedProject("jira-url",
@@ -159,9 +140,7 @@ class AbstractIntegrationServiceTest {
 
 		//then
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> abstractIntegrationService.validateProjectIntegration(jira,
-						new ReportPortalUser.ProjectDetails(projectId, "default", ProjectRole.PROJECT_MANAGER)
-				)
+				() -> abstractIntegrationService.validateIntegration(jira, project)
 		);
 		assertEquals("Integration 'jira-url & jira-project' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}

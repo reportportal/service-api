@@ -21,10 +21,12 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
@@ -33,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -67,7 +70,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -81,7 +84,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -94,13 +97,14 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setUniqueId(UUID.randomUUID().toString());
 		rq.setParameters(getParameters());
 		rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(post(
+				DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
 	}
@@ -108,12 +112,13 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(1L);
+		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setParameters(getParameters());
 		rq.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(post(
+				DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isCreated());
 	}
@@ -123,18 +128,16 @@ class TestItemControllerTest extends BaseMvcTest {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("PASSED");
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(
+				rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void finishRootTestItemWithoutStatus() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1").content(objectMapper.writeValueAsBytes(rq))
-				.contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(
+				rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -145,7 +148,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		Issue issue = new Issue();
 		issue.setIssueType("pb001");
 		rq.setIssue(issue);
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
@@ -155,7 +159,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("FAILED");
-		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
@@ -202,6 +207,12 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/1/update").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getTickets() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/ticket/ids?launch=1&term=ticket").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -283,7 +294,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	void unlinkExternalIssues() throws Exception {
 		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
 		rq.setTestItemIds(Collections.singletonList(3L));
-		rq.setIssueIds(Collections.singletonList("ticket"));
+		rq.setTicketIds(Collections.singletonList("ticket"));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
@@ -293,7 +304,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	void unlinkExternalIssuesNegative() throws Exception {
 		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
 		rq.setTestItemIds(Collections.singletonList(2L));
-		rq.setIssueIds(Collections.singletonList("ticket"));
+		rq.setTicketIds(Collections.singletonList("ticket"));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
@@ -518,5 +529,99 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/5/update").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().is(400));
+	}
+
+	@Test
+	void bulkUpdateItemAttributes() throws Exception {
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
+		request.setIds(launchIds);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.CREATE);
+		String comment = "created";
+		description.setComment(comment);
+		request.setDescription(description);
+		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.UPDATE);
+		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+		updateItemAttributeRQ.setTo(new ItemAttributeResource("updatedKey", "updatedValue"));
+		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		List<TestItem> items = testItemRepository.findAllById(launchIds);
+		items.forEach(it -> testItemRepository.refresh(it));
+
+		items.forEach(it -> {
+			assertTrue(it.getAttributes()
+					.stream()
+					.noneMatch(attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue") && !attr.isSystem()));
+			assertTrue(it.getAttributes()
+					.stream()
+					.anyMatch(attr -> "updatedKey".equals(attr.getKey()) && attr.getValue().equals("updatedValue") && !attr.isSystem()));
+			assertEquals(comment, it.getDescription());
+		});
+	}
+
+	@Test
+	void bulkCreateAttributes() throws Exception {
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
+		request.setIds(launchIds);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.UPDATE);
+		String comment = "updated";
+		description.setComment(comment);
+		request.setDescription(description);
+		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.CREATE);
+		updateItemAttributeRQ.setTo(new ItemAttributeResource("createdKey", "createdValue"));
+		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		List<TestItem> items = testItemRepository.findAllById(launchIds);
+		items.forEach(it -> testItemRepository.refresh(it));
+
+		items.forEach(it -> {
+			assertTrue(it.getAttributes()
+					.stream()
+					.anyMatch(attr -> "createdKey".equals(attr.getKey()) && attr.getValue().equals("createdValue") && !attr.isSystem()));
+			assertTrue(it.getDescription().length() > comment.length() && it.getDescription().contains(comment));
+		});
+	}
+
+	@Test
+	void bulkDeleteAttributes() throws Exception {
+		BulkInfoUpdateRQ request = new BulkInfoUpdateRQ();
+		List<Long> launchIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L);
+		request.setIds(launchIds);
+		BulkInfoUpdateRQ.Description description = new BulkInfoUpdateRQ.Description();
+		description.setAction(BulkInfoUpdateRQ.Action.CREATE);
+		String comment = "created";
+		description.setComment(comment);
+		request.setDescription(description);
+		UpdateItemAttributeRQ updateItemAttributeRQ = new UpdateItemAttributeRQ();
+		updateItemAttributeRQ.setAction(BulkInfoUpdateRQ.Action.DELETE);
+		updateItemAttributeRQ.setFrom(new ItemAttributeResource("testKey", "testValue"));
+		request.setAttributes(Lists.newArrayList(updateItemAttributeRQ));
+
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/info").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		List<TestItem> items = testItemRepository.findAllById(launchIds);
+		items.forEach(it -> testItemRepository.refresh(it));
+
+		items.forEach(it -> {
+			assertTrue(it.getAttributes()
+					.stream()
+					.noneMatch(attr -> "testKey".equals(attr.getKey()) && attr.getValue().equals("testValue") && !attr.isSystem()));
+			assertEquals(comment, it.getDescription());
+		});
 	}
 }

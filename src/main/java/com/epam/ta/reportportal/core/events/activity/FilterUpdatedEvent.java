@@ -48,7 +48,7 @@ public class FilterUpdatedEvent extends AroundEvent<UserFilterActivityResource> 
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId())
 				.addHistoryField(processName(getBefore().getName(), getAfter().getName()))
-				.addHistoryField(processShared(getBefore().isShared(), getAfter().isShared()))
+				.addHistoryField(processBoolean(SHARE, getBefore().isShared(), getAfter().isShared()))
 				.addHistoryField(processDescription(getBefore().getDescription(), getAfter().getDescription()))
 				.get();
 	}

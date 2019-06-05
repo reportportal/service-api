@@ -88,6 +88,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			finishHierarchyHandler.finishDescendants(launch,
 					status.orElse(StatusEnum.INTERRUPTED),
 					finishLaunchRQ.getEndTime(),
+					user,
 					projectDetails
 			);
 			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED);

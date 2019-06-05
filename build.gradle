@@ -258,7 +258,7 @@ private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
 
 task copyTestDatabaseScripts {
     def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
-    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/dashboard-widget-type/migrations/1_initialize_schema.up.sql"
+    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
     copyFromUrl(initScriptPath, initScriptUrl)
 
     def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"

@@ -44,7 +44,8 @@ public class IntegrationConfig implements ApplicationContextAware {
 
 	@Bean
 	public Map<String, IntegrationService> integrationServiceMapping() {
-		ImmutableMap<String, IntegrationService> res = ImmutableMap.<String, IntegrationService>builder().put("jira",
+		ImmutableMap<String, IntegrationService> res = ImmutableMap.<String, IntegrationService>builder().put(
+				"jira",
 				applicationContext.getBean(JiraIntegrationService.class)
 		)
 				.put("rally", applicationContext.getBean(RallyIntegrationService.class))

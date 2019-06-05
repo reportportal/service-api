@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public class ProductStatusContentLoaderManager implements LoadContentStrategy {
 
 		return ofNullable(productStatusContentLoader.get(strategy)).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 				"Wrong strategy type. Allowed: \"filter\", \"launch\". But found: " + strategy
-		)).loadContent(contentFields, filterSortMapping, widgetOptions, limit);
+		))
+				.loadContent(contentFields, filterSortMapping, widgetOptions, limit);
 	}
 }

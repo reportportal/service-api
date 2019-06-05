@@ -250,11 +250,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());
 
-		before.forEach(it -> new LinkTicketEvent(it,
+		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(
+				it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
 				user.getUserId(),
 				user.getUsername()
-		));
+		)));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
@@ -299,7 +300,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		);
 
 		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
-		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription()).ifPresent(it::setDescription));
+		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+				.ifPresent(it::setDescription));
 
 		bulkUpdateRq.getAttributes().forEach(it -> {
 			switch (it.getAction()) {
@@ -396,13 +398,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(
-				item.getItemResults().getStatus(),
-				not(equalTo(StatusEnum.PASSED)),
-				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
-						StatusEnum.PASSED.name()
-				)
-		).verify();
+		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
+				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
+				StatusEnum.PASSED.name()
+		)).verify();
 
 		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
 				equalTo(false),

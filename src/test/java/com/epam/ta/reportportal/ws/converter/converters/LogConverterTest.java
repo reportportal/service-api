@@ -34,25 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class LogConverterTest {
 
-	@Test
-	void toResource() {
-		final Log log = getLog();
-		final LogResource resource = LogConverter.TO_RESOURCE.apply(log);
-
-		assertEquals(resource.getId(), log.getId());
-		assertEquals(resource.getUuid(), log.getUuid());
-		assertEquals(resource.getMessage(), log.getLogMessage());
-		assertEquals(resource.getLevel(), LogLevel.toLevel(log.getLogLevel()).toString());
-		assertEquals(resource.getLogTime(), Date.from(log.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
-		assertEquals(resource.getItemId(), log.getTestItem().getItemId());
-
-		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
-
-		assertEquals(binaryContent.getContentType(), log.getAttachment().getContentType());
-		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getFileId());
-		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailId());
-	}
-
 	private static Log getLog() {
 		Log log = new Log();
 		log.setLogLevel(50000);
@@ -70,5 +51,24 @@ class LogConverterTest {
 		log.setUuid("uuid");
 		log.setLastModified(LocalDateTime.now());
 		return log;
+	}
+
+	@Test
+	void toResource() {
+		final Log log = getLog();
+		final LogResource resource = LogConverter.TO_RESOURCE.apply(log);
+
+		assertEquals(resource.getId(), log.getId());
+		assertEquals(resource.getUuid(), log.getUuid());
+		assertEquals(resource.getMessage(), log.getLogMessage());
+		assertEquals(resource.getLevel(), LogLevel.toLevel(log.getLogLevel()).toString());
+		assertEquals(resource.getLogTime(), Date.from(log.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
+		assertEquals(resource.getItemId(), log.getTestItem().getItemId());
+
+		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
+
+		assertEquals(binaryContent.getContentType(), log.getAttachment().getContentType());
+		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getFileId());
+		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailId());
 	}
 }

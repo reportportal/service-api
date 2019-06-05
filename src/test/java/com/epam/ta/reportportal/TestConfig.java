@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.epam.ta.reportportal;
 
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
-import com.epam.ta.reportportal.core.configs.ExecutorConfiguration;
-import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;

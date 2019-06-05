@@ -109,10 +109,7 @@ public class DeleteIntegrationHandlerTest {
 
 		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
 				projectId
-		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(
-				emailIntegrationId,
-				projectId
-		)));
+		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
 
 		doNothing().when(integrationRepository).deleteById(emailIntegrationId);
 
@@ -132,7 +129,6 @@ public class DeleteIntegrationHandlerTest {
 
 		final long emailIntegrationId = 1L;
 		final long projectId = 1L;
-
 
 		Project project = new Project();
 		project.setId(projectId);
@@ -159,7 +155,8 @@ public class DeleteIntegrationHandlerTest {
 		verify(integrationRepository, times(1)).deleteAllByProjectIdAndIntegrationTypeId(anyLong(), anyLong());
 
 		assertNotNull(operationCompletionRS);
-		assertEquals("All integrations with type ='EMAIL' for project with name ='test_project' have been successfully deleted",
+		assertEquals(
+				"All integrations with type ='EMAIL' for project with name ='test_project' have been successfully deleted",
 				operationCompletionRS.getResultMessage()
 		);
 

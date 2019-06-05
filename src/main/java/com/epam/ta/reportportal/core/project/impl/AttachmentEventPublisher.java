@@ -47,7 +47,8 @@ public class AttachmentEventPublisher {
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	public void publishDeleteProjectAttachmentsEvent(Long projectId) {
-		PageUtil.iterateOverPages(ATTACHMENTS_BATCH_SIZE,
+		PageUtil.iterateOverPages(
+				ATTACHMENTS_BATCH_SIZE,
 				pageable -> attachmentRepository.findIdsByProjectId(projectId, pageable),
 				this::publishDeleteAttachmentEvent
 		);
@@ -55,7 +56,8 @@ public class AttachmentEventPublisher {
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	public void publishDeleteLaunchAttachmentsEvent(Long launchId) {
-		PageUtil.iterateOverPages(ATTACHMENTS_BATCH_SIZE,
+		PageUtil.iterateOverPages(
+				ATTACHMENTS_BATCH_SIZE,
 				pageable -> attachmentRepository.findIdsByLaunchId(launchId, pageable),
 				this::publishDeleteAttachmentEvent
 		);
@@ -63,7 +65,8 @@ public class AttachmentEventPublisher {
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
 	public void publishDeleteItemAttachmentsEvent(Long itemId) {
-		PageUtil.iterateOverPages(ATTACHMENTS_BATCH_SIZE,
+		PageUtil.iterateOverPages(
+				ATTACHMENTS_BATCH_SIZE,
 				pageable -> attachmentRepository.findIdsByTestItemId(itemId, pageable),
 				this::publishDeleteAttachmentEvent
 		);

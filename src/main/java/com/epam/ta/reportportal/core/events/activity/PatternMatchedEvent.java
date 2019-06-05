@@ -29,6 +29,12 @@ public class PatternMatchedEvent implements ActivityEvent {
 	public PatternMatchedEvent() {
 	}
 
+	public PatternMatchedEvent(Long launchId, List<Long> itemIds, PatternTemplateActivityResource patternTemplateActivityResource) {
+		this.launchId = launchId;
+		this.itemIds = itemIds;
+		this.patternTemplateActivityResource = patternTemplateActivityResource;
+	}
+
 	public Long getLaunchId() {
 		return launchId;
 	}
@@ -50,12 +56,6 @@ public class PatternMatchedEvent implements ActivityEvent {
 	}
 
 	public void setPatternTemplateActivityResource(PatternTemplateActivityResource patternTemplateActivityResource) {
-		this.patternTemplateActivityResource = patternTemplateActivityResource;
-	}
-
-	public PatternMatchedEvent(Long launchId, List<Long> itemIds, PatternTemplateActivityResource patternTemplateActivityResource) {
-		this.launchId = launchId;
-		this.itemIds = itemIds;
 		this.patternTemplateActivityResource = patternTemplateActivityResource;
 	}
 

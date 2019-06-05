@@ -188,11 +188,22 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.addFilters(userFilter)
 				.get();
 
-		return loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
-				buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
-				widget.getWidgetOptions(),
-				widget.getItemsCount()
-		);
+		if (widgetType.isSupportMultilevelStructure()) {
+			return multilevelLoadContentStrategy.get(widgetType).loadContent(
+					Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+					widget.getWidgetOptions(),
+					null,
+					widget.getItemsCount()
+			);
+		} else {
+			return loadContentStrategy.get(widgetType).loadContent(
+					Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+					widget.getWidgetOptions(),
+					widget.getItemsCount()
+			);
+		}
 	}
 
 	@Override

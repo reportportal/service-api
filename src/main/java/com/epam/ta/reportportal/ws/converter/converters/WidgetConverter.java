@@ -41,6 +41,7 @@ public class WidgetConverter {
 	public static final Function<DashboardWidget, DashboardResource.WidgetObjectModel> TO_OBJECT_MODEL = dashboardWidget -> {
 		DashboardResource.WidgetObjectModel objectModel = new DashboardResource.WidgetObjectModel();
 		objectModel.setName(dashboardWidget.getWidgetName());
+		objectModel.setWidgetType(dashboardWidget.getWidgetType());
 		objectModel.setWidgetId(dashboardWidget.getId().getWidgetId());
 		objectModel.setWidgetPosition(new Position(dashboardWidget.getPositionX(), dashboardWidget.getPositionY()));
 		objectModel.setWidgetSize(new Size(dashboardWidget.getWidth(), dashboardWidget.getHeight()));
@@ -94,6 +95,7 @@ public class WidgetConverter {
 
 		DashboardWidget dashboardWidget = new DashboardWidget();
 		dashboardWidget.setId(id);
+		dashboardWidget.setWidgetType(widget.getWidgetType());
 		dashboardWidget.setWidgetName(widget.getName());
 		dashboardWidget.setPositionX(model.getWidgetPosition().getX());
 		dashboardWidget.setPositionY(model.getWidgetPosition().getY());

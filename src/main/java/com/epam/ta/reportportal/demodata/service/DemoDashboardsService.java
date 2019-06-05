@@ -140,7 +140,9 @@ class DemoDashboardsService {
 		List<UserFilter> existedFilterList = userFilterRepository.getPermitted(ProjectFilter.of(Filter.builder()
 				.withTarget(UserFilter.class)
 				.withCondition(FilterCondition.builder()
-						.withCondition(Condition.EQUALS).withSearchCriteria(CRITERIA_NAME).withValue(FILTER_NAME)
+						.withCondition(Condition.EQUALS)
+						.withSearchCriteria(CRITERIA_NAME)
+						.withValue(FILTER_NAME)
 						.build())
 				.build(), project.getId()), Pageable.unpaged(), user.getUsername()).getContent();
 
@@ -207,6 +209,7 @@ class DemoDashboardsService {
 		dashboardWidget.setDashboard(dashboard);
 		dashboardWidget.setWidget(widget);
 		dashboardWidget.setWidgetName(widget.getName());
+		dashboardWidget.setWidgetType(widget.getWidgetType());
 		dashboardWidget.setCreatedOn(true);
 		dashboardWidget.setWidgetOwner(owner);
 		dashboardWidget.setHeight(height);

@@ -128,7 +128,6 @@ public class UserController {
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/registration")
-
 	public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
 		return getUserHandler.getBidInformation(uuid);
 	}

@@ -38,6 +38,7 @@ import java.sql.Date;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
@@ -150,7 +151,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 	private void interruptLaunch(Long launchId) {
 		launchRepository.findById(launchId).ifPresent(launch -> {
 			launch.setStatus(StatusEnum.INTERRUPTED);
-			launch.setEndTime(LocalDateTime.now());
+			launch.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
 			launchRepository.save(launch);
 		});
 	}
@@ -159,7 +160,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 		testItemRepository.interruptInProgressItems(launchId);
 		launchRepository.findById(launchId).ifPresent(l -> {
 			l.setStatus(StatusEnum.INTERRUPTED);
-			l.setEndTime(LocalDateTime.now());
+			l.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
 			launchRepository.save(l);
 		});
 

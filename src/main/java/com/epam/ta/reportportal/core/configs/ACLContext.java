@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.auth.acl.ReportPortalAclAuthorizationStrategyImpl;
 import com.epam.ta.reportportal.auth.acl.ReportPortalAclService;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -25,7 +26,10 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.acls.AclPermissionEvaluator;
-import org.springframework.security.acls.domain.*;
+import org.springframework.security.acls.domain.AclAuthorizationStrategy;
+import org.springframework.security.acls.domain.ConsoleAuditLogger;
+import org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy;
+import org.springframework.security.acls.domain.SpringCacheBasedAclCache;
 import org.springframework.security.acls.jdbc.BasicLookupStrategy;
 import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
@@ -60,7 +64,7 @@ public class ACLContext {
 
 	@Bean
 	public AclAuthorizationStrategy aclAuthorizationStrategy() {
-		return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
+		return new ReportPortalAclAuthorizationStrategyImpl(new SimpleGrantedAuthority(UserRole.ADMINISTRATOR.getAuthority()));
 	}
 
 	@Bean

@@ -26,5 +26,5 @@ import java.util.Date;
  */
 public interface FinishHierarchyHandler<T> {
 
-	void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser.ProjectDetails projectDetails);
+	void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 }

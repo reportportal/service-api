@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.widget;
+package com.epam.ta.reportportal.core.widget.content;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import org.springframework.data.domain.Sort;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author Pavel Bortnik
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface CreateWidgetHandler {
+public interface MultilevelLoadContentStrategy {
 
-	/**
-	 * Creates a new widget
-	 *
-	 * @param createWidgetRQ Widget details
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return EntryCreatedRS
-	 */
-	EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
-
+	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
+			String[] attributes, int limit);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,6 +51,9 @@ public class DemoDataLaunchService {
 
 	private final TestItemRepository testItemRepository;
 
+	private String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
+			"windows 10", "windows 7", "windows server", "debian", "alpine" };
+
 	@Autowired
 	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository) {
 		this.launchRepository = launchRepository;
@@ -63,10 +68,11 @@ public class DemoDataLaunchService {
 		rq.setName(name);
 		rq.setStartTime(new Date());
 		rq.setUuid(UUID.randomUUID().toString());
+		LocalDateTime now = LocalDateTime.now();
 		Set<ItemAttributesRQ> attributes = Sets.newHashSet(
-				new ItemAttributesRQ("platform", "desktop"),
+				new ItemAttributesRQ("platform", platformValues[new Random().nextInt(platformValues.length)]),
 				new ItemAttributesRQ(null, "demo"),
-				new ItemAttributesRQ("build", "3.0.1." + i)
+				new ItemAttributesRQ("build", "3." + now.getDayOfMonth() + "." + now.getHour() + "." + i)
 		);
 
 		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();

@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.widget.content;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import org.springframework.data.domain.Sort;
 
 import java.util.Map;
 
@@ -34,7 +36,6 @@ public interface BuildFilterStrategy {
 	 *
 	 * @return
 	 */
-	Map<String, ?> buildFilterAndLoadContent(LoadContentStrategy loadContentStrategy, ReportPortalUser.ProjectDetails projectDetails,
-			Widget widget);
+	Map<Filter, Sort> buildFilter(ReportPortalUser.ProjectDetails projectDetails, Widget widget);
 
 }

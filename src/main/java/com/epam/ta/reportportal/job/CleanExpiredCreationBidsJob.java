@@ -35,7 +35,7 @@ import java.time.ZoneOffset;
  */
 @Service
 public class CleanExpiredCreationBidsJob implements Job {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CleanScreenshotsJob.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CleanExpiredCreationBidsJob.class);
 
 	@Autowired
 	private UserCreationBidRepository repository;

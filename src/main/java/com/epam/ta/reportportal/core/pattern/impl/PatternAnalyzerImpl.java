@@ -75,7 +75,8 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 							.selectItemsByPattern(launch.getId(), issueGroup, patternTemplate);
 					patternTemplateRepository.saveInBatch(patternTemplateTestItems);
 
-					PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(launch.getId(),
+					PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(
+							launch.getId(),
 							patternTemplateTestItems.stream().map(PatternTemplateTestItemPojo::getTestItemId).collect(Collectors.toList()),
 							PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate)
 					);

@@ -121,7 +121,8 @@ class BasicIntegrationServiceImplTest {
 		);
 
 		//then
-		assertEquals("Impossible interact with integration. Integration with type email is already exists for project default",
+		assertEquals(
+				"Impossible interact with integration. Integration with type email is already exists for project default",
 				exception.getMessage()
 		);
 	}

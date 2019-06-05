@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,14 @@ public class WidgetController {
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
+	}
+
+	@GetMapping(value = "multilevel/{widgetId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Get multilevel widget by ID")
+	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
+			@RequestParam(required = false, name = "attributes") String[] attributes, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidget(widgetId, attributes, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

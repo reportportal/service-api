@@ -75,7 +75,8 @@ public class InterruptBrokenLaunchesJob implements Job {
 	@Transactional
 	public void execute(JobExecutionContext context) {
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
 				pageable
 		), projects -> projects.forEach(project -> {
 			project.getProjectAttributes()

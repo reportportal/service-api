@@ -72,7 +72,8 @@
                 <tbody>
                 <tr>
                     <td align="left" height="170">
-                        <h2 style="font-size: 20px; color: #777777;" align="center">Email server integration has been successfully created</h2>
+                        <h2 style="font-size: 20px; color: #777777;" align="center">Email server integration has been successfully
+                            created</h2>
                     </td>
                 </tr>
                 </tbody>

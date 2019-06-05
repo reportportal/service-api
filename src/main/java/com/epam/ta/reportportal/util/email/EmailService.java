@@ -128,17 +128,17 @@ public class EmailService extends JavaMailSenderImpl {
 
 		/* Tags with links */
 		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
-			email.put("attributes",
+			email.put(
+					"attributes",
 					launch.getAttributes()
 							.stream()
 							.filter(it -> !it.isSystem())
-							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()),
-									attribute -> format(FILTER_TAG_FORMAT,
-											basicUrl,
-											urlPathSegmentEscaper().escape(attribute.getKey()),
-											urlPathSegmentEscaper().escape(attribute.getValue())
-									)
-							))
+							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()), attribute -> format(
+									FILTER_TAG_FORMAT,
+									basicUrl,
+									urlPathSegmentEscaper().escape(attribute.getKey()),
+									urlPathSegmentEscaper().escape(attribute.getValue())
+							)))
 			);
 		}
 
@@ -176,16 +176,13 @@ public class EmailService extends JavaMailSenderImpl {
 
 	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics,
 			Map<String, String> locatorsMapping, String regex) {
-		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet()
-				.stream()
-				.filter(entry -> {
-					Pattern pattern = Pattern.compile(regex);
-					return pattern.matcher(entry.getKey()).matches();
-				})
-				.collect(Collectors.toMap(entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
-						entry -> ofNullable(entry.getValue()).orElse(0),
-						(prev, curr) -> prev
-				)));
+		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
+			Pattern pattern = Pattern.compile(regex);
+			return pattern.matcher(entry.getKey()).matches();
+		}).collect(Collectors.toMap(entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
+				entry -> ofNullable(entry.getValue()).orElse(0),
+				(prev, curr) -> prev
+		)));
 
 		pb.ifPresent(stats -> email.put(statisticsName, stats));
 	}

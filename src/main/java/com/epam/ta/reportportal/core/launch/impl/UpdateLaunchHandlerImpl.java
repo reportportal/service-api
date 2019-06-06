@@ -191,11 +191,13 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 					break;
 				}
 				case CREATE: {
-					launches.stream().filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo())).forEach(launch -> {
-						ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
-						itemAttribute.setLaunch(launch);
-						launch.getAttributes().add(itemAttribute);
-					});
+					launches.stream()
+							.filter(launch -> ItemInfoUtils.containsAttribute(launch.getAttributes(), it.getTo()))
+							.forEach(launch -> {
+								ItemAttribute itemAttribute = ItemAttributeConverter.FROM_RESOURCE.apply(it.getTo());
+								itemAttribute.setLaunch(launch);
+								launch.getAttributes().add(itemAttribute);
+							});
 					break;
 				}
 			}

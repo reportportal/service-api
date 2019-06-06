@@ -102,7 +102,7 @@ public class ProjectSettingsController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get project specific issue sub-types", notes = "Only for users that are assigned to the project")
 	public ProjectSettingsResource getProjectSettings(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getHandler.getProjectSettings(projectName);
+		return getHandler.getProjectSettings(normalizeId(projectName));
 	}
 
 	@PostMapping("/pattern")

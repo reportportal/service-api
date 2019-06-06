@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -64,15 +65,17 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected final ItemAttributeRepository itemAttributeRepository;
 	protected final IssueEntityRepository issueEntityRepository;
 	private final IssueTypeHandler issueTypeHandler;
+	private final ChangeStatusHandler changeStatusHandler;
 
 	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
-			IssueTypeHandler issueTypeHandler) {
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler,
+			ChangeStatusHandler changeStatusHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.issueEntityRepository = issueEntityRepository;
 		this.issueTypeHandler = issueTypeHandler;
+		this.changeStatusHandler = changeStatusHandler;
 	}
 
 	protected abstract boolean isIssueRequired(StatusEnum status, T entity);
@@ -80,14 +83,15 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected abstract Stream<Long> retrieveItemIds(T entity, StatusEnum status, boolean hasChildren);
 
 	@Override
-	public void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser.ProjectDetails projectDetails) {
+	public void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
 
 		expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST, "Unable to update current status to - " + IN_PROGRESS);
 
 		LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(endDate);
 		boolean isIssueRequired = isIssueRequired(status, entity);
 
-		updateDescendantsWithoutChildren(projectDetails.getProjectId(), entity, status, endTime, isIssueRequired);
+		updateDescendantsWithoutChildren(entity, projectDetails.getProjectId(), status, endTime, isIssueRequired, user);
 		updateDescendantsWithChildren(entity, endTime);
 	}
 
@@ -109,8 +113,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 
 	}
 
-	private void updateDescendantsWithoutChildren(Long projectId, T entity, StatusEnum status, LocalDateTime endTime,
-			boolean isIssueRequired) {
+	private void updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status, LocalDateTime endTime,
+			boolean isIssueRequired, ReportPortalUser user) {
 
 		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
 		List<IssueEntityPojo> issueEntities = issueType.isPresent() ?
@@ -134,6 +138,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 					issueEntities.clear();
 				}
 			});
+
+			changeStatusHandler.changeParentStatus(itemId, projectId, user);
 
 		});
 

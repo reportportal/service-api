@@ -43,6 +43,13 @@ public class LaunchConverter {
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;
 
+	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
+		LaunchActivityResource resource = new LaunchActivityResource();
+		resource.setId(launch.getId());
+		resource.setProjectId(launch.getProjectId());
+		resource.setName(launch.getName() + " #" + launch.getNumber());
+		return resource;
+	};
 	public Function<Launch, LaunchResource> TO_RESOURCE = db -> {
 
 		Preconditions.checkNotNull(db);
@@ -64,14 +71,6 @@ public class LaunchConverter {
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
-		return resource;
-	};
-
-	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
-		LaunchActivityResource resource = new LaunchActivityResource();
-		resource.setId(launch.getId());
-		resource.setProjectId(launch.getProjectId());
-		resource.setName(launch.getName() + " #" + launch.getNumber());
 		return resource;
 	};
 

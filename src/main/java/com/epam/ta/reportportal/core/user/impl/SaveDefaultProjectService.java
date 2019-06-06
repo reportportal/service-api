@@ -33,16 +33,22 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Acl;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
 import static com.epam.reportportal.commons.Safe.safe;
+import static com.epam.ta.reportportal.auth.UserRoleHierarchy.ROLE_REGISTERED;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
@@ -112,14 +118,14 @@ public class SaveDefaultProjectService {
 			userRepository.save(user);
 
 			ofNullable(basicUrl).ifPresent(it -> safe(() -> emailServiceFactory.getDefaultEmailService(true)
-							.sendCreateUserConfirmationEmail(request, it),
-					e -> response.setWarning(e.getMessage())
-			));
+					.sendCreateUserConfirmationEmail(request, it), e -> response.setWarning(e.getMessage())));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
+
+		authenticateUser(user);
 
 		if (projectRole.sameOrHigherThan(ProjectRole.PROJECT_MANAGER)) {
 			aclHandler.permitSharedObjects(defaultProject.getId(), user.getLogin(), BasePermission.ADMINISTRATION);
@@ -130,5 +136,19 @@ public class SaveDefaultProjectService {
 		response.setId(user.getId());
 		response.setLogin(user.getLogin());
 		return Pair.of(TO_ACTIVITY_RESOURCE.apply(user, defaultProject.getId()), response);
+	}
+
+	/**
+	 * Required for {@link org.springframework.security.acls.domain.AclAuthorizationStrategy#securityCheck(Acl, int)} with custom implementation
+	 * {@link com.epam.ta.reportportal.auth.acl.ReportPortalAclAuthorizationStrategyImpl} to permit shared objects to the newly created user
+	 *
+	 * @param user {@link User}
+	 */
+	private void authenticateUser(User user) {
+		SecurityContextHolder.getContext()
+				.setAuthentication(new UsernamePasswordAuthenticationToken(user.getLogin(),
+						user.getPassword(),
+						Sets.newHashSet(new SimpleGrantedAuthority(ROLE_REGISTERED))
+				));
 	}
 }

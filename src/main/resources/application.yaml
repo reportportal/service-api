@@ -61,10 +61,6 @@ rp:
   jwt:
     signing-key: 123
 
-  header:
-    cache:
-      photo: 86400
-
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driverClassName: org.postgresql.Driver

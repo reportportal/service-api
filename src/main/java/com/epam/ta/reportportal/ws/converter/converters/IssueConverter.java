@@ -43,6 +43,17 @@ public final class IssueConverter {
 	};
 
 	/**
+	 * Converts external system from db to model
+	 */
+	public static final Function<Ticket, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setTicketId(externalSystemIssue.getTicketId());
+		ticket.setBtsUrl(externalSystemIssue.getBtsUrl());
+		ticket.setUrl(externalSystemIssue.getUrl());
+		ticket.setBtsProject(externalSystemIssue.getBtsProject());
+		return ticket;
+	};
+	/**
 	 * Converts issue from db to model
 	 */
 	public static final Function<IssueEntity, Issue> TO_MODEL = issueEntity -> {
@@ -57,17 +68,5 @@ public final class IssueConverter {
 			issue.setExternalSystemIssues(tickets.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
 		});
 		return issue;
-	};
-
-	/**
-	 * Converts external system from db to model
-	 */
-	public static final Function<Ticket, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
-		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
-		ticket.setTicketId(externalSystemIssue.getTicketId());
-		ticket.setBtsUrl(externalSystemIssue.getBtsUrl());
-		ticket.setUrl(externalSystemIssue.getUrl());
-		ticket.setBtsProject(externalSystemIssue.getBtsProject());
-		return ticket;
 	};
 }

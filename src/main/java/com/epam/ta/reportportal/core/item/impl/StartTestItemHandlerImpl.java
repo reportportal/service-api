@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Start Test Item operation default implementation
@@ -54,7 +55,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Primary
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
 	private TestItemRepository testItemRepository;
 
@@ -97,7 +98,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 
-        LOGGER.debug("Created new root TestItem {}", item.getUuid());
+		LOGGER.debug("Created new root TestItem {}", item.getUuid());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
@@ -127,7 +128,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-        LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
+		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
@@ -152,6 +153,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				launch.getStartTime(),
 				launch.getId()
 		);
+		expect(isTrue(BooleanUtils.toBoolean(rq.isRetry())), equalTo(false)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
 	}
 
 	/**

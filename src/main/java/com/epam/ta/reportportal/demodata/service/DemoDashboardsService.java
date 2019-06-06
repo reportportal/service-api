@@ -209,6 +209,7 @@ class DemoDashboardsService {
 		dashboardWidget.setDashboard(dashboard);
 		dashboardWidget.setWidget(widget);
 		dashboardWidget.setWidgetName(widget.getName());
+		dashboardWidget.setWidgetType(widget.getWidgetType());
 		dashboardWidget.setCreatedOn(true);
 		dashboardWidget.setWidgetOwner(owner);
 		dashboardWidget.setHeight(height);

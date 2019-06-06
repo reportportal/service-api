@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class PatternTemplateBuilderTest {
 
-
 	@Test
 	void patternTemplateBuilder() {
 		CreatePatternTemplateRQ createPatternTemplateRQ = new CreatePatternTemplateRQ();

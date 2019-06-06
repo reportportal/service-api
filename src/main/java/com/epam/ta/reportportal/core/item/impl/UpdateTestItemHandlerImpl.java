@@ -73,6 +73,7 @@ import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -155,6 +156,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addIgnoreFlag(issue.getIgnoreAnalyzer())
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
+
+				Set<Issue.ExternalSystemIssue> externalSystemIssues = issueDefinition.getIssue().getExternalSystemIssues();
+				List<Ticket> existedTickets = collectExistedTickets(externalSystemIssues);
+				Set<Ticket> ticketsFromRq = collectTickets(externalSystemIssues, user.getUserId());
+
+				issueEntity.getTickets().addAll(existedTickets);
+				issueEntity.getTickets().addAll(ticketsFromRq);
+
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				issueEntityRepository.save(issueEntity);
 				testItem.getItemResults().setIssue(issueEntity);
@@ -184,7 +193,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				errors.add(e.getMessage());
 			}
 		});
-		expect(errors.isEmpty(), equalTo(true)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		if (!logsToReindexMap.isEmpty()) {
 			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
 		}
@@ -205,7 +214,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), Predicate.isEqual(false)).verify(
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
 					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
@@ -231,8 +240,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());
 
-		List<Ticket> existedTickets = collectExistedTickets(rq);
-		Set<Ticket> ticketsFromRq = collectTickets(rq, user.getUserId());
+		List<Ticket> existedTickets = collectExistedTickets(rq.getIssues());
+		Set<Ticket> ticketsFromRq = collectTickets(rq.getIssues(), user.getUserId());
 
 		testItems.forEach(testItem -> {
 			try {
@@ -244,17 +253,18 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				errors.add(e.getMessage());
 			}
 		});
-		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
 		List<TestItemActivityResource> after = testItems.stream()
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());
 
-		before.forEach(it -> new LinkTicketEvent(it,
+		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(
+				it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
 				user.getUserId(),
 				user.getUsername()
-		));
+		)));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
 				.collect(toList());
@@ -273,7 +283,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				errors.add(e.getMessage());
 			}
 		});
-		expect(!errors.isEmpty(), equalTo(FALSE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
@@ -294,12 +304,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	@Override
 	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(projectRepository.existsById(projectDetails.getProjectId()), Predicate.isEqual(true)).verify(PROJECT_NOT_FOUND,
+		expect(projectRepository.existsById(projectDetails.getProjectId()), equalTo(TRUE)).verify(
+				PROJECT_NOT_FOUND,
 				projectDetails.getProjectId()
 		);
 
 		List<TestItem> items = testItemRepository.findAllById(bulkUpdateRq.getIds());
-		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription()).ifPresent(it::setDescription));
+		items.forEach(it -> ItemInfoUtils.updateDescription(bulkUpdateRq.getDescription(), it.getDescription())
+				.ifPresent(it::setDescription));
 
 		bulkUpdateRq.getAttributes().forEach(it -> {
 			switch (it.getAction()) {
@@ -331,33 +343,36 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	/**
 	 * Finds tickets that are existed in db and removes them from request.
 	 *
-	 * @param rq Request
+	 * @param externalIssues {@link com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
 	 * @return List of existed tickets in db.
 	 */
-	private List<Ticket> collectExistedTickets(LinkExternalIssueRQ rq) {
-		List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(rq.getIssues()
-				.stream()
+	private List<Ticket> collectExistedTickets(Collection<Issue.ExternalSystemIssue> externalIssues) {
+		if (CollectionUtils.isEmpty(externalIssues)) {
+			return Collections.emptyList();
+		}
+		List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(externalIssues.stream()
 				.map(Issue.ExternalSystemIssue::getTicketId)
 				.collect(toList()));
 		List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId).collect(toList());
-		rq.getIssues().removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
+		externalIssues.removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
 		return existedTickets;
 	}
 
 	/**
 	 * TODO document this
 	 *
-	 * @param rq     {@link LinkExternalIssueRQ}
-	 * @param userId {@link ReportPortalUser#userId}
+	 * @param externalIssues {@link com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
+	 * @param userId         {@link ReportPortalUser#userId}
 	 * @return {@link Set} of the {@link Ticket}
 	 */
-	private Set<Ticket> collectTickets(LinkExternalIssueRQ rq, Long userId) {
-		return rq.getIssues().stream().map(it -> {
+	private Set<Ticket> collectTickets(Collection<Issue.ExternalSystemIssue> externalIssues, Long userId) {
+		if (CollectionUtils.isEmpty(externalIssues)) {
+			return Collections.emptySet();
+		}
+		return externalIssues.stream().map(it -> {
 			Ticket apply = TicketConverter.TO_TICKET.apply(it);
 			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
 			apply.setSubmitDate(LocalDateTime.now());
-			apply.setBtsUrl(it.getBtsUrl());
-			apply.setBtsProject(it.getBtsProject());
 			return apply;
 		}).collect(toSet());
 	}
@@ -404,8 +419,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				)
 		).verify();
 
-		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()),
-				equalTo(false),
+		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()), equalTo(FALSE),
 				Suppliers.formattedSupplier(
 						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
 						id

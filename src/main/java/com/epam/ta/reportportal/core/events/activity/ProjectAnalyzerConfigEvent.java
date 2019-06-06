@@ -18,13 +18,11 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
-import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
-import java.util.Map;
-import java.util.Optional;
-
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.configEquals;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_ANALYZER;
 import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
@@ -44,29 +42,32 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 
 	@Override
 	public Activity toActivity() {
-		return new ActivityBuilder().addCreatedNow()
-				.addAction(UPDATE_ANALYZER)
-				.addActivityEntityType(PROJECT)
-				.addUserId(getUserId())
-				.addUserName(getUserLogin())
-				.addObjectId(getAfter().getProjectId())
-				.addObjectName(getAfter().getProjectName())
-				.addProjectId(getAfter().getProjectId())
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), AUTO_ANALYZER_MODE.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_DOC_FREQ.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_TERM_FREQ.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_SHOULD_MATCH.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), NUMBER_OF_LOG_LINES.getAttribute()))
-				.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), AUTO_ANALYZER_ENABLED.getAttribute()))
-				.get();
+		return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.ANALYZER) ?
+				null :
+				new ActivityBuilder().addCreatedNow()
+						.addAction(UPDATE_ANALYZER)
+						.addActivityEntityType(PROJECT)
+						.addUserId(getUserId())
+						.addUserName(getUserLogin())
+						.addObjectId(getAfter().getProjectId())
+						.addObjectName(getAfter().getProjectName())
+						.addProjectId(getAfter().getProjectId())
+						.addHistoryField(processParameter(getBefore().getConfig(),
+								getAfter().getConfig(),
+								AUTO_ANALYZER_MODE.getAttribute()
+						))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_DOC_FREQ.getAttribute()))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_TERM_FREQ.getAttribute()))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_SHOULD_MATCH.getAttribute()))
+						.addHistoryField(processParameter(getBefore().getConfig(),
+								getAfter().getConfig(),
+								NUMBER_OF_LOG_LINES.getAttribute()
+						))
+						.addHistoryField(processParameter(getBefore().getConfig(),
+								getAfter().getConfig(),
+								AUTO_ANALYZER_ENABLED.getAttribute()
+						))
+						.get();
 	}
 
-	static Optional<HistoryField> processParameter(Map<String, String> oldConfig, Map<String, String> newConfig, String parameterName) {
-		String before = oldConfig.get(parameterName);
-		String after = newConfig.get(parameterName);
-		if (after != null && !after.equals(before)) {
-			return Optional.of(HistoryField.of(parameterName, before, after));
-		}
-		return Optional.empty();
-	}
 }

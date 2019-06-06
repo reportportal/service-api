@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.hierarchy;
+package com.epam.ta.reportportal.core.widget.content;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import org.springframework.data.domain.Sort;
 
-import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public interface FinishHierarchyHandler<T> {
+public interface MultilevelLoadContentStrategy {
 
-	void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails);
+	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
+			String[] attributes, int limit);
 }

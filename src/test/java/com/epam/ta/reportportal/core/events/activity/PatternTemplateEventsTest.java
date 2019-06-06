@@ -34,6 +34,22 @@ public class PatternTemplateEventsTest {
 		return activity;
 	}
 
+	private static PatternTemplateActivityResource getTestPatternTemplate(String name, boolean enabled) {
+		PatternTemplateActivityResource resource = new PatternTemplateActivityResource();
+		resource.setEnabled(enabled);
+		resource.setProjectId(3L);
+		resource.setName(name);
+		resource.setId(2L);
+		return resource;
+	}
+
+	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> enabled) {
+		return Lists.newArrayList(
+				HistoryField.of(NAME, name.getLeft(), name.getRight()),
+				HistoryField.of(ENABLED, enabled.getLeft().toString(), enabled.getRight().toString())
+		);
+	}
+
 	@Test
 	void created() {
 		final String name = "name";
@@ -52,15 +68,6 @@ public class PatternTemplateEventsTest {
 		checkActivity(actual, expected);
 	}
 
-	private static PatternTemplateActivityResource getTestPatternTemplate(String name, boolean enabled) {
-		PatternTemplateActivityResource resource = new PatternTemplateActivityResource();
-		resource.setEnabled(enabled);
-		resource.setProjectId(3L);
-		resource.setName(name);
-		resource.setId(2L);
-		return resource;
-	}
-
 	@Test
 	void updated() {
 		final String oldName = "oldName";
@@ -76,11 +83,5 @@ public class PatternTemplateEventsTest {
 		final Activity expected = getExpectedPatternTemplateActivity(ActivityAction.UPDATE_PATTERN, newName);
 		expected.getDetails().setHistory(getExpectedHistory(Pair.of(oldName, newName), Pair.of(oldEnabled, newEnabled)));
 		checkActivity(actual, expected);
-	}
-
-	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> enabled) {
-		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
-				HistoryField.of(ENABLED, enabled.getLeft().toString(), enabled.getRight().toString())
-		);
 	}
 }

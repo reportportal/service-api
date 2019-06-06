@@ -61,6 +61,14 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return integrationParams;
 	}
 
+	public static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
+		if (integration.getParams() != null && integration.getParams().getParams() != null) {
+			integration.getParams().getParams().putAll(retrievedParams);
+			return integration.getParams();
+		}
+		return new IntegrationParams(retrievedParams);
+	}
+
 	@Override
 	public Integration createIntegration(IntegrationRQ integrationRq, IntegrationType integrationType) {
 		Integration integration = new Integration();
@@ -117,13 +125,5 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 				));
 
 		return (Boolean) commandToExecute.executeCommand(integration, integration.getParams().getParams());
-	}
-
-	public static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
-		if (integration.getParams() != null && integration.getParams().getParams() != null) {
-			integration.getParams().getParams().putAll(retrievedParams);
-			return integration.getParams();
-		}
-		return new IntegrationParams(retrievedParams);
 	}
 }

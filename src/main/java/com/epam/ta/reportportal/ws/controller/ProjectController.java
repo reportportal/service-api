@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -267,7 +268,7 @@ public class ProjectController {
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(@FilterFor(ProjectInfo.class) Filter filter,
 			@FilterFor(ProjectInfo.class) Queryable predefinedFilter, @SortFor(ProjectInfo.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return projectInfoHandler.getAllProjectsInfo(new CompositeFilter(filter, predefinedFilter), pageable);
+		return projectInfoHandler.getAllProjectsInfo(new CompositeFilter(Operator.AND, filter, predefinedFilter), pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -288,7 +289,7 @@ public class ProjectController {
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {
-			getProjectHandler.exportProjects(format, new CompositeFilter(filter, predefinedFilter), outputStream);
+			getProjectHandler.exportProjects(format, new CompositeFilter(Operator.AND, filter, predefinedFilter), outputStream);
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
 		}

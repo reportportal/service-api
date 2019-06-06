@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
  */
 public class UserRoleHierarchy implements RoleHierarchy {
 
+	public static final String ROLE_REGISTERED = "ROLE_REGISTERED";
+
 	/**
 	 * Special additional role for other microservices
 	 */

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.*;
+import com.epam.ta.reportportal.ws.model.validation.LaunchNameValidationGroup;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
@@ -106,8 +107,8 @@ public class LaunchController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
 	public StartLaunchRS startLaunch(@PathVariable String projectName,
-			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated(value = LaunchNameValidationGroup.class)
+					StartLaunchRQ startLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 

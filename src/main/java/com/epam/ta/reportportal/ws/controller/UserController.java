@@ -38,6 +38,7 @@ import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
@@ -128,7 +129,6 @@ public class UserController {
 
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/registration")
-
 	public UserBidRS getUserBidInfo(@RequestParam(value = "uuid") String uuid) {
 		return getUserHandler.getBidInformation(uuid);
 	}
@@ -183,7 +183,7 @@ public class UserController {
 	@ApiOperation(value = "Return information about all users", notes = "Allowable only for users with administrator role")
 	public Iterable<UserResource> getUsers(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@FilterFor(User.class) Queryable queryable, @AuthenticationPrincipal ReportPortalUser currentUser) {
-		return getUserHandler.getAllUsers(new CompositeFilter(filter, queryable), pageable);
+		return getUserHandler.getAllUsers(new CompositeFilter(Operator.AND, filter, queryable), pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -269,7 +269,7 @@ public class UserController {
 		);
 
 		try (OutputStream outputStream = response.getOutputStream()) {
-			getUserHandler.exportUsers(format, outputStream, new CompositeFilter(filter, queryable));
+			getUserHandler.exportUsers(format, outputStream, new CompositeFilter(Operator.AND, filter, queryable));
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Unable to write data to the response.");
 		}

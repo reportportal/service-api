@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.hierarchy.impl;
 
 import com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -40,8 +41,8 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 
 	public FinishTestItemHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
-			IssueTypeHandler issueTypeHandler) {
-		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler);
+			IssueTypeHandler issueTypeHandler, ChangeStatusHandler changeStatusHandler) {
+		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler, changeStatusHandler);
 	}
 
 	@Override

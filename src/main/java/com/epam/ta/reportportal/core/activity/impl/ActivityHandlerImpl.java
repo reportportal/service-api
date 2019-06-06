@@ -16,10 +16,7 @@
 package com.epam.ta.reportportal.core.activity.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
@@ -75,9 +72,10 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		FilterCondition projectCondition = FilterCondition.builder()
 				.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
 				.build();
-		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(Operator.AND, filter.withCondition(projectCondition), predefinedFilter),
-				pageable
-		);
+		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(Operator.AND,
+				filter.withCondition(projectCondition),
+				predefinedFilter
+		), pageable);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
 	}
 
@@ -108,13 +106,9 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
 		Sort sortByCreationDateDesc = Sort.by(Sort.Direction.DESC, CRITERIA_CREATION_DATE);
 
-		Filter patternActivityFilter = Filter.builder()
-				.withTarget(filter.getTarget().getClazz())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.PATTERN.getValue()).build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_ACTION, ActivityAction.PATTERN_MATCHED.getValue()).build())
-				.build()
-				.withConditions(filter.getFilterConditions());
+		Filter patternActivityFilter = buildPatternMatchedActivityFilter(filter.getTarget(),
+				itemId
+		).withConditions(filter.getFilterConditions());
 
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
 				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.ITEM_ISSUE.getValue()).build());
@@ -132,6 +126,23 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
 				.apply(activityRepository.findByFilter(filter, pageable));
+	}
+
+	/**
+	 * Build {@link Filter} to search for {@link Activity} with {@link Activity.ActivityEntityType#PATTERN} entity
+	 * and {@link ActivityAction#PATTERN_MATCHED} action conditions of the {@link TestItem} with provided 'itemId'
+	 *
+	 * @param filterTarget {@link FilterTarget}
+	 * @param itemId       {@link Activity#objectId}
+	 * @return {@link Filter} with {@link Activity.ActivityEntityType#PATTERN}, {@link ActivityAction#PATTERN_MATCHED} search conditions
+	 */
+	private Filter buildPatternMatchedActivityFilter(FilterTarget filterTarget, Long itemId) {
+		return Filter.builder()
+				.withTarget(filterTarget.getClazz())
+				.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
+				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.PATTERN.getValue()).build())
+				.withCondition(FilterCondition.builder().eq(CRITERIA_ACTION, ActivityAction.PATTERN_MATCHED.getValue()).build())
+				.build();
 	}
 }
 

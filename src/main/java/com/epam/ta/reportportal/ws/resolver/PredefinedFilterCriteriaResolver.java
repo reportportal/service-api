@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilterType;
 import com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.jooq.Operator;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -95,7 +96,7 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 
 				})
 				.collect(Collectors.toList());
-		return filterConditions.isEmpty() ? nop(domainModelType) : new CompositeFilter(filterConditions);
+		return filterConditions.isEmpty() ? nop(domainModelType) : new CompositeFilter(Operator.AND, filterConditions);
 	}
 
 	private Queryable nop(Class<?> type) {

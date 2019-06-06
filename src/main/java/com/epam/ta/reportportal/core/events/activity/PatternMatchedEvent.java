@@ -6,11 +6,8 @@ import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.ITEM_IDS;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.LAUNCH_ID;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PATTERN;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.PATTERN_MATCHED;
@@ -22,16 +19,16 @@ public class PatternMatchedEvent implements ActivityEvent {
 
 	private Long launchId;
 
-	private List<Long> itemIds;
+	private Long itemId;
 
 	private PatternTemplateActivityResource patternTemplateActivityResource;
 
 	public PatternMatchedEvent() {
 	}
 
-	public PatternMatchedEvent(Long launchId, List<Long> itemIds, PatternTemplateActivityResource patternTemplateActivityResource) {
+	public PatternMatchedEvent(Long launchId, Long itemId, PatternTemplateActivityResource patternTemplateActivityResource) {
 		this.launchId = launchId;
-		this.itemIds = itemIds;
+		this.itemId = itemId;
 		this.patternTemplateActivityResource = patternTemplateActivityResource;
 	}
 
@@ -43,12 +40,12 @@ public class PatternMatchedEvent implements ActivityEvent {
 		this.launchId = launchId;
 	}
 
-	public List<Long> getItemIds() {
-		return itemIds;
+	public Long getItemId() {
+		return itemId;
 	}
 
-	public void setItemIds(List<Long> itemIds) {
-		this.itemIds = itemIds;
+	public void setItemId(Long itemId) {
+		this.itemId = itemId;
 	}
 
 	public PatternTemplateActivityResource getPatternTemplateActivityResource() {
@@ -62,21 +59,15 @@ public class PatternMatchedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 
-		HistoryField itemIdField = new HistoryField();
-		itemIdField.setField(ITEM_IDS);
-		itemIdField.setNewValue(itemIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
-
 		HistoryField launchIdField = new HistoryField();
 		launchIdField.setField(LAUNCH_ID);
 		launchIdField.setNewValue(String.valueOf(launchId));
 
-		return new ActivityBuilder().addCreatedNow()
-				.addObjectId(patternTemplateActivityResource.getId())
+		return new ActivityBuilder().addCreatedNow().addObjectId(itemId)
 				.addObjectName(patternTemplateActivityResource.getName())
 				.addProjectId(patternTemplateActivityResource.getProjectId())
 				.addActivityEntityType(PATTERN)
 				.addAction(PATTERN_MATCHED)
-				.addHistoryField(Optional.of(itemIdField))
 				.addHistoryField(Optional.of(launchIdField))
 				.get();
 	}

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
+import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -35,7 +36,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -75,13 +75,17 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 							.selectItemsByPattern(launch.getId(), issueGroup, patternTemplate);
 					patternTemplateRepository.saveInBatch(patternTemplateTestItems);
 
-					PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(
-							launch.getId(),
-							patternTemplateTestItems.stream().map(PatternTemplateTestItemPojo::getTestItemId).collect(Collectors.toList()),
-							PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate)
-					);
+					PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
+							patternTemplate);
+					patternTemplateTestItems.forEach(patternItem -> {
+						PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(launch.getId(),
+								patternItem.getTestItemId(),
+								patternTemplateActivityResource
+						);
 
-					messageBus.publishActivity(patternMatchedEvent);
+						messageBus.publishActivity(patternMatchedEvent);
+					});
+
 				}));
 	}
 

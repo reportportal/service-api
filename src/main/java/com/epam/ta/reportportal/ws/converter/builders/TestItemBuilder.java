@@ -63,6 +63,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
+		testItem.setHasStats(rq.isHasStats());
 
 		TestItemResults testItemResults = new TestItemResults();
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
@@ -82,7 +83,6 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addParent(TestItem parent) {
-		parent.setHasChildren(true);
 		testItem.setParent(parent);
 		return this;
 	}

@@ -110,12 +110,15 @@ public class LogReporterConsumer {
 
 		// attachment
 		if (metaInfo != null) {
-			Long launchId = itemOptional.map(it -> testItemService.getEffectiveLaunch(it).getId()).orElse(launchOptional.get().getId());
+			Long launchId = itemOptional.map(it -> testItemService.getEffectiveLaunch(it).getId())
+					.orElseGet(() -> launchOptional.get().getId());
 
 			Attachment attachment = new AttachmentBuilder().withFileId(metaInfo.getFileId())
 					.withThumbnailId(metaInfo.getThumbnailFileId())
 					.withContentType(metaInfo.getContentType())
-					.withProjectId(projectId).withLaunchId(launchId).withItemId(itemOptional.map(TestItem::getItemId).orElse(null))
+					.withProjectId(projectId)
+					.withLaunchId(launchId)
+					.withItemId(itemOptional.map(TestItem::getItemId).orElse(null))
 					.get();
 
 			attachmentRepository.save(attachment);

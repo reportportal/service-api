@@ -359,7 +359,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				expect(newProjectRole, isPresent()).verify(ErrorType.ROLE_NOT_FOUND, value);
 
 				Optional<ProjectUser> updatingProjectUser = ofNullable(ProjectUtils.findUserConfigByLogin(project, key));
-				expect(updatingProjectUser, notNull()).verify(ErrorType.USER_NOT_FOUND, key);
+				expect(updatingProjectUser, isPresent()).verify(ErrorType.USER_NOT_FOUND, key);
 
 				if (UserRole.ADMINISTRATOR != user.getUserRole()) {
 					ProjectRole principalRole = ProjectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();

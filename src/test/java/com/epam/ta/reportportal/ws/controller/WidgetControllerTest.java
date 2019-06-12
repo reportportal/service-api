@@ -660,8 +660,7 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result.ticket1[0].submitter").value("superadmin"))
 				.andExpect(jsonPath("$.content.result.ticket1[0].itemName").value("test item 2"))
 				.andExpect(jsonPath("$.content.result.ticket1[0].url").value("http:/example.com/ticket1"))
-				.andExpect(jsonPath("$.content.result.ticket1[0].launchId").value(1))
-				.andExpect(jsonPath("$.content.result.ticket1[0].description").value("desc"));
+				.andExpect(jsonPath("$.content.result.ticket1[0].launchId").value(1));
 	}
 
 	@Sql("/db/widget/unique-bug-table.sql")

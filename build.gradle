@@ -1,44 +1,21 @@
-buildscript {
-    ext {
-        springBootVersion = '2.1.0.RELEASE'
-        springCloudVersion = 'Finchley.M9'
-    }
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven {
-            url "https://maven.eveoh.nl/content/repositories/releases"
-        }
-
-        maven { url 'https://repo.spring.io/libs-milestone' }
-
-    }
-    dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.2.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-//        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
-    }
-}
-
-
 plugins {
-    id 'net.researchgate.release' version '2.4.1'
-    id "com.jfrog.bintray" version "1.7"
+    id "io.spring.dependency-management" version "1.0.7.RELEASE"
+    id "org.springframework.boot" version "2.1.5.RELEASE"
+    id "de.undercouch.download" version "3.4.3"
+    id 'java'
+    id 'jacoco'
 }
 
-apply plugin: 'java'
-apply plugin: "org.springframework.boot"
-apply plugin: "io.spring.dependency-management"
-apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.10
+targetCompatibility = 1.10
 
 project.ext {
     limits = [
@@ -93,10 +70,10 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        //compile 'com.epam.reportportal:commons-dao:4.0.0'
-        compile 'com.epam.reportportal:commons-rules:4.0.0'
-        compile 'com.epam.reportportal:commons-model:4.0.0'
-        compile 'com.epam.reportportal:commons:3.1.0'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-1'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-2'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-3'
+        compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
     } else {
         compile 'com.github.reportportal:commons-dao:51c828b0'
         compile 'com.github.reportportal:commons-rules:5f57515'
@@ -229,41 +206,33 @@ jar.dependsOn gitInfo
 
 build.dependsOn jacocoTestReport
 
-//task resolveDependencies() {
-//    doLast {
-//        project.rootProject.allprojects.each { subProject ->
-//            subProject.buildscript.configurations.each { configuration ->
-//                if (configuration.isCanBeResolved()) configuration.resolve()
-//            }
-//            subProject.configurations.each { configuration ->
-//                if (configuration.isCanBeResolved()) configuration.resolve()
-//            }
-//        }
-//    }
-//}
-
 bootJar {
     archiveName = "${baseName}.${extension}"
 }
 
-private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
-    def file = new File(localScriptPath)
-    if (file.exists()) {
-        file.delete()
-    }
-    file.getParentFile().mkdirs()
-    file.createNewFile()
-    file << new URL(scriptUrl).openStream()
-}
+ext.src = [
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql': 'V002__default_data.sql'
+]
 
 task copyTestDatabaseScripts {
-    def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
-    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
-    copyFromUrl(initScriptPath, initScriptUrl)
+    doLast {
+        for (s in src) {
+            download {
+                src s.key
+                dest new File("${projectDir}/src/test/resources/db/migration/", s.value)
+            }
+        }
+    }
+}
 
-    def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
-    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql"
-    copyFromUrl(dataScriptPath, dataScriptUrl)
+task removeScripts {
+    doLast {
+        for (s in src) {
+            def file = new File("${projectDir}/src/test/resources/db/migration/", s.value)
+            file.delete()
+        }
+    }
 }
 
 test.dependsOn copyTestDatabaseScripts

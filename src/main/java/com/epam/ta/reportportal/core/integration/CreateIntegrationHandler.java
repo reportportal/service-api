@@ -34,7 +34,7 @@ public interface CreateIntegrationHandler {
 	 * @param createRequest {@link IntegrationRQ}
 	 * @return {@link EntryCreatedRS}
 	 */
-	EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName);
+	EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName, ReportPortalUser user);
 
 	/**
 	 * Create {@link Integration} for {@link com.epam.ta.reportportal.entity.project.Project} with provided ID

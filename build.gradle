@@ -2,8 +2,11 @@ plugins {
     id "io.spring.dependency-management" version "1.0.7.RELEASE"
     id "org.springframework.boot" version "2.1.5.RELEASE"
     id "de.undercouch.download" version "3.4.3"
+    id 'net.researchgate.release' version '2.8.0'
+    id "com.jfrog.bintray" version "1.8.4"
     id 'java'
     id 'jacoco'
+    id "org.owasp.dependencycheck" version "5.0.0-M3.1"
 }
 
 
@@ -14,8 +17,8 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
 
-sourceCompatibility = 1.10
-targetCompatibility = 1.10
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 project.ext {
     limits = [
@@ -177,9 +180,15 @@ dependencies {
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 }
 
+wrapper {
+    gradleVersion = '5.4.1'
+}
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
+//TODO: remove it when ready to release from master
+release {
+    git {
+        requireBranch = 'ps-migrations-master'
+    }
 }
 
 //Start section for external jacoco test report

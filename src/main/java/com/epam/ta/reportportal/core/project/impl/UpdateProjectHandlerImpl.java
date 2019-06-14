@@ -314,7 +314,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void assignUser(String name, ProjectRole projectRole, List<String> assignedUsernames, Project project) {
 
-		User modifyingUser = userRepository.findByLogin(name).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
+		User modifyingUser = userRepository.findByLogin(normalizeId(name)).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
 		expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 				formattedSupplier("User '{}' cannot be assigned to project twice.", name)
 		);
@@ -359,7 +359,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				expect(newProjectRole, isPresent()).verify(ErrorType.ROLE_NOT_FOUND, value);
 
 				Optional<ProjectUser> updatingProjectUser = ofNullable(ProjectUtils.findUserConfigByLogin(project, key));
-				expect(updatingProjectUser, notNull()).verify(ErrorType.USER_NOT_FOUND, key);
+				expect(updatingProjectUser, isPresent()).verify(ErrorType.USER_NOT_FOUND, key);
 
 				if (UserRole.ADMINISTRATOR != user.getUserRole()) {
 					ProjectRole principalRole = ProjectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();

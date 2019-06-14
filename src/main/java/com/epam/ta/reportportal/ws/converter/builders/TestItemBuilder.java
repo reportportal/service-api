@@ -64,6 +64,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setUniqueId(rq.getUniqueId());
 		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 		testItem.setHasStats(rq.isHasStats());
+		testItem.setLocation(rq.getLocation());
 
 		TestItemResults testItemResults = new TestItemResults();
 		testItemResults.setStatus(StatusEnum.IN_PROGRESS);

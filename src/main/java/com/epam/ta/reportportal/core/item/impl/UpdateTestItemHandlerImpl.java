@@ -157,12 +157,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				Set<Issue.ExternalSystemIssue> externalSystemIssues = issueDefinition.getIssue().getExternalSystemIssues();
-				List<Ticket> existedTickets = collectExistedTickets(externalSystemIssues);
-				Set<Ticket> ticketsFromRq = collectTickets(externalSystemIssues, user.getUserId());
-
-				issueEntity.getTickets().addAll(existedTickets);
-				issueEntity.getTickets().addAll(ticketsFromRq);
+				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(issues,
+						user.getUserId()
+				)));
 
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				issueEntityRepository.save(issueEntity);

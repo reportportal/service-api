@@ -43,9 +43,9 @@ repositories {
 
     maven { url 'https://repo.spring.io/libs-milestone' }
 
-    if (!releaseMode) {
+//    if (!releaseMode) {
         maven { url 'https://jitpack.io' }
-    }
+//    }
 }
 
 dependencyManagement {

@@ -246,6 +246,7 @@ task removeScripts {
 }
 
 test.dependsOn copyTestDatabaseScripts
+checkCommitNeeded.dependsOn removeScripts
 
 test {
     useJUnitPlatform()

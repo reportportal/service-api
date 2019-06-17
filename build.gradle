@@ -217,10 +217,6 @@ jar.dependsOn gitInfo
 
 build.dependsOn jacocoTestReport
 
-bootJar {
-    archiveName = "${baseName}.${extension}"
-}
-
 ext.src = [
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql': 'V002__default_data.sql'

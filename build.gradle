@@ -73,11 +73,11 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-2'
-        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-1'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-3'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-3'
         compile 'com.epam.reportportal:commons-model:5.0.0-BETA-3'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-1')
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
     } else {
         compile 'com.github.reportportal:commons-dao:51c828b0'
         compile 'com.github.reportportal:commons-rules:5f57515'

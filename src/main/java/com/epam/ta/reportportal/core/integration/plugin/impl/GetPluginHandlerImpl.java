@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,10 @@ public class GetPluginHandlerImpl implements GetPluginHandler {
 
 	@Override
 	public List<IntegrationTypeResource> getPlugins() {
-		return integrationTypeRepository.findAll().stream().map(IntegrationTypeConverter.TO_RESOURCE).collect(Collectors.toList());
+		return integrationTypeRepository.findAll()
+				.stream()
+				.map(IntegrationTypeConverter.TO_RESOURCE)
+				.sorted(Comparator.comparing(IntegrationTypeResource::getCreationDate))
+				.collect(Collectors.toList());
 	}
 }

@@ -188,7 +188,7 @@ wrapper {
 
 //TODO: remove it when ready to release from master
 release {
-    pushReleaseVersionBranch = true
+    pushReleaseVersionBranch = 'ps-migrations-master'
     git {
         requireBranch = 'ps-migrations-master'
     }

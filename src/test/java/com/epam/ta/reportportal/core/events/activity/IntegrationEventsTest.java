@@ -47,14 +47,14 @@ class IntegrationEventsTest {
 	@Test
 	void created() {
 		final Activity actual = new IntegrationCreatedEvent(getIntegration(), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.CREATE_BTS);
+		final Activity expected = getExpectedActivity(ActivityAction.CREATE_INTEGRATION);
 		checkActivity(expected, actual);
 	}
 
 	@Test
 	void deleted() {
 		final Activity actual = new IntegrationDeletedEvent(getIntegration(), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.DELETE_BTS);
+		final Activity expected = getExpectedActivity(ActivityAction.DELETE_INTEGRATION);
 		checkActivity(expected, actual);
 	}
 
@@ -70,7 +70,7 @@ class IntegrationEventsTest {
 	@Test
 	void updated() {
 		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), 1L, "user").toActivity();
-		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_BTS);
+		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_INTEGRATION);
 		checkActivity(expected, actual);
 	}
 }

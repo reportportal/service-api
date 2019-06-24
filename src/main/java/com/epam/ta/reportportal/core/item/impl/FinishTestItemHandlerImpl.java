@@ -259,7 +259,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {
-		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(testItem.getRetryOf()).isPresent();
+		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(testItem.getRetryOf()).isPresent()
+				&& testItem.isHasStats();
 	}
 
 	private Optional<IssueEntity> resolveIssue(StatusEnum status, TestItem testItem, @Nullable Issue issue, Long projectId) {

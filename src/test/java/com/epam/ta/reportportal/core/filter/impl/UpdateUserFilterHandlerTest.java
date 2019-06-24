@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -59,6 +60,8 @@ class UpdateUserFilterHandlerTest {
 
 	private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 
+	private WidgetRepository widgetRepository = mock(WidgetRepository.class);
+
 	private ShareableObjectsHandler aclHandler = mock(ShareableObjectsHandler.class);
 
 	private MessageBus messageBus = mock(MessageBus.class);
@@ -67,8 +70,7 @@ class UpdateUserFilterHandlerTest {
 
 	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
 			getShareableEntityHandler,
-			userFilterRepository,
-			aclHandler,
+			userFilterRepository, widgetRepository, aclHandler,
 			messageBus
 	);
 

@@ -25,9 +25,12 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntityPojo;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -83,7 +86,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected abstract Stream<Long> retrieveItemIds(T entity, StatusEnum status, boolean hasChildren);
 
 	@Override
-	public void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
 
 		expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST, "Unable to update current status to - " + IN_PROGRESS);
 
@@ -129,7 +133,9 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 				itemAttributes.clear();
 			}
 			issueType.ifPresent(it -> {
-				if (!SUITE.sameLevel(testItemRepository.getTypeByItemId(itemId))) {
+				TestItem testItem = testItemRepository.findById(itemId)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+				if (!SUITE.sameLevel(testItem.getType()) && testItem.isHasStats()) {
 					issueEntities.add(new IssueEntityPojo(itemId, it.getId(), null, false, false));
 				}
 				if (issueEntities.size() >= INSERT_ISSUE_BATCH_SIZE) {

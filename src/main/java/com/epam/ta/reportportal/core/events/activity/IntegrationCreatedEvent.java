@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.INTEGRATION;
-import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_BTS;
+import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_INTEGRATION;
 
 /**
  * @author Andrei Varabyeu
@@ -49,12 +49,12 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
 	@Override
 	public Activity toActivity() {
 		return new ActivityBuilder().addCreatedNow()
-				.addAction(CREATE_BTS)
+				.addAction(CREATE_INTEGRATION)
 				.addActivityEntityType(INTEGRATION)
 				.addUserId(getUserId())
 				.addUserName(getUserLogin())
 				.addObjectId(integrationActivityResource.getId())
-				.addObjectName(integrationActivityResource.getTypeName() + ":" + integrationActivityResource.getProjectName())
+				.addObjectName(integrationActivityResource.getTypeName())
 				.addProjectId(integrationActivityResource.getProjectId())
 				.get();
 	}

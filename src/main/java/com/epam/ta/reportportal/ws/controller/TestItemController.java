@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.epam.ta.reportportal.ws.model.validation.TestItemNameValidationGroup;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
@@ -92,7 +91,7 @@ public class TestItemController {
 	@ApiOperation("Start a root test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestBody @Validated(value = TestItemNameValidationGroup.class) StartTestItemRQ startTestItemRQ) {
+			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
@@ -102,7 +101,7 @@ public class TestItemController {
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable String parentItem, @RequestBody @Validated(value = TestItemNameValidationGroup.class) StartTestItemRQ startTestItemRQ) {
+			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 

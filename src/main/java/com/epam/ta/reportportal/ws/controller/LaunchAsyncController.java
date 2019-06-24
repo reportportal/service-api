@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import com.epam.ta.reportportal.ws.model.validation.LaunchNameValidationGroup;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +65,7 @@ public class LaunchAsyncController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Starts launch for specified project")
 	public StartLaunchRS startLaunch(@PathVariable String projectName,
-			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated(value = LaunchNameValidationGroup.class) StartLaunchRQ startLaunchRQ,
+			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
@@ -78,8 +77,7 @@ public class LaunchAsyncController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(
-				launchId,
+		return finishLaunchMessageHandler.finishLaunch(launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,

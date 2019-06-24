@@ -146,8 +146,10 @@ public class LaunchFinishedEventHandler {
 
 			Launch updatedLaunch = launchRepository.findById(launch.getId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
-			launchRepository.refresh(updatedLaunch);
-			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
+			emailService.ifPresent(it -> {
+				launchRepository.refresh(updatedLaunch);
+				sendEmail(updatedLaunch, project, it);
+			});
 		}
 
 		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())

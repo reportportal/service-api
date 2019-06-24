@@ -124,9 +124,10 @@ public class LogController {
 				} else {
 					/* Find by request part */
 					MultipartFile data = findByFileName(filename, uploadedFiles);
-					BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
-							Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
-					);
+					BusinessRule.expect(data, Predicates.notNull())
+							.verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+									Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
+							);
 					/*
 					 * If provided content type is null or this is octet
 					 * stream, try to detect real content type of binary
@@ -177,6 +178,14 @@ public class LogController {
 	@Transactional(readOnly = true)
 	public LogResource getLog(@PathVariable String projectName, @PathVariable Long logId, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
+	}
+
+	@GetMapping(value = "/nested/{parentId}")
+	@ApiOperation("Get nested steps with logs for the parent Test Item")
+	@Transactional(readOnly = true)
+	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId, @FilterFor(Log.class) Filter filter,
+			@SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getNestedItems(parentId, extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 }

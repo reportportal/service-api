@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.data.domain.Pageable;
@@ -58,4 +59,6 @@ public interface GetLogHandler {
 	 * @return Page Number
 	 */
 	long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
+
+	Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Queryable queryable, Pageable pageable);
 }

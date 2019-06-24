@@ -257,7 +257,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {
-		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(testItem.getRetryOf()).isPresent();
+		return Preconditions.statusIn(FAILED, SKIPPED).test(status) && !ofNullable(testItem.getRetryOf()).isPresent()
+				&& testItem.isHasStats();
 	}
 
 	private Optional<IssueEntity> resolveIssue(StatusEnum status, TestItem testItem, @Nullable Issue issue, Long projectId) {
@@ -285,9 +286,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void updateFinishedItem(TestItemResults testItemResults, StatusEnum actualStatus, Optional<IssueEntity> resolvedIssue,
 			TestItem testItem, ReportPortalUser user, Long projectId) {
-		if (testItemResults.getStatus() != actualStatus || resolvedIssue.isPresent()) {
 
-			deleteOldIssueIndex(resolvedIssue, actualStatus, testItem, testItemResults, projectId);
+		resolvedIssue.ifPresent(issue -> deleteOldIssueIndex(actualStatus, testItem, testItemResults, projectId));
+
+		if (testItemResults.getStatus() != actualStatus) {
 
 			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(testItemResults.getStatus()));
 			if (statusChangingStrategy.isPresent()) {
@@ -296,33 +298,29 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				testItemResults.setStatus(actualStatus);
 			}
 
-			resolvedIssue.ifPresent(issue -> {
+		}
 
-				ofNullable(testItemResults.getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+		resolvedIssue.ifPresent(issue -> {
+			updateItemIssue(testItemResults, issue);
+			if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+				eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunch().getId(), projectId));
 
-				issue.setTestItemResults(testItemResults);
-				issueEntityRepository.save(issue);
-				testItemResults.setIssue(issue);
+			}
+		});
+	}
 
-				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunch().getId(), projectId));
-
-				}
-			});
-
+	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {
+		if (actualStatus == PASSED || ITEM_CAN_BE_INDEXED.test(testItem)) {
+			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
+					logRepository.findIdsByTestItemId(testItem.getItemId())
+			));
 		}
 	}
 
-	private void deleteOldIssueIndex(Optional<IssueEntity> resolvedIssue, StatusEnum actualStatus, TestItem testItem,
-			TestItemResults testItemResults, Long projectId) {
-
-		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-			if (resolvedIssue.isPresent() || actualStatus == PASSED) {
-				ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
-						logRepository.findIdsByTestItemId(testItem.getItemId())
-				));
-			}
-		}
-
+	private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {
+		ofNullable(testItemResults.getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+		resolvedIssue.setTestItemResults(testItemResults);
+		issueEntityRepository.save(resolvedIssue);
+		testItemResults.setIssue(resolvedIssue);
 	}
 }

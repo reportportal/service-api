@@ -377,15 +377,7 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
 				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
 				.andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
-				.andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"))
-				.andExpect(jsonPath("$.content.flaky[1].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[1].itemName").value("test item 1"))
-				.andExpect(jsonPath("$.content.flaky[2].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[2].itemName").value("test item 2"))
-				.andExpect(jsonPath("$.content.flaky[3].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[3].itemName").value("test item 3"))
-				.andExpect(jsonPath("$.content.flaky[4].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[4].itemName").value("test item 5"));
+				.andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"));
 	}
 
 	@Sql("/db/widget/flaky-test-cases.sql")
@@ -416,15 +408,7 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
 				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
 				.andExpect(jsonPath("$.content.flaky[0].flakyCount").value("1"))
-				.andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"))
-				.andExpect(jsonPath("$.content.flaky[1].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[1].itemName").value("test item 1"))
-				.andExpect(jsonPath("$.content.flaky[2].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[2].itemName").value("test item 2"))
-				.andExpect(jsonPath("$.content.flaky[3].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[3].itemName").value("test item 3"))
-				.andExpect(jsonPath("$.content.flaky[4].flakyCount").value("0"))
-				.andExpect(jsonPath("$.content.flaky[4].itemName").value("test item 5"));
+				.andExpect(jsonPath("$.content.flaky[0].itemName").value("test item 4"));
 	}
 
 	@Sql("/db/widget/cases-trend.sql")
@@ -660,8 +644,7 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result.ticket1[0].submitter").value("superadmin"))
 				.andExpect(jsonPath("$.content.result.ticket1[0].itemName").value("test item 2"))
 				.andExpect(jsonPath("$.content.result.ticket1[0].url").value("http:/example.com/ticket1"))
-				.andExpect(jsonPath("$.content.result.ticket1[0].launchId").value(1))
-				.andExpect(jsonPath("$.content.result.ticket1[0].description").value("desc"));
+				.andExpect(jsonPath("$.content.result.ticket1[0].launchId").value(1));
 	}
 
 	@Sql("/db/widget/unique-bug-table.sql")

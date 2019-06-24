@@ -26,10 +26,7 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.IsoFields;
@@ -64,7 +61,7 @@ class ProjectInfoWidgetDataConverterTest {
 				.put(InfoInterval.SIX_MONTHS, ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_WEEK)
 				.build());
 
-		thisWeekFormattedDate = LocalDate.now()
+		thisWeekFormattedDate = LocalDate.now(ZoneOffset.UTC)
 				.format(new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4)
 						.appendLiteral("-W")
 						.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
@@ -72,7 +69,7 @@ class ProjectInfoWidgetDataConverterTest {
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-		LocalDate now = LocalDate.now();
+		LocalDate now = LocalDate.now(ZoneOffset.UTC);
 		today = now.getDayOfWeek().equals(DayOfWeek.MONDAY) ? now.plusDays(2) : now;
 		yesterday = today.minusDays(1);
 
@@ -99,7 +96,7 @@ class ProjectInfoWidgetDataConverterTest {
 		launch.setName("test_launch");
 		launch.setId(1L);
 		launch.setNumber(1L);
-		launch.setStartTime(LocalDateTime.now());
+		launch.setStartTime(LocalDateTime.now(ZoneOffset.UTC));
 		launch.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 5), getStatistics(EXECUTIONS_PASSED, 5)));
 
 		Map<String, List<ChartObject>> investigatedProjectInfo = converter.getInvestigatedProjectInfo(Collections.singletonList(launch),
@@ -164,7 +161,7 @@ class ProjectInfoWidgetDataConverterTest {
 		launch1.setName("test_launch");
 		launch1.setId(1L);
 		launch1.setNumber(1L);
-		launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now()));
+		launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)));
 		launch1.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18),
 				getStatistics(EXECUTIONS_PASSED, 5),
 				getStatistics(EXECUTIONS_SKIPPED, 1),
@@ -178,7 +175,7 @@ class ProjectInfoWidgetDataConverterTest {
 		launch2.setName("test_launch");
 		launch2.setId(2L);
 		launch2.setNumber(2L);
-		launch2.setStartTime(LocalDateTime.of(today, LocalTime.now()));
+		launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)));
 		launch2.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21),
 				getStatistics(EXECUTIONS_PASSED, 6),
 				getStatistics(EXECUTIONS_SKIPPED, 2),

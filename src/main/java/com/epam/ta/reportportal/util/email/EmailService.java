@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
@@ -278,12 +277,14 @@ public class EmailService extends JavaMailSenderImpl {
 	 * If username is email, format will be "from \<email\>"
 	 */
 	private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-		if (!Strings.isNullOrEmpty(this.from)) {
-			if (isAddressValid(this.from)) {
+		if(StringUtils.isNotBlank(this.from)) {
+			if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
 				message.setFrom(this.from);
 			} else if (UserUtils.isEmailValid(getUsername())) {
 				message.setFrom(getUsername(), this.from);
 			}
+		} else if (UserUtils.isEmailValid(getUsername())) {
+			message.setFrom(getUsername());
 		}
 		//otherwise generate automatically
 	}

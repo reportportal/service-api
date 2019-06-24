@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.epam.ta.reportportal.ws.model.validation.TestItemNameValidationGroup;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,7 +66,7 @@ public class TestItemAsyncController {
 	@ApiOperation("Start a root test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestBody @Validated(value = TestItemNameValidationGroup.class) StartTestItemRQ startTestItemRQ) {
+			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
@@ -77,7 +76,7 @@ public class TestItemAsyncController {
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-										 @PathVariable String parentItem, @RequestBody @Validated(value = TestItemNameValidationGroup.class) StartTestItemRQ startTestItemRQ) {
+										 @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 

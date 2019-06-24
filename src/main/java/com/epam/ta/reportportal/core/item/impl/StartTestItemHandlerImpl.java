@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -29,6 +30,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.apache.commons.lang3.BooleanUtils;
@@ -169,6 +171,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * @param parent Parent item
 	 */
 	private void validate(StartTestItemRQ rq, TestItem parent) {
+
+		if (!parent.isHasStats()) {
+			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
+					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
+							parent.getItemId()
+					).get()
+			);
+		}
 
 		expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
 

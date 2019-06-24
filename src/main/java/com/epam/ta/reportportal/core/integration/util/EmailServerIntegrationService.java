@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -40,12 +39,10 @@ import javax.mail.MessagingException;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.util.UserUtils.isEmailValid;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -75,12 +72,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 		Optional<String> fromAttribute = EmailSettingsEnum.FROM.getAttribute(integrationParams);
 
-		fromAttribute.ifPresent(from -> {
-			expect(isEmailValid(from), equalTo(true)).verify(BAD_REQUEST_ERROR,
-					Suppliers.formattedSupplier("Provided FROM value '{}' is invalid", fromAttribute.get())
-			);
-			resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from);
-		});
+		fromAttribute.ifPresent(from -> resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from));
 
 		ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).ifPresent(p -> {
 			int port = IntegerUtils.parseInt(String.valueOf(p), -1);

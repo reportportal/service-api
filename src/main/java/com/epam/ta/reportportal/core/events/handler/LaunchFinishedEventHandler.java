@@ -133,8 +133,8 @@ public class LaunchFinishedEventHandler {
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), null);
-			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-					.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).get();
+			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig);
 		}
 
 		if (isNotificationsEnabled) {
@@ -146,6 +146,7 @@ public class LaunchFinishedEventHandler {
 
 			Launch updatedLaunch = launchRepository.findById(launch.getId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
+			launchRepository.refresh(updatedLaunch);
 			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
 		}
 

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.core.events.activity.FilterUpdatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -61,14 +62,16 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final UserFilterRepository userFilterRepository;
+	private final WidgetRepository widgetRepository;
 	private final ShareableObjectsHandler aclHandler;
 	private final MessageBus messageBus;
 
 	@Autowired
 	public UpdateUserFilterHandlerImpl(GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
-			UserFilterRepository userFilterRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
+		this.widgetRepository = widgetRepository;
 		this.aclHandler = aclHandler;
 		this.messageBus = messageBus;
 	}
@@ -124,6 +127,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 		if (before.isShared() != updated.isShared()) {
 			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
+			if(!updated.isShared()) {
+				widgetRepository.deleteRelationByFilterIdAndNotOwner(updated.getId(), updated.getOwner());
+			}
 		}
 
 		messageBus.publishActivity(new FilterUpdatedEvent(before,

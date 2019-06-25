@@ -42,6 +42,7 @@ public final class IntegrationTestUtil {
 
 		Integration integration = new Integration();
 
+		integration.setCreator("superadmin");
 		integration.setCreationDate(LocalDateTime.now());
 		integration.setType(getEmailIntegrationType());
 		integration.setParams(new IntegrationParams(getParams()));
@@ -63,6 +64,7 @@ public final class IntegrationTestUtil {
 
 		Integration integration = new Integration();
 
+		integration.setCreator("superadmin");
 		integration.setCreationDate(LocalDateTime.now());
 		integration.setType(getJiraIntegrationType());
 		integration.setParams(new IntegrationParams(params));

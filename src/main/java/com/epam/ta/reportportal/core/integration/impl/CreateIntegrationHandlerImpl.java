@@ -73,13 +73,14 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	}
 
 	@Override
-	public EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName) {
+	public EntryCreatedRS createGlobalIntegration(IntegrationRQ createRequest, String pluginName, ReportPortalUser user) {
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
 		);
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
+		integration.setCreator(user.getUsername());
 		integrationService.validateIntegration(integration);
 		integrationService.checkConnection(integration);
 		integrationRepository.save(integration);
@@ -103,6 +104,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setProject(project);
+		integration.setCreator(user.getUsername());
 		integrationService.validateIntegration(integration, project);
 		integrationService.checkConnection(integration);
 

@@ -1,0 +1,9 @@
+rp:
+  binarystore:
+    type: filesystem
+    path: ${java.io.tmpdir}
+embedded:
+  datasource:
+    dir: /embedded-postgres
+    clean: true
+    port: 0

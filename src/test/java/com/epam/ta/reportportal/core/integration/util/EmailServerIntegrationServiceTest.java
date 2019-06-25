@@ -111,18 +111,6 @@ class EmailServerIntegrationServiceTest {
 	}
 
 	@Test
-	void retrieveIntegrationParamsInvalidEmail() {
-		Map<String, Object> params = Maps.newHashMap();
-		params.put("from", "12345");
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> emailServerIntegrationService.retrieveIntegrationParams(params)
-		);
-		assertEquals("Error in handled Request. Please, check specified parameters: 'Provided FROM value '12345' is invalid'",
-				exception.getMessage()
-		);
-	}
-
-	@Test
 	void retrieveIntegrationParamsInvalidPort() {
 		Map<String, Object> params = Maps.newHashMap();
 		params.put("from", "from@mail.com");

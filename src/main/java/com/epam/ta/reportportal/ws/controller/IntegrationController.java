@@ -107,7 +107,7 @@ public class IntegrationController {
 	@PreAuthorize(ADMIN_ONLY)
 	public EntryCreatedRS createGlobalIntegration(@RequestBody @Valid IntegrationRQ createRequest, @PathVariable String pluginName,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createIntegrationHandler.createGlobalIntegration(createRequest, pluginName);
+		return createIntegrationHandler.createGlobalIntegration(createRequest, pluginName, user);
 	}
 
 	@Transactional

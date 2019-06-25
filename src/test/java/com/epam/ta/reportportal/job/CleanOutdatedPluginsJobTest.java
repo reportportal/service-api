@@ -83,6 +83,8 @@ class CleanOutdatedPluginsJobTest {
 
 		File file = File.createTempFile("test", ".jar", dir);
 
+		file.deleteOnExit();
+
 		when(pluginBox.isPluginStillBeingUploaded(any(String.class))).thenReturn(true);
 
 		cleanOutdatedPluginsJob.execute();

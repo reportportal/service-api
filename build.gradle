@@ -186,7 +186,6 @@ wrapper {
     gradleVersion = '5.4.1'
 }
 
-//TODO: remove it when ready to release from master
 release {
     pushReleaseVersionBranch = 'master'
 }

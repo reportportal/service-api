@@ -72,9 +72,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 		Optional<String> fromAttribute = EmailSettingsEnum.FROM.getAttribute(integrationParams);
 
-		fromAttribute.ifPresent(from -> {
-			resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from);
-		});
+		fromAttribute.ifPresent(from -> resultParams.put(EmailSettingsEnum.FROM.getAttribute(), from));
 
 		ofNullable(integrationParams.get(EmailSettingsEnum.PORT.getAttribute())).ifPresent(p -> {
 			int port = IntegerUtils.parseInt(String.valueOf(p), -1);

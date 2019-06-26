@@ -45,10 +45,12 @@ public interface GetWidgetHandler {
 	 * @param widgetId       Widget id
 	 * @param projectDetails Project details
 	 * @param attributes     Attributes
+	 * @param params         Additional widget params
 	 * @param user           User
 	 * @return WidgetResource
 	 */
-	WidgetResource getWidget(Long widgetId, String[] attributes, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+	WidgetResource getWidget(Long widgetId, String[] attributes, Map<String, String> params, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
 
 	/**
 	 * Get content for building preview while creating widget

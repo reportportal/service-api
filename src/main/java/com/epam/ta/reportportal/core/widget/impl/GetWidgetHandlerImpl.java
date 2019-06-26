@@ -134,8 +134,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	public WidgetResource getWidget(Long widgetId, String[] attributes, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	public WidgetResource getWidget(Long widgetId, String[] attributes, Map<String, String> params,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
@@ -156,6 +156,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
 					widget.getWidgetOptions(),
 					attributes,
+					params,
 					widget.getItemsCount()
 			);
 		}
@@ -193,6 +194,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 					Lists.newArrayList(widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
 					widget.getWidgetOptions(),
+					null,
 					null,
 					widget.getItemsCount()
 			);

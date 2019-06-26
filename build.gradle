@@ -80,7 +80,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
     } else {
-        compile 'com.github.reportportal:commons-dao:a05f9d4'
+        compile 'com.github.reportportal:commons-dao:b2aa8d10'
         compile 'com.github.reportportal:commons-rules:8a66b8d'
         compile 'com.github.reportportal:commons-model:a359ce8'
         compile('com.github.reportportal:commons:71d4aca')

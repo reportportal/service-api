@@ -30,6 +30,8 @@ public final class ContentLoaderConstants {
 	public static final String USER = "user";
 	public static final String ACTION_TYPE = "actionType";
 	public static final String ATTRIBUTES = "attributes";
+	public static final String ATTRIBUTE_KEY = "attributeKey";
+	public static final String PATTERN_TEMPLATE_NAME = "patternTemplateName";
 	public static final String ITEM_TYPE = "type";
 	public static final String INCLUDE_METHODS = "includeMethods";
 	public static final String FLAKY = "flaky";

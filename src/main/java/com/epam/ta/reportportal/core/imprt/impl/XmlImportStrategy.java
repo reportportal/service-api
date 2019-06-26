@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,10 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file,
+			LaunchLinkGenerator.LinkParams linkParams) {
 		try {
-			return processXmlFile(file, projectDetails, user);
+			return processXmlFile(file, projectDetails, user, linkParams);
 		} finally {
 			try {
 				ofNullable(file).ifPresent(File::delete);
@@ -52,7 +54,8 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			LaunchLinkGenerator.LinkParams linkParams) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 		try (InputStream xmlStream = new FileInputStream(xml)) {
@@ -60,7 +63,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 			savedLaunchId = launchId;
 			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
 			ParseResults parseResults = job.call();
-			finishLaunch(launchId, projectDetails, user, parseResults);
+			finishLaunch(launchId, projectDetails, user, parseResults, linkParams);
 			return launchId;
 		} catch (Exception e) {
 			updateBrokenLaunch(savedLaunchId);

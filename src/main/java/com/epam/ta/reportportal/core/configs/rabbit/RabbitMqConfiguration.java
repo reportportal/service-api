@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.configs.rabbit;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -73,11 +74,15 @@ public class RabbitMqConfiguration {
 		return factory;
 	}
 
-
 	@Bean(name = "rabbitTemplate")
 	public RabbitTemplate rabbitTemplate(@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(jsonMessageConverter());
 		return rabbitTemplate;
+	}
+
+	@Bean(name = "asyncRabbitTemplate")
+	public AsyncRabbitTemplate asyncRabbitTemplate(@Autowired @Qualifier("connectionFactory") ConnectionFactory connectionFactory) {
+		return new AsyncRabbitTemplate(rabbitTemplate(connectionFactory));
 	}
 }

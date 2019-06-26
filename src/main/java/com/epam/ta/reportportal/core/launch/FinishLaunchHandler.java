@@ -30,9 +30,6 @@ import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 
 public interface FinishLaunchHandler {
 
-	Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
-
 	/**
 	 * Updates {@link Launch} instance
 	 *

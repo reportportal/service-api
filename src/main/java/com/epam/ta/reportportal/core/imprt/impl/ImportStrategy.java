@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 
 import java.io.File;
 
@@ -33,5 +34,6 @@ public interface ImportStrategy {
 	 * @param file           zip file that contains xml test reports
 	 * @return launch uuid
 	 */
-	String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file);
+	String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file,
+			LaunchLinkGenerator.LinkParams linkParams);
 }

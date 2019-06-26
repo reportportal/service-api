@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.imprt.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -86,10 +87,10 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 	}
 
 	protected void finishLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			ParseResults results) {
+			ParseResults results, LaunchLinkGenerator.LinkParams linkParams) {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(results.getEndTime());
-		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user);
+		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user, linkParams);
 		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		launch.setStartTime(results.getStartTime());

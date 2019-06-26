@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.imprt.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.imprt.impl.junit.XunitParseJob;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +48,10 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file,
+			LaunchLinkGenerator.LinkParams linkParams) {
 		try {
-			return processZipFile(file, projectDetails, user);
+			return processZipFile(file, projectDetails, user, linkParams);
 		} finally {
 			try {
 				ofNullable(file).ifPresent(File::delete);
@@ -59,7 +61,8 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			LaunchLinkGenerator.LinkParams linkParams) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 		try (ZipFile zipFile = new ZipFile(zip)) {
@@ -71,7 +74,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 				return CompletableFuture.supplyAsync(job::call, service);
 			}).toArray(CompletableFuture[]::new);
 			ParseResults parseResults = processResults(futures);
-			finishLaunch(launchId, projectDetails, user, parseResults);
+			finishLaunch(launchId, projectDetails, user, parseResults, linkParams);
 			return launchId;
 		} catch (Exception e) {
 			updateBrokenLaunch(savedLaunchId);

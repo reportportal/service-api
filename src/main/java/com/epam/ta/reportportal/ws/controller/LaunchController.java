@@ -111,7 +111,6 @@ public class LaunchController {
 		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
-	@Transactional
 	@PutMapping(value = "/{launchId}/finish")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
@@ -341,7 +340,12 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
+		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)),
+				user,
+				"XUNIT",
+				file,
+				LaunchLinkGenerator.LinkParams.of(request.getScheme(), request.getHeader("host"), projectName)
+		);
 	}
 }

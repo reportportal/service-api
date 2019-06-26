@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler;
+package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
@@ -47,95 +47,85 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.QUEUE_LAUNCH_FINISHED;
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 
 /**
- * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
-public class LaunchFinishedEventHandler {
+public class LaunchFinishedEventConsumer {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchFinishedEventHandler.class);
-
-	private final ProjectRepository projectRepository;
-
-	private final GetIntegrationHandler getIntegrationHandler;
-
-	private final MailServiceFactory mailServiceFactory;
-
-	private final UserRepository userRepository;
+	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchFinishedEventConsumer.class);
 
 	private final LaunchRepository launchRepository;
-
-	private final Provider<HttpServletRequest> currentRequest;
-
-	private final AnalyzeCollectorFactory analyzeCollectorFactory;
-
+	private final ProjectRepository projectRepository;
 	private final AnalyzerServiceAsync analyzerServiceAsync;
-
+	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 	private final LogIndexer logIndexer;
-
+	private final GetIntegrationHandler getIntegrationHandler;
+	private final MailServiceFactory mailServiceFactory;
 	private final PatternAnalyzer patternAnalyzer;
+	private final UserRepository userRepository;
 
 	@Autowired
-	public LaunchFinishedEventHandler(ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler,
-			MailServiceFactory mailServiceFactory, UserRepository userRepository, LaunchRepository launchRepository,
-			Provider<HttpServletRequest> currentRequest, AnalyzeCollectorFactory analyzeCollectorFactory,
-			AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer, PatternAnalyzer patternAnalyzer) {
+	public LaunchFinishedEventConsumer(LaunchRepository launchRepository, ProjectRepository projectRepository,
+			AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory, LogIndexer logIndexer,
+			GetIntegrationHandler getIntegrationHandler, MailServiceFactory mailServiceFactory, PatternAnalyzer patternAnalyzer,
+			UserRepository userRepository) {
+		this.launchRepository = launchRepository;
 		this.projectRepository = projectRepository;
+		this.analyzerServiceAsync = analyzerServiceAsync;
+		this.analyzeCollectorFactory = analyzeCollectorFactory;
+		this.logIndexer = logIndexer;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.mailServiceFactory = mailServiceFactory;
-		this.userRepository = userRepository;
-		this.launchRepository = launchRepository;
-		this.currentRequest = currentRequest;
-		this.analyzeCollectorFactory = analyzeCollectorFactory;
-		this.analyzerServiceAsync = analyzerServiceAsync;
-		this.logIndexer = logIndexer;
 		this.patternAnalyzer = patternAnalyzer;
+		this.userRepository = userRepository;
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	@TransactionalEventListener
-	public void onApplicationEvent(LaunchFinishedEvent event) throws ExecutionException, InterruptedException {
+	@RabbitListener(queues = { QUEUE_LAUNCH_FINISHED })
+	public Object onLaunchFinished(@Payload LaunchFinishedEvent event) {
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
 
 		if (LaunchModeEnum.DEBUG == launch.getMode()) {
-			return;
+			return null;
 		}
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-		logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).get();
-
-		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
-				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), null);
-			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-					.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+
+			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
+			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
+			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+		} else {
+			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
 		}
+
+		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
+				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
 		if (isNotificationsEnabled) {
 			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
@@ -146,7 +136,10 @@ public class LaunchFinishedEventHandler {
 
 			Launch updatedLaunch = launchRepository.findById(launch.getId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
-			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
+			emailService.ifPresent(it -> {
+				launchRepository.refresh(updatedLaunch);
+				sendEmail(updatedLaunch, project, it, event.getLinkParams().getBaseUrl());
+			});
 		}
 
 		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
@@ -156,6 +149,7 @@ public class LaunchFinishedEventHandler {
 			patternAnalyzer.analyzeTestItems(launch);
 		}
 
+		return "sucsess";
 	}
 
 	/**
@@ -242,25 +236,19 @@ public class LaunchFinishedEventHandler {
 	 * @param project      Project
 	 * @param emailService Mail Service
 	 */
-	private void sendEmail(Launch launch, Project project, EmailService emailService) {
+	private void sendEmail(Launch launch, Project project, EmailService emailService, String baseUrl) {
 
 		project.getSenderCases().forEach(ec -> {
 			SendCase sendCase = ec.getSendCase();
 			boolean successRate = isSuccessRateEnough(launch, sendCase);
 			boolean matchedNames = isLaunchNameMatched(launch, ec);
-			boolean matchedTags = isAttributesMatched(launch, ec.getLaunchAttributeRules());
+			boolean matchedAttributes = isAttributesMatched(launch, ec.getLaunchAttributeRules());
 
 			Set<String> recipients = ec.getRecipients();
-			if (successRate && matchedNames && matchedTags) {
+			if (successRate && matchedNames && matchedAttributes) {
 				String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
 				try {
-					/* Update with static Util resources provider */
-					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-							.replacePath(String.format("/#%s", project.getName()))
-							.build()
-							.toUriString();
-
-					emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project, launch);
+					emailService.sendLaunchFinishNotification(recipientsArray, baseUrl, project, launch);
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}
@@ -280,5 +268,4 @@ public class LaunchFinishedEventHandler {
 			}
 		}).filter(Objects::nonNull).distinct().toArray(String[]::new);
 	}
-
 }

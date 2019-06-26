@@ -16,8 +16,11 @@
 
 package com.epam.ta.reportportal.core.events;
 
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.AsyncAmqpTemplate;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.*;
 
@@ -25,8 +28,11 @@ public class MessageBusImpl implements MessageBus {
 
 	private final AmqpTemplate amqpTemplate;
 
-	public MessageBusImpl(AmqpTemplate amqpTemplate) {
+	private final AsyncAmqpTemplate asyncAmqpTemplate;
+
+	public MessageBusImpl(AmqpTemplate amqpTemplate, AsyncAmqpTemplate asyncAmqpTemplate) {
 		this.amqpTemplate = amqpTemplate;
+		this.asyncAmqpTemplate = asyncAmqpTemplate;
 	}
 
 	@Override
@@ -51,8 +57,23 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void publishDeleteAttachmentEvent(DeleteAttachmentEvent event) {
-
 		amqpTemplate.convertAndSend(EXCHANGE_ATTACHMENT, QUEUE_ATTACHMENT_DELETE, event);
-
 	}
+
+	@Override
+	public void publishLaunchFinishedEvent(LaunchFinishedEvent event) {
+		asyncAmqpTemplate.convertSendAndReceive(EXCHANGE_LAUNCH, QUEUE_LAUNCH_FINISHED, event)
+				.addCallback(new ListenableFutureCallback<Object>() {
+					@Override
+					public void onFailure(Throwable ex) {
+						System.err.println("Exception");
+					}
+
+					@Override
+					public void onSuccess(Object result) {
+						System.err.println("Success");
+					}
+				});
+	}
+
 }

@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
@@ -32,6 +33,8 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent 
 
 	private LaunchActivityResource launchActivityResource;
 
+	private LaunchLinkGenerator.LinkParams linkParams;
+
 	public LaunchFinishedEvent() {
 	}
 
@@ -40,12 +43,27 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent 
 		this.launchActivityResource = launchActivityResource;
 	}
 
+	public LaunchFinishedEvent(Long userId, String userLogin, LaunchActivityResource launchActivityResource,
+			LaunchLinkGenerator.LinkParams linkParams) {
+		super(userId, userLogin);
+		this.launchActivityResource = launchActivityResource;
+		this.linkParams = linkParams;
+	}
+
 	public LaunchActivityResource getLaunchActivityResource() {
 		return launchActivityResource;
 	}
 
 	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
 		this.launchActivityResource = launchActivityResource;
+	}
+
+	public LaunchLinkGenerator.LinkParams getLinkParams() {
+		return linkParams;
+	}
+
+	public void setLinkParams(LaunchLinkGenerator.LinkParams linkParams) {
+		this.linkParams = linkParams;
 	}
 
 	@Override

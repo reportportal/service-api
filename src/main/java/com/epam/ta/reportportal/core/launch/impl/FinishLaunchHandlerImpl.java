@@ -33,12 +33,12 @@ import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
@@ -55,27 +55,24 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
  */
 @Service
 @Primary
-@Transactional
+//@Transactional
 public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
 	private final MessageBus messageBus;
-	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
-			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher) {
+			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus) {
 		this.launchRepository = launchRepository;
 		this.finishHierarchyHandler = finishHierarchyHandler;
 		this.messageBus = messageBus;
-		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
-	public Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
 		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
@@ -108,16 +105,10 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.get();
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername());
+		event.setLinkParams(linkParams);
 		messageBus.publishActivity(event);
-		eventPublisher.publishEvent(event);
+		CompletableFuture.runAsync(() -> messageBus.publishLaunchFinishedEvent(event));
 
-		return launch;
-	}
-
-	@Override
-	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
-		Launch launch = finishLaunch(launchId, finishLaunchRQ, projectDetails, user);
 		FinishLaunchRS response = new FinishLaunchRS();
 		response.setNumber(launch.getNumber());
 		response.setLink(generateLaunchLink(linkParams, String.valueOf(launch.getId())));

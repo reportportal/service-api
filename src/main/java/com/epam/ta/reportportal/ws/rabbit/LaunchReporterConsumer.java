@@ -20,8 +20,8 @@ import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.impl.FinishLaunchHandlerAsyncImpl;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +68,9 @@ public class LaunchReporterConsumer {
 	}
 
 	@RabbitListener(queues = "#{ @launchFinishQueue.name }")
-	public void onFinishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
-			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId,
+	public void onFinishLaunch(@Payload FinishLaunchHandlerAsyncImpl.FinishLaunchAmqpRq rq,
+			@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
+			@Header(MessageHeaders.LAUNCH_ID) String launchId,
 			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
@@ -80,7 +81,13 @@ public class LaunchReporterConsumer {
 			LOGGER.warn("Retrying finish request  for Launch {}, attempt {}", launchId, count);
 		}
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
+		finishLaunchHandler.finishLaunch(
+				launchId,
+				rq.getRequest(),
+				ProjectExtractor.extractProjectDetails(user, projectName),
+				user,
+				rq.getLinkParams()
+		);
 	}
 
 }

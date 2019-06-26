@@ -20,6 +20,8 @@ import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.launch.impl.FinishLaunchHandlerAsyncImpl;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -78,11 +80,18 @@ class LaunchReporterConsumerTest {
 		String username = "user";
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
+		LaunchLinkGenerator.LinkParams linkParams = LaunchLinkGenerator.LinkParams.of("https", "superhost", "6666");
+
+		FinishLaunchHandlerAsyncImpl.FinishLaunchAmqpRq finishLaunchAmqpRq = new FinishLaunchHandlerAsyncImpl.FinishLaunchAmqpRq(
+				finishExecutionRQ,
+				linkParams
+		);
+
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
 		String launchId = "1";
-		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, null);
+		launchReporterConsumer.onFinishLaunch(finishLaunchAmqpRq, username, "test_project", launchId, null);
 
-		verify(finishLaunchHandler, times(1)).finishLaunch(eq(launchId), eq(finishExecutionRQ), any(), eq(user));
+		verify(finishLaunchHandler, times(1)).finishLaunch(eq(launchId), eq(finishExecutionRQ), any(), eq(user), eq(linkParams));
 	}
 }

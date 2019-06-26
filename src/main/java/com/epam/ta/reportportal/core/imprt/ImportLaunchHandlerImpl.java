@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.activity.ImportStartedEvent;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategy;
 import com.epam.ta.reportportal.core.imprt.impl.ImportStrategyFactory;
 import com.epam.ta.reportportal.core.imprt.impl.ImportType;
+import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -52,7 +53,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 
 	@Override
 	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
-			MultipartFile file) {
+			MultipartFile file, LaunchLinkGenerator.LinkParams linkParams) {
 
 		validate(file);
 
@@ -66,7 +67,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				file.getOriginalFilename()
 		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-		String launchId = strategy.importLaunch(projectDetails, user, tempFile);
+		String launchId = strategy.importLaunch(projectDetails, user, tempFile, linkParams);
 		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
 				user.getUsername(),
 				projectDetails.getProjectId(),

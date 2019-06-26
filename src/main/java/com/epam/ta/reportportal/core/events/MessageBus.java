@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.events;
 
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 
 import java.util.concurrent.ExecutionException;
@@ -42,5 +43,7 @@ public interface MessageBus {
 	 * @param event {@link DeleteAttachmentEvent}
 	 */
 	void publishDeleteAttachmentEvent(DeleteAttachmentEvent event);
+
+	void publishLaunchFinishedEvent(LaunchFinishedEvent event);
 
 }

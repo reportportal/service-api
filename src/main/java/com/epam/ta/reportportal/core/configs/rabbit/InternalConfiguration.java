@@ -42,6 +42,7 @@ public class InternalConfiguration {
 	public static final String EXCHANGE_ACTIVITY = "activity";
 	public static final String EXCHANGE_PLUGINS = "plugins";
 	public static final String EXCHANGE_ATTACHMENT = "attachment";
+	public static final String EXCHANGE_LAUNCH = "launch";
 
 	/**
 	 * Queues
@@ -51,6 +52,7 @@ public class InternalConfiguration {
 	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
 	public static final String QUEUE_ACTIVITY = "activity";
 	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
+	public static final String QUEUE_LAUNCH_FINISHED = "launch.finished";
 
 	public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
 	public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
@@ -58,7 +60,6 @@ public class InternalConfiguration {
 	public static final String INTEGRATION_FIND_ONE = "repository.find.integration";
 	public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
 	public static final String QUEUE_QUERY_RQ = "query-rq";
-
 
 	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {
@@ -68,11 +69,14 @@ public class InternalConfiguration {
 	}
 
 	@Bean
-	public MessageBus messageBus(@Autowired @Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
-		return new MessageBusImpl(amqpTemplate);
+	public MessageBus messageBus(@Autowired @Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate,
+			@Autowired @Qualifier("asyncRabbitTemplate") AsyncAmqpTemplate asyncAmqpTemplate) {
+		return new MessageBusImpl(amqpTemplate, asyncAmqpTemplate);
 	}
 
-	/** Exchanges definition */
+	/**
+	 * Exchanges definition
+	 */
 
 	@Bean
 	public FanoutExchange eventsExchange() {
@@ -94,7 +98,14 @@ public class InternalConfiguration {
 		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
 	}
 
-	/** Queues definition */
+	@Bean
+	public DirectExchange launchExchange() {
+		return new DirectExchange(EXCHANGE_LAUNCH, true, false);
+	}
+
+	/**
+	 * Queues definition
+	 */
 
 	@Bean
 	public Queue pluginsPongQueue() {
@@ -120,7 +131,6 @@ public class InternalConfiguration {
 	public Queue deleteAttachmentQueue() {
 		return new Queue(QUEUE_ATTACHMENT_DELETE);
 	}
-
 
 	@Bean
 	public Queue projectRepoQueue() {
@@ -152,7 +162,14 @@ public class InternalConfiguration {
 		return new Queue(QUEUE_QUERY_RQ);
 	}
 
-	/** Bindings */
+	@Bean
+	public Queue launchFinishedQueue() {
+		return new Queue(QUEUE_LAUNCH_FINISHED);
+	}
+
+	/**
+	 * Bindings
+	 */
 
 	@Bean
 	public Binding pluginsPongBinding() {
@@ -169,14 +186,19 @@ public class InternalConfiguration {
 		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY);
 	}
 
-//	@Bean
-//	public Binding pluginsPingBinding() {
-//		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
-//	}
+	//	@Bean
+	//	public Binding pluginsPingBinding() {
+	//		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
+	//	}
 
 	@Bean
 	public Binding attachmentDeleteBinding() {
 		return BindingBuilder.bind(deleteAttachmentQueue()).to(attachmentExchange()).with(QUEUE_ATTACHMENT_DELETE);
+	}
+
+	@Bean
+	public Binding launchFinishedBinding() {
+		return BindingBuilder.bind(launchFinishedQueue()).to(launchExchange()).with(QUEUE_LAUNCH_FINISHED);
 	}
 
 }

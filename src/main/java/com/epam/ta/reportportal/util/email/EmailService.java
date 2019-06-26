@@ -55,7 +55,6 @@ import static java.util.stream.Collectors.toMap;
 public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
-	private static final String URL_FORMAT = "%s/launches/all";
 	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
@@ -119,11 +118,10 @@ public class EmailService extends JavaMailSenderImpl {
 	String mergeFinishLaunchText(String url, Launch launch, Set<ProjectIssueType> projectIssueTypes) {
 		Map<String, Object> email = new HashMap<>();
 		/* Email fields values */
-		String basicUrl = format(URL_FORMAT, url);
 		email.put("name", launch.getName());
 		email.put("number", String.valueOf(launch.getNumber()));
 		email.put("description", launch.getDescription());
-		email.put("url", format("%s/%s", basicUrl, launch.getId()));
+		email.put("url", format("%s/%s", url, launch.getId()));
 
 		/* Tags with links */
 		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
@@ -134,7 +132,7 @@ public class EmailService extends JavaMailSenderImpl {
 							.filter(it -> !it.isSystem())
 							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()), attribute -> format(
 									FILTER_TAG_FORMAT,
-									basicUrl,
+									url,
 									urlPathSegmentEscaper().escape(attribute.getKey()),
 									urlPathSegmentEscaper().escape(attribute.getValue())
 							)))

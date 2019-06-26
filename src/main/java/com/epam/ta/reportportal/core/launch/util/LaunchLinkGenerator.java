@@ -29,36 +29,25 @@ public final class LaunchLinkGenerator {
 	}
 
 	public static String generateLaunchLink(LinkParams linkParams, String id) {
-		return new StringBuilder(linkParams.getScheme()).append("://")
-				.append(linkParams.getHost())
-				.append(UI_PREFIX)
-				.append(linkParams.getProjectName())
-				.append(LAUNCHES)
-				.append(id)
-				.toString();
+		return linkParams.getBaseUrl() + id;
 	}
 
 	public static class LinkParams {
-		private String scheme;
-		private String host;
-		private String projectName;
+		private String baseUrl;
 
 		private LinkParams(String scheme, String host, String projectName) {
-			this.scheme = scheme;
-			this.host = host;
-			this.projectName = projectName;
+			this.baseUrl = scheme + "://" + host + UI_PREFIX + projectName + LAUNCHES;
 		}
 
-		public String getScheme() {
-			return scheme;
+		public LinkParams() {
 		}
 
-		public String getHost() {
-			return host;
+		public String getBaseUrl() {
+			return baseUrl;
 		}
 
-		public String getProjectName() {
-			return projectName;
+		public void setBaseUrl(String baseUrl) {
+			this.baseUrl = baseUrl;
 		}
 
 		public static LinkParams of(String scheme, String host, String projectName) {

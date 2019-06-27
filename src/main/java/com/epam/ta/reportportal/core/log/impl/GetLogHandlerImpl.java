@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
 import com.epam.ta.reportportal.entity.item.NestedItem;
-import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -99,8 +99,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		Map<Long, Log> logMap = ofNullable(result.get(LogRepositoryConstants.LOG)).map(logs -> logRepository.findAllById(logs.stream()
 				.map(NestedItem::getId)
 				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
-		Map<Long, TestItem> testItemMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllById(
-				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet())).stream().collect(toMap(TestItem::getItemId, i -> i)))
+		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(
+				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet())).stream().collect(toMap(NestedStep::getId, i -> i)))
 				.orElseGet(Collections::emptyMap);
 
 		List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());
@@ -108,7 +108,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 			if (LogRepositoryConstants.LOG.equals(nestedItem.getType())) {
 				ofNullable(logMap.get(nestedItem.getId())).map(LogConverter.TO_RESOURCE).ifPresent(resources::add);
 			} else if (LogRepositoryConstants.ITEM.equals(nestedItem.getType())) {
-				ofNullable(testItemMap.get(nestedItem.getId())).map(TestItemConverter.TO_RESOURCE).ifPresent(resources::add);
+				ofNullable(nestedStepMap.get(nestedItem.getId())).map(TestItemConverter.TO_NESTED_STEP_RESOURCE).ifPresent(resources::add);
 			}
 		});
 

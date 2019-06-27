@@ -81,31 +81,29 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	@Nonnull
 	//TODO check saving an attachment of the item of the project A in the project's B directory
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
+		validate(request);
+
 		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
-
-		Log log;
 		if (itemOptional.isPresent()) {
-			validate(request);
-			TestItem item = itemOptional.get();
-
-			log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
-			logRepository.save(log);
-			saveBinaryData(file,
-					projectDetails.getProjectId(),
-					log.getId(),
-					testItemService.getEffectiveLaunch(item).getId(),
-					item.getItemId()
-			);
-		} else {
-			validate(request);
-			Launch launch = launchRepository.findByUuid(request.getItemId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, request.getItemId()));
-
-			log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
-			logRepository.save(log);
-			saveBinaryData(file, projectDetails.getProjectId(), log.getId(), launch.getId(), null);
+			return createItemLog(request, itemOptional.get(), file, projectDetails.getProjectId());
 		}
 
+		Launch launch = launchRepository.findByUuid(request.getItemId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+		return createLaunchLog(request, launch, file, projectDetails.getProjectId());
+	}
+
+	private EntryCreatedAsyncRS createItemLog(SaveLogRQ request, TestItem item, MultipartFile file, Long projectId) {
+		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+		logRepository.save(log);
+		saveBinaryData(file, projectId, log.getId(), testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+		return new EntryCreatedAsyncRS(log.getId());
+	}
+
+	private EntryCreatedAsyncRS createLaunchLog(SaveLogRQ request, Launch launch, MultipartFile file, Long projectId) {
+		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+		logRepository.save(log);
+		saveBinaryData(file, projectId, log.getId(), launch.getId(), null);
 		return new EntryCreatedAsyncRS(log.getId());
 	}
 
@@ -114,12 +112,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
 					.withFile(file)
 					.withProjectId(projectId)
-					.withLogId(logId)
-					.withLaunchId(launchId);
-
-			if (Objects.isNull(itemId)) {
-				saveLogBinaryDataTask = saveLogBinaryDataTask.withItemId(itemId);
-			}
+					.withLogId(logId).withLaunchId(launchId).withItemId(itemId);
 
 			taskExecutor.execute(saveLogBinaryDataTask);
 		}

@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -95,20 +96,24 @@ public class LogReporterConsumer {
 		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
 
 		if (itemOptional.isPresent()) {
-			TestItem item = itemOptional.get();
-			Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
-			logRepository.save(log);
-
-			saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+			createItemLog(request, itemOptional.get(), metaInfo, projectId);
 		} else {
 			Launch launch = launchRepository.findByUuid(request.getItemId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, request.getItemId()));
-
-			Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
-			logRepository.save(log);
-
-			saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+			createLaunchLog(request, launch, metaInfo, projectId);
 		}
+	}
+
+	private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
+		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+		logRepository.save(log);
+		saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+	}
+
+	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
+		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+		logRepository.save(log);
+		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
 	}
 
 	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
@@ -122,15 +127,10 @@ public class LogReporterConsumer {
 
 	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
 		if (!Objects.isNull(metaInfo)) {
-			AttachmentBuilder attachmentBuilder = new AttachmentBuilder().withMetaInfo(metaInfo)
-					.withProjectId(projectId)
-					.withLaunchId(launchId);
+			Attachment attachment = new AttachmentBuilder().withMetaInfo(metaInfo)
+					.withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).get();
 
-			if (!Objects.isNull(itemId)) {
-				attachmentBuilder.withItemId(itemId);
-			}
-
-			createAttachmentHandler.create(attachmentBuilder.get(), logId);
+			createAttachmentHandler.create(attachment, logId);
 		}
 	}
 }

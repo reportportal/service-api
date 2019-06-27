@@ -40,7 +40,7 @@ class IntegrationEventsTest {
 		activity.setProjectId(3L);
 		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("type:test_project"));
+		activity.setDetails(new ActivityDetails("type"));
 		return activity;
 	}
 

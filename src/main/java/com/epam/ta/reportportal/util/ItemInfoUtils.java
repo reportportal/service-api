@@ -68,8 +68,10 @@ public class ItemInfoUtils {
 
 	public static void updateAttribute(Set<ItemAttribute> attributes, UpdateItemAttributeRQ updateItemAttributeRQ) {
 		attributes.stream().filter(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, updateItemAttributeRQ.getFrom())).findAny().map(attr -> {
+			attributes.remove(attr);
 			attr.setKey(updateItemAttributeRQ.getTo().getKey());
 			attr.setValue(updateItemAttributeRQ.getTo().getValue());
+			attributes.add(attr);
 			return attr;
 		}).orElseThrow(() -> new ReportPortalException(INCORRECT_REQUEST, "Cannot update not common attribute"));
 	}

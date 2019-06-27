@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -60,13 +62,22 @@ class LoadPluginsJobTest {
 			dataStore
 	);
 
+	@AfterAll
+	public static void clearPluginDirectory() throws IOException {
+		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
+	}
+
 	@Test
 	void loadDisabledPluginTest() throws IOException {
 
 		List<IntegrationType> integrationTypes = getIntegrationTypes();
 		when(integrationTypeRepository.findAll()).thenReturn(integrationTypes);
 		List<PluginInfo> pluginInfos = getPluginInfos();
-		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(File.createTempFile("file", ".jar")));
+
+		File tempFile = File.createTempFile("file", ".jar");
+		tempFile.deleteOnExit();
+
+		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
 		when(pluginBox.loadPlugin(any(Path.class))).thenReturn("jira");
 		when(pluginBox.startUpPlugin(any(String.class))).thenReturn(PluginState.STARTED);
 		when(pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes)).thenReturn(pluginInfos);

@@ -45,7 +45,7 @@ repositories {
     maven { url 'https://repo.spring.io/libs-milestone' }
 
 //    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
+    maven { url 'https://jitpack.io' }
 //    }
 }
 
@@ -216,7 +216,7 @@ build.dependsOn jacocoTestReport
 
 ext.src = [
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql': 'V002__default_data.sql'
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql'
 ]
 
 task copyTestDatabaseScripts {
@@ -236,6 +236,12 @@ task removeScripts {
             def file = new File("${projectDir}/src/test/resources/db/migration/", s.value)
             file.delete()
         }
+    }
+}
+
+bootJar {
+    if (!releaseMode) {
+        getArchiveFileName().set("${baseName}.${extension}")
     }
 }
 

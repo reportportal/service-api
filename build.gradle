@@ -255,6 +255,12 @@ task removeScripts {
     }
 }
 
+bootJar {
+    if (!releaseMode) {
+        getArchiveFileName().set("${baseName}.${extension}")
+    }
+}
+
 test.dependsOn copyTestDatabaseScripts
 checkCommitNeeded.dependsOn removeScripts
 

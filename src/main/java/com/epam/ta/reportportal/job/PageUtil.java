@@ -62,5 +62,4 @@ class PageUtil {
 			consumer.accept(pageData.getContent());
 		}
 	}
-
 }

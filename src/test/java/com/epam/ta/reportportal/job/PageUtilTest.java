@@ -31,7 +31,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @SpringFixture("logRepositoryTests")
 public class PageUtilTest extends BaseDaoContextTest {
@@ -50,5 +52,4 @@ public class PageUtilTest extends BaseDaoContextTest {
 		PageUtil.iterateOverPages(pageable -> logRepository.findAll(pageable), logs2::addAll);
 		Assertions.assertThat(logs2).isEqualTo(logs);
 	}
-
 }

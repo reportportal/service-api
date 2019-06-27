@@ -110,7 +110,6 @@ public class SaveLogBinaryDataTask implements Runnable {
 	}
 
 	public SaveLogBinaryDataTask withItemId(Long itemId) {
-		//		Preconditions.checkNotNull(itemId, "Item id shouldn't be null");
 		this.itemId = itemId;
 		return this;
 	}

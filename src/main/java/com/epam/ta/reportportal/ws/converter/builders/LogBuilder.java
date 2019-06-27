@@ -23,8 +23,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
-import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -39,9 +41,9 @@ public class LogBuilder implements Supplier<Log> {
 
 	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
 		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
-		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
+		log.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
 		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
-		log.setUuid(createLogRQ.getUuid());
+		log.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
 		return this;
 	}
 

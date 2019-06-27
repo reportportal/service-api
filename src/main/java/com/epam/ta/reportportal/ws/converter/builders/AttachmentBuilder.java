@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
+import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 
 import java.util.function.Supplier;
@@ -59,6 +60,10 @@ public class AttachmentBuilder implements Supplier<Attachment> {
 	public AttachmentBuilder withItemId(Long itemId) {
 		attachment.setItemId(itemId);
 		return this;
+	}
+
+	public AttachmentBuilder withMetaInfo(BinaryDataMetaInfo metaInfo) {
+		return withFileId(metaInfo.getFileId()).withThumbnailId(metaInfo.getThumbnailFileId()).withContentType(metaInfo.getContentType());
 	}
 
 	@Override

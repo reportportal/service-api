@@ -20,14 +20,14 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
 import com.epam.ta.reportportal.core.item.TestItemService;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -39,14 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
 
 /**
@@ -54,28 +52,27 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
  */
 
 @Component
-@Transactional
 public class LogReporterConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogReporterConsumer.class);
 
-	@Autowired
-	private LogRepository logRepository;
+	private final LogRepository logRepository;
+	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
+	private final TestItemService testItemService;
+	private final DataStoreService dataStoreService;
+	private final CreateAttachmentHandler createAttachmentHandler;
 
 	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private AttachmentRepository attachmentRepository;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private TestItemService testItemService;
-
-	@Autowired
-	private DataStoreService dataStoreService;
+	public LogReporterConsumer(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			TestItemService testItemService, DataStoreService dataStoreService, CreateAttachmentHandler createAttachmentHandler) {
+		this.logRepository = logRepository;
+		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.testItemService = testItemService;
+		this.dataStoreService = dataStoreService;
+		this.createAttachmentHandler = createAttachmentHandler;
+	}
 
 	@RabbitListener(queues = "#{ @logQueue.name }")
 	public void onLogCreate(@Payload DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,
@@ -96,36 +93,22 @@ public class LogReporterConsumer {
 		BinaryDataMetaInfo metaInfo = payload.getRight();
 
 		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
-		Optional<Launch> launchOptional = launchRepository.findByUuid(request.getItemId());
 
-		expect(itemOptional.isPresent() ^ launchOptional.isPresent(), Predicate.isEqual(true)).verify(ErrorType.TEST_ITEM_NOT_FOUND,
-				request.getItemId()
-		);
+		if (itemOptional.isPresent()) {
+			TestItem item = itemOptional.get();
+			Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+			logRepository.save(log);
 
-		LogBuilder logBuilder = new LogBuilder().addSaveLogRq(request);
-		itemOptional.ifPresent(logBuilder::addTestItem);
-		launchOptional.ifPresent(logBuilder::addLaunch);
-		Log log = logBuilder.get();
-		logRepository.save(log);
+			saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+		} else {
+			Launch launch = launchRepository.findByUuid(request.getItemId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, request.getItemId()));
 
-		// attachment
-		if (metaInfo != null) {
-			Long launchId = itemOptional.map(it -> testItemService.getEffectiveLaunch(it).getId())
-					.orElseGet(() -> launchOptional.get().getId());
+			Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+			logRepository.save(log);
 
-			Attachment attachment = new AttachmentBuilder().withFileId(metaInfo.getFileId())
-					.withThumbnailId(metaInfo.getThumbnailFileId())
-					.withContentType(metaInfo.getContentType())
-					.withProjectId(projectId)
-					.withLaunchId(launchId)
-					.withItemId(itemOptional.map(TestItem::getItemId).orElse(null))
-					.get();
-
-			attachmentRepository.save(attachment);
-			log.setAttachment(attachment);
+			saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
 		}
-
-		logRepository.save(log);
 	}
 
 	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
@@ -134,6 +117,20 @@ public class LogReporterConsumer {
 			BinaryDataMetaInfo metaInfo = payload.getRight();
 			dataStoreService.delete(metaInfo.getFileId());
 			dataStoreService.delete(metaInfo.getThumbnailFileId());
+		}
+	}
+
+	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
+		if (!Objects.isNull(metaInfo)) {
+			AttachmentBuilder attachmentBuilder = new AttachmentBuilder().withMetaInfo(metaInfo)
+					.withProjectId(projectId)
+					.withLaunchId(launchId);
+
+			if (!Objects.isNull(itemId)) {
+				attachmentBuilder.withItemId(itemId);
+			}
+
+			createAttachmentHandler.create(attachmentBuilder.get(), logId);
 		}
 	}
 }

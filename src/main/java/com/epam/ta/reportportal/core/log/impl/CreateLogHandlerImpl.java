@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -38,10 +39,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -83,34 +82,47 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	//TODO check saving an attachment of the item of the project A in the project's B directory
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
-		Optional<Launch> launchOptional = launchRepository.findByUuid(request.getItemId());
 
-		expect(itemOptional.isPresent() ^ launchOptional.isPresent(), Predicate.isEqual(true)).verify(ErrorType.TEST_ITEM_NOT_FOUND,
-				request.getItemId()
-		);
+		Log log;
+		if (itemOptional.isPresent()) {
+			validate(request);
+			TestItem item = itemOptional.get();
 
-		validate(request);
+			log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+			logRepository.save(log);
+			saveBinaryData(file,
+					projectDetails.getProjectId(),
+					log.getId(),
+					testItemService.getEffectiveLaunch(item).getId(),
+					item.getItemId()
+			);
+		} else {
+			validate(request);
+			Launch launch = launchRepository.findByUuid(request.getItemId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, request.getItemId()));
 
-		LogBuilder logBuilder = new LogBuilder().addSaveLogRq(request);
-		itemOptional.ifPresent(logBuilder::addTestItem);
-		launchOptional.ifPresent(logBuilder::addLaunch);
-		Log log = logBuilder.get();
-		logRepository.save(log);
-
-		if (null != file) {
-
-			Long launchId = itemOptional.map(it -> testItemService.getEffectiveLaunch(it).getId())
-					.orElseGet(() -> launchOptional.get().getId());
-
-			taskExecutor.execute(saveLogBinaryDataTask.get()
-					.withFile(file)
-					.withProjectId(projectDetails.getProjectId())
-					.withLaunchId(launchId).withItemId(itemOptional.map(TestItem::getItemId).orElse(null))
-					.withLogId(log.getId()));
-
+			log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+			logRepository.save(log);
+			saveBinaryData(file, projectDetails.getProjectId(), log.getId(), launch.getId(), null);
 		}
 
 		return new EntryCreatedAsyncRS(log.getId());
+	}
+
+	private void saveBinaryData(MultipartFile file, Long projectId, Long logId, Long launchId, Long itemId) {
+		if (!Objects.isNull(file)) {
+			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
+					.withFile(file)
+					.withProjectId(projectId)
+					.withLogId(logId)
+					.withLaunchId(launchId);
+
+			if (Objects.isNull(itemId)) {
+				saveLogBinaryDataTask = saveLogBinaryDataTask.withItemId(itemId);
+			}
+
+			taskExecutor.execute(saveLogBinaryDataTask);
+		}
 	}
 
 }

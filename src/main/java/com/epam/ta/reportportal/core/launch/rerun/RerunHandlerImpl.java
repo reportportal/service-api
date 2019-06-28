@@ -122,19 +122,25 @@ public class RerunHandlerImpl implements RerunHandler {
 		item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		item.setDescription(request.getDescription());
 		if (item.getType().sameLevel(STEP)) {
-			TestItem retry = new TestItemBuilder().addLaunch(launch)
-					.addStartItemRequest(request)
-					.addAttributes(request.getAttributes())
-					.get();
-			testItemRepository.save(retry);
-			generateUniqueId(launch,
-					retry,
-					ofNullable(parent).map(it -> it.getPath() + "." + retry.getItemId()).orElse(String.valueOf(retry.getItemId()))
-			);
-			handleRetries(launch, retry);
-			item = retry;
+			item = makeRetry(request, launch, parent);
 		}
 		return item;
+	}
+
+	private TestItem makeRetry(StartTestItemRQ request, Launch launch, TestItem parent) {
+		TestItem retry = new TestItemBuilder().addLaunch(launch)
+				.addStartItemRequest(request)
+				.addAttributes(request.getAttributes())
+				.addParent(parent)
+				.get();
+		testItemRepository.save(retry);
+		generateUniqueId(
+				launch,
+				retry,
+				ofNullable(parent).map(it -> it.getPath() + "." + retry.getItemId()).orElse(String.valueOf(retry.getItemId()))
+		);
+		handleRetries(launch, retry);
+		return retry;
 	}
 
 	private void generateUniqueId(Launch launch, TestItem item, String path) {

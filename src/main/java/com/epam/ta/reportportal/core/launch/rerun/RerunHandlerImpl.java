@@ -73,6 +73,7 @@ public class RerunHandlerImpl implements RerunHandler {
 			return Optional.empty();
 		}
 
+
 		Optional<Launch> launchOptional = StringUtils.isEmpty(request.getRerunOf()) ?
 				launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
 				launchRepository.findByUuid(request.getRerunOf());
@@ -124,6 +125,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		if (item.getType().sameLevel(STEP)) {
 			item = makeRetry(request, launch, parent);
 		}
+		ofNullable(request.getUuid()).ifPresent(item::setUuid);
 		return item;
 	}
 

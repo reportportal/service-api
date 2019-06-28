@@ -107,10 +107,6 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
-		if (launch.isRerun()) {
-			launch.setRerun(false);
-		}
-
 		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername());
 		messageBus.publishActivity(event);
 		eventPublisher.publishEvent(event);

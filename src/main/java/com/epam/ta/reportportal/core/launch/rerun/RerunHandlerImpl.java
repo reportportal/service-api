@@ -73,7 +73,6 @@ public class RerunHandlerImpl implements RerunHandler {
 			return Optional.empty();
 		}
 
-
 		Optional<Launch> launchOptional = StringUtils.isEmpty(request.getRerunOf()) ?
 				launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
 				launchRepository.findByUuid(request.getRerunOf());

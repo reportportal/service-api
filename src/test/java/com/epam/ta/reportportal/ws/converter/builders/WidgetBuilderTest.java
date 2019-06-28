@@ -57,10 +57,7 @@ class WidgetBuilderTest {
 		final UserFilter userFilter = new UserFilter();
 		userFilter.setId(1L);
 
-		final Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ)
-				.addFilters(Collections.singletonList(userFilter))
-				.addOwner(owner)
-				.get();
+		final Widget widget = new WidgetBuilder().addWidgetRq(widgetRQ).addFilters(Collections.singletonList(userFilter)).addOwner(owner).get();
 
 		assertEquals(name, widget.getName());
 		assertEquals(description, widget.getDescription());

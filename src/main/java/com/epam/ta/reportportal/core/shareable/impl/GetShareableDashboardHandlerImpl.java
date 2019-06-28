@@ -46,19 +46,13 @@ public class GetShareableDashboardHandlerImpl implements GetShareableEntityHandl
 	@PostAuthorize(CAN_READ_OBJECT)
 	public Dashboard getPermitted(Long id, ReportPortalUser.ProjectDetails projectDetails) {
 		return dashboardRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
-						id,
-						projectDetails.getProjectName()
-				));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectName()));
 	}
 
 	@Override
 	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
 	public Dashboard getAdministrated(Long id, ReportPortalUser.ProjectDetails projectDetails) {
 		return dashboardRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT,
-						id,
-						projectDetails.getProjectName()
-				));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.DASHBOARD_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectName()));
 	}
 }

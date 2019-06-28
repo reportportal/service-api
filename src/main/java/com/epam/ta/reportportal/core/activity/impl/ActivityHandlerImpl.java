@@ -113,7 +113,8 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
 				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.ITEM_ISSUE.getValue()).build());
 
-		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(Operator.OR, filter, patternActivityFilter),
+		Page<Activity> page = activityRepository.findByFilter(
+				new CompositeFilter(Operator.OR, filter, patternActivityFilter),
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);

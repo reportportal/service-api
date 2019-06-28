@@ -18,11 +18,8 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +31,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -45,13 +41,10 @@ import static org.mockito.Mockito.*;
 class SaveLogBinaryDataTaskTest {
 
 	@Mock
-	private LogRepository logRepository;
-
-	@Mock
 	private DataStoreService dataStoreService;
 
 	@Mock
-	private AttachmentRepository attachmentRepository;
+	private CreateAttachmentHandler createAttachmentHandler;
 
 	@InjectMocks
 	private SaveLogBinaryDataTask saveLogBinaryDataTask;
@@ -60,52 +53,31 @@ class SaveLogBinaryDataTaskTest {
 	void saveBinaryDataPositive() {
 		long logId = 1L;
 		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(2L).withFile(file);
-		Log log = new Log();
+		long projectId = 2L;
+		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(projectId).withFile(file);
 		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
 
-		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 		when(dataStoreService.save(any(), any())).thenReturn(Optional.of(binaryData));
 
 		saveLogBinaryDataTask.run();
 
-		assertEquals(binaryData.getFileId(), log.getAttachment().getFileId());
-		assertEquals(binaryData.getThumbnailFileId(), log.getAttachment().getThumbnailId());
-		assertEquals(file.getContentType(), log.getAttachment().getContentType());
-		verify(logRepository, times(1)).save(log);
-		verify(attachmentRepository, times(1)).save(any(Attachment.class));
+		verify(dataStoreService, times(1)).save(projectId, file);
+		verify(createAttachmentHandler, times(1)).create(any(), eq(logId));
+
 	}
 
 	@Test
 	void saveBinaryDataNegative() {
 		long logId = 1L;
 		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
-		SaveLogBinaryDataTask saveLogBinaryDataTaskAsync = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(2L).withFile(file);
-		Log log = new Log();
+		long projectId = 2L;
+		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(projectId).withFile(file);
 		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
 
-		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 		when(dataStoreService.save(any(), any())).thenReturn(Optional.of(binaryData));
-		when(logRepository.save(any())).thenThrow(ReportPortalException.class);
+		doThrow(ReportPortalException.class).when(createAttachmentHandler).create(any(), eq(logId));
 
 		assertThrows(ReportPortalException.class, saveLogBinaryDataTask::run);
-
-		verify(dataStoreService, times(2)).delete(any());
-		verify(attachmentRepository, times(1)).save(any(Attachment.class));
-	}
-
-	@Test
-	void logNotFoundTest() {
-		long logId = 1L;
-		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(2L).withFile(file);
-		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
-
-		when(logRepository.findById(logId)).thenReturn(Optional.empty());
-		when(dataStoreService.save(any(), any())).thenReturn(Optional.of(binaryData));
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class, saveLogBinaryDataTask::run);
-		assertEquals("Log '1' not found. Did you use correct Log ID?", exception.getMessage());
 
 		verify(dataStoreService, times(2)).delete(any());
 	}

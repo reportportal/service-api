@@ -40,8 +40,8 @@ import static java.util.Optional.ofNullable;
 public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandler<TestItem> {
 
 	public FinishTestItemHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository,
-			IssueTypeHandler issueTypeHandler, ChangeStatusHandler changeStatusHandler) {
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler,
+			ChangeStatusHandler changeStatusHandler) {
 		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler, changeStatusHandler);
 	}
 

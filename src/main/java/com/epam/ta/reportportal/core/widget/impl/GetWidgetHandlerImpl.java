@@ -189,16 +189,14 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.get();
 
 		if (widgetType.isSupportMultilevelStructure()) {
-			return multilevelLoadContentStrategy.get(widgetType).loadContent(
-					Lists.newArrayList(widget.getContentFields()),
+			return multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
 					widget.getWidgetOptions(),
 					null,
 					widget.getItemsCount()
 			);
 		} else {
-			return loadContentStrategy.get(widgetType).loadContent(
-					Lists.newArrayList(widget.getContentFields()),
+			return loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
 					widget.getWidgetOptions(),
 					widget.getItemsCount()
@@ -231,7 +229,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_NAME))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_OWNER))
 				.build();
-		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(new CompositeFilter(Operator.AND, filter, termFilter),
+		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(
+				new CompositeFilter(Operator.AND, filter, termFilter),
 				projectDetails.getProjectId()
 		), pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);

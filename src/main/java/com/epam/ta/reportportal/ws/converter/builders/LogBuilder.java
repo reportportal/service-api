@@ -19,11 +19,14 @@ package com.epam.ta.reportportal.ws.converter.builders;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 
-import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -38,14 +41,19 @@ public class LogBuilder implements Supplier<Log> {
 
 	public LogBuilder addSaveLogRq(SaveLogRQ createLogRQ) {
 		log.setLogLevel(LogLevel.toCustomLogLevel(createLogRQ.getLevel()));
-		log.setLogMessage(Optional.ofNullable(createLogRQ.getMessage()).orElse("NULL"));
+		log.setLogMessage(ofNullable(createLogRQ.getMessage()).orElse("NULL"));
 		log.setLogTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(createLogRQ.getLogTime()));
-		log.setUuid(createLogRQ.getUuid());
+		log.setUuid(ofNullable(createLogRQ.getUuid()).orElse(UUID.randomUUID().toString()));
 		return this;
 	}
 
 	public LogBuilder addTestItem(TestItem testItem) {
 		log.setTestItem(testItem);
+		return this;
+	}
+
+	public LogBuilder addLaunch(Launch launch) {
+		log.setLaunch(launch);
 		return this;
 	}
 

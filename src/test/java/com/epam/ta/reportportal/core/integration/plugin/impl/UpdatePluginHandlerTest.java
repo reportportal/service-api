@@ -68,21 +68,9 @@ class UpdatePluginHandlerTest {
 			pluginRootPath
 	);
 
-	@Test
-	void shouldUpdateNotPluginIntegrationWhenExists() {
-
-		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
-		updatePluginStateRQ.setEnabled(true);
-
-		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(emailIntegrationType));
-
-		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
-
-		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
-				emailIntegrationType.getName(),
-				updatePluginStateRQ.getEnabled()
-		).get(), operationCompletionRS.getResultMessage());
+	@AfterAll
+	public static void clearPluginDirectory() throws IOException {
+		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
 	}
 
 	@Test
@@ -105,27 +93,20 @@ class UpdatePluginHandlerTest {
 	}
 
 	@Test
-	void shouldNotUpdatePluginIntegrationWhenReportPortalIntegrationNotExists() {
+	void shouldUpdateNotPluginIntegrationWhenExists() {
 
 		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
 		updatePluginStateRQ.setEnabled(true);
 
 		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-		final String wrongIntegrationTypeName = "QWEQWE";
-		emailIntegrationType.setName(wrongIntegrationTypeName);
-		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(emailIntegrationType));
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
-		);
+		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
-		assertEquals(
-				Suppliers.formattedSupplier("Impossible interact with integration. Integration type details have not been found",
-						wrongIntegrationTypeName
-				).get(),
-				exception.getMessage()
-		);
-
+		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+				emailIntegrationType.getName(),
+				updatePluginStateRQ.getEnabled()
+		).get(), operationCompletionRS.getResultMessage());
 	}
 
 	@Test
@@ -169,6 +150,28 @@ class UpdatePluginHandlerTest {
 	}
 
 	@Test
+	void shouldNotUpdatePluginIntegrationWhenReportPortalIntegrationNotExists() {
+
+		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
+		updatePluginStateRQ.setEnabled(true);
+
+		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
+		final String wrongIntegrationTypeName = "QWEQWE";
+		emailIntegrationType.setName(wrongIntegrationTypeName);
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
+		);
+
+		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Integration type details have not been found",
+				wrongIntegrationTypeName
+		)
+				.get(), exception.getMessage());
+
+	}
+
+	@Test
 	void shouldLoadPluginWhenEnabledAndIsNotPresent() throws IOException {
 		UpdatePluginStateRQ updatePluginStateRQ = new UpdatePluginStateRQ();
 		updatePluginStateRQ.setEnabled(true);
@@ -191,11 +194,6 @@ class UpdatePluginHandlerTest {
 				jiraIntegrationType.getName(),
 				updatePluginStateRQ.getEnabled()
 		).get(), operationCompletionRS.getResultMessage());
-	}
-
-	@AfterAll
-	public static void clearPluginDirectory() throws IOException {
-		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
 	}
 
 	private Map<String, Object> getCorrectJiraIntegrationDetailsParams() {

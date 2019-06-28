@@ -38,14 +38,11 @@ public class TestItemService {
 	public Launch getEffectiveLaunch(TestItem testItem) {
 
 		if (ofNullable(testItem.getRetryOf()).isPresent()) {
-			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+			TestItem retryParent = testItemRepository.findById(testItem.getRetryOf()).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
 
-			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 		} else {
-			return ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+			return ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 		}
 	}
 

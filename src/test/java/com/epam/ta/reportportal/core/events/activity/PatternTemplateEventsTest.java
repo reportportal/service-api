@@ -44,7 +44,8 @@ public class PatternTemplateEventsTest {
 	}
 
 	private static List<HistoryField> getExpectedHistory(Pair<String, String> name, Pair<Boolean, Boolean> enabled) {
-		return Lists.newArrayList(HistoryField.of(NAME, name.getLeft(), name.getRight()),
+		return Lists.newArrayList(
+				HistoryField.of(NAME, name.getLeft(), name.getRight()),
 				HistoryField.of(ENABLED, enabled.getLeft().toString(), enabled.getRight().toString())
 		);
 	}

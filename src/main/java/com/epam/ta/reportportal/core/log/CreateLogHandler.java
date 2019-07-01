@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
-public interface ICreateLogHandler {
+public interface CreateLogHandler {
 
 	/**
 	 * Creates a new Log

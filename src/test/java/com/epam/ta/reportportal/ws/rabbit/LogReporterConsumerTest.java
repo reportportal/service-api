@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.rabbit;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
-import com.epam.ta.reportportal.core.log.impl.CreateLogHandler;
+import com.epam.ta.reportportal.core.log.impl.CreateLogHandlerImpl;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
@@ -46,7 +46,7 @@ class LogReporterConsumerTest {
 	private DatabaseUserDetailsService userDetailsService;
 
 	@Mock
-	private CreateLogHandler createLogHandler;
+	private CreateLogHandlerImpl createLogHandlerImpl;
 
 	@InjectMocks
 	private LogReporterConsumer logReporterConsumer;
@@ -55,7 +55,7 @@ class LogReporterConsumerTest {
 	@Disabled
 	void onLogCreate() {
 		SaveLogRQ saveLogRQ = new SaveLogRQ();
-		saveLogRQ.setTestItemId("1");
+		saveLogRQ.setItemId("1");
 		saveLogRQ.setLogTime(new Date());
 		saveLogRQ.setLevel("ERROR");
 		saveLogRQ.setMessage("message");
@@ -66,6 +66,6 @@ class LogReporterConsumerTest {
 
 		logReporterConsumer.onLogCreate(DeserializablePair.of(saveLogRQ, null), 1L, "test_project", Collections.emptyList());
 
-		verify(createLogHandler, times(1)).createLog(eq(saveLogRQ), eq(null), any());
+		verify(createLogHandlerImpl, times(1)).createLog(eq(saveLogRQ), eq(null), any());
 	}
 }

@@ -18,18 +18,16 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
-import com.epam.ta.reportportal.core.log.IDeleteLogHandler;
-import com.epam.ta.reportportal.core.log.IGetLogHandler;
+import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.core.log.DeleteLogHandler;
+import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
@@ -54,7 +52,6 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_TEST_ITEM_ID;
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -67,13 +64,13 @@ import static org.springframework.http.HttpStatus.CREATED;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
 
-	private final ICreateLogHandler createLogHandler;
-	private final IDeleteLogHandler deleteLogHandler;
-	private final IGetLogHandler getLogHandler;
+	private final CreateLogHandler createLogHandler;
+	private final DeleteLogHandler deleteLogHandler;
+	private final GetLogHandler getLogHandler;
 	private final Validator validator;
 
 	@Autowired
-	public LogController(@Autowired ICreateLogHandler createLogHandler, IDeleteLogHandler deleteLogHandler, IGetLogHandler getLogHandler,
+	public LogController(@Autowired CreateLogHandler createLogHandler, DeleteLogHandler deleteLogHandler, GetLogHandler getLogHandler,
 			Validator validator) {
 		this.createLogHandler = createLogHandler;
 		this.deleteLogHandler = deleteLogHandler;
@@ -161,11 +158,9 @@ public class LogController {
 	@RequestMapping(method = RequestMethod.GET)
 	@ApiOperation("Get logs by filter")
 	@Transactional(readOnly = true)
-	public Iterable<LogResource> getLogs(@PathVariable String projectName,
-			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_TEST_ITEM_ID) Long testStepId,
-			@FilterFor(Log.class) Filter filter, @SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLogs(testStepId, extractProjectDetails(user, projectName), filter, pageable);
+	public Iterable<LogResource> getLogs(@PathVariable String projectName, @FilterFor(Log.class) Filter filter,
+			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLogs(extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@GetMapping(value = "/{logId}/page")

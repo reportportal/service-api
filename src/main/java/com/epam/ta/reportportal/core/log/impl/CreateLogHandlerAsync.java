@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
+import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -39,13 +39,13 @@ import java.util.concurrent.CompletableFuture;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG;
 
 /**
- * Asynchronous implementation of {@link ICreateLogHandler} using RabbitMQ
+ * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ
  * to defer binding Log to ID(s)
  *
  * @author Andrei Varabyeu
  */
 @Service("asyncCreateLogHandler")
-public class CreateLogHandlerAsync implements ICreateLogHandler {
+public class CreateLogHandlerAsync implements CreateLogHandler {
 
 	/**
 	 * We are using {@link Provider} there because we need
@@ -64,7 +64,6 @@ public class CreateLogHandlerAsync implements ICreateLogHandler {
 	@Qualifier(value = "rabbitTemplate")
 	AmqpTemplate amqpTemplate;
 
-
 	@Override
 	@Nonnull
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
@@ -76,11 +75,8 @@ public class CreateLogHandlerAsync implements ICreateLogHandler {
 		if (file != null) {
 			CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
 					.withRequest(request)
-					.withFile(file)
-					.withProjectId(projectDetails.getProjectId()), taskExecutor
-			).thenAccept(metaInfo -> {
-					sendMessage(request, metaInfo, projectDetails.getProjectId());
-			});
+					.withFile(file).withProjectId(projectDetails.getProjectId()), taskExecutor)
+					.thenAccept(metaInfo -> sendMessage(request, metaInfo, projectDetails.getProjectId()));
 		} else {
 			sendMessage(request, null, projectDetails.getProjectId());
 		}
@@ -94,7 +90,7 @@ public class CreateLogHandlerAsync implements ICreateLogHandler {
 		amqpTemplate.convertAndSend(QUEUE_LOG, DeserializablePair.of(request, metaInfo), message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.PROJECT_ID, projectId);
-			headers.put(MessageHeaders.ITEM_ID, request.getTestItemId());
+			headers.put(MessageHeaders.ITEM_ID, request.getItemId());
 			return message;
 		});
 

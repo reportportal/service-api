@@ -45,14 +45,12 @@ public class GetShareableWidgetHandlerImpl implements GetShareableEntityHandler<
 	@Override
 	@PostAuthorize(CAN_READ_OBJECT)
 	public Widget getPermitted(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-		return widgetRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectName()));
+		return widgetRepository.findByIdAndProjectId(id, projectDetails.getProjectId()).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectName()));
 	}
 
 	@Override
 	@PostAuthorize(CAN_ADMINISTRATE_OBJECT)
 	public Widget getAdministrated(Long id, ReportPortalUser.ProjectDetails projectDetails) {
-		return widgetRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectName()));
+		return widgetRepository.findByIdAndProjectId(id, projectDetails.getProjectId()).orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectName()));
 	}
 }

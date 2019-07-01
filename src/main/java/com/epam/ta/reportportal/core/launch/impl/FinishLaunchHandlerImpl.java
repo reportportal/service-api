@@ -87,8 +87,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		if (launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
 			finishHierarchyHandler.finishDescendants(launch,
 					status.orElse(StatusEnum.INTERRUPTED),
-					finishLaunchRQ.getEndTime(),
-					user,
+					finishLaunchRQ.getEndTime(), user,
 					projectDetails
 			);
 			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED);
@@ -96,11 +95,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
 		}
 
-		final String desc = launch.getDescription() != null ?
-				finishLaunchRQ.getDescription() != null ?
-						launch.getDescription().concat(" " + finishLaunchRQ.getDescription()) :
-						launch.getDescription() :
-				null;
+		final String desc = buildDescription(launch.getDescription(), finishLaunchRQ.getDescription());
 
 		launch = new LaunchBuilder(launch).addDescription(desc)
 				.addAttributes(finishLaunchRQ.getAttributes())
@@ -123,4 +118,13 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		response.setLink(generateLaunchLink(linkParams, String.valueOf(launch.getId())));
 		return response;
 	}
+
+	private String buildDescription(String existDescription, String fromRequestDescription) {
+		if (null != existDescription) {
+			return null != fromRequestDescription ? existDescription + " " + fromRequestDescription : existDescription;
+		} else {
+			return null;
+		}
+	}
+
 }

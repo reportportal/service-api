@@ -62,7 +62,7 @@ class DeleteLogHandlerTest {
 	private DataStoreService dataStoreService;
 
 	@InjectMocks
-	private DeleteLogHandler handler;
+	private DeleteLogHandlerImpl handler;
 
 	@Test
 	void deleteLogOnNotExistProject() {

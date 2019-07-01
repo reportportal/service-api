@@ -20,7 +20,8 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
 import com.epam.ta.reportportal.core.item.TestItemService;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,42 +40,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 
 /**
  * @author Pavel Bortnik
  */
 
 @Component
-@Transactional
 public class LogReporterConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogReporterConsumer.class);
 
-	@Autowired
-	private LogRepository logRepository;
+	private final LogRepository logRepository;
+	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
+	private final TestItemService testItemService;
+	private final DataStoreService dataStoreService;
+	private final CreateAttachmentHandler createAttachmentHandler;
 
 	@Autowired
-	private AttachmentRepository attachmentRepository;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private TestItemService testItemService;
-
-	@Autowired
-	private DataStoreService dataStoreService;
+	public LogReporterConsumer(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			TestItemService testItemService, DataStoreService dataStoreService, CreateAttachmentHandler createAttachmentHandler) {
+		this.logRepository = logRepository;
+		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.testItemService = testItemService;
+		this.dataStoreService = dataStoreService;
+		this.createAttachmentHandler = createAttachmentHandler;
+	}
 
 	@RabbitListener(queues = "#{ @logQueue.name }")
-	public void onLogCreate(@Payload DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload, @Header(MessageHeaders.PROJECT_ID) Long projectId,
-			@Header(MessageHeaders.ITEM_ID) String itemId,
+	public void onLogCreate(@Payload DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,
+			@Header(MessageHeaders.PROJECT_ID) Long projectId, @Header(MessageHeaders.ITEM_ID) String itemId,
 			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 
 		if (xdHeader != null) {
@@ -89,28 +93,27 @@ public class LogReporterConsumer {
 		SaveLogRQ request = payload.getLeft();
 		BinaryDataMetaInfo metaInfo = payload.getRight();
 
-		Log log = new LogBuilder().addSaveLogRq(request).get();
-		TestItem testItem = testItemRepository.findByUuid(itemId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
-		log.setTestItem(testItem);
+		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
 
-		// attachment
-		if (metaInfo != null) {
-			Launch launch = testItemService.getEffectiveLaunch(testItem);
-
-			Attachment attachment = new AttachmentBuilder().withFileId(metaInfo.getFileId())
-					.withThumbnailId(metaInfo.getThumbnailFileId())
-					.withContentType(metaInfo.getContentType())
-					.withProjectId(projectId)
-					.withLaunchId(launch.getId())
-					.withItemId(testItem.getItemId())
-					.get();
-
-			attachmentRepository.save(attachment);
-			log.setAttachment(attachment);
+		if (itemOptional.isPresent()) {
+			createItemLog(request, itemOptional.get(), metaInfo, projectId);
+		} else {
+			Launch launch = launchRepository.findByUuid(request.getItemId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+			createLaunchLog(request, launch, metaInfo, projectId);
 		}
+	}
 
+	private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
+		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
 		logRepository.save(log);
+		saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+	}
+
+	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
+		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+		logRepository.save(log);
+		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
 	}
 
 	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
@@ -119,6 +122,15 @@ public class LogReporterConsumer {
 			BinaryDataMetaInfo metaInfo = payload.getRight();
 			dataStoreService.delete(metaInfo.getFileId());
 			dataStoreService.delete(metaInfo.getThumbnailFileId());
+		}
+	}
+
+	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
+		if (!Objects.isNull(metaInfo)) {
+			Attachment attachment = new AttachmentBuilder().withMetaInfo(metaInfo)
+					.withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).get();
+
+			createAttachmentHandler.create(attachment, logId);
 		}
 	}
 }

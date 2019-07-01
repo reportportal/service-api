@@ -39,10 +39,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM_ISSUE;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -111,7 +115,13 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		).withConditions(filter.getFilterConditions());
 
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_ENTITY, Activity.ActivityEntityType.ITEM_ISSUE.getValue()).build());
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_ENTITY)
+						.withCondition(Condition.IN)
+						.withValue(Stream.of(ITEM_ISSUE, TICKET)
+								.map(Activity.ActivityEntityType::getValue)
+								.collect(Collectors.joining(",")))
+						.build());
 
 		Page<Activity> page = activityRepository.findByFilter(
 				new CompositeFilter(Operator.OR, filter, patternActivityFilter),

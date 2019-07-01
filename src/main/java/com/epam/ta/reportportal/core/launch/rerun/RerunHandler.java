@@ -33,5 +33,7 @@ public interface RerunHandler {
 
 	Optional<StartLaunchRS> handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
 
-	Optional<ItemCreatedRS> handleTestItem(StartTestItemRQ request, Launch launch, TestItem parent);
+	Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch);
+
+	Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, TestItem parent);
 }

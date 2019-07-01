@@ -33,12 +33,10 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -69,10 +67,6 @@ public class RerunHandlerImpl implements RerunHandler {
 
 	@Override
 	public Optional<StartLaunchRS> handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
-		if (!BooleanUtils.toBoolean(request.isRerun())) {
-			return Optional.empty();
-		}
-
 		Optional<Launch> launchOptional = StringUtils.isEmpty(request.getRerunOf()) ?
 				launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
 				launchRepository.findByUuid(request.getRerunOf());
@@ -99,14 +93,22 @@ public class RerunHandlerImpl implements RerunHandler {
 	}
 
 	@Override
-	public Optional<ItemCreatedRS> handleTestItem(StartTestItemRQ request, Launch launch, TestItem parent) {
-		if (!launch.isRerun()) {
+	public Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch) {
+		Optional<TestItem> itemOptional = testItemRepository.findByNameAndLaunchWithoutParents(request.getName(), launch.getId());
+
+		if (!itemOptional.isPresent()) {
 			return Optional.empty();
 		}
+		TestItem item = handleRerun(request, launch, itemOptional.get(), null);
+		return Optional.of(new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid()));
+	}
 
-		Optional<TestItem> itemOptional = Objects.isNull(parent) ?
-				testItemRepository.findByNameAndLaunchWithoutParents(request.getName(), launch.getId()) :
-				testItemRepository.findByNameAndLaunchUnderPath(request.getName(), launch.getId(), parent.getPath());
+	@Override
+	public Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, TestItem parent) {
+		Optional<TestItem> itemOptional = testItemRepository.findByNameAndLaunchUnderPath(request.getName(),
+				launch.getId(),
+				parent.getPath()
+		);
 
 		if (!itemOptional.isPresent()) {
 			return Optional.empty();

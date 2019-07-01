@@ -84,9 +84,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(user, projectDetails, rq, launch);
 
-		Optional<ItemCreatedRS> rerun = rerunHandler.handleTestItem(rq, launch, null);
-		if (rerun.isPresent()) {
-			return rerun.get();
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleRootItem(rq, launch);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
 		}
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
@@ -106,9 +108,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
-		Optional<ItemCreatedRS> rerun = rerunHandler.handleTestItem(rq, launch, parentItem);
-		if (rerun.isPresent()) {
-			return rerun.get();
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleChildItem(rq, launch, parentItem);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
 		}
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq)

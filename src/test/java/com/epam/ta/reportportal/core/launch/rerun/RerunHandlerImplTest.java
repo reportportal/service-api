@@ -65,17 +65,6 @@ class RerunHandlerImplTest {
 	private RerunHandlerImpl rerunHandler;
 
 	@Test
-	void shouldReturnEmptyOptionalWhenLaunchIsNotRerun() {
-		StartLaunchRQ request = new StartLaunchRQ();
-		request.setRerun(false);
-		ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-
-		Optional<StartLaunchRS> responseOptional = rerunHandler.handleLaunch(request, 1L, rpUser);
-
-		assertEquals(Optional.empty(), responseOptional);
-	}
-
-	@Test
 	void exceptionWhenLaunchIsNotStoredInDbByName() {
 		StartLaunchRQ request = new StartLaunchRQ();
 		String launchName = "launch";

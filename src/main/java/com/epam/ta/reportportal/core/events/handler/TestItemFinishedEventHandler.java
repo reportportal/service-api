@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -53,11 +55,11 @@ public class TestItemFinishedEventHandler {
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 
-		logIndexer.indexItemsLogs(
+		CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(
 				itemFinishedEvent.getProjectId(),
 				itemFinishedEvent.getLaunchId(),
 				Lists.newArrayList(itemFinishedEvent.getItemId()),
 				analyzerConfig
-		);
+		));
 	}
 }

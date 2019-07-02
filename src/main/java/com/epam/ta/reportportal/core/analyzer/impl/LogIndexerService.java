@@ -58,7 +58,8 @@ public class LogIndexerService implements LogIndexer {
 
 	@Autowired
 	public LogIndexerService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService, AnalyzerStatusCache analyzerStatusCache) {
+			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
+			AnalyzerStatusCache analyzerStatusCache) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.indexerServiceClient = indexerServiceClient;
@@ -92,7 +93,8 @@ public class LogIndexerService implements LogIndexer {
 				analyzerStatusCache.indexingStarted(projectId);
 				Launch launch = launchRepository.findById(launchId)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
+				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(
+						launch,
 						testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE),
 						analyzerConfig
 				);
@@ -112,22 +114,20 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	public CompletableFuture<Long> indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				analyzerStatusCache.indexingStarted(projectId);
-				Launch launch = launchRepository.findById(launchId)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
-						.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
-						.orElse(0L);
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				throw new ReportPortalException(e.getMessage());
-			} finally {
-				analyzerStatusCache.indexingFinished(projectId);
-			}
-		});
+	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
+		try {
+			analyzerStatusCache.indexingStarted(projectId);
+			Launch launch = launchRepository.findById(launchId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+			return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
+					.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
+					.orElse(0L);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new ReportPortalException(e.getMessage());
+		} finally {
+			analyzerStatusCache.indexingFinished(projectId);
+		}
 	}
 
 	public CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch) {

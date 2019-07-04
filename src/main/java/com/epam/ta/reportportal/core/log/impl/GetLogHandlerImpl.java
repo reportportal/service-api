@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -88,9 +89,15 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	@Override
-	public Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Queryable queryable,
-			Pageable pageable) {
-		Page<NestedItem> nestedItems = logRepository.findNestedItems(parentId, queryable, pageable);
+	public Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params,
+			Queryable queryable, Pageable pageable) {
+
+		Page<NestedItem> nestedItems = logRepository.findNestedItems(parentId,
+				ofNullable(params.get("excludeEmptySteps")).map(BooleanUtils::toBoolean).orElse(false),
+				ofNullable(params.get("excludePassedLogs")).map(BooleanUtils::toBoolean).orElse(false),
+				queryable,
+				pageable
+		);
 
 		List<NestedItem> content = nestedItems.getContent();
 

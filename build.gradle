@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
     } else {
-        compile 'com.github.reportportal:commons-dao:2fc93c6'
+        compile 'com.github.reportportal:commons-dao:d2d0de78'
         compile 'com.github.reportportal:commons-rules:8a66b8d'
         compile 'com.github.reportportal:commons-model:efc9505'
         compile('com.github.reportportal:commons:71d4aca')

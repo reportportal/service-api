@@ -183,9 +183,9 @@ public class LogController {
 	@GetMapping(value = "/nested/{parentId}")
 	@ApiOperation("Get nested steps with logs for the parent Test Item")
 	@Transactional(readOnly = true)
-	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId, @FilterFor(Log.class) Filter filter,
-			@SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getNestedItems(parentId, extractProjectDetails(user, projectName), filter, pageable);
+	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId, @RequestParam Map<String, String> params,
+			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getNestedItems(parentId, extractProjectDetails(user, projectName), params, filter, pageable);
 	}
 
 }

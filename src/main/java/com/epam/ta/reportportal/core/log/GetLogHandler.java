@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Map;
+
 /**
  * GET operation for {@link Log} entity
  *
@@ -60,5 +62,5 @@ public interface GetLogHandler {
 	 */
 	long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
 
-	Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Queryable queryable, Pageable pageable);
+	Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params, Queryable queryable, Pageable pageable);
 }

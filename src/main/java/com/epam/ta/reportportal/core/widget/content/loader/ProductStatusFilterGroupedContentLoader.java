@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
@@ -35,7 +34,6 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
-import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
@@ -54,7 +52,7 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		validateFilterSortMapping(filterSortMapping);
 
-		Map<String, String> tags = WidgetOptionUtil.getMapByKey(CUSTOM_COLUMNS, widgetOptions);
+		Map<String, String> attributeColumns = WidgetOptionUtil.getMapByKey(CUSTOM_COLUMNS, widgetOptions);
 
 		validateContentFields(contentFields);
 
@@ -62,7 +60,7 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 
 		final Map<String, List<ProductStatusStatisticsContent>> content = widgetContentRepository.productStatusGroupedByFilterStatistics(filterSortMapping,
 				contentFields,
-				tags,
+				attributeColumns,
 				latestMode,
 				limit
 		);
@@ -90,7 +88,5 @@ public class ProductStatusFilterGroupedContentLoader implements ProductStatusCon
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(ContentFieldMatcherUtil.match(COMBINED_CONTENT_FIELDS_REGEX, contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Bad content fields format");
 	}
 }

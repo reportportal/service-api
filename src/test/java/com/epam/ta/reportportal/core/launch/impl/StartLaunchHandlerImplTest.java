@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -52,6 +53,9 @@ class StartLaunchHandlerImplTest {
 
 	@Mock
 	private MessageBus messageBus;
+
+	@Mock
+	private RerunHandler rerunHandler;
 
 	@InjectMocks
 	private StartLaunchHandlerImpl startLaunchHandlerImpl;

@@ -55,47 +55,43 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 
 	@Override
 	public Ticket getTicket(String ticketId, String url, String btsProject, ReportPortalUser.ProjectDetails projectDetails) {
-
 		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, url, btsProject);
-
-		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
-		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
-				"BugTracking plugin for {} isn't installed",
-				integration.getType().getName()
-		);
-
-		return btsExtension.get()
-				.getTicket(ticketId, integration)
+		return getBtsExtension(integration).getTicket(ticketId, integration)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TICKET_NOT_FOUND, ticketId));
 	}
 
 	@Override
 	public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId,
 			ReportPortalUser.ProjectDetails projectDetails) {
-
 		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
+		return getBtsExtension(integration).getTicketFields(ticketType, integration);
+	}
 
-		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
-		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
-				"BugTracking plugin for {} isn't installed",
-				integration.getType().getName()
-		);
-
-		return btsExtension.get().getTicketFields(ticketType, integration);
+	@Override
+	public List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId) {
+		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(integrationId);
+		return getBtsExtension(integration).getTicketFields(ticketType, integration);
 	}
 
 	@Override
 	public List<String> getAllowableIssueTypes(Long integrationId, ReportPortalUser.ProjectDetails projectDetails) {
-
 		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(projectDetails, integrationId);
+		return getBtsExtension(integration).getIssueTypes(integration);
+	}
 
+	@Override
+	public List<String> getAllowableIssueTypes(Long integrationId) {
+		Integration integration = getIntegrationHandler.getEnabledBtsIntegration(integrationId);
+		return getBtsExtension(integration).getIssueTypes(integration);
+	}
+
+	private BtsExtension getBtsExtension(Integration integration) {
 		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
 		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
 				"BugTracking plugin for {} isn't installed",
 				integration.getType().getName()
 		);
-
-		return btsExtension.get().getIssueTypes(integration);
+		return btsExtension.get();
 	}
 
 }

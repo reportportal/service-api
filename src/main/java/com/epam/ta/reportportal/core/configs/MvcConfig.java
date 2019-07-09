@@ -1,38 +1,17 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
-/*
- * This file is part of Report Portal.
+ * Copyright 2018 EPAM Systems
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.core.configs;
 
@@ -46,21 +25,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +59,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @Configuration
 @EnableConfigurationProperties(MvcConfig.MultipartConfig.class)
-public class MvcConfig extends WebMvcConfigurerAdapter {
+public class MvcConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -95,12 +80,12 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 		}
 	}
 
-	@Override
-	public void addViewControllers(ViewControllerRegistry registry) {
-		registry.addViewController("/").setViewName("forward:/index.htm");
-		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
-
-	}
+	//	@Override
+	//	public void addViewControllers(ViewControllerRegistry registry) {
+	//		registry.addViewController("/").setViewName("forward:/index.htm");
+	//		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+	//
+	//	}
 
 	@Bean
 	public SortArgumentResolver sortArgumentResolver() {
@@ -182,6 +167,16 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 		return new HttpMessageConverters(converters);
 	}
 
+	@Profile("!unittest")
+	@Bean
+	@Order(0)
+	public MultipartFilter multipartFilter() {
+		MultipartFilter multipartFilter = new MultipartFilter();
+		multipartFilter.setMultipartResolverBeanName(DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME);
+		return multipartFilter;
+	}
+
+	@Profile("!unittest")
 	@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
 	public CommonsMultipartResolver multipartResolver(MultipartConfig multipartConfig) {
 		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver() {
@@ -209,8 +204,8 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
 
 	@ConfigurationProperties("rp.upload")
 	public static class MultipartConfig {
-		long maxUploadSize = 64 * 1024 * 1024;
-		long maxFileSize = 16 * 1024 * 1024;
+		long maxUploadSize = 128 * 1024 * 1024;
+		long maxFileSize = 128 * 1024 * 1024;
 
 		public void setMaxUploadSize(String maxUploadSize) {
 			this.maxUploadSize = parseSize(maxUploadSize);

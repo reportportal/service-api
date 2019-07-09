@@ -1,29 +1,24 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.project.impl;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.project.info.InfoInterval;
-import com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup;
+import com.epam.ta.reportportal.entity.enums.InfoInterval;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.widget.ChartObject;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
@@ -35,14 +30,17 @@ import org.springframework.stereotype.Service;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.IsoFields;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_DAY;
-import static com.epam.ta.reportportal.database.entity.project.info.ProjectInfoGroup.BY_NAME;
+import static com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_DAY;
+import static com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter.ProjectInfoGroup.BY_NAME;
+import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
 
@@ -54,9 +52,18 @@ import static java.time.temporal.ChronoUnit.WEEKS;
 @Service("projectInfoDataConverter")
 public class ProjectInfoWidgetDataConverter {
 
-	@Autowired
-	@Qualifier("groupingStrategy")
 	private Map<InfoInterval, ProjectInfoGroup> grouping;
+
+	@Autowired
+	public ProjectInfoWidgetDataConverter(@Qualifier("groupingStrategy") Map<InfoInterval, ProjectInfoGroup> grouping) {
+		this.grouping = grouping;
+	}
+
+	public enum ProjectInfoGroup {
+		BY_DAY,
+		BY_WEEK,
+		BY_NAME
+	}
 
 	private static DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendValue(IsoFields.WEEK_BASED_YEAR, 4)
 			.appendLiteral("-W")
@@ -81,7 +88,7 @@ public class ProjectInfoWidgetDataConverter {
 		Map<String, List<Launch>> grouped = groupBy(initial, grouping.get(interval));
 		Iterator<Entry<String, List<Launch>>> iterator = grouped.entrySet().iterator();
 		while (iterator.hasNext()) {
-			Map.Entry<String, List<Launch>> pair = iterator.next();
+			Entry<String, List<Launch>> pair = iterator.next();
 			double investigated = 0;
 			double toInvestigate = 0;
 			List<Launch> group = pair.getValue();
@@ -89,10 +96,12 @@ public class ProjectInfoWidgetDataConverter {
 			currentGroup.setName(pair.getKey());
 			Map<String, String> values = new HashMap<>();
 			for (Launch one : group) {
-				investigated = investigated + one.getStatistics().getIssueCounter().getProductBugTotal() + one.getStatistics()
-						.getIssueCounter()
-						.getSystemIssueTotal() + one.getStatistics().getIssueCounter().getAutomationBugTotal();
-				toInvestigate = toInvestigate + one.getStatistics().getIssueCounter().getToInvestigateTotal();
+				investigated =
+						investigated + extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, one.getStatistics()) + extractStatisticsCount(
+								DEFECTS_SYSTEM_ISSUE_TOTAL,
+								one.getStatistics()
+						) + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
+				toInvestigate = toInvestigate + extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, one.getStatistics());
 			}
 			if ((investigated + toInvestigate) > 0) {
 				double investigatedPercent = (investigated / (investigated + toInvestigate)) * 100;
@@ -137,8 +146,14 @@ public class ProjectInfoWidgetDataConverter {
 			List<Launch> group = pair.getValue();
 
 			DoubleSummaryStatistics statistics = group.stream()
-					.mapToDouble(it -> it.getStatistics().getExecutionCounter().getTotal())
+					.mapToDouble(launch -> launch.getStatistics()
+							.stream()
+							.filter(it -> it.getStatisticsField().getName().equalsIgnoreCase(EXECUTIONS_TOTAL))
+							.findFirst()
+							.orElse(new Statistics())
+							.getCounter())
 					.summaryStatistics();
+
 			values.put(MIN, String.valueOf(statistics.getMin()));
 			values.put(MAX, String.valueOf(statistics.getMax()));
 			values.put(AVG, formatter.format(statistics.getAverage()));
@@ -221,10 +236,10 @@ public class ProjectInfoWidgetDataConverter {
 			Integer siCount = 0;
 			Integer tiCount = 0;
 			for (Launch launch : launches) {
-				pbCount += launch.getStatistics().getIssueCounter().getProductBugTotal();
-				abCount += launch.getStatistics().getIssueCounter().getAutomationBugTotal();
-				siCount += launch.getStatistics().getIssueCounter().getSystemIssueTotal();
-				tiCount += launch.getStatistics().getIssueCounter().getToInvestigateTotal();
+				pbCount += extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, launch.getStatistics());
+				abCount += extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, launch.getStatistics());
+				siCount += extractStatisticsCount(DEFECTS_SYSTEM_ISSUE_TOTAL, launch.getStatistics());
+				tiCount += extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics());
 			}
 			ChartObject object = new ChartObject();
 			Map<String, String> values = new HashMap<>();
@@ -250,7 +265,7 @@ public class ProjectInfoWidgetDataConverter {
 		Map<String, List<Launch>> result = new LinkedHashMap<>();
 		LocalDate prevDate = null;
 		for (Launch launch : initial) {
-			final LocalDate localDate = launch.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			final LocalDate localDate = launch.getStartTime().toInstant(ZoneOffset.UTC).atZone(ZoneId.systemDefault()).toLocalDate();
 
 			String key;
 			switch (criteria) {
@@ -260,7 +275,7 @@ public class ProjectInfoWidgetDataConverter {
 				default:
 					key = formattedDate(criteria, localDate);
 					if (prevDate != null) {
-						while (!formattedDate(criteria, prevDate).equals(formattedDate(criteria, localDate))) {
+						while (prevDate.isBefore(localDate)) {
 							if (!result.containsKey(formattedDate(criteria, prevDate))) {
 								result.put(formattedDate(criteria, prevDate), new ArrayList<>());
 							}

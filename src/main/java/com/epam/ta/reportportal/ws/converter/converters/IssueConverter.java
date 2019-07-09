@@ -1,30 +1,27 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
+import com.epam.ta.reportportal.entity.bts.Ticket;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.base.Preconditions;
 
-import java.util.Set;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,35 +34,39 @@ public final class IssueConverter {
 		//static only
 	}
 
-	/**
-	 * Converts issue from db to model
-	 */
-	public static final Function<TestItemIssue, Issue> TO_MODEL = testItemIssue -> {
-		Issue issue = null;
-		if (null != testItemIssue) {
-			issue = new Issue();
-			issue.setIssueType(testItemIssue.getIssueType());
-			issue.setAutoAnalyzed(testItemIssue.isAutoAnalyzed());
-			issue.setIgnoreAnalyzer(testItemIssue.isIgnoreAnalyzer());
-			issue.setComment(testItemIssue.getIssueDescription());
-			Set<TestItemIssue.ExternalSystemIssue> externalSystemIssues = testItemIssue.getExternalSystemIssues();
-			if (null != externalSystemIssues) {
-				issue.setExternalSystemIssues(
-						externalSystemIssues.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
-			}
-		} return issue;
+	public static final Function<Issue, IssueEntity> TO_ISSUE = from -> {
+		IssueEntity issue = new IssueEntity();
+		issue.setAutoAnalyzed(from.getAutoAnalyzed());
+		issue.setIgnoreAnalyzer(from.getIgnoreAnalyzer());
+		issue.setIssueDescription(from.getComment());
+		return issue;
 	};
 
 	/**
 	 * Converts external system from db to model
 	 */
-	public static final Function<TestItemIssue.ExternalSystemIssue, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
-		Issue.ExternalSystemIssue issueResource = new Issue.ExternalSystemIssue();
-		issueResource.setSubmitDate(externalSystemIssue.getSubmitDate());
-		issueResource.setTicketId(externalSystemIssue.getTicketId());
-		issueResource.setSubmitter(externalSystemIssue.getSubmitter());
-		issueResource.setExternalSystemId(externalSystemIssue.getExternalSystemId());
-		issueResource.setUrl(externalSystemIssue.getUrl());
-		return issueResource;
+	public static final Function<Ticket, Issue.ExternalSystemIssue> TO_MODEL_EXTERNAL = externalSystemIssue -> {
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setTicketId(externalSystemIssue.getTicketId());
+		ticket.setBtsUrl(externalSystemIssue.getBtsUrl());
+		ticket.setUrl(externalSystemIssue.getUrl());
+		ticket.setBtsProject(externalSystemIssue.getBtsProject());
+		return ticket;
+	};
+	/**
+	 * Converts issue from db to model
+	 */
+	public static final Function<IssueEntity, Issue> TO_MODEL = issueEntity -> {
+		Preconditions.checkNotNull(issueEntity);
+		Issue issue = new Issue();
+		issue.setIssueType(issueEntity.getIssueType().getLocator());
+		issue.setAutoAnalyzed(issueEntity.getAutoAnalyzed());
+		issue.setIgnoreAnalyzer(issueEntity.getIgnoreAnalyzer());
+		issue.setComment(issueEntity.getIssueDescription());
+
+		Optional.ofNullable(issueEntity.getTickets()).ifPresent(tickets -> {
+			issue.setExternalSystemIssues(tickets.stream().map(IssueConverter.TO_MODEL_EXTERNAL).collect(Collectors.toSet()));
+		});
+		return issue;
 	};
 }

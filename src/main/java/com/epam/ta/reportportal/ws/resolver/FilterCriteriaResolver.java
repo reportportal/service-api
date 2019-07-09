@@ -1,31 +1,11 @@
-/*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.ws.resolver;
 
 import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.database.search.Condition;
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.FilterCondition;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
@@ -34,7 +14,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,7 +46,7 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 	public static final String NOT_FILTER_MARKER = "!";
 
 	/**
-	 * Returns TRUE only for {@link List} marked with {@link FilterFor}
+	 * Returns TRUE only for {@link java.util.List} marked with {@link FilterFor}
 	 * annotations
 	 */
 	@Override
@@ -95,9 +74,14 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 					String stringCondition = tokens[1];
 					boolean isNegative = stringCondition.startsWith(NOT_FILTER_MARKER);
 
-					Condition condition = getCondition(
-							isNegative ? StringUtils.substringAfter(stringCondition, NOT_FILTER_MARKER) : stringCondition);
+					Condition condition = getCondition(isNegative ?
+							StringUtils.substringAfter(stringCondition, NOT_FILTER_MARKER) :
+							stringCondition);
 					String criteria = tokens[2];
+					BusinessRule.expect(parameter.getValue()[0], StringUtils::isNotBlank)
+							.verify(ErrorType.BAD_REQUEST_ERROR,
+									Suppliers.formattedSupplier("Filter criteria - '{}' value should be not empty", parameter.getKey()).get()
+							);
 					return new FilterCondition(condition, isNegative, parameter.getValue()[0], criteria);
 
 				})

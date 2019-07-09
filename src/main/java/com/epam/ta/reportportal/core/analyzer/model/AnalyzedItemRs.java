@@ -1,22 +1,17 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.model;
@@ -28,39 +23,39 @@ import java.util.Objects;
 /**
  * @author Pavel Bortnik
  */
-public class AnalyzedItemRs{
+public class AnalyzedItemRs {
 
-	@JsonProperty("test_item")
-	private String itemId;
+	@JsonProperty("testItem")
+	private Long itemId;
 
-	@JsonProperty("relevant_item")
-	private String relevantItemId;
+	@JsonProperty("relevantItem")
+	private Long relevantItemId;
 
-	@JsonProperty("issue_type")
-	private String issueType;
+	@JsonProperty("issueType")
+	private String locator;
 
-	public String getItemId() {
+	public Long getItemId() {
 		return itemId;
 	}
 
-	public void setItemId(String itemId) {
+	public void setItemId(Long itemId) {
 		this.itemId = itemId;
 	}
 
-	public String getRelevantItemId() {
+	public Long getRelevantItemId() {
 		return relevantItemId;
 	}
 
-	public void setRelevantItemId(String relevantItemId) {
+	public void setRelevantItemId(Long relevantItemId) {
 		this.relevantItemId = relevantItemId;
 	}
 
-	public String getIssueType() {
-		return issueType;
+	public String getLocator() {
+		return locator;
 	}
 
-	public void setIssueType(String issueType) {
-		this.issueType = issueType;
+	public void setLocator(String locator) {
+		this.locator = locator;
 	}
 
 	@Override
@@ -78,5 +73,10 @@ public class AnalyzedItemRs{
 	@Override
 	public int hashCode() {
 		return Objects.hash(itemId);
+	}
+
+	@Override
+	public String toString() {
+		return "AnalyzedItemRs{" + "itemId=" + itemId + ", relevantItemId=" + relevantItemId + ", issueTypeLocator=" + locator + '}';
 	}
 }

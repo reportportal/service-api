@@ -1,84 +1,106 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
-import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
+import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Builder for {@link com.epam.ta.reportportal.database.entity.item.Activity}
- * persistence layer object
- *
- * @author Dzmitry_Kavalets
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class ActivityBuilder implements Supplier<Activity> {
 
 	private Activity activity;
+	private ActivityDetails details;
 
 	public ActivityBuilder() {
 		activity = new Activity();
+		details = new ActivityDetails();
 	}
 
-	public ActivityBuilder addUserRef(String userRef) {
-		activity.setUserRef(userRef);
+	public ActivityBuilder addUserId(Long userId) {
+		activity.setUserId(userId);
 		return this;
 	}
 
-	public ActivityBuilder addProjectRef(String projectRef) {
-		activity.setProjectRef(projectRef);
+	public ActivityBuilder addUserName(String postedName) {
+		activity.setUsername(postedName);
 		return this;
 	}
 
-	public ActivityBuilder addActionType(ActivityEventType actionType) {
-		activity.setActionType(actionType);
+	public ActivityBuilder addProjectId(Long projectId) {
+		activity.setProjectId(projectId);
 		return this;
 	}
 
-	public ActivityBuilder addObjectType(ActivityObjectType objectType) {
-		activity.setObjectType(objectType);
+	public ActivityBuilder addActivityEntityType(Activity.ActivityEntityType activityEntityType) {
+		activity.setActivityEntityType(activityEntityType.getValue());
 		return this;
 	}
 
-	public ActivityBuilder addLoggedObjectRef(String loggedObjectRef) {
-		activity.setLoggedObjectRef(loggedObjectRef);
+	public ActivityBuilder addAction(ActivityAction action) {
+		activity.setAction(action.getValue());
 		return this;
 	}
 
-	public ActivityBuilder addHistory(List<Activity.FieldValues> history) {
-		activity.setHistory(history);
+	public ActivityBuilder addDetails(ActivityDetails details) {
+		this.details = details;
 		return this;
 	}
 
 	public ActivityBuilder addObjectName(String name) {
-		activity.setName(name);
+		details.setObjectName(name);
+		return this;
+	}
+
+	public ActivityBuilder addHistoryField(String field, String before, String after) {
+		details.addHistoryField(HistoryField.of(field, before, after));
+		return this;
+	}
+
+	public ActivityBuilder addHistoryField(Optional<HistoryField> historyField) {
+		historyField.ifPresent(it -> details.addHistoryField(it));
+		return this;
+	}
+
+	public ActivityBuilder addCreatedAt(LocalDateTime localDateTime) {
+		activity.setCreatedAt(localDateTime);
+		return this;
+	}
+
+	public ActivityBuilder addCreatedNow() {
+		activity.setCreatedAt(LocalDateTime.now());
+		return this;
+	}
+
+	public ActivityBuilder addObjectId(Long objectId) {
+		activity.setObjectId(objectId);
 		return this;
 	}
 
 	@Override
 	public Activity get() {
+		activity.setDetails(details);
 		return activity;
 	}
 }

@@ -1,132 +1,192 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.*;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.user.User;
+import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.google.common.collect.Lists;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.database.entity.user.UserRole.USER;
-import static com.epam.ta.reportportal.ws.model.ErrorType.LOG_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_IS_NOT_FINISHED;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.Optional;
 
-public class DeleteLogHandlerTest {
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+/**
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ */
+@ExtendWith(MockitoExtension.class)
+class DeleteLogHandlerTest {
+
+	@Mock
+	private ProjectRepository projectRepository;
+
+	@Mock
+	private LogRepository logRepository;
+
+	@Mock
+	private DataStoreService dataStoreService;
+
+	@InjectMocks
+	private DeleteLogHandlerImpl handler;
 
 	@Test
-	public void logNotFound() {
-		final String logId = "notFound";
-		final String projectId = "test-project";
-		final String userId = "user1";
-		final DeleteLogHandler deleteLogHandler = new DeleteLogHandler();
-		deleteLogHandler.setProjectRepository(projectRepositoryMock(projectId, userId));
-		deleteLogHandler.setUserRepository(userRepositoryMock(userId));
-		deleteLogHandler.setLaunchRepository(mock(LaunchRepository.class));
-		deleteLogHandler.setTestItemRepository(mock(TestItemRepository.class));
-		deleteLogHandler.setLogRepository(mock(LogRepository.class));
+	void deleteLogOnNotExistProject() {
+		long projectId = 1L;
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(formattedSupplier(LOG_NOT_FOUND.getDescription(), logId).get());
-		deleteLogHandler.deleteLog(logId, projectId, userId);
+		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteLog(1L, extractProjectDetails(user, "test_project"), user)
+		);
+		assertEquals("Project '1' not found. Did you use correct project name?", exception.getMessage());
 	}
 
 	@Test
-	public void testItemInProgress() {
-		String logId = "logId";
-		String testId = "testItem";
-		String launchId = "launchRef";
-		String projectId = "test-project";
-		String owner = "user1";
-		DeleteLogHandler deleteLogHandler = new DeleteLogHandler();
-		deleteLogHandler.setLaunchRepository(launchRepositoryMock(launchId, projectId, owner));
-		deleteLogHandler.setProjectRepository(projectRepositoryMock(projectId, owner));
-		deleteLogHandler.setUserRepository(userRepositoryMock(owner));
-		deleteLogHandler.setTestItemRepository(itemRepositoryMock(logId, launchId, testId));
-		deleteLogHandler.setLogRepository(logRepositoryMock(logId, testId));
+	void deleteNotExistLog() {
+		long projectId = 1L;
+		long logId = 2L;
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		String message = formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state", logId, testId).get();
-		String errorMessage = formattedSupplier(TEST_ITEM_IS_NOT_FINISHED.getDescription(), message).get();
-		thrown.expect(ReportPortalException.class);
-		thrown.expectMessage(errorMessage);
-		deleteLogHandler.deleteLog(logId, projectId, owner);
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(logRepository.findById(logId)).thenReturn(Optional.empty());
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+		);
+		assertEquals("Log '2' not found. Did you use correct Log ID?", exception.getMessage());
 	}
 
-	static UserRepository userRepositoryMock(String member) {
-		UserRepository userRepository = mock(UserRepository.class);
-		User user = new User();
-		user.setLogin(member);
-		user.setRole(USER);
-		when(userRepository.findOne(member)).thenReturn(user);
-		return userRepository;
-	}
+	@Test
+	void deleteLogByNotOwner() {
+		long projectId = 1L;
+		long logId = 2L;
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
 
-	@SuppressWarnings("serial")
-	static ProjectRepository projectRepositoryMock(String projectId, final String member) {
-		ProjectRepository projectRepository = mock(ProjectRepository.class);
-		Project project = new Project();
-		project.setUsers(Lists.newArrayList(new Project.UserConfig().withLogin(member).withProjectRole(ProjectRole.MEMBER)));
-		when(projectRepository.findOne(projectId)).thenReturn(project);
-		return projectRepository;
-	}
-
-	static LaunchRepository launchRepositoryMock(String launchId, String projectId, String owner) {
-		LaunchRepository launchRepository = mock(LaunchRepository.class);
-		Launch launch = new Launch();
-		launch.setId(launchId);
-		launch.setUserRef("random");
-		launch.setStatus(Status.FAILED);
-		launch.setProjectRef(projectId);
-		launch.setUserRef(owner);
-		when(launchRepository.findOne(launchId)).thenReturn(launch);
-		return launchRepository;
-	}
-
-	static TestItemRepository itemRepositoryMock(String logId, String launchId, String testId) {
-		TestItemRepository testItemRepository = mock(TestItemRepository.class);
-		TestItem testItem = new TestItem();
-		testItem.setStatus(Status.IN_PROGRESS);
-		testItem.setId(testId);
-		testItem.setLaunchRef(launchId);
-		when(testItemRepository.findOne(testId)).thenReturn(testItem);
-		return testItemRepository;
-	}
-
-	static LogRepository logRepositoryMock(String logId, String testId) {
-		LogRepository logRepository = mock(LogRepository.class);
 		Log log = new Log();
-		log.setId(logId);
-		log.setTestItemRef(testId);
-		when(logRepository.findOne(logId)).thenReturn(log);
-		return logRepository;
+		TestItem testItem = new TestItem();
+		TestItemResults itemResults = new TestItemResults();
+		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
+		testItem.setItemResults(itemResults);
+		Launch launch = new Launch();
+		launch.setProjectId(projectId);
+		User user1 = new User();
+		user1.setLogin("owner");
+		launch.setUser(user1);
+		testItem.setLaunch(launch);
+		log.setTestItem(testItem);
+
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+		);
+		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	void cleanUpLogDataTest() {
+		long projectId = 1L;
+		long logId = 2L;
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+
+		Log log = new Log();
+		TestItem testItem = new TestItem();
+		TestItemResults itemResults = new TestItemResults();
+		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
+		testItem.setItemResults(itemResults);
+		Launch launch = new Launch();
+		launch.setProjectId(projectId);
+		User user1 = new User();
+		user1.setLogin("user");
+		launch.setUser(user1);
+		testItem.setLaunch(launch);
+		log.setTestItem(testItem);
+		Attachment attachment = new Attachment();
+		String attachmentPath = "attachmentPath";
+		attachment.setFileId(attachmentPath);
+		String attachmentThumbnailPath = "attachmentThumbnail";
+		attachment.setThumbnailId(attachmentThumbnailPath);
+		log.setAttachment(attachment);
+
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
+
+		handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
+
+		verify(logRepository, times(1)).delete(log);
+		verify(dataStoreService, times(1)).delete(attachmentPath);
+		verify(dataStoreService, times(1)).delete(attachmentThumbnailPath);
+	}
+
+	@Test
+	void cleanUpLogDataNegative() {
+		long projectId = 1L;
+		long logId = 2L;
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+
+		Log log = new Log();
+		TestItem testItem = new TestItem();
+		TestItemResults itemResults = new TestItemResults();
+		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
+		testItem.setItemResults(itemResults);
+		Launch launch = new Launch();
+		launch.setProjectId(projectId);
+		User user1 = new User();
+		user1.setLogin("user");
+		launch.setUser(user1);
+		testItem.setLaunch(launch);
+		log.setTestItem(testItem);
+		Attachment attachment = new Attachment();
+		String attachmentPath = "attachmentPath";
+		attachment.setFileId(attachmentPath);
+		String attachmentThumbnailPath = "attachmentThumbnail";
+		attachment.setThumbnailId(attachmentThumbnailPath);
+		log.setAttachment(attachment);
+
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
+		doThrow(IllegalArgumentException.class).when(logRepository).delete(log);
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user)
+		);
+		assertEquals("Error while Log instance deleting.", exception.getMessage());
 	}
 }

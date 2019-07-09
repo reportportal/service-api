@@ -1,64 +1,75 @@
-/*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.ws;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.auth.AuthConstants;
-import com.epam.ta.reportportal.database.fixture.SpringFixture;
-import com.epam.ta.reportportal.database.fixture.SpringFixtureRule;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.ta.reportportal.TestConfig;
+import com.epam.ta.reportportal.auth.OAuthHelper;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.util.email.EmailService;
+import com.epam.ta.reportportal.util.email.MailServiceFactory;
+import org.flywaydb.test.FlywayTestExecutionListener;
+import org.flywaydb.test.annotation.FlywayTest;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.transaction.annotation.Transactional;
 
-@SpringFixture("mvcTests")
-public abstract class BaseMvcTest extends BaseTest {
+/**
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ */
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("unittest")
+@ContextConfiguration(classes = TestConfig.class)
+@TestExecutionListeners(listeners = { FlywayTestExecutionListener.class }, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@Transactional
+public abstract class BaseMvcTest {
 
-	protected static final String PROJECT_BASE_URL = "/" + AuthConstants.USER_PROJECT;
+	protected static final String DEFAULT_PROJECT_BASE_URL = "/default_personal";
+	protected static final String SUPERADMIN_PROJECT_BASE_URL = "/superadmin_personal";
 
 	@Autowired
-	protected WebApplicationContext wac;
+	protected OAuthHelper oAuthHelper;
 
-	@Rule
 	@Autowired
-	public SpringFixtureRule dfRule;
+	protected MockMvc mockMvc;
 
-	protected MockMvc mvcMock;
+	@MockBean
+	protected MessageBus messageBus;
 
-	@Before
-	public void setup() {
-		this.mvcMock = MockMvcBuilders.webAppContextSetup(this.wac).build();
-		SecurityContextHolder.getContext().setAuthentication(authentication());
+	@MockBean
+	protected MailServiceFactory mailServiceFactory;
+
+	@MockBean
+	protected Pf4jPluginBox pluginBox;
+
+	@Mock
+	protected BtsExtension extension;
+
+	@Mock
+	protected EmailService emailService;
+
+	@FlywayTest
+	@BeforeAll
+	public static void before() {
 	}
 
-	@After
-	public void teardown() {
-		SecurityContextHolder.clearContext();
+	protected RequestPostProcessor token(String tokenValue) {
+		return mockRequest -> {
+			mockRequest.addHeader("Authorization", "Bearer " + tokenValue);
+			return mockRequest;
+		};
 	}
 
-	abstract protected Authentication authentication();
 }

@@ -1,35 +1,32 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.info;
 
+import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.google.common.collect.ImmutableMap;
+import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
 
 /**
  * Shows list of supported analyzers
@@ -39,23 +36,16 @@ import java.util.stream.Collectors;
 @Component
 public class AnalyzerInfoContributor implements ExtensionContributor {
 
-	private static final String ANALYZER_KEY = "analyzer";
-
-	private final DiscoveryClient discoveryClient;
+	private final RabbitMqManagementClient managementClient;
 
 	@Autowired
-	public AnalyzerInfoContributor(DiscoveryClient discoveryClient) {
-		this.discoveryClient = discoveryClient;
+	public AnalyzerInfoContributor(RabbitMqManagementClient managementClient) {
+		this.managementClient = managementClient;
 	}
 
 	@Override
 	public Map<String, ?> contribute() {
-		Set<String> collect = discoveryClient.getServices()
-				.stream()
-				.flatMap(service -> discoveryClient.getInstances(service).stream())
-				.filter(instance -> instance.getMetadata().containsKey(ANALYZER_KEY))
-				.map(instance -> instance.getMetadata().get(ANALYZER_KEY))
-				.collect(Collectors.toCollection(TreeSet::new));
-		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, collect).build();
+		Set<String> names = managementClient.getAnalyzerExchangesInfo().stream().map(ExchangeInfo::getName).collect(Collectors.toSet());
+		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, names).build();
 	}
 }

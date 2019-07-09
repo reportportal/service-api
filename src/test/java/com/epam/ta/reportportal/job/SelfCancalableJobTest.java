@@ -1,41 +1,37 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.job;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by Andrey_Ivanov1 on 01-Jun-17.
  */
 
-@RunWith(MockitoJUnitRunner.class)
-public class SelfCancalableJobTest {
+@ExtendWith(MockitoExtension.class)
+class SelfCancelableJobTest {
 
 	@Mock
 	private Trigger triggerDelegate;
@@ -43,20 +39,21 @@ public class SelfCancalableJobTest {
 	private TriggerContext triggerContext;
 
 	@Test
-	public void selfCancalableJobTest() {
-		SelfCancelableJob selfCancalableJob = new SelfCancelableJob(triggerDelegate) {
+	void selfCancelableJobTest() {
+		SelfCancelableJob selfCancelableJob = new SelfCancelableJob(triggerDelegate) {
 			@Override
 			public void run() {
 			}
 		};
-		Assert.assertEquals(true, Whitebox.getInternalState(selfCancalableJob, "oneMoreTime"));
-		Assert.assertEquals(triggerDelegate, Whitebox.getInternalState(selfCancalableJob, "triggerDelegate"));
-		selfCancalableJob.oneMoreTime(true);
-		selfCancalableJob.nextExecutionTime(triggerContext);
-		Assert.assertEquals(true, Whitebox.getInternalState(selfCancalableJob, "oneMoreTime"));
-		selfCancalableJob.oneMoreTime(false);
-		selfCancalableJob.nextExecutionTime(triggerContext);
-		Assert.assertEquals(false, Whitebox.getInternalState(selfCancalableJob, "oneMoreTime"));
+
+		assertEquals(true, ReflectionTestUtils.getField(selfCancelableJob, "oneMoreTime"));
+		assertEquals(triggerDelegate, ReflectionTestUtils.getField(selfCancelableJob, "triggerDelegate"));
+		selfCancelableJob.oneMoreTime(true);
+		selfCancelableJob.nextExecutionTime(triggerContext);
+		assertEquals(true, ReflectionTestUtils.getField(selfCancelableJob, "oneMoreTime"));
+		selfCancelableJob.oneMoreTime(false);
+		selfCancelableJob.nextExecutionTime(triggerContext);
+		assertEquals(false, ReflectionTestUtils.getField(selfCancelableJob, "oneMoreTime"));
 	}
 
 }

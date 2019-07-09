@@ -1,99 +1,109 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.widget.ContentOptions;
-import com.epam.ta.reportportal.database.entity.widget.Widget;
-import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import com.google.common.collect.Sets;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
-import static com.google.common.collect.Lists.newArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import static java.util.Optional.ofNullable;
 
 /**
- * Builder for {@link Widget}
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
-@Service
-@Scope("prototype")
-public class WidgetBuilder extends ShareableEntityBuilder<Widget> {
+public class WidgetBuilder implements Supplier<Widget> {
 
-	public WidgetBuilder addWidgetRQ(WidgetRQ createRQ) {
-		if (createRQ != null) {
-			if (createRQ.getName() != null) {
-				getObject().setName(createRQ.getName().trim());
-			}
-			addContentParameters(createRQ.getContentParameters());
-		}
+	private Widget widget;
+
+	public WidgetBuilder() {
+		widget = new Widget();
+	}
+
+	public WidgetBuilder(Widget widget) {
+		this.widget = widget;
+	}
+
+	public WidgetBuilder addWidgetRq(WidgetRQ widgetRQ) {
+		widget.setName(widgetRQ.getName());
+		ofNullable(widgetRQ.getShare()).ifPresent(it -> widget.setShared(it));
+		widget.setDescription(widgetRQ.getDescription());
+
+		ofNullable(widgetRQ.getContentParameters().getWidgetOptions()).ifPresent(wo -> {
+			WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
+			Map<String, Object> options = ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
+			options.putAll(wo);
+			widgetOptions.setOptions(options);
+			widget.setWidgetOptions(widgetOptions);
+		});
+
+		widget.setDescription(widgetRQ.getDescription());
+
+		widget.setWidgetType(widgetRQ.getWidgetType());
+		widget.setItemsCount(widgetRQ.getContentParameters().getItemsCount());
+
+		widget.getContentFields().clear();
+		widget.getContentFields().addAll(ofNullable(widgetRQ.getContentParameters().getContentFields()).orElse(Collections.emptyList()));
 		return this;
 	}
 
-	public WidgetBuilder addContentParameters(ContentParameters parameters) {
-		if (parameters != null) {
-			ContentOptions contentOptions = new ContentOptions();
-			contentOptions.setType(parameters.getType());
-			contentOptions.setGadgetType(parameters.getGadget());
-			contentOptions.setContentFields(
-					null != parameters.getContentFields() ? newArrayList(trimStrings(parameters.getContentFields())) : null);
-			contentOptions.setMetadataFields(
-					null != parameters.getMetadataFields() ? newArrayList(trimStrings(parameters.getMetadataFields())) : null);
-			contentOptions.setItemsCount(parameters.getItemsCount());
-			contentOptions.setWidgetOptions(null != parameters.getWidgetOptions() ? Maps.newHashMap(parameters.getWidgetOptions()) : null);
-			getObject().setContentOptions(contentOptions);
-		}
+	public WidgetBuilder addWidgetPreviewRq(WidgetPreviewRQ previewRQ) {
+		WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(WidgetOptions::new);
+		Map<String, Object> options = ofNullable(widgetOptions.getOptions()).orElseGet(LinkedHashMap::new);
+		options.putAll(previewRQ.getContentParameters().getWidgetOptions());
+
+		widgetOptions.setOptions(options);
+		widget.setWidgetOptions(widgetOptions);
+
+		widget.setWidgetType(previewRQ.getWidgetType());
+		widget.setItemsCount(previewRQ.getContentParameters().getItemsCount());
+
+		widget.getContentFields().clear();
+		widget.getContentFields().addAll(ofNullable(previewRQ.getContentParameters().getContentFields()).orElse(Collections.emptyList()));
 		return this;
 	}
 
-	public WidgetBuilder addProject(String projectName) {
-		getObject().setProjectName(projectName);
+	public WidgetBuilder addProject(Long projectId) {
+		Project project = new Project();
+		project.setId(projectId);
+		widget.setProject(project);
 		return this;
 	}
 
-	public WidgetBuilder addFilter(String applyingFilterId) {
-		getObject().setApplyingFilterId(applyingFilterId);
+	public WidgetBuilder addFilters(Iterable<UserFilter> userFilters) {
+		ofNullable(userFilters).ifPresent(it -> widget.setFilters(Sets.newHashSet(it)));
 		return this;
 	}
 
-	public WidgetBuilder addDescription(String description) {
-		if (!Strings.isNullOrEmpty(description)) {
-			getObject().setDescription(description);
-		}
+	public WidgetBuilder addOwner(String owner) {
+		widget.setOwner(owner);
 		return this;
 	}
 
 	@Override
-	protected Widget initObject() {
-		return new Widget();
+	public Widget get() {
+		return widget;
 	}
-
-	@Override
-	public WidgetBuilder addSharing(String owner, String project, String description, boolean isShare) {
-		super.addAcl(owner, project, description, isShare);
-		return this;
-	}
-
 }

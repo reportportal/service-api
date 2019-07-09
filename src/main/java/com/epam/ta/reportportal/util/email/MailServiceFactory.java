@@ -1,40 +1,49 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.database.entity.project.email.ProjectEmailConfig;
-import com.epam.ta.reportportal.database.entity.settings.ServerEmailDetails;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.EmailSettingsEnum;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.mchange.lang.IntegerUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.notNull;
 import static com.epam.ta.reportportal.ws.model.ErrorType.EMAIL_CONFIGURATION_IS_INCORRECT;
 import static java.util.Optional.ofNullable;
 
@@ -43,131 +52,143 @@ import static java.util.Optional.ofNullable;
  *
  * @author Andrei Varabyeu
  */
+@Service
 public class MailServiceFactory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailServiceFactory.class);
 	private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
-	private static final String DEFAULT_SETTINGS_PROFILE = "default";
+	private static final String FROM_ADDRESS = "fromAddress";
 
 	private final TemplateEngine templateEngine;
 	private final BasicTextEncryptor encryptor;
-	private final ServerSettingsRepository settingsRepository;
+	private final IntegrationRepository integrationRepository;
+	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor, ServerSettingsRepository settingsRepository) {
+	public MailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor, IntegrationRepository integrationRepository,
+			IntegrationTypeRepository integrationTypeRepository) {
 		this.templateEngine = templateEngine;
 		this.encryptor = encryptor;
-		this.settingsRepository = settingsRepository;
+		this.integrationRepository = integrationRepository;
+		this.integrationTypeRepository = integrationTypeRepository;
 	}
 
 	/**
 	 * Build mail service based on provided configs
 	 *
-	 * @param projectConfig Project-level configuration
-	 * @param serverConfig  Server-level configuration
+	 * @param integration Email {@link Integration}
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getEmailService(ProjectEmailConfig projectConfig, ServerEmailDetails serverConfig) {
+	public Optional<EmailService> getEmailService(Integration integration) {
 
-		return getEmailService(serverConfig).flatMap(service -> {
-			// if there is server email config, let's check project config
-			Optional<ProjectEmailConfig> projectConf = ofNullable(projectConfig);
-			if (projectConf.isPresent()) {
-				// if project config is present, check whether sending emails is enabled and replace server properties with project properties
-				return projectConf.filter(ProjectEmailConfig::getEmailEnabled).flatMap(pc -> {
-					//update of present on project level
-					Optional.ofNullable(pc.getFrom()).ifPresent(service::setFrom);
-					return Optional.of(service);
-				});
+		BusinessRule.expect(integration, notNull()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Integration should be not null.");
 
-			} else {
-				return Optional.of(service);
-			}
-		});
-	}
+		if (!integration.isEnabled()) {
+			return Optional.empty();
+		}
 
-	/**
-	 * Build mail service based on provided configs
-	 *
-	 * @param serverConfig Server-level configuration
-	 * @return Built email service
-	 */
-	public Optional<EmailService> getEmailService(ServerEmailDetails serverConfig) {
-		return ofNullable(serverConfig).flatMap(serverConf -> {
-			if (BooleanUtils.isFalse(serverConf.getEnabled())) {
-				return Optional.empty();
-			}
-			boolean authRequired = (null != serverConf.getAuthEnabled() && serverConf.getAuthEnabled());
+		Map<String, Object> config = integration.getParams().getParams();
+
+		if (MapUtils.isNotEmpty(config)) {
+
+			boolean authRequired = ofNullable(config.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
+					String.valueOf(e))).orElse(false);
 
 			Properties javaMailProperties = new Properties();
 			javaMailProperties.put("mail.smtp.connectiontimeout", DEFAULT_CONNECTION_TIMEOUT);
 			javaMailProperties.put("mail.smtp.auth", authRequired);
-			javaMailProperties.put("mail.smtp.starttls.enable", authRequired && BooleanUtils.toBoolean(serverConf.getStarTlsEnabled()));
+			javaMailProperties.put("mail.smtp.starttls.enable",
+					authRequired
+							&& ofNullable(config.get(EmailSettingsEnum.STAR_TLS_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(
+							String.valueOf(e))).orElse(false)
+			);
 
-			if (BooleanUtils.toBoolean(serverConf.getSslEnabled())) {
+			if (ofNullable(config.get(EmailSettingsEnum.SSL_ENABLED.getAttribute())).map(e -> BooleanUtils.toBoolean(String.valueOf(e)))
+					.orElse(false)) {
 				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
 			}
 
 			EmailService service = new EmailService(javaMailProperties);
 			service.setTemplateEngine(templateEngine);
-			service.setHost(serverConf.getHost());
-			service.setPort(serverConf.getPort());
-			service.setProtocol(serverConf.getProtocol());
-			service.setFrom(serverConf.getFrom());
+
+			EmailSettingsEnum.HOST.getAttribute(config).ifPresent(service::setHost);
+			service.setPort(ofNullable(config.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
+					25
+			)).orElse(25));
+			EmailSettingsEnum.PROTOCOL.getAttribute(config).ifPresent(service::setProtocol);
+			EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFrom);
 			if (authRequired) {
-				service.setUsername(serverConf.getUsername());
-				service.setPassword(encryptor.decrypt(serverConf.getPassword()));
+				EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setUsername);
+				EmailSettingsEnum.PASSWORD.getAttribute(config).ifPresent(password -> service.setPassword(encryptor.decrypt(password)));
 			}
 			return Optional.of(service);
-		});
+
+		}
+
+		return Optional.empty();
 	}
 
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs
 	 *
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
-		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(serverSettings.getServerEmailDetails()));
+		return ofNullable(getDefaultEmailService(true));
+	}
+
+	/**
+	 * Build mail service based on default server configs
+	 *
+	 * @return Built email service
+	 */
+	public Optional<EmailService> getDefaultEmailService(Integration integration) {
+
+		return getEmailService(integration);
 
 	}
 
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs and check connection
 	 *
 	 * @return Built email service
 	 */
-	public Optional<EmailService> getDefaultEmailService(ProjectEmailConfig projectEmailConfig) {
-		return ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()));
-	}
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public EmailService getEmailService(Integration integration, boolean checkConnection) {
 
-	/**
-	 * Build mail service based on default server configs and checks connection
-	 *
-	 * @return Built email service
-	 */
-	public EmailService getDefaultEmailService(ProjectEmailConfig projectEmailConfig, boolean checkConnection) {
-		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(projectEmailConfig, serverSettings.getServerEmailDetails()))
-				.orElseThrow(() -> emailConfigurationFail(null));
+		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);
 		}
+
 		return emailService;
+
 	}
 
 	/**
-	 * Build mail service based on default server configs and checks connection
+	 * Build mail service based on default server configs and check connection
 	 *
 	 * @return Built email service
 	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public EmailService getDefaultEmailService(boolean checkConnection) {
-		EmailService emailService = ofNullable(settingsRepository.findOne(DEFAULT_SETTINGS_PROFILE)).flatMap(
-				serverSettings -> getEmailService(serverSettings.getServerEmailDetails())).orElseThrow(() -> emailConfigurationFail(null));
+
+		List<Long> integrationTypeIds = integrationTypeRepository.findAllByIntegrationGroup(IntegrationGroupEnum.NOTIFICATION)
+				.stream()
+				.map(IntegrationType::getId)
+				.collect(Collectors.toList());
+
+		Integration integration = integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
+				.stream()
+				.filter(Integration::isEnabled)
+				.findFirst()
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"Enabled email integration has not been found."
+				));
+
+		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 
 		if (checkConnection) {
 			checkConnection(emailService);

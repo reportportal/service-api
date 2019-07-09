@@ -1,104 +1,96 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.attribute.Attribute;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.quartz.JobExecutionException;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.stream.Stream;
+import java.util.Collections;
 
-import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
-import static java.time.Duration.ofDays;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Created by Andrey_Ivanov1 on 31-May-17.
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@ExtendWith(MockitoExtension.class)
+class CleanLogsJobTest {
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public class CleanLogsJobTest {
-
-	@InjectMocks
-	private CleanLogsJob cleanLogsJob = new CleanLogsJob();
-	@Mock
-	private LogRepository logRepo;
-	@Mock
-	private LaunchRepository launchRepo;
-	@Mock
-	private TestItemRepository testItemRepo;
 	@Mock
 	private ProjectRepository projectRepository;
+
 	@Mock
-	private ActivityRepository activityRepository;
+	private LogCleanerService logCleanerService;
+
+	@Mock
+	private SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties;
+
+	@InjectMocks
+	private CleanLogsJob cleanLogsJob;
 
 	@Test
-	public void runTest() {
+	void executeTest() throws JobExecutionException {
+
 		String name = "name";
 		Project project = new Project();
-		Project.Configuration configuration = new Project.Configuration();
+		final ProjectAttribute projectAttribute = new ProjectAttribute();
+		final Attribute attribute = new Attribute();
+		attribute.setName("job.keepLogs");
+		projectAttribute.setAttribute(attribute);
+		projectAttribute.setValue("1 month");
+		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 
-		configuration.setKeepLogs("1 month");
 		project.setName(name);
-		project.setConfiguration(configuration);
 
-		Launch launch = new Launch();
-		launch.setId(name);
-
-		TestItem testItem = new TestItem();
-		Stream<TestItem> st = Stream.of(testItem);
-
-		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Arrays.asList(project)));
-		when(launchRepo.findModifiedBefore(anyString(), any(Date.class), any())).thenReturn(new PageImpl<>(Arrays.asList(launch)));
-		when(testItemRepo.streamIdsByLaunch(anyString())).thenReturn(st);
+		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(cleanLogsJobProperties.getTimeout()).thenReturn(100);
 
 		cleanLogsJob.execute(null);
 
-		verify(activityRepository, times(1)).deleteModifiedLaterAgo(anyString(), any(Duration.class));
-		verify(logRepo, times(1)).deleteByPeriodAndItemsRef(any(Duration.class), anyListOf(String.class));
+		verify(logCleanerService, times(1)).removeOutdatedLogs(any(), any(), any());
 	}
 
 	@Test
-	public void testPeriods(){
-		Duration period = ofDays(findByName("6 months").getDays());
-		//PT4392H
-		System.out.println(Date.from(Instant.now().minusSeconds(period.getSeconds())));
-		System.out.println(period);
+	void wrongAttributeValue() throws JobExecutionException {
+		String name = "name";
+		Project project = new Project();
+		final ProjectAttribute projectAttribute = new ProjectAttribute();
+		final Attribute attribute = new Attribute();
+		attribute.setName("job.keepLogs");
+		projectAttribute.setAttribute(attribute);
+		projectAttribute.setValue("wrong");
+		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 
+		project.setName(name);
+
+		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(cleanLogsJobProperties.getTimeout()).thenReturn(100);
+
+		cleanLogsJob.execute(null);
 	}
-
 }

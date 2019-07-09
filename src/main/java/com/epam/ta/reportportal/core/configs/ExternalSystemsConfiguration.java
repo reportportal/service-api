@@ -21,32 +21,23 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.commons.exception.forwarding.ForwardingClientExceptionHandler;
-import com.epam.ta.reportportal.core.externalsystem.ExternalSystemEurekaDelegate;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Collections;
-
 /**
  * Configuration class for external systems
  *
  * @author Andrei Varabyeu
  */
-@Configuration
+//@Configuration
 public class ExternalSystemsConfiguration {
 
-	@Bean
-	public ExternalSystemEurekaDelegate externalSystemStrategy() {
-		return new ExternalSystemEurekaDelegate(restTemplate());
-	}
-
-	@Bean
-	public RestTemplate restTemplate() {
-		RestTemplate restTemplate = new RestTemplate(Collections.singletonList(new MappingJackson2HttpMessageConverter()));
-		restTemplate.setErrorHandler(new ForwardingClientExceptionHandler());
-		return restTemplate;
-	}
+	//	@Bean
+	//	public ExternalSystemEurekaDelegate externalSystemStrategy() {
+	//		return new ExternalSystemEurekaDelegate(restTemplate());
+	//	}
+	//
+	//	@Bean
+	//	public RestTemplate restTemplate() {
+	//		RestTemplate restTemplate = new RestTemplate(Collections.singletonList(new MappingJackson2HttpMessageConverter()));
+	//		restTemplate.setErrorHandler(new ForwardingClientExceptionHandler());
+	//		return restTemplate;
+	//	}
 }

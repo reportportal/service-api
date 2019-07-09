@@ -23,9 +23,6 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
 import com.epam.reportportal.commons.template.TemplateEngineProvider;
-import com.epam.ta.reportportal.database.dao.ServerSettingsRepository;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -39,11 +36,11 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class EmailConfiguration {
 
-	@Bean
-	public MailServiceFactory initializeEmailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor,
-			ServerSettingsRepository settingsRepository) {
-		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
-	}
+	//	@Bean
+	//	public MailServiceFactory initializeEmailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor,
+	//			ServerSettingsRepository settingsRepository) {
+	//		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
+	//	}
 
 	@Bean
 	@Primary

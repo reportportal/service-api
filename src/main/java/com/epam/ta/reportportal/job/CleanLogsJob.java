@@ -1,32 +1,34 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.database.dao.*;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.project.KeepLogsDelay;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,17 +36,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.database.entity.project.KeepLogsDelay.findByName;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -57,81 +55,92 @@ import static java.time.Duration.ofDays;
 @Service
 public class CleanLogsJob implements Job {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
 	public static final int DEFAULT_THREAD_COUNT = 5;
 	public static final long JOB_EXECUTION_TIMEOUT = 1L;
-	private static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
-	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
+	public static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
 
-	@Autowired
-	private LogRepository logRepo;
-
-	@Autowired
-	private LaunchRepository launchRepo;
-
-	@Autowired
-	private TestItemRepository testItemRepo;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private ActivityRepository activityRepository;
-
-	@Autowired
-	@Value("${com.ta.reportportal.job.clean.logs.threads:5}")
+	@Value("5")
 	private Integer threadsCount;
 
+	private final ProjectRepository projectRepository;
+
+	private final LogCleanerService logCleaner;
+
+	private final SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties;
+
+	@Autowired
+	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner,
+			SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties) {
+		this.projectRepository = projectRepository;
+		this.logCleaner = logCleaner;
+		this.cleanLogsJobProperties = cleanLogsJobProperties;
+	}
+
 	@Override
-	public void execute(JobExecutionContext context) {
+	public void execute(JobExecutionContext context) throws JobExecutionException {
 		LOGGER.debug("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
+				pageable
+		), projects -> projects.forEach(project -> {
+			AtomicLong removedLogsCount = new AtomicLong(0);
 			executor.submit(() -> {
 				try {
 					LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
-					Duration period = ofDays(findByName(project.getConfiguration().getKeepLogs()).getDays());
-					if (!period.isZero()) {
-						activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-						removeOutdatedLogs(project.getId(), period);
-					}
+					proceedLogsRemoving(project, removedLogsCount);
+
 				} catch (Exception e) {
 					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
-				LOGGER.info("Cleaning outdated logs for project {} has been finished", project.getId());
-
+				LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+						project.getId(),
+						removedLogsCount.get()
+				);
 			});
-
 		}));
 
-		executor.shutdown();
 		try {
-			LOGGER.info("Awaiting cleaning outdated screenshot to finish");
-			executor.awaitTermination(JOB_EXECUTION_TIMEOUT, TimeUnit.DAYS);
+			executor.shutdown();
+			if (!executor.awaitTermination(cleanLogsJobProperties.getTimeout(), TimeUnit.SECONDS)) {
+				executor.shutdownNow();
+			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Job Execution timeout exceeded", e);
+			LOGGER.debug("Waiting for tasks execution has been failed", e);
+		} finally {
+			executor.shutdownNow();
 		}
+
 	}
 
-	private void removeOutdatedLogs(String projectId, Duration period) {
-		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
-		AtomicLong countPerProject = new AtomicLong(0);
-		iterateOverPages(pageable -> launchRepo.findModifiedBefore(projectId, endDate, pageable), launches -> {
-			launches.forEach(launch -> {
-				try (Stream<TestItem> testItemStream = testItemRepo.streamIdsByLaunch(launch.getId())) {
-					long count = logRepo.deleteByPeriodAndItemsRef(period,
-							testItemStream.map(TestItem::getId).collect(Collectors.toList())
-					);
-					countPerProject.addAndGet(count);
-				} catch (Exception e) {
-					//do nothing
-				}
-			});
+	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
+		return Filter.builder()
+				.withTarget(Project.class)
+				.withCondition(new FilterCondition(Condition.EQUALS,
+						false,
+						projectAttributeEnum.getAttribute(),
+						CRITERIA_PROJECT_ATTRIBUTE_NAME
+				))
+				.build();
+	}
 
-		});
-		LOGGER.info("Removed {} logs for project {}", countPerProject.get(), projectId);
+	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
+		project.getProjectAttributes()
+				.stream()
+				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
+				.findFirst()
+				.ifPresent(pa -> {
+					Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue())
+							.orElseThrow(() -> new ReportPortalException("Incorrect keep logs delay period: " + pa.getValue()))
+							.getDays());
+					if (!period.isZero()) {
+						logCleaner.removeOutdatedLogs(project, period, removedLogsCount);
+					}
+				});
 	}
 
 }

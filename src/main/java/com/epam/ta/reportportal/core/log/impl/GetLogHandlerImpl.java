@@ -150,6 +150,14 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		return log;
 	}
 
+	/**
+	 * Method to determine whether logs of the {@link TestItem} with provided 'parentId' and {@link StatusEnum#PASSED}
+	 * should be retrieved with nested steps or should be excluded from the select query
+	 *
+	 * @param parentId {@link Log#testItem} ID
+	 * @param params   {@link org.springframework.web.bind.annotation.RequestParam} mapping
+	 * @return 'true' if logs should be excluded from the select query, else 'false'
+	 */
 	private boolean isLogsExclusionRequired(Long parentId, Map<String, String> params) {
 
 		Boolean excludePassedLogs = ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);

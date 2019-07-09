@@ -96,11 +96,11 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
     } else {
-        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-5'
+        compile 'com.github.reportportal:commons-dao:1b285c054a'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-4'
         compile 'com.github.reportportal:commons-model:5.0.0-BETA-4'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
-        compile('com.github.reportportal:plugin-api:30f47d49')
+        compile('com.github.reportportal:plugin-api:4a5c61f')
     }
 
     //saucelabs

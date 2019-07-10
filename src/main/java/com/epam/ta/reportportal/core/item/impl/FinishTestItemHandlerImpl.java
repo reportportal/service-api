@@ -177,12 +177,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-				formattedSupplier(
-						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-						testItem.getItemId()
-				)
-		);
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+				testItem.getItemId()
+		));
 	}
 
 	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, Launch launch,

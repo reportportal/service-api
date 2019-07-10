@@ -118,7 +118,9 @@ class ProjectControllerTest extends BaseMvcTest {
 		HashMap<String, String> userRoles = new HashMap<>();
 		userRoles.put("test_user", "PROJECT_MANAGER");
 		rq.setUserRoles(userRoles);
-		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
 		Project project = projectRepository.findByName("test_project").get();
 		projectAttributes.forEach((key, value) -> {

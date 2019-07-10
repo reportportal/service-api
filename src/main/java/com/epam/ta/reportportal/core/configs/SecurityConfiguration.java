@@ -160,8 +160,7 @@ class SecurityConfiguration {
 					.antMatchers("/**/user/registration/info*",
 							"/**/user/registration**",
 							"/**/user/password/reset/*",
-							"/**/user/password/reset**",
-							"/**/user/password/restore**", "/documentation.html", "/health", "/info"
+							"/**/user/password/reset**", "/**/user/password/restore**", "/documentation.html", "/health", "/info"
 					)
 					.permitAll()
 					/* set of special endpoints for another microservices from RP ecosystem */

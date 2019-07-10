@@ -62,6 +62,11 @@ class LoadPluginsJobTest {
 			dataStore
 	);
 
+	@AfterAll
+	public static void clearPluginDirectory() throws IOException {
+		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
+	}
+
 	@Test
 	void loadDisabledPluginTest() throws IOException {
 
@@ -81,11 +86,6 @@ class LoadPluginsJobTest {
 		when(pluginBox.unloadPlugin(rallyPlugin.getPluginId())).thenReturn(true);
 
 		loadPluginsJob.execute();
-	}
-
-	@AfterAll
-	public static void clearPluginDirectory() throws IOException {
-		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
 	}
 
 	private List<IntegrationType> getIntegrationTypes() {

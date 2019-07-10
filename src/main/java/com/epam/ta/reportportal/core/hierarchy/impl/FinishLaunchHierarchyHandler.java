@@ -41,8 +41,8 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
 
 	@Autowired
 	public FinishLaunchHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, IssueTypeHandler issueTypeHandler,
-			IssueEntityRepository issueEntityRepository, ChangeStatusHandler changeStatusHandler) {
+			ItemAttributeRepository itemAttributeRepository, IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository,
+			ChangeStatusHandler changeStatusHandler) {
 		super(launchRepository, testItemRepository, itemAttributeRepository, issueEntityRepository, issueTypeHandler, changeStatusHandler);
 	}
 

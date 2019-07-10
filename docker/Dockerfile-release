@@ -6,7 +6,7 @@ LABEL description="@description@"
 
 ENV APP_FILE @name@-@version@
 ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/@name@/@version@/$APP_FILE.jar
-ENV JAVA_OPTS="-Xmx1g -Djava.security.egd=file:/dev/./urandom -jar"
+ENV JAVA_OPTS="-Xmx1g -Djava.security.egd=file:/dev/./urandom"
 ENV JAVA_APP=/app.jar
 
 RUN apt-get update && \

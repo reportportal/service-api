@@ -26,10 +26,9 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,6 +46,7 @@ public class TestItemFinishedEventHandler {
 		this.logIndexer = logIndexer;
 	}
 
+	@Async
 	@TransactionalEventListener
 	public void onApplicationEvent(ItemFinishedEvent itemFinishedEvent) {
 
@@ -55,11 +55,11 @@ public class TestItemFinishedEventHandler {
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 
-		CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(
+		logIndexer.indexItemsLogs(
 				itemFinishedEvent.getProjectId(),
 				itemFinishedEvent.getLaunchId(),
 				Lists.newArrayList(itemFinishedEvent.getItemId()),
 				analyzerConfig
-		));
+		);
 	}
 }

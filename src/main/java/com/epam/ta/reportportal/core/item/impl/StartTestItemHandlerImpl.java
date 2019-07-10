@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
+import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -45,9 +46,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
@@ -68,12 +67,15 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private final UniqueIdGenerator identifierGenerator;
 
+	private final RerunHandler rerunHandler;
+
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			UniqueIdGenerator identifierGenerator) {
+			UniqueIdGenerator identifierGenerator, RerunHandler rerunHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.identifierGenerator = identifierGenerator;
+		this.rerunHandler = rerunHandler;
 	}
 
 	@Override
@@ -82,18 +84,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(user, projectDetails, rq, launch);
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
-		Optional<TestItem> itemOptional;
-
-		//pzdc. need refactoring
-		if (launch.isRerun() && (itemOptional = testItemRepository.findByNameAndLaunchWithoutParents(rq.getName(),
-				launch.getId()
-		)).isPresent()) {
-			item = handleRerun(rq, launch, itemOptional.get(), null);
-		} else {
-			testItemRepository.save(item);
-			generateUniqueId(launch, item, String.valueOf(item.getItemId()));
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleRootItem(rq, launch);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
 		}
+
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
+		testItemRepository.save(item);
+		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
 		LOGGER.debug("Created new root TestItem {}", item.getUuid());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
@@ -108,28 +108,26 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleChildItem(rq, launch, parentItem);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
+		}
+
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
 				.addAttributes(rq.getAttributes())
 				.addLaunch(launch)
 				.addParent(parentItem)
 				.get();
-		Optional<TestItem> itemOptional;
 
-		//pzdc. need refactoring
-		if (launch.isRerun() && (itemOptional = testItemRepository.findByNameAndLaunchUnderPath(rq.getName(),
-				launch.getId(),
-				parentItem.getPath()
-		)).isPresent()) {
-			item = handleRerun(rq, launch, itemOptional.get(), parentItem);
-		} else {
-			testItemRepository.save(item);
-			generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
-			if (rq.isHasStats() && !parentItem.isHasChildren()) {
-				parentItem.setHasChildren(true);
-			}
-			if (BooleanUtils.toBoolean(rq.isRetry())) {
-				handleRetries(launch, item);
-			}
+		testItemRepository.save(item);
+		generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+		if (rq.isHasStats() && !parentItem.isHasChildren()) {
+			parentItem.setHasChildren(true);
+		}
+		if (BooleanUtils.toBoolean(rq.isRetry())) {
+			handleRetries(launch, item);
 		}
 
 		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
@@ -148,27 +146,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (!launch.isHasRetries()) {
 			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		}
-	}
-
-	private TestItem handleRerun(StartTestItemRQ request, Launch launch, TestItem testItem, TestItem parent) {
-		TestItem item;
-		item = testItem;
-		item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
-		item.setDescription(request.getDescription());
-		if (item.getType().sameLevel(STEP)) {
-			TestItem retry = new TestItemBuilder().addLaunch(launch)
-					.addStartItemRequest(request)
-					.addAttributes(request.getAttributes())
-					.get();
-			testItemRepository.save(retry);
-			generateUniqueId(launch,
-					retry,
-					ofNullable(parent).map(it -> it.getPath() + "." + retry.getItemId()).orElse(String.valueOf(retry.getItemId()))
-			);
-			handleRetries(launch, retry);
-			item = retry;
-		}
-		return item;
 	}
 
 	/**

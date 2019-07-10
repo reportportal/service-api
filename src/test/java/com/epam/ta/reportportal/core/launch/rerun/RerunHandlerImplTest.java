@@ -120,13 +120,12 @@ class RerunHandlerImplTest {
 
 		when(launchRepository.findLatestByNameAndProjectId("launch", projectId)).thenReturn(Optional.of(getLaunch("uuid")));
 
-		Optional<StartLaunchRS> responseOptional = rerunHandler.handleLaunch(request, projectId, rpUser);
+		StartLaunchRS response = rerunHandler.handleLaunch(request, projectId, rpUser);
 
 		verify(messageBus, times(1)).publishActivity(any(LaunchStartedEvent.class));
-		assertTrue(responseOptional.isPresent());
-		assertNotNull(responseOptional.get().getNumber());
-		assertNotNull(responseOptional.get().getId());
-		assertNotNull(responseOptional.get().getUuid());
+		assertNotNull(response.getNumber());
+		assertNotNull(response.getId());
+		assertNotNull(response.getUuid());
 
 	}
 

@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
     } else {
-        compile 'com.github.reportportal:commons-dao:e3f2d80'
+        compile 'com.github.reportportal:commons-dao:196f285'
         compile 'com.github.reportportal:commons-rules:8a66b8d'
         compile 'com.github.reportportal:commons-model:76f57c6'
         compile('com.github.reportportal:commons:71d4aca')
@@ -231,7 +231,7 @@ jar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 ext.src = [
-        'https://raw.githubusercontent.com/reportportal/migrations/rerun/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql'
 ]
 

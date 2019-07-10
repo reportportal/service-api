@@ -134,6 +134,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
 	}
 
+	/**
+	 * Generates and sets unique ID to {@link TestItem} if it is empty
+	 *
+	 * @param launch {@link Launch} of {@link TestItem}
+	 * @param item   {@link TestItem}
+	 * @param path   {@link TestItem} path
+	 */
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
 		if (null == item.getUniqueId()) {
@@ -141,6 +148,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 	}
 
+	/**
+	 * Handles retry items
+	 *
+	 * @param launch {@link Launch}
+	 * @param item   {@link TestItem}
+	 */
 	private void handleRetries(Launch launch, TestItem item) {
 		testItemRepository.handleRetries(item.getItemId());
 		if (!launch.isHasRetries()) {
@@ -187,7 +200,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

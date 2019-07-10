@@ -25,13 +25,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
@@ -60,11 +57,8 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
 		validateRoles(projectDetails, request);
 
-		if (BooleanUtils.toBoolean(request.isRerun())) {
-			Optional<StartLaunchRS> rerun = rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user);
-			if (rerun.isPresent()) {
-				return rerun.get();
-			}
+		if (request.isRerun()) {
+			return rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user);
 		}
 
 		Launch launch = new LaunchBuilder().addStartRQ(request)

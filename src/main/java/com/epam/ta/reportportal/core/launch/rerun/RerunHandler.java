@@ -31,9 +31,31 @@ import java.util.Optional;
  */
 public interface RerunHandler {
 
-	Optional<StartLaunchRS> handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
+	/**
+	 * Updates launch state and return existed launch to rerun
+	 *
+	 * @param request   Request data
+	 * @param projectId Project ID
+	 * @param user      ReportPortal user
+	 * @return StartLaunchRS
+	 */
+	StartLaunchRS handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
 
+	/**
+	 * Finds root {@link TestItem} to rerun and creates retries
+	 *
+	 * @param request Request data
+	 * @param launch  {@link Launch}
+	 * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
+	 */
 	Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch);
 
+	/**
+	 * Finds child {@link TestItem} to rerun and creates retries
+	 *
+	 * @param request Request data
+	 * @param launch  {@link Launch}
+	 * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
+	 */
 	Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, TestItem parent);
 }

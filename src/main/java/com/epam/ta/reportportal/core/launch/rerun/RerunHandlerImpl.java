@@ -66,7 +66,7 @@ public class RerunHandlerImpl implements RerunHandler {
 	}
 
 	@Override
-	public Optional<StartLaunchRS> handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
+	public StartLaunchRS handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
 		Optional<Launch> launchOptional = StringUtils.isEmpty(request.getRerunOf()) ?
 				launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
 				launchRepository.findByUuid(request.getRerunOf());
@@ -89,7 +89,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		response.setId(launch.getId());
 		response.setUuid(launch.getUuid());
 		response.setNumber(launch.getNumber());
-		return Optional.of(response);
+		return response;
 	}
 
 	@Override
@@ -137,8 +137,7 @@ public class RerunHandlerImpl implements RerunHandler {
 				.addParent(parent)
 				.get();
 		testItemRepository.save(retry);
-		generateUniqueId(
-				launch,
+		generateUniqueId(launch,
 				retry,
 				ofNullable(parent).map(it -> it.getPath() + "." + retry.getItemId()).orElse(String.valueOf(retry.getItemId()))
 		);

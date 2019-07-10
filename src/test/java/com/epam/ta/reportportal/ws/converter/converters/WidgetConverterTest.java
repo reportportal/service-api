@@ -35,7 +35,6 @@ class WidgetConverterTest {
 	void toWidgetResource() {
 		final Widget widget = getWidget();
 		final WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
-
 		assertEquals(resource.getName(), widget.getName());
 		assertEquals(resource.getWidgetId(), widget.getId());
 		assertEquals(resource.getWidgetType(), widget.getWidgetType());
@@ -51,7 +50,6 @@ class WidgetConverterTest {
 	void toActivityResource() {
 		final Widget widget = getWidget();
 		final WidgetActivityResource resource = WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget);
-
 		assertEquals(resource.getId(), widget.getId());
 		assertEquals(resource.getName(), widget.getName());
 		assertEquals(resource.getProjectId(), widget.getProject().getId());

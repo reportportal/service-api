@@ -63,7 +63,7 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String[] attributes, int limit) {
+			String[] attributes, Map<String, String> params, int limit) {
 
 		validateFilterSortMapping(filterSortMapping);
 
@@ -81,7 +81,8 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 			content = widgetContentRepository.cumulativeTrendStatistics(filter,
 					contentFields,
 					sort,
-					storedAttributes.get(0), storedAttributes.size() > 1 ? storedAttributes.get(1) : null,
+					storedAttributes.get(0),
+					storedAttributes.size() > 1 ? storedAttributes.get(1) : null,
 					limit
 			);
 		} else {

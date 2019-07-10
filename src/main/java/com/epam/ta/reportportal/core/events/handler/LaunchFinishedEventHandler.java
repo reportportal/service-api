@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.statistics.StatisticsHelper.extractStatisticsCount;
@@ -116,7 +116,7 @@ public class LaunchFinishedEventHandler {
 	@Async
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@TransactionalEventListener
-	public void onApplicationEvent(LaunchFinishedEvent event) throws ExecutionException, InterruptedException {
+	public void onApplicationEvent(LaunchFinishedEvent event) {
 		Launch launch = launchRepository.findById(event.getLaunchActivityResource().getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, event.getLaunchActivityResource().getId()));
 
@@ -127,7 +127,6 @@ public class LaunchFinishedEventHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, launch.getProjectId()));
 
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-		logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).get();
 
 		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
 				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
@@ -135,8 +134,11 @@ public class LaunchFinishedEventHandler {
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), null);
-			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-					.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
+			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
+			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+		} else {
+			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
 		}
 
 		if (isNotificationsEnabled) {
@@ -148,7 +150,10 @@ public class LaunchFinishedEventHandler {
 
 			Launch updatedLaunch = launchRepository.findById(launch.getId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
-			emailService.ifPresent(it -> sendEmail(updatedLaunch, project, it));
+			emailService.ifPresent(it -> {
+				launchRepository.refresh(updatedLaunch);
+				sendEmail(updatedLaunch, project, it);
+			});
 		}
 
 		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())

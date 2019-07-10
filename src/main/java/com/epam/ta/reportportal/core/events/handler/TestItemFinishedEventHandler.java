@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -45,6 +46,7 @@ public class TestItemFinishedEventHandler {
 		this.logIndexer = logIndexer;
 	}
 
+	@Async
 	@TransactionalEventListener
 	public void onApplicationEvent(ItemFinishedEvent itemFinishedEvent) {
 

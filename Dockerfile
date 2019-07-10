@@ -1,12 +1,12 @@
 FROM openjdk:8-jre
 
 LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
-LABEL version="5.0.0-BETA-4"
+LABEL version="5.0.0-BETA-6"
 LABEL description="EPAM Report portal. Main API Service"
 
-ENV APP_FILE service-api-5.0.0-BETA-4
-ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/service-api/5.0.0-BETA-4/$APP_FILE.jar
-ENV JAVA_OPTS="-Xmx1g -Djava.security.egd=file:/dev/./urandom -jar"
+ENV APP_FILE service-api-5.0.0-BETA-6
+ENV APP_DOWNLOAD_URL https://dl.bintray.com/epam/reportportal/com/epam/reportportal/service-api/5.0.0-BETA-6/$APP_FILE.jar
+ENV JAVA_OPTS="-Xmx1g -Djava.security.egd=file:/dev/./urandom"
 ENV JAVA_APP=/app.jar
 
 RUN apt-get update && \

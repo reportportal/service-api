@@ -59,6 +59,7 @@ public final class LogConverter {
 		}
 
 		ofNullable(model.getTestItem()).ifPresent(testItem -> resource.setItemId(testItem.getItemId()));
+		ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
 		return resource;
 	};

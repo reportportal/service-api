@@ -85,6 +85,7 @@ public class GetIntegrationHandlerTest {
 
 		assertNotNull(integrationResource);
 		assertEquals(emailIntegrationId, (long) integrationResource.getId());
+		assertEquals("superadmin", integrationResource.getCreator());
 		assertEquals(false, integrationResource.getEnabled());
 		assertEquals(projectId, (long) integrationResource.getProjectId());
 		assertNotNull(integrationResource.getIntegrationParams());
@@ -101,6 +102,7 @@ public class GetIntegrationHandlerTest {
 		IntegrationResource integrationResource = getIntegrationHandler.getGlobalIntegrationById(emailIntegrationId);
 
 		assertNotNull(integrationResource);
+		assertEquals("superadmin", integrationResource.getCreator());
 		assertEquals(emailIntegrationId, (long) integrationResource.getId());
 		assertEquals(false, integrationResource.getEnabled());
 		assertNull(integrationResource.getProjectId());

@@ -178,7 +178,8 @@ public class EmailService extends JavaMailSenderImpl {
 		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
 			Pattern pattern = Pattern.compile(regex);
 			return pattern.matcher(entry.getKey()).matches();
-		}).collect(Collectors.toMap(entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
+		}).collect(Collectors.toMap(
+				entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
 				entry -> ofNullable(entry.getValue()).orElse(0),
 				(prev, curr) -> prev
 		)));

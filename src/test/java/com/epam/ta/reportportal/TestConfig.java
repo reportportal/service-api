@@ -40,7 +40,6 @@ import org.springframework.context.annotation.*;
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*"),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ResourceCopierBeanTest.TestConfig.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) })
-@PropertySource("classpath:test-application.properties")
 public class TestConfig {
 
 	@MockBean

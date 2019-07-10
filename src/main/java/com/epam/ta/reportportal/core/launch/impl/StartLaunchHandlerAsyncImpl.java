@@ -38,25 +38,24 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 @Qualifier("startLaunchHandlerAsync")
 public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 
-    @Autowired
-    @Qualifier(value = "rabbitTemplate")
-    AmqpTemplate amqpTemplate;
+	@Autowired
+	@Qualifier(value = "rabbitTemplate")
+	AmqpTemplate amqpTemplate;
 
-    @Override
-    public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
-                                     StartLaunchRQ request) {
-        validateRoles(projectDetails, request);
+	@Override
+	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
+		validateRoles(projectDetails, request);
 
-        request.setUuid(UUID.randomUUID().toString());
-        amqpTemplate.convertAndSend(QUEUE_LAUNCH_START, request, message -> {
-            Map<String, Object> headers = message.getMessageProperties().getHeaders();
-            headers.put(MessageHeaders.USERNAME, user.getUsername());
-            headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-            return message;
-        });
+		request.setUuid(UUID.randomUUID().toString());
+		amqpTemplate.convertAndSend(QUEUE_LAUNCH_START, request, message -> {
+			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.USERNAME, user.getUsername());
+			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+			return message;
+		});
 
-        StartLaunchRS response = new StartLaunchRS();
-        response.setUuid(request.getUuid());
-        return response;
-    }
+		StartLaunchRS response = new StartLaunchRS();
+		response.setUuid(request.getUuid());
+		return response;
+	}
 }

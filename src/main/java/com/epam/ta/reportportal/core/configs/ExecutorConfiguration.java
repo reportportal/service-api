@@ -21,9 +21,11 @@ import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -34,9 +36,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Andrei Varabyeu
  */
 @Configuration
+@EnableAsync
 public class ExecutorConfiguration {
 
 	@Bean
+	@Primary
 	public TaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(5);

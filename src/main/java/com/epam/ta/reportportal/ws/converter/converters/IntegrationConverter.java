@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -39,14 +40,15 @@ public final class IntegrationConverter {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
 		resource.setName(integration.getName());
+		resource.setCreator(integration.getCreator());
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
 		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
 		ofNullable(integration.getParams()).ifPresent(it -> {
-			Map<String, Object> params = ofNullable(it.getParams()).map(p -> {
-				p.remove(EmailSettingsEnum.PASSWORD.getAttribute());
-				return p;
-			}).orElseGet(Collections::emptyMap);
+			Map<String, Object> params = ofNullable(it.getParams()).map(p -> p.entrySet()
+					.stream()
+					.filter(entry -> !EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))).orElseGet(Collections::emptyMap);
 			resource.setIntegrationParams(params);
 		});
 

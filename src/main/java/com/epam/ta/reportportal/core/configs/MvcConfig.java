@@ -146,12 +146,6 @@ public class MvcConfig implements WebMvcConfigurer {
 		configurer.setUseSuffixPatternMatch(false);
 	}
 
-	@Override
-	public void addCorsMappings(CorsRegistry registry) {
-	    registry.addMapping("/**")
-                .allowedMethods("GET", "PUT", "POST", "DELETE");
-	}
-
 	@Bean
 	public BeanValidationPostProcessor beanValidationPostProcessor() {
 		return new BeanValidationPostProcessor();

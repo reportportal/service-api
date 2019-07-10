@@ -26,9 +26,6 @@ public class IndexLaunch {
 	@JsonProperty("analyzerConfig")
 	private AnalyzerConfig analyzerConfig;
 
-	@JsonProperty("analyzerConfig")
-	private AnalyzerConfig analyzerConfig;
-
 	@JsonProperty("testItems")
 	private List<IndexTestItem> testItems;
 

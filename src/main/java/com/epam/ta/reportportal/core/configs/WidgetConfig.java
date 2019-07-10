@@ -82,7 +82,7 @@ public class WidgetConfig implements ApplicationContextAware {
 	public Map<WidgetType, MultilevelLoadContentStrategy> multilevelContentLoader() {
 		return ImmutableMap.<WidgetType, MultilevelLoadContentStrategy>builder().put(WidgetType.CUMULATIVE,
 				applicationContext.getBean(CumulativeTrendChartLoader.class)
-		).build();
+		).put(WidgetType.TOP_PATTERN_TEMPLATES, applicationContext.getBean(TopPatternContentLoader.class)).build();
 	}
 
 	@Bean("buildFilterStrategy")
@@ -117,6 +117,9 @@ public class WidgetConfig implements ApplicationContextAware {
 				)
 				.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"))
 				.put(WidgetType.MOST_TIME_CONSUMING, (TestItemFilterStrategy) applicationContext.getBean("testItemFilterStrategy"))
+				.put(WidgetType.TOP_PATTERN_TEMPLATES,
+						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+				)
 				.build();
 	}
 
@@ -124,9 +127,7 @@ public class WidgetConfig implements ApplicationContextAware {
 	public Map<String, ProductStatusContentLoader> productStatusContentLoader() {
 		return ImmutableMap.<String, ProductStatusContentLoader>builder().put("launch",
 				applicationContext.getBean(ProductStatusLaunchGroupedContentLoader.class)
-		)
-				.put("filter", applicationContext.getBean(ProductStatusFilterGroupedContentLoader.class))
-				.build();
+		).put("filter", applicationContext.getBean(ProductStatusFilterGroupedContentLoader.class)).build();
 	}
 
 	@Bean("groupingStrategy")

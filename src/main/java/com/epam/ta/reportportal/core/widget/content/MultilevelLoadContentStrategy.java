@@ -29,5 +29,5 @@ import java.util.Map;
 public interface MultilevelLoadContentStrategy {
 
 	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
-			String[] attributes, int limit);
+			String[] attributes, Map<String, String> params, int limit);
 }

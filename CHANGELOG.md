@@ -174,7 +174,7 @@
 * EPMRPP-29701: Tag prefix should be fully matched with the searched value
 
 ## 4.0
-##### Released: XXX XX, 2017
+##### Released: Mar 01, 2018
 
 ### New Features
 
@@ -184,6 +184,9 @@
 * EPMRPP-31001 - Most failed test cases: refactored in case of new design
 * EPMRPP-31220 - WS: removing Match issue
 * EPMRPP-31189 - Update script for widgets.
+* EPMRPP-31780 - Set the name of analyzer which made the changes
+* EPMRPP-33154 - [IMPORT] Better handling of importing exceptions 
+* reportportal/reportportal#322 - Make startTestItemRQ in API 4.x case insensitive
 
 ### Bugfixes
 
@@ -203,3 +206,32 @@
 * EPMRPP-31435 - 'Ignore in AA' should not to be set for test item in launch on DEBUG level
 * EPMRPP-31447 - WS: "ActionType"=analyze_item for action that was done by user
 * Fix issue with incorrect importing of some junit files
+* EPMRPP-31904 - WS: Jobs do not work properly
+* EPMRPP-33083 - WS: The extra statistics is returned for No Defects for Comparison launches
+* EPMRPP-33080 - WS: Unclassified error on widget preview in case the filter is not saved
+* EPMRPP-32107 - WS: Unclassified error on load widget in case the filter deleted
+* EPMRPP-33089 - Most failed widget: Unclassified error for launch with status Interrupted
+* EPMRPP-32898 - Search for user with dot symbol in login name returns the error
+* EPMRPP-33155 - [GITHUB] Failed import faced with unknown tag #317
+* EPMRPP-33181 - WS: Launch statistics charts are not updated correctly with new version
+* EPMRPP-33255 - Update script for widget does not support 'Timeline' mode setting
+* EPMRPP-33492 - WS: Logs of launches from DEBUG level are get to ES during the indexing
+
+## 4.2
+##### Released: Jun 14, 2018
+
+### Bugfixes
+
+* reportportal/reportportal#380 - Unexpected total tests count
+* EPMRPP-34202 - WS: Item with 'Ignore'=true should be escaped during analysis process
+* EPMRPP-34203 - WS: No activity record of unlicked issue for re-analysis.
+* EPMRPP-34212 - WS: No action for linked issue by ML on History of actions
+
+## 4.3
+##### Released: XXX XX, 2017
+
+### Bugfixes
+
+* EPMRPP-35134 - Registration is passed for user with login already in use
+* EPMRPP-35289 - WS: GET item controller returns items that do not belong to specified project, but all available items
+* EPMRPP-35291 - WS: Unclassified error on get latest launches. Improve latest query performance

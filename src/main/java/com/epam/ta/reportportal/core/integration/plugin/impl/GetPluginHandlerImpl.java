@@ -42,10 +42,9 @@ public class GetPluginHandlerImpl implements GetPluginHandler {
 
 	@Override
 	public List<IntegrationTypeResource> getPlugins() {
-		return integrationTypeRepository.findAll()
+		return integrationTypeRepository.findAllByOrderByCreationDate()
 				.stream()
 				.map(IntegrationTypeConverter.TO_RESOURCE)
-				.sorted(Comparator.comparing(IntegrationTypeResource::getCreationDate))
 				.collect(Collectors.toList());
 	}
 }

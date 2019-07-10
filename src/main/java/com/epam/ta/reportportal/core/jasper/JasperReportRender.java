@@ -1,41 +1,22 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
-/*
- * This file is part of Report Portal.
+ * Copyright 2018 EPAM Systems
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.core.jasper;
 
+import com.epam.ta.reportportal.entity.jasper.ReportType;
+import com.google.common.collect.ImmutableMap;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
@@ -50,6 +31,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Jasper Report render based on provided JRXML template.<br>
  *
@@ -58,26 +41,43 @@ import java.util.Map;
  * Performance improvements. Load JasperReport only once since it is immutable
  */
 @Service("jasperRender")
-class JasperReportRender {
+public class JasperReportRender {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JasperReportRender.class);
-	private static final String REPORT_JRXML_TEMPLATE = "classpath:/templates/report/report.jrxml";
 
-	private JasperReport jasperReport;
+	private static final String PROJECTS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/projects.jrxml";
+	private static final String USERS_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/users.jrxml";
+	private static final String LAUNCH_REPORT_JRXML_TEMPLATE = "classpath:/templates/report/report.jrxml";
+	private static final Map<ReportType, String> reportTypeTemplatePathMapping = ImmutableMap.<ReportType, String>builder().put(ReportType.PROJECT,
+			PROJECTS_REPORT_JRXML_TEMPLATE
+	)
+			.put(ReportType.USER, USERS_REPORT_JRXML_TEMPLATE)
+			.put(ReportType.LAUNCH, LAUNCH_REPORT_JRXML_TEMPLATE)
+			.build();
+
+	private final Map<ReportType, JasperReport> reportTemplatesMapping;
 
 	@Autowired
 	public JasperReportRender(ResourceLoader resourceLoader) throws JRException, IOException {
-		Resource reportTemplate = resourceLoader.getResource(REPORT_JRXML_TEMPLATE);
-		com.google.common.base.Preconditions.checkArgument(reportTemplate.exists());
-		InputStream inputStream = reportTemplate.getInputStream();
-		JasperDesign jasperDesign = JRXmlLoader.load(inputStream);
-		this.jasperReport = JasperCompileManager.compileReport(jasperDesign);
+
+		ImmutableMap.Builder<ReportType, JasperReport> reportTypeJasperReportBuilder = ImmutableMap.builder();
+
+		for (Map.Entry<ReportType, String> entry : reportTypeTemplatePathMapping.entrySet()) {
+			Resource reportTemplate = resourceLoader.getResource(entry.getValue());
+			checkArgument(reportTemplate.exists());
+			InputStream inputStream = reportTemplate.getInputStream();
+
+			JasperDesign jasperDesign = JRXmlLoader.load(inputStream);
+			reportTypeJasperReportBuilder.put(entry.getKey(), JasperCompileManager.compileReport(jasperDesign));
+		}
+
+		reportTemplatesMapping = reportTypeJasperReportBuilder.build();
 
 	}
 
-	JasperPrint generateReportPrint(Map<String, Object> params, JRDataSource datasource) {
+	public JasperPrint generateReportPrint(ReportType reportType, Map<String, Object> params, JRDataSource datasource) {
 		try {
-			return JasperFillManager.fillReport(jasperReport, params, datasource);
+			return JasperFillManager.fillReport(reportTemplatesMapping.get(reportType), params, datasource);
 		} catch (JRException e) {
 			LOGGER.error("Unable to generate Report", e);
 			return new JasperPrint();

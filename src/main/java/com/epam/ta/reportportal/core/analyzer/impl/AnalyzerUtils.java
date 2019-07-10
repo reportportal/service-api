@@ -1,34 +1,38 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.model.IndexLog;
 import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
+import com.epam.ta.reportportal.core.analyzer.model.RelevantItemInfo;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Useful utils methods for basic analyzer
@@ -48,10 +52,10 @@ public class AnalyzerUtils {
 	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
 		IndexLog indexLog = new IndexLog();
 		indexLog.setLogId(log.getId());
-		if (log.getLevel() != null) {
-			indexLog.setLogLevel(log.getLevel().toInt());
+		if (log.getLogLevel() != null) {
+			indexLog.setLogLevel(log.getLogLevel());
 		}
-		indexLog.setMessage(log.getLogMsg());
+		indexLog.setMessage(log.getLogMessage());
 		return indexLog;
 	};
 
@@ -65,15 +69,37 @@ public class AnalyzerUtils {
 	 */
 	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
 		IndexTestItem indexTestItem = new IndexTestItem();
-		indexTestItem.setTestItemId(testItem.getId());
+		indexTestItem.setTestItemId(testItem.getItemId());
 		indexTestItem.setUniqueId(testItem.getUniqueId());
-		if (testItem.getIssue() != null) {
-			indexTestItem.setIssueType(testItem.getIssue().getIssueType());
-			indexTestItem.setAutoAnalyzed(testItem.getIssue().isAutoAnalyzed());
+		if (testItem.getItemResults().getIssue() != null) {
+			indexTestItem.setIssueTypeLocator(testItem.getItemResults().getIssue().getIssueType().getLocator());
+			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
 		}
 		if (!logs.isEmpty()) {
 			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));
 		}
 		return indexTestItem;
 	}
+
+	public static AnalyzerConfig getAnalyzerConfig(Project project) {
+		Map<String, String> configParameters = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setIsAutoAnalyzerEnabled(BooleanUtils.toBoolean(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
+		analyzerConfig.setMinDocFreq(Integer.valueOf(ofNullable(configParameters.get(MIN_DOC_FREQ.getAttribute())).orElse(MIN_DOC_FREQ.getDefaultValue())));
+		analyzerConfig.setMinTermFreq(Integer.valueOf(ofNullable(configParameters.get(MIN_TERM_FREQ.getAttribute())).orElse(MIN_TERM_FREQ.getDefaultValue())));
+		analyzerConfig.setMinShouldMatch(Integer.valueOf(ofNullable(configParameters.get(MIN_SHOULD_MATCH.getAttribute())).orElse(
+				MIN_SHOULD_MATCH.getDefaultValue())));
+		analyzerConfig.setNumberOfLogLines(Integer.valueOf(ofNullable(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())).orElse(
+				NUMBER_OF_LOG_LINES.getDefaultValue())));
+		analyzerConfig.setIndexingRunning(BooleanUtils.toBoolean(configParameters.get(INDEXING_RUNNING.getAttribute())));
+		return analyzerConfig;
+	}
+
+	public static final Function<TestItem, RelevantItemInfo> TO_RELEVANT_ITEM_INFO = item -> {
+		RelevantItemInfo relevantItemInfo = new RelevantItemInfo();
+		relevantItemInfo.setItemId(String.valueOf(item.getItemId()));
+		relevantItemInfo.setPath(item.getPath());
+		relevantItemInfo.setLaunchId(String.valueOf(item.getLaunch().getId()));
+		return relevantItemInfo;
+	};
 }

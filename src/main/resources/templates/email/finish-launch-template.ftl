@@ -74,7 +74,7 @@
                                 <tr bgcolor="#f9f9f9" style="background-color:#f9f9f9;">
                                 </#if>
                                 <td height="25"
-                                    style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">${key.getLongName()}</td>
+                                    style="font-size: 14px; color: #464547; padding-left: 38px; border-width: 0px;">${key}</td>
                                 <td width="40" style="font-size: 14px; color: #464547; border-width: 0px;">${value}</td>
                             </tr>
                                 <#assign rowCounter++>
@@ -102,9 +102,9 @@
                             finished</h2>
                         <p style="font-size: 14px; color: #777777;">To view it on Report Portal just visit this <a
                                 href="${url}" target="_blank">link</a>.</p>
-                    <#if tags??>
-                        <p style="font-size: 14px; color: #777777;">Tags to launch:
-                            <#list tags as name, link>
+                        <#if attributes??>
+                            <p style="font-size: 14px; color: #777777;">Attributes to launch:
+                                <#list attributes as name, link>
                                 <a href="${link}" target="_blank" style="padding-left:5px;">${name}</a>
                             </#list>
                         </p>
@@ -196,6 +196,9 @@
                                         <!-- TO INVESTIGATE bugs section -->
                                         <#assign name="To Investigate">
                                         <@maintype name="${name}" counter="${toInvestigateTotal}" />
+                                        <#if tiInfo??>
+                                            <@subtypes sbt=tiInfo/>
+                                        </#if>
                                         </tbody>
                                     </table>
                                 </td>

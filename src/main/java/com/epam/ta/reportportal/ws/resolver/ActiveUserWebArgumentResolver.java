@@ -21,7 +21,7 @@
 
 package com.epam.ta.reportportal.ws.resolver;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.support.WebArgumentResolver;
@@ -66,7 +66,8 @@ public class ActiveUserWebArgumentResolver implements HandlerMethodArgumentResol
 			NativeWebRequest webRequest, WebDataBinderFactory paramWebDataBinderFactory) {
 		Authentication authentication = (Authentication) webRequest.getUserPrincipal();
 		if (!authentication.getAuthorities().isEmpty()) {
-			Optional<UserRole> userRole = UserRole.findByAuthority(authentication.getAuthorities().iterator().next().getAuthority());
+			Optional<UserRole> userRole = UserRole.findByAuthority(
+					authentication.getAuthorities().iterator().next().getAuthority());
 			return userRole.isPresent() ? userRole.get() : WebArgumentResolver.UNRESOLVED;
 		}
 		return WebArgumentResolver.UNRESOLVED;

@@ -1,105 +1,120 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2018 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.filter.ObjectType;
-import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.database.search.Condition;
-import com.epam.ta.reportportal.database.search.Filter;
-import com.epam.ta.reportportal.database.search.FilterCondition;
-import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
-import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.entity.filter.FilterSort;
+import com.epam.ta.reportportal.entity.filter.ObjectType;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.filter.Order;
+import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
+import org.springframework.data.domain.Sort;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
+
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
- * Builder for {@link UserFilter}
- *
- * @author Aliaksei_Makayed
+ * @author Pavel Bortnik
  */
-@Service
-@Scope("prototype")
-public class UserFilterBuilder extends ShareableEntityBuilder<UserFilter> {
+public class UserFilterBuilder implements Supplier<UserFilter> {
 
-	public UserFilterBuilder addCreateRQ(CreateUserFilterRQ request) {
-		if (request != null) {
-			getObject().setName(request.getName().trim());
-			getObject().setIsLink(request.getIsLink());
-			Set<UserFilterEntity> filterEntities = request.getEntities();
-			getObject().setFilter(getFilter(filterEntities, request.getObjectType()));
+	private UserFilter userFilter;
 
-			addSelectionParamaters(request.getSelectionParameters());
-		}
-		return this;
+	public UserFilterBuilder() {
+		userFilter = new UserFilter();
 	}
 
-	public UserFilterBuilder addSelectionParamaters(SelectionParameters parameters) {
-		if (parameters != null) {
-			getObject().setSelectionOptions(UserFilterConverter.TO_SELECTION_OPTIONS.apply(parameters));
-		}
-		return this;
+	public UserFilterBuilder(UserFilter userFilter) {
+		this.userFilter = userFilter;
 	}
 
-	@Override
-	public UserFilterBuilder addSharing(String owner, String project, String description, boolean isShare) {
-		super.addAcl(owner, project, description, isShare);
+	public UserFilterBuilder addFilterRq(UpdateUserFilterRQ rq) {
+		userFilter.setDescription(rq.getDescription());
+		ofNullable(rq.getName()).ifPresent(it -> userFilter.setName(it));
+		ofNullable(rq.getObjectType()).ifPresent(it -> userFilter.setTargetClass(ObjectType.getObjectTypeByName(rq.getObjectType())));
+		ofNullable(rq.getShare()).ifPresent(it -> userFilter.setShared(it));
+		addFilterConditions(rq.getConditions());
+		addSelectionParameters(rq.getOrders());
 		return this;
-	}
-
-	public UserFilterBuilder addProject(String projectName) {
-		getObject().setProjectName(projectName);
-		return this;
-	}
-
-	@Override
-	protected UserFilter initObject() {
-		return new UserFilter();
 	}
 
 	/**
-	 * Convert Set<{@link UserFilterEntity}> to {@link Filter} object
+	 * Convert provided conditions into db and add them to filter object
 	 *
-	 * @param filterEntities
-	 * @return
+	 * @param conditions Conditions from rq
+	 * @return UserFilterBuilder
 	 */
-	private Filter getFilter(Set<UserFilterEntity> filterEntities, String objectType) {
-		if (filterEntities == null) {
-			return null;
-		}
+	public UserFilterBuilder addFilterConditions(Set<UserFilterCondition> conditions) {
+		userFilter.getFilterCondition().clear();
+		ofNullable(conditions).ifPresent(c -> userFilter.getFilterCondition()
+				.addAll(c.stream()
+						.map(entity -> FilterCondition.builder()
+								.withSearchCriteria(entity.getFilteringField())
+								.withValue(entity.getValue())
+								.withNegative(Condition.isNegative(entity.getCondition()))
+								.withCondition(Condition.findByMarker(entity.getCondition())
+										.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST, entity.getCondition())))
+								.build())
+						.collect(toList())));
 
-		Set<FilterCondition> filterConditions = new LinkedHashSet<>(filterEntities.size());
-		for (UserFilterEntity filterEntity : filterEntities) {
-			Condition conditionObject = Condition.findByMarker(filterEntity.getCondition()).orElse(null);
-			FilterCondition filterCondition = new FilterCondition(conditionObject, Condition.isNegative(filterEntity.getCondition()),
-					filterEntity.getValue().trim(), filterEntity.getFilteringField().trim()
-			);
-			filterConditions.add(filterCondition);
-		}
-		return new Filter(ObjectType.getTypeByName(objectType), filterConditions);
+		return this;
 	}
 
+	/**
+	 * Convert provided selection into db and add them in correct order
+	 * to filter object
+	 *
+	 * @param orders Filter sorting conditions
+	 * @return UserFilterBuilder
+	 */
+	public UserFilterBuilder addSelectionParameters(List<Order> orders) {
+		userFilter.getFilterSorts().clear();
+		ofNullable(orders).ifPresent(o -> o.forEach(order -> {
+			FilterSort filterSort = new FilterSort();
+			filterSort.setField(order.getSortingColumnName());
+			filterSort.setDirection(order.getIsAsc() ? Sort.Direction.ASC : Sort.Direction.DESC);
+			userFilter.getFilterSorts().add(filterSort);
+		}));
+		return this;
+	}
+
+	public UserFilterBuilder addProject(Long projectId) {
+		Project project = new Project();
+		project.setId(projectId);
+		userFilter.setProject(project);
+		return this;
+	}
+
+	public UserFilterBuilder addOwner(String owner) {
+		userFilter.setOwner(owner);
+		return this;
+	}
+
+	@Override
+	public UserFilter get() {
+		return userFilter;
+	}
 }

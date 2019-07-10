@@ -1,330 +1,174 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.analyzer.ILogIndexer;
-import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
-import com.epam.ta.reportportal.core.analyzer.model.IndexTestItem;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.user.User;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
-import com.epam.ta.reportportal.ws.converter.converters.AnalyzerConfigConverter;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import org.apache.commons.collections.CollectionUtils;
-import org.bson.types.ObjectId;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.util.CloseableIterator;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-
-import static com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType.TO_INVESTIGATE;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
-import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
- * Default implementation of {@link ILogIndexer}.
- *
- * @author Ivan Sharamet
- * @author Pavel Bortnik
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-@Service("indexerService")
-public class LogIndexerService implements ILogIndexer {
+@Service
+@Transactional
+public class LogIndexerService implements LogIndexer {
+	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
+	private final LaunchRepository launchRepository;
 
-	public static final int BATCH_SIZE = 1000;
+	private final TestItemRepository testItemRepository;
 
-	private static final String CHECKPOINT_COLL = "logIndexingCheckpoint";
-	private static final String CHECKPOINT_ID = "checkpoint";
-	private static final String CHECKPOINT_LOG_ID = "logId";
-	private static final String LOG_LEVEL = "level.log_level";
-	private static final String TEST_ITEM_REF = "testItemRef";
-	private static final int MAX_TIMEOUT = 120000;
+	private final IndexerServiceClient indexerServiceClient;
 
-	@Autowired
-	private AnalyzerServiceClient analyzerServiceClient;
+	private final LaunchPreparerService launchPreparerService;
+
+	private final AnalyzerStatusCache analyzerStatusCache;
 
 	@Autowired
-	private MongoOperations mongoOperations;
-
-	@Autowired
-	private LaunchRepository launchRepository;
-
-	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private MailServiceFactory mailServiceFactory;
-
-	private ThreadLocal<Long> indexedLogsCount = ThreadLocal.withInitial(() -> 0L);
-
-	private RetryTemplate retrier;
-
-	public LogIndexerService() {
-		retrier = new RetryTemplate();
-		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(180L));
-		retrier.setRetryPolicy(timeoutRetryPolicy);
-		retrier.setBackOffPolicy(new FixedBackOffPolicy());
-		retrier.setThrowLastExceptionOnExhausted(true);
-	}
-
-	@VisibleForTesting
-	protected void setRetrier(RetryTemplate retrier) {
-		this.retrier = retrier;
-	}
-
-	@EventListener
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (mongoOperations.collectionExists(CHECKPOINT_COLL)) {
-			Executors.newSingleThreadExecutor().execute(this::indexAllLogs);
-		}
+	public LogIndexerService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
+			AnalyzerStatusCache analyzerStatusCache) {
+		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.indexerServiceClient = indexerServiceClient;
+		this.launchPreparerService = launchPreparerService;
+		this.analyzerStatusCache = analyzerStatusCache;
 	}
 
 	@Override
-	public void indexLog(Log log) {
-		IndexLaunch rq = createRqLaunch(log);
-		if (rq != null) {
-			List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rq));
-			retryFailed(rs);
-		}
-	}
-
-	@Override
-	public Long indexLogs(String launchId, List<TestItem> testItems) {
-		Long indexedLogs = 0L;
-		Launch launch = launchRepository.findOne(launchId);
-		if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
-			if (!CollectionUtils.isEmpty(rqTestItems)) {
-				IndexLaunch rqLaunch = new IndexLaunch();
-				rqLaunch.setLaunchId(launchId);
-				rqLaunch.setLaunchName(launch.getName());
-				rqLaunch.setProject(launch.getProjectRef());
-				rqLaunch.setAnalyzerConfig(AnalyzerConfigConverter.TO_RESOURCE.apply(
-						projectRepository.findOne(launch.getProjectRef()).getConfiguration().getAnalyzerConfig()));
-				rqLaunch.setTestItems(rqTestItems);
-				List<IndexRs> rs = analyzerServiceClient.index(Collections.singletonList(rqLaunch));
-				indexedLogs = rs.stream().mapToLong(i -> i.getItems().size()).sum();
-				retryFailed(rs);
+	public CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				analyzerStatusCache.indexingStarted(projectId);
+				List<IndexLaunch> indexLaunches = prepareLaunches(launchRepository.findAllById(launchIds), analyzerConfig);
+				LOGGER.info("Start indexing for {} launches", indexLaunches.size());
+				Long indexed = indexerServiceClient.index(indexLaunches);
+				LOGGER.info("Indexed {} logs", indexed);
+				return indexed;
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				throw new ReportPortalException(e.getMessage());
+			} finally {
+				analyzerStatusCache.indexingFinished(projectId);
 			}
-		}
-		return indexedLogs;
-	}
-
-	@Override
-	public void deleteIndex(String project) {
-		analyzerServiceClient.deleteIndex(project);
-	}
-
-	@Override
-	public void cleanIndex(String index, List<String> ids) {
-		List<String> logIds = logRepository.findGreaterOrEqualLevel(ids, LogLevel.ERROR).stream().map(Log::getId).collect(toList());
-		analyzerServiceClient.cleanIndex(index, logIds);
-	}
-
-	@Override
-	public void indexProjectData(Project project, User user) {
-		try {
-			List<String> launchIds = launchRepository.findLaunchIdsByProjectId(project.getId())
-					.stream()
-					.map(Launch::getId)
-					.collect(toList());
-
-			launchIds.forEach(id -> {
-				List<TestItem> items = testItemRepository.findItemsNotInIssueType(TO_INVESTIGATE.getLocator(), id);
-				Long indexedItemsPerLaunch = indexLogs(id, items);
-				indexedLogsCount.set(indexedLogsCount.get() + indexedItemsPerLaunch);
-			});
-			mailServiceFactory.getDefaultEmailService(true)
-					.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedLogsCount.get());
-		} finally {
-			projectRepository.enableProjectIndexing(project.getName(), false);
-		}
-	}
-
-	@Override
-	public void indexAllLogs() {
-		retrier.execute(context -> {
-			boolean hasClients = analyzerServiceClient.hasClients();
-			LOGGER.info("Checking for analyzer clients availability to start logs indexing.");
-			BusinessRule.expect(hasClients, Predicate.isEqual(true))
-					.verify(ErrorType.UNABLE_INTERACT_WITH_EXTRERNAL_SYSTEM, "There are no analyzer's clients.");
-			return hasClients;
 		});
-		String checkpoint = getLastCheckpoint(mongoOperations.getCollection(CHECKPOINT_COLL));
-		try (CloseableIterator<Log> logIterator = mongoOperations.stream(getLogQuery(checkpoint), Log.class)) {
-			List<IndexLaunch> rq = new ArrayList<>(BATCH_SIZE);
-			while (logIterator.hasNext()) {
-				Log log = logIterator.next();
-				IndexLaunch rqLaunch = createRqLaunch(log);
-				if (rqLaunch != null) {
-					if (checkpoint == null) {
-						checkpoint = log.getId();
-					}
-					rqLaunch.getTestItems().forEach(it -> it.setAutoAnalyzed(true));
-					rq.add(rqLaunch);
-					if (rq.size() == BATCH_SIZE || !logIterator.hasNext()) {
-						createCheckpoint(mongoOperations.getCollection(CHECKPOINT_COLL), checkpoint);
+	}
 
-						List<IndexRs> rs = analyzerServiceClient.index(rq);
-
-						retryFailed(rs);
-
-						rq = new ArrayList<>(BATCH_SIZE);
-						checkpoint = null;
-					}
-				}
+	@Override
+	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				analyzerStatusCache.indexingStarted(projectId);
+				Launch launch = launchRepository.findById(launchId)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(
+						launch,
+						testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE),
+						analyzerConfig
+				);
+				return indexLaunch.map(it -> {
+					LOGGER.info("Start indexing for {} launches", 1);
+					Long indexed = indexerServiceClient.index(Lists.newArrayList(it));
+					LOGGER.info("Indexed {} logs", indexed);
+					return indexed;
+				}).orElse(0L);
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				throw new ReportPortalException(e.getMessage());
+			} finally {
+				analyzerStatusCache.indexingFinished(projectId);
 			}
-			if (!CollectionUtils.isEmpty(rq)) {
-				analyzerServiceClient.index(rq);
-			}
+		});
+	}
+
+	@Override
+	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
+		try {
+			analyzerStatusCache.indexingStarted(projectId);
+			Launch launch = launchRepository.findById(launchId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+			return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
+					.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
+					.orElse(0L);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new ReportPortalException(e.getMessage());
+		} finally {
+			analyzerStatusCache.indexingFinished(projectId);
 		}
-		mongoOperations.getCollection(CHECKPOINT_COLL).drop();
+	}
+
+	public CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch) {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				analyzerStatusCache.indexingStarted(projectId);
+				return indexerServiceClient.index(Lists.newArrayList(indexLaunch));
+			} catch (Exception ex) {
+				LOGGER.error(ex.getMessage(), ex);
+				throw new ReportPortalException(ex.getMessage());
+			} finally {
+				analyzerStatusCache.analyzeFinished(projectId);
+			}
+		});
+	}
+
+	@Override
+	public void deleteIndex(Long project) {
+		indexerServiceClient.deleteIndex(project);
+	}
+
+	@Override
+	public void cleanIndex(Long index, List<Long> ids) {
+		CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
 	}
 
 	/**
-	 * Creates {@link IndexLaunch} for specified log if
-	 * it is suitable for indexing or else returns <code>null</code>
+	 * Prepare launches for indexing
 	 *
-	 * @param log Log to be converted
-	 * @return Prepared {@link IndexLaunch} rq for indexing
+	 * @param launches       - Launches to be prepared
+	 * @param analyzerConfig - Analyzer config
+	 * @return List of prepared launches for indexing
 	 */
-	private IndexLaunch createRqLaunch(Log log) {
-		if (!isLevelSuitable(log)) {
-			return null;
-		}
-		IndexLaunch rqLaunch = null;
-		TestItem testItem = testItemRepository.findOne(log.getTestItemRef());
-		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-			Launch launch = launchRepository.findOne(testItem.getLaunchRef());
-			if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-				rqLaunch = new IndexLaunch();
-				rqLaunch.setLaunchId(launch.getId());
-				rqLaunch.setLaunchName(launch.getName());
-				rqLaunch.setProject(launch.getProjectRef());
-				rqLaunch.setTestItems(Collections.singletonList(AnalyzerUtils.fromTestItem(testItem, Collections.singletonList(log))));
-			}
-		}
-		return rqLaunch;
-	}
-
-	/**
-	 * Creates {@link IndexTestItem} from suitable {@link TestItem}
-	 * for indexing with logs greater than {@link LogLevel#ERROR}
-	 *
-	 * @param testItems Test item for preparing
-	 * @return Prepared list of {@link IndexTestItem} for indexing
-	 */
-	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
-		return testItems.stream()
-				.filter(ITEM_CAN_BE_INDEXED)
-				.map(it -> AnalyzerUtils.fromTestItem(it,
-						logRepository.findGreaterOrEqualLevel(Collections.singletonList(it.getId()), LogLevel.ERROR)
+	private List<IndexLaunch> prepareLaunches(List<Launch> launches, AnalyzerConfig analyzerConfig) {
+		return launches.stream()
+				.map(it -> launchPreparerService.prepare(it,
+						testItemRepository.findAllNotInIssueGroupByLaunch(it.getId(), TestItemIssueGroup.TO_INVESTIGATE),
+						analyzerConfig
 				))
-				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
-				.collect(toList());
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toList());
 	}
-
-	/**
-	 * Checks if the log is suitable for indexing in analyzer.
-	 * Log's level is greater or equal than {@link LogLevel#ERROR}
-	 *
-	 * @param log Log for check
-	 * @return true if suitable
-	 */
-	private boolean isLevelSuitable(Log log) {
-		return null != log && null != log.getLevel() && log.getLevel().isGreaterOrEqual(LogLevel.ERROR);
-	}
-
-	private void retryFailed(List<IndexRs> rs) {
-		// TODO: Retry failed items!
-		//        List<IndexRsItem> failedItems =
-		//                rs.getItems().stream().filter(i -> i.failed()).collect(Collectors.toList());
-	}
-
-	private Query getLogQuery(String checkpoint) {
-		Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC, "_id"));
-		Query query = new Query().with(sort)
-				.addCriteria(where(LOG_LEVEL).gte(LogLevel.ERROR_INT))
-				.noCursorTimeout()
-				.maxTimeMsec(MAX_TIMEOUT);
-
-		if (checkpoint != null) {
-			query.addCriteria(Criteria.where("_id").gte(new ObjectId(checkpoint)));
-		}
-		return query;
-	}
-
-	private String getLastCheckpoint(DBCollection dbCollection) {
-		DBObject checkpoint = dbCollection.findOne(new BasicDBObject("_id", CHECKPOINT_ID));
-		return checkpoint == null ? null : (String) checkpoint.get(CHECKPOINT_LOG_ID);
-	}
-
-	private void createCheckpoint(DBCollection dbCollection, String logId) {
-		BasicDBObject checkpoint = new BasicDBObject("_id", CHECKPOINT_ID).append(CHECKPOINT_LOG_ID, logId);
-		dbCollection.save(checkpoint);
-	}
-
 }
-
-

@@ -1,32 +1,31 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.util;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.google.common.base.CharMatcher;
 
+import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 /**
@@ -36,31 +35,36 @@ import java.util.function.Predicate;
  */
 public class Predicates {
 
+	/**
+	 * Checks if the test item is suitable for indexing in analyzer.
+	 */
+	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
+			&& testItem.getItemResults().getIssue() != null && !TestItemIssueGroup.TO_INVESTIGATE.equals(testItem.getItemResults()
+			.getIssue()
+			.getIssueType()
+			.getIssueGroup()
+			.getTestItemIssueGroup()) && !testItem.getItemResults().getIssue().getIgnoreAnalyzer();
+	/**
+	 * Checks if the launch is suitable for indexing in analyzer
+	 */
+	public static final Predicate<Launch> LAUNCH_CAN_BE_INDEXED = launch -> launch != null
+			&& LaunchModeEnum.DEFAULT.equals(launch.getMode());
+	/**
+	 * Checks if not system item attribute has specified key and value
+	 */
+	public static final BiPredicate<ItemAttribute, ItemAttributeResource> ITEM_ATTRIBUTE_EQUIVALENCE = (attribute, resource) -> {
+		boolean valueAndSystemEquivalence = attribute.getValue().equals(resource.getValue()) && !attribute.isSystem();
+		return Objects.isNull(attribute.getKey()) ?
+				Objects.isNull(resource.getKey()) && valueAndSystemEquivalence :
+				attribute.getKey().equals(resource.getKey()) && valueAndSystemEquivalence;
+	};
 	private static final String SPECIAL_CHARACTERS = "-/@#$%^&_+=()";
-
-	private Predicates() {
-		//statics only
-	}
-
 	/**
 	 * Checker whether string contains special characters only
 	 */
 	public static final Predicate<String> SPECIAL_CHARS_ONLY = str -> CharMatcher.anyOf(SPECIAL_CHARACTERS).matchesAllOf(str);
 
-	/**
-	 * Checkc if item is a retry
-	 */
-	public static final Predicate<TestItem> IS_RETRY = item -> item.getRetryProcessed() != null;
-
-	/**
-	 * Checks if the test item is suitable for indexing in analyzer
-	 */
-	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null && testItem.getIssue() != null
-			&& !TestItemIssueType.TO_INVESTIGATE.getLocator().equals(testItem.getIssue().getIssueType()) && !testItem.getIssue()
-			.isIgnoreAnalyzer();
-
-	/**
-	 * Checks if the launch is suitable for indexing in analyzer
-	 */
-	public static final Predicate<Launch> LAUNCH_CAN_BE_INDEXED = launch -> launch != null && Mode.DEFAULT.equals(launch.getMode());
+	private Predicates() {
+		//statics only
+	}
 }

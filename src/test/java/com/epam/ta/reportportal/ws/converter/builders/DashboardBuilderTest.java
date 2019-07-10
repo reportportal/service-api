@@ -1,64 +1,75 @@
-/*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
+import com.epam.ta.reportportal.ws.model.Position;
+import com.epam.ta.reportportal.ws.model.Size;
 import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
+import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
+import org.junit.jupiter.api.Test;
 
-import javax.inject.Provider;
+import java.util.Collections;
 
-public class DashboardBuilderTest extends BaseTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-	@Autowired
-	private Provider<DashboardBuilder> dashboardBuilderProvider;
-
-	@Autowired
-	private ApplicationContext applicationContext;
+/**
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ */
+class DashboardBuilderTest {
 
 	@Test
-	public void testNull() {
-		dashboardBuilderProvider.get().addCreateDashboardRQ(null).addWidgets(null).addProject(null).build();
+	void createDashboard() {
+		final String name = "name";
+		final String description = "description";
+		final boolean share = true;
+		final String owner = "owner";
+		final Long projectId = 1L;
+
+		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
+		createDashboardRQ.setName(name);
+		createDashboardRQ.setDescription(description);
+		createDashboardRQ.setShare(share);
+
+		final Dashboard dashboard = new DashboardBuilder().addDashboardRq(createDashboardRQ).addOwner(owner).addProject(projectId).get();
+
+		assertEquals(name, dashboard.getName());
+		assertEquals(description, dashboard.getDescription());
+		assertEquals(share, dashboard.isShared());
+		assertEquals(owner, dashboard.getOwner());
+		assertEquals(projectId, dashboard.getProject().getId());
 	}
 
 	@Test
-	public void testValues() {
-		CreateDashboardRQ rq = new CreateDashboardRQ();
-		rq.setName(BuilderTestsConstants.NAME);
-		Dashboard result = dashboardBuilderProvider.get().addCreateDashboardRQ(rq).addProject(BuilderTestsConstants.PROJECT).build();
-		Assert.assertEquals(result.getName(), rq.getName());
-		Assert.assertEquals(result.getProjectName(), BuilderTestsConstants.PROJECT);
-	}
+	void updateDashboard() {
+		final String name = "name";
+		final String description = "description";
+		final boolean share = true;
 
-	@Test
-	public void testBeanScope() {
-		Assert.assertTrue(
-				"Dashboard builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(DashboardBuilder.class)[0])
-		);
-	}
+		UpdateDashboardRQ updateDashboardRQ = new UpdateDashboardRQ();
+		updateDashboardRQ.setName(name);
+		updateDashboardRQ.setDescription(description);
+		updateDashboardRQ.setShare(share);
+		updateDashboardRQ.setWidgets(Collections.singletonList(new DashboardResource.WidgetObjectModel("kek", 1L,
+				new Size(10, 20),
+				new Position(30, 40)
+		)));
 
+		DashboardWidget dashboardWidget = new DashboardWidget();
+		dashboardWidget.setHeight(5);
+		dashboardWidget.setWidth(10);
+		dashboardWidget.setPositionX(1);
+		dashboardWidget.setPositionY(2);
+		dashboardWidget.setId(new DashboardWidgetId(1L, 1L));
+
+		final Dashboard existDashboard = new Dashboard();
+		existDashboard.addWidget(dashboardWidget);
+
+		final Dashboard dashboard = new DashboardBuilder(existDashboard).addUpdateRq(updateDashboardRQ).get();
+
+		assertEquals(name, dashboard.getName());
+		assertEquals(description, dashboard.getDescription());
+		assertEquals(share, dashboard.isShared());
+	}
 }

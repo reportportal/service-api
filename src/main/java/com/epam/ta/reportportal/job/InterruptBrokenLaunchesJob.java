@@ -1,174 +1,168 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.launch.IRetriesLaunchHandler;
-import com.epam.ta.reportportal.core.statistics.StatisticsFacadeFactory;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.project.InterruptionJobDelay;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.InterruptionJobDelay;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-
+import java.sql.Date;
 import java.time.Duration;
-import java.util.Calendar;
-import java.util.List;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.util.Predicates.IS_RETRY;
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofHours;
 
 /**
  * Finds jobs witn duration more than defined and finishes them with interrupted
- * {@link com.epam.ta.reportportal.database.entity.Status#INTERRUPTED} status
+ * {@link StatusEnum#INTERRUPTED} status
  *
  * @author Andrei Varabyeu
  */
 @Service
 public class InterruptBrokenLaunchesJob implements Job {
 
-	@Autowired
-	private LaunchRepository launchRepository;
+	private final LaunchRepository launchRepository;
+
+	private final TestItemRepository testItemRepository;
+
+	private final LogRepository logRepository;
+
+	private final ProjectRepository projectRepository;
 
 	@Autowired
-	private TestItemRepository testItemRepository;
-
-	@Autowired
-	private LogRepository logRepository;
-
-	@Autowired
-	private StatisticsFacadeFactory statisticsFacadeFactory;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private IRetriesLaunchHandler retriesLaunchHandler;
+	public InterruptBrokenLaunchesJob(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
+			ProjectRepository projectRepository) {
+		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
+		this.projectRepository = projectRepository;
+	}
 
 	@Override
-	//	@Scheduled(cron = "${com.ta.reportportal.job.interrupt.broken.launches.cron}")
+	@Transactional
 	public void execute(JobExecutionContext context) {
-		try (Stream<Project> projects = projectRepository.streamAllIdsAndConfiguration()) {
-			projects.forEach(project -> {
-				Duration maxDuration = ofHours(InterruptionJobDelay.findByName(project.getConfiguration().getInterruptJobTime())
-						.getPeriod());
-				launchRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, project.getId()).forEach(launch -> {
-					if (!launchRepository.hasItems(launch, Status.IN_PROGRESS)) {
-						/*
-						 * There are no test items for this launch. Just INTERRUPT
-						 * this launch
-						 */
-						interruptLaunch(launch);
-					} else {
-						/*
-						 * Well, there are some test items started for specified
-						 * launch
-						 */
 
-						if (!testItemRepository.hasTestItemsAddedLately(maxDuration, launch, Status.IN_PROGRESS)) {
-							List<TestItem> items = testItemRepository.findModifiedLaterAgo(maxDuration, Status.IN_PROGRESS, launch);
-
-							/*
-							 * If there are logs, we have to check whether them
-							 * expired
-							 */
-							if (testItemRepository.hasLogs(items)) {
-								boolean isLaunchBroken = true;
-								for (TestItem item : items) {
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
+				pageable
+		), projects -> projects.forEach(project -> {
+			project.getProjectAttributes()
+					.stream()
+					.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute()))
+					.findFirst()
+					.ifPresent(pa -> {
+						Duration maxDuration = ofHours(InterruptionJobDelay.findByName(pa.getValue())
+								.orElseThrow(() -> new ReportPortalException(
+										"Incorrect launch interruption delay period: " + pa.getValue()))
+								.getPeriod());
+						try (Stream<Long> ids = launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
+								StatusEnum.IN_PROGRESS,
+								TO_LOCAL_DATE_TIME.apply(Date.from(Instant.now().minusSeconds(maxDuration.getSeconds())))
+						)) {
+							ids.forEach(launchId -> {
+								if (!testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
 									/*
-									 * If there are logs which are still valid
-									 * (probably automation project keep writing
-									 * something)
+									 * There are no test items for this launch. Just INTERRUPT
+									 * this launch
 									 */
-									if (logRepository.hasLogsAddedLately(maxDuration, item)) {
-										isLaunchBroken = false;
-										break;
+									interruptLaunch(launchId);
+								} else {
+									/*
+									 * Well, there are some test items started for specified
+									 * launch
+									 */
+									if (!testItemRepository.hasItemsInStatusAddedLately(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+										/*
+										 * If there are logs, we have to check whether them
+										 * expired
+										 */
+										if (testItemRepository.hasLogs(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+											/*
+											 * If there are logs which are still valid
+											 * (probably automation project keep writing
+											 * something)
+											 */
+											if (!logRepository.hasLogsAddedLately(maxDuration, launchId, StatusEnum.IN_PROGRESS)) {
+												interruptItems(launchId);
+											}
+										} else {
+											/*
+											 * If not just INTERRUPT all found items and launch
+											 */
+											interruptItems(launchId);
+										}
 									}
 								}
-								if (isLaunchBroken) {
-									interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
-								}
-							} else {
-								/*
-								 * If not just INTERRUPT all found items and launch
-								 */
-								interruptItems(testItemRepository.findInStatusItems(Status.IN_PROGRESS.name(), launch.getId()), launch);
-							}
+							});
+						} catch (Exception ex) {
+							//do nothing
 						}
-					}
-				});
-			});
-		}
+
+					});
+
+		}));
 	}
 
-	private void interruptLaunch(Launch launch) {
-		launch.setStatus(Status.INTERRUPTED);
-		launch.setEndTime(Calendar.getInstance().getTime());
-		launchRepository.save(launch);
+	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
+		return Filter.builder()
+				.withTarget(Project.class)
+				.withCondition(new FilterCondition(Condition.EQUALS,
+						false,
+						projectAttributeEnum.getAttribute(),
+						CRITERIA_PROJECT_ATTRIBUTE_NAME
+				))
+				.build();
 	}
 
-	private void interruptItems(List<TestItem> testItems, Launch launch) {
-		if (testItems.isEmpty()) {
-			return;
-		}
-		testItems.forEach(item -> interruptItem(item, launch));
-		Launch launchReloaded = launchRepository.findOne(launch.getId());
-		launchReloaded.setStatus(Status.INTERRUPTED);
-		launchReloaded.setEndTime(Calendar.getInstance().getTime());
-		retriesLaunchHandler.handleRetries(launchReloaded);
-		launchRepository.save(launchReloaded);
+	private void interruptLaunch(Long launchId) {
+		launchRepository.findById(launchId).ifPresent(launch -> {
+			launch.setStatus(StatusEnum.INTERRUPTED);
+			launch.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
+			launchRepository.save(launch);
+		});
 	}
 
-	private void interruptItem(TestItem item, Launch launch) {
-		/*
-		 * If not interrupted yet
-		 */
-		if (!Status.INTERRUPTED.equals(item.getStatus())) {
-			item.setStatus(Status.INTERRUPTED);
-			item.setEndTime(Calendar.getInstance().getTime());
-			item = testItemRepository.save(item);
+	private void interruptItems(Long launchId) {
+		testItemRepository.interruptInProgressItems(launchId);
+		launchRepository.findById(launchId).ifPresent(l -> {
+			l.setStatus(StatusEnum.INTERRUPTED);
+			l.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
+			launchRepository.save(l);
+		});
 
-			if (!item.hasChilds() && !IS_RETRY.test(item)) {
-				Project project = projectRepository.findOne(launch.getProjectRef());
-				item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-						.updateExecutionStatistics(item);
-				if (null != item.getIssue()) {
-					item = statisticsFacadeFactory.getStatisticsFacade(project.getConfiguration().getStatisticsCalculationStrategy())
-							.updateIssueStatistics(item);
-				}
-			}
-
-			if (null != item.getParent()) {
-				interruptItem(testItemRepository.findOne(item.getParent()), launch);
-			}
-		}
 	}
 }

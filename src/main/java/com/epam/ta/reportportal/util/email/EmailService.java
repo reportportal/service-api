@@ -1,35 +1,31 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.statistics.IssueCounter;
-import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
-import com.epam.ta.reportportal.database.entity.user.UserUtils;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.util.UserUtils;
+import com.epam.ta.reportportal.util.email.constant.IssueRegexConstant;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -40,12 +36,12 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -58,12 +54,11 @@ import static java.util.stream.Collectors.toMap;
  */
 public class EmailService extends JavaMailSenderImpl {
 
-	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: launch '%s' #%s finished";
+	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
 	private static final String URL_FORMAT = "%s/launches/all";
-	private static final String FILTER_TAG_FORMAT = "%s?filter.has.tags=%s";
+	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
-
 	/* Default value for FROM project notifications field */
 	private String from;
 
@@ -104,16 +99,15 @@ public class EmailService extends JavaMailSenderImpl {
 	 * @param url        ReportPortal URL
 	 * @param launch     Launch
 	 */
-	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Launch launch,
-			final Project.Configuration settings) {
-		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, launch.getName(), launch.getNumber());
+	public void sendLaunchFinishNotification(final String[] recipients, final String url, final Project project, final Launch launch) {
+		String subject = format(FINISH_LAUNCH_EMAIL_SUBJECT, project.getName().toUpperCase(), launch.getName(), launch.getNumber());
 		MimeMessagePreparator preparator = mimeMessage -> {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipients);
 			setFrom(message);
 
-			String text = mergeFinishLaunchText(url, launch, settings);
+			String text = mergeFinishLaunchText(url, launch, project.getProjectIssueTypes());
 			message.setText(text, true);
 
 			attachSocialImages(message);
@@ -122,83 +116,75 @@ public class EmailService extends JavaMailSenderImpl {
 	}
 
 	@VisibleForTesting
-	String mergeFinishLaunchText(String url, Launch launch, Project.Configuration settings) {
+	String mergeFinishLaunchText(String url, Launch launch, Set<ProjectIssueType> projectIssueTypes) {
 		Map<String, Object> email = new HashMap<>();
-			/* Email fields values */
+		/* Email fields values */
 		String basicUrl = format(URL_FORMAT, url);
 		email.put("name", launch.getName());
 		email.put("number", String.valueOf(launch.getNumber()));
 		email.put("description", launch.getDescription());
 		email.put("url", format("%s/%s", basicUrl, launch.getId()));
 
-			/* Tags with links */
-		if (!CollectionUtils.isEmpty(launch.getTags())) {
-			email.put("tags", launch.getTags()
-					.stream()
-					.collect(toMap(tag -> tag, tag -> format(FILTER_TAG_FORMAT, basicUrl, urlPathSegmentEscaper().escape(tag)))));
+		/* Tags with links */
+		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
+			email.put(
+					"attributes",
+					launch.getAttributes()
+							.stream()
+							.filter(it -> !it.isSystem())
+							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()), attribute -> format(
+									FILTER_TAG_FORMAT,
+									basicUrl,
+									urlPathSegmentEscaper().escape(attribute.getKey()),
+									urlPathSegmentEscaper().escape(attribute.getValue())
+							)))
+			);
 		}
 
-			/* Launch execution statistics */
-		email.put("total", launch.getStatistics().getExecutionCounter().getTotal().toString());
-		email.put("passed", launch.getStatistics().getExecutionCounter().getPassed().toString());
-		email.put("failed", launch.getStatistics().getExecutionCounter().getFailed().toString());
-		email.put("skipped", launch.getStatistics().getExecutionCounter().getSkipped().toString());
+		/* Launch execution statistics */
 
-			/* Launch issue statistics global counters */
-		email.put("productBugTotal", launch.getStatistics().getIssueCounter().getProductBugTotal().toString());
-		email.put("automationBugTotal", launch.getStatistics().getIssueCounter().getAutomationBugTotal().toString());
-		email.put("systemIssueTotal", launch.getStatistics().getIssueCounter().getSystemIssueTotal().toString());
-		email.put("noDefectTotal", launch.getStatistics().getIssueCounter().getNoDefectTotal().toString());
-		email.put("toInvestigateTotal", launch.getStatistics().getIssueCounter().getToInvestigateTotal().toString());
+		Map<String, Integer> statistics = launch.getStatistics()
+				.stream()
+				.filter(s -> ofNullable(s.getStatisticsField()).isPresent() && StringUtils.isNotEmpty(s.getStatisticsField().getName()))
+				.collect(Collectors.toMap(s -> s.getStatisticsField().getName(), Statistics::getCounter, (prev, curr) -> prev));
 
-			/* Launch issue statistics custom sub-types */
-		if (launch.getStatistics().getIssueCounter().getProductBug().entrySet().size() > 1) {
-			Map<StatisticSubType, String> pb = new LinkedHashMap<>();
-			launch.getStatistics().getIssueCounter().getProductBug().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
-					pb.put(settings.getByLocator(k), v.toString());
-				}
-			});
-			email.put("pbInfo", pb);
-		}
-		if (launch.getStatistics().getIssueCounter().getAutomationBug().entrySet().size() > 1) {
-			Map<StatisticSubType, String> ab = new LinkedHashMap<>();
-			launch.getStatistics().getIssueCounter().getAutomationBug().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
-					ab.put(settings.getByLocator(k), v.toString());
-				}
-			});
-			email.put("abInfo", ab);
-		}
-		if (launch.getStatistics().getIssueCounter().getSystemIssue().entrySet().size() > 1) {
-			Map<StatisticSubType, String> si = new LinkedHashMap<>();
-			launch.getStatistics().getIssueCounter().getSystemIssue().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
-					si.put(settings.getByLocator(k), v.toString());
-				}
-			});
-			email.put("siInfo", si);
-		}
-		if (launch.getStatistics().getIssueCounter().getNoDefect().entrySet().size() > 1) {
-			Map<StatisticSubType, String> nd = new LinkedHashMap<>();
-			launch.getStatistics().getIssueCounter().getNoDefect().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
-					nd.put(settings.getByLocator(k), v.toString());
-				}
-			});
-			email.put("ndInfo", nd);
-		}
-		if (launch.getStatistics().getIssueCounter().getToInvestigate().entrySet().size() > 1) {
-			Map<StatisticSubType, String> ti = new LinkedHashMap<>();
-			launch.getStatistics().getIssueCounter().getToInvestigate().forEach((k, v) -> {
-				if (!k.equalsIgnoreCase(IssueCounter.GROUP_TOTAL)) {
-					ti.put(settings.getByLocator(k), v.toString());
-				}
-			});
-			email.put("tiInfo", ti);
-		}
+		email.put("total", ofNullable(statistics.get(EXECUTIONS_TOTAL)).orElse(0));
+		email.put("passed", ofNullable(statistics.get(EXECUTIONS_PASSED)).orElse(0));
+		email.put("failed", ofNullable(statistics.get(EXECUTIONS_FAILED)).orElse(0));
+		email.put("skipped", ofNullable(statistics.get(EXECUTIONS_SKIPPED)).orElse(0));
+
+		/* Launch issue statistics global counters */
+		email.put("productBugTotal", ofNullable(statistics.get(DEFECTS_PRODUCT_BUG_TOTAL)).orElse(0));
+		email.put("automationBugTotal", ofNullable(statistics.get(DEFECTS_AUTOMATION_BUG_TOTAL)).orElse(0));
+		email.put("systemIssueTotal", ofNullable(statistics.get(DEFECTS_SYSTEM_ISSUE_TOTAL)).orElse(0));
+		email.put("noDefectTotal", ofNullable(statistics.get(DEFECTS_NO_DEFECT_TOTAL)).orElse(0));
+		email.put("toInvestigateTotal", ofNullable(statistics.get(DEFECTS_TO_INVESTIGATE_TOTAL)).orElse(0));
+
+		Map<String, String> locatorsMapping = projectIssueTypes.stream()
+				.collect(toMap(it -> it.getIssueType().getLocator(), it -> it.getIssueType().getLongName()));
+
+		/* Launch issue statistics custom sub-types */
+		fillEmail(email, "pbInfo", statistics, locatorsMapping, IssueRegexConstant.PRODUCT_BUG_ISSUE_REGEX);
+		fillEmail(email, "abInfo", statistics, locatorsMapping, IssueRegexConstant.AUTOMATION_BUG_ISSUE_REGEX);
+		fillEmail(email, "siInfo", statistics, locatorsMapping, IssueRegexConstant.SYSTEM_ISSUE_REGEX);
+		fillEmail(email, "ndInfo", statistics, locatorsMapping, IssueRegexConstant.NO_DEFECT_ISSUE_REGEX);
+		fillEmail(email, "tiInfo", statistics, locatorsMapping, IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX);
 
 		return templateEngine.merge("finish-launch-template.ftl", email);
+	}
+
+	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics,
+			Map<String, String> locatorsMapping, String regex) {
+		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
+			Pattern pattern = Pattern.compile(regex);
+			return pattern.matcher(entry.getKey()).matches();
+		}).collect(Collectors.toMap(
+				entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
+				entry -> ofNullable(entry.getValue()).orElse(0),
+				(prev, curr) -> prev
+		)));
+
+		pb.ifPresent(stats -> email.put(statisticsName, stats));
 	}
 
 	/**
@@ -234,8 +220,8 @@ public class EmailService extends JavaMailSenderImpl {
 			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
 			message.setSubject(subject);
 			message.setTo(recipient);
-			Map<String, String> email = new HashMap<>();
-			email.put("indexedLogsCount", String.valueOf(ofNullable(indexedLogsCount).orElse(0L)));
+			Map<String, Object> email = new HashMap<>();
+			email.put("indexedLogsCount", ofNullable(indexedLogsCount).orElse(0L));
 			setFrom(message);
 			String text = templateEngine.merge("index-finished-template.ftl", email);
 			message.setText(text, true);
@@ -271,17 +257,34 @@ public class EmailService extends JavaMailSenderImpl {
 		this.send(preparator);
 	}
 
+	public void sendConnectionTestEmail(String sendTo) {
+		MimeMessagePreparator preparator = mimeMessage -> {
+			MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "utf-8");
+			message.setSubject("Email server integration creation");
+			message.setTo(sendTo);
+			setFrom(message);
+
+			Map<String, Object> data = Collections.emptyMap();
+			String text = templateEngine.merge("email-connection.ftl", data);
+			message.setText(text, true);
+			attachSocialImages(message);
+		};
+		this.send(preparator);
+	}
+
 	/**
 	 * Builds FROM field
 	 * If username is email, format will be "from \<email\>"
 	 */
 	private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-		if (!Strings.isNullOrEmpty(this.from)) {
-			if (isAddressValid(this.from)) {
+		if(StringUtils.isNotBlank(this.from)) {
+			if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
 				message.setFrom(this.from);
 			} else if (UserUtils.isEmailValid(getUsername())) {
 				message.setFrom(getUsername(), this.from);
 			}
+		} else if (UserUtils.isEmailValid(getUsername())) {
+			message.setFrom(getUsername());
 		}
 		//otherwise generate automatically
 	}

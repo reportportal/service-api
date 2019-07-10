@@ -135,7 +135,7 @@
 
 
 ## 3.2
-##### Released: Aug 29, 2017
+##### Released: Aug XXX, 2017
 
 ### New Features
 
@@ -157,7 +157,7 @@
 
 
 ## 3.3
-##### Released: Nov 03, 2017
+##### Released: XXX XX, 2017
 
 ### New Features
 

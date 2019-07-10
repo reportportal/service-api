@@ -1,139 +1,108 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.*;
-import com.epam.ta.reportportal.database.entity.project.*;
-import com.epam.ta.reportportal.database.entity.statistics.StatisticSubType;
-import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.project.ProjectConfiguration;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import com.epam.ta.reportportal.ws.model.project.config.IssueSubTypeResource;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.ws.converter.converters.ProjectSettingsConverter.TO_SUBTYPE_RESOURCE;
 import static java.util.Optional.ofNullable;
 
 /**
- * Converts internal DB model to DTO
- *
  * @author Pavel Bortnik
  */
+@Service
 public final class ProjectConverter {
-	private ProjectConverter() {
-		//static only
-	}
 
-	public static final Function<CreateProjectRQ, Project> TO_MODEL = request -> {
-		Preconditions.checkNotNull(request);
-		Project project = new Project();
-		project.setName(request.getProjectName().trim());
-		project.setCreationDate(new Date());
-		project.getConfiguration().setEntryType(EntryType.findByName(request.getEntryType()).orElse(null));
-		ofNullable(request.getCustomer()).ifPresent(project::setCustomer);
-		ofNullable(request.getAddInfo()).ifPresent(project::setAddInfo);
+	private final static String INDEXING_RUN = "analyzer.indexingRunning";
 
-		// Empty fields creation by default
-		project.getConfiguration().setExternalSystem(Lists.newArrayList());
-		project.getConfiguration().setProjectSpecific(ProjectSpecific.DEFAULT);
-		project.getConfiguration().setInterruptJobTime(InterruptionJobDelay.ONE_DAY.getValue());
-		project.getConfiguration().setKeepLogs(KeepLogsDelay.THREE_MONTHS.getValue());
-		project.getConfiguration().setKeepScreenshots(KeepScreenshotsDelay.TWO_WEEKS.getValue());
+	@Autowired
+	private AnalyzerStatusCache analyzerStatusCache;
 
-		ProjectAnalyzerConfig projectAnalyzerConfig = new ProjectAnalyzerConfig(ProjectAnalyzerConfig.MIN_DOC_FREQ,
-				ProjectAnalyzerConfig.MIN_TERM_FREQ, ProjectAnalyzerConfig.MIN_SHOULD_MATCH, ProjectAnalyzerConfig.NUMBER_OF_LOG_LINES
-		);
-		projectAnalyzerConfig.setIsAutoAnalyzerEnabled(false);
-		projectAnalyzerConfig.setAnalyzerMode(AnalyzeMode.BY_LAUNCH_NAME);
+	public Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
+		if (project == null) {
+			return null;
+		}
 
-		project.getConfiguration().setAnalyzerConfig(projectAnalyzerConfig);
-		project.getConfiguration().setStatisticsCalculationStrategy(StatisticsCalculationStrategy.STEP_BASED);
+		ProjectResource projectResource = new ProjectResource();
+		projectResource.setProjectId(project.getId());
+		projectResource.setProjectName(project.getName());
+		projectResource.setCreationDate(project.getCreationDate());
+		projectResource.setUsers(project.getUsers().stream().map(user -> {
+			ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();
+			projectUser.setLogin(user.getUser().getLogin());
+			projectUser.setProjectRole(user.getProjectRole().toString());
+			return projectUser;
+		}).collect(Collectors.toList()));
 
-		// Email settings by default
-		ProjectUtils.setDefaultEmailCofiguration(project);
-
-		// Users
-		project.setUsers(Lists.newArrayList());
-		return project;
-	};
-
-	public static final Function<Project, ProjectResource> TO_RESOURCE = db -> {
-		Preconditions.checkNotNull(db);
-		ProjectResource resource = new ProjectResource();
-		resource.setProjectId(db.getId());
-		resource.setCustomer(db.getCustomer());
-		resource.setAddInfo(db.getAddInfo());
-		resource.setCreationDate(db.getCreationDate());
-
-		List<ProjectResource.ProjectUser> users = db.getUsers().stream().map(user -> {
-			ProjectResource.ProjectUser one = new ProjectResource.ProjectUser();
-			one.setLogin(user.getLogin());
-			ofNullable(user.getProjectRole()).ifPresent(role -> one.setProjectRole(role.name()));
-			ofNullable(user.getProposedRole()).ifPresent(role -> one.setProposedRole(role.name()));
-			return one;
-		}).collect(Collectors.toList());
-		resource.setUsers(users);
-
-		ProjectConfiguration configuration = new ProjectConfiguration();
-		configuration.setEntry(db.getConfiguration().getEntryType().name());
-		configuration.setProjectSpecific(db.getConfiguration().getProjectSpecific().name());
-		configuration.setKeepLogs(db.getConfiguration().getKeepLogs());
-		configuration.setInterruptJobTime(db.getConfiguration().getInterruptJobTime());
-		configuration.setKeepScreenshots(db.getConfiguration().getKeepScreenshots());
-		configuration.setAnalyzerConfig(AnalyzerConfigConverter.TO_RESOURCE.apply(db.getConfiguration().getAnalyzerConfig()));
-		configuration.setStatisticCalculationStrategy(db.getConfiguration().getStatisticsCalculationStrategy().name());
-
-		// =============== EMAIL settings ===================
-		configuration.setEmailConfig(EmailConfigConverters.TO_RESOURCE.apply(db.getConfiguration().getEmailConfig()));
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-		// ============= External sub-types =================
-		Map<String, List<IssueSubTypeResource>> result = db.getConfiguration()
-				.getSubTypes()
-				.entrySet()
+		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
 				.stream()
-				.collect(Collectors.toMap(entry -> entry.getKey().getValue(),
-						entry -> entry.getValue().stream().map(ProjectConverter.TO_SUBTYPE_RESOURCE).collect(Collectors.toList())
+				.map(ProjectIssueType::getIssueType)
+				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+						Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
-		configuration.setSubTypes(result);
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		resource.setConfiguration(configuration);
-		return resource;
+		ProjectConfiguration projectConfiguration = new ProjectConfiguration();
+
+		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+
+		attributes.put(INDEXING_RUN,
+				String.valueOf(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
+		);
+
+		projectConfiguration.setProjectAttributes(attributes);
+
+		projectConfiguration.setPatterns(project.getPatternTemplates()
+				.stream()
+				.map(PatternTemplateConverter.TO_RESOURCE)
+				.collect(Collectors.toList()));
+
+		projectResource.setIntegrations(project.getIntegrations()
+				.stream()
+				.map(IntegrationConverter.TO_INTEGRATION_RESOURCE)
+				.collect(Collectors.toList()));
+
+		ProjectNotificationConfigDTO notificationConfig = new ProjectNotificationConfigDTO();
+		notificationConfig.setEnabled(BooleanUtils.toBoolean(attributes.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute())));
+
+		ofNullable(project.getSenderCases()).ifPresent(senderCases -> notificationConfig.setSenderCases(NotificationConfigConverter.TO_RESOURCE
+				.apply(senderCases)));
+		projectConfiguration.setProjectConfig(notificationConfig);
+
+		projectConfiguration.setSubTypes(subTypes);
+
+		projectResource.setConfiguration(projectConfiguration);
+		projectResource.setOrganization(project.getOrganization());
+		return projectResource;
 	};
 
-	static final Function<StatisticSubType, IssueSubTypeResource> TO_SUBTYPE_RESOURCE = statisticSubType -> {
-		IssueSubTypeResource issueSubTypeResource = new IssueSubTypeResource();
-		issueSubTypeResource.setLocator(statisticSubType.getLocator());
-		issueSubTypeResource.setTypeRef(statisticSubType.getTypeRef());
-		issueSubTypeResource.setLongName(statisticSubType.getLongName());
-		issueSubTypeResource.setShortName(statisticSubType.getShortName());
-		issueSubTypeResource.setColor(statisticSubType.getHexColor());
-		return issueSubTypeResource;
-	};
 }

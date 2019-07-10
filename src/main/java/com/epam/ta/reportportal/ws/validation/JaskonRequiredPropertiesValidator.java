@@ -61,7 +61,7 @@ public class JaskonRequiredPropertiesValidator implements Validator {
 
 			}
 			if (field.isAnnotationPresent(JsonProperty.class) && field.getAnnotation(JsonProperty.class).required()) {
-				String errorCode = new StringBuilder("NotNull.").append(field.getName()).toString();
+				String errorCode = "NotNull." + field.getName();
 				ValidationUtils.rejectIfEmpty(errors, field.getName(), errorCode, new Object[] { errorCode });
 			}
 		}

@@ -1,13 +1,18 @@
-spring:
-  cloud:
-    consul:
-      discovery:
-        hostname: docker.for.win.localhost
-      host: localhost
 rp:
-  mongo:
-    uri: mongodb://localhost:27017
   uat:
     serviceUrl: http://localhost:8080/uat
   analyzer:
     url: http://localhost:8080/analyzer
+  amqp:
+    host: localhost
+  db:
+    host: localhost
+  plugins:
+    path: plugins
+  datasource:
+    maximumPoolSize: 5
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug

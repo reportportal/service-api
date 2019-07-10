@@ -1,64 +1,47 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.analyzer.impl;
 
-import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
-import com.epam.ta.reportportal.database.dao.LaunchRepository;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssue;
-import com.epam.ta.reportportal.database.entity.item.issue.TestItemIssueType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.util.CloseableIterator;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.analyzer.impl.LogIndexerService.BATCH_SIZE;
+import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -66,253 +49,87 @@ import static org.mockito.Mockito.*;
  *
  * @author Ivan Sharamet
  */
-public class LogIndexerServiceTest {
+class LogIndexerServiceTest {
 
-	@Mock
-	private AnalyzerServiceClient analyzerServiceClient;
-	@Mock
-	private MongoOperations mongoOperations;
-	@Mock
-	private LaunchRepository launchRepository;
-	@Mock
-	private TestItemRepository testItemRepository;
-	@Mock
-	private LogRepository logRepository;
-	@Mock
-	private ProjectRepository projectRepository;
+	private IndexerServiceClient indexerServiceClient = mock(IndexerServiceClient.class);
 
-	@InjectMocks
-	private LogIndexerService logIndexerService;
+	private LaunchRepository launchRepository = mock(LaunchRepository.class);
 
-	@Before
-	public void setup() {
-		RetryTemplate retrier = new RetryTemplate();
-		TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-		timeoutRetryPolicy.setTimeout(TimeUnit.SECONDS.toMillis(2L));
-		retrier.setRetryPolicy(timeoutRetryPolicy);
-		retrier.setBackOffPolicy(new FixedBackOffPolicy());
-		retrier.setThrowLastExceptionOnExhausted(true);
+	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 
-		logIndexerService = new LogIndexerService();
-		logIndexerService.setRetrier(retrier);
-		MockitoAnnotations.initMocks(this);
+	private LogRepository logRepository = mock(LogRepository.class);
+
+	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
+
+	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
+
+	private LogIndexerService logIndexerService = new LogIndexerService(launchRepository, testItemRepository,
+			indexerServiceClient, launchPreparerService,
+			analyzerStatusCache
+	);
+
+	@Test
+	void testIndexLogsWithNonExistentLaunchId() {
+		Long launchId = 1L;
+		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
+		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig())
+				.exceptionally(it -> 0L)
+				.join();
+		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
+		verifyZeroInteractions(logRepository);
+		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	@Test
-	public void testIndexLogWithoutTestItem() {
-		Log log = createLog("1");
-		when(testItemRepository.findOne(anyString())).thenReturn(null);
-		logIndexerService.indexLog(log);
-		verify(testItemRepository).findOne(eq(log.getTestItemRef()));
-		verifyZeroInteractions(mongoOperations, launchRepository, logRepository, analyzerServiceClient);
+	void testIndexLogsWithoutTestItems() {
+		Long launchId = 2L;
+		when(launchRepository.findById(launchId)).thenReturn(Optional.of(createLaunch(launchId)));
+		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
+		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
+		verifyZeroInteractions(logRepository);
+		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
 	}
 
-	@Test
-	public void testIndexLogWithoutLaunch() {
-		Log log = createLog("2");
-		TestItem ti = createTestItem("2");
-		when(testItemRepository.findOne(eq(log.getTestItemRef()))).thenReturn(ti);
-		when(launchRepository.findOne(eq(ti.getLaunchRef()))).thenReturn(null);
-		logIndexerService.indexLog(log);
-		verify(testItemRepository).findOne(eq(log.getTestItemRef()));
-		verify(launchRepository).findOne(eq(ti.getLaunchRef()));
-		verifyZeroInteractions(mongoOperations, logRepository, analyzerServiceClient);
+	private AnalyzerConfig analyzerConfig() {
+		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
+		analyzerConfig.setAnalyzerMode(ALL_LAUNCHES.getValue());
+		return analyzerConfig;
 	}
 
-	@Test
-	public void testIndexLog() {
-		Log log = createLog("3");
-		TestItem ti = createTestItem("3");
-		Launch launch = createLaunch("3");
-		when(testItemRepository.findOne(eq(log.getTestItemRef()))).thenReturn(ti);
-		when(launchRepository.findOne(eq(ti.getLaunchRef()))).thenReturn(launch);
-		logIndexerService.indexLog(log);
-		verify(testItemRepository).findOne(eq(log.getTestItemRef()));
-		verify(launchRepository).findOne(eq(ti.getLaunchRef()));
-		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
-		verifyZeroInteractions(mongoOperations, logRepository);
-	}
-
-	@Test
-	public void testIndexLogsWithNonExistentLaunchId() {
-		String launchId = "1";
-		when(launchRepository.findOne(eq(launchId))).thenReturn(null);
-		logIndexerService.indexLogs(launchId, createTestItems(1));
-		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
-	}
-
-	@Test
-	public void testIndexLogsWithoutTestItems() {
-		String launchId = "2";
-		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		logIndexerService.indexLogs(launchId, Collections.emptyList());
-		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
-	}
-
-	@Test
-	public void testIndexLogsTestItemsWithoutLogs() {
-		String launchId = "3";
-		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(Collections.emptyList());
-		int testItemCount = 10;
-		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
-		verifyZeroInteractions(mongoOperations, analyzerServiceClient);
-	}
-
-	@Test
-	public void testIndexLogs() {
-		String launchId = "4";
-		Launch launch = createLaunch(launchId);
-		when(launchRepository.findOne(eq(launchId))).thenReturn(launch);
-		when(logRepository.findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR))).thenReturn(
-				Collections.singletonList(createLog("id")));
-		int testItemCount = 2;
-		when(projectRepository.findOne(launch.getProjectRef())).thenReturn(new Project());
-		when(analyzerServiceClient.index(anyListOf(IndexLaunch.class))).thenReturn(Collections.singletonList(createIndexRs(testItemCount)));
-		logIndexerService.indexLogs(launchId, createTestItems(testItemCount));
-		verify(logRepository, times(testItemCount)).findGreaterOrEqualLevel(anyListOf(String.class), eq(LogLevel.ERROR));
-		verify(analyzerServiceClient).index(anyListOf(IndexLaunch.class));
-		verifyZeroInteractions(mongoOperations);
-	}
-
-	@Test
-	public void testIndexWithIgnoreFlag() {
-		String launchId = "5";
-		TestItem testItem = createTestItem("id");
-		TestItemIssue issue = testItem.getIssue();
-		issue.setIgnoreAnalyzer(true);
-		when(launchRepository.findOne(eq(launchId))).thenReturn(createLaunch(launchId));
-		logIndexerService.indexLogs(launchId, Collections.singletonList(testItem));
-		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
-	}
-
-	@Test
-
-	public void testIndexInDebug() {
-		String launchId = "6";
-		Launch launch = createLaunch(launchId);
-		launch.setMode(Mode.DEBUG);
-		when(launchRepository.findOne(eq(launchId))).thenReturn(launch);
-		logIndexerService.indexLogs(launchId, Collections.emptyList());
-		verifyZeroInteractions(mongoOperations, testItemRepository, logRepository, analyzerServiceClient);
-	}
-
-	@Test(expected = ReportPortalException.class)
-	public void testIndexAllLogsNegative() {
-		DBCollection checkpointColl = mock(DBCollection.class);
-		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
-		when(analyzerServiceClient.hasClients()).thenReturn(false);
-		logIndexerService.indexAllLogs();
-		verify(analyzerServiceClient, times(1)).hasClients();
-		verifyZeroInteractions(testItemRepository, launchRepository, logRepository);
-	}
-
-	@Test
-	public void testIndexAllLogsWithoutLogs() {
-		DBCollection checkpointColl = mock(DBCollection.class);
-		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
-		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
-		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(0));
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		logIndexerService.indexAllLogs();
-		verifyZeroInteractions(launchRepository, testItemRepository);
-		verify(analyzerServiceClient, times(0)).index(any());
-		verify(analyzerServiceClient, times(1)).hasClients();
-	}
-
-	@Test
-	public void testIndexAllLogsWithoutLaunches() {
-		DBCollection checkpointColl = mock(DBCollection.class);
-		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
-		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
-		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(0));
-		when(launchRepository.findOne(anyString())).thenReturn(null);
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		logIndexerService.indexAllLogs();
-		verifyZeroInteractions(testItemRepository);
-		verify(analyzerServiceClient, times(0)).index(any());
-		verify(analyzerServiceClient, times(1)).hasClients();
-	}
-
-	@Test
-	public void testIndexAllLogsWithoutTestItems() {
-		DBCollection checkpointColl = mock(DBCollection.class);
-		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
-		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
-		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(0));
-		when(launchRepository.findOne(anyString())).thenReturn(createLaunch("launchId"));
-		when(testItemRepository.findOne(anyString())).thenReturn(createTestItem("testItemId"));
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		logIndexerService.indexAllLogs();
-		verify(analyzerServiceClient, times(1)).hasClients();
-		verify(analyzerServiceClient, times(0)).index(any());
-	}
-
-	@Test
-	public void testIndexAllLogs() {
-		DBCollection checkpointColl = mock(DBCollection.class);
-		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
-		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
-		int batchCount = 5;
-		int logCount = batchCount * BATCH_SIZE;
-		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(logCount));
-		when(launchRepository.findOne(anyString())).thenReturn(createLaunch("launchId"));
-		when(testItemRepository.findOne(anyString())).thenReturn(createTestItem("testItemId"));
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		logIndexerService.indexAllLogs();
-		verify(checkpointColl, times(batchCount)).save(any(DBObject.class));
-		verify(analyzerServiceClient, times(batchCount)).index(anyListOf(IndexLaunch.class));
-	}
-
-	@Test
-	public void testIndexTIItems() {
-		DBCollection checkpointColl = mock(DBCollection.class);
-		when(mongoOperations.getCollection(eq("logIndexingCheckpoint"))).thenReturn(checkpointColl);
-		when(checkpointColl.findOne(any(Query.class))).thenReturn(null);
-		when(mongoOperations.stream(any(Query.class), eq(Log.class))).thenReturn(createLogIterator(5));
-		when(testItemRepository.findOne(anyString())).thenReturn(createToInvestigateItem("testItemId"));
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		logIndexerService.indexAllLogs();
-		verify(checkpointColl, times(0)).save(any(DBObject.class));
-		verify(analyzerServiceClient, times(0)).index(anyListOf(IndexLaunch.class));
-	}
-
-	private Launch createLaunch(String id) {
+	private Launch createLaunch(Long id) {
 		Launch l = new Launch();
 		l.setId(id);
+		l.setMode(LaunchModeEnum.DEFAULT);
 		l.setName("launch" + id);
 		return l;
 	}
 
-	private TestItem createTestItem(String id) {
+	private TestItem createTestItem(Long id, TestItemIssueGroup issueGroup) {
 		TestItem ti = new TestItem();
-		ti.setId(id);
-		ti.setLaunchRef("launch" + id);
-		ti.setIssue(new TestItemIssue(TestItemIssueType.PRODUCT_BUG.getLocator(), null));
+		ti.setItemId(id);
+		ti.setLaunch(new Launch(id));
+		ti.setItemResults(new TestItemResults());
+		IssueType issueType = new IssueType();
+		issueType.setLocator(issueGroup.getLocator());
+		IssueEntity issueEntity = new IssueEntity();
+		issueEntity.setIssueType(issueType);
+		issueEntity.setIgnoreAnalyzer(false);
+		ti.getItemResults().setIssue(issueEntity);
 		return ti;
 	}
 
-	private TestItem createToInvestigateItem(String id) {
-		TestItem ti = new TestItem();
-		ti.setId(id);
-		ti.setLaunchRef("launch" + id);
-		ti.setIssue(new TestItemIssue());
-		return ti;
-	}
-
-	private Log createLog(String id) {
+	private Log createLog(Long id) {
 		Log l = new Log();
 		l.setId(id);
-		l.setTestItemRef("testItem" + id);
-		l.setLevel(LogLevel.ERROR);
+		l.setTestItem(new TestItem(id));
+		l.setLogLevel(LogLevel.ERROR.toInt());
 		return l;
 	}
 
-	private List<TestItem> createTestItems(int count) {
+	private List<TestItem> createTestItems(int count, TestItemIssueGroup issueGroup) {
 		List<TestItem> testItems = new ArrayList<>(count);
 		for (int i = 0; i < count; i++) {
-			testItems.add(createTestItem(String.valueOf(i)));
+			testItems.add(createTestItem((long) i, issueGroup));
 		}
 		return testItems;
 	}
@@ -329,33 +146,6 @@ public class LogIndexerServiceTest {
 		}
 		rs.setItems(rsItems);
 		return rs;
-	}
-
-	private CloseableIterator<Log> createLogIterator(int count) {
-		return new CloseableIterator<Log>() {
-			private int i = count;
-
-			@Override
-			public void close() {
-
-			}
-
-			@Override
-			public boolean hasNext() {
-				return i > 0;
-			}
-
-			@Override
-			public Log next() {
-				i--;
-				Log l = new Log();
-				String id = String.valueOf(count - i);
-				l.setId(id);
-				l.setLevel(LogLevel.ERROR);
-				l.setTestItemRef("testItem" + id);
-				return l;
-			}
-		};
 	}
 
 }

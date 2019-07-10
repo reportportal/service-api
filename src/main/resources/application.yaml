@@ -1,95 +1,92 @@
-rp:
-  upload:
-    maxUploadSize: 128MB
-    maxFileSize: 64MB
-  analytics:
-    enableByDefault: true
+info:
+  build:
+    version: ${rp.api.version:5.0}
 
 spring:
-  quartz:
-    # Use the MongoDB store
-    org.quartz.jobStore.class: com.novemberain.quartz.mongodb.MongoDBJobStore
-    # MongoDB URI (optional if 'org.quartz.jobStore.addresses' is set)
-    org.quartz.jobStore.mongoUri: ${rp.mongo.uri}
-    # comma separated list of mongodb hosts/replica set seeds (optional if 'org.quartz.jobStore.mongoUri' is set)
-    #- org.quartz.jobStore.addresses: host1,host2
-    # database name
-    org.quartz.jobStore.dbName: ${rp.mongo.dbName}
-    # Will be used to create collections like scheduler_jobs, scheduler_triggers, scheduler_calendars, scheduler_locks
-    org.quartz.jobStore.collectionPrefix: scheduler
-    # thread count setting is ignored by the MongoDB store but Quartz requires it
-    org.quartz.threadPool.threadCount: "5"
+  application:
+    name: api
+    quartz:
+      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.dataSource: dataSource
+      org.quartz.jobStore.tablePrefix: quartz.scheduler_
+      org.quartz.threadPool.threadCount: "1"
+      org.quartz.jobStore.isClustered: "true"
+      org.quartz.jobStore.clusterCheckinInterval: "180000"
+      org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+      org.quartz.scheduler.instanceName: reportportal
 
-    org.quartz.jobStore.isClustered: "true"
-    org.quartz.jobStore.clusterCheckinInterval: "180000"
-    org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
-    org.quartz.scheduler.instanceName: reportportal
+  jpa:
+    properties:
+      hibernate:
+        dialect: com.epam.ta.reportportal.store.commons.JsonbAwarePostgresDialect
+        jdbc.lob.non_contextual_creation: true
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
 
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      discovery:
-        tags:
-          - urlprefix-${server.contextPath:/}
-          - traefik.frontend.rule=PathPrefix:${server.contextPath:/}
-          - statusPageUrlPath=${server.contextPath}${management.contextPath}/info
-          - healthCheckUrlPath=${server.contextPath}${management.contextPath}/health
-        healthCheckPath: ${server.contextPath}/admin/health
-        register: true
-        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
-        health-check-critical-timeout: 120s
-      enabled: true
-  jackson:
-    deserialization:
-      FAIL_ON_UNKNOWN_PROPERTIES: false
+  rabbitmq:
+    addresses: ${rp.amqp.addresses}
 
-eureka:
-  instance:
-    hostname: ${HOSTNAME:localhost}
-    status-page-url-path: ${server.contextPath}${management.contextPath}/info
-    health-check-url-path: ${server.contextPath}${management.contextPath}/health
-  client:
-    register-with-eureka: false
-    enabled: false
 logging:
   level:
-    org.springframework.data.mongodb.core.mapping: error
-    org.springframework.context.support: warn
-    org.springframework.data.mongodb.core.index: warn
-    com.novemberain.quartz : info
+    org.hibernate: info
+    org.hibernate.stat: info
+    org.springframework.security: info
+    org.springframework.web.bind: fatal
+    root: info
 
-## Consul as service registry
----
-spring:
-  profiles: consul
-  cloud:
-    consul:
-      enabled: true
-      discovery:
-        register: true
-eureka:
-  client:
-    register-with-eureka: false
-    enabled: false
-
-## Eureka as service registry
----
-spring:
-  profiles: eureka
-  cloud:
-    consul:
-      enabled: false
-      discovery:
-        register: false
-eureka:
-  client:
-    register-with-eureka: true
-    enabled: true
----
 
 springfox:
   documentation:
     swagger:
       v2:
         path: /api-docs
+
+
+#### Custom ReportPortal Properties ######
+##########################################
+rp:
+  amqp:
+    addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
+    api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
+    host: rabbitmq
+    port: 5672
+    user: rabbitmq
+    pass: rabbitmq
+    apiport: 15672
+    apiuser: rabbitmq
+    apipass: rabbitmq
+
+  jwt:
+    signing-key: 123
+
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driverClassName: org.postgresql.Driver
+    jdbcUrl: ${rp.db.url}
+    username: ${rp.db.user}
+    password: ${rp.db.pass}
+    maximumPoolSize: 27
+
+  db:
+    url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}
+    name: reportportal
+    host: postgres
+    port: 5432
+    user: rpuser
+    pass: rppass
+
+  upload:
+    maxUploadSize: 128MB
+    maxFileSize: 64MB
+  analytics:
+    enableByDefault: true
+  plugins:
+    path: /plugins
+  binarystore:
+    master:
+      host: seaweed-master
+      port: 9333
+    # could be one of [seaweed, filesystem]
+    type: filesystem

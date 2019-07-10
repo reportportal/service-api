@@ -1,33 +1,35 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.database.entity.user.UserRole;
-import com.epam.ta.reportportal.database.search.CriteriaMap;
-import com.epam.ta.reportportal.database.search.CriteriaMapFactory;
-import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CriteriaHolder;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterTarget;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.classmate.TypeResolver;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -53,15 +55,19 @@ import springfox.documentation.spi.service.contexts.ParameterContext;
 import springfox.documentation.spring.web.paths.RelativePathProvider;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.UiConfiguration;
+import springfox.documentation.swagger.web.UiConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletContext;
-import java.security.Principal;
+import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
 import static com.google.common.collect.Lists.newArrayList;
@@ -81,6 +87,8 @@ import static springfox.documentation.spi.schema.contexts.ModelContext.inputPara
 @ComponentScan(basePackages = "com.epam.ta.reportportal.ws.controller")
 public class Swagger2Configuration {
 
+	private static final Set<String> hiddenParams = ImmutableSet.<String>builder().add(CRITERIA_PROJECT_ATTRIBUTE_NAME).build();
+
 	@Autowired
 	private ServletContext servletContext;
 
@@ -95,17 +103,22 @@ public class Swagger2Configuration {
 	@Bean
 	public Docket docket() {
 		/* For more information see default params at {@link ApiInfo} */
-		ApiInfo rpInfo = new ApiInfo("Report Portal", "Report Portal API documentation", buildVersion, "urn:tos",
-				new Contact("EPAM Systems", "http://epam.com", "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
-				"GPLv3", "https://www.gnu.org/licenses/licenses.html#GPL", Collections.emptyList()
+		ApiInfo rpInfo = new ApiInfo(
+				"Report Portal",
+				"Report Portal API documentation",
+				buildVersion,
+				null,
+				new Contact("Support", null, "Support EPMC-TST Report Portal <SupportEPMC-TSTReportPortal@epam.com>"),
+				"Apache 2.0",
+				"http://www.apache.org/licenses/LICENSE-2.0",
+				Collections.emptyList()
 		);
 
 		// @formatter:off
         Docket rpDocket = new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(Principal.class, Filter.class, Pageable.class)
+                .ignoredParameterTypes(ReportPortalUser.class, Filter.class, Queryable.class, Pageable.class, UserRole.class)
                 .pathProvider(rpPathProvider())
                 .useDefaultResponseMessages(false)
-				.ignoredParameterTypes(UserRole.class)
                 /* remove default endpoints from listing */
                 .select().apis(not(or(
                         basePackage("org.springframework.boot"),
@@ -129,7 +142,7 @@ public class Swagger2Configuration {
 
 	@Bean
 	public UiConfiguration uiConfig() {
-		return new UiConfiguration(null);
+		return UiConfigurationBuilder.builder().build();
 	}
 
 	@Component
@@ -155,60 +168,86 @@ public class Swagger2Configuration {
 
 			for (ResolvedMethodParameter methodParameter : methodParameters) {
 				ResolvedType resolvedType = methodParameter.getParameterType();
-				ParameterContext parameterContext = new ParameterContext(methodParameter, new ParameterBuilder(),
-						context.getDocumentationContext(), context.getGenericsNamingStrategy(), context
+				ParameterContext parameterContext = new ParameterContext(
+						methodParameter,
+						new ParameterBuilder(),
+						context.getDocumentationContext(),
+						context.getGenericsNamingStrategy(),
+						context
 				);
 				Function<ResolvedType, ? extends ModelReference> factory = createModelRefFactory(parameterContext);
+				ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
 
 				if (pageableType.equals(resolvedType)) {
 
 					ModelReference intModel = factory.apply(resolver.resolve(Integer.TYPE));
-					ModelReference stringModel = factory.apply(resolver.resolve(List.class, String.class));
-					//@formatter:off
 
-					parameters.add(new ParameterBuilder()
-							.parameterType("query")
+					parameters.add(new ParameterBuilder().parameterType("query")
 							.name("page.page")
 							.modelRef(intModel)
-							.description("Results page you want to retrieve (0..N)").build());
-					parameters.add(new ParameterBuilder()
-							.parameterType("query")
+							.description("Results page you want to retrieve (0..N)")
+							.build());
+					parameters.add(new ParameterBuilder().parameterType("query")
 							.name("page.size")
 							.modelRef(intModel)
-							.description("Number of records per page").build());
-					parameters.add(new ParameterBuilder()
-							.parameterType("query")
+							.description("Number of records per page")
+							.build());
+					parameters.add(new ParameterBuilder().parameterType("query")
 							.name("page.sort")
 							.modelRef(stringModel)
 							.allowMultiple(true)
-							.description("Sorting criteria in the format: property(,asc|desc). "
-									+ "Default sort order is ascending. "
+							.description("Sorting criteria in the format: property, (asc|desc). " + "Default sort order is ascending. "
 									+ "Multiple sort criteria are supported.")
 							.build());
 					context.operationBuilder().parameters(parameters);
-					//@formatter:on
 
 				} else if (filterType.equals(resolvedType)) {
 					FilterFor filterClass = methodParameter.findAnnotation(FilterFor.class).get();
-					CriteriaMap<?> criteriaMap = CriteriaMapFactory.DEFAULT_INSTANCE_SUPPLIER.get().getCriteriaMap(filterClass.value());
 
-					//@formatter:off
-					List<Parameter> params = criteriaMap.getAllowedSearchCriterias().stream()
-							.map(searchCriteria -> parameterContext
-									.parameterBuilder()
-										.parameterType("query")
-										.name("filter.eq." + searchCriteria)
-										.modelRef(factory.apply(resolver.resolve(criteriaMap.getCriteriaHolder(searchCriteria).getDataType())))
-									.description("Filters by '" + searchCriteria + "'")
-									.build())
+					List<Parameter> defaultParams = Lists.newArrayList();
+					if (filterClass.value() == TestItem.class || filterClass.value() == Launch.class) {
+						defaultParams = StatisticsHelper.defaultStatisticsFields()
+								.map(it -> buildParameters(parameterContext, factory, it))
+								.collect(Collectors.toList());
+					}
+
+					List<CriteriaHolder> criteriaList = FilterTarget.findByClass(filterClass.value()).getCriteriaHolders();
+					List<Parameter> params = criteriaList.stream()
+							.filter(ch -> !hiddenParams.contains(ch.getFilterCriteria()))
+							.map(it -> buildParameters(parameterContext, factory, it))
 							/* if type is not a collection and first letter is not capital (all known to swagger types start from lower case) */
-							.filter( p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef().getType().toCharArray()[0])))
+							.filter(p -> !(null == p.getModelRef().getItemType() && Character.isUpperCase(p.getModelRef()
+									.getType()
+									.toCharArray()[0])))
 							.collect(Collectors.toList());
-					//@formatter:on
 
+					params.addAll(defaultParams);
 					context.operationBuilder().parameters(params);
 				}
 			}
+		}
+
+		private Parameter buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
+				CriteriaHolder criteriaHolder) {
+			return parameterContext.parameterBuilder()
+					.parameterType("query")
+					.name("filter.eq." + criteriaHolder.getFilterCriteria())
+					.allowMultiple(true)
+					.modelRef(factory.apply(resolver.resolve(
+							criteriaHolder.getDataType() == Timestamp.class ? Date.class : criteriaHolder.getDataType())))
+					.description("Filters by '" + criteriaHolder.getFilterCriteria() + "'")
+					.build();
+		}
+
+		private Parameter buildParameters(ParameterContext parameterContext, Function<ResolvedType, ? extends ModelReference> factory,
+				String parameter) {
+			return parameterContext.parameterBuilder()
+					.parameterType("query")
+					.name("filter.eq." + parameter)
+					.allowMultiple(true)
+					.modelRef(factory.apply(resolver.resolve(Long.class)))
+					.description("Filters by '" + parameter + "'")
+					.build();
 		}
 
 		@Override
@@ -217,9 +256,13 @@ public class Swagger2Configuration {
 		}
 
 		private Function<ResolvedType, ? extends ModelReference> createModelRefFactory(ParameterContext context) {
-			ModelContext modelContext = inputParam(Docket.DEFAULT_GROUP_NAME,
-					context.resolvedMethodParameter().getParameterType().getErasedType(), context.getDocumentationType(),
-					context.getAlternateTypeProvider(), context.getGenericNamingStrategy(), context.getIgnorableParameterTypes()
+			ModelContext modelContext = inputParam(
+					Docket.DEFAULT_GROUP_NAME,
+					context.resolvedMethodParameter().getParameterType().getErasedType(),
+					context.getDocumentationType(),
+					context.getAlternateTypeProvider(),
+					context.getGenericNamingStrategy(),
+					context.getIgnorableParameterTypes()
 			);
 			return ResolvedTypes.modelRefFactory(modelContext, nameExtractor);
 		}
@@ -240,5 +283,4 @@ public class Swagger2Configuration {
 			return "/" + gatewayPath + super.applicationPath();
 		}
 	}
-
 }

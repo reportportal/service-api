@@ -1,0 +1,8 @@
+ignore:
+  - "**/entity/**"
+  - "**/aop/**"
+  - "**/jasper/**"
+  - "**/configs/**"
+  - "**/demodata/**"
+  - "**/exception/**"
+  - '**/analyzer/model/**'

@@ -416,9 +416,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				)
 		).verify();
 
-		expect(testItemRepository.hasChildren(item.getItemId(), item.getPath()), equalTo(FALSE),
+		expect(item.isHasChildren(),
+				equalTo(FALSE),
 				Suppliers.formattedSupplier(
-						"It is not allowed to udpate issue type for items with descendants. Test item '{}' has descendants.",
+						"It is not allowed to update issue type for items with descendants. Test item '{}' has descendants.",
 						id
 				)
 		).verify();

@@ -17,8 +17,10 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.ws.model.NestedStepResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
@@ -76,6 +78,21 @@ public final class TestItemConverter {
 		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));
+		return resource;
+	};
+
+	public static final Function<NestedStep, NestedStepResource> TO_NESTED_STEP_RESOURCE = item -> {
+		NestedStepResource resource = new NestedStepResource();
+		resource.setId(item.getId());
+		resource.setName(item.getName());
+		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
+		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getEndTime()));
+		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);
+		resource.setType(item.getType() != null ? item.getType().name() : null);
+		resource.setHasContent(item.isHasContent());
+		resource.setAttachmentsCount(item.getAttachmentsCount());
+		resource.setDuration(item.getDuration());
+
 		return resource;
 	};
 

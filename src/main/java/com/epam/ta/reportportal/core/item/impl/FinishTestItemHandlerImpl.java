@@ -177,12 +177,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-				formattedSupplier(
-						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-						testItem.getItemId()
-				)
-		);
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+				testItem.getItemId()
+		));
 	}
 
 	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, Launch launch,
@@ -288,9 +286,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void updateFinishedItem(TestItemResults testItemResults, StatusEnum actualStatus, Optional<IssueEntity> resolvedIssue,
 			TestItem testItem, ReportPortalUser user, Long projectId) {
-		if (testItemResults.getStatus() != actualStatus || resolvedIssue.isPresent()) {
 
-			deleteOldIssueIndex(resolvedIssue, actualStatus, testItem, testItemResults, projectId);
+		resolvedIssue.ifPresent(issue -> deleteOldIssueIndex(actualStatus, testItem, testItemResults, projectId));
+
+		if (testItemResults.getStatus() != actualStatus) {
 
 			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(testItemResults.getStatus()));
 			if (statusChangingStrategy.isPresent()) {
@@ -299,33 +298,29 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				testItemResults.setStatus(actualStatus);
 			}
 
-			resolvedIssue.ifPresent(issue -> {
+		}
 
-				ofNullable(testItemResults.getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+		resolvedIssue.ifPresent(issue -> {
+			updateItemIssue(testItemResults, issue);
+			if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+				eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunch().getId(), projectId));
 
-				issue.setTestItemResults(testItemResults);
-				issueEntityRepository.save(issue);
-				testItemResults.setIssue(issue);
+			}
+		});
+	}
 
-				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunch().getId(), projectId));
-
-				}
-			});
-
+	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {
+		if (actualStatus == PASSED || ITEM_CAN_BE_INDEXED.test(testItem)) {
+			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
+					logRepository.findIdsByTestItemId(testItem.getItemId())
+			));
 		}
 	}
 
-	private void deleteOldIssueIndex(Optional<IssueEntity> resolvedIssue, StatusEnum actualStatus, TestItem testItem,
-			TestItemResults testItemResults, Long projectId) {
-
-		if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-			if (resolvedIssue.isPresent() || actualStatus == PASSED) {
-				ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
-						logRepository.findIdsByTestItemId(testItem.getItemId())
-				));
-			}
-		}
-
+	private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {
+		ofNullable(testItemResults.getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+		resolvedIssue.setTestItemResults(testItemResults);
+		issueEntityRepository.save(resolvedIssue);
+		testItemResults.setIssue(resolvedIssue);
 	}
 }

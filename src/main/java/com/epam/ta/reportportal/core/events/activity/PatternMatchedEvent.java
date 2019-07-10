@@ -63,8 +63,7 @@ public class PatternMatchedEvent implements ActivityEvent {
 		launchIdField.setField(LAUNCH_ID);
 		launchIdField.setNewValue(String.valueOf(launchId));
 
-		return new ActivityBuilder().addCreatedNow()
-				.addObjectId(itemId)
+		return new ActivityBuilder().addCreatedNow().addObjectId(itemId)
 				.addObjectName(patternTemplateActivityResource.getName())
 				.addProjectId(patternTemplateActivityResource.getProjectId())
 				.addActivityEntityType(PATTERN)

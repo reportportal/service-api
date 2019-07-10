@@ -19,7 +19,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
+import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -61,7 +61,7 @@ public class XunitImportHandler extends DefaultHandler {
 	private FinishTestItemHandler finishTestItemHandler;
 
 	@Autowired
-	private ICreateLogHandler createLogHandler;
+	private CreateLogHandler createLogHandler;
 
 	//initial info
 	private ReportPortalUser.ProjectDetails projectDetails;
@@ -243,7 +243,7 @@ public class XunitImportHandler extends DefaultHandler {
 			saveLogRQ.setLevel(logLevel.name());
 			saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
 			saveLogRQ.setMessage(message.toString().trim());
-			saveLogRQ.setTestItemId(currentId);
+			saveLogRQ.setItemId(currentId);
 			createLogHandler.createLog(saveLogRQ, null, projectDetails);
 		}
 	}

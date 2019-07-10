@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class ProjectExtractor {
 
 		//dirty hack to allow everything for user with 'admin' authority
 		if (user.getUserRole().getAuthority().equals(ADMINISTRATOR.getAuthority())) {
-			Project project = projectRepository.findByName(projectName)
+			Project project = projectRepository.findByName(normalizeId(projectName))
 					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 			user.getProjectDetails()
 					.put(projectName, new ReportPortalUser.ProjectDetails(project.getId(), project.getName(), ProjectRole.PROJECT_MANAGER));

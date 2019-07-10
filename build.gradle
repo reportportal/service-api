@@ -1,40 +1,37 @@
-buildscript {
-    ext {
-        springBootVersion = '2.1.0.RELEASE'
-        springCloudVersion = 'Finchley.M9'
-    }
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven {
-            url "https://maven.eveoh.nl/content/repositories/releases"
-        }
-
-        maven { url 'https://repo.spring.io/libs-milestone' }
-
-    }
-    dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.2.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-//        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
-    }
-}
-
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 plugins {
-    id 'net.researchgate.release' version '2.4.1'
-    id "com.jfrog.bintray" version "1.7"
+    id "io.spring.dependency-management" version "1.0.7.RELEASE"
+    id "org.springframework.boot" version "2.1.5.RELEASE"
+    id "de.undercouch.download" version "3.4.3"
+    id 'net.researchgate.release' version '2.8.0'
+    id "com.jfrog.bintray" version "1.8.4"
+    id 'java'
+    id 'jacoco'
+    id "org.owasp.dependencycheck" version "5.0.0-M3.1"
+    id "org.ajoberstar.grgit" version "3.1.1"
 }
 
-apply plugin: 'java'
-apply plugin: "org.springframework.boot"
-apply plugin: "io.spring.dependency-management"
-apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
 
 sourceCompatibility = 1.8
@@ -63,9 +60,9 @@ repositories {
 
     maven { url 'https://repo.spring.io/libs-milestone' }
 
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
+//    if (!releaseMode) {
+    maven { url 'https://jitpack.io' }
+//    }
 }
 
 dependencyManagement {
@@ -93,14 +90,15 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        //compile 'com.epam.reportportal:commons-dao:4.0.0'
-        compile 'com.epam.reportportal:commons-rules:4.0.0'
-        compile 'com.epam.reportportal:commons-model:4.0.0'
-        compile 'com.epam.reportportal:commons:3.1.0'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-3'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-3'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-3'
+        compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
     } else {
-        compile 'com.github.reportportal:commons-dao:dc089b2'
-        compile 'com.github.reportportal:commons-rules:5f5751'
-        compile 'com.github.reportportal:commons-model:5aef134b'
+        compile 'com.github.reportportal:commons-dao:26239f3e'
+        compile 'com.github.reportportal:commons-rules:8a66b8d'
+        compile 'com.github.reportportal:commons-model:efc9505'
         compile('com.github.reportportal:commons:71d4aca')
         compile('com.github.reportportal:plugin-api:30f47d49')
     }
@@ -110,8 +108,8 @@ dependencies {
     compile 'com.saucelabs:saucerest:1.0.40'
 
     //move this to the plugin-api
-    compile('com.atlassian.fugue:fugue:2.6.1')
-    compile('com.atlassian.jira:jira-rest-java-client-core:4.0.0')
+    compile 'io.atlassian.fugue:fugue:4.7.2'
+    compile('com.atlassian.jira:jira-rest-java-client-core:5.1.2-2bd0a62e')
     //*****************************
 
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
@@ -180,7 +178,7 @@ dependencies {
     compile 'io.springfox:springfox-swagger2'
 
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
-    compile group: 'com.google.guava', name: 'guava', version: '25.1-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
 
     api 'org.jacoco:org.jacoco.agent:0.8.3'
 
@@ -200,9 +198,12 @@ dependencies {
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 }
 
+wrapper {
+    gradleVersion = '5.4.1'
+}
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
+release {
+    pushReleaseVersionBranch = 'master'
 }
 
 //Start section for external jacoco test report
@@ -229,44 +230,39 @@ jar.dependsOn gitInfo
 
 build.dependsOn jacocoTestReport
 
-//task resolveDependencies() {
-//    doLast {
-//        project.rootProject.allprojects.each { subProject ->
-//            subProject.buildscript.configurations.each { configuration ->
-//                if (configuration.isCanBeResolved()) configuration.resolve()
-//            }
-//            subProject.configurations.each { configuration ->
-//                if (configuration.isCanBeResolved()) configuration.resolve()
-//            }
-//        }
-//    }
-//}
-
-bootJar {
-    archiveName = "${baseName}.${extension}"
-}
-
-private static void copyFromUrl(GString localScriptPath, String scriptUrl) {
-    def file = new File(localScriptPath)
-    if (file.exists()) {
-        file.delete()
-    }
-    file.getParentFile().mkdirs()
-    file.createNewFile()
-    file << new URL(scriptUrl).openStream()
-}
+ext.src = [
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql'
+]
 
 task copyTestDatabaseScripts {
-    def initScriptPath = "${projectDir}/src/test/resources/db/migration/V001__initialize_schema.sql"
-    def initScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql"
-    copyFromUrl(initScriptPath, initScriptUrl)
+    doLast {
+        for (s in src) {
+            download {
+                src s.key
+                dest new File("${projectDir}/src/test/resources/db/migration/", s.value)
+            }
+        }
+    }
+}
 
-    def dataScriptPath = "${projectDir}/src/test/resources/db/migration/V002__default_data.sql"
-    def dataScriptUrl = "https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql"
-    copyFromUrl(dataScriptPath, dataScriptUrl)
+task removeScripts {
+    doLast {
+        for (s in src) {
+            def file = new File("${projectDir}/src/test/resources/db/migration/", s.value)
+            file.delete()
+        }
+    }
+}
+
+bootJar {
+    if (!releaseMode) {
+        getArchiveFileName().set("${baseName}.${extension}")
+    }
 }
 
 test.dependsOn copyTestDatabaseScripts
+checkCommitNeeded.dependsOn removeScripts
 
 test {
     useJUnitPlatform()

@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -44,14 +42,8 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 	AmqpTemplate amqpTemplate;
 
 	@Override
-	public Launch finishLaunch(String launchId, FinishExecutionRQ request, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
-		throw new UnsupportedOperationException("Async api unsupported operation");
-	}
-
-	@Override
 	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
+			ReportPortalUser user) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
 		amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH, request, message -> {

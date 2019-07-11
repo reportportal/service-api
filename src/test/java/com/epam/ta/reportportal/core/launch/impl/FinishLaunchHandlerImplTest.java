@@ -18,12 +18,10 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -84,16 +82,16 @@ class FinishLaunchHandlerImplTest {
 
 		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final Launch launch = handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+		FinishLaunchRS response = handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 
-		assertNotNull(launch);
-		assertNotEquals(StatusEnum.IN_PROGRESS, launch.getStatus());
+		assertNotNull(response);
 	}
 
 	@Test
 	void finishLaunchWithLink() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		finishExecutionRQ.setBaseURL("http://example.com");
 
 		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
@@ -101,9 +99,7 @@ class FinishLaunchHandlerImplTest {
 
 		final FinishLaunchRS finishLaunchRS = handler.finishLaunch("1",
 				finishExecutionRQ,
-				extractProjectDetails(rpUser, "test_project"),
-				rpUser,
-				LaunchLinkGenerator.LinkParams.of("http", "example.com", "test_project")
+				extractProjectDetails(rpUser, "test_project"), rpUser
 		);
 
 		assertNotNull(finishLaunchRS);

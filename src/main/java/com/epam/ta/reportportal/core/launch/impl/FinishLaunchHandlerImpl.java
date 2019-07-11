@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -74,7 +73,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 	}
 
 	@Override
-	public Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
@@ -96,9 +95,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
 		}
 
-		final String desc = buildDescription(launch.getDescription(), finishLaunchRQ.getDescription());
-
-		launch = new LaunchBuilder(launch).addDescription(desc)
+		launch = new LaunchBuilder(launch).addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
 				.addAttributes(finishLaunchRQ.getAttributes())
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
@@ -107,16 +104,9 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		messageBus.publishActivity(event);
 		eventPublisher.publishEvent(event);
 
-		return launch;
-	}
-
-	@Override
-	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
-		Launch launch = finishLaunch(launchId, finishLaunchRQ, projectDetails, user);
 		FinishLaunchRS response = new FinishLaunchRS();
 		response.setNumber(launch.getNumber());
-		response.setLink(generateLaunchLink(linkParams, String.valueOf(launch.getId())));
+		response.setLink(generateLaunchLink(finishLaunchRQ.getBaseURL(), projectDetails.getProjectName(), String.valueOf(launch.getId())));
 		return response;
 	}
 

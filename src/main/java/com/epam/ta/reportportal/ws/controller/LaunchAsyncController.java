@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -36,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -77,11 +77,10 @@ public class LaunchAsyncController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
+		finishLaunchRQ.setBaseURL(composeBaseUrl(request.getScheme(), request.getHeader("host")));
 		return finishLaunchMessageHandler.finishLaunch(launchId,
 				finishLaunchRQ,
-				extractProjectDetails(user, normalizeId(projectName)),
-				user,
-				LaunchLinkGenerator.LinkParams.of(request.getScheme(), request.getHeader("host"), projectName)
+				extractProjectDetails(user, normalizeId(projectName)), user
 		);
 	}
 

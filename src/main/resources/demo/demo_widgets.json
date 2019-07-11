@@ -1,232 +1,216 @@
 [
   {
-    "name": "LAUNCH STATISTICS AREA CHART",
-    "contentOptions": {
-      "type": "trends_chart",
-      "gadgetType": "statistic_trend",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "name": "LAUNCH STATISTICS AREA",
+    "widgetType": "statisticTrend",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
-        "statistics$defects$product_bug$PB001",
-        "statistics$defects$automation_bug$AB001",
-        "statistics$defects$system_issue$SI001",
-        "statistics$defects$to_investigate$TI001"
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$pb001",
+        "statistics$defects$automation_bug$ab001",
+        "statistics$defects$system_issue$si001",
+        "statistics$defects$to_investigate$ti001"
       ],
       "widgetOptions": {
-        "viewMode": [
-          "areaChartMode"
-        ]
-      },
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+        "timeline": "launch",
+        "viewMode": "area-spline",
+        "zoom": false
+      }
+    }
   },
   {
-    "name": "LAUNCH STATISTICS BAR CHART",
-    "contentOptions": {
-      "type": "trends_chart",
-      "gadgetType": "statistic_trend",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "name": "LAUNCH STATISTICS BAR",
+    "widgetType": "statisticTrend",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped"
       ],
       "widgetOptions": {
-        "viewMode": [
-          "barMode"
-        ]
-      },
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+        "timeline": "launch",
+        "viewMode": "bar",
+        "zoom": false
+      }
+    }
   },
   {
     "name": "INVESTIGATED PERCENTAGE OF LAUNCHES",
-    "contentOptions": {
-      "type": "column_chart",
-      "gadgetType": "investigated_trend",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "widgetType": "investigatedTrend",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
-        "statistics$defects$product_bug$total",
-        "statistics$defects$automation_bug$total",
-        "statistics$defects$system_issue$total",
-        "statistics$defects$no_defect$total",
-        "statistics$defects$to_investigate$total"
       ],
-      "widgetOptions": {},
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
-  },
-  {
-    "name": "OVERALL STATISTICS PANEL",
-    "contentOptions": {
-      "type": "statistics_panel",
-      "gadgetType": "overall_statistics",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
-      "contentFields": [
-        "statistics$executions$total",
-        "statistics$executions$passed",
-        "statistics$executions$failed",
-        "statistics$executions$skipped",
-        "statistics$defects$product_bug$PB001",
-        "statistics$defects$automation_bug$AB001",
-        "statistics$defects$system_issue$SI001",
-        "statistics$defects$no_defect$ND001",
-        "statistics$defects$to_investigate$TI001"
-      ],
-      "widgetOptions": {},
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+      "widgetOptions": {
+        "timeline": "launch"
+      }
+    }
   },
   {
     "name": "TEST CASES GROWTH TREND CHART",
-    "contentOptions": {
-      "type": "cases_trend_chart",
-      "gadgetType": "cases_trend",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "widgetType": "casesTrend",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
         "statistics$executions$total"
       ],
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+      "widgetOptions": {
+      }
+    }
+  },
+  {
+    "name": "OVERALL STATISTICS PANEL",
+    "widgetType": "overallStatistics",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed",
+        "statistics$executions$failed",
+        "statistics$executions$skipped",
+        "statistics$defects$product_bug$pb001",
+        "statistics$defects$automation_bug$ab001",
+        "statistics$defects$system_issue$si001",
+        "statistics$defects$to_investigate$ti001"
+      ],
+      "widgetOptions": {
+        "latest": false,
+        "viewMode": "panel"
+      }
+    }
   },
   {
     "name": "LAUNCHES DURATION CHART",
-    "contentOptions": {
-      "type": "column_chart",
-      "gadgetType": "launches_duration_chart",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "widgetType": "launchesDurationChart",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
-        "start_time",
-        "end_time",
-        "name",
-        "number",
-        "status"
       ],
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+      "widgetOptions": {
+        "latest": false
+      }
+    }
   },
   {
-    "name": "LAUNCH EXECUTION AND ISSUE STATISTICS",
-    "contentOptions": {
-      "type": "combine_pie_chart",
-      "gadgetType": "launch_statistics",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "name": "OVERALL STATISTICS DONUT",
+    "widgetType": "overallStatistics",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
         "statistics$executions$total",
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$PB001",
-        "statistics$defects$automation_bug$AB001",
-        "statistics$defects$system_issue$SI001",
-        "statistics$defects$no_defect$ND001",
-        "statistics$defects$to_investigate$TI001"
+        "statistics$defects$product_bug$pb001",
+        "statistics$defects$automation_bug$ab001",
+        "statistics$defects$system_issue$si001",
+        "statistics$defects$to_investigate$ti001"
       ],
-      "widgetOptions": {},
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+      "widgetOptions": {
+        "latest": false,
+        "viewMode": "donut"
+      }
+    }
   },
   {
     "name": "FAILED CASES TREND CHART",
-    "contentOptions": {
-      "type": "bug_trend",
-      "gadgetType": "bug_trend",
-      "metadataFields": [
-        "name",
-        "number",
-        "start_time"
-      ],
+    "widgetType": "bugTrend",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
+        "statistics$defects$to_investigate$total",
         "statistics$defects$product_bug$total",
         "statistics$defects$automation_bug$total",
         "statistics$defects$system_issue$total",
-        "statistics$defects$no_defect$total",
-        "statistics$defects$to_investigate$total"
+        "statistics$defects$no_defect$total"
       ],
-      "widgetOptions": {},
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+      "widgetOptions": {
+      }
+    }
   },
   {
     "name": "LAUNCH TABLE",
-    "contentOptions": {
-      "type": "launches_table",
-      "gadgetType": "launches_table",
+    "widgetType": "launchesTable",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 50,
       "contentFields": [
+        "name",
+        "status",
+        "startTime",
+        "endTime",
+        "lastModified",
+        "number",
+        "description",
+        "user",
+        "attributes",
         "statistics$executions$total",
         "statistics$executions$passed",
         "statistics$executions$failed",
         "statistics$executions$skipped",
-        "statistics$defects$product_bug$PB001",
-        "statistics$defects$automation_bug$AB001",
-        "statistics$defects$system_issue$SI001",
-        "statistics$defects$to_investigate$TI001",
-        "tags",
-        "user",
-        "start_time",
-        "end_time",
-        "description",
-        "name",
-        "number",
-        "last_modified",
-        "status"
+        "statistics$defects$product_bug$total",
+        "statistics$defects$automation_bug$total",
+        "statistics$defects$system_issue$total",
+        "statistics$defects$to_investigate$total"
       ],
-      "widgetOptions": {},
-      "itemsCount": 50
-    },
-    "applyingFilterId": "",
-    "projectName": "",
-    "acl": {}
+      "widgetOptions": {
+      }
+    }
+  },
+  {
+    "name": "MOST FAILED TEST CASES",
+    "widgetType": "topTestCases",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 30,
+      "contentFields": [
+        "statistics$executions$failed"
+      ],
+      "widgetOptions": {
+        "launchNameFilter": "Demo Api Tests",
+        "includeMethods": false
+      }
+    }
+  },
+  {
+    "name": "PASSING RATE SUMMARY",
+    "share": true,
+    "widgetType": "passingRateSummary",
+    "contentParameters": {
+      "itemsCount": 50,
+      "contentFields": [
+        "statistics$executions$total",
+        "statistics$executions$passed"
+      ],
+      "widgetOptions": {
+        "viewMode": "pie"
+      }
+    }
+  },
+  {
+    "name": "FLAKY TEST CASES",
+    "widgetType": "flakyTestCases",
+    "share": true,
+    "contentParameters": {
+      "itemsCount": 30,
+      "contentFields": [
+      ],
+      "widgetOptions": {
+        "launchNameFilter": "Demo Api Tests",
+        "includeMethods": false
+      }
+    }
   }
 ]

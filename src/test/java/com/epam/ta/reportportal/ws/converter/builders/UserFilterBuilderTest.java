@@ -1,91 +1,57 @@
-/*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.BaseTest;
-import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.ws.model.filter.CreateUserFilterRQ;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.entity.filter.FilterSort;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.model.filter.Order;
+import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
+import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Sort;
 
-import javax.inject.Provider;
+import java.util.Collections;
 
-public class UserFilterBuilderTest extends BaseTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-	@Autowired
-	private Provider<UserFilterBuilder> userFilterBuilderProvider;
-
-	@Autowired
-	private ApplicationContext applicationContext;
-
-	@Test
-	public void testNull() {
-		userFilterBuilderProvider.get().addCreateRQ(null).addSelectionParamaters(null).addProject(null).build();
-	}
+/**
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ */
+class UserFilterBuilderTest {
 
 	@Test
-	public void testValuesNullExtended() throws Exception {
-		CreateUserFilterRQ rq = new CreateUserFilterRQ();
-		rq.setName(BuilderTestsConstants.NAME);
-		rq.setObjectType(BuilderTestsConstants.LAUNCH);
-		UserFilter userFilter = userFilterBuilderProvider.get().addCreateRQ(rq).addProject("default_project").build();
-		UserFilter expectedValue = Utils.getUserFilter();
-		expectedValue.setFilter(null);
-		expectedValue.setProjectName("default_project");
-		expectedValue.setSelectionOptions(null);
-		validateFilters(expectedValue, userFilter);
-	}
+	void userFilterBuilder() {
+		final UpdateUserFilterRQ request = new UpdateUserFilterRQ();
+		final String name = "name";
+		request.setName(name);
+		final String objectType = "Launch";
+		request.setObjectType(objectType);
+		request.setConditions(Sets.newHashSet(new UserFilterCondition("name", "eq", "value")));
+		final Order order = new Order();
+		order.setIsAsc(false);
+		order.setSortingColumnName("column");
+		request.setOrders(Collections.singletonList(order));
+		final String description = "description";
+		request.setDescription(description);
+		final boolean share = true;
+		request.setShare(share);
+		final String owner = "owner";
+		final Long projectId = 1L;
 
-	@Test
-	public void testAllValues() throws Exception {
-		CreateUserFilterRQ rq = Utils.getUserFilterRQ();
-		validateFilters(Utils.getUserFilter(), userFilterBuilderProvider.get().addCreateRQ(rq).build());
-	}
+		final UserFilter userFilter = new UserFilterBuilder().addFilterRq(request).addOwner(owner).addProject(projectId).get();
 
-	@Test
-	public void testBeanScope() {
-		Assert.assertTrue("Complex filter builder should be prototype bean because it's not stateless",
-				applicationContext.isPrototype(applicationContext.getBeanNamesForType(UserFilterBuilder.class)[0])
-		);
+		assertEquals(name, userFilter.getName());
+		assertEquals(description, userFilter.getDescription());
+		assertEquals(share, userFilter.isShared());
+		assertEquals(owner, userFilter.getOwner());
+		assertEquals(projectId, userFilter.getProject().getId());
+		assertEquals(Launch.class, userFilter.getTargetClass().getClassObject());
+		assertThat(userFilter.getFilterCondition()).containsExactlyInAnyOrder(FilterCondition.builder().eq("name", "value").build());
+		final FilterSort filterSort = new FilterSort();
+		filterSort.setDirection(Sort.Direction.DESC);
+		filterSort.setField("column");
+		assertThat(userFilter.getFilterSorts()).containsExactlyInAnyOrder(filterSort);
 	}
-
-	private void validateFilters(UserFilter expectedValue, UserFilter actualValue) {
-		Assert.assertEquals(expectedValue.getProjectName(), actualValue.getProjectName());
-		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
-		Assert.assertEquals(expectedValue.getId(), actualValue.getId());
-		Assert.assertEquals(expectedValue.getFilter(), actualValue.getFilter());
-		if (expectedValue.getSelectionOptions() != null) {
-			Assert.assertEquals(
-					expectedValue.getSelectionOptions().getOrders().get(0).isAsc(),
-					actualValue.getSelectionOptions().getOrders().get(0).isAsc()
-			);
-			Assert.assertEquals(expectedValue.getSelectionOptions().getOrders().get(0).getSortingColumnName(),
-					actualValue.getSelectionOptions().getOrders().get(0).getSortingColumnName()
-			);
-		} else {
-			Assert.assertNull(actualValue.getSelectionOptions());
-		}
-	}
-
 }

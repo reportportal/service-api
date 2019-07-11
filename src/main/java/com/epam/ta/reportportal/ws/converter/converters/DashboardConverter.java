@@ -1,38 +1,30 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import com.google.common.base.Preconditions;
 
-import java.util.Collections;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Converts internal DB model to DTO
- *
  * @author Pavel Bortnik
  */
 public final class DashboardConverter {
@@ -41,29 +33,31 @@ public final class DashboardConverter {
 		//static only
 	}
 
+	public static final Function<Dashboard, SharedEntity> TO_SHARED_ENTITY = dashboard -> {
+		SharedEntity sharedEntity = SharedEntityConverter.TO_SHARED_ENTITY.apply(dashboard);
+		sharedEntity.setName(dashboard.getName());
+		sharedEntity.setDescription(dashboard.getDescription());
+		return sharedEntity;
+	};
+
 	public static final Function<Dashboard, DashboardResource> TO_RESOURCE = dashboard -> {
-		Preconditions.checkNotNull(dashboard);
 		DashboardResource resource = new DashboardResource();
 		resource.setDashboardId(dashboard.getId());
 		resource.setName(dashboard.getName());
 		resource.setDescription(dashboard.getDescription());
-		resource.setWidgets(Optional.ofNullable(dashboard.getWidgets())
-				.orElseGet(Collections::emptyList)
-				.stream()
-				.map(DashboardConverter.TO_WIDGET_RESOURCE)
-				.collect(Collectors.toList()));
-		Optional.ofNullable(dashboard.getAcl()).ifPresent(acl -> {
-			resource.setOwner(acl.getOwnerUserId());
-			resource.setShare(!acl.getEntries().isEmpty());
-		});
+		resource.setWidgets(dashboard.getDashboardWidgets().stream().map(WidgetConverter.TO_OBJECT_MODEL).collect(Collectors.toList()));
+		resource.setOwner(dashboard.getOwner());
+		resource.setShare(dashboard.isShared());
 		return resource;
 	};
 
-	private static final Function<Dashboard.WidgetObject, DashboardResource.WidgetObjectModel> TO_WIDGET_RESOURCE = widgetObject -> {
-		DashboardResource.WidgetObjectModel resource = new DashboardResource.WidgetObjectModel();
-		resource.setWidgetId(widgetObject.getWidgetId());
-		resource.setWidgetPosition(widgetObject.getWidgetPosition());
-		resource.setWidgetSize(widgetObject.getWidgetSize());
+	public static final Function<Dashboard, DashboardActivityResource> TO_ACTIVITY_RESOURCE = dashboard -> {
+		DashboardActivityResource resource = new DashboardActivityResource();
+		resource.setId(dashboard.getId());
+		resource.setName(dashboard.getName());
+		resource.setProjectId(dashboard.getProject().getId());
+		resource.setDescription(dashboard.getDescription());
+		resource.setShared(dashboard.isShared());
 		return resource;
 	};
 

@@ -1,43 +1,50 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Status;
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
+import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.trimStrings;
-import static com.epam.ta.reportportal.commons.EntityUtils.update;
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static java.util.Optional.ofNullable;
 
 public class LaunchBuilder implements Supplier<Launch> {
+
+	private static final int LAUNCH_DESCRIPTION_LENGTH_LIMIT = 1024;
+	private static final int DESCRIPTION_START_SYMBOL_INDEX = 0;
 
 	private Launch launch;
 
@@ -45,51 +52,86 @@ public class LaunchBuilder implements Supplier<Launch> {
 		this.launch = new Launch();
 	}
 
+	public LaunchBuilder(Launch launch) {
+		this.launch = launch;
+	}
+
 	public LaunchBuilder addStartRQ(StartLaunchRQ request) {
-		if (request != null) {
-			launch.setStartTime(Optional.ofNullable(request.getStartTime()).orElse(Date.from(Instant.now())));
-			launch.setName(request.getName().trim());
-			addDescription(request.getDescription());
-			addTags(request.getTags());
-			if (request.getMode() != null) {
-				launch.setMode(request.getMode());
-			}
-		}
+		Preconditions.checkNotNull(request, ErrorType.BAD_REQUEST_ERROR);
+		launch.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(request.getStartTime()));
+		launch.setName(request.getName().trim());
+		launch.setStatus(StatusEnum.IN_PROGRESS);
+		launch.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
+		addDescription(request.getDescription());
+		LaunchModeEnum.findByName(ofNullable(request.getMode()).map(Enum::name).orElse(LaunchModeEnum.DEFAULT.name()))
+				.ifPresent(it -> launch.setMode(it));
 		return this;
 	}
 
 	public LaunchBuilder addDescription(String description) {
-		if (!Strings.isNullOrEmpty(description)) {
-			launch.setDescription(description.trim());
+		ofNullable(description).ifPresent(it -> launch.setDescription(StringUtils.substring(it.trim(),
+				DESCRIPTION_START_SYMBOL_INDEX,
+				LAUNCH_DESCRIPTION_LENGTH_LIMIT
+		)));
+		return this;
+	}
+
+	public LaunchBuilder addUser(Long userId) {
+		User user = new User();
+		user.setId(userId);
+		launch.setUser(user);
+		return this;
+	}
+
+	public LaunchBuilder addProject(Long projectId) {
+		launch.setProjectId(projectId);
+		return this;
+	}
+
+	public LaunchBuilder addAttribute(ItemAttributeResource attributeResource) {
+		ItemAttribute itemAttribute = FROM_RESOURCE.apply(attributeResource);
+		itemAttribute.setLaunch(launch);
+		launch.getAttributes().add(itemAttribute);
+		return this;
+	}
+
+	public LaunchBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
+		ofNullable(attributes).ifPresent(it -> launch.getAttributes().addAll(it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setLaunch(launch);
+			return itemAttribute;
+		}).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public LaunchBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+		if (attributes != null) {
+			final Set<ItemAttribute> overwrittenAttributes = launch.getAttributes()
+					.stream()
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet());
+			attributes.stream().map(val -> {
+				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+				itemAttribute.setLaunch(launch);
+				return itemAttribute;
+			}).forEach(overwrittenAttributes::add);
+			launch.setAttributes(overwrittenAttributes);
 		}
 		return this;
 	}
 
-	public LaunchBuilder addTags(Set<String> tags) {
-		if (!CollectionUtils.isEmpty(tags)) {
-			Set<String> trimmedTags = Sets.newHashSet(trimStrings(update(tags)));
-			launch.setTags(trimmedTags);
-		}
+	public LaunchBuilder addMode(Mode mode) {
+		ofNullable(mode).ifPresent(it -> launch.setMode(LaunchModeEnum.valueOf(it.name())));
 		return this;
 	}
 
-	public LaunchBuilder addStatus(Status status) {
-		launch.setStatus(status);
+	public LaunchBuilder addStatus(String status) {
+		launch.setStatus(StatusEnum.fromValue(status).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FINISH_STATUS)));
 		return this;
 	}
 
-	public LaunchBuilder addUser(String userName) {
-		launch.setUserRef(userName);
-		return this;
-	}
-
-	public LaunchBuilder addProject(String projectName) {
-		launch.setProjectRef(projectName);
-		return this;
-	}
-
-	public LaunchBuilder addEndTime(Date endTime) {
-		launch.setEndTime(endTime);
+	public LaunchBuilder addEndTime(Date date) {
+		launch.setEndTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(date));
 		return this;
 	}
 

@@ -1,101 +1,165 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.database.entity.Launch;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItem;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
-import com.epam.ta.reportportal.ws.converter.converters.ParametersConverter;
+import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.item.Parameter;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
-import com.google.common.collect.Sets;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
+import org.apache.commons.collections.CollectionUtils;
 
-import java.sql.Date;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
+import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Optional.ofNullable;
 
-@Service
-@Scope("prototype")
-public class TestItemBuilder extends Builder<TestItem> {
+public class TestItemBuilder implements Supplier<TestItem> {
+
+	private TestItem testItem;
+
+	public TestItemBuilder() {
+		testItem = new TestItem();
+	}
+
+	public TestItemBuilder(TestItem testItem) {
+		this.testItem = testItem;
+	}
 
 	public TestItemBuilder addStartItemRequest(StartTestItemRQ rq) {
-		getObject().setStartTime(Optional.ofNullable(rq.getStartTime()).orElse(Date.from(Instant.now())));
-		getObject().setName(rq.getName().trim());
-		getObject().setUniqueId(rq.getUniqueId());
-		if (null != rq.getDescription()) {
-			getObject().setItemDescription(rq.getDescription().trim());
-		}
-		Set<String> tags = rq.getTags();
-		if (null != tags) {
-			tags = Sets.newHashSet(EntityUtils.trimStrings(EntityUtils.update(tags)));
-		}
-		List<ParameterResource> parameters = rq.getParameters();
-		if (null != parameters) {
-			getObject().setParameters(parameters.stream().map(ParametersConverter.TO_MODEL).collect(toList()));
-		}
-		getObject().setTags(tags);
-		TestItemType type = TestItemType.fromValue(rq.getType());
-		BusinessRule.expect(type, Predicates.notNull()).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, rq.getType());
-		getObject().setType(type);
-		return this;
-	}
 
-	public TestItemBuilder addStatus(Status status) {
-		getObject().setStatus(status);
-		return this;
-	}
+		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
+		testItem.setName(rq.getName().trim());
+		testItem.setUniqueId(rq.getUniqueId());
+		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
+		testItem.setHasStats(rq.isHasStats());
+		testItem.setLocation(rq.getLocation());
 
-	public TestItemBuilder addParent(TestItem parent) {
-		getObject().setLaunchRef(parent.getLaunchRef());
-		getObject().setParent(parent.getId());
-		return this;
-	}
+		TestItemResults testItemResults = new TestItemResults();
+		testItemResults.setStatus(StatusEnum.IN_PROGRESS);
 
-	public TestItemBuilder addPath(TestItem parent) {
-		if (parent.getPath() != null && !parent.getPath().isEmpty()) {
-			getObject().getPath().addAll(parent.getPath());
-		}
-		getObject().getPath().add(parent.getId());
+		testItemResults.setTestItem(testItem);
+		testItem.setItemResults(testItemResults);
+
+		addDescription(rq.getDescription());
+		addParameters(rq.getParameters());
+		addType(rq.getType());
 		return this;
 	}
 
 	public TestItemBuilder addLaunch(Launch launch) {
-		getObject().setLaunchRef(launch.getId());
+		testItem.setLaunch(launch);
+		return this;
+	}
+
+	public TestItemBuilder addParent(TestItem parent) {
+		testItem.setParent(parent);
+		return this;
+	}
+
+	public TestItemBuilder addType(String typeValue) {
+		Optional<TestItemTypeEnum> type = TestItemTypeEnum.fromValue(typeValue);
+		BusinessRule.expect(type, Optional::isPresent).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
+		testItem.setType(type.get());
+		return this;
+	}
+
+	public TestItemBuilder addDescription(String description) {
+		ofNullable(description).ifPresent(it -> testItem.setDescription(it.trim()));
+		return this;
+	}
+
+	public TestItemBuilder addStatus(StatusEnum statusEnum) {
+		testItem.getItemResults().setStatus(statusEnum);
+		return this;
+	}
+
+	public TestItemBuilder addAttributes(Set<ItemAttributesRQ> attributes) {
+		ofNullable(attributes).ifPresent(it -> testItem.getAttributes().addAll(it.stream().map(val -> {
+			ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+			itemAttribute.setTestItem(testItem);
+			return itemAttribute;
+		}).collect(Collectors.toSet())));
+		return this;
+	}
+
+	public TestItemBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+		if (attributes != null) {
+			final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
+					.stream()
+					.filter(ItemAttribute::isSystem)
+					.collect(Collectors.toSet());
+			attributes.stream().map(val -> {
+				ItemAttribute itemAttribute = FROM_RESOURCE.apply(val);
+				itemAttribute.setTestItem(testItem);
+				return itemAttribute;
+			}).forEach(overwrittenAttributes::add);
+			testItem.setAttributes(overwrittenAttributes);
+		}
+		return this;
+	}
+
+	public TestItemBuilder addTestItemResults(TestItemResults testItemResults) {
+		checkNotNull(testItemResults, "Provided value shouldn't be null");
+		testItem.setItemResults(testItemResults);
+		addDuration(testItemResults.getEndTime());
+		return this;
+	}
+
+	public TestItemBuilder addDuration(LocalDateTime endTime) {
+		checkNotNull(endTime, "Provided value shouldn't be null");
+		checkNotNull(testItem.getItemResults(), "Test item results shouldn't be null");
+
+		//converts to seconds
+		testItem.getItemResults().setDuration(ChronoUnit.MILLIS.between(testItem.getStartTime(), endTime) / 1000d);
+		return this;
+	}
+
+	public TestItemBuilder addParameters(List<ParameterResource> parameters) {
+		if (!CollectionUtils.isEmpty(parameters)) {
+			testItem.setParameters(parameters.stream().map(it -> {
+				Parameter parameter = new Parameter();
+				parameter.setKey(it.getKey());
+				parameter.setValue(it.getValue());
+				return parameter;
+			}).collect(Collectors.toSet()));
+		}
 		return this;
 	}
 
 	@Override
-	protected TestItem initObject() {
-		return new TestItem();
+	public TestItem get() {
+		return this.testItem;
 	}
 }

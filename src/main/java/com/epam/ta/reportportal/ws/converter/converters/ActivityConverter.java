@@ -1,40 +1,32 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.item.Activity;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.google.common.base.Preconditions;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static java.util.Optional.ofNullable;
 
 /**
- * Converts internal DB model to DTO
- *
- * @author Pavel Bortnik
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public final class ActivityConverter {
 
@@ -42,33 +34,22 @@ public final class ActivityConverter {
 		//static only
 	}
 
-	public final static Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
-		Preconditions.checkNotNull(activity);
+	public static final Function<Activity, ActivityResource> TO_RESOURCE = activity -> {
 		ActivityResource resource = new ActivityResource();
-		resource.setUserRef(activity.getUserRef());
-		resource.setProjectRef(activity.getProjectRef());
-		resource.setActivityId(activity.getId());
-		resource.setLoggedObjectRef(activity.getLoggedObjectRef());
-		resource.setLastModifiedDate(activity.getLastModified());
-		resource.setObjectType(activity.getObjectType().getValue());
-		resource.setActionType(activity.getActionType().getValue());
-		resource.setObjectName(activity.getName());
-		List<ActivityResource.FieldValues> history = Optional.ofNullable(activity.getHistory())
-				.orElseGet(Collections::emptyList)
-				.stream()
-				.map(ActivityConverter.TO_FIELD_RESOURCE)
-				.collect(Collectors.toList());
-		resource.setHistory(history);
+		resource.setId(activity.getId());
+		resource.setLastModified(TO_DATE.apply(activity.getCreatedAt()));
+		resource.setObjectType(activity.getActivityEntityType());
+		resource.setActionType(activity.getAction());
+		resource.setProjectId(activity.getProjectId());
+		resource.setUser(activity.getUsername());
+		ofNullable(activity.getObjectId()).ifPresent(resource::setLoggedObjectId);
+		resource.setDetails(activity.getDetails());
 		return resource;
-
 	};
 
-	private static final Function<Activity.FieldValues, ActivityResource.FieldValues> TO_FIELD_RESOURCE = db -> {
-		ActivityResource.FieldValues fieldValues = new ActivityResource.FieldValues();
-		fieldValues.setField(db.getField());
-		fieldValues.setOldValue(db.getOldValue());
-		fieldValues.setNewValue(db.getNewValue());
-		return fieldValues;
+	public static final BiFunction<Activity, String, ActivityResource> TO_RESOURCE_WITH_USER = (activity, username) -> {
+		ActivityResource resource = TO_RESOURCE.apply(activity);
+		resource.setUser(username);
+		return resource;
 	};
-
 }

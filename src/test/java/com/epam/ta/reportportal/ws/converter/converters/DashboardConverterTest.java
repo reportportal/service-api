@@ -1,90 +1,98 @@
-/*
- * Copyright 2017 EPAM Systems
- *
- *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.Dashboard;
-import com.epam.ta.reportportal.ws.converter.builders.BuilderTestsConstants;
-import com.epam.ta.reportportal.ws.converter.builders.Utils;
+import com.epam.ta.reportportal.entity.dashboard.Dashboard;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
+import com.epam.ta.reportportal.entity.dashboard.DashboardWidgetId;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.activity.DashboardActivityResource;
 import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource;
-import com.epam.ta.reportportal.ws.model.dashboard.DashboardResource.WidgetObjectModel;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * @author Pavel_Bortnik
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class DashboardConverterTest {
+class DashboardConverterTest {
 
-	@Test(expected = NullPointerException.class)
-	public void testNull() {
-		DashboardConverter.TO_RESOURCE.apply(null);
+	@Test
+	void toResourceNullTest() {
+		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_RESOURCE.apply(null));
 	}
 
 	@Test
-	public void testNullExtended() {
-		Dashboard dashboard = Utils.getDashboard();
-		dashboard.setWidgets(null);
-		dashboard.setId(BuilderTestsConstants.BINARY_DATA_ID);
-		DashboardResource actualValue = DashboardConverter.TO_RESOURCE.apply(dashboard);
-		validate(Utils.getDashboardResource(), actualValue);
+	void toActivityResourceNullTest() {
+		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_ACTIVITY_RESOURCE.apply(null));
 	}
 
 	@Test
-	public void testValues() {
-		Dashboard dashboard = Utils.getDashboard();
-		dashboard.setId(BuilderTestsConstants.BINARY_DATA_ID);
-		DashboardResource actualValue = DashboardConverter.TO_RESOURCE.apply(dashboard);
-		List<WidgetObjectModel> actualWidgets = new LinkedList<>();
-		List<Integer> size = new ArrayList<>();
-		size.add(500);
-		size.add(300);
-		List<Integer> position = new ArrayList<>();
-		position.add(0);
-		position.add(0);
-		WidgetObjectModel actualWidget = new WidgetObjectModel("12345678", size, position);
-		actualWidgets.add(actualWidget);
-		actualValue.setWidgets(actualWidgets);
-
-		DashboardResource expectedValue = Utils.getDashboardResource();
-		List<WidgetObjectModel> widgets = new LinkedList<>();
-		WidgetObjectModel widget = new WidgetObjectModel("12345678", size, position);
-		widgets.add(widget);
-		expectedValue.setWidgets(widgets);
-		validate(expectedValue, actualValue);
+	void toSharedEntityNullTest() {
+		assertThrows(NullPointerException.class, () -> DashboardConverter.TO_SHARED_ENTITY.apply(null));
 	}
 
-	private void validate(DashboardResource expectedValue, DashboardResource actualValue) {
-		Assert.assertEquals(expectedValue.getDashboardId(), actualValue.getDashboardId());
-		Assert.assertEquals(expectedValue.getName(), actualValue.getName());
-		if (null != expectedValue.getWidgets() && !expectedValue.getWidgets().isEmpty()) {
-			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetId(), actualValue.getWidgets().get(0).getWidgetId());
-			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetPosition(), actualValue.getWidgets().get(0).getWidgetPosition());
-			Assert.assertEquals(expectedValue.getWidgets().get(0).getWidgetSize(), actualValue.getWidgets().get(0).getWidgetSize());
-		} else {
-			Assert.assertEquals(expectedValue.getWidgets(), actualValue.getWidgets());
-		}
+	@Test
+	void toSharedEntity() {
+		final Dashboard dashboard = getDashboard();
+		final SharedEntity sharedEntity = DashboardConverter.TO_SHARED_ENTITY.apply(dashboard);
+
+		assertEquals(sharedEntity.getId(), String.valueOf(dashboard.getId()));
+		assertEquals(sharedEntity.getName(), dashboard.getName());
+		assertEquals(sharedEntity.getDescription(), dashboard.getDescription());
+		assertEquals(sharedEntity.getOwner(), dashboard.getOwner());
+	}
+
+	@Test
+	void toActivityResource() {
+		final Dashboard dashboard = getDashboard();
+		final DashboardActivityResource activityResource = DashboardConverter.TO_ACTIVITY_RESOURCE.apply(dashboard);
+
+		assertEquals(activityResource.getId(), dashboard.getId());
+		assertEquals(activityResource.getName(), dashboard.getName());
+		assertEquals(activityResource.getDescription(), dashboard.getDescription());
+		assertEquals(activityResource.getProjectId(), dashboard.getProject().getId());
+		assertEquals(activityResource.isShared(), dashboard.isShared());
+	}
+
+	@Test
+	void toResource() {
+		final Dashboard dashboard = getDashboard();
+		final DashboardResource resource = DashboardConverter.TO_RESOURCE.apply(dashboard);
+
+		assertEquals(resource.getDashboardId(), dashboard.getId());
+		assertEquals(resource.getName(), dashboard.getName());
+		assertEquals(resource.getDescription(), dashboard.getDescription());
+		assertEquals(resource.getOwner(), dashboard.getOwner());
+		assertEquals(resource.isShare(), dashboard.isShared());
+		assertEquals(resource.getWidgets().size(), dashboard.getDashboardWidgets().size());
+	}
+
+	private static Dashboard getDashboard() {
+		Dashboard dashboard = new Dashboard();
+		dashboard.setId(1L);
+		dashboard.setName("name");
+		dashboard.setDescription("description");
+		dashboard.setCreationDate(LocalDateTime.now());
+		dashboard.setOwner("owner");
+		final Project project = new Project();
+		project.setId(2L);
+		dashboard.setProject(project);
+		dashboard.setShared(true);
+		final DashboardWidget dashboardWidget = new DashboardWidget();
+		dashboardWidget.setId(new DashboardWidgetId(1L, 3L));
+		dashboardWidget.setPositionY(2);
+		dashboardWidget.setPositionX(3);
+		dashboardWidget.setWidth(5);
+		dashboardWidget.setHeight(6);
+		dashboardWidget.setWidgetName("widgetName");
+		dashboardWidget.setDashboard(dashboard);
+		final Widget widget = new Widget();
+		dashboardWidget.setWidget(widget);
+		dashboard.addWidget(dashboardWidget);
+		return dashboard;
 	}
 }

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dataset>
-    <Role idRole="0" roleName="USER" permissions="access000"/>
-    <Role idRole="1" roleName="ADMINISTRATOR" permissions="Random Access"/>
-    <Role idRole="2" roleName="ADMINISTRATOR" permissions="new_permissions"/>
-</dataset>

@@ -1,29 +1,22 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.job.CleanLogsJob;
-import com.epam.ta.reportportal.job.CleanScreenshotsJob;
-import com.epam.ta.reportportal.job.FlushingDataJob;
-import com.epam.ta.reportportal.job.InterruptBrokenLaunchesJob;
+import com.epam.ta.reportportal.job.*;
+import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
@@ -34,19 +27,21 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.quartz.*;
 
 import javax.inject.Named;
+import javax.sql.DataSource;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 
 @Configuration
-@Profile("!jobs-disabled")
-@EnableConfigurationProperties(SchedulerConfiguration.QuartzProperties.class)
+@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
+		SchedulerConfiguration.CleanLaunchesJobProperties.class })
+@Conditional(Conditions.NotTestCondition.class)
 public class SchedulerConfiguration {
 
 	@Autowired
@@ -58,6 +53,9 @@ public class SchedulerConfiguration {
 	@Autowired
 	private AutowireCapableBeanFactory context;
 
+	@Autowired
+	private DataSource dataSource;
+
 	@Bean
 	@Primary
 	public SchedulerFactoryBean schedulerFactoryBean() {
@@ -65,9 +63,9 @@ public class SchedulerConfiguration {
 		scheduler.setApplicationContextSchedulerContextKey("applicationContext");
 
 		scheduler.setQuartzProperties(quartzProperties.getQuartz());
+		scheduler.setDataSource(dataSource);
 		scheduler.setAutoStartup(true);  // to not automatically start after startup
 		scheduler.setWaitForJobsToCompleteOnShutdown(true);
-		scheduler.setOverwriteExistingJobs(true);
 		scheduler.setJobFactory(beanJobFactory());
 
 		// Here we will set all the trigger beans we have defined.
@@ -82,7 +80,7 @@ public class SchedulerConfiguration {
 	public SpringBeanJobFactory beanJobFactory() {
 		return new SpringBeanJobFactory() {
 			@Override
-			protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
+			protected Object createJobInstance(final TriggerFiredBundle bundle) throws Exception {
 				final Object jobInstance = super.createJobInstance(bundle);
 				context.autowireBean(jobInstance);
 				return jobInstance;
@@ -91,57 +89,58 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
-	@Profile("demo")
-	public SimpleTriggerFactoryBean flushingDataTrigger(@Named("flushingDataJob") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.rp.flushing.time.cron}") String flushingCron) {
-		return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
-	}
-
-	@Bean
-	@Profile("!demo")
-	public SimpleTriggerFactoryBean createCleanLogsTrigger(@Named("cleanLogsJob") JobDetail jobDetail,
+	public SimpleTriggerFactoryBean createCleanLogsTrigger(@Named("cleanLogsJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.logs.cron}") String cleanLogsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
 	@Bean
-	public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Autowired @Named("interruptLaunchesJob") JobDetail jobDetail,
+	public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Named("interruptLaunchesJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
 		return createTrigger(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
 	}
 
 	@Bean
-	@Profile("!demo")
-	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJob") JobDetail jobDetail,
+	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
 	}
 
 	@Bean
-	@Profile("demo")
-	@Named("flushingDataJob")
-	public static JobDetailFactoryBean flushingDataJob() {
-		return createJobDetail(FlushingDataJob.class);
+	public SimpleTriggerFactoryBean createCleanLaunchesTrigger(@Named("cleanLaunchesJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLogsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
 	@Bean
-	@Profile("!demo")
-	@Named("cleanLogsJob")
-	public static JobDetailFactoryBean cleanLogsJob() {
+	public SimpleTriggerFactoryBean cleanExpiredCreationBidsTrigger(@Named("cleanExpiredCreationBidsJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.bids.cron}") String cleanBidsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanBidsCron).toMillis());
+	}
+
+	@Bean("cleanLogsJobBean")
+	public JobDetailFactoryBean cleanLogsJob() {
 		return createJobDetail(CleanLogsJob.class);
 	}
 
-	@Bean
-	@Named("interruptLaunchesJob")
-	public static JobDetailFactoryBean interruptLaunchesJob() {
+	@Bean("interruptLaunchesJobBean")
+	public JobDetailFactoryBean interruptLaunchesJob() {
 		return createJobDetail(InterruptBrokenLaunchesJob.class);
 	}
 
-	@Bean
-	@Profile("!demo")
-	@Named("cleanScreenshotsJob")
-	public static JobDetailFactoryBean cleanScreenshotsJob() {
+	@Bean("cleanScreenshotsJobBean")
+	public JobDetailFactoryBean cleanScreenshotsJob() {
 		return createJobDetail(CleanScreenshotsJob.class);
+	}
+
+	@Bean("cleanLaunchesJobBean")
+	public JobDetailFactoryBean cleanLaunchesJob() {
+		return createJobDetail(CleanLaunchesJob.class);
+	}
+
+	@Bean("cleanExpiredCreationBidsJobBean")
+	public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
+		return createJobDetail(CleanExpiredCreationBidsJob.class);
 	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
@@ -164,7 +163,7 @@ public class SchedulerConfiguration {
 		return factoryBean;
 	}
 
-	public static JobDetailFactoryBean createJobDetail(Class jobClass) {
+	public static JobDetailFactoryBean createJobDetail(Class<? extends Job> jobClass) {
 		JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
 		factoryBean.setJobClass(jobClass);
 		// job has to be durable to be stored in DB:
@@ -172,7 +171,7 @@ public class SchedulerConfiguration {
 		return factoryBean;
 	}
 
-	@ConfigurationProperties("spring")
+	@ConfigurationProperties("spring.application")
 	public class QuartzProperties {
 
 		private final Properties quartz = new Properties();
@@ -181,6 +180,34 @@ public class SchedulerConfiguration {
 			return quartz;
 		}
 
+	}
+
+	@ConfigurationProperties("com.ta.reportportal.job.clean.logs")
+	public class CleanLogsJobProperties {
+
+		private Integer timeout;
+
+		public Integer getTimeout() {
+			return timeout;
+		}
+
+		public void setTimeout(Integer timeout) {
+			this.timeout = timeout;
+		}
+	}
+
+	@ConfigurationProperties("com.ta.reportportal.job.clean.launches")
+	public class CleanLaunchesJobProperties {
+
+		private Integer timeout;
+
+		public Integer getTimeout() {
+			return timeout;
+		}
+
+		public void setTimeout(Integer timeout) {
+			this.timeout = timeout;
+		}
 	}
 
 }

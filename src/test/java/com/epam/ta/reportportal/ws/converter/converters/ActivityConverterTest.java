@@ -1,76 +1,85 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.item.Activity;
-import com.epam.ta.reportportal.database.entity.item.ActivityEventType;
-import com.epam.ta.reportportal.database.entity.item.ActivityObjectType;
+import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
-import com.google.common.collect.ImmutableList;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 /**
- * @author Pavel_Bortnik
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ActivityConverterTest {
+class ActivityConverterTest {
 
-	private static final String KEY = "key";
-
-	@Test(expected = NullPointerException.class)
-	public void testNull() {
-		ActivityConverter.TO_RESOURCE.apply(null);
+	@Test
+	void testNull() {
+		assertThrows(NullPointerException.class, () -> ActivityConverter.TO_RESOURCE.apply(null));
 	}
 
 	@Test
-	public void testConvert() {
+	void testConvert() {
 		Activity activity = new Activity();
-		activity.setId("id");
-		activity.setActionType(ActivityEventType.START_LAUNCH);
-		activity.setLastModifiedDate(new Date(0));
-		activity.setHistory(ImmutableList.<Activity.FieldValues>builder().add(
-				new Activity.FieldValues().withField(KEY).withOldValue("old").withNewValue("new")).build());
-		activity.setLoggedObjectRef("objectRef");
-		activity.setObjectType(ActivityObjectType.LAUNCH);
-		activity.setProjectRef("project");
-		activity.setUserRef("user");
+		activity.setId(1L);
+		activity.setAction("LAUNCH_STARTED");
+		activity.setCreatedAt(LocalDateTime.now());
+		final ActivityDetails details = new ActivityDetails();
+		details.setObjectName("objectName");
+		details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
+		activity.setDetails(details);
+		activity.setUsername("username");
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
+		activity.setProjectId(2L);
+		activity.setUserId(3L);
 		validate(activity, ActivityConverter.TO_RESOURCE.apply(activity));
 	}
 
-	private void validate(Activity db, ActivityResource resource) {
-		Assert.assertEquals(db.getLastModified(), resource.getLastModifiedDate());
-		Assert.assertEquals(db.getId(), resource.getActivityId());
-		Assert.assertEquals(db.getActionType(), ActivityEventType.fromString(resource.getActionType()).get());
-		Assert.assertEquals(db.getLoggedObjectRef(), resource.getLoggedObjectRef());
-		Assert.assertEquals(db.getObjectType(), ActivityObjectType.fromString(resource.getObjectType()).get());
-		Assert.assertEquals(db.getProjectRef(), resource.getProjectRef());
-		Assert.assertEquals(db.getUserRef(), resource.getUserRef());
-		Activity.FieldValues expected = db.getHistory().get(0);
-		ActivityResource.FieldValues actual = resource.getHistory().get(0);
-		Assert.assertEquals(expected.getField(), actual.getField());
-		Assert.assertEquals(expected.getNewValue(), actual.getNewValue());
-		Assert.assertEquals(expected.getOldValue(), actual.getOldValue());
+	@Test
+	void toResourceWithUser() {
+		Activity activity = new Activity();
+		activity.setId(1L);
+		activity.setAction("LAUNCH_STARTED");
+		activity.setCreatedAt(LocalDateTime.now());
+		final ActivityDetails details = new ActivityDetails();
+		details.setObjectName("objectName");
+		details.setHistory(Collections.singletonList(HistoryField.of("filed", "old", "new")));
+		activity.setDetails(details);
+		activity.setActivityEntityType(Activity.ActivityEntityType.LAUNCH.getValue());
+		activity.setProjectId(2L);
+		activity.setUserId(3L);
+		final ActivityResource resource = ActivityConverter.TO_RESOURCE_WITH_USER.apply(activity, "username");
+		assertEquals("username", resource.getUser());
 	}
 
+	private void validate(Activity db, ActivityResource resource) {
+		assertEquals(Date.from(db.getCreatedAt().atZone(ZoneId.of("UTC")).toInstant()), resource.getLastModified());
+		assertEquals(db.getId(), resource.getId());
+		assertEquals(db.getActivityEntityType(), Activity.ActivityEntityType.fromString(resource.getObjectType()).get().getValue());
+		assertEquals(db.getUsername(), resource.getUser());
+		assertEquals(db.getProjectId(), resource.getProjectId());
+		assertEquals(db.getAction(), resource.getActionType());
+	}
 }

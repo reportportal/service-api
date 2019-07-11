@@ -1,51 +1,81 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.item.merge.strategy.*;
-import com.epam.ta.reportportal.database.dao.TestItemRepository;
+import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
+import com.epam.ta.reportportal.core.item.impl.merge.strategy.*;
+import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
+import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.singletonMap;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
 @Configuration
 public class MergeStrategyConfig {
-	@Autowired
-	private TestItemRepository testItemRepository;
 
-	@Bean
-	public Map<MergeStrategyType, MergeStrategy> mergeTypeMapping() {
-		Map<MergeStrategyType, MergeStrategy> mapping = new HashMap<>();
-		mapping.put(MergeStrategyType.TEST, new TestMergeStrategy(testItemRepository));
-		mapping.put(MergeStrategyType.SUITE, new SuiteMergeStrategy(testItemRepository));
-		mapping.put(MergeStrategyType.DEEP, new DeepMergeStrategy(testItemRepository));
-		return mapping;
+	private final TestItemRepository testItemRepository;
+
+	private final LaunchRepository launchRepository;
+
+	private final TestItemUniqueIdGenerator testItemUniqueIdGenerator;
+
+	@Autowired
+	public MergeStrategyConfig(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			TestItemUniqueIdGenerator testItemUniqueIdGenerator) {
+		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
+		this.testItemUniqueIdGenerator = testItemUniqueIdGenerator;
 	}
 
 	@Bean
-	public MergeStrategyFactory mergeStrategyFactory() {
-		return new MergeStrategyFactory(mergeTypeMapping());
+	public Map<MergeStrategyType, StatisticsCalculationStrategy> statisticsCalculationStrategyMaping() {
+		return singletonMap(MergeStrategyType.BASIC, new BasicStatisticsCalculationStrategy());
+	}
+
+	@Bean
+	public StatisticsCalculationFactory statisticsCalculationFactory() {
+		return new StatisticsCalculationFactory(statisticsCalculationStrategyMaping());
+	}
+
+	@Bean
+	public Map<MergeStrategyType, LaunchMergeStrategy> launchMergeStrategyMapping() {
+		return ImmutableMap.<MergeStrategyType, LaunchMergeStrategy>builder().put(MergeStrategyType.BASIC,
+				new BasicLaunchMergeStrategy(testItemRepository,
+						testItemUniqueIdGenerator,
+						launchRepository,
+						statisticsCalculationFactory()
+				)
+		)
+				.put(MergeStrategyType.DEEP, new DeepLaunchMergeStrategy(testItemRepository, testItemUniqueIdGenerator, launchRepository))
+				.build();
+	}
+
+	@Bean
+	public LaunchMergeFactory launchMergeFactory() {
+		return new LaunchMergeFactory(launchMergeStrategyMapping());
 	}
 }

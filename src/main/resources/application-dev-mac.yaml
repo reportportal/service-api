@@ -1,13 +1,23 @@
 spring:
-  cloud:
-    consul:
-      discovery:
-        hostname: docker.for.mac.localhost
-      host: localhost
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${rp.db.url}
+  rabbitmq:
+    addresses: ${rp.amqp.addresses}
+
 rp:
-  mongo:
-    uri: mongodb://localhost:27017
-  uat:
-    serviceUrl: http://localhost:8080/uat
-  analyzer:
-    url: http://localhost:8080/analyzer
+  amqp:
+    addresses: amqp://rabbitmq:rabbitmq@localhost:5672
+    api-address: http://rabbitmq:rabbitmq@localhost:15672/api
+  db:
+    url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
+  plugins:
+    path: /Users/pavel_bortnik/IdeaProjects/service-api/plugins
+  binarystore:
+    path: /Users/pavel_bortnik/IdeaProjects/service-api/data/storage
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: info

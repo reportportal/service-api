@@ -1,46 +1,40 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.filter.SelectionOptions;
-import com.epam.ta.reportportal.database.entity.filter.SelectionOrder;
-import com.epam.ta.reportportal.database.entity.filter.UserFilter;
-import com.epam.ta.reportportal.database.search.Condition;
-import com.epam.ta.reportportal.database.search.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.entity.filter.FilterSort;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.ws.model.SharedEntity;
+import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.Order;
-import com.epam.ta.reportportal.ws.model.filter.SelectionParameters;
-import com.epam.ta.reportportal.ws.model.filter.UserFilterEntity;
+import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.epam.ta.reportportal.ws.model.filter.UserFilterResource;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 /**
- * Converts internal DB model to DTO
- *
  * @author Pavel Bortnik
  */
 public final class UserFilterConverter {
@@ -49,73 +43,59 @@ public final class UserFilterConverter {
 		//static only
 	}
 
-	public static final Function<UserFilter, UserFilterResource> TO_RESOURCE = filter -> {
-		Preconditions.checkNotNull(filter);
-		UserFilterResource resource = new UserFilterResource();
-		resource.setFilterId(filter.getId());
+	public static final Function<UserFilter, SharedEntity> TO_SHARED_ENTITY = filter -> {
+		SharedEntity sharedEntity = SharedEntityConverter.TO_SHARED_ENTITY.apply(filter);
+		sharedEntity.setName(filter.getName());
+		sharedEntity.setDescription(filter.getDescription());
+		return sharedEntity;
+	};
+
+	public static final Function<Set<UserFilter>, List<UserFilterResource>> FILTER_SET_TO_FILTER_RESOURCE = filters -> filters.stream()
+			.map(UserFilterConverter::buildFilterResource)
+			.collect(Collectors.toList());
+
+	public static final Function<UserFilter, UserFilterResource> TO_FILTER_RESOURCE = UserFilterConverter::buildFilterResource;
+
+	public static final Function<UserFilter, UserFilterActivityResource> TO_ACTIVITY_RESOURCE = filter -> {
+		UserFilterActivityResource resource = new UserFilterActivityResource();
+		resource.setId(filter.getId());
 		resource.setName(filter.getName());
 		resource.setDescription(filter.getDescription());
-		Optional.ofNullable(filter.getFilter()).ifPresent(f -> {
-			resource.setObjectType(f.getTarget().getSimpleName().toLowerCase());
-			resource.setEntities(UserFilterConverter.TO_ENTITIES.apply(f));
-		});
-		Optional.ofNullable(filter.getSelectionOptions())
-				.ifPresent(it -> resource.setSelectionParameters(UserFilterConverter.TO_SELECTION_PARAMETERS.apply(it)));
-		Optional.ofNullable(filter.getAcl()).ifPresent(acl -> {
-			resource.setOwner(acl.getOwnerUserId());
-			resource.setShare(!acl.getEntries().isEmpty());
-		});
+		resource.setProjectId(filter.getProject().getId());
+		resource.setShared(filter.isShared());
 		return resource;
 	};
 
-	public static final Function<SelectionParameters, SelectionOptions> TO_SELECTION_OPTIONS = parameters -> {
-		Preconditions.checkNotNull(parameters);
-		Preconditions.checkNotNull(parameters.getOrders());
-		SelectionOptions selectionOptions = new SelectionOptions();
-		selectionOptions.setPageNumber(parameters.getPageNumber());
-		selectionOptions.setOrders(parameters.getOrders().stream().map(order -> {
-			SelectionOrder selectionOrder = new SelectionOrder();
-			selectionOrder.setIsAsc(order.getIsAsc());
-			selectionOrder.setSortingColumnName(order.getSortingColumnName());
-			return selectionOrder;
-		}).collect(Collectors.toList()));
-		return selectionOptions;
+	private static final Function<FilterCondition, UserFilterCondition> TO_FILTER_CONDITION = filterCondition -> {
+		UserFilterCondition condition = new UserFilterCondition();
+		ofNullable(filterCondition.getCondition()).ifPresent(c -> condition.setCondition(c.getMarker()));
+		condition.setFilteringField(filterCondition.getSearchCriteria());
+		condition.setValue(filterCondition.getValue());
+		return condition;
 	};
 
-	public static final Function<SelectionOptions, SelectionParameters> TO_SELECTION_PARAMETERS = options -> {
-		Preconditions.checkNotNull(options);
-		Preconditions.checkNotNull(options.getOrders());
-		SelectionParameters selectionParameters = new SelectionParameters();
-		selectionParameters.setPageNumber(options.getPageNumber());
-		selectionParameters.setOrders(options.getOrders().stream().map(selectionOrder -> {
-			Order order = new Order();
-			order.setIsAsc(selectionOrder.isAsc());
-			order.setSortingColumnName(selectionOrder.getSortingColumnName());
-			return order;
-		}).collect(Collectors.toList()));
-		return selectionParameters;
+	private static final Function<FilterSort, Order> TO_FILTER_ORDER = filterSort -> {
+		Order order = new Order();
+		order.setSortingColumnName(filterSort.getField());
+		order.setIsAsc(filterSort.getDirection().isAscending());
+		return order;
 	};
 
-	/**
-	 * Transform Set<{@link Filter}> to Set<{@link UserFilterEntity}>
-	 *
-	 * @param filterEntities
-	 * @return Set<ComplexFilterEntity>
-	 */
-	private static final Function<Filter, Set<UserFilterEntity>> TO_ENTITIES = filter -> {
-		Set<UserFilterEntity> result = Sets.newLinkedHashSet();
-		filter.getFilterConditions().forEach(condition -> {
-			UserFilterEntity userFilterEntity = new UserFilterEntity();
+	private static UserFilterResource buildFilterResource(UserFilter filter) {
+		UserFilterResource userFilterResource = new UserFilterResource();
+		userFilterResource.setFilterId(filter.getId());
+		userFilterResource.setName(filter.getName());
+		userFilterResource.setDescription(filter.getDescription());
+		userFilterResource.setShare(filter.isShared());
+		userFilterResource.setOwner(filter.getOwner());
+		ofNullable(filter.getTargetClass()).ifPresent(tc -> userFilterResource.setObjectType(tc.getClassObject().getSimpleName()));
+		ofNullable(filter.getFilterCondition()).ifPresent(fcs -> userFilterResource.setConditions(fcs.stream()
+				.map(UserFilterConverter.TO_FILTER_CONDITION)
+				.collect(toSet())));
+		ofNullable(filter.getFilterSorts()).ifPresent(fs -> userFilterResource.setOrders(fs.stream()
+				.map(UserFilterConverter.TO_FILTER_ORDER)
+				.collect(toList())));
 
-			Optional.ofNullable(condition.getCondition().getMarker())
-					.map(it -> Condition.makeNegative(condition.isNegative(), it))
-					.ifPresent(userFilterEntity::setCondition);
-
-			userFilterEntity.setValue(condition.getValue());
-			userFilterEntity.setFilteringField(condition.getSearchCriteria());
-			result.add(userFilterEntity);
-		});
-		return result;
-	};
-
+		return userFilterResource;
+	}
 }

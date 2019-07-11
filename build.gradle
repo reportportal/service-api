@@ -1,45 +1,50 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven {
-            url "https://maven.eveoh.nl/content/repositories/releases"
-        }
-    }
-    dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE")
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.12'
-    }
-}
-
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 plugins {
-    id 'net.researchgate.release' version '2.4.1'
-    id "com.jfrog.bintray" version "1.7"
+    id "io.spring.dependency-management" version "1.0.7.RELEASE"
+    id "org.springframework.boot" version "2.1.5.RELEASE"
+    id "de.undercouch.download" version "3.4.3"
+    id 'net.researchgate.release' version '2.8.0'
+    id "com.jfrog.bintray" version "1.8.4"
+    id 'java'
+    id 'jacoco'
+    id "org.owasp.dependencycheck" version "5.0.0-M3.1"
+    id "org.ajoberstar.grgit" version "3.1.1"
 }
 
-apply plugin: 'java'
-apply plugin: "org.springframework.boot"
-apply plugin: "io.spring.dependency-management"
-apply plugin: 'jacoco'
 
 apply from: 'build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/4.0/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/4.0/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/4.0/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
+
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 project.ext {
     limits = [
-            'instruction': 68,
-            'branch'     : 41,
-            'line'       : 67,
-            'complexity' : 49,
-            'method'     : 73,
-            'class'      : 87
+            'instruction': 70,
+            'branch'     : 55,
+            'line'       : 75,
+            'complexity' : 60,
+            'method'     : 65,
+            'class'      : 90
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
@@ -53,16 +58,30 @@ repositories {
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
     maven { url "https://dl.bintray.com/michaelklishin/maven/" }
 
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
+    maven { url 'https://repo.spring.io/libs-milestone' }
+
+//    if (!releaseMode) {
+    maven { url 'https://jitpack.io' }
+//    }
 }
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-starter-parent:Edgware.SR3"
-        mavenBom "org.springframework.boot:spring-boot-dependencies:1.5.9.RELEASE"
+        mavenBom "com.github.reportportal:commons-bom:8706fef"
     }
+}
+
+sourceSets {
+    generated {
+        java.srcDir "${buildDir}/generated/src/java/"
+    }
+}
+
+compileGeneratedJava {
+    classpath = configurations.compile
+}
+compileJava {
+    source += sourceSets.generated.java
 }
 
 configurations {
@@ -71,82 +90,120 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:4.3.4'
-        compile 'com.epam.reportportal:commons-rules:4.2.0'
-        compile 'com.epam.reportportal:commons-model:4.2.0'
-        compile 'com.epam.reportportal:commons:3.1.0'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile('com.github.reportportal:commons-dao:4.3.4')
-        compile('com.github.reportportal:commons-rules:4.2.0')
-        compile 'com.github.reportportal:commons-model:4.2.0'
-        compile('com.github.reportportal:commons:3.1.0')
+        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-model:5.0.0-BETA-6'
+        compile('com.github.reportportal:commons:5.0.0-BETA-2')
+        compile('com.github.reportportal:plugin-api:5.0.0-BETA-6')
     }
 
-    compile 'org.jasypt:jasypt:1.9.2'
+    //saucelabs
 
+    compile 'com.saucelabs:saucerest:1.0.40'
+
+    //move this to the plugin-api
+    compile 'io.atlassian.fugue:fugue:4.7.2'
+    compile('com.atlassian.jira:jira-rest-java-client-core:5.1.2-2bd0a62e')
+    //*****************************
+
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+
+
+    compile 'org.apache.commons:commons-lang3:3.7'
+
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'javax.persistence:javax.persistence-api:2.2'
+    compile 'org.hibernate:hibernate-validator'
+    compile 'org.postgresql:postgresql'
+    compile 'org.jooq:jooq:3.11.4'
+    compile 'org.jooq:jooq-codegen:3.11.4'
+    compile 'org.jooq:jooq-meta:3.11.4'
+    compile 'org.jasypt:jasypt:1.9.2'
+    compile("org.springframework.boot:spring-boot-starter-amqp")
+    // Optional for spring-boot-starter-amqp
+    compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
     compile 'commons-fileupload:commons-fileupload:1.3.3'
     compile 'commons-validator:commons-validator:1.6'
     compile 'org.slf4j:slf4j-api:1.7.24'
 
-    compile "ch.qos.logback:logback-classic:${logback}"
+//    seaweedfs
+    compile 'org.lokra.seaweedfs:seaweedfs-client:0.7.3.RELEASE'
+//    end of seaweedfs
+
+    compile "ch.qos.logback:logback-classic"
     compile 'net.coobird:thumbnailator:0.4.8'
-    compile 'com.sun.mail:javax.mail:1.6.0'
+    compile 'com.sun.mail:javax.mail'
+    compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.8.9'
+    compile group: 'org.aspectj', name: 'aspectjrt', version: '1.8.9'
 
 //    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'
 
-    compile 'org.springframework.cloud:spring-cloud-starter-eureka'
-    compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
-    compile 'org.springframework.cloud:spring-cloud-starter-security'
-
-
+//    compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-freemarker'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
+
+///// Security
+    compile 'org.springframework.cloud:spring-cloud-starter-security'
     compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
+    compile 'org.springframework.security:spring-security-oauth2-client'
+    compile 'org.springframework.security:spring-security-jwt'
+    compile 'org.springframework.security:spring-security-acl'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
 
-    compile 'org.springframework.data:spring-data-mongodb'
+///// end of Security
 
-    compile 'com.github.mongobee:mongobee:0.12'
+    compile 'org.apache.tika:tika-core'
+    compile 'org.apache.tika:tika-parsers'
 
-    compile 'org.quartz-scheduler:quartz:2.3.0'
-    compile "com.novemberain:quartz-mongodb:2.0.0"
+    compile group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.7.0'
 
-    compile 'net.sf.jasperreports:jasperreports:6.3.1'
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
     //higher than 3.14 since 3.15 contains breaking API changes
-    compile 'org.apache.poi:poi:3.14'
+    compile group: 'org.apache.poi', name: 'poi', version: '3.17'
 
     compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'
 
-    compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
-    compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.7.0'
+    compile 'io.springfox:springfox-swagger-ui'
+    compile 'io.springfox:springfox-swagger2'
 
-    compile 'com.google.guava:guava:23.0'
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
+    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
 
-    api 'org.jacoco:org.jacoco.agent:0.7.7.201606060606'
+    api 'org.jacoco:org.jacoco.agent:0.8.3'
 
-    testCompile 'org.hamcrest:hamcrest-all:1.3'
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-all:2.0.2-beta'
+    compile "com.querydsl:querydsl-jpa:4.2.1"
 
-    testCompile 'com.jayway.jsonpath:json-path:2.2.0'
-    testCompile 'com.github.fakemongo:fongo:2.0.12'
+//  Tests
+    testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'
 
-    testCompile 'org.apache.commons:commons-math3:3.6.1'
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'junit', module: 'junit'
+    }
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
+    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
+    testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
+
+    testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
     testCompile 'com.bitmechanic:dumbster:1.9.0.2'
-
-    testCompile 'org.jsoup:jsoup:1.10.2'
-
 }
 
+wrapper {
+    gradleVersion = '5.4.1'
+}
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.2.1'
+release {
+    pushReleaseVersionBranch = 'master'
 }
 
 //Start section for external jacoco test report
@@ -168,12 +225,50 @@ task copyJacocoAgentToLibs(type: Copy) {
 }
 
 jar.dependsOn copyJacocoAgentToLibs
+jar.dependsOn gitInfo
 //End section for external jacoco test report
 
 build.dependsOn jacocoTestReport
 
+ext.src = [
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql'
+]
+
+task copyTestDatabaseScripts {
+    doLast {
+        for (s in src) {
+            download {
+                src s.key
+                dest new File("${projectDir}/src/test/resources/db/migration/", s.value)
+            }
+        }
+    }
+}
+
+task removeScripts {
+    doLast {
+        for (s in src) {
+            def file = new File("${projectDir}/src/test/resources/db/migration/", s.value)
+            file.delete()
+        }
+    }
+}
+
+bootJar {
+    if (!releaseMode) {
+        getArchiveFileName().set("${baseName}.${extension}")
+    }
+}
+
+test.dependsOn copyTestDatabaseScripts
+checkCommitNeeded.dependsOn removeScripts
+
 test {
-//    testLogging.showStandardStreams = true
+    useJUnitPlatform()
+//    systemProperty 'junit.jupiter.extensions.autodetection.enabled', true
+    //    testLogging.showStandardStreams = true
+    maxParallelForks = 1
 
     jacocoTestReport {
         reports {
@@ -181,7 +276,14 @@ test {
         }
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: ['**/entity/**', '**/aop/**', '**/jasper/**', '**/configs/**'])
+                fileTree(dir: it, exclude: ['**/entity/**',
+                                            '**/aop/**',
+                                            '**/jasper/**',
+                                            '**/configs/**',
+                                            '**/demodata/**',
+                                            '**/exception/**',
+                                            '**/analyzer/model/**'
+                ])
             })
         }
         doLast {
@@ -233,7 +335,6 @@ test {
     }
 
     if (System.env.TRAVIS == 'true') {
-        maxParallelForks = 2
         minHeapSize = "128m"
         maxHeapSize = "1g"
     }

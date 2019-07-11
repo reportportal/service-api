@@ -1,33 +1,28 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2018 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.database.DataStorage;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.project.KeepScreenshotsDelay;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFSDBFile;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -36,10 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -52,48 +46,63 @@ import static java.time.Duration.ofDays;
 public class CleanScreenshotsJob implements Job {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanScreenshotsJob.class);
 
-	private static final int FILES_LIMIT = 150;
+	private final ProjectRepository projectRepository;
+
+	private final LogCleanerService logCleaner;
 
 	@Autowired
-	private DataStorage gridFS;
-
-	@Autowired
-	private ProjectRepository projectRepository;
-
-	@Autowired
-	private LogRepository logRepository;
+	public CleanScreenshotsJob(ProjectRepository projectRepository, LogCleanerService logCleaner) {
+		this.projectRepository = projectRepository;
+		this.logCleaner = logCleaner;
+	}
 
 	@Override
 	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(projectRepository::findAllIdsAndConfiguration, projects -> projects.forEach(project -> {
-			AtomicLong count = new AtomicLong(0);
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
+				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
+				pageable
+		), projects -> projects.forEach(project -> {
+			AtomicLong attachmentsCount = new AtomicLong(0);
+			AtomicLong thumbnailsCount = new AtomicLong(0);
 
 			try {
 				LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
-
-				Duration period = ofDays(KeepScreenshotsDelay.findByName(project.getConfiguration().getKeepScreenshots()).getDays());
-				if (!period.isZero()) {
-					List<DBObject> dbObjects = gridFS.findFirstModifiedLater(period, project.getId(), FILES_LIMIT);
-					while (dbObjects != null && dbObjects.size() > 0) {
-						List<String> fileIds = dbObjects.stream()
-								.map(it -> (GridFSDBFile) it)
-								.filter(it -> !it.getFilename().startsWith("photo_"))
-								.map(it -> it.getId().toString())
-								.collect(Collectors.toList());
-						gridFS.deleteData(fileIds);
-						logRepository.removeBinaryContent(fileIds);
-						count.addAndGet(fileIds.size());
-						dbObjects = gridFS.findFirstModifiedLater(period, project.getId(), FILES_LIMIT);
-					}
-				}
+				proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
 			} catch (Exception e) {
-				LOGGER.info("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
+				LOGGER.error("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 			}
-			LOGGER.info("Cleaning outdated screenshots for project {} has been finished. {} deleted", project.getId(), count.get());
+			LOGGER.info(
+					"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
+					project.getId(),
+					attachmentsCount.get(),
+					thumbnailsCount.get()
+			);
 		}));
 
+	}
+
+	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
+		return Filter.builder()
+				.withTarget(Project.class)
+				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ATTRIBUTE_NAME, projectAttributeEnum.getAttribute()).build())
+				.build();
+	}
+
+	private void proceedScreenShotsCleaning(Project project, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+		project.getProjectAttributes()
+				.stream()
+				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
+				.findFirst()
+				.ifPresent(pa -> {
+					Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue())
+							.orElseThrow(() -> new ReportPortalException("Incorrect keep screenshots delay period: " + pa.getValue()))
+							.getDays());
+					if (!period.isZero()) {
+						logCleaner.removeProjectAttachments(project, period, attachmentsCount, thumbnailsCount);
+					}
+				});
 	}
 }

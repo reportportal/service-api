@@ -47,7 +47,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collections;
@@ -75,8 +74,6 @@ class LaunchFinishedEventHandlerTest {
 	private UserRepository userRepository;
 	@Mock
 	private LaunchRepository launchRepository;
-	@Mock
-	private Provider<HttpServletRequest> currentRequest;
 	@Mock
 	private AnalyzeCollectorFactory analyzeCollectorFactory;
 	@Mock
@@ -212,7 +209,6 @@ class LaunchFinishedEventHandlerTest {
 		)).thenReturn(Optional.ofNullable(emailIntegration));
 
 		when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(Optional.ofNullable(emailService));
-		when(currentRequest.get()).thenReturn(httpServletRequest);
 		when(httpServletRequest.getContextPath()).thenReturn("path");
 		when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("url"));
 		when(httpServletRequest.getHeaderNames()).thenReturn(Collections.enumeration(Lists.newArrayList("authorization")));

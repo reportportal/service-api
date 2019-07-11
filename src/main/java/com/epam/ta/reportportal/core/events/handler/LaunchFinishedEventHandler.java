@@ -48,16 +48,12 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.inject.Provider;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -86,8 +82,6 @@ public class LaunchFinishedEventHandler {
 
 	private final LaunchRepository launchRepository;
 
-	private final Provider<HttpServletRequest> currentRequest;
-
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 
 	private final AnalyzerServiceAsync analyzerServiceAsync;
@@ -99,14 +93,13 @@ public class LaunchFinishedEventHandler {
 	@Autowired
 	public LaunchFinishedEventHandler(ProjectRepository projectRepository, GetIntegrationHandler getIntegrationHandler,
 			MailServiceFactory mailServiceFactory, UserRepository userRepository, LaunchRepository launchRepository,
-			Provider<HttpServletRequest> currentRequest, AnalyzeCollectorFactory analyzeCollectorFactory,
-			AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer, PatternAnalyzer patternAnalyzer) {
+			AnalyzeCollectorFactory analyzeCollectorFactory, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
+			PatternAnalyzer patternAnalyzer) {
 		this.projectRepository = projectRepository;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.mailServiceFactory = mailServiceFactory;
 		this.userRepository = userRepository;
 		this.launchRepository = launchRepository;
-		this.currentRequest = currentRequest;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.logIndexer = logIndexer;
@@ -152,7 +145,7 @@ public class LaunchFinishedEventHandler {
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launch.getId()));
 			emailService.ifPresent(it -> {
 				launchRepository.refresh(updatedLaunch);
-				sendEmail(updatedLaunch, project, it);
+				sendEmail(updatedLaunch, project, it, event.getBaseUrl());
 			});
 		}
 
@@ -249,7 +242,7 @@ public class LaunchFinishedEventHandler {
 	 * @param project      Project
 	 * @param emailService Mail Service
 	 */
-	private void sendEmail(Launch launch, Project project, EmailService emailService) {
+	private void sendEmail(Launch launch, Project project, EmailService emailService, String baseUrl) {
 
 		project.getSenderCases().forEach(ec -> {
 			SendCase sendCase = ec.getSendCase();
@@ -261,13 +254,11 @@ public class LaunchFinishedEventHandler {
 			if (successRate && matchedNames && matchedTags) {
 				String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
 				try {
-					/* Update with static Util resources provider */
-					String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(currentRequest.get()))
-							.replacePath(String.format("/#%s", project.getName()))
-							.build()
-							.toUriString();
-
-					emailService.sendLaunchFinishNotification(recipientsArray, basicURL, project, launch);
+					emailService.sendLaunchFinishNotification(recipientsArray,
+							String.format("%s/ui#%s", baseUrl, project.getName()),
+							project,
+							launch
+					);
 				} catch (Exception e) {
 					LOGGER.error("Unable to send email. Error: \n{}", e);
 				}

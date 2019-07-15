@@ -125,10 +125,19 @@ public class IntegrationController {
 	@GetMapping(value = "{projectName}/{integrationId}/connection/test")
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Create global Report Portal integration instance")
+	@ApiOperation("Test connection to the integration through the project config")
 	public boolean testIntegrationConnection(@PathVariable Long integrationId, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getIntegrationHandler.testConnection(integrationId, normalizeId(projectName));
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/{integrationId}/connection/test")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation("Test connection to the global integration")
+	public boolean testIntegrationConnection(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getIntegrationHandler.testConnection(integrationId);
 	}
 
 	@Transactional(readOnly = true)

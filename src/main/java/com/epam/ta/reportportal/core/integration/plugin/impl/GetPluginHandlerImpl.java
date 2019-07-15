@@ -41,6 +41,9 @@ public class GetPluginHandlerImpl implements GetPluginHandler {
 
 	@Override
 	public List<IntegrationTypeResource> getPlugins() {
-		return integrationTypeRepository.findAll().stream().map(IntegrationTypeConverter.TO_RESOURCE).collect(Collectors.toList());
+		return integrationTypeRepository.findAllByOrderByCreationDate()
+				.stream()
+				.map(IntegrationTypeConverter.TO_RESOURCE)
+				.collect(Collectors.toList());
 	}
 }

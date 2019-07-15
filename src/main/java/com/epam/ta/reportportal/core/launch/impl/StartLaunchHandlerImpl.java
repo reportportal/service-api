@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
+import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
@@ -42,25 +43,30 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 
 	private final LaunchRepository launchRepository;
 	private final MessageBus messageBus;
+	private final RerunHandler rerunHandler;
 
 	@Autowired
-	public StartLaunchHandlerImpl(LaunchRepository launchRepository, MessageBus messageBus) {
+	public StartLaunchHandlerImpl(LaunchRepository launchRepository, MessageBus messageBus, RerunHandler rerunHandler) {
 		this.launchRepository = launchRepository;
 		this.messageBus = messageBus;
+		this.rerunHandler = rerunHandler;
 	}
 
 	@Override
 	@Transactional
-	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
-									 StartLaunchRQ request) {
+	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
 		validateRoles(projectDetails, request);
+
+		if (request.isRerun()) {
+			return rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user);
+		}
 
 		Launch launch = new LaunchBuilder().addStartRQ(request)
 				.addAttributes(request.getAttributes())
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.get();
-		launch = launchRepository.save(launch);
+		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));

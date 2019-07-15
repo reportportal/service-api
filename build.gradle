@@ -90,17 +90,17 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-5'
-        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-4'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-4'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-6'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile 'com.github.reportportal:commons-dao:1b285c054a'
-        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-4'
-        compile 'com.github.reportportal:commons-model:5.0.0-BETA-4'
+        compile 'com.github.reportportal:commons-dao:ecb290c6'
+        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-model:5.0.0-BETA-6'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
-        compile('com.github.reportportal:plugin-api:4a5c61f')
+        compile('com.github.reportportal:plugin-api:5.0.0-BETA-6')
     }
 
     //saucelabs

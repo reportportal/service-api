@@ -44,7 +44,9 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	@Override
 	public void changeParentStatus(Long childId, Long projectId, ReportPortalUser user) {
 		testItemRepository.findParentByChildId(childId).ifPresent(parent -> {
-			ofNullable(parent.getItemResults().getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+			if (parent.isHasChildren()) {
+				ofNullable(parent.getItemResults().getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+			}
 			if (isParentStatusUpdateRequired(parent)) {
 				StatusEnum resolvedStatus = resolveStatus(parent.getItemId());
 				if (parent.getItemResults().getStatus() != resolvedStatus) {

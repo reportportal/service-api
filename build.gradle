@@ -90,17 +90,17 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-3'
-        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-3'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-3'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-6'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-3')
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile 'com.github.reportportal:commons-dao:d2d0de78'
-        compile 'com.github.reportportal:commons-rules:8a66b8d'
-        compile 'com.github.reportportal:commons-model:efc9505'
-        compile('com.github.reportportal:commons:71d4aca')
-        compile('com.github.reportportal:plugin-api:30f47d49')
+        compile 'com.github.reportportal:commons-dao:ecb290c6'
+        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-model:c089ee9'
+        compile('com.github.reportportal:commons:5.0.0-BETA-2')
+        compile('com.github.reportportal:plugin-api:5.0.0-BETA-6')
     }
 
     //saucelabs
@@ -108,8 +108,8 @@ dependencies {
     compile 'com.saucelabs:saucerest:1.0.40'
 
     //move this to the plugin-api
-    compile('com.atlassian.fugue:fugue:2.6.1')
-    compile('com.atlassian.jira:jira-rest-java-client-core:4.0.0')
+    compile 'io.atlassian.fugue:fugue:4.7.2'
+    compile('com.atlassian.jira:jira-rest-java-client-core:5.1.2-2bd0a62e')
     //*****************************
 
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
@@ -178,7 +178,7 @@ dependencies {
     compile 'io.springfox:springfox-swagger2'
 
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
-    compile group: 'com.google.guava', name: 'guava', version: '25.1-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
 
     api 'org.jacoco:org.jacoco.agent:0.8.3'
 

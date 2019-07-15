@@ -18,9 +18,8 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -37,11 +36,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Date;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -55,6 +54,9 @@ class StartLaunchHandlerImplTest {
 	@Mock
 	private MessageBus messageBus;
 
+	@Mock
+	private RerunHandler rerunHandler;
+
 	@InjectMocks
 	private StartLaunchHandlerImpl startLaunchHandlerImpl;
 
@@ -66,15 +68,13 @@ class StartLaunchHandlerImplTest {
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setName("test");
 
-		when(launchRepository.save(any(Launch.class))).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT).get());
-
 		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
 				startLaunchRQ
 		);
 
+		verify(launchRepository, times(1)).save(any(Launch.class));
+		verify(launchRepository, times(1)).refresh(any(Launch.class));
 		assertNotNull(startLaunchRS);
-		assertEquals(1L, (long) startLaunchRS.getId());
-		assertEquals(1L, (long) startLaunchRS.getNumber());
 	}
 
 	@Test

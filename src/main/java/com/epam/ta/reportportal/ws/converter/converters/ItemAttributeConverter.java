@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -40,6 +43,18 @@ public class ItemAttributeConverter {
 		} else {
 			itemAttribute.setSystem(false);
 		}
+		return itemAttribute;
+	};
+
+	public static final BiFunction<ItemAttributesRQ, Launch, ItemAttribute> TO_LAUNCH_ATTRIBUTE = (model, launch) -> {
+		ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
+		itemAttribute.setLaunch(launch);
+		return itemAttribute;
+	};
+
+	public static final BiFunction<ItemAttributesRQ, TestItem, ItemAttribute> TO_TEST_ITEM_ATTRIBUTE = (model, item) -> {
+		ItemAttribute itemAttribute = new ItemAttribute(model.getKey(), model.getValue(), model.isSystem());
+		itemAttribute.setTestItem(item);
 		return itemAttribute;
 	};
 }

@@ -184,16 +184,18 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 			toUpdate.ifPresent(testItem -> {
 				LOGGER.info("Analysis has found a match: {}", analyzed);
 
-				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-				RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
-				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+				if (!testItem.getItemResults().getIssue().getIssueType().getLocator().equals(analyzed.getLocator())) {
+					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+					RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
+					TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
-				testItemRepository.save(testItem);
-				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
-				ofNullable(after.getTickets()).ifPresent(it -> messageBus.publishActivity(new LinkTicketEvent(before,
-						after,
-						analyzerInstance
-				)));
+					testItemRepository.save(testItem);
+					messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+					ofNullable(after.getTickets()).ifPresent(it -> messageBus.publishActivity(new LinkTicketEvent(before,
+							after,
+							analyzerInstance
+					)));
+				}
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());

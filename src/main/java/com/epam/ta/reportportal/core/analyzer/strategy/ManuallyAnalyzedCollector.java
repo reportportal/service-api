@@ -50,7 +50,7 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
-		List<Long> itemIds = testItemRepository.selectIdsByAutoAnalyzedStatus(false, launchId);
+		List<Long> itemIds = testItemRepository.selectIdsByAutoAnalyzedStatusWithErrorLogs(false, launchId);
 		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
 		return itemIds;

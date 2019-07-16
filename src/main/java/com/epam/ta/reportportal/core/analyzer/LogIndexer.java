@@ -43,7 +43,7 @@ public interface LogIndexer {
 
 	CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig);
 
-	CompletableFuture<Long> indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig);
+	Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig);
 
 	CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch);
 

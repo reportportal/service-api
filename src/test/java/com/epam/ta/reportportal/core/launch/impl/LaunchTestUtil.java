@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,9 @@ public class LaunchTestUtil {
 		user.setLogin("test");
 		launch.setUser(user);
 		launch.setMode(mode);
+		launch.setUuid("uuid");
+		launch.setDescription("description");
+		launch.setName("launch name");
 		return Optional.of(launch);
 	}
 }

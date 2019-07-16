@@ -21,8 +21,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
+import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
@@ -59,32 +61,21 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
 
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 
-	private LaunchRepository launchRepository;
+	private final LaunchRepository launchRepository;
 
-	private LogRepository logRepository;
+	private final UniqueIdGenerator identifierGenerator;
 
-	private UniqueIdGenerator identifierGenerator;
+	private final RerunHandler rerunHandler;
 
 	@Autowired
-	public void setTestItemRepository(TestItemRepository testItemRepository) {
+	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+			UniqueIdGenerator identifierGenerator, RerunHandler rerunHandler) {
 		this.testItemRepository = testItemRepository;
-	}
-
-	@Autowired
-	public void setLaunchRepository(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
-	}
-
-	@Autowired
-	public void setLogRepository(LogRepository logRepository) {
-		this.logRepository = logRepository;
-	}
-
-	@Autowired
-	public void setIdentifierGenerator(UniqueIdGenerator identifierGenerator) {
 		this.identifierGenerator = identifierGenerator;
+		this.rerunHandler = rerunHandler;
 	}
 
 	@Override
@@ -92,13 +83,17 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(user, projectDetails, rq, launch);
+
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleRootItem(rq, launch);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
+		}
+
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
 		testItemRepository.save(item);
-
-		item.setPath(String.valueOf(item.getItemId()));
-		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item, launch));
-		}
+		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
 		LOGGER.debug("Created new root TestItem {}", item.getUuid());
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
@@ -113,28 +108,57 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(rq, parentItem);
 
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleChildItem(rq, launch, parentItem);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
+		}
+
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
 				.addAttributes(rq.getAttributes())
 				.addLaunch(launch)
 				.addParent(parentItem)
 				.get();
+
 		testItemRepository.save(item);
-		item.setPath(parentItem.getPath() + "." + item.getItemId());
-		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item, launch));
-		}
+		generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
 		if (rq.isHasStats() && !parentItem.isHasChildren()) {
 			parentItem.setHasChildren(true);
 		}
 		if (BooleanUtils.toBoolean(rq.isRetry())) {
-			testItemRepository.handleRetries(item.getItemId());
-			if (!launch.isHasRetries()) {
-				launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
-			}
+			handleRetries(launch, item);
 		}
 
 		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
 		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
+	}
+
+	/**
+	 * Generates and sets unique ID to {@link TestItem} if it is empty
+	 *
+	 * @param launch {@link Launch} of {@link TestItem}
+	 * @param item   {@link TestItem}
+	 * @param path   {@link TestItem} path
+	 */
+	private void generateUniqueId(Launch launch, TestItem item, String path) {
+		item.setPath(path);
+		if (null == item.getUniqueId()) {
+			item.setUniqueId(identifierGenerator.generate(item, launch));
+		}
+	}
+
+	/**
+	 * Handles retry items
+	 *
+	 * @param launch {@link Launch}
+	 * @param item   {@link TestItem}
+	 */
+	private void handleRetries(Launch launch, TestItem item) {
+		testItemRepository.handleRetries(item.getItemId());
+		if (!launch.isHasRetries()) {
+			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
+		}
 	}
 
 	/**
@@ -176,7 +200,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

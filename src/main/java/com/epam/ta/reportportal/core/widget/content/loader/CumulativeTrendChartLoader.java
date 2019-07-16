@@ -80,13 +80,11 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 		if (ArrayUtils.isEmpty(attributes)) {
 			content = widgetContentRepository.cumulativeTrendStatistics(filter,
 					contentFields,
-					sort,
-					storedAttributes.get(0),
+					sort, storedAttributes.size() > 0 ? storedAttributes.get(0) : null,
 					storedAttributes.size() > 1 ? storedAttributes.get(1) : null,
 					limit
 			);
 		} else {
-
 			Map<String, String> requestAttributesMapping = getAttributesMapping(attributes);
 
 			expect(storedAttributes.containsAll(requestAttributesMapping.keySet()),
@@ -94,17 +92,15 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 			).verify(ErrorType.BAD_REQUEST_ERROR, ATTRIBUTES);
 
 			requestAttributesMapping.forEach((key, value) -> filter.withCondition(FilterCondition.builder()
-							.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_KEY)
+					.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_KEY)
+					.withCondition(Condition.HAS)
+					.withValue(key)
+					.build())
+					.withCondition(FilterCondition.builder()
+							.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_VALUE)
 							.withCondition(Condition.HAS)
-							.withValue(key)
-							.build())
-							.withCondition(FilterCondition.builder()
-									.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_VALUE)
-									.withCondition(Condition.HAS)
-									.withValue(value)
-									.build())
-					//					.withCondition(FilterCondition.builder().eq(CRITERIA_ITEM_ATTRIBUTE_SYSTEM, Boolean.FALSE.toString()).build())
-			);
+							.withValue(value)
+							.build()));
 			content = widgetContentRepository.cumulativeTrendStatistics(filter, contentFields, sort, storedAttributes.get(1), null, limit);
 		}
 		return content.isEmpty() ? emptyMap() : singletonMap(RESULT, content);

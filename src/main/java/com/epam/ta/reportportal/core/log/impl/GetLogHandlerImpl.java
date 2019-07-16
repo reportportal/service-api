@@ -23,13 +23,16 @@ import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.NestedItem;
 import com.epam.ta.reportportal.entity.item.NestedStep;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
@@ -62,6 +65,9 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class GetLogHandlerImpl implements GetLogHandler {
 
+	public static final String EXCLUDE_PASSED_LOGS = "excludePassedLogs";
+	public static final String EXCLUDE_EMPTY_STEPS = "excludeEmptySteps";
+
 	private final LogRepository logRepository;
 
 	private final TestItemRepository testItemRepository;
@@ -93,8 +99,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 			Queryable queryable, Pageable pageable) {
 
 		Page<NestedItem> nestedItems = logRepository.findNestedItems(parentId,
-				ofNullable(params.get("excludeEmptySteps")).map(BooleanUtils::toBoolean).orElse(false),
-				ofNullable(params.get("excludePassedLogs")).map(BooleanUtils::toBoolean).orElse(false),
+				ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false),
+				isLogsExclusionRequired(parentId, params),
 				queryable,
 				pageable
 		);
@@ -142,5 +148,28 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		);
 
 		return log;
+	}
+
+	/**
+	 * Method to determine whether logs of the {@link TestItem} with provided 'parentId' and {@link StatusEnum#PASSED}
+	 * should be retrieved with nested steps or should be excluded from the select query
+	 *
+	 * @param parentId {@link Log#testItem} ID
+	 * @param params   {@link org.springframework.web.bind.annotation.RequestParam} mapping
+	 * @return 'true' if logs should be excluded from the select query, else 'false'
+	 */
+	private boolean isLogsExclusionRequired(Long parentId, Map<String, String> params) {
+
+		Boolean excludePassedLogs = ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);
+
+		if (excludePassedLogs) {
+			TestItem parent = testItemRepository.findById(parentId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+
+			return StatusEnum.PASSED == parent.getItemResults().getStatus();
+		}
+
+		return false;
+
 	}
 }

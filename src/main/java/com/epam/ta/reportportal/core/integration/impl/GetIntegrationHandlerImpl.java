@@ -146,6 +146,15 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	@Override
+	public Integration getEnabledBtsIntegration(Long integrationId) {
+
+		Integration globalIntegration = getBugTrackingSystemHandler.getEnabledGlobalIntegration(integrationId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, integrationId));
+
+		return globalIntegration;
+	}
+
+	@Override
 	public List<IntegrationResource> getGlobalIntegrations() {
 		return integrationRepository.findAllGlobal().stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
 	}
@@ -197,6 +206,18 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 		return integrationService.checkConnection(integration);
 	}
 
+	@Override
+	public boolean testConnection(Long integrationId) {
+		Optional<Integration> globalIntegration = integrationRepository.findGlobalById(integrationId);
+		BusinessRule.expect(globalIntegration, Optional::isPresent).verify(ErrorType.INTEGRATION_NOT_FOUND, integrationId);
+		Integration integration = globalIntegration.get();
+
+		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
+				this.basicIntegrationService
+		);
+		return integrationService.checkConnection(integration);
+	}
+
 	private Optional<Integration> getGlobalIntegrationByIntegrationTypeIds(List<Long> integrationTypeIds) {
 		return integrationRepository.findAllGlobalInIntegrationTypeIds(integrationTypeIds)
 				.stream()
@@ -205,11 +226,14 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	}
 
 	private void validateIntegration(Integration integration) {
-		BusinessRule.expect(integration, i -> integration.getType().isEnabled()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName()).get()
-		);
-		BusinessRule.expect(integration, Integration::isEnabled).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
-		);
+		BusinessRule.expect(integration, i -> integration.getType().isEnabled())
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("'{}' type integrations are disabled by Administrator", integration.getType().getName())
+								.get()
+				);
+		BusinessRule.expect(integration, Integration::isEnabled)
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("Integration with ID = '{}' is disabled", integration.getId()).get()
+				);
 	}
 }

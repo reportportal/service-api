@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +51,7 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, String login) {
-		List<Long> itemIds = testItemRepository.selectIdsByAutoAnalyzedStatusWithErrorLogs(true, launchId);
+		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, launchId, LogLevel.ERROR.toInt());
 		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
 		return itemIds;

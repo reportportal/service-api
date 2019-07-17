@@ -174,9 +174,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
 		}
-		expect(launch.getStatus(), equalTo(StatusEnum.IN_PROGRESS)).verify(START_ITEM_NOT_ALLOWED,
-				formattedSupplier("Launch '{}' is not in progress", rq.getLaunchId())
-		);
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(),
 				launch.getStartTime(),

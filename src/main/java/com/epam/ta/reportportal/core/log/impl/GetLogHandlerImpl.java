@@ -91,7 +91,16 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	@Override
 	public LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		return LogConverter.TO_RESOURCE.apply(findAndValidate(logId, projectDetails, user));
+		Log log = findById(logId);
+		validate(log, projectDetails, user);
+		return LogConverter.TO_RESOURCE.apply(log);
+	}
+
+	@Override
+	public LogResource getLog(String logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		Log log = findByUuid(logId);
+		validate(log, projectDetails, user);
+		return LogConverter.TO_RESOURCE.apply(log);
 	}
 
 	@Override
@@ -133,21 +142,37 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	 * Validate log item on existence, availability under specified project,
 	 * etc.
 	 *
-	 * @param logId          - log ID
+	 * @param log          - log item
 	 * @param projectDetails Project details
-	 * @return Log - validate Log item in accordance with specified ID
+	 * @param user - report portal user
 	 */
-	private Log findAndValidate(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
-
+	private void validate(Log log, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Long launchProjectId = ofNullable(log.getTestItem()).map(it -> it.getLaunch().getProjectId())
 				.orElseGet(() -> log.getLaunch().getProjectId());
 
 		expect(launchProjectId, equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Log '{}' not under specified '{}' project", logId, projectDetails.getProjectId())
+				formattedSupplier("Log '{}' not under specified '{}' project", log.getId(), projectDetails.getProjectId())
 		);
+	}
 
-		return log;
+	/**
+	 * Find log item by id
+	 *
+	 * @param logId - log ID
+	 * @return - log item
+	 */
+	private Log findById(Long logId) {
+		return logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
+	}
+
+	/**
+	 * Find log item by uuid
+	 *
+	 * @param logId - log UUID
+	 * @return - log item
+	 */
+	private Log findByUuid(String logId) {
+		return logRepository.findByUuid(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 	}
 
 	/**

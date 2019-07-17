@@ -52,6 +52,16 @@ public interface GetLogHandler {
 	LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
+	 * Returns log by UUID
+	 *
+	 * @param logId          - target log UUID value
+	 * @param projectDetails Project details
+	 * @param user           User
+	 * @return LogResource
+	 */
+	LogResource getLog(String logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+
+	/**
 	 * Calculates page number and returns entire page for specified log ID
 	 *
 	 * @param logId          ID of log to find

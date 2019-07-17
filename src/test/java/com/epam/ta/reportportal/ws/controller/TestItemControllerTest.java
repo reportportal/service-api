@@ -171,6 +171,11 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getTestItemUuidPositive() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
 	void getTestItemsPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());

@@ -98,6 +98,14 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
+	public TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		TestItem testItem = testItemRepository.findByUuid(testItemId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		validate(testItem.getLaunch().getId(), projectDetails, user);
+		return itemResourceAssembler.toResource(testItem);
+	}
+
+	@Override
 	public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Long launchId) {
 		validate(launchId, projectDetails, user);

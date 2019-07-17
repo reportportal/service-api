@@ -82,7 +82,7 @@ class FinishLaunchHandlerImplTest {
 
 		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		FinishLaunchRS response = handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
+		FinishLaunchRS response = handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null);
 
 		assertNotNull(response);
 	}
@@ -91,7 +91,6 @@ class FinishLaunchHandlerImplTest {
 	void finishLaunchWithLink() {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		finishExecutionRQ.setBaseURL("http://example.com");
 
 		ReportPortalUser rpUser = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 
@@ -99,7 +98,9 @@ class FinishLaunchHandlerImplTest {
 
 		final FinishLaunchRS finishLaunchRS = handler.finishLaunch("1",
 				finishExecutionRQ,
-				extractProjectDetails(rpUser, "test_project"), rpUser
+				extractProjectDetails(rpUser, "test_project"),
+				rpUser,
+				"http://example.com"
 		);
 
 		assertNotNull(finishLaunchRS);
@@ -139,8 +140,7 @@ class FinishLaunchHandlerImplTest {
 
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
-		final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(
-				bulkRq,
+		final List<OperationCompletionRS> response = stopLaunchHandler.stopLaunch(bulkRq,
 				extractProjectDetails(rpUser, "test_project"),
 				rpUser
 		);
@@ -158,7 +158,7 @@ class FinishLaunchHandlerImplTest {
 		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
 		assertThrows(ReportPortalException.class,
-				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null)
 		);
 	}
 
@@ -172,7 +172,7 @@ class FinishLaunchHandlerImplTest {
 		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
 		assertThrows(ReportPortalException.class,
-				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null)
 		);
 	}
 
@@ -186,7 +186,7 @@ class FinishLaunchHandlerImplTest {
 		when(launchRepository.findByUuid("1")).thenReturn(getLaunch(StatusEnum.IN_PROGRESS, LaunchModeEnum.DEFAULT));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null)
 		);
 		assertEquals("You do not have enough permissions. You are not launch owner.", exception.getMessage());
 	}

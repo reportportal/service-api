@@ -28,6 +28,7 @@ public final class MessageHeaders {
 	public static final String ITEM_ID = "itemId";
 	public static final String PARENT_ID = "parentId";
 	public static final String XD_HEADER = "x-death";
+	public static final String BASE_URL = "baseUrl";
 
 	public static final String ITEM_REF = "itemRef";
 	public static final String LIMIT = "limit";

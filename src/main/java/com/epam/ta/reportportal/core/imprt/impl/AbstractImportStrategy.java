@@ -89,7 +89,7 @@ public abstract class AbstractImportStrategy implements ImportStrategy {
 			ParseResults results) {
 		FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
 		finishExecutionRQ.setEndTime(results.getEndTime());
-		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user);
+		finishLaunchHandler.finishLaunch(launchId, finishExecutionRQ, projectDetails, user, null);
 		Launch launch = launchRepository.findByUuid(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		launch.setStartTime(results.getStartTime());

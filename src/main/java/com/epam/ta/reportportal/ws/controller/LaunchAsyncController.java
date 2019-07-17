@@ -77,10 +77,12 @@ public class LaunchAsyncController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		finishLaunchRQ.setBaseURL(composeBaseUrl(request.getScheme(), request.getHeader("host")));
-		return finishLaunchMessageHandler.finishLaunch(launchId,
+		return finishLaunchMessageHandler.finishLaunch(
+				launchId,
 				finishLaunchRQ,
-				extractProjectDetails(user, normalizeId(projectName)), user
+				extractProjectDetails(user, normalizeId(projectName)),
+				user,
+				composeBaseUrl(request.getScheme(), request.getHeader("host"))
 		);
 	}
 

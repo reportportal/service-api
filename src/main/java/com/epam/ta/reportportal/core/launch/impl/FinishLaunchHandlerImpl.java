@@ -74,7 +74,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	@Override
 	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+			ReportPortalUser user, String baseUrl) {
 		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
@@ -101,7 +101,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.get();
 
 		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch),
-				finishLaunchRQ.getBaseURL(),
+				baseUrl,
 				user.getUserId(),
 				user.getUsername()
 		);
@@ -110,7 +110,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 		FinishLaunchRS response = new FinishLaunchRS();
 		response.setNumber(launch.getNumber());
-		response.setLink(generateLaunchLink(finishLaunchRQ.getBaseURL(), projectDetails.getProjectName(), String.valueOf(launch.getId())));
+		response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), String.valueOf(launch.getId())));
 		return response;
 	}
 

@@ -39,6 +39,6 @@ public interface FinishLaunchHandler {
 	 * @return FinishLaunchRS
 	 */
 	FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user);
+			ReportPortalUser user, String baseUrl);
 
 }

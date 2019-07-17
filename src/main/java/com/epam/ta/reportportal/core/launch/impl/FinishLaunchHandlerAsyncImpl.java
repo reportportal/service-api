@@ -43,7 +43,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 
 	@Override
 	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+			ReportPortalUser user, String baseUrl) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
 		amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH, request, message -> {
@@ -51,6 +51,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
 			headers.put(MessageHeaders.LAUNCH_ID, launchId);
+			headers.put(MessageHeaders.BASE_URL, baseUrl);
 			return message;
 		});
 

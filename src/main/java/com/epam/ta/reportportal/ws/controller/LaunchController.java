@@ -182,11 +182,22 @@ public class LaunchController {
 	@Transactional(readOnly = true)
 	@GetMapping("/{launchId}")
 	@ResponseStatus(OK)
-	@ApiOperation("Get specified launch")
+	@ApiOperation("Get specified launch by ID")
 	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
 	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/uuid/{launchId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Get specified launch by UUID")
+	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable String launchId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
+	}
+
+
 
 	@Transactional(readOnly = true)
 	@GetMapping

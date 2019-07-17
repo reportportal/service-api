@@ -119,6 +119,13 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	}
 
 	@Override
+	public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
+		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		validate(launch, projectDetails);
+		return launchConverter.TO_RESOURCE.apply(launch);
+	}
+
+	@Override
 	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));

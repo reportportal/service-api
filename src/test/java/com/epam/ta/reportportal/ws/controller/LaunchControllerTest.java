@@ -102,6 +102,11 @@ class LaunchControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getLaunchUuidPositive() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+	}
+
+	@Test
 	void getDebugLaunches() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/launch/mode").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().is(200));

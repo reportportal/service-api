@@ -174,9 +174,16 @@ public class LogController {
 	}
 
 	@GetMapping(value = "/{logId}")
-	@ApiOperation("Get log")
+	@ApiOperation("Get log by ID")
 	@Transactional(readOnly = true)
 	public LogResource getLog(@PathVariable String projectName, @PathVariable Long logId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
+	}
+
+	@GetMapping(value = "/uuid/{logId}")
+	@ApiOperation("Get log by UUID")
+	@Transactional(readOnly = true)
+	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
 	}
 

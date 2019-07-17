@@ -23,17 +23,22 @@ import com.epam.ta.reportportal.core.log.impl.CreateLogHandlerImpl;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.MessagePostProcessor;
 
 import java.util.Collections;
 import java.util.Date;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ_DROPPED;
 import static org.mockito.Mockito.*;
 
 /**
@@ -47,6 +52,9 @@ class LogReporterConsumerTest {
 
 	@Mock
 	private CreateLogHandlerImpl createLogHandlerImpl;
+
+	@Mock
+	AmqpTemplate amqpTemplate;
 
 	@InjectMocks
 	private LogReporterConsumer logReporterConsumer;
@@ -67,5 +75,18 @@ class LogReporterConsumerTest {
 		logReporterConsumer.onLogCreate(DeserializablePair.of(saveLogRQ, null), 1L, "test_project", Collections.emptyList());
 
 		verify(createLogHandlerImpl, times(1)).createLog(eq(saveLogRQ), eq(null), any());
+	}
+
+	@Test
+	void onLogCreateSpooledToDroppedDLQ() {
+		SaveLogRQ saveLogRQ = new SaveLogRQ();
+		saveLogRQ.setItemId("1");
+		saveLogRQ.setLogTime(new Date());
+		saveLogRQ.setLevel("ERROR");
+		saveLogRQ.setMessage("message");
+
+		logReporterConsumer.onLogCreate(DeserializablePair.of(saveLogRQ, null), 1L, "test_project", Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+
+		verify(amqpTemplate).convertAndSend(eq(QUEUE_LOG_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
 	}
 }

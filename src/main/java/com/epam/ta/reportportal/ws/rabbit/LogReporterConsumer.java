@@ -35,11 +35,14 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +50,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ_DROPPED;
 
 /**
  * @author Pavel Bortnik
@@ -64,18 +68,24 @@ public class LogReporterConsumer {
 	private final DataStoreService dataStoreService;
 	private final CreateAttachmentHandler createAttachmentHandler;
 
+
+	private AmqpTemplate amqpTemplate;
+
 	@Autowired
 	public LogReporterConsumer(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			TestItemService testItemService, DataStoreService dataStoreService, CreateAttachmentHandler createAttachmentHandler) {
+			TestItemService testItemService, DataStoreService dataStoreService, CreateAttachmentHandler createAttachmentHandler,
+			 @Qualifier("rabbitTemplate") AmqpTemplate amqpTemplate) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.testItemService = testItemService;
 		this.dataStoreService = dataStoreService;
 		this.createAttachmentHandler = createAttachmentHandler;
+		this.amqpTemplate = amqpTemplate;
 	}
 
 	@RabbitListener(queues = "#{ @logQueue.name }")
+	@Transactional
 	public void onLogCreate(@Payload DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload,
 			@Header(MessageHeaders.PROJECT_ID) Long projectId, @Header(MessageHeaders.ITEM_ID) String itemId,
 			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
@@ -83,24 +93,47 @@ public class LogReporterConsumer {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
-				LOGGER.error("Dropping log request TestItem {}, on maximum retry attempts {}", itemId, DEAD_LETTER_MAX_RETRY);
-				cleanup(payload);
+				LOGGER.error("Dropping to {} log request for TestItem {}, on maximum retry attempts {}",
+						QUEUE_LOG_DLQ_DROPPED,
+						itemId,
+						DEAD_LETTER_MAX_RETRY);
+
+				// don't cleanup to not loose binary content of dropped DLQ message
+				// cleanup(payload);
+
+				amqpTemplate.convertAndSend(QUEUE_LOG_DLQ_DROPPED, payload, message -> {
+					Map<String, Object> headers = message.getMessageProperties().getHeaders();
+					headers.put(MessageHeaders.PROJECT_ID, projectId);
+					headers.put(MessageHeaders.ITEM_ID, itemId);
+					return message;
+				});
 				return;
 			}
-			LOGGER.warn("Retrying log request TestItem {}, attempt {}", itemId, count);
+			LOGGER.trace("Retrying log request TestItem {}, attempt {}", itemId, count);
 		}
 
-		SaveLogRQ request = payload.getLeft();
-		BinaryDataMetaInfo metaInfo = payload.getRight();
+		try {
+			SaveLogRQ request = payload.getLeft();
+			BinaryDataMetaInfo metaInfo = payload.getRight();
 
-		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
+			Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
 
-		if (itemOptional.isPresent()) {
-			createItemLog(request, itemOptional.get(), metaInfo, projectId);
-		} else {
-			Launch launch = launchRepository.findByUuid(request.getItemId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
-			createLaunchLog(request, launch, metaInfo, projectId);
+			if (itemOptional.isPresent()) {
+				createItemLog(request, itemOptional.get(), metaInfo, projectId);
+			} else {
+				Launch launch = launchRepository.findByUuid(request.getItemId())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+				createLaunchLog(request, launch, metaInfo, projectId);
+			}
+		} catch (Exception e) {
+			if (e instanceof ReportPortalException && e.getMessage().startsWith("Test Item ")) {
+				LOGGER.debug("exception : {}, message : {},  cause : {}",
+						e.getClass().getName(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
+			} else {
+				LOGGER.error("exception : {}, message : {},  cause : {}",
+						e.getClass().getName(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
+			}
+			throw e;
 		}
 	}
 
@@ -116,6 +149,14 @@ public class LogReporterConsumer {
 		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
 	}
 
+	/**
+	 * Cleanup log content corresponding to log request, that was stored in DataStore
+	 *
+	 * Consider how appropriate it to use this method for dropped messages, that exceeded retry count
+	 * and were routed into dropped DLQ
+	 *
+	 * @param payload
+	 */
 	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
 		// we need to delete only binary data, log and attachment shouldn't be dirty created
 		if (payload.getRight() != null) {

@@ -24,13 +24,21 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.MessagePostProcessor;
+
+import java.util.Collections;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH_DLQ_DROPPED;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_START_DLQ_DROPPED;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +56,9 @@ class TestReporterConsumerTest {
 
 	@Mock
 	private FinishTestItemHandler finishTestItemHandler;
+
+	@Mock
+	AmqpTemplate amqpTemplate;
 
 	@InjectMocks
 	private TestReporterConsumer testReporterConsumer;
@@ -88,6 +99,21 @@ class TestReporterConsumerTest {
 	}
 
 	@Test
+	void onItemStartSpooledToDroppedDLQ() {
+		StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchId("1");
+		rq.setType("STEP");
+		rq.setName("name");
+		rq.setDescription("description");
+		String username = "user";
+		String parentId = "2";
+
+		testReporterConsumer.onItemStart(username, "test_project", parentId, rq, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+
+		verify(amqpTemplate).convertAndSend(eq(QUEUE_ITEM_START_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
+	}
+
+	@Test
 	void onFinishItem() {
 		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
 		finishTestItemRQ.setStatus("PASSED");
@@ -100,5 +126,17 @@ class TestReporterConsumerTest {
 		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, null);
 
 		verify(finishTestItemHandler, times(1)).finishTestItem(user, extractProjectDetails(user, "test_project"), itemId, finishTestItemRQ);
+	}
+
+	@Test
+	void onItemStopSpooledToDroppedDLQ() {
+		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
+		finishTestItemRQ.setStatus("PASSED");
+		String username = "user";
+		String itemId = "1";
+
+		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+
+		verify(amqpTemplate).convertAndSend(eq(QUEUE_ITEM_FINISH_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
 	}
 }

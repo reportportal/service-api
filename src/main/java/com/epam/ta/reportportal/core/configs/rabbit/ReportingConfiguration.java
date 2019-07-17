@@ -29,8 +29,8 @@ import org.springframework.context.annotation.Configuration;
 @Conditional(Conditions.NotTestCondition.class)
 public class ReportingConfiguration {
 
-	public static final long DEAD_LETTER_DELAY_MILLIS = 3_000L;
-	public static final long DEAD_LETTER_MAX_RETRY = 5L;
+	public static final long DEAD_LETTER_DELAY_MILLIS = 300_000L;
+	public static final long DEAD_LETTER_MAX_RETRY = 300L;
 
 	/**
 	 * Exchanges
@@ -48,12 +48,23 @@ public class ReportingConfiguration {
 	public static final String QUEUE_LOG = "reporting.log";
 
 	/**
-	 * Dead letter queues
+	 * Retrying dead letter queues
 	 */
+	public static final String QUEUE_LAUNCH_START_DLQ = "reporting.launch.start.dlq";
 	public static final String QUEUE_LAUNCH_FINISH_DLQ = "reporting.launch.finish.dlq";
 	public static final String QUEUE_ITEM_START_DLQ = "reporting.item.start.dlq";
 	public static final String QUEUE_ITEM_FINISH_DLQ = "reporting.item.finish.dlq";
 	public static final String QUEUE_LOG_DLQ = "reporting.log.dlq";
+
+	/**
+	 * Dropped dead letter queues (dropped messages go here)
+	 */
+	public static final String QUEUE_LAUNCH_START_DLQ_DROPPED = "reporting.launch.start.dlq.dropped";
+	public static final String QUEUE_LAUNCH_FINISH_DLQ_DROPPED = "reporting.launch.finish.dlq.dropped";
+	public static final String QUEUE_ITEM_START_DLQ_DROPPED = "reporting.item.start.dlq.dropped";
+	public static final String QUEUE_ITEM_FINISH_DLQ_DROPPED = "reporting.item.finish.dlq.dropped";
+	public static final String QUEUE_LOG_DLQ_DROPPED = "reporting.log.dlq.dropped";
+
 
 	/**
 	 * Exchanges definition
@@ -72,10 +83,27 @@ public class ReportingConfiguration {
 	/**
 	 * Queues definition
 	 */
-
 	@Bean
 	public Queue launchStartQueue() {
-		return new Queue(QUEUE_LAUNCH_START);
+		return QueueBuilder.durable(QUEUE_LAUNCH_START)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_START_DLQ)
+				.build();
+	}
+
+	@Bean
+	public Queue launchStartDLQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_START_DLQ)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_START)
+				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue launchStartDLDroppedQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_START_DLQ_DROPPED)
+				.build();
 	}
 
 	@Bean
@@ -92,6 +120,12 @@ public class ReportingConfiguration {
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue launchFinishDLDroppedQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_DLQ_DROPPED)
 				.build();
 	}
 
@@ -113,6 +147,12 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
+	public Queue itemStartDLDroppedQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_START_DLQ_DROPPED)
+				.build();
+	}
+
+	@Bean
 	public Queue itemFinishQueue() {
 		return QueueBuilder.durable(QUEUE_ITEM_FINISH)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
@@ -130,6 +170,12 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
+	public Queue itemFinishDLDroppedQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_FINISH_DLQ_DROPPED)
+				.build();
+	}
+
+	@Bean
 	public Queue logQueue() {
 		return QueueBuilder.durable(QUEUE_LOG)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
@@ -143,6 +189,12 @@ public class ReportingConfiguration {
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LOG)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue logDLDroppedQueue() {
+		return QueueBuilder.durable(QUEUE_LOG_DLQ_DROPPED)
 				.build();
 	}
 
@@ -169,23 +221,18 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
+	public Binding launchStartDLQBinding() {
+		return BindingBuilder.bind(launchStartDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_START_DLQ);
+	}
+
+	@Bean
+	public Binding launchStartDLDroppedBinding() {
+		return BindingBuilder.bind(launchStartDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_START_DLQ_DROPPED);
+	}
+
+	@Bean
 	public Binding launchFinishBinding() {
 		return BindingBuilder.bind(launchFinishQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_FINISH);
-	}
-
-	@Bean
-	public Binding itemStartBinding() {
-		return BindingBuilder.bind(itemStartQueue()).to(reportingExchange()).with(QUEUE_ITEM_START);
-	}
-
-	@Bean
-	public Binding itemFinishBinding() {
-		return BindingBuilder.bind(itemFinishQueue()).to(reportingExchange()).with(QUEUE_ITEM_FINISH);
-	}
-
-	@Bean
-	public Binding logBinding() {
-		return BindingBuilder.bind(logQueue()).to(reportingExchange()).with(QUEUE_LOG);
 	}
 
 	@Bean
@@ -194,8 +241,28 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
+	public Binding launchFinishDLDroppedBinding() {
+		return BindingBuilder.bind(launchFinishDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ_DROPPED);
+	}
+
+	@Bean
+	public Binding itemStartBinding() {
+		return BindingBuilder.bind(itemStartQueue()).to(reportingExchange()).with(QUEUE_ITEM_START);
+	}
+
+	@Bean
 	public Binding itemStartDLQBinding() {
 		return BindingBuilder.bind(itemStartDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_START_DLQ);
+	}
+
+	@Bean
+	public Binding itemStartDLDroppedBinding() {
+		return BindingBuilder.bind(itemStartDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_START_DLQ_DROPPED);
+	}
+
+	@Bean
+	public Binding itemFinishBinding() {
+		return BindingBuilder.bind(itemFinishQueue()).to(reportingExchange()).with(QUEUE_ITEM_FINISH);
 	}
 
 	@Bean
@@ -204,7 +271,22 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
+	public Binding itemFinishDLDroppedBinding() {
+		return BindingBuilder.bind(itemFinishDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_FINISH_DLQ_DROPPED);
+	}
+
+	@Bean
+	public Binding logBinding() {
+		return BindingBuilder.bind(logQueue()).to(reportingExchange()).with(QUEUE_LOG);
+	}
+
+	@Bean
 	public Binding logDLQBinding() {
 		return BindingBuilder.bind(logDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_DLQ);
+	}
+
+	@Bean
+	public Binding logDLDroppedBinding() {
+		return BindingBuilder.bind(logDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_DLQ_DROPPED);
 	}
 }

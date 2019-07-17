@@ -28,6 +28,8 @@ spring:
   rabbitmq:
     addresses: ${rp.amqp.addresses}
 
+server.connection-timeout: 30000
+
 logging:
   level:
     org.hibernate: info

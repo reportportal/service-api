@@ -1,11 +1,11 @@
 package com.epam.ta.reportportal.ws.handler.impl;
 
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.handler.QueryHandler;
 import com.epam.ta.reportportal.ws.rabbit.QueryRQ;
 import com.google.common.collect.ImmutableMap;

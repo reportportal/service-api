@@ -51,6 +51,8 @@ public interface GetTicketHandler {
 	 */
 	List<PostFormField> getSubmitTicketFields(String ticketType, Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
 
+	List<PostFormField> getSubmitTicketFields(String issueType, Long integrationId);
+
 	/**
 	 * Get allowable issue types
 	 *
@@ -59,4 +61,6 @@ public interface GetTicketHandler {
 	 * @return Fields
 	 */
 	List<String> getAllowableIssueTypes(Long integrationId, ReportPortalUser.ProjectDetails projectDetails);
+
+	List<String> getAllowableIssueTypes(Long integrationId);
 }

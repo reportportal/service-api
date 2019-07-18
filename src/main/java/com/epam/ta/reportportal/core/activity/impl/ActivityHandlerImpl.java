@@ -45,8 +45,7 @@ import java.util.stream.Stream;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.ITEM_ISSUE;
-import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
+import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
 /**
@@ -117,8 +116,7 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
 				.withCondition(FilterCondition.builder()
 						.withSearchCriteria(CRITERIA_ENTITY)
-						.withCondition(Condition.IN)
-						.withValue(Stream.of(ITEM_ISSUE, TICKET)
+						.withCondition(Condition.IN).withValue(Stream.of(ITEM, ITEM_ISSUE, TICKET)
 								.map(Activity.ActivityEntityType::getValue)
 								.collect(Collectors.joining(",")))
 						.build());

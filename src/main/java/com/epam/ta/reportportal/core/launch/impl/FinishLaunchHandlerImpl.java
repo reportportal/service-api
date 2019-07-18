@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -74,8 +73,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 	}
 
 	@Override
-	public Launch finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user) {
+	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, String baseUrl) {
 		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
@@ -96,27 +95,22 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
 		}
 
-		final String desc = buildDescription(launch.getDescription(), finishLaunchRQ.getDescription());
-
-		launch = new LaunchBuilder(launch).addDescription(desc)
+		launch = new LaunchBuilder(launch).addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
 				.addAttributes(finishLaunchRQ.getAttributes())
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername());
+		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch),
+				baseUrl,
+				user.getUserId(),
+				user.getUsername()
+		);
 		messageBus.publishActivity(event);
 		eventPublisher.publishEvent(event);
 
-		return launch;
-	}
-
-	@Override
-	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ finishLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, LaunchLinkGenerator.LinkParams linkParams) {
-		Launch launch = finishLaunch(launchId, finishLaunchRQ, projectDetails, user);
 		FinishLaunchRS response = new FinishLaunchRS();
 		response.setNumber(launch.getNumber());
-		response.setLink(generateLaunchLink(linkParams, String.valueOf(launch.getId())));
+		response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), String.valueOf(launch.getId())));
 		return response;
 	}
 

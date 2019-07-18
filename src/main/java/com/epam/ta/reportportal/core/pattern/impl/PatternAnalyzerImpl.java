@@ -78,7 +78,7 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 					PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
 							patternTemplate);
 					patternTemplateTestItems.forEach(patternItem -> {
-						PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(launch.getId(),
+						PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(patternItem.getPatternTemplateId(),
 								patternItem.getTestItemId(),
 								patternTemplateActivityResource
 						);

@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,7 +184,7 @@ public class LogController {
 	@GetMapping(value = "/nested/{parentId}")
 	@ApiOperation("Get nested steps with logs for the parent Test Item")
 	@Transactional(readOnly = true)
-	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId, @RequestParam Map<String, String> params,
+	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId, @ApiParam(required = false) @RequestParam Map<String, String> params,
 			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getNestedItems(parentId, extractProjectDetails(user, projectName), params, filter, pageable);
 	}

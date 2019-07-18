@@ -52,7 +52,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 
 	@Override
 	public OperationCompletionRS importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String format,
-			MultipartFile file) {
+			MultipartFile file, String baseUrl) {
 
 		validate(file);
 
@@ -66,7 +66,7 @@ public class ImportLaunchHandlerImpl implements ImportLaunchHandler {
 				file.getOriginalFilename()
 		));
 		ImportStrategy strategy = importStrategyFactory.getImportStrategy(type, file.getOriginalFilename());
-		String launchId = strategy.importLaunch(projectDetails, user, tempFile);
+		String launchId = strategy.importLaunch(projectDetails, user, tempFile, baseUrl);
 		messageBus.publishActivity(new ImportFinishedEvent(user.getUserId(),
 				user.getUsername(),
 				projectDetails.getProjectId(),

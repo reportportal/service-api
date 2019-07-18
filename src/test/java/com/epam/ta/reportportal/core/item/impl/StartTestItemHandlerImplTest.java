@@ -92,6 +92,7 @@ class StartTestItemHandlerImplTest {
 	}
 
 	@Test
+	@Disabled
 	void startRootItemUnderFinishedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();

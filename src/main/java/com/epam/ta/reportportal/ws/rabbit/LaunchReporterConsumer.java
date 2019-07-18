@@ -109,7 +109,7 @@ public class LaunchReporterConsumer {
 	@RabbitListener(queues = "#{ @launchFinishQueue.name }")
 	public void onFinishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId,
-			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
+			@Header(MessageHeaders.BASE_URL) String baseUrl, @Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
@@ -132,7 +132,7 @@ public class LaunchReporterConsumer {
 		}
 		try {
 			ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-			finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user);
+			finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user, baseUrl);
 		} catch (Exception e) {
 			if (e instanceof ReportPortalException) {
 				LOGGER.debug("exception : {}, message : {},  cause : {}",

@@ -70,7 +70,7 @@ public class WidgetController {
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create a new widget")
-	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
+	public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
 		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);
 	}

@@ -8,7 +8,7 @@ import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResourc
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.LAUNCH_ID;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.PATTERN_ID;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PATTERN;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.PATTERN_MATCHED;
 
@@ -17,7 +17,7 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.PATTERN_MA
  */
 public class PatternMatchedEvent implements ActivityEvent {
 
-	private Long launchId;
+	private Long patternId;
 
 	private Long itemId;
 
@@ -26,18 +26,18 @@ public class PatternMatchedEvent implements ActivityEvent {
 	public PatternMatchedEvent() {
 	}
 
-	public PatternMatchedEvent(Long launchId, Long itemId, PatternTemplateActivityResource patternTemplateActivityResource) {
-		this.launchId = launchId;
+	public PatternMatchedEvent(Long patternId, Long itemId, PatternTemplateActivityResource patternTemplateActivityResource) {
+		this.patternId = patternId;
 		this.itemId = itemId;
 		this.patternTemplateActivityResource = patternTemplateActivityResource;
 	}
 
-	public Long getLaunchId() {
-		return launchId;
+	public Long getPatternId() {
+		return patternId;
 	}
 
-	public void setLaunchId(Long launchId) {
-		this.launchId = launchId;
+	public void setPatternId(Long patternId) {
+		this.patternId = patternId;
 	}
 
 	public Long getItemId() {
@@ -59,16 +59,16 @@ public class PatternMatchedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 
-		HistoryField launchIdField = new HistoryField();
-		launchIdField.setField(LAUNCH_ID);
-		launchIdField.setNewValue(String.valueOf(launchId));
+		HistoryField patternIdField = new HistoryField();
+		patternIdField.setField(PATTERN_ID);
+		patternIdField.setNewValue(String.valueOf(patternId));
 
 		return new ActivityBuilder().addCreatedNow().addObjectId(itemId)
 				.addObjectName(patternTemplateActivityResource.getName())
 				.addProjectId(patternTemplateActivityResource.getProjectId())
 				.addActivityEntityType(PATTERN)
 				.addAction(PATTERN_MATCHED)
-				.addHistoryField(Optional.of(launchIdField))
+				.addHistoryField(Optional.of(patternIdField))
 				.get();
 	}
 }

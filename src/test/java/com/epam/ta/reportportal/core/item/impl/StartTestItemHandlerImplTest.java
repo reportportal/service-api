@@ -92,6 +92,21 @@ class StartTestItemHandlerImplTest {
 	}
 
 	@Test
+	@Disabled
+	void startRootItemUnderFinishedLaunch() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+		startTestItemRQ.setLaunchId("1");
+
+		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.PASSED)));
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
+		);
+		assertEquals("Start test item is not allowed. Launch '1' is not in progress", exception.getMessage());
+	}
+
+	@Test
 	void startRootItemEarlierThanLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();

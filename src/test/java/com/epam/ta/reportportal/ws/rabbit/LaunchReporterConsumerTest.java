@@ -106,7 +106,7 @@ class LaunchReporterConsumerTest {
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
 		String launchId = "1";
-		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, null, "http://example.com");
+		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, "http://example.com", null);
 
 		verify(finishLaunchHandler, times(1)).finishLaunch(eq(launchId), eq(finishExecutionRQ), any(), eq(user), eq("http://example.com"));
 	}
@@ -119,7 +119,7 @@ class LaunchReporterConsumerTest {
 		String username = "user";
 
 		String launchId = "1";
-		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, "http://example.com", Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_LAUNCH_FINISH_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
 	}

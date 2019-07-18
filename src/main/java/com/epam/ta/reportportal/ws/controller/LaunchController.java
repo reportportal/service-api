@@ -341,7 +341,12 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
+		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)),
+				user,
+				"XUNIT",
+				file,
+				composeBaseUrl(request.getScheme(), request.getHeader("host"))
+		);
 	}
 }

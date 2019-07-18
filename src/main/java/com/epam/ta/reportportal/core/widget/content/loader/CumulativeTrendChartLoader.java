@@ -80,7 +80,8 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 		if (ArrayUtils.isEmpty(attributes)) {
 			content = widgetContentRepository.cumulativeTrendStatistics(filter,
 					contentFields,
-					sort, storedAttributes.size() > 0 ? storedAttributes.get(0) : null,
+					sort,
+					storedAttributes.size() > 0 ? storedAttributes.get(0) : null,
 					storedAttributes.size() > 1 ? storedAttributes.get(1) : null,
 					limit
 			);

@@ -53,6 +53,7 @@ public class ActivityDetailsUtil {
 	public static final String ENABLED = "enabled";
 	public static final String ITEM_IDS = "itemIds";
 	public static final String LAUNCH_ID = "launchId";
+	public static final String PATTERN_ID = "patternId";
 
 	public static Optional<HistoryField> processName(String oldName, String newName) {
 		if (!Strings.isNullOrEmpty(newName) && !oldName.equals(newName)) {

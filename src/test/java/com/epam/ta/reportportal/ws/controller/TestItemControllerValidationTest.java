@@ -18,40 +18,59 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.dashboard.CreateDashboardRQ;
+import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.UUID;
+
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
  */
-class DashboardControllerValidationTest extends BaseMvcTest {
+public class TestItemControllerValidationTest extends BaseMvcTest {
 
-	private static final String DASHBOARD_PATH = "/dashboard";
+	private static final String ITEM_PATH = "/item";
+	private static final String PARENT_ID_PATH = "/555";
+
+	private static final String INCORRECT_REQUEST_MESSAGE = "Incorrect Request. ";
+	private static final String FIELD_NAME_IS_NULL_MESSAGE = "[Field 'name' should not be null.] ";
+	private static final String FIELD_NAME_IS_BLANK_MESSAGE = "Field 'name' should not contain only white spaces and shouldn't be empty.";
+	private static final String FIELD_NAME_SIZE_MESSAGE = "Field 'name' should have size from '1' to '1,024'.";
+
+	private static final String LONG_NAME_VALUE = "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt";
 
 	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Test
-	public void createDashboardShouldReturnErrorWhenNameIsNull() throws Exception {
+	public void startRootTestItemShouldReturnErrorWhenNameIsNull() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -62,15 +81,15 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createDashboardShouldReturnErrorWhenNameIsEmpty() throws Exception {
+	public void startRootTestItemShouldReturnErrorWhenNameIsEmpty() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName(EMPTY);
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
+		startTestItemRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -81,15 +100,15 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createDashboardShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+	public void startRootTestItemShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("    ");
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
+		startTestItemRQ.setName("    ");
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -100,15 +119,15 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createDashboardShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+	public void startRootTestItemShouldReturnErrorWhenNameIsGreaterThanOneThousandTwentyFourCharacters() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("cc");
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
+		startTestItemRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -119,33 +138,14 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createDashboardShouldReturnErrorWhenNameIsGreaterThanOneHundredAndEightCharacters() throws Exception {
+	public void startChildTestItemShouldReturnErrorWhenNameIsNull() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
-
-		//THEN
-		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
-		assertEquals(INCORRECT_REQUEST, error.getErrorType());
-		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
-	}
-
-	@Test
-	public void updateDashboardShouldReturnErrorWhenNameIsNull() throws Exception {
-		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-
-		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -156,15 +156,15 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateDashboardShouldReturnErrorWhenNameIsEmpty() throws Exception {
+	public void startChildTestItemShouldReturnErrorWhenNameIsEmpty() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName(EMPTY);
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
+		startTestItemRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -175,15 +175,15 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateDashboardShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+	public void startChildTestItemShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("    ");
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
+		startTestItemRQ.setName("    ");
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -194,15 +194,15 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateDashboardShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+	public void startChildTestItemShouldReturnErrorWhenNameIsGreaterThanOneThousandTwentyFourCharacters() throws Exception {
 		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("cc");
+		StartTestItemRQ startTestItemRQ = prepareTestItem();
+		startTestItemRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
+				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -212,22 +212,12 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
 	}
 
-	@Test
-	public void updateDashboardShouldReturnErrorWhenNameIsGreaterThanOneHundredAndEightCharacters() throws Exception {
-		//GIVEN
-		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
-
-		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(createDashboardRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
-
-		//THEN
-		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
-		assertEquals(INCORRECT_REQUEST, error.getErrorType());
-		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+	private StartTestItemRQ prepareTestItem() {
+		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+		startTestItemRQ.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
+		startTestItemRQ.setType("SUITE");
+		startTestItemRQ.setUniqueId(UUID.randomUUID().toString());
+		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		return startTestItemRQ;
 	}
 }

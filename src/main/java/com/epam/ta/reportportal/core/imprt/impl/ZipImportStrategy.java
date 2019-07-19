@@ -47,9 +47,9 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file, String baseUrl) {
 		try {
-			return processZipFile(file, projectDetails, user);
+			return processZipFile(file, projectDetails, user, baseUrl);
 		} finally {
 			try {
 				ofNullable(file).ifPresent(File::delete);
@@ -59,7 +59,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private String processZipFile(File zip, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 		try (ZipFile zipFile = new ZipFile(zip)) {
@@ -71,7 +71,7 @@ public class ZipImportStrategy extends AbstractImportStrategy {
 				return CompletableFuture.supplyAsync(job::call, service);
 			}).toArray(CompletableFuture[]::new);
 			ParseResults parseResults = processResults(futures);
-			finishLaunch(launchId, projectDetails, user, parseResults);
+			finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
 			return launchId;
 		} catch (Exception e) {
 			updateBrokenLaunch(savedLaunchId);

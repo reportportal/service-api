@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.integration.plugin;
 
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.pf4j.PluginException;
 import org.pf4j.PluginWrapper;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public interface PluginLoader {
 	 * @param pluginPath Plugin's path
 	 * @return {@link PluginInfo} with {@link PluginInfo#id} and {@link PluginInfo#version}
 	 */
-	PluginInfo extractPluginInfo(Path pluginPath);
+	PluginInfo extractPluginInfo(Path pluginPath) throws PluginException;
 
 	/**
 	 * Creates the {@link IntegrationType} object based on the params of the plugin
@@ -49,10 +50,10 @@ public interface PluginLoader {
 	 * Validate the plugin with {@link com.epam.reportportal.extension.common.ExtensionPoint}
 	 * on the presence of the mandatory extension class/classes
 	 *
-	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @param plugin {@link PluginWrapper}
 	 * @return true if the plugin has mandatory extension class/classes, else false
 	 */
-	boolean validatePluginExtensionClasses(String pluginId);
+	boolean validatePluginExtensionClasses(PluginWrapper plugin);
 
 	/**
 	 * Save plugin in the file system
@@ -67,11 +68,10 @@ public interface PluginLoader {
 	/**
 	 * Upload plugin file to the directory.
 	 *
-	 * @param directory  Directory to save plugin file
-	 * @param fileName   Plugin file name to upload
+	 * @param pluginPath Path to save plugin file
 	 * @param fileStream {@link InputStream} of the plugin file
 	 */
-	void savePlugin(String directory, String fileName, InputStream fileStream) throws IOException;
+	void savePlugin(Path pluginPath, InputStream fileStream) throws IOException;
 
 	/**
 	 * Remove old plugin file, if it wasn't replaced by the new one during the plugin uploading
@@ -87,5 +87,5 @@ public interface PluginLoader {
 	 * @param pluginFileDirectory Path to the temporary directory with the plugin file
 	 * @param pluginFileName      Name of the plugin file
 	 */
-	void deleteTempPlugin(String pluginFileDirectory, String pluginFileName);
+	void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) throws IOException;
 }

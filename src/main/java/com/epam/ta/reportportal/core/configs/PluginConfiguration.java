@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.google.common.collect.Sets;
 import org.pf4j.ManifestPluginDescriptorFinder;
@@ -33,12 +35,27 @@ public class PluginConfiguration {
 	@Autowired
 	private AutowireCapableBeanFactory context;
 
+	@Autowired
+	private PluginLoader pluginLoader;
+
+	@Autowired
+	private IntegrationTypeRepository integrationTypeRepository;
+
 	@Value("${rp.plugins.path}")
 	private String pluginsPath;
 
+	@Value("${rp.plugins.temp.path}")
+	private String pluginsTempPath;
+
 	@Bean
 	public Pf4jPluginBox pf4jPluginBox() {
-		Pf4jPluginManager manager = new Pf4jPluginManager(pluginsPath, context, Sets.newHashSet(pluginDescriptorFinder()));
+		Pf4jPluginManager manager = new Pf4jPluginManager(pluginsPath,
+				pluginsTempPath,
+				context,
+				pluginLoader,
+				integrationTypeRepository,
+				Sets.newHashSet(pluginDescriptorFinder())
+		);
 		manager.startAsync();
 		return manager;
 	}

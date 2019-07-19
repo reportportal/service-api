@@ -16,9 +16,11 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -86,4 +88,6 @@ public interface Pf4jPluginBox extends PluginBox {
 	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
 	 */
 	boolean isPluginStillBeingUploaded(String fileName);
+
+	IntegrationType uploadPlugin(String newPluginFileName, InputStream fileStream);
 }

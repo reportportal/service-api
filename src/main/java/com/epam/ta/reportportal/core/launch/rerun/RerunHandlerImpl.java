@@ -24,11 +24,13 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -37,12 +39,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.TO_LAUNCH_ATTRIBUTE;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
+import static com.epam.ta.reportportal.ws.converter.converters.ParametersConverter.TO_MODEL;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -99,6 +105,11 @@ public class RerunHandlerImpl implements RerunHandler {
 		if (!itemOptional.isPresent()) {
 			return Optional.empty();
 		}
+
+		if (!isParametersEqual(request.getParameters(), itemOptional.get().getParameters())) {
+			return Optional.empty();
+		}
+
 		TestItem item = handleRerun(request, launch, itemOptional.get(), null);
 		return Optional.of(new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid()));
 	}
@@ -114,8 +125,18 @@ public class RerunHandlerImpl implements RerunHandler {
 			return Optional.empty();
 		}
 
+		if (!isParametersEqual(request.getParameters(), itemOptional.get().getParameters())) {
+			return Optional.empty();
+		}
+
 		TestItem item = handleRerun(request, launch, itemOptional.get(), parent);
 		return Optional.of(new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid()));
+	}
+
+	private boolean isParametersEqual(List<ParameterResource> fromRequest, Set<Parameter> stored) {
+		Set<Parameter> requestParameters = ofNullable(fromRequest).map(it -> it.stream().map(TO_MODEL).collect(Collectors.toSet()))
+				.orElse(Collections.emptySet());
+		return stored.equals(requestParameters);
 	}
 
 	private TestItem handleRerun(StartTestItemRQ request, Launch launch, TestItem testItem, TestItem parent) {

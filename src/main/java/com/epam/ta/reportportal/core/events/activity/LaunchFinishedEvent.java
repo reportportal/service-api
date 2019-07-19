@@ -32,6 +32,8 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent 
 
 	private LaunchActivityResource launchActivityResource;
 
+	private String baseUrl;
+
 	public LaunchFinishedEvent() {
 	}
 
@@ -40,12 +42,26 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent 
 		this.launchActivityResource = launchActivityResource;
 	}
 
+	public LaunchFinishedEvent(LaunchActivityResource launchActivityResource, String baseUrl, Long userId, String userLogin) {
+		super(userId, userLogin);
+		this.launchActivityResource = launchActivityResource;
+		this.baseUrl = baseUrl;
+	}
+
 	public LaunchActivityResource getLaunchActivityResource() {
 		return launchActivityResource;
 	}
 
 	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
 		this.launchActivityResource = launchActivityResource;
+	}
+
+	public String getBaseUrl() {
+		return baseUrl;
+	}
+
+	public void setBaseUrl(String baseUrl) {
+		this.baseUrl = baseUrl;
 	}
 
 	@Override

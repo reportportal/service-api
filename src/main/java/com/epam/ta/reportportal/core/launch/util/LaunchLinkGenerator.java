@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
@@ -28,41 +30,11 @@ public final class LaunchLinkGenerator {
 		//static only
 	}
 
-	public static String generateLaunchLink(LinkParams linkParams, String id) {
-		return new StringBuilder(linkParams.getScheme()).append("://")
-				.append(linkParams.getHost())
-				.append(UI_PREFIX)
-				.append(linkParams.getProjectName())
-				.append(LAUNCHES)
-				.append(id)
-				.toString();
+	public static String generateLaunchLink(String baseUrl, String projectName, String id) {
+		return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
 	}
 
-	public static class LinkParams {
-		private String scheme;
-		private String host;
-		private String projectName;
-
-		private LinkParams(String scheme, String host, String projectName) {
-			this.scheme = scheme;
-			this.host = host;
-			this.projectName = projectName;
-		}
-
-		public String getScheme() {
-			return scheme;
-		}
-
-		public String getHost() {
-			return host;
-		}
-
-		public String getProjectName() {
-			return projectName;
-		}
-
-		public static LinkParams of(String scheme, String host, String projectName) {
-			return new LinkParams(scheme, host, projectName);
-		}
+	public static String composeBaseUrl(String scheme, String host) {
+		return String.format("%s://%s", scheme, host);
 	}
 }

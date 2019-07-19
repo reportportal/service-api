@@ -217,11 +217,11 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 
 		if (ofNullable(newPluginId).isPresent()) {
 			IntegrationType newIntegrationType = startUpPlugin(newPluginId, previousPlugin, newPluginFileName, fileStream, integrationType);
-			pluginLoader.deleteTempPlugin(pluginsTempDir, newPluginFileName);
+			deleteTempPlugin(newPluginFileName);
 			return newIntegrationType;
 		} else {
 			previousPlugin.ifPresent(this::loadAndStartUpPlugin);
-			pluginLoader.deleteTempPlugin(pluginsTempDir, newPluginFileName);
+			deleteTempPlugin(newPluginFileName);
 
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Failed to load new plugin from file = {}", newPluginFileName).get()
@@ -245,14 +245,14 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 		validateFileExtension(fileName);
 		uploadTempPlugin(fileName, fileStream);
 
-		PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(Paths.get(pluginsTempDir, fileName));
-
-		if (!ofNullable(newPluginInfo.getVersion()).isPresent()) {
+		try {
+			PluginInfo newPluginInfo = pluginLoader.extractPluginInfo(Paths.get(pluginsTempDir, fileName));
+			validatePluginVersion(newPluginInfo, fileName);
+			return newPluginInfo;
+		} catch (PluginException e) {
 			removeUploadingPlugin(fileName);
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e.getMessage());
 		}
-
-		return newPluginInfo;
 	}
 
 	/**
@@ -288,6 +288,13 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 				);
 	}
 
+	private void validatePluginVersion(PluginInfo newPluginInfo, String fileName) {
+		if (!ofNullable(newPluginInfo.getVersion()).isPresent()) {
+			removeUploadingPlugin(fileName);
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+		}
+	}
+
 	/**
 	 * @param previousPlugin    Already loaded plugin with the same id as the new one
 	 * @param newPluginFileName New plugin file name
@@ -315,7 +322,9 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	 */
 	private void uploadTempPlugin(String fileName, InputStream fileStream) {
 		try {
-			pluginLoader.savePlugin(pluginsTempDir, fileName, fileStream);
+			Path pluginPath = Paths.get(pluginsTempDir, fileName);
+			addUploadingPlugin(fileName, pluginPath);
+			pluginLoader.savePlugin(pluginPath, fileStream);
 		} catch (IOException e) {
 			removeUploadingPlugin(fileName);
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
@@ -384,19 +393,31 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	 * @param newPluginId       Id of the new plugin
 	 * @param previousPlugin    Previous plugin with the same id as the new one
 	 * @param newPluginFileName New plugin file name
-	 * @see PluginLoader#validatePluginExtensionClasses(String)
+	 * @see PluginLoader#validatePluginExtensionClasses(PluginWrapper))
 	 */
 	private void validateNewPluginExtensionClasses(String newPluginId, Optional<PluginWrapper> previousPlugin, String newPluginFileName) {
-		if (!pluginLoader.validatePluginExtensionClasses(newPluginId)) {
-
+		PluginWrapper newPlugin = getPluginById(newPluginId).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				Suppliers.formattedSupplier("Plugin with id = {} has not been found.", newPluginId).get()
+		));
+		if (!pluginLoader.validatePluginExtensionClasses(newPlugin)) {
 			unloadPlugin(newPluginId);
 			previousPlugin.ifPresent(this::loadAndStartUpPlugin);
-			pluginLoader.deleteTempPlugin(pluginsTempDir, newPluginFileName);
+			deleteTempPlugin(newPluginFileName);
 
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("New plugin with id = {} doesn't have mandatory extension classes.", newPluginId).get()
 			);
 
+		}
+	}
+
+	private void deleteTempPlugin(String newPluginFileName) {
+		try {
+			pluginLoader.deleteTempPlugin(pluginsTempDir, newPluginFileName);
+		} catch (IOException e) {
+			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
+		} finally {
+			removeUploadingPlugin(newPluginFileName);
 		}
 	}
 

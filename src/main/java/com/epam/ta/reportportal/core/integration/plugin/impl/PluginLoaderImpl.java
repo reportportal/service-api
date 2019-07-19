@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -47,8 +46,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static java.util.Optional.ofNullable;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -59,34 +56,22 @@ public class PluginLoaderImpl implements PluginLoader {
 
 	private final DataStore dataStore;
 	private final IntegrationTypeRepository integrationTypeRepository;
-	private final Pf4jPluginBox pluginBox;
 	private final PluginDescriptorFinder pluginDescriptorFinder;
 
 	@Autowired
 	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, DataStore dataStore,
-			IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pluginBox, PluginDescriptorFinder pluginDescriptorFinder) {
+			IntegrationTypeRepository integrationTypeRepository, PluginDescriptorFinder pluginDescriptorFinder) {
 		this.pluginsRootPath = pluginsRootPath;
 		this.dataStore = dataStore;
 		this.integrationTypeRepository = integrationTypeRepository;
-		this.pluginBox = pluginBox;
 		this.pluginDescriptorFinder = pluginDescriptorFinder;
 	}
 
 	@Override
 	@NotNull
-	public PluginInfo extractPluginInfo(Path pluginPath) {
-		try {
-
-			PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-
-			return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
-
-		} catch (PluginException e) {
-
-			ofNullable(pluginPath.getFileName()).ifPresent(name -> pluginBox.removeUploadingPlugin(name.toString()));
-
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e.getMessage());
-		}
+	public PluginInfo extractPluginInfo(Path pluginPath) throws PluginException {
+		PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
+		return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
 	}
 
 	@Override
@@ -117,15 +102,9 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public boolean validatePluginExtensionClasses(String pluginId) {
-
-		PluginWrapper newPlugin = pluginBox.getPluginById(pluginId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Plugin with id = {} has not been found.", pluginId).get()
-				));
-
-		return newPlugin.getPluginManager()
-				.getExtensionClasses(pluginId)
+	public boolean validatePluginExtensionClasses(PluginWrapper plugin) {
+		return plugin.getPluginManager()
+				.getExtensionClasses(plugin.getPluginId())
 				.stream()
 				.map(ExtensionPoint::findByExtension)
 				.anyMatch(Optional::isPresent);
@@ -137,12 +116,8 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public void savePlugin(String directory, String fileName, InputStream fileStream) throws IOException {
-		Path pluginPath = Paths.get(directory, fileName);
-
-		pluginBox.addUploadingPlugin(fileName, pluginPath);
+	public void savePlugin(Path pluginPath, InputStream fileStream) throws IOException {
 		Files.copy(fileStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
-
 	}
 
 	@Override
@@ -153,16 +128,8 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) {
-		try {
-
-			Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
-
-		} catch (IOException e) {
-			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
-		} finally {
-			pluginBox.removeUploadingPlugin(pluginFileName);
-		}
+	public void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) throws IOException {
+		Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
 	}
 
 }

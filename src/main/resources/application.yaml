@@ -83,7 +83,9 @@ rp:
   analytics:
     enableByDefault: true
   plugins:
-    path: /plugins
+    path: /plugins/resolved
+    temp:
+      path: /plugins/temp
   binarystore:
     master:
       host: seaweed-master

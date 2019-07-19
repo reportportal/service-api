@@ -17,25 +17,24 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -45,9 +44,12 @@ public class PluginLoaderTest {
 	public static final String PLUGIN_ID = "pluginV1";
 	public static final String PLUGIN_VERSION = "1.0.0";
 	public static final String FILE_NAME = "file.jar";
-	public static final String PLUGIN_FILE = "plugin.jar";
 
 	private final String pluginRootPath = "plugins";
+
+	private final DataStore dataStore= mock(DataStore.class);
+
+	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
 	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 
@@ -59,11 +61,8 @@ public class PluginLoaderTest {
 
 	private final PluginManager pluginManager = mock(PluginManager.class);
 
-	private final MultipartFile multipartFile = mock(MultipartFile.class);
-
-	private final InputStream inputStream = mock(InputStream.class);
-
-	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, pluginBox, pluginDescriptorFinder);
+	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, dataStore, integrationTypeRepository,
+			pluginBox, pluginDescriptorFinder);
 
 	@Test
 	void shouldExtractPluginIdWhenExists() throws PluginException {
@@ -79,23 +78,6 @@ public class PluginLoaderTest {
 		assertNotNull(pluginInfo);
 		assertEquals(PLUGIN_ID, pluginInfo.getId());
 		assertEquals(PLUGIN_VERSION, pluginInfo.getVersion());
-	}
-
-	@Test
-	void shouldReloadPlugin() {
-
-		Path path = Paths.get("dir", FILE_NAME);
-
-		when(pluginWrapper.getPluginPath()).thenReturn(path);
-
-		when(pluginBox.loadPlugin(pluginWrapper.getPluginPath())).thenReturn(PLUGIN_ID);
-
-		when(pluginBox.startUpPlugin(PLUGIN_ID)).thenReturn(PluginState.STARTED);
-
-		PluginState pluginState = pluginLoader.loadAndStartUpPlugin(pluginWrapper);
-
-		assertNotNull(pluginState);
-		assertEquals(PluginState.STARTED, pluginState);
 	}
 
 	@Test
@@ -127,44 +109,10 @@ public class PluginLoaderTest {
 	}
 
 	@Test
-	void shouldRetrievePreviousPluginWhenExists() {
-
-		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
-
-		when(pluginWrapper.getPluginId()).thenReturn(PLUGIN_ID);
-
-		when(pluginBox.unloadPlugin(PLUGIN_ID)).thenReturn(true);
-
-		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
-
-		Optional<PluginWrapper> pluginWrapper = pluginLoader.retrievePreviousPlugin(PLUGIN_ID, FILE_NAME);
-
-		assertTrue(pluginWrapper.isPresent());
-	}
-
-	@Test
-	void shouldDeletePluginWhenPathsEqual() {
+	void shouldDeletePluginWhenPathsEqual() throws IOException {
 
 		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
 
 		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
-	}
-
-	@Test
-	void shouldNotResolveFileExtensionWhenFileInvalid() throws IOException {
-
-		when(multipartFile.getOriginalFilename()).thenReturn(PLUGIN_FILE);
-		when(multipartFile.getInputStream()).thenThrow(IOException.class);
-
-		doNothing().when(pluginBox).addUploadingPlugin(PLUGIN_FILE, Paths.get(pluginRootPath, PLUGIN_FILE));
-
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> pluginLoader.resolveFileExtensionAndUploadTempPlugin(multipartFile, Paths.get(pluginRootPath, "/temp"))
-		);
-
-		assertEquals(Suppliers.formattedSupplier("Error during plugin uploading: 'Unable to copy the new plugin file with name = {} to the temp directory'",
-				PLUGIN_FILE
-		)
-				.get(), exception.getMessage());
 	}
 }

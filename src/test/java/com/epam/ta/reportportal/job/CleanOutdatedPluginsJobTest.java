@@ -32,7 +32,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.integration.plugin.impl.CreatePluginHandlerImpl.PLUGIN_TEMP_DIRECTORY;
 import static java.util.Optional.ofNullable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -42,6 +41,8 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  **/
 class CleanOutdatedPluginsJobTest {
+
+	public static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
 
 	private String pluginsRootPath = "plugins";
 
@@ -55,6 +56,7 @@ class CleanOutdatedPluginsJobTest {
 	private PluginWrapper rallyPlugin = mock(PluginWrapper.class);
 
 	private CleanOutdatedPluginsJob cleanOutdatedPluginsJob = new CleanOutdatedPluginsJob(pluginsRootPath,
+			pluginsRootPath + PLUGIN_TEMP_DIRECTORY,
 			integrationTypeRepository,
 			pluginBox,
 			pluginLoaderService

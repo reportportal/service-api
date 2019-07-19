@@ -40,9 +40,9 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 	private Provider<XunitParseJob> xmlParseJobProvider;
 
 	@Override
-	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file) {
+	public String importLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, File file, String baseUrl) {
 		try {
-			return processXmlFile(file, projectDetails, user);
+			return processXmlFile(file, projectDetails, user, baseUrl);
 		} finally {
 			try {
 				ofNullable(file).ifPresent(File::delete);
@@ -52,7 +52,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 		}
 	}
 
-	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private String processXmlFile(File xml, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String baseUrl) {
 		//copy of the launch's id to use it in catch block if something goes wrong
 		String savedLaunchId = null;
 		try (InputStream xmlStream = new FileInputStream(xml)) {
@@ -60,7 +60,7 @@ public class XmlImportStrategy extends AbstractImportStrategy {
 			savedLaunchId = launchId;
 			XunitParseJob job = xmlParseJobProvider.get().withParameters(projectDetails, launchId, user, xmlStream);
 			ParseResults parseResults = job.call();
-			finishLaunch(launchId, projectDetails, user, parseResults);
+			finishLaunch(launchId, projectDetails, user, parseResults, baseUrl);
 			return launchId;
 		} catch (Exception e) {
 			updateBrokenLaunch(savedLaunchId);

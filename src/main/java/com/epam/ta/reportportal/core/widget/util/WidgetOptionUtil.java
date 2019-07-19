@@ -82,6 +82,6 @@ public final class WidgetOptionUtil {
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. List expected.", key)
 		));
 
-		return (List<String>) value.orElse(null);
+		return (List<String>) value.orElse(Collections.emptyList());
 	}
 }

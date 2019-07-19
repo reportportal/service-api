@@ -2,8 +2,8 @@
 insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
 values (1, 'uuid', 1, 1, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED', false);
 
-insert into test_item(item_id, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
-values (1, 'test item 1', 'STEP', now(), 'desc', 'uuid1', now(), '1', null, 1);
+insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
+values (1,'uuid1',  'test item 1', 'STEP', now(), 'desc', 'uuid1', now(), '1', null, 1);
 insert into test_item_results(result_id, status)
 values (1, 'IN_PROGRESS');
 update test_item_results
@@ -12,8 +12,8 @@ set status   = 'PASSED',
     duration = 165.0
 where result_id = 1;
 
-insert into test_item(item_id, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
-values (2, 'test item 2', 'STEP', now(), 'desc', 'uuid2', now(), '2', null, 1);
+insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
+values (2,'uuid2',  'test item 2', 'STEP', now(), 'desc', 'uuid2', now(), '2', null, 1);
 insert into test_item_results(result_id, status)
 values (2, 'IN_PROGRESS');
 update test_item_results
@@ -24,8 +24,8 @@ where result_id = 2;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (2, 2, 'automation bug', false, true);
 
-insert into test_item(item_id, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
-values (3, 'test item 3', 'STEP', now(), 'desc', 'uuid3', now(), '3', null, 1);
+insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
+values (3,'uuid3',  'test item 3', 'STEP', now(), 'desc', 'uuid3', now(), '3', null, 1);
 insert into test_item_results(result_id, status)
 values (3, 'IN_PROGRESS');
 update test_item_results
@@ -36,8 +36,8 @@ where result_id = 3;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (3, 3, 'product bug', false, true);
 
-insert into test_item(item_id, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
-values (4, 'test item 4', 'STEP', now(), 'desc', 'uuid4', now(), '4', null, 1);
+insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
+values (4,'uuid4',  'test item 4', 'STEP', now(), 'desc', 'uuid4', now(), '4', null, 1);
 insert into test_item_results(result_id, status)
 values (4, 'IN_PROGRESS');
 update test_item_results
@@ -46,8 +46,8 @@ set status   = 'PASSED',
     duration = 87.0
 where result_id = 4;
 
-insert into test_item(item_id, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
-values (5, 'test item 5', 'STEP', now(), 'desc', 'uuid5', now(), '5', null, 1);
+insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
+values (5,'uuid5',  'test item 5', 'STEP', now(), 'desc', 'uuid5', now(), '5', null, 1);
 insert into test_item_results(result_id, status)
 values (5, 'IN_PROGRESS');
 update test_item_results

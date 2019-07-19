@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
@@ -30,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -51,8 +49,6 @@ public class PluginLoaderTest {
 
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
-	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
-
 	private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
 
 	private final PluginDescriptor pluginDescriptor = mock(PluginDescriptor.class);
@@ -62,7 +58,7 @@ public class PluginLoaderTest {
 	private final PluginManager pluginManager = mock(PluginManager.class);
 
 	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, dataStore, integrationTypeRepository,
-			pluginBox, pluginDescriptorFinder);
+			pluginDescriptorFinder);
 
 	@Test
 	void shouldExtractPluginIdWhenExists() throws PluginException {
@@ -83,13 +79,11 @@ public class PluginLoaderTest {
 	@Test
 	void shouldReturnTrueWhenPluginExtensionClassesValid() {
 
-		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
-
 		when(pluginWrapper.getPluginManager()).thenReturn(pluginManager);
-
+		when(pluginWrapper.getPluginId()).thenReturn(PLUGIN_ID);
 		when(pluginWrapper.getPluginManager().getExtensionClasses(PLUGIN_ID)).thenReturn(Lists.newArrayList(BtsExtension.class));
 
-		boolean isValid = pluginLoader.validatePluginExtensionClasses(PLUGIN_ID);
+		boolean isValid = pluginLoader.validatePluginExtensionClasses(pluginWrapper);
 
 		assertTrue(isValid);
 	}
@@ -97,13 +91,11 @@ public class PluginLoaderTest {
 	@Test
 	void shouldReturnFalseWhenPluginExtensionClassesInvalid() {
 
-		when(pluginBox.getPluginById(PLUGIN_ID)).thenReturn(Optional.of(pluginWrapper));
-
 		when(pluginWrapper.getPluginManager()).thenReturn(pluginManager);
-
+		when(pluginWrapper.getPluginId()).thenReturn(PLUGIN_ID);
 		when(pluginWrapper.getPluginManager().getExtensionClasses(PLUGIN_ID)).thenReturn(Lists.newArrayList(Collection.class));
 
-		boolean isValid = pluginLoader.validatePluginExtensionClasses(PLUGIN_ID);
+		boolean isValid = pluginLoader.validatePluginExtensionClasses(pluginWrapper);
 
 		assertFalse(isValid);
 	}

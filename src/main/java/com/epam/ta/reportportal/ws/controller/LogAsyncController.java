@@ -49,7 +49,7 @@ import static org.springframework.http.HttpStatus.CREATED;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/{projectName}/async/log")
+@RequestMapping("/v2/{projectName}/async/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogAsyncController {
 

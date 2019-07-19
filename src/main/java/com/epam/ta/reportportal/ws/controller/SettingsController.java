@@ -38,7 +38,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 @RestController
-@RequestMapping("/settings")
+@RequestMapping("/v1/settings")
 @PreAuthorize(ADMIN_ONLY)
 public class SettingsController {
 

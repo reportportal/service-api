@@ -41,7 +41,7 @@
   * @author Ihar_Kahadouski
   */
  @RestController
- @RequestMapping("/{projectName}/activity")
+ @RequestMapping("/v1/{projectName}/activity")
  @Transactional(readOnly = true)
  @PreAuthorize(ASSIGNED_TO_PROJECT)
  public class ActivityController {

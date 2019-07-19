@@ -46,7 +46,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/{projectName}/async/item")
+@RequestMapping("/v2/{projectName}/async/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemAsyncController {
 

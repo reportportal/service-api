@@ -47,7 +47,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/v2/{projectName}/async/launch")
+@RequestMapping("/v2/{projectName}/launch")
 public class LaunchAsyncController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;

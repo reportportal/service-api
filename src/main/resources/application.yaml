@@ -31,12 +31,15 @@ spring:
 server.connection-timeout: 30000
 
 logging:
+  file: /var/${spring.application.name}.log
+  pattern:
+    file: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %level %logger - %msg%n'
+    console: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %highlight(%-5level) %magenta(%logger) - %msg%n'
   level:
     org.hibernate: info
     org.hibernate.stat: info
     org.springframework.security: info
     org.springframework.web.bind: fatal
-    root: info
 
 
 springfox:

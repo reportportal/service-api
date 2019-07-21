@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.MESSAGE_MAX_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ;
 
 /**
@@ -92,11 +92,11 @@ public class LogReporterConsumer {
 
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
-			if (count > DEAD_LETTER_MAX_RETRY) {
+			if (count > MESSAGE_MAX_RETRY) {
 				LOGGER.error("Dropping to {} log request for TestItem {}, on maximum retry attempts {}",
                         QUEUE_LOG_DLQ,
 						itemId,
-						DEAD_LETTER_MAX_RETRY);
+                        MESSAGE_MAX_RETRY);
 
 				// don't cleanup to not loose binary content of dropped DLQ message
 				// cleanup(payload);

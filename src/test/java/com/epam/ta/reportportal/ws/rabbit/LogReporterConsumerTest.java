@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.MESSAGE_MAX_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ;
 import static org.mockito.Mockito.*;
 
@@ -85,7 +85,7 @@ class LogReporterConsumerTest {
 		saveLogRQ.setLevel("ERROR");
 		saveLogRQ.setMessage("message");
 
-		logReporterConsumer.onLogCreate(DeserializablePair.of(saveLogRQ, null), 1L, "test_project", Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		logReporterConsumer.onLogCreate(DeserializablePair.of(saveLogRQ, null), 1L, "test_project", Collections.singletonList(Maps.newHashMap("count", new Long(MESSAGE_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_LOG_DLQ), any(Object.class), any(MessagePostProcessor.class));
 	}

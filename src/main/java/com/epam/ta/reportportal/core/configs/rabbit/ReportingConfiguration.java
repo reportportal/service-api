@@ -29,8 +29,9 @@ import org.springframework.context.annotation.Configuration;
 @Conditional(Conditions.NotTestCondition.class)
 public class ReportingConfiguration {
 
-	public static final long DEAD_LETTER_DELAY_MILLIS = 300_000L;
-	public static final long DEAD_LETTER_MAX_RETRY = 300L;
+	public static final long QUEUE_APPROVED_DELAY_MILLIS = 600_000L;
+	public static final long QUEUE_RETRY_DELAY_MILLIS = 300_000L;
+	public static final long MESSAGE_MAX_RETRY = 300L;
 
 	/**
 	 * Exchanges
@@ -40,9 +41,16 @@ public class ReportingConfiguration {
 
 	/**
 	 * Queues
+	 *
+	 * Note: launch finish first gets approved on condition 'there is no items in progress'.
+	 * If so launch is passed to QUEUE_LAUNCH_FINISH_APPROVED using delay mechanism same as on retry queues,
+	 * through QUEUE_LAUNCH_FINISH_APPROVED_DELAY, and actual launch finish is performed from there.
+	 *
 	 */
 	public static final String QUEUE_LAUNCH_START = "reporting.launch.start";
 	public static final String QUEUE_LAUNCH_FINISH = "reporting.launch.finish";
+	public static final String QUEUE_LAUNCH_FINISH_APPROVED_DELAYED = "reporting.launch.finish.approved.delayed";
+	public static final String QUEUE_LAUNCH_FINISH_APPROVED = "reporting.launch.finish.approved";
 	public static final String QUEUE_ITEM_START = "reporting.item.start";
 	public static final String QUEUE_ITEM_FINISH = "reporting.item.finish";
 	public static final String QUEUE_LOG = "reporting.log";
@@ -96,7 +104,7 @@ public class ReportingConfiguration {
 		return QueueBuilder.durable(QUEUE_LAUNCH_START_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_START)
-				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.withArgument("x-message-ttl", QUEUE_RETRY_DELAY_MILLIS)
 				.build();
 	}
 
@@ -119,13 +127,30 @@ public class ReportingConfiguration {
 		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH)
-				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.withArgument("x-message-ttl", QUEUE_RETRY_DELAY_MILLIS)
 				.build();
 	}
 
 	@Bean
 	public Queue launchFinishDLQueue() {
 		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_DLQ)
+				.build();
+	}
+
+	@Bean
+	public Queue launchFinishApprovedDelayedQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_APPROVED_DELAYED)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH_APPROVED)
+				.withArgument("x-message-ttl", QUEUE_APPROVED_DELAY_MILLIS)
+				.build();
+	}
+
+	@Bean
+	public Queue launchFinishApprovedQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_APPROVED)
+				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH_RETRY)
 				.build();
 	}
 
@@ -142,7 +167,7 @@ public class ReportingConfiguration {
 		return QueueBuilder.durable(QUEUE_ITEM_START_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START)
-				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.withArgument("x-message-ttl", QUEUE_RETRY_DELAY_MILLIS)
 				.build();
 	}
 
@@ -165,7 +190,7 @@ public class ReportingConfiguration {
 		return QueueBuilder.durable(QUEUE_ITEM_FINISH_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH)
-				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.withArgument("x-message-ttl", QUEUE_RETRY_DELAY_MILLIS)
 				.build();
 	}
 
@@ -188,7 +213,7 @@ public class ReportingConfiguration {
 		return QueueBuilder.durable(QUEUE_LOG_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LOG)
-				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
+				.withArgument("x-message-ttl", QUEUE_RETRY_DELAY_MILLIS)
 				.build();
 	}
 
@@ -243,6 +268,16 @@ public class ReportingConfiguration {
 	@Bean
 	public Binding launchFinishDLQBinding() {
 		return BindingBuilder.bind(launchFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ);
+	}
+
+	@Bean
+	public Binding launchFinishApprovedDelayedBinding() {
+		return BindingBuilder.bind(launchFinishApprovedDelayedQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_FINISH_APPROVED_DELAYED);
+	}
+
+	@Bean
+	public Binding launchFinishApprovedBinding() {
+		return BindingBuilder.bind(launchFinishApprovedQueue()).to(reportingExchange()).with(QUEUE_LAUNCH_FINISH_APPROVED);
 	}
 
 	@Bean

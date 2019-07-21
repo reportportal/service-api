@@ -36,7 +36,7 @@ import org.springframework.amqp.core.MessagePostProcessor;
 import java.util.Collections;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.MESSAGE_MAX_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH_DLQ;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_START_DLQ;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
@@ -108,7 +108,7 @@ class TestReporterConsumerTest {
 		String username = "user";
 		String parentId = "2";
 
-		testReporterConsumer.onItemStart(username, "test_project", parentId, rq, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		testReporterConsumer.onItemStart(username, "test_project", parentId, rq, Collections.singletonList(Maps.newHashMap("count", new Long(MESSAGE_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_ITEM_START_DLQ), any(Object.class), any(MessagePostProcessor.class));
 	}
@@ -135,7 +135,7 @@ class TestReporterConsumerTest {
 		String username = "user";
 		String itemId = "1";
 
-		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, Collections.singletonList(Maps.newHashMap("count", new Long(MESSAGE_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_ITEM_FINISH_DLQ), any(Object.class), any(MessagePostProcessor.class));
 	}

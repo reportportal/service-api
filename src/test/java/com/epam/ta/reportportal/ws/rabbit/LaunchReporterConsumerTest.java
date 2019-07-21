@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.MESSAGE_MAX_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_FINISH_DLQ;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_START_DLQ;
 import static org.mockito.Mockito.*;
@@ -89,7 +89,7 @@ class LaunchReporterConsumerTest {
 		startLaunchRQ.setUuid("uuid");
 		String username = "user";
 
-		launchReporterConsumer.onStartLaunch(startLaunchRQ, username, "test_project", Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		launchReporterConsumer.onStartLaunch(startLaunchRQ, username, "test_project", Collections.singletonList(Maps.newHashMap("count", new Long(MESSAGE_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_LAUNCH_START_DLQ), any(Object.class), any(MessagePostProcessor.class));
 	}
@@ -119,7 +119,7 @@ class LaunchReporterConsumerTest {
 		String username = "user";
 
 		String launchId = "1";
-		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, "http://example.com", Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		launchReporterConsumer.onFinishLaunch(finishExecutionRQ, username, "test_project", launchId, "http://example.com", Collections.singletonList(Maps.newHashMap("count", new Long(MESSAGE_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_LAUNCH_FINISH_DLQ), any(Object.class), any(MessagePostProcessor.class));
 	}

@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.MESSAGE_MAX_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_FINISH_DLQ;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_START_DLQ;
 
@@ -74,11 +74,11 @@ public class LaunchReporterConsumer {
 			@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
-			if (count > DEAD_LETTER_MAX_RETRY) {
+			if (count > MESSAGE_MAX_RETRY) {
 				LOGGER.error("Dropping to {} start request for Launch {}, on maximum retry attempts {}",
 						QUEUE_LAUNCH_START_DLQ,
 						rq.getUuid(),
-						DEAD_LETTER_MAX_RETRY);
+						MESSAGE_MAX_RETRY);
 
 				amqpTemplate.convertAndSend(QUEUE_LAUNCH_START_DLQ, rq, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
@@ -112,11 +112,11 @@ public class LaunchReporterConsumer {
 			@Header(MessageHeaders.BASE_URL) String baseUrl, @Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
-			if (count > DEAD_LETTER_MAX_RETRY) {
+			if (count > MESSAGE_MAX_RETRY) {
 				LOGGER.error("Dropping to {} finish request for Launch {}, on maximum retry attempts {}",
 						QUEUE_LAUNCH_FINISH_DLQ,
 						launchId,
-						DEAD_LETTER_MAX_RETRY);
+						MESSAGE_MAX_RETRY);
 
 				amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH_DLQ, rq, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();

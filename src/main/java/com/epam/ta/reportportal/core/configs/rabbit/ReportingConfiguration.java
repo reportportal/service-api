@@ -48,22 +48,22 @@ public class ReportingConfiguration {
 	public static final String QUEUE_LOG = "reporting.log";
 
 	/**
-	 * Retrying dead letter queues
+	 * Retrying queues (using DLQ, x-message-ttl mechanism - see https://www.cloudamqp.com/docs/delayed-messages.html)
+	 */
+	public static final String QUEUE_LAUNCH_START_RETRY = "reporting.launch.start.retry";
+	public static final String QUEUE_LAUNCH_FINISH_RETRY = "reporting.launch.finish.retry";
+	public static final String QUEUE_ITEM_START_RETRY = "reporting.item.start.retry";
+	public static final String QUEUE_ITEM_FINISH_RETRY = "reporting.item.finish.retry";
+	public static final String QUEUE_LOG_RETRY = "reporting.log.retry";
+
+	/**
+	 * Dead letter queues (dropped messages go here)
 	 */
 	public static final String QUEUE_LAUNCH_START_DLQ = "reporting.launch.start.dlq";
 	public static final String QUEUE_LAUNCH_FINISH_DLQ = "reporting.launch.finish.dlq";
 	public static final String QUEUE_ITEM_START_DLQ = "reporting.item.start.dlq";
 	public static final String QUEUE_ITEM_FINISH_DLQ = "reporting.item.finish.dlq";
 	public static final String QUEUE_LOG_DLQ = "reporting.log.dlq";
-
-	/**
-	 * Dropped dead letter queues (dropped messages go here)
-	 */
-	public static final String QUEUE_LAUNCH_START_DLQ_DROPPED = "reporting.launch.start.dlq.dropped";
-	public static final String QUEUE_LAUNCH_FINISH_DLQ_DROPPED = "reporting.launch.finish.dlq.dropped";
-	public static final String QUEUE_ITEM_START_DLQ_DROPPED = "reporting.item.start.dlq.dropped";
-	public static final String QUEUE_ITEM_FINISH_DLQ_DROPPED = "reporting.item.finish.dlq.dropped";
-	public static final String QUEUE_LOG_DLQ_DROPPED = "reporting.log.dlq.dropped";
 
 
 	/**
@@ -87,13 +87,13 @@ public class ReportingConfiguration {
 	public Queue launchStartQueue() {
 		return QueueBuilder.durable(QUEUE_LAUNCH_START)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
-				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_START_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_START_RETRY)
 				.build();
 	}
 
 	@Bean
-	public Queue launchStartDLQueue() {
-		return QueueBuilder.durable(QUEUE_LAUNCH_START_DLQ)
+	public Queue launchStartRetryQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_START_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_START)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
@@ -101,8 +101,8 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Queue launchStartDLDroppedQueue() {
-		return QueueBuilder.durable(QUEUE_LAUNCH_START_DLQ_DROPPED)
+	public Queue launchStartDLQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_START_DLQ)
 				.build();
 	}
 
@@ -110,13 +110,13 @@ public class ReportingConfiguration {
 	public Queue launchFinishQueue() {
 		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
-				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH_RETRY)
 				.build();
 	}
 
 	@Bean
-	public Queue launchFinishDLQueue() {
-		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_DLQ)
+	public Queue launchFinishRetryQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LAUNCH_FINISH)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
@@ -124,8 +124,8 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Queue launchFinishDLDroppedQueue() {
-		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_DLQ_DROPPED)
+	public Queue launchFinishDLQueue() {
+		return QueueBuilder.durable(QUEUE_LAUNCH_FINISH_DLQ)
 				.build();
 	}
 
@@ -133,13 +133,13 @@ public class ReportingConfiguration {
 	public Queue itemStartQueue() {
 		return QueueBuilder.durable(QUEUE_ITEM_START)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
-				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START_RETRY)
 				.build();
 	}
 
 	@Bean
-	public Queue itemStartDLQueue() {
-		return QueueBuilder.durable(QUEUE_ITEM_START_DLQ)
+	public Queue itemStartRetryQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_START_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_START)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
@@ -147,8 +147,8 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Queue itemStartDLDroppedQueue() {
-		return QueueBuilder.durable(QUEUE_ITEM_START_DLQ_DROPPED)
+	public Queue itemStartDLQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_START_DLQ)
 				.build();
 	}
 
@@ -156,13 +156,13 @@ public class ReportingConfiguration {
 	public Queue itemFinishQueue() {
 		return QueueBuilder.durable(QUEUE_ITEM_FINISH)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
-				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH_RETRY)
 				.build();
 	}
 
 	@Bean
-	public Queue itemFinishDLQueue() {
-		return QueueBuilder.durable(QUEUE_ITEM_FINISH_DLQ)
+	public Queue itemFinishRetryQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_FINISH_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_ITEM_FINISH)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
@@ -170,8 +170,8 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Queue itemFinishDLDroppedQueue() {
-		return QueueBuilder.durable(QUEUE_ITEM_FINISH_DLQ_DROPPED)
+	public Queue itemFinishDLQueue() {
+		return QueueBuilder.durable(QUEUE_ITEM_FINISH_DLQ)
 				.build();
 	}
 
@@ -179,13 +179,13 @@ public class ReportingConfiguration {
 	public Queue logQueue() {
 		return QueueBuilder.durable(QUEUE_LOG)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_DLQ)
-				.withArgument("x-dead-letter-routing-key", QUEUE_LOG_DLQ)
+				.withArgument("x-dead-letter-routing-key", QUEUE_LOG_RETRY)
 				.build();
 	}
 
 	@Bean
-	public Queue logDLQueue() {
-		return QueueBuilder.durable(QUEUE_LOG_DLQ)
+	public Queue logRetryQueue() {
+		return QueueBuilder.durable(QUEUE_LOG_RETRY)
 				.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING)
 				.withArgument("x-dead-letter-routing-key", QUEUE_LOG)
 				.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
@@ -193,8 +193,8 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Queue logDLDroppedQueue() {
-		return QueueBuilder.durable(QUEUE_LOG_DLQ_DROPPED)
+	public Queue logDLQueue() {
+		return QueueBuilder.durable(QUEUE_LOG_DLQ)
 				.build();
 	}
 
@@ -221,13 +221,13 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Binding launchStartDLQBinding() {
-		return BindingBuilder.bind(launchStartDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_START_DLQ);
+	public Binding launchStartRetryBinding() {
+		return BindingBuilder.bind(launchStartRetryQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_START_RETRY);
 	}
 
 	@Bean
-	public Binding launchStartDLDroppedBinding() {
-		return BindingBuilder.bind(launchStartDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_START_DLQ_DROPPED);
+	public Binding launchStartDLQBinding() {
+		return BindingBuilder.bind(launchStartDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_START_DLQ);
 	}
 
 	@Bean
@@ -236,13 +236,13 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Binding launchFinishDLQBinding() {
-		return BindingBuilder.bind(launchFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ);
+	public Binding launchFinishRetryBinding() {
+		return BindingBuilder.bind(launchFinishRetryQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_RETRY);
 	}
 
 	@Bean
-	public Binding launchFinishDLDroppedBinding() {
-		return BindingBuilder.bind(launchFinishDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ_DROPPED);
+	public Binding launchFinishDLQBinding() {
+		return BindingBuilder.bind(launchFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LAUNCH_FINISH_DLQ);
 	}
 
 	@Bean
@@ -251,13 +251,13 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Binding itemStartDLQBinding() {
-		return BindingBuilder.bind(itemStartDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_START_DLQ);
+	public Binding itemStartRetryBinding() {
+		return BindingBuilder.bind(itemStartRetryQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_START_RETRY);
 	}
 
 	@Bean
-	public Binding itemStartDLDroppedBinding() {
-		return BindingBuilder.bind(itemStartDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_START_DLQ_DROPPED);
+	public Binding itemStartDLQBinding() {
+		return BindingBuilder.bind(itemStartDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_START_DLQ);
 	}
 
 	@Bean
@@ -266,13 +266,13 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Binding itemFinishDLQBinding() {
-		return BindingBuilder.bind(itemFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_FINISH_DLQ);
+	public Binding itemFinishRetryBinding() {
+		return BindingBuilder.bind(itemFinishRetryQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_FINISH_RETRY);
 	}
 
 	@Bean
-	public Binding itemFinishDLDroppedBinding() {
-		return BindingBuilder.bind(itemFinishDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_FINISH_DLQ_DROPPED);
+	public Binding itemFinishDLQBinding() {
+		return BindingBuilder.bind(itemFinishDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_ITEM_FINISH_DLQ);
 	}
 
 	@Bean
@@ -281,12 +281,12 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	public Binding logDLQBinding() {
-		return BindingBuilder.bind(logDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_DLQ);
+	public Binding logRetryBinding() {
+		return BindingBuilder.bind(logRetryQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_RETRY);
 	}
 
 	@Bean
-	public Binding logDLDroppedBinding() {
-		return BindingBuilder.bind(logDLDroppedQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_DLQ_DROPPED);
+	public Binding logDLQBinding() {
+		return BindingBuilder.bind(logDLQueue()).to(reportingDeadLetterExchange()).with(QUEUE_LOG_DLQ);
 	}
 }

@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_FINISH_DLQ_DROPPED;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_START_DLQ_DROPPED;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_FINISH_DLQ;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_START_DLQ;
 
 /**
  * @author Pavel Bortnik
@@ -76,11 +76,11 @@ public class LaunchReporterConsumer {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
 				LOGGER.error("Dropping to {} start request for Launch {}, on maximum retry attempts {}",
-						QUEUE_LAUNCH_START_DLQ_DROPPED,
+						QUEUE_LAUNCH_START_DLQ,
 						rq.getUuid(),
 						DEAD_LETTER_MAX_RETRY);
 
-				amqpTemplate.convertAndSend(QUEUE_LAUNCH_START_DLQ_DROPPED, rq, message -> {
+				amqpTemplate.convertAndSend(QUEUE_LAUNCH_START_DLQ, rq, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
 					headers.put(MessageHeaders.USERNAME, username);
 					headers.put(MessageHeaders.PROJECT_NAME, projectName);
@@ -114,11 +114,11 @@ public class LaunchReporterConsumer {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
 				LOGGER.error("Dropping to {} finish request for Launch {}, on maximum retry attempts {}",
-						QUEUE_LAUNCH_FINISH_DLQ_DROPPED,
+						QUEUE_LAUNCH_FINISH_DLQ,
 						launchId,
 						DEAD_LETTER_MAX_RETRY);
 
-				amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH_DLQ_DROPPED, rq, message -> {
+				amqpTemplate.convertAndSend(QUEUE_LAUNCH_FINISH_DLQ, rq, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
 					headers.put(MessageHeaders.USERNAME, username);
 					headers.put(MessageHeaders.PROJECT_NAME, projectName);

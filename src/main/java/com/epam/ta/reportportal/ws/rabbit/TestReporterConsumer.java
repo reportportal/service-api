@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +41,8 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH_DLQ_DROPPED;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_START_DLQ_DROPPED;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH_DLQ;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_START_DLQ;
 
 /**
  * @author Pavel Bortnik
@@ -79,11 +78,11 @@ public class TestReporterConsumer {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
 				LOGGER.error("Dropping to {} start request for TestItem {}, on maximum retry attempts {}",
-						QUEUE_ITEM_START_DLQ_DROPPED,
+                        QUEUE_ITEM_START_DLQ,
 						rq.getUuid(),
 						DEAD_LETTER_MAX_RETRY);
 
-				amqpTemplate.convertAndSend(QUEUE_ITEM_START_DLQ_DROPPED, rq, message -> {
+				amqpTemplate.convertAndSend(QUEUE_ITEM_START_DLQ, rq, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
 					headers.put(MessageHeaders.USERNAME, username);
 					headers.put(MessageHeaders.PROJECT_NAME, projectName);
@@ -123,11 +122,11 @@ public class TestReporterConsumer {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
 				LOGGER.error("Dropping to {} finish request for TestItem {}, on maximum retry attempts {}",
-						QUEUE_ITEM_FINISH_DLQ_DROPPED,
+						QUEUE_ITEM_FINISH_DLQ,
 						itemId,
 						DEAD_LETTER_MAX_RETRY);
 
-				amqpTemplate.convertAndSend(QUEUE_ITEM_FINISH_DLQ_DROPPED, rq, message -> {
+				amqpTemplate.convertAndSend(QUEUE_ITEM_FINISH_DLQ, rq, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
 					headers.put(MessageHeaders.USERNAME, username);
 					headers.put(MessageHeaders.PROJECT_NAME, projectName);

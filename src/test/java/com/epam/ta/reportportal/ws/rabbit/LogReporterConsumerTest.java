@@ -38,7 +38,7 @@ import java.util.Date;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ_DROPPED;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ;
 import static org.mockito.Mockito.*;
 
 /**
@@ -87,6 +87,6 @@ class LogReporterConsumerTest {
 
 		logReporterConsumer.onLogCreate(DeserializablePair.of(saveLogRQ, null), 1L, "test_project", Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
 
-		verify(amqpTemplate).convertAndSend(eq(QUEUE_LOG_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
+		verify(amqpTemplate).convertAndSend(eq(QUEUE_LOG_DLQ), any(Object.class), any(MessagePostProcessor.class));
 	}
 }

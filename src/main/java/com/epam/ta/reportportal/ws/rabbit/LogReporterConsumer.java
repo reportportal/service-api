@@ -50,7 +50,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ_DROPPED;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG_DLQ;
 
 /**
  * @author Pavel Bortnik
@@ -94,14 +94,14 @@ public class LogReporterConsumer {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
 				LOGGER.error("Dropping to {} log request for TestItem {}, on maximum retry attempts {}",
-						QUEUE_LOG_DLQ_DROPPED,
+                        QUEUE_LOG_DLQ,
 						itemId,
 						DEAD_LETTER_MAX_RETRY);
 
 				// don't cleanup to not loose binary content of dropped DLQ message
 				// cleanup(payload);
 
-				amqpTemplate.convertAndSend(QUEUE_LOG_DLQ_DROPPED, payload, message -> {
+				amqpTemplate.convertAndSend(QUEUE_LOG_DLQ, payload, message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();
 					headers.put(MessageHeaders.PROJECT_ID, projectId);
 					headers.put(MessageHeaders.ITEM_ID, itemId);

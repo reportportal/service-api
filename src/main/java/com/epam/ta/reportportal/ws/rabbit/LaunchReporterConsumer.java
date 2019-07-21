@@ -44,6 +44,10 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
 
 /**
  * @author Pavel Bortnik
+ *
+ * This consumer makes actual processing of start & finish launch requests
+ * i.e. save in database and all postprocessing
+ *
  */
 @Component
 @Transactional
@@ -106,7 +110,7 @@ public class LaunchReporterConsumer {
 		}
 	}
 
-	@RabbitListener(queues = "#{ @launchFinishQueue.name }")
+	@RabbitListener(queues = "#{ @launchFinishApprovedQueue.name }")
 	public void onFinishLaunch(@Payload FinishExecutionRQ rq, @Header(MessageHeaders.USERNAME) String username,
 			@Header(MessageHeaders.PROJECT_NAME) String projectName, @Header(MessageHeaders.LAUNCH_ID) String launchId,
 			@Header(MessageHeaders.BASE_URL) String baseUrl, @Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
@@ -123,6 +127,7 @@ public class LaunchReporterConsumer {
 					headers.put(MessageHeaders.USERNAME, username);
 					headers.put(MessageHeaders.PROJECT_NAME, projectName);
 					headers.put(MessageHeaders.LAUNCH_ID, launchId);
+					headers.put(MessageHeaders.BASE_URL, baseUrl);
 					return message;
 				});
 

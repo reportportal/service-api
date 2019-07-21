@@ -39,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
@@ -58,16 +60,20 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	private final LaunchRepository launchRepository;
+	private final FinishLaunchApprovalStrategy approveStrategy;
 	private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
 	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
-			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher) {
+								   @Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler,
+								   FinishLaunchApprovalStrategy approveStrategy,
+								   MessageBus messageBus,
+								   ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.finishHierarchyHandler = finishHierarchyHandler;
+		this.approveStrategy = approveStrategy;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
@@ -78,6 +84,9 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		validateRoles(launch, user, projectDetails);
+
+		approveStrategy.verifyNoInProgressItems(launch);
+
 		validate(launch, finishLaunchRQ);
 
 		Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
@@ -113,6 +122,8 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), String.valueOf(launch.getId())));
 		return response;
 	}
+
+
 
 	private String buildDescription(String existDescription, String fromRequestDescription) {
 		if (null != existDescription) {

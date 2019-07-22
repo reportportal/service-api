@@ -265,7 +265,6 @@ class TestItemControllerTest extends BaseMvcTest {
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
 		issue.setBtsUrl("jira.com");
 		issue.setBtsProject("project");
-		issue.setSubmitter(2L);
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");
 		rq.setIssues(Collections.singletonList(issue));
@@ -281,7 +280,6 @@ class TestItemControllerTest extends BaseMvcTest {
 		Issue.ExternalSystemIssue issue = new Issue.ExternalSystemIssue();
 		issue.setBtsUrl("jira.com");
 		issue.setBtsProject("project");
-		issue.setSubmitter(2L);
 		issue.setTicketId("ticket1");
 		issue.setUrl("https://example.com/NEWTICKET1");
 		rq.setIssues(Collections.singletonList(issue));

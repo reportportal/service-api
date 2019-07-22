@@ -67,6 +67,9 @@ class FinishLaunchHandlerImplTest {
 	@Mock
 	private ApplicationEventPublisher publisher;
 
+	@Mock
+	private FinishLaunchApprovalStrategy approvalStrategy;
+
 	@InjectMocks
 	private FinishLaunchHandlerImpl handler;
 

@@ -21,8 +21,8 @@ set status   = 'FAILED',
 where result_id = 2;
 insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore_analyzer)
 values (2, 2, 'automation bug', false, true);
-insert into ticket(id, ticket_id, submitter_id, bts_url, submit_date, url, bts_project)
-values (1, 'ticket1', 1, 'http:/example.com', now(), 'http:/example.com/ticket1', 'superadmin_bts');
+insert into ticket(id, ticket_id, submitter, bts_url, submit_date, url, bts_project)
+values (1, 'ticket1', 'superadmin', 'http:/example.com', now(), 'http:/example.com/ticket1', 'superadmin_bts');
 insert into issue_ticket(issue_id, ticket_id)
 values (2, 1);
 

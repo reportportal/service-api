@@ -20,11 +20,11 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -376,7 +376,7 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 		validateNewPluginExtensionClasses(newPluginId, previousPlugin, newPluginFileName);
 		unloadPlugin(newPluginId);
 
-		String fileId = uploadPlugin(newPluginFileName, fileStream, integrationType, previousPlugin, newPluginId);
+		String fileId = uploadPlugin(newPluginFileName, fileStream, previousPlugin, newPluginId);
 		IntegrationDetailsProperties.FILE_ID.setValue(integrationType.getDetails(), fileId);
 
 		copyPluginToRootDirectory(newPluginFileName, previousPlugin, newPluginId);
@@ -441,15 +441,14 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	/**
 	 * Uploads plugin file to the instance of the configured {@link DataStore} and saves the file path to the {@link IntegrationType} object
 	 *
-	 * @param fileName        New plugin file name
-	 * @param fileStream      {@link InputStream} of the new plugin file
-	 * @param integrationType {@link IntegrationType} object with info about plugin
-	 * @param previousPlugin  Previous plugin with the same 'id' as the new one
-	 * @param newPluginId     Id of the new plugin
+	 * @param fileName       New plugin file name
+	 * @param fileStream     {@link InputStream} of the new plugin file
+	 * @param previousPlugin Previous plugin with the same 'id' as the new one
+	 * @param newPluginId    Id of the new plugin
 	 * @return File id
 	 */
-	private String uploadPlugin(final String fileName, final InputStream fileStream, IntegrationType integrationType,
-			Optional<PluginWrapper> previousPlugin, String newPluginId) {
+	private String uploadPlugin(final String fileName, final InputStream fileStream, Optional<PluginWrapper> previousPlugin,
+			String newPluginId) {
 		try {
 			return pluginLoader.savePlugin(fileName, fileStream);
 		} catch (Exception e) {

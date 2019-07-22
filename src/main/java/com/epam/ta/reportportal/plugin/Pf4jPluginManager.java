@@ -243,7 +243,7 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 			return newPluginInfo;
 		} catch (PluginException e) {
 			removeUploadingPlugin(fileName);
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e.getMessage());
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
 		}
 	}
 
@@ -283,7 +283,7 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	private void validatePluginVersion(PluginInfo newPluginInfo, String fileName) {
 		if (!ofNullable(newPluginInfo.getVersion()).isPresent()) {
 			removeUploadingPlugin(fileName);
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin version should be specified.");
 		}
 	}
 
@@ -392,7 +392,7 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 			integrationType.setEnabled(true);
 			return integrationTypeRepository.save(integrationType);
 		})
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 						Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
 				));
 
@@ -407,7 +407,7 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	 * @see PluginLoader#validatePluginExtensionClasses(PluginWrapper))
 	 */
 	private void validateNewPluginExtensionClasses(String newPluginId, Optional<PluginWrapper> previousPlugin, String newPluginFileName) {
-		PluginWrapper newPlugin = getPluginById(newPluginId).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		PluginWrapper newPlugin = getPluginById(newPluginId).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 				Suppliers.formattedSupplier("Plugin with id = {} has not been found.", newPluginId).get()
 		));
 		if (!pluginLoader.validatePluginExtensionClasses(newPlugin)) {

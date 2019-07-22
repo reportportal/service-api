@@ -4,17 +4,15 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Lists;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.pf4j.PluginException;
-import org.pf4j.PluginManager;
-import org.pf4j.PluginState;
-import org.pf4j.PluginWrapper;
+import org.pf4j.*;
+import rp.com.google.common.collect.Sets;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,17 +38,26 @@ class Pf4jPluginManagerTest {
 
 	private final PluginLoader pluginLoader = mock(PluginLoader.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
+	private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
+	private final ExtensionFactory extensionFactory = mock(ExtensionFactory.class);
 	private final PluginManager pluginManager = mock(PluginManager.class);
 	private final PluginWrapper previousPlugin = mock(PluginWrapper.class);
 	private final PluginWrapper newPlugin = mock(PluginWrapper.class);
 
-	private final Pf4jPluginBox pluginBox = new Pf4jPluginManager(PLUGINS_TEMP_PATH,
+	private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(PLUGINS_PATH,
+			PLUGINS_TEMP_PATH,
 			pluginLoader,
 			integrationTypeRepository,
-			pluginManager
+			Sets.newHashSet(pluginDescriptorFinder),
+			extensionFactory
 	);
 
 	private final InputStream fileStream = mock(InputStream.class);
+
+	@BeforeEach
+	void setPluginManager() {
+		pluginBox.setPluginManager(pluginManager);
+	}
 
 	@Test
 	void uploadPlugin() throws PluginException {

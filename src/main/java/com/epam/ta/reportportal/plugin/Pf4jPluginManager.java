@@ -36,10 +36,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.AbstractIdleService;
 import org.apache.commons.io.FilenameUtils;
-import org.pf4j.PluginException;
-import org.pf4j.PluginManager;
-import org.pf4j.PluginState;
-import org.pf4j.PluginWrapper;
+import org.pf4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -47,9 +44,11 @@ import org.springframework.lang.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -69,24 +68,35 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	private static final long MAXIMUM_UPLOADED_PLUGINS = 50;
 	private static final long PLUGIN_LIVE_TIME = 2;
 
+	private final String pluginsDir;
 	private final String pluginsTempDir;
 
 	private final Cache<String, Path> uploadingPlugins;
 
 	private final PluginLoader pluginLoader;
 	private final IntegrationTypeRepository integrationTypeRepository;
+	private final Collection<PluginDescriptorFinder> pluginDescriptorFinders;
+	private final ExtensionFactory extensionFactory;
 
-	private final org.pf4j.PluginManager pluginManager;
+	private org.pf4j.PluginManager pluginManager;
 
-	public Pf4jPluginManager(String pluginsTempPath, PluginLoader pluginLoader, IntegrationTypeRepository integrationTypeRepository,
-			PluginManager pluginManager) {
+	public Pf4jPluginManager(String pluginsDir, String pluginsTempPath, PluginLoader pluginLoader,
+			IntegrationTypeRepository integrationTypeRepository, Collection<PluginDescriptorFinder> pluginDescriptorFinders,
+			ExtensionFactory extensionFactory) {
+		this.pluginsDir = pluginsDir;
 		this.pluginsTempDir = pluginsTempPath;
 		this.pluginLoader = pluginLoader;
 		this.integrationTypeRepository = integrationTypeRepository;
-		uploadingPlugins = CacheBuilder.newBuilder()
+		this.pluginDescriptorFinders = pluginDescriptorFinders;
+		this.extensionFactory = extensionFactory;
+		this.uploadingPlugins = CacheBuilder.newBuilder()
 				.maximumSize(MAXIMUM_UPLOADED_PLUGINS)
 				.expireAfterWrite(PLUGIN_LIVE_TIME, TimeUnit.MINUTES)
 				.build();
+		this.pluginManager = new Pf4jExtension(this.pluginsDir);
+	}
+
+	public void setPluginManager(PluginManager pluginManager) {
 		this.pluginManager = pluginManager;
 	}
 
@@ -188,6 +198,29 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 		}
 	}
 
+	public class Pf4jExtension extends DefaultPluginManager {
+
+		public Pf4jExtension(String pluginsRoot) {
+			super(FileSystems.getDefault().getPath(pluginsRoot));
+		}
+
+		@Override
+		protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
+			CompoundPluginDescriptorFinder compoundPluginDescriptorFinder = new CompoundPluginDescriptorFinder();
+			Pf4jPluginManager.this.pluginDescriptorFinders.forEach(compoundPluginDescriptorFinder::add);
+			return
+					// Demo is using the Manifest file
+					// PropertiesPluginDescriptorFinder is commented out just to avoid error log
+					//.add(new PropertiesPluginDescriptorFinder())
+					compoundPluginDescriptorFinder;
+		}
+
+		@Override
+		protected ExtensionFactory createExtensionFactory() {
+			return Pf4jPluginManager.this.extensionFactory;
+		}
+	}
+
 	/**
 	 * Uploads the plugin file to the temp directory and extracts it's info.
 	 * Presence of the plugin version is mandatory
@@ -261,7 +294,6 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	 *                               and it's not a file of the previous plugin with the same id
 	 */
 	private void validateNewPluginFile(Optional<PluginWrapper> previousPlugin, String newPluginFileName) {
-		String pluginsDir = pluginManager.getPluginsRoot().toString();
 		if (new File(pluginsDir, newPluginFileName).exists()) {
 
 			if (!previousPlugin.isPresent() || !Paths.get(pluginsDir, newPluginFileName).equals(previousPlugin.get().getPluginPath())) {
@@ -345,7 +377,6 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 		copyPluginToRootDirectory(newPluginFileName, previousPlugin, newPluginId);
 		previousPlugin.ifPresent(p -> this.deletePreviousPlugin(p, newPluginFileName));
 
-		String pluginsDir = pluginManager.getPluginsRoot().toString();
 		return ofNullable(loadPlugin(Paths.get(pluginsDir, newPluginFileName))).map(newLoadedPluginId -> {
 			startUpPlugin(newLoadedPluginId);
 
@@ -432,7 +463,6 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 
 		if (tempPluginFile.exists()) {
 			try {
-				String pluginsDir = pluginManager.getPluginsRoot().toString();
 				org.apache.commons.io.FileUtils.copyFile(tempPluginFile, new File(pluginsDir, newPluginFileName));
 			} catch (IOException e) {
 				previousPlugin.ifPresent(this::loadAndStartUpPlugin);

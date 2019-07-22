@@ -62,23 +62,6 @@ public interface Pf4jPluginBox extends PluginBox {
 	Optional<PluginWrapper> getPluginById(String id);
 
 	/**
-	 * Add plugin file name to the uploading plugins holder
-	 *
-	 * @param fileName Name of the plugin file to put to the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
-	 * @param path     Full path to the plugin file
-	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
-	 */
-	void addUploadingPlugin(String fileName, Path path);
-
-	/**
-	 * Remove plugin file name from the uploading plugins holder
-	 *
-	 * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
-	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
-	 */
-	void removeUploadingPlugin(String fileName);
-
-	/**
 	 * Check if uploading plugins holder contains plugin file name
 	 *
 	 * @param fileName Name of the plugin file in the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
@@ -87,7 +70,7 @@ public interface Pf4jPluginBox extends PluginBox {
 	 * else 'false'
 	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
 	 */
-	boolean isPluginStillBeingUploaded(String fileName);
+	boolean isInUploadingState(String fileName);
 
 	IntegrationType uploadPlugin(String newPluginFileName, InputStream fileStream);
 }

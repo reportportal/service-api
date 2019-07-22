@@ -72,7 +72,7 @@ class CleanOutdatedPluginsJobTest {
 
 		file.createNewFile();
 
-		when(pluginBox.isPluginStillBeingUploaded(any(String.class))).thenReturn(false);
+		when(pluginBox.isInUploadingState(any(String.class))).thenReturn(false);
 
 		cleanOutdatedPluginsJob.execute();
 	}
@@ -87,7 +87,7 @@ class CleanOutdatedPluginsJobTest {
 
 		file.deleteOnExit();
 
-		when(pluginBox.isPluginStillBeingUploaded(any(String.class))).thenReturn(true);
+		when(pluginBox.isInUploadingState(any(String.class))).thenReturn(true);
 
 		cleanOutdatedPluginsJob.execute();
 	}
@@ -110,13 +110,13 @@ class CleanOutdatedPluginsJobTest {
 		when(pluginBox.getPluginById(plugins.get(0).getId())).thenReturn(ofNullable(jiraPlugin));
 		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get(pluginsRootPath, "qwe.jar"));
 
-		when(pluginBox.isPluginStillBeingUploaded(jiraPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
+		when(pluginBox.isInUploadingState(jiraPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
 		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(true);
 
 		when(pluginBox.getPluginById(plugins.get(1).getId())).thenReturn(ofNullable(rallyPlugin));
 		when(rallyPlugin.getPluginPath()).thenReturn(Paths.get(pluginsRootPath, "qwe1.jar"));
 
-		when(pluginBox.isPluginStillBeingUploaded(rallyPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
+		when(pluginBox.isInUploadingState(rallyPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
 		when(pluginBox.unloadPlugin(rallyPlugin.getPluginId())).thenReturn(false);
 
 		cleanOutdatedPluginsJob.execute();

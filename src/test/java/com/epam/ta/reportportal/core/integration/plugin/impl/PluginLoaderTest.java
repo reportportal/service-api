@@ -20,6 +20,7 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,8 @@ public class PluginLoaderTest {
 	private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
 	private final PluginManager pluginManager = mock(PluginManager.class);
+
+	private final PluginInfo pluginInfo = mock(PluginInfo.class);
 
 	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, dataStore, integrationTypeRepository,
 			pluginDescriptorFinder);
@@ -106,5 +109,11 @@ public class PluginLoaderTest {
 		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
 
 		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
+	}
+
+	@Test
+	void retrieveIntegrationTypeTest() {
+
+		IntegrationType integrationType = pluginLoader.retrieveIntegrationType(pluginInfo);
 	}
 }

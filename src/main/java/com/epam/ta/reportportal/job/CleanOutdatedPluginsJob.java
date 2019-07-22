@@ -89,7 +89,7 @@ public class CleanOutdatedPluginsJob {
 		LOGGER.info("Searching for temporary plugins...");
 		try (Stream<Path> pathStream = Files.walk(tempPluginsPath)) {
 			pathStream.filter(Files::isRegularFile).forEach(path -> ofNullable(path.getFileName()).ifPresent(fileName -> {
-				if (!pluginBox.isPluginStillBeingUploaded(fileName.toString())) {
+				if (!pluginBox.isInUploadingState(fileName.toString())) {
 					try {
 						Files.deleteIfExists(path);
 						LOGGER.info(Suppliers.formattedSupplier("Temporary plugin - '{}' has been removed", path).get());
@@ -130,6 +130,6 @@ public class CleanOutdatedPluginsJob {
 
 	private boolean isPluginStillBeingUploaded(@NotNull PluginWrapper pluginWrapper) {
 
-		return pluginBox.isPluginStillBeingUploaded(pluginWrapper.getPluginPath().getFileName().toString());
+		return pluginBox.isInUploadingState(pluginWrapper.getPluginPath().getFileName().toString());
 	}
 }

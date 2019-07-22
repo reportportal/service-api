@@ -62,7 +62,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -157,8 +159,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(issues,
-						user.getUserId()
+				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(
+						issues,
+						user.getUsername()
 				)));
 
 				issueEntity.setTestItemResults(testItem.getItemResults());
@@ -238,7 +241,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.collect(Collectors.toList());
 
 		List<Ticket> existedTickets = collectExistedTickets(rq.getIssues());
-		Set<Ticket> ticketsFromRq = collectTickets(rq.getIssues(), user.getUserId());
+		Set<Ticket> ticketsFromRq = collectTickets(rq.getIssues(), user.getUsername());
 
 		testItems.forEach(testItem -> {
 			try {
@@ -256,8 +259,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());
 
-		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(
-				it,
+		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
 				user.getUserId(),
 				user.getUsername()
@@ -301,8 +303,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	@Override
 	public OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails) {
-		expect(projectRepository.existsById(projectDetails.getProjectId()), equalTo(TRUE)).verify(
-				PROJECT_NOT_FOUND,
+		expect(projectRepository.existsById(projectDetails.getProjectId()), equalTo(TRUE)).verify(PROJECT_NOT_FOUND,
 				projectDetails.getProjectId()
 		);
 
@@ -362,14 +363,17 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param userId         {@link ReportPortalUser#userId}
 	 * @return {@link Set} of the {@link Ticket}
 	 */
-	private Set<Ticket> collectTickets(Collection<Issue.ExternalSystemIssue> externalIssues, Long userId) {
+	private Set<Ticket> collectTickets(Collection<Issue.ExternalSystemIssue> externalIssues, String username) {
 		if (CollectionUtils.isEmpty(externalIssues)) {
 			return Collections.emptySet();
 		}
 		return externalIssues.stream().map(it -> {
 			Ticket apply = TicketConverter.TO_TICKET.apply(it);
-			apply.setSubmitterId(ofNullable(it.getSubmitter()).orElse(userId));
-			apply.setSubmitDate(LocalDateTime.now());
+			apply.setSubmitter(username);
+			apply.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(
+					Instant.ofEpochMilli(millis),
+					ZoneOffset.UTC
+			)).orElse(LocalDateTime.now()));
 			return apply;
 		}).collect(toSet());
 	}

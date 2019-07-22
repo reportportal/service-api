@@ -54,6 +54,14 @@ public interface Pf4jPluginBox extends PluginBox {
 	boolean unloadPlugin(String pluginId);
 
 	/**
+	 * Delete plugin by id
+	 *
+	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @return 'true' if a plugin was successfully deleted, else 'false'
+	 */
+	boolean deletePlugin(String pluginId);
+
+	/**
 	 * Get plugin from the plugin manager by id
 	 *
 	 * @param id {@link PluginWrapper#getPluginId()}

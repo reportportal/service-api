@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;

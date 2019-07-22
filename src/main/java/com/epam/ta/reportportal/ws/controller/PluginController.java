@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -50,13 +51,15 @@ public class PluginController {
 	private final CreatePluginHandler createPluginHandler;
 	private final UpdatePluginHandler updatePluginHandler;
 	private final GetPluginHandler getPluginHandler;
+	private final DeletePluginHandler deletePluginHandler;
 
 	@Autowired
 	public PluginController(CreatePluginHandler createPluginHandler, UpdatePluginHandler updatePluginHandler,
-			GetPluginHandler getPluginHandler) {
+			GetPluginHandler getPluginHandler, DeletePluginHandler deletePluginHandler) {
 		this.createPluginHandler = createPluginHandler;
 		this.updatePluginHandler = updatePluginHandler;
 		this.getPluginHandler = getPluginHandler;
+		this.deletePluginHandler = deletePluginHandler;
 	}
 
 	@Transactional
@@ -71,7 +74,7 @@ public class PluginController {
 
 	@Transactional
 	@PutMapping(value = "/{pluginId}")
-	@ResponseStatus(HttpStatus.CREATED)
+	@ResponseStatus(HttpStatus.OK)
 	@ApiOperation("Update Report Portal plugin state")
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS updatePluginState(@PathVariable(value = "pluginId") Long id,
@@ -85,5 +88,14 @@ public class PluginController {
 	@ApiOperation("Get all available plugins")
 	public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
 		return getPluginHandler.getPlugins();
+	}
+
+	@Transactional
+	@DeleteMapping(value = "/{pluginId}")
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Delete plugin by id")
+	@PreAuthorize(ADMIN_ONLY)
+	public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id, @AuthenticationPrincipal ReportPortalUser user) {
+		return deletePluginHandler.deleteById(id);
 	}
 }

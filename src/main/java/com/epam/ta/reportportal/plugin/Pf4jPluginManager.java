@@ -20,7 +20,7 @@ import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -141,6 +141,11 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	@Override
 	public boolean unloadPlugin(String pluginId) {
 		return pluginManager.unloadPlugin(pluginId);
+	}
+
+	@Override
+	public boolean deletePlugin(String pluginId) {
+		return pluginManager.deletePlugin(pluginId);
 	}
 
 	@Override

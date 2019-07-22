@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.pf4j.PluginException;

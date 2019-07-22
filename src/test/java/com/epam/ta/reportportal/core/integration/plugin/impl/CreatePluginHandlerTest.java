@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
-import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import org.junit.jupiter.api.Test;

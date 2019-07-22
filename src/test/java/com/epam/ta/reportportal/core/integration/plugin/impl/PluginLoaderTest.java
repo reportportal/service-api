@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.core.integration.plugin.PluginInfo;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;

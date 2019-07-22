@@ -270,6 +270,10 @@ test {
     useJUnitPlatform()
 //    systemProperty 'junit.jupiter.extensions.autodetection.enabled', true
     //    testLogging.showStandardStreams = true
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+    }
     maxParallelForks = 1
 
     jacocoTestReport {

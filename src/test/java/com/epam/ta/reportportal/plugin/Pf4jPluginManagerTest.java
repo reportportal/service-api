@@ -164,7 +164,7 @@ class Pf4jPluginManagerTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
 		);
-		assertEquals("Impossible interact with integration. Manifest not found", exception.getMessage());
+		assertEquals("Error during plugin uploading: 'Manifest not found'", exception.getMessage());
 	}
 
 	@Test
@@ -175,7 +175,7 @@ class Pf4jPluginManagerTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
 		);
-		assertEquals("Impossible interact with integration. Plugin version should be specified.", exception.getMessage());
+		assertEquals("Error during plugin uploading: 'Plugin version should be specified.'", exception.getMessage());
 	}
 
 	@Test

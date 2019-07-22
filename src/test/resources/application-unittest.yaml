@@ -7,3 +7,5 @@ embedded:
     dir: /embedded-postgres
     clean: true
     port: 0
+logging:
+  file: ${java.io.tmpdir}/${spring.application.name}.log

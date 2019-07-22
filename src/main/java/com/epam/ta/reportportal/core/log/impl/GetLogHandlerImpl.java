@@ -113,7 +113,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 				.map(NestedItem::getId)
 				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
 		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(
-				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet())).stream().collect(toMap(NestedStep::getId, i -> i)))
+				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()), queryable).stream().collect(toMap(NestedStep::getId, i -> i)))
 				.orElseGet(Collections::emptyMap);
 
 		List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());

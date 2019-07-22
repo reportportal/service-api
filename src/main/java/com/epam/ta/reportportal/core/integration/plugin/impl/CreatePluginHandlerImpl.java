@@ -136,7 +136,7 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		if (!ofNullable(newPluginInfo.getVersion()).isPresent()) {
 			pluginBox.removeUploadingPlugin(pluginFile.getOriginalFilename());
 
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Plugin version should be specified.");
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, "Plugin version should be specified.");
 		}
 
 		return newPluginInfo;

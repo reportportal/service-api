@@ -62,5 +62,16 @@ public interface GetLogHandler {
 	 */
 	long getPageNumber(Long logId, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
 
-	Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params, Queryable queryable, Pageable pageable);
+	/**
+	 * Get logs and nested steps as one collection, filtered and sorted by passed args
+	 *
+	 * @param parentId       {@link Log#testItem} ID or {@link com.epam.ta.reportportal.entity.item.TestItem#parent} ID
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param params         Request params
+	 * @param queryable      {@link Queryable}
+	 * @param pageable       {@link Pageable}
+	 * @return The {@link Iterable} of {@link LogResource} and {@link com.epam.ta.reportportal.ws.model.NestedStepResource} entities
+	 */
+	Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params,
+			Queryable queryable, Pageable pageable);
 }

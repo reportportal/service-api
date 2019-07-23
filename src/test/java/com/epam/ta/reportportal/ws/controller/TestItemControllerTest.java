@@ -31,7 +31,7 @@ import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
+import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -290,7 +290,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void unlinkExternalIssues() throws Exception {
-		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
+		UnlinkExternalIssueRQ rq = new UnlinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
 		rq.setTicketIds(Collections.singletonList("ticket"));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))
@@ -300,7 +300,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void unlinkExternalIssuesNegative() throws Exception {
-		UnlinkExternalIssueRq rq = new UnlinkExternalIssueRq();
+		UnlinkExternalIssueRQ rq = new UnlinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(2L));
 		rq.setTicketIds(Collections.singletonList("ticket"));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/issue/unlink").with(token(oAuthHelper.getDefaultToken()))

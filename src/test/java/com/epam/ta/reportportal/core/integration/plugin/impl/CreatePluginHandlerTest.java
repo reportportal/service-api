@@ -215,7 +215,7 @@ public class CreatePluginHandlerTest {
 				() -> createPluginHandler.uploadPlugin(multipartFile)
 		);
 
-		assertEquals("Impossible interact with integration. Plugin version should be specified.", exception.getMessage());
+		assertEquals("Error during plugin uploading: 'Plugin version should be specified.'", exception.getMessage());
 	}
 
 	@Test

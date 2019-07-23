@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
 import static java.util.Collections.singletonList;
@@ -87,16 +88,16 @@ class AnalyzerServiceServiceTest {
 
 		Project project = project();
 
-		doNothing().when(analyzerStatusCache).analyzeStarted(launch.getId(), launch.getProjectId());
-		doNothing().when(analyzerStatusCache).analyzeFinished(launch.getId());
+		doNothing().when(analyzerStatusCache).analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+		doNothing().when(analyzerStatusCache).analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
 
 		issuesAnalyzer.runAnalyzers(launch, singletonList(1L), analyzerConfig());
 
 		verify(logRepository, times(1)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(singletonList(testItems.getItemId()),
 				LogLevel.ERROR.toInt()
 		);
-		verify(analyzerStatusCache, times(1)).analyzeStarted(launch.getId(), project.getId());
-		verify(analyzerStatusCache, times(1)).analyzeFinished(launch.getId());
+		verify(analyzerStatusCache, times(1)).analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), project.getId());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
 		verifyZeroInteractions(analyzerServiceClient);
 	}
 

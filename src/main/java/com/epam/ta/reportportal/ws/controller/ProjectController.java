@@ -69,7 +69,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Pavel Bortnik
  */
 @RestController
-@RequestMapping("/project")
+@RequestMapping("/v1/project")
 public class ProjectController {
 
 	private final GetProjectHandler getProjectHandler;

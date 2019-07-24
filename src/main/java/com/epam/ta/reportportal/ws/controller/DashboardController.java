@@ -54,7 +54,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/{projectName}/dashboard")
+@RequestMapping("/v1/{projectName}/dashboard")
 public class DashboardController {
 
 	private final CreateDashboardHandler createDashboardHandler;

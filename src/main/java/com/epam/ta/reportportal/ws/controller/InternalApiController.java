@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Andrei Varabyeu
  */
 @Controller
-@RequestMapping("/api-internal")
+@RequestMapping("/v1/api-internal")
 //@PreAuthorize("hasRole('COMPONENT')")
 public class InternalApiController {
 

@@ -51,7 +51,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/{projectName}/widget")
+@RequestMapping("/v1/{projectName}/widget")
 public class WidgetController {
 
 	private final CreateWidgetHandler createWidgetHandler;

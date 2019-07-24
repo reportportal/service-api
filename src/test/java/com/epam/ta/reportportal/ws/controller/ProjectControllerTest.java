@@ -87,7 +87,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		CreateProjectRQ rq = new CreateProjectRQ();
 		rq.setProjectName("TestProject");
 		rq.setEntryType("INTERNAL");
-		mockMvc.perform(post("/project").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
@@ -118,7 +118,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		HashMap<String, String> userRoles = new HashMap<>();
 		userRoles.put("test_user", "PROJECT_MANAGER");
 		rq.setUserRoles(userRoles);
-		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put("/v1/project/test_project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
@@ -146,7 +146,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		HashMap<String, String> userRoles = new HashMap<>();
 		userRoles.put("test_user", "PROJECT_MANAGER");
 		rq.setUserRoles(userRoles);
-		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put("/v1/project/test_project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
@@ -164,7 +164,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		HashMap<String, String> userRoles = new HashMap<>();
 		userRoles.put("test_user", "PROJECT_MANAGER");
 		rq.setUserRoles(userRoles);
-		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put("/v1/project/test_project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
@@ -181,14 +181,14 @@ class ProjectControllerTest extends BaseMvcTest {
 		HashMap<String, String> userRoles = new HashMap<>();
 		userRoles.put("test_user", "PROJECT_MANAGER");
 		rq.setUserRoles(userRoles);
-		mockMvc.perform(put("/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+		mockMvc.perform(put("/v1/project/test_project").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void deleteProjectPositive() throws Exception {
-		mockMvc.perform(delete("/project/3").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/v1/project/3").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 
 		assertFalse(projectRepository.findById(3L).isPresent());
 	}
@@ -197,26 +197,26 @@ class ProjectControllerTest extends BaseMvcTest {
 	void bulkDeleteProjects() throws Exception {
 		DeleteBulkRQ bulkRQ = new DeleteBulkRQ();
 		bulkRQ.setIds(Lists.newArrayList(2L, 3L));
-		mockMvc.perform(delete("/project").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(delete("/v1/project").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(bulkRQ))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getProjectUsersPositive() throws Exception {
-		mockMvc.perform(get("/project/test_project/users").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/project/test_project/users").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getProjectPositive() throws Exception {
-		mockMvc.perform(get("/project/test_project").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/project/test_project").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void unassignProjectUsersPositive() throws Exception {
 		UnassignUsersRQ rq = new UnassignUsersRQ();
 		rq.setUsernames(singletonList("test_user"));
-		mockMvc.perform(put("/project/test_project/unassign").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/project/test_project/unassign").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
 	}
@@ -225,7 +225,7 @@ class ProjectControllerTest extends BaseMvcTest {
 	void unassignUsersEmptyUserNames() throws Exception {
 		UnassignUsersRQ rq = new UnassignUsersRQ();
 		rq.setUsernames(new ArrayList<>());
-		mockMvc.perform(put("/project/test_project/unassign").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/project/test_project/unassign").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
 	}
@@ -236,54 +236,54 @@ class ProjectControllerTest extends BaseMvcTest {
 		Map<String, String> user = new HashMap<>();
 		user.put("default", "MEMBER");
 		rq.setUserNames(user);
-		mockMvc.perform(put("/project/test_project/assign").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/project/test_project/assign").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getUsersForAssignPositive() throws Exception {
-		mockMvc.perform(get("/project/test_project/assignable").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/project/test_project/assignable").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getProjectUsersTest() throws Exception {
-		mockMvc.perform(get("/project/test_project/usernames?filter.cnt.users=user").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/usernames?filter.cnt.users=user").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void addUserPreference() throws Exception {
-		mockMvc.perform(put("/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getUserPreferencePositive() throws Exception {
-		mockMvc.perform(get("/project/test_project/preference/superadmin").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/preference/superadmin").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void deleteUserPreference() throws Exception {
-		mockMvc.perform(delete("/project/test_project/preference/superadmin/1").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(delete("/v1/project/test_project/preference/superadmin/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getAllProjectNames() throws Exception {
-		mockMvc.perform(get("/project/names").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/project/names").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void searchProjectNames() throws Exception {
-		mockMvc.perform(get("/project/names/search?term=UpEr").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/project/names/search?term=UpEr").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Sql("/db/test-item/test-item-fill.sql")
 	@Test
 	void getProjectInfoPositive() throws Exception {
-		mockMvc.perform(get("/project/list/default_personal").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/list/default_personal").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(2))
 				.andExpect(jsonPath("$.projectName").value("default_personal"))
@@ -295,7 +295,7 @@ class ProjectControllerTest extends BaseMvcTest {
 	@Sql("/db/test-item/test-item-fill.sql")
 	@Test
 	void getProjectInfoWithoutLaunches() throws Exception {
-		mockMvc.perform(get("/project/list/superadmin_personal").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/list/superadmin_personal").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(1))
 				.andExpect(jsonPath("$.projectName").value("superadmin_personal"))
@@ -307,27 +307,27 @@ class ProjectControllerTest extends BaseMvcTest {
 	@Sql("/db/test-item/test-item-fill.sql")
 	@Test
 	void getAllProjectInfo() throws Exception {
-		mockMvc.perform(get("/project/list").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/list").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", hasSize(2)));
 	}
 
 	@Test
 	void searchForUsername() throws Exception {
-		mockMvc.perform(get("/project/test_project/usernames/search?term=user").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/usernames/search?term=user").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void export() throws Exception {
-		final ResultActions resultActions = mockMvc.perform(get("/project/export").with(token(oAuthHelper.getSuperadminToken())));
+		final ResultActions resultActions = mockMvc.perform(get("/v1/project/export").with(token(oAuthHelper.getSuperadminToken())));
 		resultActions.andExpect(status().isOk());
 		assertEquals("text/csv", resultActions.andReturn().getResponse().getContentType());
 	}
 
 	@Test
 	void getInvestigatedProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/investigated").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/investigated").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$..values.toInvestigate").value("66.67"))
 				.andExpect(jsonPath("$..values.investigated").value("33.33"));
@@ -335,7 +335,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void getCasesStatsProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/casesStats").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/casesStats").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$..values.min").value("5.0"))
 				.andExpect(jsonPath("$..values.avg").value("5"))
@@ -344,14 +344,14 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void getLaunchesQuantityProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/launchesQuantity").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/launchesQuantity").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$..values.count").value("1"));
 	}
 
 	@Test
 	void getIssuesChartProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/issuesChart").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/issuesChart").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$..values.systemIssue").value("0"))
 				.andExpect(jsonPath("$..values.automationBug").value("0"))
@@ -361,19 +361,19 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void getBugPercentageProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/bugsPercentage").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/bugsPercentage").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getActivitiesProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/activities").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/activities").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getLastLaunchProjectWidget() throws Exception {
-		mockMvc.perform(get("/project/test_project/widget/lastLaunch").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/test_project/widget/lastLaunch").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.result").isNotEmpty())
 				.andExpect(jsonPath("$.result.id").value(2))
@@ -383,7 +383,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void getAnalyzerIndexingStatus() throws Exception {
-		mockMvc.perform(get("/project/analyzer/status").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/project/analyzer/status").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.superadmin_personal").value(false))
 				.andExpect(jsonPath("$.default_personal").value(false))
@@ -406,7 +406,7 @@ class ProjectControllerTest extends BaseMvcTest {
 
 		request.setSenderCases(singletonList(senderCaseDTO));
 
-		mockMvc.perform(put("/project/default_personal/notification").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put("/v1/project/default_personal/notification").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}
@@ -421,7 +421,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		exchangeInfo.setArguments(arguments);
 		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
 
-		mockMvc.perform(put("/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(put("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -434,7 +434,7 @@ class ProjectControllerTest extends BaseMvcTest {
 		exchangeInfo.setArguments(arguments);
 		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
 
-		mockMvc.perform(delete("/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(delete("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
 		verify(rabbitTemplate, times(1)).convertAndSend(eq(exchangeInfo.getName()), eq("delete"), eq(2L));
 	}

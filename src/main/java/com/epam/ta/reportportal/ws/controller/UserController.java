@@ -64,7 +64,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/v1/user")
 public class UserController {
 
 	private final CreateUserHandler createUserMessageHandler;

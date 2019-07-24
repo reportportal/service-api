@@ -96,7 +96,7 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 
 			Set<String> recipients = ec.getRecipients();
 			if (successRate && matchedNames && matchedTags) {
-				String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
+				String[] recipientsArray = findRecipients(launch.getOwner(), recipients);
 				try {
 					emailService.sendLaunchFinishNotification(recipientsArray,
 							String.format("%s/ui#%s", baseUrl, project.getName()),

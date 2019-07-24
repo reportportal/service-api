@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.cache.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -36,6 +37,7 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
 
 /**
@@ -73,10 +75,11 @@ public class DefectTypeDeletedHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, event.getProjectId()));
 
 		if (analyzerServiceClient.hasClients()) {
-			expect(
-					analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(event.getProjectId()),
-					equalTo(false)
-			).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+			Cache<Long, Long> analyzeStatus = analyzerStatusCache.getAnalyzeStatus(AUTO_ANALYZER_KEY)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, AUTO_ANALYZER_KEY));
+			expect(analyzeStatus.asMap().containsValue(event.getProjectId()), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+					"Index can not be removed until auto-analysis proceeds."
+			);
 
 			List<Long> launches = launchRepository.findLaunchIdsByProjectId(event.getProjectId());
 			logIndexer.indexLaunchesLogs(event.getProjectId(), launches, getAnalyzerConfig(project));

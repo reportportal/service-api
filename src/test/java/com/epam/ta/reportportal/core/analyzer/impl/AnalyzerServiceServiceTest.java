@@ -88,8 +88,8 @@ class AnalyzerServiceServiceTest {
 
 		Project project = project();
 
-		doNothing().when(analyzerStatusCache).analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
-		doNothing().when(analyzerStatusCache).analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
+		when(analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId())).thenReturn(true);
+		when(analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId())).thenReturn(true);
 
 		issuesAnalyzer.runAnalyzers(launch, singletonList(1L), analyzerConfig());
 

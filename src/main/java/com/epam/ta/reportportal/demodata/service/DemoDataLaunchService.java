@@ -76,10 +76,10 @@ public class DemoDataLaunchService {
 		);
 
 		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
-
+		Long lastLaunchNumber = launchRepository.findLatestNumberByNameAndProjectId(launch.getName(), launch.getProjectId()).map(Integer::longValue).orElse(0L);
+		launch.setNumber(lastLaunchNumber + 1);
 		launch.setUser(user);
 		launchRepository.save(launch);
-		launchRepository.refresh(launch);
 		return launch;
 	}
 

@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile 'com.github.reportportal:commons-dao:105fc670'
+        compile 'com.github.reportportal:commons-dao:2ffd923a'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:a86b06f1'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
@@ -231,10 +231,11 @@ jar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 ext.src = [
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'                   : 'V001__initialize_schema.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'                        : 'V002__default_data.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/4_alter_test_item_location.up.sql'            : 'V003__alter_test_item_location.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/5_alter_ticket_submitter.up.sql': 'V004__alter_ticket_submitter.sql'
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'                          : 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'                               : 'V002__default_data.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/4_alter_test_item_location.up.sql'                   : 'V003__alter_test_item_location.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/5_alter_ticket_submitter.up.sql'                     : 'V004__alter_ticket_submitter.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/last-launch-number-fix-db/migrations/6_alter_last_launch_number.up.sql': 'V005__alter_last_launch_number.sql'
 ]
 
 task copyTestDatabaseScripts {

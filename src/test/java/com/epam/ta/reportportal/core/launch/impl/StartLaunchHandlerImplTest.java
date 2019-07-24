@@ -73,7 +73,6 @@ class StartLaunchHandlerImplTest {
 		);
 
 		verify(launchRepository, times(1)).save(any(Launch.class));
-		verify(launchRepository, times(1)).refresh(any(Launch.class));
 		assertNotNull(startLaunchRS);
 	}
 

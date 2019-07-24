@@ -66,8 +66,9 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 				.addProject(projectDetails.getProjectId())
 				.addUser(user.getUserId())
 				.get();
+		Long lastLaunchNumber = launchRepository.findLatestNumberByNameAndProjectId(launch.getName(), launch.getProjectId()).map(Integer::longValue).orElse(0L);
+		launch.setNumber(lastLaunchNumber + 1);
 		launchRepository.save(launch);
-		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 

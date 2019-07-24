@@ -47,7 +47,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
  *
  */
 @Component
-@Transactional
 public class LaunchReporterApprovalConsumer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaunchReporterApprovalConsumer.class);

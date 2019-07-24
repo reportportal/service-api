@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.pattern;
 
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.pattern.impl.PatternAnalyzerImpl;
 import com.epam.ta.reportportal.core.pattern.selector.PatternAnalysisSelector;
@@ -48,6 +49,7 @@ class PatternAnalyzerTest {
 
 	private final IssueGroupRepository issueGroupRepository = mock(IssueGroupRepository.class);
 	private final PatternTemplateRepository patternTemplateRepository = mock(PatternTemplateRepository.class);
+	private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
 	private final TaskExecutor taskExecutor = mock(TaskExecutor.class);
 

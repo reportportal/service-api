@@ -45,7 +45,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @RestController
-@RequestMapping(value = "/plugin")
+@RequestMapping(value = "/v1/plugin")
 public class PluginController {
 
 	private final CreatePluginHandler createPluginHandler;

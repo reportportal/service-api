@@ -60,7 +60,7 @@ import static org.springframework.http.HttpStatus.OK;
  * <p>
  */
 @RestController
-@RequestMapping("/{projectName}/item")
+@RequestMapping("/v1/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 

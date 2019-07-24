@@ -33,7 +33,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANA
  * @author Ihar Kahadouski
  */
 @RestController
-@RequestMapping("/demo/{projectName}")
+@RequestMapping("/v1/demo/{projectName}")
 @PreAuthorize(PROJECT_MANAGER)
 class DemoDataController {
 

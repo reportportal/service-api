@@ -55,7 +55,7 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/{projectName}/filter")
+@RequestMapping("/v1/{projectName}/filter")
 public class UserFilterController {
 
 	private final GetUserFilterHandler getFilterHandler;

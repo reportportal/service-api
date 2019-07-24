@@ -40,7 +40,7 @@ import java.io.InputStream;
  * @author Dzianis_Shybeka
  */
 @RestController
-@RequestMapping("/data")
+@RequestMapping("/v1/data")
 public class FileStorageController {
 
 	private final EditUserHandler editUserHandler;

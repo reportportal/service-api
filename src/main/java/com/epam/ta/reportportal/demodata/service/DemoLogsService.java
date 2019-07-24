@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.SplittableRandom;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.entity.enums.LogLevel.*;
@@ -85,6 +86,7 @@ class DemoLogsService {
 			}
 			log.setTestItem(testItem);
 			log.setLogMessage(ContentUtils.getLogMessage());
+			log.setUuid(UUID.randomUUID().toString());
 			return log;
 		}).collect(toList());
 		if (FAILED.equals(status)) {
@@ -95,6 +97,7 @@ class DemoLogsService {
 				log.setLogTime(LocalDateTime.now());
 				log.setTestItem(testItem);
 				log.setLogMessage(msg);
+				log.setUuid(UUID.randomUUID().toString());
 				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
 					attachFile(log, projectId, launch.getId(), testItem.getItemId());
 				}

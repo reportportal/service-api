@@ -49,7 +49,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/{projectName}/settings")
+@RequestMapping("/v1/{projectName}/settings")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class ProjectSettingsController {
 

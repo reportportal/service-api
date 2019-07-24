@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -22,7 +38,7 @@ class SettingsControllerTest extends BaseMvcTest {
 
 	@Test
 	void getServerSettings() throws Exception {
-		mockMvc.perform(get("/settings").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/settings").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -30,7 +46,7 @@ class SettingsControllerTest extends BaseMvcTest {
 		AnalyticsResource resource = new AnalyticsResource();
 		resource.setType("server.analytics.all");
 		resource.setEnabled(true);
-		mockMvc.perform(put("/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(resource))).andExpect(status().isOk());
 	}
@@ -40,7 +56,7 @@ class SettingsControllerTest extends BaseMvcTest {
 		AnalyticsResource resource = new AnalyticsResource();
 		resource.setEnabled(true);
 		resource.setType("");
-		mockMvc.perform(put("/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/settings/analytics").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(resource))).andExpect(status().isBadRequest());
 	}

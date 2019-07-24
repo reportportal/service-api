@@ -28,7 +28,7 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
+import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
@@ -60,7 +60,7 @@ import static org.springframework.http.HttpStatus.OK;
  * <p>
  */
 @RestController
-@RequestMapping("/{projectName}/item")
+@RequestMapping("/v1/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
@@ -239,7 +239,7 @@ public class TestItemController {
 	@ApiOperation("Attach external issue for specified test items")
 	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated LinkExternalIssueRQ rq) {
-		return updateTestItemHandler.linkExternalIssues(extractProjectDetails(user, projectName), rq, user);
+		return updateTestItemHandler.processExternalIssues(rq, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
@@ -247,8 +247,8 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Unlink external issue for specified test items")
 	public List<OperationCompletionRS> unlinkExternalIssues(@PathVariable String projectName,
-			@AuthenticationPrincipal ReportPortalUser user, @RequestBody @Validated UnlinkExternalIssueRq rq) {
-		return updateTestItemHandler.unlinkExternalIssues(extractProjectDetails(user, projectName), rq, user);
+			@AuthenticationPrincipal ReportPortalUser user, @RequestBody @Validated UnlinkExternalIssueRQ rq) {
+		return updateTestItemHandler.processExternalIssues(rq, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

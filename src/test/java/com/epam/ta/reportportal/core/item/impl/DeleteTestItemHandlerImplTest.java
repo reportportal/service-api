@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
@@ -174,9 +173,7 @@ class DeleteTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setStatus(launchStatus);
 		launch.setProjectId(projectId);
-		User user = new User();
-		user.setLogin(owner);
-		launch.setUser(user);
+		launch.setOwner(owner);
 		item.setLaunch(launch);
 		return item;
 	}

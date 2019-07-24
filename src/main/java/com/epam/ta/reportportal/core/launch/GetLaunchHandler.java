@@ -108,14 +108,13 @@ public interface GetLaunchHandler {
 	List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 	/**
-	 * Get unique owners of launches in specified mode
+	 * Get unique owners of launches
 	 *
 	 * @param projectDetails Project Details
 	 * @param value          Owner name prefix
-	 * @param mode           Mode
 	 * @return Response Data
 	 */
-	List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode);
+	List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value);
 
 	/**
 	 * Get launches comparison info

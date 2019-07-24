@@ -4,6 +4,11 @@ spring:
     url: ${rp.db.url}
   rabbitmq:
     addresses: ${rp.amqp.addresses}
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: ture
 
 rp:
   amqp:
@@ -20,4 +25,4 @@ logging:
   level:
     org:
       hibernate:
-        SQL: info
+        SQL: debug

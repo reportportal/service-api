@@ -64,10 +64,11 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 		Launch launch = new LaunchBuilder().addStartRQ(request)
 				.addAttributes(request.getAttributes())
 				.addProject(projectDetails.getProjectId())
-				.addUser(user.getUserId())
+				.addUser(user.getUsername())
 				.get();
+		launch.setNumber(launchRepository.getNextNumber(projectDetails.getProjectId(), request.getName()));
+
 		launchRepository.save(launch);
-		launchRepository.refresh(launch);
 
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 

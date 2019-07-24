@@ -149,9 +149,9 @@ class TestItemControllerTest extends BaseMvcTest {
 		issue.setIssueType("pb001");
 		rq.setIssue(issue);
 		mockMvc.perform(put(
-				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -160,9 +160,9 @@ class TestItemControllerTest extends BaseMvcTest {
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("FAILED");
 		mockMvc.perform(put(
-				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)
-				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+				.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test

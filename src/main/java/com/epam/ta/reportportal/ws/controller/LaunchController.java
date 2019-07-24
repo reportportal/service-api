@@ -253,9 +253,8 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique owners of project launches")
 	public List<String> getAllOwners(@PathVariable String projectName, @RequestParam(value = "filter." + "cnt." + "user") String value,
-			@RequestParam(value = "mode", required = false, defaultValue = "DEFAULT") String mode,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLaunchMessageHandler.getOwners(extractProjectDetails(user, normalizeId(projectName)), value, mode);
+		return getLaunchMessageHandler.getOwners(extractProjectDetails(user, normalizeId(projectName)), value);
 	}
 
 	@Transactional(readOnly = true)

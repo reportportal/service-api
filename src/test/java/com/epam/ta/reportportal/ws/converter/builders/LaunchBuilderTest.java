@@ -30,7 +30,7 @@ class LaunchBuilderTest {
 		final Date date = Date.from(now.atZone(ZoneId.of("UTC")).toInstant());
 		final Long projectId = 1L;
 		final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
-		final Long userId = 2L;
+		final String username = "default";
 		final String passed = "PASSED";
 		final Mode mode = Mode.DEFAULT;
 
@@ -38,7 +38,7 @@ class LaunchBuilderTest {
 				.addEndTime(date)
 				.addProject(projectId)
 				.addAttribute(attributeResource)
-				.addUser(userId)
+				.addUser(username)
 				.addStatus(passed)
 				.addMode(mode)
 				.get();
@@ -47,7 +47,7 @@ class LaunchBuilderTest {
 		assertEquals(now, launch.getEndTime());
 		assertEquals(projectId, launch.getProjectId());
 		assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
-		assertEquals(userId, launch.getUser().getId());
+		assertEquals(username, launch.getOwner());
 		assertEquals(passed, launch.getStatus().name());
 		assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
 	}

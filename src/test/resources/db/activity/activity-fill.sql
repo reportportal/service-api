@@ -1,5 +1,5 @@
-INSERT INTO launch (id, uuid, project_id, user_id, name, start_time, number, last_modified, mode, status)
-VALUES (1, 'uuid', 2, 2, 'name', now(), 1, now(), 'DEFAULT', 'IN_PROGRESS');
+INSERT INTO launch (id, uuid, project_id, owner, name, start_time, number, last_modified, mode, status)
+VALUES (1, 'uuid', 2, 'default', 'name', now(), 1, now(), 'DEFAULT', 'IN_PROGRESS');
 
 INSERT INTO test_item (item_id, uuid, type, start_time, last_modified, launch_id)
 VALUES (1, 'uuid', 'STEP', now(), now(), 1);

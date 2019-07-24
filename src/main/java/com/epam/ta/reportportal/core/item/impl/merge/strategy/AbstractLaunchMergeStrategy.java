@@ -68,7 +68,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 
 	protected Launch createNewLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq,
 			List<Launch> launchesList) {
-		Launch newLaunch = createResultedLaunch(projectDetails.getProjectId(), user.getUserId(), rq, launchesList);
+		Launch newLaunch = createResultedLaunch(projectDetails.getProjectId(), user.getUsername(), rq, launchesList);
 		boolean isNameChanged = !newLaunch.getName().equals(launchesList.get(0).getName());
 		updateChildrenOfLaunches(newLaunch, rq.getLaunches(), rq.isExtendSuitesDescription(), isNameChanged);
 
@@ -79,12 +79,12 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 	 * Create launch that will be the result of merge
 	 *
 	 * @param projectId       {@link Project#id}
-	 * @param userId          {@link ReportPortalUser#userId}
+	 * @param username        {@link ReportPortalUser#username}
 	 * @param mergeLaunchesRQ {@link MergeLaunchesRQ}
 	 * @param launches        {@link List} of the {@link Launch}
 	 * @return launch
 	 */
-	private Launch createResultedLaunch(Long projectId, Long userId, MergeLaunchesRQ mergeLaunchesRQ, List<Launch> launches) {
+	private Launch createResultedLaunch(Long projectId, String username, MergeLaunchesRQ mergeLaunchesRQ, List<Launch> launches) {
 		Date startTime = ofNullable(mergeLaunchesRQ.getStartTime()).orElse(EntityUtils.TO_DATE.apply(launches.stream()
 				.min(Comparator.comparing(Launch::getStartTime))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
@@ -106,12 +106,11 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)
 				.addProject(projectId)
 				.addStatus(IN_PROGRESS.name())
-				.addUser(userId)
+				.addUser(username)
 				.addEndTime(endTime)
 				.get();
-
+		launch.setNumber(launchRepository.getNextNumber(projectId, launch.getName()));
 		launchRepository.save(launch);
-		launchRepository.refresh(launch);
 		mergeAttributes(mergeLaunchesRQ.getAttributes(), launches, launch);
 		return launch;
 	}

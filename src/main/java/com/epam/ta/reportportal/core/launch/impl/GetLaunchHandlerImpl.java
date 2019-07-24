@@ -190,17 +190,11 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	}
 
 	@Override
-	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value, String mode) {
+	public List<String> getOwners(ReportPortalUser.ProjectDetails projectDetails, String value) {
 		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", value)
 		);
-
-		LaunchModeEnum launchMode = LaunchModeEnum.findByName(mode)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						formattedSupplier("Mode - {} doesn't exist.", mode)
-				));
-
-		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value, launchMode.name());
+		return launchRepository.getOwnerNames(projectDetails.getProjectId(), value);
 	}
 
 	@Override
@@ -300,8 +294,7 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	}
 
 	private void fillWithAdditionalParams(Map<String, Object> params, Launch launch, String userFullName) {
-
-		Optional<String> owner = userRepository.findById(launch.getUser().getId()).map(User::getFullName);
+		Optional<String> owner = userRepository.findByLogin(launch.getOwner()).map(User::getFullName);
 
 		/* Check if launch owner still in system if not - setup principal */
 		params.put(LaunchReportConstants.OWNER, owner.orElse(userFullName));

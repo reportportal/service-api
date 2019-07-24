@@ -103,8 +103,8 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
 		Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type).mergeLaunches(projectDetails, user, rq, launchesList);
+		newLaunch.setNumber(launchRepository.getNextNumber(projectDetails.getProjectId(), newLaunch.getName()));
 		launchRepository.save(newLaunch);
-		launchRepository.refresh(newLaunch);
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
 		logIndexer.cleanIndex(project.getId(), new ArrayList<>(launchesIds));
@@ -142,7 +142,7 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 			);
 
 			if (isUserValidate) {
-				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
+				expect(launch.getOwner(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
 						"You are not an owner of launches or have less than PROJECT_MANAGER project role."
 				);
 			}

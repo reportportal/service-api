@@ -1,5 +1,5 @@
-insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status)
-values (1, 'a7b66ef2-db30-4db7-94df-f5f7786b398a', 2, 2, 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'IN_PROGRESS');
+insert into launch (id, uuid, project_id, owner, name, description, start_time, end_time, number, last_modified, mode, status)
+values (1, 'a7b66ef2-db30-4db7-94df-f5f7786b398a', 2, 'default', 'test launch', 'desc', now(), null, 1, now(), 'DEFAULT', 'IN_PROGRESS');
 
 insert into test_item(item_id, uuid, name, type, start_time, description, last_modified, path, unique_id, has_children, has_retries, parent_id, retry_of, launch_id)
 values (1, '0f7ca5bc-cfae-4cc1-9682-e59c2860131e', 'root item', 'SUITE', now(), 'desc', now(), '1', 'cf28e552-fe5a-4c80-a778-355a62f52efc', true, false, null, null, 1);
@@ -20,8 +20,8 @@ values ('browser', 'chrome', 1, null, false),
        ('os', 'linux', 1, null, false),
        ('testKey', 'testValue', 1, null, false);
 
-insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status)
-values (2, '45a80a5e-d73e-483a-a51f-43cc7f5111af', 2, 2, 'test launch 2', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED');
+insert into launch (id, uuid, project_id, owner, name, description, start_time, end_time, number, last_modified, mode, status)
+values (2, '45a80a5e-d73e-483a-a51f-43cc7f5111af', 2, 'default', 'test launch 2', 'desc', now(), null, 1, now(), 'DEFAULT', 'FAILED');
 
 insert into test_item(item_id, uuid, name, type, start_time, description, last_modified, path, unique_id, has_children, has_retries, parent_id, retry_of, launch_id)
 values (2, 'f3960757-1a06-405e-9eb7-607c34683154', 'child item', 'STEP', now(), 'desc', now(), '2', 'e1d24ec8-f321-499c-a56a-9d6afbd7f955', false, false, null, null, 2);
@@ -43,8 +43,8 @@ insert into issue(issue_id, issue_type, issue_description, auto_analyzed, ignore
 
 insert into ticket(ticket_id, submitter, submit_date, bts_url, bts_project, url) values ('ticket', 'default', now(), 'https://example.com', 'project', 'https://example.com/ticket');
 
-insert into launch (id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status)
-values (3, '334d153c-8f9c-4dff-8627-47dd003bee0f', 1, 1, 'test launch admin', 'desc', now(), null, 1, now(), 'DEFAULT', 'IN_PROGRESS');
+insert into launch (id, uuid, project_id, owner, name, description, start_time, end_time, number, last_modified, mode, status)
+values (3, '334d153c-8f9c-4dff-8627-47dd003bee0f', 1, 'default', 'test launch admin', 'desc', now(), null, 1, now(), 'DEFAULT', 'IN_PROGRESS');
 
 insert into test_item(item_id, uuid, name, type, start_time, description, last_modified, path, unique_id, has_children, has_retries, parent_id, retry_of, launch_id)
 values (4, '53e165eb-4a51-4247-8e8c-debd865c2477', 'child item', 'STEP', now(), 'desc', now(), '4', 'abf63661-c86c-42f8-95e8-be4b76f42bd2', false, false, null, null, 3);

@@ -1,6 +1,6 @@
 -- First launch
-insert into launch(id, uuid, project_id, user_id, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
-values (2, 'uuid2', 1, 1, 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
+insert into launch(id, uuid, project_id, owner, name, description, start_time, end_time, number, last_modified, mode, status, has_retries)
+values (2, 'uuid2', 1, 'superadmin', 'test launch', 'desc', now(), null, 2, now(), 'DEFAULT', 'FAILED', false);
 
 insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
 values (6,'uuid6',  'test item 1', 'STEP', now(), 'desc', 'uuid6', now(), '6', null, 2);

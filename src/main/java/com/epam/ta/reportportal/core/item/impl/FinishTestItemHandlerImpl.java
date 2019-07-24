@@ -175,7 +175,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void verifyTestItem(Launch launch, ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
 			boolean hasChildren) {
 
-		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
+		expect(user.getUsername(), equalTo(launch.getOwner())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
 		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
 				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",

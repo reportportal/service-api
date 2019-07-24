@@ -185,20 +185,9 @@ class GetLaunchHandlerImplTest {
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getOwners(extractProjectDetails(user, "test_project"), "qw", LaunchModeEnum.DEFAULT.name())
+				() -> handler.getOwners(extractProjectDetails(user, "test_project"), "qw")
 		);
 		assertEquals("Incorrect filtering parameters. Length of the filtering string 'qw' is less than 3 symbols", exception.getMessage());
-	}
-
-	@Test
-	void getOwnersWrongMode() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getOwners(extractProjectDetails(user, "test_project"), "qwe", "incorrectMode")
-		);
-		assertEquals("Incorrect filtering parameters. Mode - incorrectMode doesn't exist.", exception.getMessage());
 	}
 
 	@Test

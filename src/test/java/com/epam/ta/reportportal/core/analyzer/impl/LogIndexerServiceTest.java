@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.client.IndexerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsIndex;
 import com.epam.ta.reportportal.core.analyzer.model.IndexRsItem;
@@ -59,13 +60,15 @@ class LogIndexerServiceTest {
 
 	private LogRepository logRepository = mock(LogRepository.class);
 
-	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
+	private IndexerStatusCache indexerStatusCache = mock(IndexerStatusCache.class);
 
 	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
-	private LogIndexerService logIndexerService = new LogIndexerService(launchRepository, testItemRepository,
-			indexerServiceClient, launchPreparerService,
-			analyzerStatusCache
+	private LogIndexerService logIndexerService = new LogIndexerService(launchRepository,
+			testItemRepository,
+			indexerServiceClient,
+			launchPreparerService,
+			indexerStatusCache
 	);
 
 	@Test
@@ -77,7 +80,7 @@ class LogIndexerServiceTest {
 				.join();
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
-		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
+		verify(indexerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	@Test
@@ -87,7 +90,7 @@ class LogIndexerServiceTest {
 		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
-		verify(analyzerStatusCache, times(1)).indexingFinished(1L);
+		verify(indexerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	private AnalyzerConfig analyzerConfig() {

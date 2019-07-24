@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
+import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,6 +46,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 
 /**
  * @author Pavel Bortnik
@@ -103,9 +105,12 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		expect(AnalyzerUtils.getAnalyzerConfig(project).isIndexingRunning(), Predicate.isEqual(false)).verify(ErrorType.FORBIDDEN_OPERATION,
 				"Index can not be removed until index generation proceeds."
 		);
-		expect(analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
-				Predicate.isEqual(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until index generation proceeds.");
+
+		Cache<Long, Long> analyzeStatus = analyzerStatusCache.getAnalyzeStatus(AUTO_ANALYZER_KEY)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, AUTO_ANALYZER_KEY));
+		expect(analyzeStatus.asMap().containsValue(project.getId()), Predicate.isEqual(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until index generation proceeds."
+		);
 
 		logIndexer.deleteIndex(project.getId());
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), user.getLogin(), false));

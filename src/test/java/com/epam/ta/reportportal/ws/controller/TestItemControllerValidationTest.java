@@ -29,6 +29,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,9 +45,6 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 	private static final String ITEM_PATH = "/item";
 	private static final String PARENT_ID_PATH = "/555";
 
-	private static final String INCORRECT_REQUEST_MESSAGE = "Incorrect Request. ";
-	private static final String FIELD_NAME_IS_NULL_MESSAGE = "[Field 'name' should not be null.] ";
-	private static final String FIELD_NAME_IS_BLANK_MESSAGE = "Field 'name' should not contain only white spaces and shouldn't be empty.";
 	private static final String FIELD_NAME_SIZE_MESSAGE = "Field 'name' should have size from '1' to '1,024'.";
 
 	private static final String LONG_NAME_VALUE = "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
@@ -103,7 +101,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 	public void startRootTestItemShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		StartTestItemRQ startTestItemRQ = prepareTestItem();
-		startTestItemRQ.setName("    ");
+		startTestItemRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
@@ -178,7 +176,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 	public void startChildTestItemShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		StartTestItemRQ startTestItemRQ = prepareTestItem();
-		startTestItemRQ.setName("    ");
+		startTestItemRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)

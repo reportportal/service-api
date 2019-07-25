@@ -69,7 +69,8 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 		if (isNotificationsEnabled) {
 			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 					IntegrationGroupEnum.NOTIFICATION
-			).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
+			)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
 			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
 			emailService.ifPresent(it -> {
 				launchRepository.refresh(launch);
@@ -96,7 +97,9 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 
 			Set<String> recipients = ec.getRecipients();
 			if (successRate && matchedNames && matchedTags) {
-				String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
+				User user = userRepository.findById(launch.getUserId())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
+				String[] recipientsArray = findRecipients(user.getLogin(), recipients);
 				try {
 					emailService.sendLaunchFinishNotification(recipientsArray,
 							String.format("%s/ui#%s", baseUrl, project.getName()),

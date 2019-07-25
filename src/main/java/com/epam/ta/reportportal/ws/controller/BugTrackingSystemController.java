@@ -45,7 +45,7 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/bts")
+@RequestMapping("/v1/bts")
 public class BugTrackingSystemController {
 
 	private final CreateTicketHandler createTicketHandler;

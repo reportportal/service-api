@@ -46,7 +46,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @RestController
-@RequestMapping(value = "/integration")
+@RequestMapping(value = "/v1/integration")
 public class IntegrationController {
 
 	private final DeleteIntegrationHandler deleteIntegrationHandler;

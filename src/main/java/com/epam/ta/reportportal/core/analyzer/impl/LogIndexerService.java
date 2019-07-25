@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.client.IndexerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -54,24 +55,23 @@ public class LogIndexerService implements LogIndexer {
 
 	private final LaunchPreparerService launchPreparerService;
 
-	private final AnalyzerStatusCache analyzerStatusCache;
+	private final IndexerStatusCache indexerStatusCache;
 
 	@Autowired
 	public LogIndexerService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
-			AnalyzerStatusCache analyzerStatusCache) {
+			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.indexerServiceClient = indexerServiceClient;
 		this.launchPreparerService = launchPreparerService;
-		this.analyzerStatusCache = analyzerStatusCache;
+		this.indexerStatusCache = indexerStatusCache;
 	}
 
 	@Override
 	public CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				analyzerStatusCache.indexingStarted(projectId);
+				indexerStatusCache.indexingStarted(projectId);
 				List<IndexLaunch> indexLaunches = prepareLaunches(launchRepository.findAllById(launchIds), analyzerConfig);
 				LOGGER.info("Start indexing for {} launches", indexLaunches.size());
 				Long indexed = indexerServiceClient.index(indexLaunches);
@@ -81,7 +81,7 @@ public class LogIndexerService implements LogIndexer {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
 			} finally {
-				analyzerStatusCache.indexingFinished(projectId);
+				indexerStatusCache.indexingFinished(projectId);
 			}
 		});
 	}
@@ -90,11 +90,10 @@ public class LogIndexerService implements LogIndexer {
 	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				analyzerStatusCache.indexingStarted(projectId);
+				indexerStatusCache.indexingStarted(projectId);
 				Launch launch = launchRepository.findById(launchId)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(
-						launch,
+				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
 						testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE),
 						analyzerConfig
 				);
@@ -108,7 +107,7 @@ public class LogIndexerService implements LogIndexer {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
 			} finally {
-				analyzerStatusCache.indexingFinished(projectId);
+				indexerStatusCache.indexingFinished(projectId);
 			}
 		});
 	}
@@ -116,7 +115,7 @@ public class LogIndexerService implements LogIndexer {
 	@Override
 	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		try {
-			analyzerStatusCache.indexingStarted(projectId);
+			indexerStatusCache.indexingStarted(projectId);
 			Launch launch = launchRepository.findById(launchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 			return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
@@ -126,20 +125,20 @@ public class LogIndexerService implements LogIndexer {
 			LOGGER.error(e.getMessage(), e);
 			throw new ReportPortalException(e.getMessage());
 		} finally {
-			analyzerStatusCache.indexingFinished(projectId);
+			indexerStatusCache.indexingFinished(projectId);
 		}
 	}
 
 	public CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				analyzerStatusCache.indexingStarted(projectId);
+				indexerStatusCache.indexingStarted(projectId);
 				return indexerServiceClient.index(Lists.newArrayList(indexLaunch));
 			} catch (Exception ex) {
 				LOGGER.error(ex.getMessage(), ex);
 				throw new ReportPortalException(ex.getMessage());
 			} finally {
-				analyzerStatusCache.analyzeFinished(projectId);
+				indexerStatusCache.indexingFinished(projectId);
 			}
 		});
 	}

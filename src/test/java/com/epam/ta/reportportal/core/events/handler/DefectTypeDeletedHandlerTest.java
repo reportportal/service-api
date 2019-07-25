@@ -102,7 +102,7 @@ class DefectTypeDeletedHandlerTest {
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		Cache<Long, Long> cache = CacheBuilder.newBuilder().build();
 		cache.put(2L, projectId);
-		when(analyzerStatusCache.getAnalyzeStatus()).thenReturn(cache);
+		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(cache));
 
 		ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
@@ -117,7 +117,7 @@ class DefectTypeDeletedHandlerTest {
 
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(getProjectWithAnalyzerAttributes(projectId)));
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(analyzerStatusCache.getAnalyzeStatus()).thenReturn(CacheBuilder.newBuilder().build());
+		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(CacheBuilder.newBuilder().build()));
 		List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
 		when(launchRepository.findLaunchIdsByProjectId(projectId)).thenReturn(launchIds);
 

@@ -16,90 +16,58 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.core.events.handler.subscriber.LaunchFinishedEventSubscriber;
+import com.epam.ta.reportportal.core.events.handler.subscriber.impl.LaunchAutoAnalysisSubscriber;
+import com.epam.ta.reportportal.core.events.handler.subscriber.impl.LaunchNotificationSubscriber;
+import com.epam.ta.reportportal.core.events.handler.subscriber.impl.LaunchPatternAnalysisSubscriber;
+import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.attribute.Attribute;
-import com.epam.ta.reportportal.entity.enums.*;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.entity.project.email.SenderCase;
-import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.util.email.EmailService;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@ExtendWith(MockitoExtension.class)
 class LaunchFinishedEventHandlerTest {
-	@Mock
-	private ProjectRepository projectRepository;
-	@Mock
-	private GetIntegrationHandler getIntegrationHandler;
-	@Mock
-	private MailServiceFactory mailServiceFactory;
-	@Mock
-	private UserRepository userRepository;
-	@Mock
-	private LaunchRepository launchRepository;
-	@Mock
-	private AnalyzeCollectorFactory analyzeCollectorFactory;
-	@Mock
-	private AnalyzerServiceAsync analyzerServiceAsync;
-	@Mock
-	private LogIndexer logIndexer;
 
-	private Integration emailIntegration = mock(Integration.class);
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
 
-	private EmailService emailService = mock(EmailService.class);
+	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
 
-	private AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
+	private final LaunchAutoAnalysisSubscriber autoAnalysisSubscriber = mock(LaunchAutoAnalysisSubscriber.class);
 
-	private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+	private final LaunchNotificationSubscriber notificationSubscriber = mock(LaunchNotificationSubscriber.class);
 
-	private CompletableFuture<Void> analyze = mock(CompletableFuture.class);
+	private final LaunchPatternAnalysisSubscriber patternAnalysisSubscriber = mock(LaunchPatternAnalysisSubscriber.class);
 
-	private Supplier<Set<String>> recipientsSupplier = Suppliers.memoize(this::getRecipients);
-	private Supplier<Set<String>> launchNamesSupplier = Suppliers.memoize(this::getLaunchNames);
+	private List<LaunchFinishedEventSubscriber> launchFinishedEventSubscribers = Lists.newArrayList(autoAnalysisSubscriber,
+			notificationSubscriber,
+			patternAnalysisSubscriber
+	);
 
-	@InjectMocks
-	private LaunchFinishedEventHandler launchFinishedEventHandler;
+	private final LaunchFinishedEventHandler launchFinishedEventHandler = new LaunchFinishedEventHandler(projectRepository,
+			launchRepository,
+			launchFinishedEventSubscribers
+	);
 
 	@Test
-	void shouldNotSendWhenLaunchInDebug() throws ExecutionException, InterruptedException {
+	void shouldNotSendWhenLaunchInDebug() {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -118,75 +86,7 @@ class LaunchFinishedEventHandlerTest {
 	}
 
 	@Test
-	void shouldNotSendWhenNotificationsDisabled() throws ExecutionException, InterruptedException {
-
-		LaunchActivityResource resource = new LaunchActivityResource();
-		resource.setId(1L);
-		resource.setName("name");
-		resource.setProjectId(1L);
-
-		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
-
-		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
-
-		Project project = new Project();
-		project.setId(1L);
-		project.setProjectAttributes(getProjectAttributesWithDisabledNotifications());
-
-		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(launch);
-		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.of(project));
-		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
-		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(1)).indexLaunchLogs(eq(1L), eq(1L), any(AnalyzerConfig.class));
-
-		verify(getIntegrationHandler, times(0)).getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
-				IntegrationGroupEnum.NOTIFICATION
-		);
-
-	}
-
-	@Test
-	void shouldSendWhenNotificationsEnabled() throws ExecutionException, InterruptedException {
-
-		LaunchActivityResource resource = new LaunchActivityResource();
-		resource.setId(1L);
-		resource.setName("name");
-		resource.setProjectId(1L);
-
-		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
-
-		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
-
-		Project project = new Project();
-		project.setId(1L);
-		project.setProjectAttributes(getProjectAttributesWithEnabledNotifications());
-
-		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(launch);
-		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
-		when(getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
-				IntegrationGroupEnum.NOTIFICATION
-		)).thenReturn(Optional.ofNullable(emailIntegration));
-
-		when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(Optional.ofNullable(emailService));
-
-		when(analyzerServiceAsync.hasAnalyzers()).thenReturn(true);
-
-		when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
-
-		when(analyzeItemsCollector.collectItems(any(Long.class), any(Long.class), any(String.class))).thenReturn(Collections.emptyList());
-
-		when(analyzerServiceAsync.analyze(any(Launch.class), anyList(), any(AnalyzerConfig.class))).thenReturn(analyze);
-
-		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
-
-		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(1)).indexLaunchLogs(eq(1L), eq(1L), any(AnalyzerConfig.class));
-		verify(analyzerServiceAsync, times(1)).analyze(any(), any(), any());
-
-	}
-
-	@Test
-	void shouldSendWhenAutoAnalyzedDisabledEnabled() throws ExecutionException, InterruptedException {
+	void shouldSendWhenAutoAnalyzedDisabledEnabled() {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -196,94 +96,24 @@ class LaunchFinishedEventHandlerTest {
 		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-		launch.setUserId(1L);
 		launch.setName("name1");
+
+		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED,
+				"true"
+		).put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED, "false").build();
 
 		Project project = new Project();
 		project.setId(1L);
-		project.setProjectAttributes(getProjectAttributesWithEnabledNotificationsAndDisabledAutoAnalyzer());
-		project.setSenderCases(getSenderCases());
-
-		User user = new User();
-		user.setId(1L);
-		user.setLogin("user");
+		project.setProjectAttributes(LaunchFinishedTestUtils.getProjectAttributes(mapping));
+		project.setSenderCases(LaunchFinishedTestUtils.getSenderCases());
 
 		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(Optional.ofNullable(launch));
 		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
-		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-		when(getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
-				IntegrationGroupEnum.NOTIFICATION
-		)).thenReturn(Optional.ofNullable(emailIntegration));
 
-		when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(Optional.ofNullable(emailService));
-		when(httpServletRequest.getContextPath()).thenReturn("path");
-		when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("url"));
-		when(httpServletRequest.getHeaderNames()).thenReturn(Collections.enumeration(Lists.newArrayList("authorization")));
-		when(httpServletRequest.getHeaders(anyString())).thenReturn(Collections.emptyEnumeration());
-		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(2L));
 		launchFinishedEventHandler.onApplicationEvent(event);
-		verify(logIndexer, times(1)).indexLaunchLogs(eq(1L), eq(1L), any(AnalyzerConfig.class));
-		verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());
+		verify(autoAnalysisSubscriber, times(1)).handleEvent(event, project, launch);
+		verify(notificationSubscriber, times(1)).handleEvent(event, project, launch);
 
-	}
-
-	private Set<ProjectAttribute> getProjectAttributesWithDisabledNotifications() {
-
-		Attribute attribute = new Attribute();
-		attribute.setName(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute());
-		ProjectAttribute projectAttribute = new ProjectAttribute();
-		projectAttribute.setAttribute(attribute);
-		projectAttribute.setValue("false");
-
-		return Sets.newHashSet(projectAttribute);
-	}
-
-	private Set<ProjectAttribute> getProjectAttributesWithEnabledNotifications() {
-
-		Attribute attribute = new Attribute();
-		attribute.setName(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute());
-		ProjectAttribute projectAttribute = new ProjectAttribute();
-		projectAttribute.setAttribute(attribute);
-		projectAttribute.setValue("true");
-
-		Attribute autoAnalyzed = new Attribute();
-		autoAnalyzed.setName(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute());
-		ProjectAttribute autoAnalyzedAttribute = new ProjectAttribute();
-		autoAnalyzedAttribute.setAttribute(autoAnalyzed);
-		autoAnalyzedAttribute.setValue("true");
-
-		return Sets.newHashSet(projectAttribute, autoAnalyzedAttribute);
-	}
-
-	private Set<ProjectAttribute> getProjectAttributesWithEnabledNotificationsAndDisabledAutoAnalyzer() {
-
-		Attribute attribute = new Attribute();
-		attribute.setName(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute());
-		ProjectAttribute projectAttribute = new ProjectAttribute();
-		projectAttribute.setAttribute(attribute);
-		projectAttribute.setValue("true");
-
-		Attribute autoAnalyzed = new Attribute();
-		autoAnalyzed.setName(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute());
-		ProjectAttribute autoAnalyzedAttribute = new ProjectAttribute();
-		autoAnalyzedAttribute.setAttribute(autoAnalyzed);
-		autoAnalyzedAttribute.setValue("false");
-
-		return Sets.newHashSet(projectAttribute, autoAnalyzedAttribute);
-	}
-
-	private Set<SenderCase> getSenderCases() {
-		return Arrays.stream(SendCase.values())
-				.map(sc -> new SenderCase(recipientsSupplier.get(), launchNamesSupplier.get(), Collections.emptySet(), sc))
-				.collect(Collectors.toSet());
-	}
-
-	private Set<String> getRecipients() {
-		return Sets.newHashSet("first@mail.com", "second@mail.com");
-	}
-
-	private Set<String> getLaunchNames() {
-		return Sets.newHashSet("name1", "name2");
 	}
 
 }

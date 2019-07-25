@@ -61,7 +61,7 @@ import static org.springframework.http.HttpStatus.CREATED;
  * @author Pavel Bortnik
  */
 @RestController
-@RequestMapping("/{projectName}/log")
+@RequestMapping("/v1/{projectName}/log")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
 

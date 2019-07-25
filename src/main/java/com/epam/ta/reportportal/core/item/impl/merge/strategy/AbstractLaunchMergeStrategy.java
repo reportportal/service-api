@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,9 +109,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.addUser(userId)
 				.addEndTime(endTime)
 				.get();
-
+		launch.setNumber(launchRepository.getNextNumber(projectId, launch.getName()));
 		launchRepository.save(launch);
-		launchRepository.refresh(launch);
 		mergeAttributes(mergeLaunchesRQ.getAttributes(), launches, launch);
 		return launch;
 	}

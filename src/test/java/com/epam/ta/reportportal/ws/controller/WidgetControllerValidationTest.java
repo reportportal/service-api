@@ -43,6 +43,8 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 
 	private static final String WIDGET_PATH = "/widget";
 
+	private static final String FIELD_NAME_SIZE_MESSAGE = String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -87,7 +89,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	public void createWidgetShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName("    ");
+		widgetRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
@@ -106,7 +108,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	public void createWidgetShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
 		//GIVEN
 		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName("cc");
+		widgetRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
@@ -122,10 +124,10 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndEightCharacters() throws Exception {
+	public void createWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
 		//GIVEN
 		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName("ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+		widgetRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
@@ -181,7 +183,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	public void updateWidgetShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName("    ");
+		widgetRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
@@ -200,7 +202,7 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	public void updateWidgetShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
 		//GIVEN
 		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName("cc");
+		widgetRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
@@ -216,10 +218,10 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndEightCharacters() throws Exception {
+	public void updateWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
 		//GIVEN
 		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName("ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+		widgetRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)

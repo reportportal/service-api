@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.Date;
 import java.util.HashSet;
 
+import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -46,10 +47,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
 	private static final String LAUNCH_PATH = "/launch";
 	private static final String MERGE_PATH = "/merge";
 
-	private static final String INCORRECT_REQUEST_MESSAGE = "Incorrect Request. ";
-	private static final String FIELD_NAME_IS_NULL_MESSAGE = "[Field 'name' should not be null.] ";
-	private static final String FIELD_NAME_IS_BLANK_MESSAGE = "Field 'name' should not contain only white spaces and shouldn't be empty.";
-	private static final String FIELD_NAME_SIZE_MESSAGE = "Field 'name' should have size from '1' to '256'.";
+	private static final String FIELD_NAME_SIZE_MESSAGE = String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 1, 256);
 
 	private static final String LONG_NAME_VALUE = "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
 			+ "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
@@ -99,7 +97,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
 	public void createLaunchShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		StartLaunchRQ startLaunchRQ = prepareLaunch();
-		startLaunchRQ.setName("    ");
+		startLaunchRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + LAUNCH_PATH)
@@ -183,7 +181,7 @@ public class LaunchControllerValidationTest extends BaseMvcTest {
 	public void mergeLaunchShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		MergeLaunchesRQ mergeLaunchesRQ = prepareLaunchesMerge();
-		mergeLaunchesRQ.setName("    ");
+		mergeLaunchesRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + LAUNCH_PATH + MERGE_PATH)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
  * @author <a href="mailto:andrei_varabyeu@epam.com">Andrei Varabyeu</a>
  */
 @RestController
-@RequestMapping("/settings")
+@RequestMapping("/v1/settings")
 @PreAuthorize(ADMIN_ONLY)
 public class SettingsController {
 

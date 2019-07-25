@@ -21,8 +21,7 @@ import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
-import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
-import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRq;
+import com.epam.ta.reportportal.ws.model.item.ExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 
 import java.util.List;
@@ -57,25 +56,14 @@ public interface UpdateTestItemHandler {
 			ReportPortalUser user);
 
 	/**
-	 * Add external system issue link directly to the {@link com.epam.ta.reportportal.entity.item.TestItem}
+	 * Add or remove external system issue link directly to the {@link com.epam.ta.reportportal.entity.item.TestItem}
 	 *
+	 * @param request        {@link ExternalIssueRQ}
 	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param rq             {@link LinkExternalIssueRQ}
 	 * @param user           {@link ReportPortalUser}
 	 * @return {@link List} of the {@link OperationCompletionRS}
 	 */
-	List<OperationCompletionRS> linkExternalIssues(ReportPortalUser.ProjectDetails projectDetails, LinkExternalIssueRQ rq,
-			ReportPortalUser user);
-
-	/**
-	 * Remove external system issue link from the  {@link com.epam.ta.reportportal.entity.item.TestItem}
-	 *
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param rq             {@link UnlinkExternalIssueRq}
-	 * @param user           {@link ReportPortalUser}
-	 * @return {@link List} of the {@link OperationCompletionRS}
-	 */
-	List<OperationCompletionRS> unlinkExternalIssues(ReportPortalUser.ProjectDetails projectDetails, UnlinkExternalIssueRq rq,
+	List<OperationCompletionRS> processExternalIssues(ExternalIssueRQ request, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**

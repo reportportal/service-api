@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -102,14 +103,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	@Override
 	public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
 		try {
-			analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
+			analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
 			List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
 			Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
 			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, toAnalyze, rq));
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		} finally {
-			analyzerStatusCache.analyzeFinished(launch.getId());
+			analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
 		}
 	}
 

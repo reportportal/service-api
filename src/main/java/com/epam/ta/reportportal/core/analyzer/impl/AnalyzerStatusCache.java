@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,16 @@ package com.epam.ta.reportportal.core.analyzer.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Contains caches for analyzing and indexing status
@@ -30,6 +37,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AnalyzerStatusCache {
 
+	public static final String AUTO_ANALYZER_KEY = "autoAnalyzer";
+	public static final String PATTERN_ANALYZER_KEY = "patternAnalyzer";
+
 	private static final int CACHE_ITEM_LIVE = 10;
 	private static final int MAXIMUM_SIZE = 50000;
 
@@ -37,40 +47,57 @@ public class AnalyzerStatusCache {
 	 * Contains cache of analyze running for concrete launch
 	 * launchId - projectId
 	 */
-	private Cache<Long, Long> analyzeStatus;
-
-	/**
-	 * Contains cache of indexing running for concrete project
-	 * launchId - projectId
-	 */
-	private Cache<Long, Boolean> indexingStatus;
+	private Map<String, Cache<Long, Long>> analyzeStatus;
 
 	public AnalyzerStatusCache() {
-		analyzeStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
-		indexingStatus = CacheBuilder.newBuilder().maximumSize(MAXIMUM_SIZE).expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES).build();
+		Cache<Long, Long> autoAnalysisStatusCache = CacheBuilder.newBuilder()
+				.maximumSize(MAXIMUM_SIZE)
+				.expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES)
+				.build();
+		Cache<Long, Long> patternAnalysisCache = CacheBuilder.newBuilder()
+				.maximumSize(MAXIMUM_SIZE)
+				.expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES)
+				.build();
+		analyzeStatus = ImmutableMap.<String, Cache<Long, Long>>builder().put(AUTO_ANALYZER_KEY, autoAnalysisStatusCache)
+				.put(PATTERN_ANALYZER_KEY, patternAnalysisCache)
+				.build();
 	}
 
-	public void indexingStarted(Long projectId) {
-		indexingStatus.put(projectId, true);
+	public AnalyzerStatusCache(Map<String, Cache<Long, Long>> analyzeStatus) {
+		this.analyzeStatus = analyzeStatus;
 	}
 
-	public void indexingFinished(Long projectId) {
-		indexingStatus.invalidate(projectId);
+	public boolean analyzeStarted(String analyzerKey, Long launchId, Long projectId) {
+		Cache<Long, Long> analysisCache = analyzeStatus.get(analyzerKey);
+		if (analysisCache == null) {
+			return false;
+		}
+		analysisCache.put(launchId, projectId);
+		return true;
 	}
 
-	public void analyzeStarted(Long launchId, Long projectId) {
-		analyzeStatus.put(launchId, projectId);
+	public boolean analyzeFinished(String analyzerKey, Long launchId) {
+		Cache<Long, Long> analysisCache = analyzeStatus.get(analyzerKey);
+		if (analysisCache == null) {
+			return false;
+		}
+		analysisCache.invalidate(launchId);
+		return true;
 	}
 
-	public void analyzeFinished(Long launchId) {
-		analyzeStatus.invalidate(launchId);
+	public Optional<Cache<Long, Long>> getAnalyzeStatus(String analyzerKey) {
+		return ofNullable(analyzeStatus.get(analyzerKey));
 	}
 
-	public Cache<Long, Long> getAnalyzeStatus() {
-		return analyzeStatus;
+	public Set<String> getStartedAnalyzers(Long launchId) {
+		return analyzeStatus.entrySet()
+				.stream()
+				.filter(entry -> entry.getValue().asMap().containsKey(launchId))
+				.map(Map.Entry::getKey)
+				.collect(Collectors.toSet());
 	}
 
-	public Cache<Long, Boolean> getIndexingStatus() {
-		return indexingStatus;
+	public Set<String> getAnalyzers() {
+		return analyzeStatus.keySet();
 	}
 }

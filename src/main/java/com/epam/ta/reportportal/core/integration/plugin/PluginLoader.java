@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 
 package com.epam.ta.reportportal.core.integration.plugin;
 
-import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
-import org.pf4j.PluginState;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.pf4j.PluginException;
 import org.pf4j.PluginWrapper;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Optional;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -35,34 +37,42 @@ public interface PluginLoader {
 	 * @param pluginPath Plugin's path
 	 * @return {@link PluginInfo} with {@link PluginInfo#id} and {@link PluginInfo#version}
 	 */
-	PluginInfo extractPluginInfo(Path pluginPath);
+	PluginInfo extractPluginInfo(Path pluginPath) throws PluginException;
 
 	/**
-	 * Load and start up the plugin
+	 * Creates the {@link IntegrationType} object based on the params of the plugin
 	 *
-	 * @param plugin {@link PluginWrapper} with mandatory data for plugin loading: {@link PluginWrapper#pluginPath}
-	 * @return {@link PluginState}
+	 * @param pluginInfo {@link PluginInfo} with {@link PluginInfo#id} and {@link PluginInfo#version}
+	 * @return {@link IntegrationType}
 	 */
-	PluginState loadAndStartUpPlugin(PluginWrapper plugin);
+	IntegrationType retrieveIntegrationType(PluginInfo pluginInfo);
 
 	/**
 	 * Validate the plugin with {@link com.epam.reportportal.extension.common.ExtensionPoint}
 	 * on the presence of the mandatory extension class/classes
 	 *
-	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @param plugin {@link PluginWrapper}
 	 * @return true if the plugin has mandatory extension class/classes, else false
 	 */
-	boolean validatePluginExtensionClasses(String pluginId);
+	boolean validatePluginExtensionClasses(PluginWrapper plugin);
 
 	/**
-	 * Unload and get plugin with the same 'id' as a new plugin 'id', if they both are of the same type.
-	 * This info will be needed to reload previous plugin if something goes wrong with the new one.
+	 * Save plugin in the file system
 	 *
-	 * @param newPluginId       Id of the new plugin
-	 * @param newPluginFileName New plugin file name
-	 * @return {@link Optional} wrapper with the previous unloaded plugin
+	 * @param fileName   New plugin file name
+	 * @param fileStream {@link InputStream} of the new plugin file
+	 * @return File id of the saved file in the file system
+	 * @throws ReportPortalException
 	 */
-	Optional<PluginWrapper> retrievePreviousPlugin(String newPluginId, String newPluginFileName);
+	String savePlugin(String fileName, InputStream fileStream) throws ReportPortalException;
+
+	/**
+	 * Upload plugin file to the directory.
+	 *
+	 * @param pluginPath Path to save plugin file
+	 * @param fileStream {@link InputStream} of the plugin file
+	 */
+	void savePlugin(Path pluginPath, InputStream fileStream) throws IOException;
 
 	/**
 	 * Remove old plugin file, if it wasn't replaced by the new one during the plugin uploading
@@ -70,16 +80,7 @@ public interface PluginLoader {
 	 * @param previousPlugin    {@link PluginWrapper} with info about the previous plugin
 	 * @param newPluginFileName New plugin file name
 	 */
-	void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName);
-
-	/**
-	 * Resolve file type and upload it to the temporary plugins directory.
-	 * If successful returns file extension
-	 *
-	 * @param pluginFile Plugin file to upload
-	 * @return {@link PluginFileExtension#extension}
-	 */
-	String resolveFileExtensionAndUploadTempPlugin(MultipartFile pluginFile, Path pluginsTempPath);
+	void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName) throws IOException;
 
 	/**
 	 * Remove the plugin file from the temporary directory and file name from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
@@ -87,5 +88,5 @@ public interface PluginLoader {
 	 * @param pluginFileDirectory Path to the temporary directory with the plugin file
 	 * @param pluginFileName      Name of the plugin file
 	 */
-	void deleteTempPlugin(String pluginFileDirectory, String pluginFileName);
+	void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) throws IOException;
 }

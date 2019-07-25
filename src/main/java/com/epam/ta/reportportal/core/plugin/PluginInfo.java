@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin;
+package com.epam.ta.reportportal.core.plugin;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

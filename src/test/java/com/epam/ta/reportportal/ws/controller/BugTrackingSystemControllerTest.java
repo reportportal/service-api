@@ -58,7 +58,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 
 		IntegrationRQ request = getUpdateRQ();
 
-		mockMvc.perform(put("/integration" + "/9").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/integration" + "/9").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}
@@ -72,7 +72,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 
 		IntegrationRQ request = getUpdateRQ();
 
-		mockMvc.perform(put("/integration" + SUPERADMIN_PROJECT_BASE_URL + "/10").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(put("/v1/integration/superadmin_personal/10").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
 	}
@@ -96,7 +96,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getTicketFields(any(String.class), any(Integration.class))).thenReturn(Lists.newArrayList(new PostFormField()));
 
-		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/fields-set").params(CollectionUtils.toMultiValueMap(params))
+		mockMvc.perform(get("/v1/bts/superadmin_personal/10/fields-set").params(CollectionUtils.toMultiValueMap(params))
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
@@ -106,7 +106,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getIssueTypes(any(Integration.class))).thenReturn(Lists.newArrayList("type1", "type2"));
 
-		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/issue_types").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/bts/superadmin_personal/10/issue_types").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -118,7 +118,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.submitTicket(any(PostTicketRQ.class), any(Integration.class))).thenReturn(new Ticket());
 
-		mockMvc.perform(post("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/10/ticket").with(token(oAuthHelper.getSuperadminToken()))
+		mockMvc.perform(post("/v1/bts/superadmin_personal/10/ticket").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
 	}
@@ -135,7 +135,7 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		when(pluginBox.getInstance("jira", BtsExtension.class)).thenReturn(java.util.Optional.ofNullable(extension));
 		when(extension.getTicket(any(String.class), any(Integration.class))).thenReturn(java.util.Optional.of(new Ticket()));
 
-		mockMvc.perform(get("/bts" + SUPERADMIN_PROJECT_BASE_URL + "/ticket" + ticketId).params(CollectionUtils.toMultiValueMap(params))
+		mockMvc.perform(get("/v1/bts/superadmin_personal/ticket" + ticketId).params(CollectionUtils.toMultiValueMap(params))
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 

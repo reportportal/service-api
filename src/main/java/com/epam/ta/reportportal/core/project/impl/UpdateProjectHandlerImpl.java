@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.NotificationsConfigUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
@@ -56,6 +57,7 @@ import com.epam.ta.reportportal.ws.model.project.UpdateProjectRQ;
 import com.epam.ta.reportportal.ws.model.project.config.ProjectConfigurationUpdate;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
 import com.epam.ta.reportportal.ws.model.project.email.SenderCaseDTO;
+import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -74,6 +76,7 @@ import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.enums.SendCase.findByName;
 import static com.epam.ta.reportportal.ws.converter.converters.ProjectActivityConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -103,6 +106,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final AnalyzerStatusCache analyzerStatusCache;
 
+	private final IndexerStatusCache indexerStatusCache;
+
 	private final AnalyzerServiceClient analyzerServiceClient;
 
 	private final LogIndexer logIndexer;
@@ -115,7 +120,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
 			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
-			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
+			IndexerStatusCache indexerStatusCache, AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
 			ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
@@ -125,6 +130,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		this.mailServiceFactory = mailServiceFactory;
 		this.launchRepository = launchRepository;
 		this.analyzerStatusCache = analyzerStatusCache;
+		this.indexerStatusCache = indexerStatusCache;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.logIndexer = logIndexer;
 		this.aclHandler = aclHandler;
@@ -242,14 +248,16 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
-		expect(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+		expect(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false), equalTo(false)).verify(
+				ErrorType.FORBIDDEN_OPERATION,
 				"Index can not be removed until index generation proceeds."
 		);
 
-		expect(
-				analyzerStatusCache.getAnalyzeStatus().asMap().containsValue(project.getId()),
-				equalTo(false)
-		).verify(ErrorType.FORBIDDEN_OPERATION, "Index can not be removed until auto-analysis proceeds.");
+		Cache<Long, Long> analyzeStatus = analyzerStatusCache.getAnalyzeStatus(AUTO_ANALYZER_KEY)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, AUTO_ANALYZER_KEY));
+		expect(analyzeStatus.asMap().containsValue(project.getId()), equalTo(false)).verify(ErrorType.FORBIDDEN_OPERATION,
+				"Index can not be removed until auto-analysis proceeds."
+		);
 
 		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
 
@@ -314,7 +322,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void assignUser(String name, ProjectRole projectRole, List<String> assignedUsernames, Project project) {
 
-		User modifyingUser = userRepository.findByLogin(normalizeId(name)).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
+		User modifyingUser = userRepository.findByLogin(normalizeId(name))
+				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, name));
 		expect(name, not(in(assignedUsernames))).verify(UNABLE_ASSIGN_UNASSIGN_USER_TO_PROJECT,
 				formattedSupplier("User '{}' cannot be assigned to project twice.", name)
 		);

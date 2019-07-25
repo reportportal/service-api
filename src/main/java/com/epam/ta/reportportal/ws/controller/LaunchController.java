@@ -70,7 +70,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/{projectName}/launch")
+@RequestMapping("/v1/{projectName}/launch")
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;

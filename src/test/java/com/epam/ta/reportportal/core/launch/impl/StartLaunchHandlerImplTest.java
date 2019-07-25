@@ -68,12 +68,12 @@ class StartLaunchHandlerImplTest {
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setName("test");
 
-		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
+		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
+				extractProjectDetails(rpUser, "test_project"),
 				startLaunchRQ
 		);
 
 		verify(launchRepository, times(1)).save(any(Launch.class));
-		verify(launchRepository, times(1)).refresh(any(Launch.class));
 		assertNotNull(startLaunchRS);
 	}
 

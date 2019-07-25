@@ -109,9 +109,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.addUser(userId)
 				.addEndTime(endTime)
 				.get();
-
+		launch.setNumber(launchRepository.getNextNumber(projectId, launch.getName()));
 		launchRepository.save(launch);
-		launchRepository.refresh(launch);
 		mergeAttributes(mergeLaunchesRQ.getAttributes(), launches, launch);
 		return launch;
 	}

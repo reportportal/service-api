@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
@@ -87,11 +86,7 @@ class DeleteTestItemHandlerImplTest {
 	void deleteInProgressItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.IN_PROGRESS,
-				StatusEnum.IN_PROGRESS,
-				1L,
-				"test"
-		)));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.IN_PROGRESS, StatusEnum.IN_PROGRESS, 1L, 1l)));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -105,7 +100,7 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemWithInProgressLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, 1L)));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -120,7 +115,12 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(
+				StatusEnum.PASSED,
+				StatusEnum.FAILED,
+				2L,
+				rpUser.getUserId()
+		)));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -132,7 +132,7 @@ class DeleteTestItemHandlerImplTest {
 	void deleteNotOwnTestItem() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, "owner")));
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, 5L)));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -144,7 +144,7 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemWithParent() {
 		ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
 
-		TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, "owner");
+		TestItem item = getTestItem(StatusEnum.PASSED, StatusEnum.PASSED, 1L, rpUser.getUserId());
 		item.setItemId(123123L);
 		TestItem parent = new TestItem();
 		long parentId = 35L;
@@ -165,7 +165,7 @@ class DeleteTestItemHandlerImplTest {
 
 	}
 
-	private TestItem getTestItem(StatusEnum itemStatus, StatusEnum launchStatus, Long projectId, String owner) {
+	private TestItem getTestItem(StatusEnum itemStatus, StatusEnum launchStatus, Long projectId, Long owner) {
 		TestItem item = new TestItem();
 		item.setItemId(1L);
 		TestItemResults results = new TestItemResults();
@@ -174,9 +174,7 @@ class DeleteTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setStatus(launchStatus);
 		launch.setProjectId(projectId);
-		User user = new User();
-		user.setLogin(owner);
-		launch.setUser(user);
+		launch.setUserId(owner);
 		item.setLaunch(launch);
 		return item;
 	}

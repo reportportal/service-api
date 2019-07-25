@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
@@ -43,6 +44,9 @@ public class LaunchConverter {
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;
 
+	@Autowired
+	private UserRepository userRepository;
+
 	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(launch.getId());
@@ -67,10 +71,10 @@ public class LaunchConverter {
 		resource.setAttributes(getAttributes(db));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
 		resource.setIsProcessing(analyzerStatusCache.getAnalyzeStatus().getIfPresent(resource.getLaunchId()) != null);
-		ofNullable(db.getUser()).ifPresent(u -> resource.setOwner(u.getLogin()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
+		userRepository.findById(db.getUserId()).ifPresent(u -> resource.setOwner(u.getLogin()));
 		return resource;
 	};
 

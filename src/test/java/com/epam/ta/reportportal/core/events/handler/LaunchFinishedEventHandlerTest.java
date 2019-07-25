@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.email.SenderCase;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
@@ -195,6 +196,7 @@ class LaunchFinishedEventHandlerTest {
 		LaunchFinishedEvent event = new LaunchFinishedEvent(resource, 1L, "user");
 
 		Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
+		launch.setUserId(1L);
 		launch.setName("name1");
 
 		Project project = new Project();
@@ -202,8 +204,13 @@ class LaunchFinishedEventHandlerTest {
 		project.setProjectAttributes(getProjectAttributesWithEnabledNotificationsAndDisabledAutoAnalyzer());
 		project.setSenderCases(getSenderCases());
 
+		User user = new User();
+		user.setId(1L);
+		user.setLogin("user");
+
 		when(launchRepository.findById(event.getLaunchActivityResource().getId())).thenReturn(Optional.ofNullable(launch));
 		when(projectRepository.findById(resource.getProjectId())).thenReturn(Optional.ofNullable(project));
+		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 		when(getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)).thenReturn(Optional.ofNullable(emailIntegration));

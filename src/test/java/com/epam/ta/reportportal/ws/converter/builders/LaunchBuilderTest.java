@@ -47,7 +47,7 @@ class LaunchBuilderTest {
 		assertEquals(now, launch.getEndTime());
 		assertEquals(projectId, launch.getProjectId());
 		assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
-		assertEquals(userId, launch.getUser().getId());
+		assertEquals(userId, launch.getUserId());
 		assertEquals(passed, launch.getStatus().name());
 		assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
 	}

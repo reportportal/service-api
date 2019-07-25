@@ -41,7 +41,7 @@ springfox:
   documentation:
     swagger:
       v2:
-        path: /api-docs
+        path: /v1/api-docs
 
 
 #### Custom ReportPortal Properties ######

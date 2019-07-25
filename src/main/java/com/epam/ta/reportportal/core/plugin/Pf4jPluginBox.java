@@ -16,9 +16,11 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -52,29 +54,20 @@ public interface Pf4jPluginBox extends PluginBox {
 	boolean unloadPlugin(String pluginId);
 
 	/**
+	 * Delete plugin by id
+	 *
+	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @return 'true' if a plugin was successfully deleted, else 'false'
+	 */
+	boolean deletePlugin(String pluginId);
+
+	/**
 	 * Get plugin from the plugin manager by id
 	 *
 	 * @param id {@link PluginWrapper#getPluginId()}
 	 * @return {@link PluginWrapper} wrapped in the {@link Optional}
 	 */
 	Optional<PluginWrapper> getPluginById(String id);
-
-	/**
-	 * Add plugin file name to the uploading plugins holder
-	 *
-	 * @param fileName Name of the plugin file to put to the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
-	 * @param path     Full path to the plugin file
-	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
-	 */
-	void addUploadingPlugin(String fileName, Path path);
-
-	/**
-	 * Remove plugin file name from the uploading plugins holder
-	 *
-	 * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
-	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
-	 */
-	void removeUploadingPlugin(String fileName);
 
 	/**
 	 * Check if uploading plugins holder contains plugin file name
@@ -85,5 +78,7 @@ public interface Pf4jPluginBox extends PluginBox {
 	 * else 'false'
 	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
 	 */
-	boolean isPluginStillBeingUploaded(String fileName);
+	boolean isInUploadingState(String fileName);
+
+	IntegrationType uploadPlugin(String newPluginFileName, InputStream fileStream);
 }

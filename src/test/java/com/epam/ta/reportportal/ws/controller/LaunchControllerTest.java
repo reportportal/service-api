@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
@@ -224,7 +223,6 @@ class LaunchControllerTest extends BaseMvcTest {
 		launchRepository.findAllById(ids).forEach(it -> assertSame(it.getMode(), LaunchModeEnum.DEBUG));
 	}
 
-	@Disabled
 	@Test
 	void getLaunches() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
@@ -260,7 +258,6 @@ class LaunchControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content", hasSize(4)));
 	}
 
-	@Disabled
 	@Test
 	void export() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/1/report").with(token(oAuthHelper.getDefaultToken())))

@@ -30,8 +30,9 @@ public interface DeleteUserHandler {
 	/**
 	 * Delete User
 	 *
-	 * @param userId
-	 * @return
+	 * @param userId      User to be deleted
+	 * @param currentUser User performing the edit operation
+	 * @return Operation result
 	 */
 	OperationCompletionRS deleteUser(Long userId, ReportPortalUser currentUser);
 
@@ -39,7 +40,8 @@ public interface DeleteUserHandler {
 	 * Delete Users
 	 *
 	 * @param deleteBulkRQ {@link DeleteBulkRQ}
-	 * @return
+	 * @param currentUser  User performing the edit operation
+	 * @return Operation result
 	 */
 	DeleteBulkRS deleteUsers(DeleteBulkRQ deleteBulkRQ, ReportPortalUser currentUser);
 }

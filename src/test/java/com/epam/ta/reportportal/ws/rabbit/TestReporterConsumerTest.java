@@ -76,7 +76,7 @@ class TestReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onItemStart(username, "test_project", parentId, rq, null);
+		testReporterConsumer.onStartItem(rq, username, "test_project", parentId,null);
 
 		verify(startTestItemHandler, times(1)).startChildItem(user, extractProjectDetails(user, "test_project"), rq, parentId);
 	}
@@ -93,7 +93,7 @@ class TestReporterConsumerTest {
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onItemStart(username, "test_project", null, rq, null);
+		testReporterConsumer.onStartItem(rq, username, "test_project", null, null);
 
 		verify(startTestItemHandler, times(1)).startRootItem(user, extractProjectDetails(user, "test_project"), rq);
 	}
@@ -108,34 +108,34 @@ class TestReporterConsumerTest {
 		String username = "user";
 		String parentId = "2";
 
-		testReporterConsumer.onItemStart(username, "test_project", parentId, rq, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		testReporterConsumer.onStartItem(rq, username, "test_project", parentId, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_ITEM_START_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
 	}
 
 	@Test
 	void onFinishItem() {
-		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
-		finishTestItemRQ.setStatus("PASSED");
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setStatus("PASSED");
 		String username = "user";
 		String itemId = "1";
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
 		when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
 
-		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, null);
+		testReporterConsumer.onFinishItem(rq, username, "test_project", itemId, null);
 
-		verify(finishTestItemHandler, times(1)).finishTestItem(user, extractProjectDetails(user, "test_project"), itemId, finishTestItemRQ);
+		verify(finishTestItemHandler, times(1)).finishTestItem(user, extractProjectDetails(user, "test_project"), itemId, rq);
 	}
 
 	@Test
 	void onItemStopSpooledToDroppedDLQ() {
-		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
-		finishTestItemRQ.setStatus("PASSED");
+		FinishTestItemRQ rg = new FinishTestItemRQ();
+		rg.setStatus("PASSED");
 		String username = "user";
 		String itemId = "1";
 
-		testReporterConsumer.onFinishItem(username, "test_project", itemId, finishTestItemRQ, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
+		testReporterConsumer.onFinishItem(rg, username, "test_project", itemId, Collections.singletonList(Maps.newHashMap("count", new Long(DEAD_LETTER_MAX_RETRY + 1))));
 
 		verify(amqpTemplate).convertAndSend(eq(QUEUE_ITEM_FINISH_DLQ_DROPPED), any(Object.class), any(MessagePostProcessor.class));
 	}

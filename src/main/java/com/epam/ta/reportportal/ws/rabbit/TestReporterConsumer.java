@@ -72,9 +72,10 @@ public class TestReporterConsumer {
 	}
 
 	@RabbitListener(queues = "#{ @itemStartQueue.name }")
-	public void onItemStart(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
-								@Header(name = MessageHeaders.PARENT_ID, required = false) String parentId, @Payload StartTestItemRQ rq,
-								@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
+	public void onStartItem(@Payload StartTestItemRQ rq, @Header(MessageHeaders.USERNAME) String username,
+							@Header(MessageHeaders.PROJECT_NAME) String projectName,
+							@Header(name = MessageHeaders.PARENT_ID, required = false) String parentId,
+							@Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");
 			if (count > DEAD_LETTER_MAX_RETRY) {
@@ -116,8 +117,9 @@ public class TestReporterConsumer {
 	}
 
 	@RabbitListener(queues = "#{ @itemFinishQueue.name }")
-	public void onFinishItem(@Header(MessageHeaders.USERNAME) String username, @Header(MessageHeaders.PROJECT_NAME) String projectName,
-							 @Header(MessageHeaders.ITEM_ID) String itemId, @Payload FinishTestItemRQ rq,
+	public void onFinishItem(@Payload FinishTestItemRQ rq, @Header(MessageHeaders.USERNAME) String username,
+							 @Header(MessageHeaders.PROJECT_NAME) String projectName,
+							 @Header(MessageHeaders.ITEM_ID) String itemId,
 							 @Header(required = false, name = MessageHeaders.XD_HEADER) List<Map<String, ?>> xdHeader) {
 		if (xdHeader != null) {
 			long count = (Long) xdHeader.get(0).get("count");

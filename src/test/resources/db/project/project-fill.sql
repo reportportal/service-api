@@ -18,7 +18,7 @@ VALUES (1, '1 day', 3),
 
 insert into users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired, full_name, metadata)
 values (3, 'test_user', '179AD45C6CE2CB97CF1029E212046E81', 'test@domain.com', null, null, 'USER', 'INTERNAL', false, 'test full name',
-        '{"metadata": {"last_login": "now"}}');
+        '{"metadata": {"lastLogin": "now"}}');
 
 insert into project_user(user_id, project_id, project_role)
 values (3, 3, 'MEMBER');

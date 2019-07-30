@@ -39,7 +39,7 @@ import static java.util.Optional.ofNullable;
  */
 public class UserBuilder implements Supplier<User> {
 
-	public static final String USER_LAST_LOGIN = "last_login";
+	public static final String USER_LAST_LOGIN = "lastLogin";
 
 	private static final HashFunction HASH_FUNCTION = Hashing.md5();
 

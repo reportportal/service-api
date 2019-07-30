@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
@@ -76,7 +77,9 @@ public class LaunchBuilder implements Supplier<Launch> {
 	}
 
 	public LaunchBuilder addUser(Long userId) {
-		launch.setUserId(userId);
+		User user = new User();
+		user.setId(userId);
+		launch.setUser(user);
 		return this;
 	}
 

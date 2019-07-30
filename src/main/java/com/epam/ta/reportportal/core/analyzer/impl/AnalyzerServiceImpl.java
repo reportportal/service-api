@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -102,14 +103,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	@Override
 	public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
 		try {
-			analyzerStatusCache.analyzeStarted(launch.getId(), launch.getProjectId());
+			analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
 			List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
 			Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
 			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, toAnalyze, rq));
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		} finally {
-			analyzerStatusCache.analyzeFinished(launch.getId());
+			analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
 		}
 	}
 
@@ -184,16 +185,18 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 			toUpdate.ifPresent(testItem -> {
 				LOGGER.info("Analysis has found a match: {}", analyzed);
 
-				TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
-				RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
-				TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+				if (!testItem.getItemResults().getIssue().getIssueType().getLocator().equals(analyzed.getLocator())) {
+					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+					RelevantItemInfo relevantItemInfo = updateTestItemIssue(projectId, analyzed, testItem);
+					TestItemActivityResource after = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
 
-				testItemRepository.save(testItem);
-				messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
-				ofNullable(after.getTickets()).ifPresent(it -> messageBus.publishActivity(new LinkTicketEvent(before,
-						after,
-						analyzerInstance
-				)));
+					testItemRepository.save(testItem);
+					messageBus.publishActivity(new ItemIssueTypeDefinedEvent(before, after, analyzerInstance, relevantItemInfo));
+					ofNullable(after.getTickets()).ifPresent(it -> messageBus.publishActivity(new LinkTicketEvent(before,
+							after,
+							analyzerInstance
+					)));
+				}
 			});
 			return toUpdate;
 		}).filter(Optional::isPresent).map(Optional::get).collect(toList());

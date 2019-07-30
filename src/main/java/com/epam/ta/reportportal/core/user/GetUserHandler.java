@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public interface GetUserHandler {
 	 *
 	 * @param username    Username
 	 * @param currentUser Logged-in username
-	 * @return
+	 * @return {@link UserResource}
 	 */
 	UserResource getUser(String username, ReportPortalUser currentUser);
 
@@ -47,24 +47,24 @@ public interface GetUserHandler {
 	 * Get logged-in user info
 	 *
 	 * @param currentUser Logged-in username
-	 * @return
+	 * @return {@link UserResource}
 	 */
 	UserResource getUser(ReportPortalUser currentUser);
 
 	/**
 	 * Get information about user registration bid
 	 *
-	 * @param uuid
-	 * @return
+	 * @param uuid UUID
+	 * @return {@link UserBidRS}
 	 */
 	UserBidRS getBidInformation(String uuid);
 
 	/**
 	 * Validate existence of username or email
 	 *
-	 * @param username
-	 * @param email
-	 * @return
+	 * @param username User name
+	 * @param email    email
+	 * @return {@link YesNoRS}
 	 */
 	YesNoRS validateInfo(String username, String email);
 

@@ -46,7 +46,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @RestController
-@RequestMapping(value = "/integration")
+@RequestMapping(value = "/v1/integration")
 public class IntegrationController {
 
 	private final DeleteIntegrationHandler deleteIntegrationHandler;
@@ -125,10 +125,19 @@ public class IntegrationController {
 	@GetMapping(value = "{projectName}/{integrationId}/connection/test")
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Create global Report Portal integration instance")
+	@ApiOperation("Test connection to the integration through the project config")
 	public boolean testIntegrationConnection(@PathVariable Long integrationId, @PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getIntegrationHandler.testConnection(integrationId, normalizeId(projectName));
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping(value = "/{integrationId}/connection/test")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ADMIN_ONLY)
+	@ApiOperation("Test connection to the global integration")
+	public boolean testIntegrationConnection(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getIntegrationHandler.testConnection(integrationId);
 	}
 
 	@Transactional(readOnly = true)

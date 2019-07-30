@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.pattern.impl;
 
+import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
 import com.epam.ta.reportportal.core.pattern.PatternAnalyzer;
@@ -29,6 +30,8 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
@@ -43,6 +46,8 @@ import java.util.Map;
 @Service
 public class PatternAnalyzerImpl implements PatternAnalyzer {
 
+	public static final Logger LOGGER = LoggerFactory.getLogger(PatternAnalyzerImpl.class);
+
 	private final IssueGroupRepository issueGroupRepository;
 
 	private final PatternTemplateRepository patternTemplateRepository;
@@ -51,42 +56,53 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 
 	private final TaskExecutor patternAnalysisTaskExecutor;
 
+	private final AnalyzerStatusCache analyzerStatusCache;
+
 	private final MessageBus messageBus;
 
 	@Autowired
 	public PatternAnalyzerImpl(IssueGroupRepository issueGroupRepository, PatternTemplateRepository patternTemplateRepository,
 			@Qualifier("patternAnalysisSelectorMapping") Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
-			TaskExecutor patternAnalysisTaskExecutor, MessageBus messageBus) {
+			TaskExecutor patternAnalysisTaskExecutor, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus) {
 		this.issueGroupRepository = issueGroupRepository;
 		this.patternTemplateRepository = patternTemplateRepository;
 		this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
 		this.patternAnalysisTaskExecutor = patternAnalysisTaskExecutor;
+		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
 	}
 
 	@Override
 	public void analyzeTestItems(Launch launch) {
 
-		IssueGroup issueGroup = issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
+		try {
+			analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+			IssueGroup issueGroup = issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
 
-		patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
-				.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> {
-					List<PatternTemplateTestItemPojo> patternTemplateTestItems = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType())
-							.selectItemsByPattern(launch.getId(), issueGroup, patternTemplate);
-					patternTemplateRepository.saveInBatch(patternTemplateTestItems);
+			patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
+					.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> {
+						List<PatternTemplateTestItemPojo> patternTemplateTestItems = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType())
+								.selectItemsByPattern(launch.getId(), issueGroup, patternTemplate);
+						patternTemplateRepository.saveInBatch(patternTemplateTestItems);
 
-					PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
-							patternTemplate);
-					patternTemplateTestItems.forEach(patternItem -> {
-						PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(launch.getId(),
-								patternItem.getTestItemId(),
-								patternTemplateActivityResource
-						);
+						PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
+								patternTemplate);
+						patternTemplateTestItems.forEach(patternItem -> {
+							PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(patternItem.getPatternTemplateId(),
+									patternItem.getTestItemId(),
+									patternTemplateActivityResource
+							);
 
-						messageBus.publishActivity(patternMatchedEvent);
-					});
+							messageBus.publishActivity(patternMatchedEvent);
+						});
 
-				}));
+					}));
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		} finally {
+			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId());
+		}
+
 	}
 
 }

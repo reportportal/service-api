@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,12 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DashboardControllerValidationTest extends BaseMvcTest {
 
 	private static final String DASHBOARD_PATH = "/dashboard";
-	private static final String ID_PATH = "/555";
 
-	private static final String INCORRECT_REQUEST_MESSAGE = "Incorrect Request. ";
-	private static final String FIELD_NAME_IS_NULL_MESSAGE = "[Field 'name' should not be null.] ";
-	private static final String FIELD_NAME_IS_BLANK_MESSAGE = "Field 'name' should not contain only white spaces and shouldn't be empty.";
-	private static final String FIELD_NAME_SIZE_MESSAGE = "Field 'name' should have size from '3' to '128'.";
+	private static final String FIELD_NAME_SIZE_MESSAGE = String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -89,7 +86,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	public void createDashboardShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("    ");
+		createDashboardRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
@@ -108,7 +105,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	public void createDashboardShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
 		//GIVEN
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("cc");
+		createDashboardRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
@@ -124,10 +121,10 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createDashboardShouldReturnErrorWhenNameIsGreaterThanOneHundredAndEightCharacters() throws Exception {
+	public void createDashboardShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
 		//GIVEN
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+		createDashboardRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH)
@@ -183,7 +180,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	public void updateDashboardShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("    ");
+		createDashboardRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
@@ -202,7 +199,7 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	public void updateDashboardShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
 		//GIVEN
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("cc");
+		createDashboardRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)
@@ -218,10 +215,10 @@ class DashboardControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateDashboardShouldReturnErrorWhenNameIsGreaterThanOneHundredAndEightCharacters() throws Exception {
+	public void updateDashboardShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
 		//GIVEN
 		CreateDashboardRQ createDashboardRQ = new CreateDashboardRQ();
-		createDashboardRQ.setName("ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt");
+		createDashboardRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
 		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + DASHBOARD_PATH + ID_PATH)

@@ -44,6 +44,8 @@ public interface GetIntegrationHandler {
 
 	Integration getEnabledBtsIntegration(ReportPortalUser.ProjectDetails projectDetails, Long integrationId);
 
+	Integration getEnabledBtsIntegration(Long integrationId);
+
 	List<IntegrationResource> getGlobalIntegrations();
 
 	List<IntegrationResource> getGlobalIntegrations(String pluginName);
@@ -74,4 +76,12 @@ public interface GetIntegrationHandler {
 	 * @return True if a connection is established
 	 */
 	boolean testConnection(Long integrationId, String projectName);
+
+	/**
+	 * Test integration connection. Connection attempt to the global integration
+	 *
+	 * @param integrationId Integration id
+	 * @return True if a connection is established
+	 */
+	boolean testConnection(Long integrationId);
 }

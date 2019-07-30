@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.imprt.ImportLaunchHandler;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.launch.*;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
@@ -53,6 +52,7 @@ import java.util.Map;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -70,7 +70,7 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Andrei_Ramanchuk
  */
 @RestController
-@RequestMapping("/{projectName}/launch")
+@RequestMapping("/v1/{projectName}/launch")
 public class LaunchController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
@@ -123,7 +123,7 @@ public class LaunchController {
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,
-				LaunchLinkGenerator.LinkParams.of(request.getScheme(), request.getHeader("host"), projectName)
+				composeBaseUrl(request.getScheme(), request.getHeader("host"))
 		);
 	}
 
@@ -341,7 +341,12 @@ public class LaunchController {
 	@ResponseStatus(OK)
 	@ApiOperation(value = "Import junit xml report", notes = "Only following formats are supported: zip.")
 	public OperationCompletionRS importLaunch(@PathVariable String projectName, @RequestParam("file") MultipartFile file,
-			@AuthenticationPrincipal ReportPortalUser user) {
-		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)), user, "XUNIT", file);
+			@AuthenticationPrincipal ReportPortalUser user, HttpServletRequest request) {
+		return importLaunchHandler.importLaunch(extractProjectDetails(user, normalizeId(projectName)),
+				user,
+				"XUNIT",
+				file,
+				composeBaseUrl(request.getScheme(), request.getHeader("host"))
+		);
 	}
 }

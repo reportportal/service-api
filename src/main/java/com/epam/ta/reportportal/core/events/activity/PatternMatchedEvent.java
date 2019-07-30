@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
@@ -8,7 +24,7 @@ import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResourc
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.LAUNCH_ID;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.PATTERN_ID;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PATTERN;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.PATTERN_MATCHED;
 
@@ -17,7 +33,7 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.PATTERN_MA
  */
 public class PatternMatchedEvent implements ActivityEvent {
 
-	private Long launchId;
+	private Long patternId;
 
 	private Long itemId;
 
@@ -26,18 +42,18 @@ public class PatternMatchedEvent implements ActivityEvent {
 	public PatternMatchedEvent() {
 	}
 
-	public PatternMatchedEvent(Long launchId, Long itemId, PatternTemplateActivityResource patternTemplateActivityResource) {
-		this.launchId = launchId;
+	public PatternMatchedEvent(Long patternId, Long itemId, PatternTemplateActivityResource patternTemplateActivityResource) {
+		this.patternId = patternId;
 		this.itemId = itemId;
 		this.patternTemplateActivityResource = patternTemplateActivityResource;
 	}
 
-	public Long getLaunchId() {
-		return launchId;
+	public Long getPatternId() {
+		return patternId;
 	}
 
-	public void setLaunchId(Long launchId) {
-		this.launchId = launchId;
+	public void setPatternId(Long patternId) {
+		this.patternId = patternId;
 	}
 
 	public Long getItemId() {
@@ -59,16 +75,16 @@ public class PatternMatchedEvent implements ActivityEvent {
 	@Override
 	public Activity toActivity() {
 
-		HistoryField launchIdField = new HistoryField();
-		launchIdField.setField(LAUNCH_ID);
-		launchIdField.setNewValue(String.valueOf(launchId));
+		HistoryField patternIdField = new HistoryField();
+		patternIdField.setField(PATTERN_ID);
+		patternIdField.setNewValue(String.valueOf(patternId));
 
 		return new ActivityBuilder().addCreatedNow().addObjectId(itemId)
 				.addObjectName(patternTemplateActivityResource.getName())
 				.addProjectId(patternTemplateActivityResource.getProjectId())
 				.addActivityEntityType(PATTERN)
 				.addAction(PATTERN_MATCHED)
-				.addHistoryField(Optional.of(launchIdField))
+				.addHistoryField(Optional.of(patternIdField))
 				.get();
 	}
 }

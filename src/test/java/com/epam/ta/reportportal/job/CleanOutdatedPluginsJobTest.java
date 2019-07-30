@@ -32,7 +32,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.integration.plugin.impl.CreatePluginHandlerImpl.PLUGIN_TEMP_DIRECTORY;
 import static java.util.Optional.ofNullable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -42,6 +41,8 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  **/
 class CleanOutdatedPluginsJobTest {
+
+	public static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
 
 	private String pluginsRootPath = "plugins";
 
@@ -55,6 +56,7 @@ class CleanOutdatedPluginsJobTest {
 	private PluginWrapper rallyPlugin = mock(PluginWrapper.class);
 
 	private CleanOutdatedPluginsJob cleanOutdatedPluginsJob = new CleanOutdatedPluginsJob(pluginsRootPath,
+			pluginsRootPath + PLUGIN_TEMP_DIRECTORY,
 			integrationTypeRepository,
 			pluginBox,
 			pluginLoaderService
@@ -70,7 +72,7 @@ class CleanOutdatedPluginsJobTest {
 
 		file.createNewFile();
 
-		when(pluginBox.isPluginStillBeingUploaded(any(String.class))).thenReturn(false);
+		when(pluginBox.isInUploadingState(any(String.class))).thenReturn(false);
 
 		cleanOutdatedPluginsJob.execute();
 	}
@@ -85,7 +87,7 @@ class CleanOutdatedPluginsJobTest {
 
 		file.deleteOnExit();
 
-		when(pluginBox.isPluginStillBeingUploaded(any(String.class))).thenReturn(true);
+		when(pluginBox.isInUploadingState(any(String.class))).thenReturn(true);
 
 		cleanOutdatedPluginsJob.execute();
 	}
@@ -108,13 +110,13 @@ class CleanOutdatedPluginsJobTest {
 		when(pluginBox.getPluginById(plugins.get(0).getId())).thenReturn(ofNullable(jiraPlugin));
 		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get(pluginsRootPath, "qwe.jar"));
 
-		when(pluginBox.isPluginStillBeingUploaded(jiraPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
+		when(pluginBox.isInUploadingState(jiraPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
 		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(true);
 
 		when(pluginBox.getPluginById(plugins.get(1).getId())).thenReturn(ofNullable(rallyPlugin));
 		when(rallyPlugin.getPluginPath()).thenReturn(Paths.get(pluginsRootPath, "qwe1.jar"));
 
-		when(pluginBox.isPluginStillBeingUploaded(rallyPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
+		when(pluginBox.isInUploadingState(rallyPlugin.getPluginPath().getFileName().toString())).thenReturn(false);
 		when(pluginBox.unloadPlugin(rallyPlugin.getPluginId())).thenReturn(false);
 
 		cleanOutdatedPluginsJob.execute();

@@ -76,7 +76,6 @@ public class DemoDataLaunchService {
 		);
 
 		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
-
 		launch.setUser(user);
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
@@ -85,8 +84,7 @@ public class DemoDataLaunchService {
 
 	@Transactional
 	public void finishLaunch(String launchId) {
-		Launch launch = launchRepository.findByUuid(launchId)
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 
 		if (testItemRepository.hasItemsInStatusByLaunch(launch.getId(), StatusEnum.IN_PROGRESS)) {
 			testItemRepository.interruptInProgressItems(launch.getId());

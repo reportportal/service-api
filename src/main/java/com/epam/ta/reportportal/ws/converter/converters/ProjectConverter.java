@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
@@ -46,7 +46,7 @@ public final class ProjectConverter {
 	private final static String INDEXING_RUN = "analyzer.indexingRunning";
 
 	@Autowired
-	private AnalyzerStatusCache analyzerStatusCache;
+	private IndexerStatusCache indexerStatusCache;
 
 	public Function<Project, ProjectResource> TO_PROJECT_RESOURCE = project -> {
 		if (project == null) {
@@ -76,7 +76,7 @@ public final class ProjectConverter {
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
 
 		attributes.put(INDEXING_RUN,
-				String.valueOf(ofNullable(analyzerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
+				String.valueOf(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
 		);
 
 		projectConfiguration.setProjectAttributes(attributes);

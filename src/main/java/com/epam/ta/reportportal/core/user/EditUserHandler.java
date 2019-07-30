@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.user;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
@@ -33,37 +32,36 @@ public interface EditUserHandler {
 	/**
 	 * Edit User
 	 *
-	 * @param username
-	 * @param editUserRQ
-	 * @param editor
-	 * @return
-	 * @throws ReportPortalException
+	 * @param username   Name of user
+	 * @param editUserRQ Edit request
+	 * @param editor     User performing the edit operation
+	 * @return Completion result
 	 */
 	OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser editor);
 
 	/**
 	 * Upload photo
 	 *
-	 * @param username
-	 * @param file
-	 * @return
+	 * @param username Name of user
+	 * @param file     New photo
+	 * @return Completion result
 	 */
 	OperationCompletionRS uploadPhoto(String username, MultipartFile file);
 
 	/**
 	 * Delete user's photo
 	 *
-	 * @param username
-	 * @return
+	 * @param username Name of user
+	 * @return Completion result
 	 */
 	OperationCompletionRS deletePhoto(String username);
 
 	/**
 	 * Change password
 	 *
-	 * @param currentUser
-	 * @param changePasswordRQ
-	 * @return
+	 * @param currentUser      User performing the edit operation
+	 * @param changePasswordRQ Request body
+	 * @return Completion result
 	 */
 	OperationCompletionRS changePassword(ReportPortalUser currentUser, ChangePasswordRQ changePasswordRQ);
 }

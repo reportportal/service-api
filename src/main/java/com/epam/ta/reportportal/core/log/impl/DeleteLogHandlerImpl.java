@@ -114,12 +114,11 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 		//TODO check if statistics is right in item results
 		if (itemOptional.isPresent()) {
-			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
-					formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state",
-							log.getId(),
-							itemOptional.get().getItemId()
-					)
-			);
+			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED, formattedSupplier(
+					"Unable to delete log '{}' when test item '{}' in progress state",
+					log.getId(),
+					itemOptional.get().getItemId()
+			));
 		} else {
 			expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 					formattedSupplier("Unable to delete log '{}' when launch '{}' in progress state", log.getId(), launch.getId())

@@ -51,7 +51,7 @@ import static org.springframework.http.HttpStatus.OK;
  */
 @RestController
 @PreAuthorize(ASSIGNED_TO_PROJECT)
-@RequestMapping("/{projectName}/widget")
+@RequestMapping("/v1/{projectName}/widget")
 public class WidgetController {
 
 	private final CreateWidgetHandler createWidgetHandler;
@@ -70,7 +70,7 @@ public class WidgetController {
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create a new widget")
-	public EntryCreatedRS createWidget(@RequestBody WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
+	public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
 		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);
 	}

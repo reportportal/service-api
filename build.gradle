@@ -90,17 +90,17 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-7'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-8'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-7'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-model:5.0.0-BETA-8'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
-        compile('com.github.reportportal:plugin-api:5.0.0-BETA-6')
+        compile('com.github.reportportal:plugin-api:5.0.0-BETA-7')
     }
 
     //saucelabs
@@ -165,7 +165,7 @@ dependencies {
     compile 'org.apache.tika:tika-core'
     compile 'org.apache.tika:tika-parsers'
 
-    compile group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.7.0'
+    compile group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.9.0'
 
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
     //higher than 3.14 since 3.15 contains breaking API changes
@@ -231,8 +231,10 @@ jar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 ext.src = [
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql'
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'   : 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'            : 'V002__default_data.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/4_alter_test_item_location.up.sql': 'V003__alter_test_item_location.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/5_alter_ticket_submitter.up.sql'  : 'V004__alter_ticket_submitter.sql'
 ]
 
 task copyTestDatabaseScripts {

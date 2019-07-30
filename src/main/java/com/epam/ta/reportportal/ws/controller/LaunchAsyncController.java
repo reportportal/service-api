@@ -17,18 +17,17 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
-import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
+import com.epam.ta.reportportal.ws.model.launch.*;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -47,17 +47,20 @@ import static org.springframework.http.HttpStatus.OK;
  * @author Konstantin Antipin
  */
 @RestController
-@RequestMapping("/{projectName}/async/launch")
+@RequestMapping("/v2/{projectName}/launch")
 public class LaunchAsyncController {
 
 	private final StartLaunchHandler createLaunchMessageHandler;
 	private final FinishLaunchHandler finishLaunchMessageHandler;
+	private final MergeLaunchHandler mergeLaunchesHandler;
 
 	@Autowired
 	public LaunchAsyncController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler createLaunchMessageHandler,
-			@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchMessageHandler) {
+			@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchMessageHandler,
+			MergeLaunchHandler mergeLaunchesHandler) {
 		this.createLaunchMessageHandler = createLaunchMessageHandler;
 		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
+		this.mergeLaunchesHandler = mergeLaunchesHandler;
 	}
 
 	@PostMapping
@@ -77,12 +80,24 @@ public class LaunchAsyncController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(launchId,
+		return finishLaunchMessageHandler.finishLaunch(
+				launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,
-				LaunchLinkGenerator.LinkParams.of(request.getScheme(), request.getHeader("host"), projectName)
+				composeBaseUrl(request.getScheme(), request.getHeader("host"))
 		);
+	}
+
+	@Transactional
+	@PostMapping("/merge")
+	@PreAuthorize(ALLOWED_TO_REPORT)
+	@ResponseStatus(OK)
+	@ApiOperation("Merge set of specified launches in common one")
+	public LaunchResource mergeLaunches(@PathVariable String projectName,
+			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return mergeLaunchesHandler.mergeLaunches(extractProjectDetails(user, normalizeId(projectName)), user, mergeLaunchesRQ);
 	}
 
 }

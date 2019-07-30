@@ -74,7 +74,7 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
 
-		String contentField = validateContentFields(contentFields);
+		String criteria = validateContentFields(contentFields);
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		filter.withCondition(new FilterCondition(Condition.EQUALS,
 				false,
@@ -87,7 +87,7 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 				));
 
 		List<CriteriaHistoryItem> content = widgetContentRepository.topItemsByCriteria(filter,
-				contentField,
+				criteria,
 				limit,
 				ofNullable(widgetOptions.getOptions().get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v)))
 						.orElse(false)

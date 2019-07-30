@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANA
  * @author Ihar Kahadouski
  */
 @RestController
-@RequestMapping("/demo/{projectName}")
+@RequestMapping("/v1/demo/{projectName}")
 @PreAuthorize(PROJECT_MANAGER)
 class DemoDataController {
 

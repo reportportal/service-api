@@ -97,9 +97,7 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 
 			Set<String> recipients = ec.getRecipients();
 			if (successRate && matchedNames && matchedTags) {
-				User user = userRepository.findById(launch.getUserId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND));
-				String[] recipientsArray = findRecipients(user.getLogin(), recipients);
+				String[] recipientsArray = findRecipients(launch.getUser().getLogin(), recipients);
 				try {
 					emailService.sendLaunchFinishNotification(recipientsArray,
 							String.format("%s/ui#%s", baseUrl, project.getName()),

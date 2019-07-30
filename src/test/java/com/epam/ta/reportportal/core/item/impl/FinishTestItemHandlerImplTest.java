@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -81,7 +82,9 @@ class FinishTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
-		launch.setUserId(5L);
+		User user = new User();
+		user.setLogin("owner");
+		launch.setUser(user);
 		item.setLaunch(launch);
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
@@ -101,7 +104,9 @@ class FinishTestItemHandlerImplTest {
 		results.setStatus(StatusEnum.IN_PROGRESS);
 		item.setItemResults(results);
 		Launch launch = new Launch();
-		launch.setUserId(rpUser.getUserId());
+		User user = new User();
+		user.setLogin("test");
+		launch.setUser(user);
 		item.setLaunch(launch);
 		item.setHasChildren(false);
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));

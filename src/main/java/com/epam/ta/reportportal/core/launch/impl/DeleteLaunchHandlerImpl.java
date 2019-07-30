@@ -143,7 +143,7 @@ public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.la
 			);
 			/* Only PROJECT_MANAGER roles could delete launches */
 			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
-				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
 						"You are not launch owner."
 				);
 			}

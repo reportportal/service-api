@@ -125,7 +125,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 					projectDetails.getProjectId()
 			));
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED,
+				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
 						"You are not a launch owner."
 				);
 			}

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -84,7 +85,9 @@ class UpdateTestItemHandlerImplTest {
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
-		launch.setUserId(5L);
+		User user = new User();
+		user.setLogin("owner");
+		launch.setUser(user);
 		launch.setProjectId(1L);
 		item.setLaunch(launch);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
@@ -100,7 +103,9 @@ class UpdateTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
-		launch.setUserId(rpUser.getUserId());
+		User user = new User();
+		user.setLogin("test");
+		launch.setUser(user);
 		launch.setProjectId(2L);
 		item.setLaunch(launch);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));

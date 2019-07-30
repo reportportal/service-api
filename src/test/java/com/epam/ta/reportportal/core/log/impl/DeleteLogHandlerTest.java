@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Sets;
@@ -104,7 +105,9 @@ class DeleteLogHandlerTest {
 		testItem.setItemResults(itemResults);
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
-		launch.setUserId(3L);
+		User user1 = new User();
+		user1.setLogin("owner");
+		launch.setUser(user1);
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 
@@ -130,7 +133,9 @@ class DeleteLogHandlerTest {
 		testItem.setItemResults(itemResults);
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
-		launch.setUserId(user.getUserId());
+		User user1 = new User();
+		user1.setLogin("user");
+		launch.setUser(user1);
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();
@@ -163,7 +168,9 @@ class DeleteLogHandlerTest {
 		testItem.setItemResults(itemResults);
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
-		launch.setUserId(user.getUserId());
+		User user1 = new User();
+		user1.setLogin("user");
+		launch.setUser(user1);
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();

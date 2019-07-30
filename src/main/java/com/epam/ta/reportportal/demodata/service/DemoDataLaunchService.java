@@ -75,13 +75,10 @@ public class DemoDataLaunchService {
 				new ItemAttributesRQ("build", "3." + now.getDayOfMonth() + "." + now.getHour() + "." + i)
 		);
 
-		Launch launch = new LaunchBuilder().addStartRQ(rq)
-				.addAttributes(attributes)
-				.addProject(projectDetails.getProjectId())
-				.addUser(user.getId())
-				.get();
-		launch.setNumber(launchRepository.getNextNumber(projectDetails.getProjectId(), rq.getName()));
+		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
+		launch.setUser(user);
 		launchRepository.save(launch);
+		launchRepository.refresh(launch);
 		return launch;
 	}
 

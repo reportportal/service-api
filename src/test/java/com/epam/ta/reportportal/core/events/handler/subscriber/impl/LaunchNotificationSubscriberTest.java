@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
@@ -101,7 +100,6 @@ class LaunchNotificationSubscriberTest {
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 		launch.get().setName("name1");
-		launch.get().setUserId(1L);
 
 		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED,
 				"true"
@@ -117,11 +115,6 @@ class LaunchNotificationSubscriberTest {
 		)).thenReturn(Optional.ofNullable(emailIntegration));
 
 		when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(Optional.ofNullable(emailService));
-
-		User user = new User();
-		user.setId(1L);
-		user.setLogin("user");
-		when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
 		launchNotificationSubscriber.handleEvent(event, project, launch.get());
 		verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());

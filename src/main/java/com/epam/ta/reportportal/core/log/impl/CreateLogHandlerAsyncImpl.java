@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_PREFIX;
+import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ
@@ -87,9 +87,8 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 		return response;
 	}
 
-	// todo fix queue name
 	private void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
-		amqpTemplate.convertAndSend(QUEUE_PREFIX, DeserializablePair.of(request, metaInfo), message -> {
+		amqpTemplate.convertAndSend(getReportingQueueKey(request.getLaunchId()), DeserializablePair.of(request, metaInfo), message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
 			headers.put(MessageHeaders.PROJECT_ID, projectId);

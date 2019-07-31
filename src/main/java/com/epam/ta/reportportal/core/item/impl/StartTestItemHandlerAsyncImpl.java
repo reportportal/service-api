@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_PREFIX;
+import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -48,9 +48,8 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		// todo fix queue name
 		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		amqpTemplate.convertAndSend(QUEUE_PREFIX, request, message -> {
+		amqpTemplate.convertAndSend(getReportingQueueKey(request.getLaunchId()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
@@ -69,9 +68,8 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 			String parentId) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		// todo fix queue name
 		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		amqpTemplate.convertAndSend(QUEUE_PREFIX, request, message -> {
+		amqpTemplate.convertAndSend(getReportingQueueKey(request.getLaunchId()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

@@ -29,6 +29,8 @@ import javax.validation.Path;
 import javax.validation.Validator;
 import java.util.*;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_AMOUNT;
+
 /**
  * @author Konstantin Antipin
  */
@@ -84,6 +86,10 @@ public class ControllerUtils {
 			}
 		}
 		return uploadedFiles;
+	}
+
+	public static String getReportingQueueKey(String launchUuid) {
+		return String.valueOf(UUID.fromString(launchUuid).hashCode() % QUEUE_AMOUNT);
 	}
 
 }

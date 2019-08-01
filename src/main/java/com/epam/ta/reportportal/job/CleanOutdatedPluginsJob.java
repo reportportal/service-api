@@ -86,29 +86,29 @@ public class CleanOutdatedPluginsJob {
 	private void removeTemporaryPlugins() {
 		Path tempPluginsPath = Paths.get(pluginsTempPath);
 
-		LOGGER.info("Searching for temporary plugins...");
+		LOGGER.debug("Searching for temporary plugins...");
 		try (Stream<Path> pathStream = Files.walk(tempPluginsPath)) {
 			pathStream.filter(Files::isRegularFile).forEach(path -> ofNullable(path.getFileName()).ifPresent(fileName -> {
 				if (!pluginBox.isInUploadingState(fileName.toString())) {
 					try {
 						Files.deleteIfExists(path);
-						LOGGER.info(Suppliers.formattedSupplier("Temporary plugin - '{}' has been removed", path).get());
+						LOGGER.debug(Suppliers.formattedSupplier("Temporary plugin - '{}' has been removed", path).get());
 					} catch (IOException e) {
-						LOGGER.debug("Error has occurred during temporary plugin file removing", e);
+						LOGGER.error("Error has occurred during temporary plugin file removing", e);
 					}
 				} else {
-					LOGGER.info(Suppliers.formattedSupplier("Uploading of the plugin - '{}' is still in progress.", path).get());
+					LOGGER.debug(Suppliers.formattedSupplier("Uploading of the plugin - '{}' is still in progress.", path).get());
 				}
 			}));
 		} catch (IOException e) {
-			LOGGER.debug("Error has occurred during temporary plugins folder listing", e);
+			LOGGER.error("Error has occurred during temporary plugins folder listing", e);
 		}
-		LOGGER.info("Temporary plugins removing has finished...");
+		LOGGER.debug("Temporary plugins removing has finished...");
 	}
 
 	private void unloadRemovedPlugins(List<IntegrationType> integrationTypes) {
 
-		LOGGER.info("Unloading of removed plugins...");
+		LOGGER.debug("Unloading of removed plugins...");
 
 		List<String> pluginIds = pluginBox.getPlugins().stream().map(Plugin::getId).collect(Collectors.toList());
 
@@ -120,12 +120,12 @@ public class CleanOutdatedPluginsJob {
 				try {
 					Files.deleteIfExists(plugin.getPluginPath());
 				} catch (IOException e) {
-					LOGGER.debug("Error has occurred during plugin file removing from the plugins directory", e);
+					LOGGER.error("Error has occurred during plugin file removing from the plugins directory", e);
 				}
 			}
 		}));
 
-		LOGGER.info("Unloading of removed plugins has finished...");
+		LOGGER.debug("Unloading of removed plugins has finished...");
 	}
 
 	private boolean isPluginStillBeingUploaded(@NotNull PluginWrapper pluginWrapper) {

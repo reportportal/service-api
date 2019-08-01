@@ -254,7 +254,7 @@ public class AsyncReportingListener implements MessageListener {
                 default:
                     return "";
             }
-        } catch (NullPointerException e) {
+        } catch (Throwable e) {
             return "";
         }
     }

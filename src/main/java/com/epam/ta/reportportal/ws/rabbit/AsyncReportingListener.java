@@ -47,6 +47,7 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_DLQ;
 import static com.epam.ta.reportportal.ws.rabbit.RequestType.LOG;
 
@@ -231,7 +232,7 @@ public class AsyncReportingListener implements MessageListener {
                 // log request : don't cleanup to not loose binary content of dropped DLQ message
                 // cleanup(payload);
 
-                amqpTemplate.send(QUEUE_DLQ, message);
+                amqpTemplate.send(EXCHANGE_REPORTING_RETRY, QUEUE_DLQ, message);
                 return true;
             }
         }

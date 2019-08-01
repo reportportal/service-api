@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
 import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
@@ -88,7 +89,7 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 	}
 
 	private void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
-		amqpTemplate.convertAndSend(getReportingQueueKey(request.getLaunchId()), DeserializablePair.of(request, metaInfo), message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), DeserializablePair.of(request, metaInfo), message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
 			headers.put(MessageHeaders.PROJECT_ID, projectId);

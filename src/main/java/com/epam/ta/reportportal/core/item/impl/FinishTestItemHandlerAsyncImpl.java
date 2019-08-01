@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
 import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
@@ -47,7 +48,7 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 			FinishTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(getReportingQueueKey(request.getLaunchId()), request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

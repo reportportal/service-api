@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
 import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
@@ -48,7 +49,7 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 		validateRoles(projectDetails, request);
 
 		request.setUuid(UUID.randomUUID().toString());
-		amqpTemplate.convertAndSend(getReportingQueueKey(request.getUuid()), request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getUuid()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

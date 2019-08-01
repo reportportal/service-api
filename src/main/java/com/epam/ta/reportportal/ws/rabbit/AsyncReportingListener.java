@@ -114,22 +114,17 @@ public class AsyncReportingListener implements MessageListener {
             RequestType requestType = getRequestType(message);
             Map<String, Object> headers = message.getMessageProperties().getHeaders();
 
-            ReportPortalUser user = null;
-            if (requestType != LOG) {
-                String username = (String) headers.get(MessageHeaders.USERNAME);
-                user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-            }
             switch (requestType) {
                 case START_LAUNCH:
                     onStartLaunch(
                             (StartLaunchRQ) messageConverter.fromMessage(message),
-                            user,
+                            (String) headers.get(MessageHeaders.USERNAME),
                             (String) headers.get(MessageHeaders.PROJECT_NAME));
                     break;
                 case FINISH_LAUNCH:
                     onFinishLaunch(
                             (FinishExecutionRQ) messageConverter.fromMessage(message),
-                            user,
+                            (String) headers.get(MessageHeaders.USERNAME),
                             (String) headers.get(MessageHeaders.PROJECT_NAME),
                             (String) headers.get(MessageHeaders.LAUNCH_ID),
                             (String) headers.get(MessageHeaders.BASE_URL));
@@ -137,14 +132,14 @@ public class AsyncReportingListener implements MessageListener {
                 case START_TEST:
                     onStartItem(
                             (StartTestItemRQ) messageConverter.fromMessage(message),
-                            user,
+                            (String) headers.get(MessageHeaders.USERNAME),
                             (String) headers.get(MessageHeaders.PROJECT_NAME),
                             (String) headers.get(MessageHeaders.PARENT_ITEM_ID));
                     break;
                 case FINISH_TEST:
                     onFinishItem(
                             (FinishTestItemRQ) messageConverter.fromMessage(message),
-                            user,
+                            (String) headers.get(MessageHeaders.USERNAME),
                             (String) headers.get(MessageHeaders.PROJECT_NAME),
                             (String) headers.get(MessageHeaders.ITEM_ID));
                     break;
@@ -172,17 +167,20 @@ public class AsyncReportingListener implements MessageListener {
     }
 
     @Transactional
-    public void onStartLaunch(StartLaunchRQ rq, ReportPortalUser user, String projectName) {
+    public void onStartLaunch(StartLaunchRQ rq, String username, String projectName) {
+        ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         startLaunchHandler.startLaunch(user, ProjectExtractor.extractProjectDetails(user, projectName), rq);
     }
 
     @Transactional
-    public void onFinishLaunch(FinishExecutionRQ rq, ReportPortalUser user, String projectName, String launchId, String baseUrl) {
+    public void onFinishLaunch(FinishExecutionRQ rq, String username, String projectName, String launchId, String baseUrl) {
+        ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user, baseUrl);
     }
 
     @Transactional
-    public void onStartItem(StartTestItemRQ rq, ReportPortalUser user, String projectName, String parentId) {
+    public void onStartItem(StartTestItemRQ rq, String username, String projectName, String parentId) {
+        ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, normalizeId(projectName));
         if (!Strings.isNullOrEmpty(parentId)) {
             startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
@@ -192,7 +190,8 @@ public class AsyncReportingListener implements MessageListener {
     }
 
     @Transactional
-    public void onFinishItem(FinishTestItemRQ rq, ReportPortalUser user, String projectName, String itemId) {
+    public void onFinishItem(FinishTestItemRQ rq, String username, String projectName, String itemId) {
+        ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         finishTestItemHandler.finishTestItem(user, ProjectExtractor.extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
     }
 

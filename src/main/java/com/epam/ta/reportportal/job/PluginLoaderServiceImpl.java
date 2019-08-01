@@ -59,7 +59,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	@Override
 	public List<PluginInfo> getNotLoadedPluginsInfo(List<IntegrationType> integrationTypes) {
 
-		LOGGER.info("Searching for not loaded plugins...");
+		LOGGER.debug("Searching for not loaded plugins...");
 
 		List<PluginInfo> notLoadedPlugins = Lists.newArrayList();
 
@@ -88,7 +88,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 				});
 
-		LOGGER.info(Suppliers.formattedSupplier("{} not loaded plugins have been found", notLoadedPlugins.size()).get());
+		LOGGER.debug(Suppliers.formattedSupplier("{} not loaded plugins have been found", notLoadedPlugins.size()).get());
 
 		return notLoadedPlugins;
 	}
@@ -127,7 +127,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 						Files.deleteIfExists(p.getPluginPath());
 						return true;
 					} catch (IOException ex) {
-						LOGGER.debug("Error has occurred during plugin removing from the root directory", ex);
+						LOGGER.error("Error has occurred during plugin removing from the root directory", ex);
 						return false;
 					}
 				} else {

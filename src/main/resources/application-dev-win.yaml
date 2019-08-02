@@ -1,16 +1,15 @@
 rp:
-  uat:
-    serviceUrl: http://localhost:8080/uat
-  analyzer:
-    url: http://localhost:8080/analyzer
   amqp:
     host: localhost
   db:
     host: localhost
-  plugins:
-    path: plugins
   datasource:
     maximumPoolSize: 5
+  plugins:
+    rootDir: plugins
+  binarystore:
+    path: data\storage
+
 logging:
   level:
     org:

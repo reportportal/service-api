@@ -51,7 +51,6 @@ import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.DEAD_LETTER_MAX_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING_RETRY;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_DLQ;
-import static com.epam.ta.reportportal.ws.rabbit.RequestType.LOG;
 
 /**
  * @author Konstantin Antipin
@@ -106,6 +105,7 @@ public class AsyncReportingListener implements MessageListener {
     private CreateLogHelper createLogHelper = this.new CreateLogHelper();
 
     @Override
+    @Transactional
     public void onMessage(Message message) {
 
         try {
@@ -169,19 +169,16 @@ public class AsyncReportingListener implements MessageListener {
 
     }
 
-    @Transactional
     public void onStartLaunch(StartLaunchRQ rq, String username, String projectName) {
         ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         startLaunchHandler.startLaunch(user, ProjectExtractor.extractProjectDetails(user, projectName), rq);
     }
 
-    @Transactional
     public void onFinishLaunch(FinishExecutionRQ rq, String username, String projectName, String launchId, String baseUrl) {
         ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user, baseUrl);
     }
 
-    @Transactional
     public void onStartItem(StartTestItemRQ rq, String username, String projectName, String parentId) {
         ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, normalizeId(projectName));
@@ -192,13 +189,11 @@ public class AsyncReportingListener implements MessageListener {
         }
     }
 
-    @Transactional
     public void onFinishItem(FinishTestItemRQ rq, String username, String projectName, String itemId) {
         ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
         finishTestItemHandler.finishTestItem(user, ProjectExtractor.extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
     }
 
-    @Transactional
     public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload, Long projectId) {
         SaveLogRQ request = payload.getLeft();
         BinaryDataMetaInfo metaInfo = payload.getRight();

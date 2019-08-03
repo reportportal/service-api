@@ -35,9 +35,11 @@ import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -144,8 +146,9 @@ public class AsyncReportingListener implements MessageListener {
                             (String) headers.get(MessageHeaders.ITEM_ID));
                     break;
                 case LOG:
+                    Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
                     onLogCreate(
-                            (DeserializablePair) messageConverter.fromMessage(message),
+                            (DeserializablePair)converter.fromMessage(message, new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {}),
                             (Long) headers.get(MessageHeaders.PROJECT_ID));
                     break;
                 default:
@@ -250,7 +253,10 @@ public class AsyncReportingListener implements MessageListener {
                 case FINISH_TEST:
                     return (String) message.getMessageProperties().getHeaders().get(MessageHeaders.ITEM_ID);
                 case LOG:
-                    return ((SaveLogRQ) ((DeserializablePair) messageConverter.fromMessage(message)).getLeft()).getUuid();
+                    Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
+                    return ((SaveLogRQ) ((DeserializablePair) converter
+                            .fromMessage(message, new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {}))
+                            .getLeft()).getUuid();
                 default:
                     return "";
             }

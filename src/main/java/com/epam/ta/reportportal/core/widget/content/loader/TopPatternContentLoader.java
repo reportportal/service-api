@@ -66,6 +66,7 @@ public class TopPatternContentLoader implements MultilevelLoadContentStrategy {
 				WidgetOptionUtil.getValueByKey(ATTRIBUTE_KEY, widgetOptions),
 				params.get(PATTERN_TEMPLATE_NAME),
 				WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions),
+				limit,
 				TOP_PATTERN_TEMPLATES_ATTRIBUTES_COUNT
 		);
 

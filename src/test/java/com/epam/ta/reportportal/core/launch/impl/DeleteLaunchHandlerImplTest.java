@@ -38,8 +38,6 @@ import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -70,7 +68,6 @@ class DeleteLaunchHandlerImplTest {
 	void deleteNotOwnLaunch() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		rpUser.setUserId(2L);
-		doNothing().when(logIndexer).cleanIndex(any(), any());
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,

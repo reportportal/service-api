@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -88,6 +89,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final LogRepository logRepository;
 
+	private final UserRepository userRepository;
+
 	private final ChangeStatusHandler changeStatusHandler;
 
 	private final ApplicationEventPublisher eventPublisher;
@@ -96,7 +99,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher) {
+			LogRepository logRepository, UserRepository userRepository, ChangeStatusHandler changeStatusHandler,
+			ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -104,6 +108,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 		this.issueEntityRepository = issueEntityRepository;
 		this.logRepository = logRepository;
+		this.userRepository = userRepository;
 		this.changeStatusHandler = changeStatusHandler;
 		this.eventPublisher = eventPublisher;
 	}
@@ -175,12 +180,17 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void verifyTestItem(Launch launch, ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
 			boolean hasChildren) {
 
-		expect(user.getUsername(), equalTo(launch.getUser().getLogin())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
+		expect(user.getUsername(),
+				equalTo(userRepository.findLoginByIdForUpdate(launch.getUserId())
+						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, launch.getUserId())))
+		).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-				testItem.getItemId()
-		));
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+				formattedSupplier(
+						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+						testItem.getItemId()
+				)
+		);
 	}
 
 	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, Launch launch,

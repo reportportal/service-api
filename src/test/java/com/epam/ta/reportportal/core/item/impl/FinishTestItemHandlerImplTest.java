@@ -83,8 +83,9 @@ class FinishTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		User user = new User();
+		user.setId(1L);
 		user.setLogin("owner");
-		launch.setUser(user);
+		launch.setUserId(user.getId());
 		item.setLaunch(launch);
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
@@ -105,8 +106,9 @@ class FinishTestItemHandlerImplTest {
 		item.setItemResults(results);
 		Launch launch = new Launch();
 		User user = new User();
-		user.setLogin("test");
-		launch.setUser(user);
+		user.setId(1L);
+		user.setLogin("owner");
+		launch.setUserId(user.getId());
 		item.setLaunch(launch);
 		item.setHasChildren(false);
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));

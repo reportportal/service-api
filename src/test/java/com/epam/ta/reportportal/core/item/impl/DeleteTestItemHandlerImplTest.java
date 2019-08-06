@@ -175,8 +175,9 @@ class DeleteTestItemHandlerImplTest {
 		launch.setStatus(launchStatus);
 		launch.setProjectId(projectId);
 		User user = new User();
+		user.setId(1L);
 		user.setLogin(owner);
-		launch.setUser(user);
+		launch.setUserId(user.getId());
 		item.setLaunch(launch);
 		return item;
 	}

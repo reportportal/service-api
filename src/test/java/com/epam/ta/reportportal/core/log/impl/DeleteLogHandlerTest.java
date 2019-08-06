@@ -106,8 +106,9 @@ class DeleteLogHandlerTest {
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
 		User user1 = new User();
+		user1.setId(1L);
 		user1.setLogin("owner");
-		launch.setUser(user1);
+		launch.setUserId(user1.getId());
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 
@@ -134,8 +135,9 @@ class DeleteLogHandlerTest {
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
 		User user1 = new User();
-		user1.setLogin("user");
-		launch.setUser(user1);
+		user1.setId(1L);
+		user1.setLogin("owner");
+		launch.setUserId(user1.getId());
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();
@@ -169,8 +171,9 @@ class DeleteLogHandlerTest {
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
 		User user1 = new User();
-		user1.setLogin("user");
-		launch.setUser(user1);
+		user1.setId(1L);
+		user1.setLogin("owner");
+		launch.setUserId(user1.getId());
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();

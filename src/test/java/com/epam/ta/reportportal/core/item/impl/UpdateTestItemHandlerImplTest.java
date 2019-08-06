@@ -86,8 +86,9 @@ class UpdateTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		User user = new User();
+		user.setId(1L);
 		user.setLogin("owner");
-		launch.setUser(user);
+		launch.setUserId(user.getId());
 		launch.setProjectId(1L);
 		item.setLaunch(launch);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
@@ -104,8 +105,9 @@ class UpdateTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		User user = new User();
-		user.setLogin("test");
-		launch.setUser(user);
+		user.setId(1L);
+		user.setLogin("owner");
+		launch.setUserId(user.getId());
 		launch.setProjectId(2L);
 		item.setLaunch(launch);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));

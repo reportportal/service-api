@@ -17,10 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -31,7 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
@@ -48,18 +44,6 @@ class DeleteLaunchHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
-
-	@Mock
-	private LogIndexer logIndexer;
-
-	@Mock
-	private MessageBus messageBus;
-
-	@Mock
-	private ApplicationEventPublisher eventPublisher;
-
-	@Mock
-	private LogRepository logRepository;
 
 	@InjectMocks
 	private DeleteLaunchHandlerImpl handler;

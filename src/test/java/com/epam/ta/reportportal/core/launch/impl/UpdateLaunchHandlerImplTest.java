@@ -60,7 +60,7 @@ class UpdateLaunchHandlerImplTest {
 	@Test
 	void updateNotOwnLaunch() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-
+		rpUser.setUserId(1L);
 		when(projectRepository.findById(1L)).thenReturn(Optional.of(new Project()));
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 

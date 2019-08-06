@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -39,6 +40,7 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,6 +51,9 @@ class FinishTestItemHandlerImplTest {
 
 	@Mock
 	private TestItemRepository repository;
+
+	@Mock
+	private UserRepository userRepository;
 
 	@InjectMocks
 	private FinishTestItemHandlerImpl handler;
@@ -87,6 +92,7 @@ class FinishTestItemHandlerImplTest {
 		user.setLogin("owner");
 		launch.setUserId(user.getId());
 		item.setLaunch(launch);
+		when(userRepository.findLoginByIdForUpdate(any())).thenReturn(Optional.of("not owner"));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(
@@ -111,6 +117,7 @@ class FinishTestItemHandlerImplTest {
 		launch.setUserId(user.getId());
 		item.setLaunch(launch);
 		item.setHasChildren(false);
+		when(userRepository.findLoginByIdForUpdate(any())).thenReturn(Optional.of("owner"));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(

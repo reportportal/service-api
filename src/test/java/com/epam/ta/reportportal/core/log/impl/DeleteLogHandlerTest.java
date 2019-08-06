@@ -108,7 +108,7 @@ class DeleteLogHandlerTest {
 		User user1 = new User();
 		user1.setId(1L);
 		user1.setLogin("owner");
-		launch.setUserId(user1.getId());
+		launch.setUserId(2L);
 		testItem.setLaunch(launch);
 		log.setTestItem(testItem);
 

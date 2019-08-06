@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -35,6 +36,8 @@ import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,6 +50,9 @@ class DeleteLaunchHandlerImplTest {
 	private LaunchRepository launchRepository;
 
 	@Mock
+	private LogIndexer logIndexer;
+
+	@Mock
 	private MessageBus messageBus;
 
 	@InjectMocks
@@ -55,6 +61,7 @@ class DeleteLaunchHandlerImplTest {
 	@Test
 	void deleteNotOwnLaunch() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		doNothing().when(logIndexer).cleanIndex(any(), any());
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,

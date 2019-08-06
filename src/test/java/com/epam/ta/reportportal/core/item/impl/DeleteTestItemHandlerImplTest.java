@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachments
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -132,7 +131,7 @@ class DeleteTestItemHandlerImplTest {
 	@Test
 	void deleteNotOwnTestItem() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
-		rpUser.setUserId(1L);
+		rpUser.setUserId(2L);
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, "owner")));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,

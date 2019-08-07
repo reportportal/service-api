@@ -55,7 +55,7 @@ class LogReporterConsumerTest {
 	@Disabled
 	void onLogCreate() {
 		SaveLogRQ saveLogRQ = new SaveLogRQ();
-		saveLogRQ.setItemId("1");
+		saveLogRQ.setItemUuid("1");
 		saveLogRQ.setLogTime(new Date());
 		saveLogRQ.setLevel("ERROR");
 		saveLogRQ.setMessage("message");

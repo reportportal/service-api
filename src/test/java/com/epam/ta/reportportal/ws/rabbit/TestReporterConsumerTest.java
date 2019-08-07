@@ -55,7 +55,7 @@ class TestReporterConsumerTest {
 	@Test
 	void onStartStepItem() {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("1");
+		rq.setLaunchUuid("1");
 		rq.setType("STEP");
 		rq.setName("name");
 		rq.setDescription("description");
@@ -73,7 +73,7 @@ class TestReporterConsumerTest {
 	@Test
 	void onStartParentItem() {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("1");
+		rq.setLaunchUuid("1");
 		rq.setType("TEST");
 		rq.setName("name");
 		rq.setDescription("description");

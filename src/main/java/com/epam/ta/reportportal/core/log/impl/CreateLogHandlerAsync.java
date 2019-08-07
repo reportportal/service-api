@@ -90,7 +90,7 @@ public class CreateLogHandlerAsync implements CreateLogHandler {
 		amqpTemplate.convertAndSend(QUEUE_LOG, DeserializablePair.of(request, metaInfo), message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.PROJECT_ID, projectId);
-			headers.put(MessageHeaders.ITEM_ID, request.getItemId());
+			headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
 			return message;
 		});
 

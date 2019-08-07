@@ -66,7 +66,7 @@ class StartTestItemHandlerImplTest {
 
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 		final StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("1");
+		rq.setLaunchUuid("1");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq)
@@ -78,7 +78,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemUnderLaunchFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
@@ -95,7 +95,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemEarlierThanLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
@@ -124,7 +124,7 @@ class StartTestItemHandlerImplTest {
 
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		TestItem item = new TestItem();
@@ -142,7 +142,7 @@ class StartTestItemHandlerImplTest {
 	void startChildItemUnderFinishedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		TestItem item = new TestItem();
@@ -164,9 +164,9 @@ class StartTestItemHandlerImplTest {
 	void startChildItemWithNotExistedLaunch() {
 		ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 
 		TestItem item = new TestItem();
 		item.setItemId(1L);

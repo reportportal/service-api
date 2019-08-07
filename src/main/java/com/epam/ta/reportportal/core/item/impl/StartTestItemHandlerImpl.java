@@ -78,8 +78,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
-		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
+		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(user, projectDetails, rq, launch);
 
 		if (launch.isRerun()) {
@@ -102,8 +102,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			String parentId) {
 		TestItem parentItem = testItemRepository.findByUuid(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
+		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(rq, parentItem);
 
 		if (launch.isRerun()) {

@@ -3,13 +3,10 @@ rp:
     host: localhost
   db:
     host: localhost
-  datasource:
-    maximumPoolSize: 5
   plugins:
     rootDir: plugins
-  binarystore:
-    path: data\storage
-
+  datasource:
+    maximumPoolSize: 5
 logging:
   level:
     org:

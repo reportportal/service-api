@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
@@ -60,6 +61,9 @@ class DeleteLogHandlerTest {
 
 	@Mock
 	private DataStoreService dataStoreService;
+
+	@Mock
+	private TestItemService testItemService;
 
 	@InjectMocks
 	private DeleteLogHandlerImpl handler;
@@ -104,14 +108,16 @@ class DeleteLogHandlerTest {
 		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
 		testItem.setItemResults(itemResults);
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setProjectId(projectId);
 		User user1 = new User();
 		user1.setId(1L);
 		user1.setLogin("owner");
 		launch.setUserId(2L);
-		testItem.setLaunch(launch);
+		testItem.setLaunchId(launch.getId());
 		log.setTestItem(testItem);
 
+		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
@@ -133,12 +139,13 @@ class DeleteLogHandlerTest {
 		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
 		testItem.setItemResults(itemResults);
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setProjectId(projectId);
 		User user1 = new User();
 		user1.setId(1L);
 		user1.setLogin("owner");
 		launch.setUserId(user1.getId());
-		testItem.setLaunch(launch);
+		testItem.setLaunchId(launch.getId());
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();
 		String attachmentPath = "attachmentPath";
@@ -147,6 +154,7 @@ class DeleteLogHandlerTest {
 		attachment.setThumbnailId(attachmentThumbnailPath);
 		log.setAttachment(attachment);
 
+		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
@@ -169,12 +177,13 @@ class DeleteLogHandlerTest {
 		itemResults.setStatistics(Sets.newHashSet(new Statistics()));
 		testItem.setItemResults(itemResults);
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setProjectId(projectId);
 		User user1 = new User();
 		user1.setId(1L);
 		user1.setLogin("owner");
 		launch.setUserId(user1.getId());
-		testItem.setLaunch(launch);
+		testItem.setLaunchId(launch.getId());
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();
 		String attachmentPath = "attachmentPath";
@@ -182,7 +191,7 @@ class DeleteLogHandlerTest {
 		String attachmentThumbnailPath = "attachmentThumbnail";
 		attachment.setThumbnailId(attachmentThumbnailPath);
 		log.setAttachment(attachment);
-
+		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 		doThrow(IllegalArgumentException.class).when(logRepository).delete(log);

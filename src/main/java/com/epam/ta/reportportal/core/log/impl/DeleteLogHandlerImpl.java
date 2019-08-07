@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -60,11 +61,15 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final TestItemService testItemService;
+
 	@Autowired
-	public DeleteLogHandlerImpl(LogRepository logRepository, DataStoreService dataStoreService, ProjectRepository projectRepository) {
+	public DeleteLogHandlerImpl(LogRepository logRepository, DataStoreService dataStoreService, ProjectRepository projectRepository,
+			TestItemService testItemService) {
 		this.logRepository = logRepository;
 		this.dataStoreService = dataStoreService;
 		this.projectRepository = projectRepository;
+		this.testItemService = testItemService;
 	}
 
 	@Override
@@ -110,7 +115,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(ErrorType.LOG_NOT_FOUND, logId));
 
 		Optional<TestItem> itemOptional = ofNullable(log.getTestItem());
-		Launch launch = ofNullable(log.getTestItem()).map(TestItem::getLaunch).orElseGet(log::getLaunch);
+		Launch launch = ofNullable(log.getTestItem()).map(testItemService::getEffectiveLaunch).orElseGet(log::getLaunch);
 
 		//TODO check if statistics is right in item results
 		if (itemOptional.isPresent()) {

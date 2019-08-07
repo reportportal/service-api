@@ -91,6 +91,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final LaunchRepository launchRepository;
+
 	private final TestItemRepository testItemRepository;
 
 	private final LogRepository logRepository;
@@ -108,11 +110,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, TestItemRepository testItemRepository,
-			LogRepository logRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
+	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
+			TestItemRepository testItemRepository, LogRepository logRepository, TicketRepository ticketRepository,
+			IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
+		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.ticketRepository = ticketRepository;
@@ -172,7 +175,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					Long launchId = testItem.getLaunch().getId();
+					Long launchId = testItem.getLaunchId();
 					Long itemId = testItem.getItemId();
 					if (logsToReindexMap.containsKey(launchId)) {
 						logsToReindexMap.get(launchId).add(itemId);
@@ -389,7 +392,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem       Test Item
 	 */
 	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
-		Launch launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		Launch launch = launchRepository.findById(testItem.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, testItem.getLaunchId()));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
 					"Launch is not under the specified project."

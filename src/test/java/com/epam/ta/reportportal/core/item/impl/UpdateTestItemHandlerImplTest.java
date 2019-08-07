@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -40,6 +41,8 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 /**
@@ -53,6 +56,9 @@ class UpdateTestItemHandlerImplTest {
 
 	@Mock
 	private ProjectRepository projectRepository;
+
+	@Mock
+	private LaunchRepository launchRepository;
 
 	@InjectMocks
 	private UpdateTestItemHandlerImpl handler;
@@ -71,12 +77,15 @@ class UpdateTestItemHandlerImplTest {
 	void updateTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 
-		when(itemRepository.findById(1L)).thenReturn(Optional.of(new TestItem()));
+		TestItem testItem = new TestItem();
+		testItem.setLaunchId(2L);
+		when(itemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
 		);
-		assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
+		assertEquals("Launch '2' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
 
 	@Test
@@ -85,12 +94,14 @@ class UpdateTestItemHandlerImplTest {
 
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
+		launch.setId(1L);
 		User user = new User();
 		user.setId(1L);
 		user.setLogin("owner");
 		launch.setUserId(2L);
 		launch.setProjectId(1L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -104,12 +115,14 @@ class UpdateTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
+		launch.setId(1L);
 		User user = new User();
 		user.setId(1L);
 		user.setLogin("owner");
 		launch.setUserId(user.getId());
 		launch.setProjectId(2L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -146,8 +159,9 @@ class UpdateTestItemHandlerImplTest {
 		item.setType(TestItemTypeEnum.TEST);
 		Launch launch = new Launch();
 		launch.setId(2L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 
+		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,

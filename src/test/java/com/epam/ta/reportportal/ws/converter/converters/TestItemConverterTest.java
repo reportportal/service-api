@@ -66,7 +66,7 @@ class TestItemConverterTest {
 
 		assertEquals(activityResource.getId(), item.getItemId());
 		assertEquals(activityResource.getName(), item.getName());
-		assertEquals(activityResource.getProjectId(), item.getLaunch().getProjectId());
+		assertEquals((long) activityResource.getProjectId(), 4L);
 		assertEquals(activityResource.getIssueDescription(), item.getItemResults().getIssue().getIssueDescription());
 		assertEquals(activityResource.getIssueTypeLongName(), item.getItemResults().getIssue().getIssueType().getLongName());
 		assertEquals(activityResource.getStatus(), item.getItemResults().getStatus().name());
@@ -90,7 +90,7 @@ class TestItemConverterTest {
 
 		assertEquals(resource.getName(), item.getName());
 		assertEquals(resource.getDescription(), item.getDescription());
-		assertEquals(resource.getLaunchId(), item.getLaunch().getId());
+		assertEquals(resource.getLaunchId(), item.getLaunchId());
 		assertEquals(resource.getUuid(), item.getUuid());
 		assertEquals(resource.getItemId(), item.getItemId());
 		assertEquals(resource.getParent(), item.getParent().getItemId());
@@ -130,7 +130,7 @@ class TestItemConverterTest {
 		final Launch launch = new Launch();
 		launch.setProjectId(4L);
 		launch.setId(2L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
 		final TestItem parent = new TestItem();
 		parent.setItemId(3L);

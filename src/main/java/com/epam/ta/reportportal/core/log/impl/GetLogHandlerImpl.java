@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -72,10 +73,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	private final TestItemRepository testItemRepository;
 
+	private final TestItemService testItemService;
+
 	@Autowired
-	public GetLogHandlerImpl(LogRepository logRepository, TestItemRepository testItemRepository) {
+	public GetLogHandlerImpl(LogRepository logRepository, TestItemRepository testItemRepository, TestItemService testItemService) {
 		this.logRepository = logRepository;
 		this.testItemRepository = testItemRepository;
+		this.testItemService = testItemService;
 	}
 
 	@Override
@@ -140,7 +144,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	private Log findAndValidate(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Log log = logRepository.findById(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 
-		Long launchProjectId = ofNullable(log.getTestItem()).map(it -> it.getLaunch().getProjectId())
+		Long launchProjectId = ofNullable(log.getTestItem()).map(it -> testItemService.getEffectiveLaunch(it).getProjectId())
 				.orElseGet(() -> log.getLaunch().getProjectId());
 
 		expect(launchProjectId, equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,

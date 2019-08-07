@@ -24,9 +24,9 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -89,7 +89,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final LogRepository logRepository;
 
-	private final UserRepository userRepository;
+	private final LaunchRepository launchRepository;
 
 	private final ChangeStatusHandler changeStatusHandler;
 
@@ -99,8 +99,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, UserRepository userRepository, ChangeStatusHandler changeStatusHandler,
-			ApplicationEventPublisher eventPublisher) {
+			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher,
+			LaunchRepository launchRepository) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -108,7 +108,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 		this.issueEntityRepository = issueEntityRepository;
 		this.logRepository = logRepository;
-		this.userRepository = userRepository;
+		this.launchRepository = launchRepository;
 		this.changeStatusHandler = changeStatusHandler;
 		this.eventPublisher = eventPublisher;
 	}
@@ -157,15 +157,19 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private Launch retrieveLaunch(TestItem testItem) {
+
 		return ofNullable(testItem.getRetryOf()).map(retryParentId -> {
 			TestItem retryParent = testItemRepository.findById(retryParentId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+			return getLaunch(retryParent);
+		}).orElseGet(() -> getLaunch(testItem)).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+	}
 
-			return ofNullable(retryParent.getLaunch()).orElseGet(() -> ofNullable(retryParent.getParent()).map(TestItem::getLaunch)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
-		})
-				.orElseGet(() -> ofNullable(testItem.getLaunch()).orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunch)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND))));
+	private Optional<Launch> getLaunch(TestItem testItem) {
+		return ofNullable(testItem.getLaunchId()).map(launchRepository::findByIdForUpdate)
+				.orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunchId)
+						.map(launchRepository::findByIdForUpdate)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 	}
 
 	/**
@@ -180,10 +184,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void verifyTestItem(Launch launch, ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
 			boolean hasChildren) {
 
-		expect(user.getUsername(),
-				equalTo(userRepository.findLoginByIdForUpdate(launch.getUserId())
-						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, launch.getUserId())))
-		).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
+		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
 
 		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
 				formattedSupplier(
@@ -313,7 +314,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		resolvedIssue.ifPresent(issue -> {
 			updateItemIssue(testItemResults, issue);
 			if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-				eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunch().getId(), projectId));
+				eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunchId(), projectId));
 
 			}
 		});

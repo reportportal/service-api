@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -53,7 +53,7 @@ class FinishTestItemHandlerImplTest {
 	private TestItemRepository repository;
 
 	@Mock
-	private UserRepository userRepository;
+	private LaunchRepository launchRepository;
 
 	@InjectMocks
 	private FinishTestItemHandlerImpl handler;
@@ -87,15 +87,17 @@ class FinishTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
+		launch.setId(1L);
 		User user = new User();
 		user.setId(2L);
 		user.setLogin("owner");
 		launch.setUserId(user.getId());
 		item.setItemId(1L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
-		when(userRepository.findLoginByIdForUpdate(any())).thenReturn(Optional.of("owner"));
+		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
@@ -113,10 +115,11 @@ class FinishTestItemHandlerImplTest {
 		results.setStatus(StatusEnum.IN_PROGRESS);
 		item.setItemResults(results);
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setUserId(1L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
-		when(userRepository.findLoginByIdForUpdate(any())).thenReturn(Optional.of("test"));
+		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(

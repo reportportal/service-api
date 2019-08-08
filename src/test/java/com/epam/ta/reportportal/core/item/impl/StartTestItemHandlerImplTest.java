@@ -130,7 +130,7 @@ class StartTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		item.setStartTime(LocalDateTime.now().plusHours(1));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
-		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
+		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
@@ -172,7 +172,7 @@ class StartTestItemHandlerImplTest {
 		item.setItemId(1L);
 
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
-		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.empty());
+		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(
 				ReportPortalException.class,

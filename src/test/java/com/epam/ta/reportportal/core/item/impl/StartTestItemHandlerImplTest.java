@@ -153,7 +153,6 @@ class StartTestItemHandlerImplTest {
 	}
 
 	@Test
-	@Disabled
 	void startChildItemUnderFinishedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
@@ -172,7 +171,8 @@ class StartTestItemHandlerImplTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
 		);
-		assertEquals("Start test item is not allowed. Parent Item '1' is not in progress", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: " +
+				"'Unable to add a not nested step item, because parent item with ID = '1' is a nested step'", exception.getMessage());
 	}
 
 	@Test

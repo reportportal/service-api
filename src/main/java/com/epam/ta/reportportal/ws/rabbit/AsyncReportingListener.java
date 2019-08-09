@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
@@ -40,6 +56,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -59,11 +76,11 @@ public class AsyncReportingListener implements MessageListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncReportingListener.class);
 
     @Autowired
-    MessageConverter messageConverter;
+    private MessageConverter messageConverter;
 
     @Autowired
     @Qualifier("rabbitTemplate")
-    AmqpTemplate amqpTemplate;
+    private AmqpTemplate amqpTemplate;
 
 
     @Autowired
@@ -100,9 +117,6 @@ public class AsyncReportingListener implements MessageListener {
 
     @Autowired
     private CreateAttachmentHandler createAttachmentHandler;
-
-
-    private CreateLogHelper createLogHelper = this.new CreateLogHelper();
 
     @Override
     @Transactional
@@ -160,9 +174,8 @@ public class AsyncReportingListener implements MessageListener {
                 LOGGER.debug("exception : {}, message : {},  cause : {}",
                         e.getClass().getName(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
             } else {
-                e.printStackTrace();
-//                LOGGER.error("exception : {}, message : {},  cause : {}",
-//                        e.getClass().getName(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
+                LOGGER.error("exception : {}, message : {},  cause : {}",
+                        e.getClass().getName(), e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
             }
             throw new AmqpRejectAndDontRequeueException(e);
         }
@@ -201,11 +214,11 @@ public class AsyncReportingListener implements MessageListener {
         Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
 
         if (itemOptional.isPresent()) {
-            createLogHelper.createItemLog(request, itemOptional.get(), metaInfo, projectId);
+            createItemLog(request, itemOptional.get(), metaInfo, projectId);
         } else {
             Launch launch = launchRepository.findByUuid(request.getItemId())
                     .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
-            createLogHelper.createLaunchLog(request, launch, metaInfo, projectId);
+            createLaunchLog(request, launch, metaInfo, projectId);
         }
     }
 
@@ -260,51 +273,46 @@ public class AsyncReportingListener implements MessageListener {
         }
     }
 
+    private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
+        Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+        logRepository.save(log);
+        saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+    }
+
+    private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
+        Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+        logRepository.save(log);
+        saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
+    }
+
+    private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
+        if (!Objects.isNull(metaInfo)) {
+            Attachment attachment = new AttachmentBuilder().withMetaInfo(metaInfo)
+                    .withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).get();
+
+            createAttachmentHandler.create(attachment, logId);
+        }
+    }
+
+    /**
+     * Cleanup log content corresponding to log request, that was stored in DataStore
+     *
+     * Consider how appropriate it to use this method for dropped messages, that exceeded retry count
+     * and were routed into dropped DLQ
+     *
+     * @param payload
+     */
+    private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
+        // we need to delete only binary data, log and attachment shouldn't be dirty created
+        if (payload.getRight() != null) {
+            BinaryDataMetaInfo metaInfo = payload.getRight();
+            dataStoreService.delete(metaInfo.getFileId());
+            dataStoreService.delete(metaInfo.getThumbnailFileId());
+        }
+    }
 
     private RequestType getRequestType(Message message) {
         return RequestType.valueOf((String) message.getMessageProperties().getHeaders().get(MessageHeaders.REQUEST_TYPE));
-    }
-
-
-    private class CreateLogHelper {
-
-        private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
-            Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
-            logRepository.save(log);
-            saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
-        }
-
-        private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
-            Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
-            logRepository.save(log);
-            saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
-        }
-
-        private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
-            if (!Objects.isNull(metaInfo)) {
-                Attachment attachment = new AttachmentBuilder().withMetaInfo(metaInfo)
-                        .withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).get();
-
-                createAttachmentHandler.create(attachment, logId);
-            }
-        }
-
-        /**
-         * Cleanup log content corresponding to log request, that was stored in DataStore
-         *
-         * Consider how appropriate it to use this method for dropped messages, that exceeded retry count
-         * and were routed into dropped DLQ
-         *
-         * @param payload
-         */
-        private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
-            // we need to delete only binary data, log and attachment shouldn't be dirty created
-            if (payload.getRight() != null) {
-                BinaryDataMetaInfo metaInfo = payload.getRight();
-                dataStoreService.delete(metaInfo.getFileId());
-                dataStoreService.delete(metaInfo.getThumbnailFileId());
-            }
-        }
     }
 
 }

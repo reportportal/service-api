@@ -28,6 +28,9 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.hibernate.Hibernate;
 
@@ -111,8 +114,10 @@ public abstract class StatusChangingStrategy {
 				));
 				parent = parent.getParent();
 			}
-			if (testItem.getLaunch().getStatus() != IN_PROGRESS) {
-				testItem.getLaunch().setStatus(FAILED);
+			Launch launch = launchRepository.findById(testItem.getLaunchId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, testItem.getLaunchId()));
+			if (launch.getStatus() != IN_PROGRESS) {
+				launch.setStatus(FAILED);
 			}
 		}
 	}

@@ -64,7 +64,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.empty());
 		final StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId("1");
 
@@ -83,7 +83,7 @@ class StartTestItemHandlerImplTest {
 
 		final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
 		launch.setStartTime(LocalDateTime.now().minusHours(1));
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.of(launch));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
@@ -100,7 +100,7 @@ class StartTestItemHandlerImplTest {
 
 		final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
 		launch.setStartTime(LocalDateTime.now().plusHours(1));
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.of(launch));
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
@@ -152,7 +152,7 @@ class StartTestItemHandlerImplTest {
 		item.setItemResults(results);
 		item.setStartTime(LocalDateTime.now().minusHours(1));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")

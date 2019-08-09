@@ -99,7 +99,7 @@ public class AnalyzerUtils {
 		RelevantItemInfo relevantItemInfo = new RelevantItemInfo();
 		relevantItemInfo.setItemId(String.valueOf(item.getItemId()));
 		relevantItemInfo.setPath(item.getPath());
-		relevantItemInfo.setLaunchId(String.valueOf(item.getLaunch().getId()));
+		relevantItemInfo.setLaunchId(String.valueOf(item.getLaunchId()));
 		return relevantItemInfo;
 	};
 }

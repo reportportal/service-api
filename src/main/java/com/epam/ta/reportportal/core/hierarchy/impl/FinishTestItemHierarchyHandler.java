@@ -47,7 +47,7 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 
 	@Override
 	protected boolean isIssueRequired(StatusEnum status, TestItem testItem) {
-		return FAILED.equals(status) || ofNullable(testItem.getLaunch()).map(l -> evaluateSkippedAttributeValue(status, l.getId()))
+		return FAILED.equals(status) || ofNullable(testItem.getLaunchId()).map(launchId -> evaluateSkippedAttributeValue(status, launchId))
 				.orElse(false);
 	}
 

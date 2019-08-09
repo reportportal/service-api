@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -56,13 +58,15 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
 	private final ActivityRepository activityRepository;
 	private final TestItemRepository testItemRepository;
+	private final LaunchRepository launchRepository;
 	private final ProjectRepository projectRepository;
 
 	@Autowired
 	public ActivityHandlerImpl(ActivityRepository activityRepository, TestItemRepository testItemRepository,
-			ProjectRepository projectRepository) {
+			LaunchRepository launchRepository, ProjectRepository projectRepository) {
 		this.activityRepository = activityRepository;
 		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
 		this.projectRepository = projectRepository;
 	}
 
@@ -99,7 +103,8 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Long itemId, Filter filter,
 			Pageable pageable) {
 		TestItem testItem = testItemRepository.findById(itemId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, itemId));
-		Launch launch = testItem.getLaunch();
+		Launch launch = launchRepository.findById(testItem.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, testItem.getLaunchId()));
 		expect(projectDetails.getProjectId(), Predicate.isEqual(launch.getProjectId())).verify(ACCESS_DENIED,
 				Suppliers.formattedSupplier("Test item with id '{}' is not under project with id '{}'",
 						itemId,

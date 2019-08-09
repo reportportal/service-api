@@ -114,6 +114,7 @@ class LaunchNotificationSubscriberTest {
 				IntegrationGroupEnum.NOTIFICATION
 		)).thenReturn(Optional.ofNullable(emailIntegration));
 
+		when(userRepository.findLoginById(any())).thenReturn(Optional.of("owner"));
 		when(mailServiceFactory.getDefaultEmailService(emailIntegration)).thenReturn(Optional.ofNullable(emailService));
 
 		launchNotificationSubscriber.handleEvent(event, project, launch.get());

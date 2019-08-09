@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -46,15 +45,13 @@ class DeleteLaunchHandlerImplTest {
 	@Mock
 	private LaunchRepository launchRepository;
 
-	@Mock
-	private MessageBus messageBus;
-
 	@InjectMocks
 	private DeleteLaunchHandlerImpl handler;
 
 	@Test
 	void deleteNotOwnLaunch() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		rpUser.setUserId(2L);
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEFAULT));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,

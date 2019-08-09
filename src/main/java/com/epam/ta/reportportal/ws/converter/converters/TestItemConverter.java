@@ -70,7 +70,7 @@ public final class TestItemConverter {
 		if (item.getParent() != null) {
 			resource.setParent(item.getParent().getItemId());
 		}
-		ofNullable(item.getLaunch()).ifPresent(l -> resource.setLaunchId(l.getId()));
+		ofNullable(item.getLaunchId()).ifPresent(resource::setLaunchId);
 		resource.setPatternTemplates(item.getPatternTemplateTestItems()
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())

@@ -93,7 +93,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		validate(testItem.getLaunch().getId(), projectDetails, user);
+		validate(testItem.getLaunchId(), projectDetails, user);
 		return itemResourceAssembler.toResource(testItem);
 	}
 
@@ -101,7 +101,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findByUuid(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		validate(testItem.getLaunch().getId(), projectDetails, user);
+		validate(testItem.getLaunchId(), projectDetails, user);
 		return itemResourceAssembler.toResource(testItem);
 	}
 

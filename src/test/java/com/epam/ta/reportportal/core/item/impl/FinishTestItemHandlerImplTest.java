@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -39,6 +40,7 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,6 +51,9 @@ class FinishTestItemHandlerImplTest {
 
 	@Mock
 	private TestItemRepository repository;
+
+	@Mock
+	private LaunchRepository launchRepository;
 
 	@InjectMocks
 	private FinishTestItemHandlerImpl handler;
@@ -82,11 +87,17 @@ class FinishTestItemHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
+		launch.setId(1L);
 		User user = new User();
+		user.setId(2L);
 		user.setLogin("owner");
-		launch.setUser(user);
-		item.setLaunch(launch);
+		launch.setUserId(user.getId());
+		item.setItemId(1L);
+		item.setLaunchId(launch.getId());
+		item.setHasChildren(false);
+		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
@@ -104,11 +115,11 @@ class FinishTestItemHandlerImplTest {
 		results.setStatus(StatusEnum.IN_PROGRESS);
 		item.setItemResults(results);
 		Launch launch = new Launch();
-		User user = new User();
-		user.setLogin("test");
-		launch.setUser(user);
-		item.setLaunch(launch);
+		launch.setId(1L);
+		launch.setUserId(1L);
+		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
+		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(

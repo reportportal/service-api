@@ -160,7 +160,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		List<TestItem> testItems = launches.stream().flatMap(id -> {
 			Launch launch = launchRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, id));
 			return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
-				testItem.setLaunch(newLaunch);
+				testItem.setLaunchId(newLaunch.getId());
 				if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
 					testItem.setUniqueId(identifierGenerator.generate(testItem, newLaunch));
 				}

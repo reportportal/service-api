@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -640,11 +641,12 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.name").value("unique bug table"))
 				.andExpect(jsonPath("$.widgetType").value("uniqueBugTable"))
-				.andExpect(jsonPath("$.content.result.ticket1[0].itemId").value(2))
-				.andExpect(jsonPath("$.content.result.ticket1[0].submitter").value("superadmin"))
-				.andExpect(jsonPath("$.content.result.ticket1[0].itemName").value("test item 2"))
-				.andExpect(jsonPath("$.content.result.ticket1[0].url").value("http:/example.com/ticket1"))
-				.andExpect(jsonPath("$.content.result.ticket1[0].launchId").value(1));
+				.andExpect(jsonPath("$.content.result.ticket1.itemId").value(2))
+				.andExpect(jsonPath("$.content.result.ticket1.submitter").value("superadmin"))
+				.andExpect(jsonPath("$.content.result.ticket1.itemName").value("test item 2"))
+				.andExpect(jsonPath("$.content.result.ticket1.url").value("http:/example.com/ticket1"))
+				.andExpect(jsonPath("$.content.result.ticket1.launchId").value(1))
+				.andExpect(jsonPath("$.content.result.ticket1.attributes", hasSize(2)));
 	}
 
 	@Sql("/db/widget/unique-bug-table.sql")

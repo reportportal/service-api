@@ -73,7 +73,8 @@ class LaunchNotificationSubscriberTest {
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
 		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.NOTIFICATIONS_ENABLED,
-				"false").build();
+				"false"
+		).build();
 
 		Project project = new Project();
 		project.setId(1L);

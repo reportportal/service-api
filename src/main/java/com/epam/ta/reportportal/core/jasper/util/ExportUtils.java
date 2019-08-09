@@ -44,7 +44,7 @@ public class ExportUtils {
 	 * Add right shifting for child items depends on depth level
 	 *
 	 * @param input - target {@see TestItem}
-	 * @return String - updated test item name with shifted name
+	 * @return updated test item name with shifted name
 	 */
 	public static String adjustName(TestItem input) {
 		/* Sync buffer instead builder! */

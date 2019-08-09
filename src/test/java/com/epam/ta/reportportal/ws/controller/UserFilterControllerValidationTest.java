@@ -18,14 +18,15 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.ErrorRS;
-import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
-import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
+import com.epam.ta.reportportal.ws.model.filter.Order;
+import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
+import com.epam.ta.reportportal.ws.model.filter.UserFilterCondition;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.Arrays;
 
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -39,9 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:tatyana_gladysheva@epam.com">Tatyana Gladysheva</a>
  */
-class WidgetControllerValidationTest extends BaseMvcTest {
+public class UserFilterControllerValidationTest extends BaseMvcTest {
 
-	private static final String WIDGET_PATH = "/widget";
+	private static final String FILTER_PATH = "/filter";
 
 	private static final String FIELD_NAME_SIZE_MESSAGE = String.format(FIELD_NAME_SIZE_MESSAGE_WITH_FORMAT, 3, 128);
 
@@ -49,14 +50,14 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	private ObjectMapper objectMapper;
 
 	@Test
-	public void createWidgetShouldReturnErrorWhenNameIsNull() throws Exception {
+	public void createFilterShouldReturnErrorWhenNameIsNull() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -67,15 +68,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createWidgetShouldReturnErrorWhenNameIsEmpty() throws Exception {
+	public void createFilterShouldReturnErrorWhenNameIsEmpty() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(EMPTY);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -86,15 +87,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createWidgetShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+	public void createFilterShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(WHITESPACES_NAME_VALUE);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -105,15 +106,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createWidgetShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+	public void createFilterShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(SHORT_NAME_VALUE);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -124,15 +125,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void createWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
+	public void createFilterShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(LONG_NAME_VALUE);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH)
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + FILTER_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -143,14 +144,14 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateWidgetShouldReturnErrorWhenNameIsNull() throws Exception {
+	public void updateFilterShouldReturnErrorWhenNameIsNull() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -161,15 +162,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateWidgetShouldReturnErrorWhenNameIsEmpty() throws Exception {
+	public void updateFilterShouldReturnErrorWhenNameIsEmpty() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(EMPTY);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -180,15 +181,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateWidgetShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
+	public void updateFilterShouldReturnErrorWhenNameConsistsOfWhitespaces() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(WHITESPACES_NAME_VALUE);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -199,15 +200,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateWidgetShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
+	public void updateFilterShouldReturnErrorWhenNameIsLessThanThreeCharacters() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(SHORT_NAME_VALUE);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(SHORT_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -218,15 +219,15 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 	}
 
 	@Test
-	public void updateWidgetShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
+	public void updateFilterShouldReturnErrorWhenNameIsGreaterThanOneHundredAndTwentyEightCharacters() throws Exception {
 		//GIVEN
-		WidgetRQ widgetRQ = prepareWidget();
-		widgetRQ.setName(LONG_NAME_VALUE);
+		UpdateUserFilterRQ userFilterRQ = prepareFilter();
+		userFilterRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + WIDGET_PATH + ID_PATH)
+		MvcResult mvcResult = mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + FILTER_PATH + ID_PATH)
 				.with(token(oAuthHelper.getDefaultToken()))
-				.content(objectMapper.writeValueAsBytes(widgetRQ))
+				.content(objectMapper.writeValueAsBytes(userFilterRQ))
 				.contentType(APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -236,15 +237,19 @@ class WidgetControllerValidationTest extends BaseMvcTest {
 		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
 	}
 
-	private WidgetRQ prepareWidget() {
-		WidgetRQ widgetRQ = new WidgetRQ();
-		widgetRQ.setDescription("description");
-		widgetRQ.setWidgetType("oldLineChart");
-		ContentParameters contentParameters = new ContentParameters();
-		contentParameters.setContentFields(Arrays.asList("number", "name", "user", "statistics$defects$automation_bug$AB002"));
-		contentParameters.setItemsCount(50);
-		widgetRQ.setContentParameters(contentParameters);
-		widgetRQ.setShare(true);
-		return widgetRQ;
+	private UpdateUserFilterRQ prepareFilter() {
+		UpdateUserFilterRQ userFilterRQ = new UpdateUserFilterRQ();
+		userFilterRQ.setObjectType("Launch");
+
+		Order order = new Order();
+		order.setIsAsc(false);
+		order.setSortingColumnName("startTime");
+
+		userFilterRQ.setOrders(Lists.newArrayList(order));
+
+		userFilterRQ.setDescription("description");
+		userFilterRQ.setConditions(Sets.newHashSet(new UserFilterCondition("name", "cnt", "test")));
+
+		return userFilterRQ;
 	}
 }

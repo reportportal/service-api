@@ -68,7 +68,8 @@ class StartLaunchHandlerImplTest {
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setName("test");
 
-		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser, extractProjectDetails(rpUser, "test_project"),
+		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
+				extractProjectDetails(rpUser, "test_project"),
 				startLaunchRQ
 		);
 

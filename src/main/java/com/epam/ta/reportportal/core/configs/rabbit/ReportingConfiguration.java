@@ -37,8 +37,8 @@ import java.util.List;
 @Conditional(Conditions.NotTestCondition.class)
 public class ReportingConfiguration {
 
-	public static final long DEAD_LETTER_DELAY_MILLIS = 30_000L;
-	public static final long DEAD_LETTER_MAX_RETRY = 3L;
+	public static final long DEAD_LETTER_DELAY_MILLIS = 60_000L;
+	public static final long DEAD_LETTER_MAX_RETRY = 10L;
 
 	/**
 	 * Exchanges
@@ -53,7 +53,7 @@ public class ReportingConfiguration {
 	public static final String QUEUE_PREFIX = "reporting";
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
-	public static final int QUEUE_AMOUNT = 3;
+	public static final int QUEUE_AMOUNT = 20;
 
 
 	@Bean

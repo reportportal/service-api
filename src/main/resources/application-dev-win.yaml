@@ -8,7 +8,7 @@ rp:
   db:
     host: localhost
   plugins:
-    path: plugins
+    rootDir: plugins
   datasource:
     maximumPoolSize: 5
 logging:

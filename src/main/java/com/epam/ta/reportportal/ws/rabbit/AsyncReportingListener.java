@@ -262,7 +262,7 @@ public class AsyncReportingListener implements MessageListener {
 
 
     private RequestType getRequestType(Message message) {
-        return RequestType.fromName((String) message.getMessageProperties().getHeaders().get(MessageHeaders.REQUEST_TYPE));
+        return RequestType.valueOf((String) message.getMessageProperties().getHeaders().get(MessageHeaders.REQUEST_TYPE));
     }
 
 

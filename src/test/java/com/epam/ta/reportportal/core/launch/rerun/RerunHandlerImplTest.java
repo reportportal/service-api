@@ -205,7 +205,7 @@ class RerunHandlerImplTest {
 		TestItem item = new TestItem();
 		item.setItemId(1L);
 		item.setName(name);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		item.setDescription("desc");
 		item.setType(TestItemTypeEnum.STEP);
 		TestItemResults itemResults = new TestItemResults();

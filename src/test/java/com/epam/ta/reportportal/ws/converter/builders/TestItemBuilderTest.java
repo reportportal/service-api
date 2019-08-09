@@ -56,13 +56,13 @@ class TestItemBuilderTest {
 		final TestItem parent = new TestItem();
 		final TestItem testItem = new TestItemBuilder().addDescription(description)
 				.addType(typeValue)
-				.addLaunch(launch)
+				.addLaunchId(launch.getId())
 				.addParameters(Collections.singletonList(parameterResource))
 				.addAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")))
 				.addParent(parent)
 				.get();
 
-		assertThat(testItem.getLaunch()).isEqualToComparingFieldByField(launch);
+		assertThat(testItem.getLaunchId()).isEqualToComparingFieldByField(launch.getId());
 		assertEquals(description, testItem.getDescription());
 		assertEquals(TestItemTypeEnum.STEP, testItem.getType());
 		final Parameter param = new Parameter();

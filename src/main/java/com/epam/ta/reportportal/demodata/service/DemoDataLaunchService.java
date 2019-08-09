@@ -76,7 +76,7 @@ public class DemoDataLaunchService {
 		);
 
 		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
-		launch.setUser(user);
+		launch.setUserId(user.getId());
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		return launch;

@@ -62,7 +62,7 @@ public class FromPassedStatusChangingStrategy extends StatusChangingStrategy {
 		StatusEnum oldParentStatus = item.getParent().getItemResults().getStatus();
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
 
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunch().getId(),
+		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunchId(),
 				SKIPPED_ISSUE_KEY,
 				true
 		);

@@ -89,7 +89,9 @@ public class ControllerUtils {
 	}
 
 	public static String getReportingQueueKey(String launchUuid) {
-		return String.valueOf(Math.abs(UUID.fromString(launchUuid).hashCode() % QUEUE_AMOUNT));
+		int value = UUID.fromString(launchUuid).hashCode();
+		value = value & 0x7fffffff;
+		return String.valueOf(value % QUEUE_AMOUNT);
 	}
 
 }

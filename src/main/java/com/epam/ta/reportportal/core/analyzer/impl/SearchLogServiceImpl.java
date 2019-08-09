@@ -38,6 +38,8 @@ import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_SEARCH_LOG_RS;
@@ -59,6 +62,8 @@ import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_S
 @Service
 @Transactional
 public class SearchLogServiceImpl implements SearchLogService {
+
+	private static final int LAUNCHES_FILTER_LIMIT = 10;
 
 	private final ProjectRepository projectRepository;
 
@@ -130,15 +135,15 @@ public class SearchLogServiceImpl implements SearchLogService {
 	}
 
 	private SearchRq prepareFilter(SearchLogRq request, Long projectId) {
-		UserFilter filter = userFilterRepository.findByIdAndProjectId(request.getFilterId(), projectId)
+		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(request.getFilterId(), projectId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, request.getFilterId(), projectId));
-		expect(filter.getTargetClass(), equalTo(ObjectType.Launch)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				formattedSupplier("Filter type '{}' is not supported", filter.getTargetClass())
+		expect(userFilter.getTargetClass(), equalTo(ObjectType.Launch)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				formattedSupplier("Filter type '{}' is not supported", userFilter.getTargetClass())
 		);
 
-		List<Long> filteredLaunchIds = launchRepository.findByFilter(new Filter(filter.getTargetClass().getClassObject(),
-				filter.getFilterCondition()
-		))
+		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(), userFilter.getFilterCondition());
+		PageRequest pageable = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));
+		List<Long> filteredLaunchIds = launchRepository.findByFilter(filter, pageable)
 				.stream()
 				.map(Launch::getId)
 				.collect(Collectors.toList());

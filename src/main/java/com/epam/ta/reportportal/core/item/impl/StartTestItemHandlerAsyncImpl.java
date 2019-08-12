@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
+import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,7 +31,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_START;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -48,11 +50,12 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
 		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		amqpTemplate.convertAndSend(QUEUE_ITEM_START, request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			headers.put(MessageHeaders.PARENT_ID, "");
+			headers.put(MessageHeaders.PARENT_ITEM_ID, "");
 			return message;
 		});
 
@@ -67,11 +70,12 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
 		request.setUuid(Optional.ofNullable(request.getUuid()).orElse(UUID.randomUUID().toString()));
-		amqpTemplate.convertAndSend(QUEUE_ITEM_START, request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			headers.put(MessageHeaders.PARENT_ID, parentId);
+			headers.put(MessageHeaders.PARENT_ITEM_ID, parentId);
 			return message;
 		});
 

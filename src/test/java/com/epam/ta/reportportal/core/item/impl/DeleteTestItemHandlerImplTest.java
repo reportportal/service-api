@@ -87,6 +87,12 @@ class DeleteTestItemHandlerImplTest {
 	void deleteInProgressItem() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.PASSED);
+		launch.setProjectId(1L);
+		launch.setUserId(1L);
+
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.IN_PROGRESS,
 				StatusEnum.IN_PROGRESS,
 				1L,
@@ -105,6 +111,12 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemWithInProgressLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.IN_PROGRESS);
+		launch.setProjectId(1L);
+		launch.setUserId(1L);
+
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.IN_PROGRESS, 1L, "test")));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -120,6 +132,12 @@ class DeleteTestItemHandlerImplTest {
 	void deleteTestItemFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.PASSED);
+		launch.setProjectId(2L);
+		launch.setUserId(1L);
+
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 2L, "test")));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -131,8 +149,15 @@ class DeleteTestItemHandlerImplTest {
 	@Test
 	void deleteNotOwnTestItem() {
 		final ReportPortalUser rpUser = getRpUser("not owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		rpUser.setUserId(2L);
+
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.PASSED);
+		launch.setProjectId(1L);
+		launch.setUserId(1L);
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(getTestItem(StatusEnum.PASSED, StatusEnum.FAILED, 1L, "owner")));
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -153,6 +178,11 @@ class DeleteTestItemHandlerImplTest {
 		parent.setPath(path);
 		item.setParent(parent);
 
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.PASSED);
+		launch.setProjectId(1L);
+		launch.setUserId(1L);
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
 		doNothing().when(logIndexer).cleanIndex(any(), any());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(logRepository.findIdsByTestItemId(item.getItemId())).thenReturn(Collections.emptyList());
@@ -172,12 +202,14 @@ class DeleteTestItemHandlerImplTest {
 		results.setStatus(itemStatus);
 		item.setItemResults(results);
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setStatus(launchStatus);
 		launch.setProjectId(projectId);
 		User user = new User();
+		user.setId(1L);
 		user.setLogin(owner);
-		launch.setUser(user);
-		item.setLaunch(launch);
+		launch.setUserId(user.getId());
+		item.setLaunchId(launch.getId());
 		return item;
 	}
 }

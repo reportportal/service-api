@@ -33,6 +33,7 @@ public final class AnalyzerUtils {
 	public static final String ANALYZER_KEY = "analyzer";
 	static final String ANALYZER_PRIORITY = "analyzer_priority";
 	static final String ANALYZER_INDEX = "analyzer_index";
+	static final String ANALYZER_LOG_SEARCH = "analyzer_log_search";
 
 	/**
 	 * Comparing by client service priority

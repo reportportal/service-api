@@ -27,6 +27,9 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -62,7 +65,7 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 		item.getItemResults().setStatus(providedStatus);
 
 		if (SKIPPED.equals(providedStatus)) {
-			Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunch().getId(),
+			Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(item.getLaunchId(),
 					SKIPPED_ISSUE_KEY,
 					true
 			);
@@ -86,11 +89,10 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 				item.getItemResults().setIssue(null);
 			});
 			changeStatusRecursively(item, user, projectId);
-			if (item.getLaunch().getStatus() != IN_PROGRESS) {
-				item.getLaunch()
-						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), StatusEnum.PASSED) ?
-								FAILED :
-								PASSED);
+			Launch launch = launchRepository.findById(item.getLaunchId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+			if (launch.getStatus() != IN_PROGRESS) {
+				launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED);
 			}
 		}
 		messageBus.publishActivity(new TestItemStatusChangedEvent(before,

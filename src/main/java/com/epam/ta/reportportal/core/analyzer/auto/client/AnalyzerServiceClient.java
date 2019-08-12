@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.client;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.SearchRq;
 
 import java.util.List;
 import java.util.Map;
@@ -58,5 +59,12 @@ public interface AnalyzerServiceClient {
 	 */
 	Map<String, List<AnalyzedItemRs>> analyze(IndexLaunch rq);
 
+	/**
+	 * Searches logs with similar log message
+	 *
+	 * @param rq {@link SearchRq} request
+	 * @return {@link List<Long>} of log ids
+	 */
+	List<Long> searchLogs(SearchRq rq);
 
 }

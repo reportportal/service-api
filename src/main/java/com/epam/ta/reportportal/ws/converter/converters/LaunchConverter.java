@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
@@ -42,6 +43,9 @@ public class LaunchConverter {
 
 	@Autowired
 	private AnalyzerStatusCache analyzerStatusCache;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
 		LaunchActivityResource resource = new LaunchActivityResource();
@@ -70,7 +74,7 @@ public class LaunchConverter {
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
-		ofNullable(db.getUser()).ifPresent(u -> resource.setOwner(u.getLogin()));
+		userRepository.findLoginById(db.getUserId()).ifPresent(resource::setOwner);
 		return resource;
 	};
 

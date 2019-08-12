@@ -152,7 +152,7 @@ public class RerunHandlerImpl implements RerunHandler {
 	}
 
 	private TestItem makeRetry(StartTestItemRQ request, Launch launch, TestItem parent) {
-		TestItem retry = new TestItemBuilder().addLaunch(launch)
+		TestItem retry = new TestItemBuilder().addLaunchId(launch.getId())
 				.addStartItemRequest(request)
 				.addAttributes(request.getAttributes())
 				.addParent(parent)

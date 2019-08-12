@@ -112,6 +112,13 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	}
 
 	@Override
+	public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
+		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		validate(launch, projectDetails);
+		return launchConverter.TO_RESOURCE.apply(launch);
+	}
+
+	@Override
 	public LaunchResource getLaunchByProjectName(String projectName, Pageable pageable, Filter filter, String username) {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
@@ -298,7 +305,7 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 
 	private void fillWithAdditionalParams(Map<String, Object> params, Launch launch, String userFullName) {
 
-		Optional<String> owner = userRepository.findById(launch.getUser().getId()).map(User::getFullName);
+		Optional<String> owner = userRepository.findById(launch.getUserId()).map(User::getFullName);
 
 		/* Check if launch owner still in system if not - setup principal */
 		params.put(LaunchReportConstants.OWNER, owner.orElse(userFullName));

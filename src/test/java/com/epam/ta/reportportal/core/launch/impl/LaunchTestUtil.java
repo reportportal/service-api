@@ -41,8 +41,9 @@ public class LaunchTestUtil {
 		launch.setStatus(status);
 		launch.setStartTime(LocalDateTime.now().minusHours(3));
 		User user = new User();
-		user.setLogin("test");
-		launch.setUser(user);
+		user.setId(1L);
+		user.setLogin("owner");
+		launch.setUserId(user.getId());
 		launch.setMode(mode);
 		launch.setUuid("uuid");
 		launch.setDescription("description");

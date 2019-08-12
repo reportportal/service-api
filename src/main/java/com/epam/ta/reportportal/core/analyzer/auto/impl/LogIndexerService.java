@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLaunch;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -94,7 +93,7 @@ public class LogIndexerService implements LogIndexer {
 				Launch launch = launchRepository.findById(launchId)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
-						testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE),
+						testItemRepository.findTestItemsByLaunchId(launch.getId()),
 						analyzerConfig
 				);
 				return indexLaunch.map(it -> {
@@ -162,10 +161,7 @@ public class LogIndexerService implements LogIndexer {
 	 */
 	private List<IndexLaunch> prepareLaunches(List<Launch> launches, AnalyzerConfig analyzerConfig) {
 		return launches.stream()
-				.map(it -> launchPreparerService.prepare(it,
-						testItemRepository.findAllNotInIssueGroupByLaunch(it.getId(), TestItemIssueGroup.TO_INVESTIGATE),
-						analyzerConfig
-				))
+				.map(it -> launchPreparerService.prepare(it, testItemRepository.findTestItemsByLaunchId(it.getId()), analyzerConfig))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.collect(Collectors.toList());

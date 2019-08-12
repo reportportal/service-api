@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
@@ -38,12 +38,10 @@ public class Predicates {
 	/**
 	 * Checks if the test item is suitable for indexing in analyzer.
 	 */
-	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
-			&& testItem.getItemResults().getIssue() != null && !TestItemIssueGroup.TO_INVESTIGATE.equals(testItem.getItemResults()
+	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null && testItem.getType()
+			.equals(TestItemTypeEnum.STEP) && testItem.getItemResults().getIssue() != null && !testItem.getItemResults()
 			.getIssue()
-			.getIssueType()
-			.getIssueGroup()
-			.getTestItemIssueGroup()) && !testItem.getItemResults().getIssue().getIgnoreAnalyzer();
+			.getIgnoreAnalyzer();
 	/**
 	 * Checks if the launch is suitable for indexing in analyzer
 	 */

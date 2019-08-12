@@ -110,7 +110,7 @@ class LogIndexerServiceTest {
 	private TestItem createTestItem(Long id, TestItemIssueGroup issueGroup) {
 		TestItem ti = new TestItem();
 		ti.setItemId(id);
-		ti.setLaunch(new Launch(id));
+		ti.setLaunchId(id);
 		ti.setItemResults(new TestItemResults());
 		IssueType issueType = new IssueType();
 		issueType.setLocator(issueGroup.getLocator());

@@ -128,6 +128,16 @@ public class TestItemController {
 
 	}
 
+	@Transactional(readOnly = true)
+	@GetMapping("/uuid/{itemId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by UUID")
+	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable String itemId) {
+		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
+
+	}
+
 	//TODO check pre-defined filter
 	@Transactional(readOnly = true)
 	@GetMapping

@@ -64,7 +64,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.empty());
 		final StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchId("1");
 
@@ -83,12 +83,27 @@ class StartTestItemHandlerImplTest {
 
 		final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
 		launch.setStartTime(LocalDateTime.now().minusHours(1));
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.of(launch));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	@Disabled
+	void startRootItemUnderFinishedLaunch() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
+		startTestItemRQ.setLaunchId("1");
+
+		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.PASSED)));
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
+		);
+		assertEquals("Start test item is not allowed. Launch '1' is not in progress", exception.getMessage());
 	}
 
 	@Test
@@ -100,7 +115,7 @@ class StartTestItemHandlerImplTest {
 
 		final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
 		launch.setStartTime(LocalDateTime.now().plusHours(1));
-		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(launch));
+		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.of(launch));
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ)
@@ -138,7 +153,6 @@ class StartTestItemHandlerImplTest {
 	}
 
 	@Test
-	@Disabled
 	void startChildItemUnderFinishedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
@@ -157,7 +171,8 @@ class StartTestItemHandlerImplTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
 		);
-		assertEquals("Start test item is not allowed. Parent Item '1' is not in progress", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: " +
+				"'Unable to add a not nested step item, because parent item with ID = '1' is a nested step'", exception.getMessage());
 	}
 
 	@Test

@@ -20,6 +20,9 @@ import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.analyzer.model.IndexLaunch;
+import com.epam.ta.reportportal.core.analyzer.model.SearchRq;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,18 +31,17 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.*;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 @Service
 public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
 	private static final String ANALYZE_ROUTE = "analyze";
+	private static final String SEARCH_ROUTE = "search";
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
@@ -65,9 +67,34 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 		return resultMap;
 	}
 
+	@Override
+	public List<Long> searchLogs(SearchRq rq) {
+		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(it -> ofNullable(it.getArguments().get(ANALYZER_LOG_SEARCH)).map(arg -> (Boolean) arg).orElse(Boolean.FALSE))
+				.collect(toList());
+		return search(rq, analyzerExchanges);
+	}
+
+	private List<Long> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {
+		if (CollectionUtils.isEmpty(analyzerExchanges)) {
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+					"There are no analyzer services with search logs support deployed."
+			);
+		}
+		ExchangeInfo prioritizedExchange = Collections.max(analyzerExchanges,
+				Comparator.comparing(exchangeInfo -> (int) exchangeInfo.getArguments().get(ANALYZER_PRIORITY))
+		);
+		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
+				SEARCH_ROUTE,
+				rq,
+				new ParameterizedTypeReference<List<Long>>() {
+				}
+		);
+	}
+
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
-		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(
-				exchangeInfo.getName(),
+		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
 				ANALYZE_ROUTE,
 				Collections.singletonList(rq),
 				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {

@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
+import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,7 +29,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_ITEM_FINISH;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -46,8 +48,9 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 			FinishTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(QUEUE_ITEM_FINISH, request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
 			headers.put(MessageHeaders.ITEM_ID, testItemId);

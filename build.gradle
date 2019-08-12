@@ -272,6 +272,11 @@ test {
     //    testLogging.showStandardStreams = true
     maxParallelForks = 1
 
+    testLogging {
+        events 'failed'
+        exceptionFormat 'short'
+    }
+
     jacocoTestReport {
         reports {
             xml.enabled true

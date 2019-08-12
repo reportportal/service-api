@@ -66,7 +66,7 @@ class StartTestItemHandlerImplTest {
 
 		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.empty());
 		final StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("1");
+		rq.setLaunchUuid("1");
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startRootItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq)
@@ -78,7 +78,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemUnderLaunchFromAnotherProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		final Launch launch = getLaunch(2L, StatusEnum.IN_PROGRESS);
@@ -96,7 +96,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemUnderFinishedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.PASSED)));
 
@@ -110,7 +110,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemEarlierThanLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		final Launch launch = getLaunch(1L, StatusEnum.IN_PROGRESS);
@@ -139,7 +139,7 @@ class StartTestItemHandlerImplTest {
 
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		TestItem item = new TestItem();
@@ -156,7 +156,7 @@ class StartTestItemHandlerImplTest {
 	void startChildItemUnderFinishedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 
 		TestItem item = new TestItem();
@@ -171,17 +171,17 @@ class StartTestItemHandlerImplTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
 		);
-		assertEquals("Error in handled Request. Please, check specified parameters: " +
-				"'Unable to add a not nested step item, because parent item with ID = '1' is a nested step'", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: "
+				+ "'Unable to add a not nested step item, because parent item with ID = '1' is a nested step'", exception.getMessage());
 	}
 
 	@Test
 	void startChildItemWithNotExistedLaunch() {
 		ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		startTestItemRQ.setLaunchId("1");
+		startTestItemRQ.setLaunchUuid("1");
 
 		TestItem item = new TestItem();
 		item.setItemId(1L);
@@ -189,8 +189,7 @@ class StartTestItemHandlerImplTest {
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(
-				ReportPortalException.class,
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
 		);
 

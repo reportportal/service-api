@@ -11,6 +11,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -31,7 +33,7 @@ public class LaunchPatternAnalysisSubscriber implements LaunchFinishedEventSubsc
 				.get(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute()));
 
 		if (isPatternAnalysisEnabled) {
-			patternAnalyzer.analyzeTestItems(launch);
+			patternAnalyzer.analyzeTestItems(launch, Collections.emptySet());
 		}
 	}
 

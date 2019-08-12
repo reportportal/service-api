@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.model;
+package com.epam.ta.reportportal.core.analyzer.auto.model;
 
 import java.util.List;
 

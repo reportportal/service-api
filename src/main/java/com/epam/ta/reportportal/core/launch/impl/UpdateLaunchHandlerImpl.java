@@ -128,7 +128,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 			AnalyzeLaunchRQ analyzeRQ) {
 		AnalyzerType analyzerType = AnalyzerType.fromString(analyzerTypeName);
 		launchAnalysisStrategyMapping.get(analyzerType).analyze(projectDetails, analyzeRQ);
-		return new OperationCompletionRS(analyzerType.getName() + " analysis for launch ID='" + analyzeRQ.getLaunchId() + "' started.");
+		return new OperationCompletionRS(analyzerType.getName() + " analysis for launch with ID='" + analyzeRQ.getLaunchId() + "' started.");
 	}
 
 	@Override

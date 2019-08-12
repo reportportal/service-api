@@ -49,13 +49,13 @@ public interface UpdateLaunchHandler {
 	/**
 	 * Start launch analyzer on demand
 	 *
-	 * @param analyzerType    {@link com.epam.ta.reportportal.core.analyzer.config.AnalyzerType#name}
-	 *                        or {@link com.epam.ta.reportportal.core.analyzer.config.AnalyzerType#shortName}
-	 * @param projectDetails  Project Details
-	 * @param analyzeLaunchRQ Launch analyze rq
+	 * @param analyzerTypeName {@link com.epam.ta.reportportal.core.analyzer.config.AnalyzerType#name}
+	 *                         or {@link com.epam.ta.reportportal.core.analyzer.config.AnalyzerType#shortName}
+	 * @param projectDetails   Project Details
+	 * @param analyzeLaunchRQ  Launch analyze rq
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(String analyzerType, ReportPortalUser.ProjectDetails projectDetails,
+	OperationCompletionRS startLaunchAnalyzer(String analyzerTypeName, ReportPortalUser.ProjectDetails projectDetails,
 			AnalyzeLaunchRQ analyzeLaunchRQ);
 
 	/**

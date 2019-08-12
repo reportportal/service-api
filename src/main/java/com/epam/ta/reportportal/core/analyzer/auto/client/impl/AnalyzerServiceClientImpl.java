@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
-import com.epam.ta.reportportal.core.analyzer.model.SearchRq;
+import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;

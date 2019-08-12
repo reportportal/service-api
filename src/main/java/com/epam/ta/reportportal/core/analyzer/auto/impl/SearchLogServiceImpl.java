@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.impl;
+package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.analyzer.SearchLogService;
-import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.model.SearchRq;
+import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.SearchMode;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,6 +102,9 @@ public class SearchLogServiceImpl implements SearchLogService {
 				item.getItemResults().getStatus()
 		);
 
+		Launch launch = launchRepository.findById(item.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+
 		SearchMode searchMode = SearchMode.fromString(request.getSearchMode())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, request.getSearchMode()));
 
@@ -109,8 +113,8 @@ public class SearchLogServiceImpl implements SearchLogService {
 				AnalyzerUtils.getAnalyzerConfig(project).getNumberOfLogLines()
 		));
 		searchRq.setItemId(item.getItemId());
-		searchRq.setLaunchId(item.getLaunch().getId());
-		searchRq.setLaunchName(item.getLaunch().getName());
+		searchRq.setLaunchId(launch.getId());
+		searchRq.setLaunchName(launch.getName());
 		searchRq.setProjectId(project.getId());
 
 		List<String> logMessages = logRepository.findMessagesByItemIdAndLevelGte(item.getItemId(), LogLevel.ERROR_INT);
@@ -141,7 +145,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 				formattedSupplier("Filter type '{}' is not supported", userFilter.getTargetClass())
 		);
 
-		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(), userFilter.getFilterCondition());
+		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(), Lists.newArrayList(userFilter.getFilterCondition()));
 		PageRequest pageable = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));
 		List<Long> filteredLaunchIds = launchRepository.findByFilter(filter, pageable)
 				.stream()

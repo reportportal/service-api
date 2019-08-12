@@ -131,6 +131,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void finishTestItemPositive() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchId(UUID.randomUUID().toString());
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("PASSED");
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(
@@ -140,6 +141,8 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void finishRootTestItemWithoutStatus() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchId(UUID.randomUUID().toString());
+		rq.setLaunchId(UUID.randomUUID().toString());
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").content(objectMapper.writeValueAsBytes(
 				rq)).contentType(APPLICATION_JSON).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
@@ -148,6 +151,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void finishTestItemWithFailedStatus() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchId(UUID.randomUUID().toString());
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("FAILED");
 		Issue issue = new Issue();
@@ -162,6 +166,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void finishTestItemWithoutIssueType() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchId(UUID.randomUUID().toString());
 		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		rq.setStatus("FAILED");
 		mockMvc.perform(put(
@@ -173,6 +178,11 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void getTestItemPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getTestItemUuidPositive() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test

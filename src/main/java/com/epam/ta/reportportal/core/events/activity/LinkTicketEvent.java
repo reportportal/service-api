@@ -17,9 +17,12 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.base.Strings;
+
+import java.util.Arrays;
 
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.TICKET_ID;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.TICKET;
@@ -30,22 +33,36 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
  */
 public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> implements ActivityEvent {
 
+	private ActivityAction activityAction;
+
 	public LinkTicketEvent() {
 	}
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin) {
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, Long userId, String userLogin,
+			ActivityAction activityAction) {
 		super(userId, userLogin, before, after);
+		if (!Arrays.asList(LINK_ISSUE_AA, LINK_ISSUE).contains(activityAction)) {
+			throw new IllegalArgumentException("Activity action '" + activityAction + "' is not supported");
+		}
+		this.activityAction = activityAction;
 	}
 
-	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin) {
+	public LinkTicketEvent(TestItemActivityResource before, TestItemActivityResource after, String userLogin,
+			ActivityAction activityAction) {
 		super(null, userLogin, before, after);
+		if (!Arrays.asList(LINK_ISSUE_AA, LINK_ISSUE).contains(activityAction)) {
+			throw new IllegalArgumentException("Activity action '" + activityAction + "' is not supported");
+		}
+		this.activityAction = activityAction;
 	}
 
 	@Override
 	public Activity toActivity() {
 		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()
-				.addAction(getAfter().isAutoAnalyzed() ? LINK_ISSUE_AA : LINK_ISSUE)
-				.addActivityEntityType(TICKET).addUserId(getUserId()).addUserName(getUserLogin())
+				.addAction(activityAction)
+				.addActivityEntityType(TICKET)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
 				.addObjectId(getAfter().getId())
 				.addObjectName(getAfter().getName())
 				.addProjectId(getAfter().getProjectId());

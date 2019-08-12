@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
+import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,7 +37,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LOG;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ
@@ -45,7 +47,7 @@ import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguratio
  * @author Andrei Varabyeu
  */
 @Service("asyncCreateLogHandler")
-public class CreateLogHandlerAsync implements CreateLogHandler {
+public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 
 	/**
 	 * We are using {@link Provider} there because we need
@@ -87,8 +89,9 @@ public class CreateLogHandlerAsync implements CreateLogHandler {
 	}
 
 	private void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
-		amqpTemplate.convertAndSend(QUEUE_LOG, DeserializablePair.of(request, metaInfo), message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), DeserializablePair.of(request, metaInfo), message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
 			headers.put(MessageHeaders.PROJECT_ID, projectId);
 			headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
 			return message;

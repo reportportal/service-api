@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -163,8 +164,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(
-						issues,
+				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(issues,
 						user.getUsername()
 				)));
 
@@ -218,8 +218,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
-					INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
@@ -264,7 +263,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
 				user.getUserId(),
-				user.getUsername()
+				user.getUsername(),
+				ActivityAction.LINK_ISSUE
 		)));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
@@ -417,12 +417,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(),
-				not(equalTo(StatusEnum.PASSED)),
-				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
-						StatusEnum.PASSED.name()
-				)
-		).verify();
+		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
+				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
+				StatusEnum.PASSED.name()
+		)).verify();
 
 		expect(item.isHasChildren(),
 				equalTo(FALSE),

@@ -27,6 +27,7 @@ import org.springframework.test.context.jdbc.Sql;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,6 +44,7 @@ class LogControllerTest extends BaseMvcTest {
 	@Test
 	void createLogPositive() throws Exception {
 		SaveLogRQ rq = new SaveLogRQ();
+		rq.setLaunchId(UUID.randomUUID().toString());
 		rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
 		rq.setLevel("ERROR");
 		rq.setMessage("log message");
@@ -66,6 +68,11 @@ class LogControllerTest extends BaseMvcTest {
 	@Test
 	void getLogPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/2").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getLogUuidPositive() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test

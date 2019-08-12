@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
+import com.epam.ta.reportportal.ws.rabbit.RequestType;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +30,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_LAUNCH_START;
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
+import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -47,8 +49,9 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 		validateRoles(projectDetails, request);
 
 		request.setUuid(UUID.randomUUID().toString());
-		amqpTemplate.convertAndSend(QUEUE_LAUNCH_START, request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getUuid()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());
 			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
 			return message;

@@ -105,9 +105,6 @@ public class SearchLogServiceImpl implements SearchLogService {
 				item.getItemResults().getStatus()
 		);
 
-		Launch launch = launchRepository.findById(item.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
-
 		SearchMode searchMode = SearchMode.fromString(request.getSearchMode())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, request.getSearchMode()));
 

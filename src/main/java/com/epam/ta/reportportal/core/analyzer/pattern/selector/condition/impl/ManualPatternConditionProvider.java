@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import org.jooq.Operator;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.IssueCriteriaConstant.CRITERIA_ISSUE_AUTO_ANALYZED;
 
@@ -33,7 +34,7 @@ public class ManualPatternConditionProvider extends AbstractPatternConditionProv
 
 	@Override
 	protected ConvertibleCondition provideCondition() {
-		return FilterCondition.builder().eq(CRITERIA_ISSUE_AUTO_ANALYZED, Boolean.FALSE.toString()).build();
+		return FilterCondition.builder().eq(CRITERIA_ISSUE_AUTO_ANALYZED, Boolean.FALSE.toString()).withOperator(Operator.OR).build();
 	}
 
 }

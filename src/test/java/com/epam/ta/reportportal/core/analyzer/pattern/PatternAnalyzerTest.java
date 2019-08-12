@@ -16,7 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern;
 
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.PatternConditionProviderChain;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.analyzer.pattern.impl.PatternAnalyzerImpl;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
@@ -30,6 +32,7 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.TaskExecutor;
 
@@ -50,6 +53,7 @@ class PatternAnalyzerTest {
 	private final IssueGroupRepository issueGroupRepository = mock(IssueGroupRepository.class);
 	private final PatternTemplateRepository patternTemplateRepository = mock(PatternTemplateRepository.class);
 	private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
+	private final PatternConditionProviderChain patternConditionProviderChain = mock(PatternConditionProviderChain.class);
 
 	private final TaskExecutor taskExecutor = mock(TaskExecutor.class);
 
@@ -68,13 +72,13 @@ class PatternAnalyzerTest {
 
 		when(analysisSelectorMapping.get(PatternTemplateType.STRING)).thenReturn(stringSelector);
 
-		when(stringSelector.selectItemsByPattern(any(Long.class), any(IssueGroup.class), any(PatternTemplate.class))).thenReturn(
+		when(stringSelector.selectItemsByPattern(any(Queryable.class), any(PatternTemplate.class))).thenReturn(
 				getPatternTemplateTestItemPojos(1L));
-		when(stringSelector.selectItemsByPattern(any(Long.class), any(IssueGroup.class), any(PatternTemplate.class))).thenReturn(
+		when(stringSelector.selectItemsByPattern(any(Queryable.class),any(PatternTemplate.class))).thenReturn(
 				getPatternTemplateTestItemPojos(2L));
 		doNothing().when(taskExecutor).execute(any());
 
-		patternAnalyzer.analyzeTestItems(launch);
+		patternAnalyzer.analyzeTestItems(launch, Sets.newHashSet());
 	}
 
 	private List<PatternTemplate> getPatternTemplates() {

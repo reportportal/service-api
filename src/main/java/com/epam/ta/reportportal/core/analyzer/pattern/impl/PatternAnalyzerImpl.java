@@ -16,9 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.impl;
 
-import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
@@ -50,6 +48,7 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATTERN_TEMPLATE_NAME;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -92,9 +91,10 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 		try {
 			analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
 
-			Filter filter = createItemFilter(launch.getId(), analyzeModes);
+			ConvertibleCondition commonItemCondition = createCommonItemCondition(launch.getId(), analyzeModes);
 			patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
 					.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> {
+						Filter filter = createItemFilter(commonItemCondition, patternTemplate.getName());
 						List<PatternTemplateTestItemPojo> patternTemplateTestItems = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType())
 								.selectItemsByPattern(filter, patternTemplate);
 						patternTemplateRepository.saveInBatch(patternTemplateTestItems);
@@ -106,7 +106,6 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 									patternItem.getTestItemId(),
 									patternTemplateActivityResource
 							);
-
 							messageBus.publishActivity(patternMatchedEvent);
 						});
 
@@ -119,7 +118,7 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 
 	}
 
-	private Filter createItemFilter(Long launchId, Set<AnalyzeItemsMode> analyzeModes) {
+	private ConvertibleCondition createCommonItemCondition(Long launchId, Set<AnalyzeItemsMode> analyzeModes) {
 
 		IssueGroup issueGroup = issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
 
@@ -129,7 +128,20 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 		patternConditionProviderChain.provideCondition(analyzeModes)
 				.ifPresent(condition -> testItemCondition.getConditions().add(condition));
 
-		return Filter.builder().withTarget(TestItem.class).withCondition(testItemCondition).build();
+		return testItemCondition;
+	}
+
+	private Filter createItemFilter(ConvertibleCondition commonItemCondition, String patternTemplateName) {
+		return Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(commonItemCondition)
+				.withCondition(FilterCondition.builder()
+						.withCondition(Condition.ANY)
+						.withNegative(true)
+						.withSearchCriteria(CRITERIA_PATTERN_TEMPLATE_NAME)
+						.withValue(patternTemplateName)
+						.build())
+				.build();
 	}
 
 }

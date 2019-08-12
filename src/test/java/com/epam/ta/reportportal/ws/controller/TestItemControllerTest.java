@@ -75,7 +75,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
+		rq.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -89,7 +89,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startRootItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
+		rq.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("RootItem");
 		rq.setType("SUITE");
 		rq.setParameters(getParameters());
@@ -102,7 +102,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemPositive() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
+		rq.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setUniqueId(UUID.randomUUID().toString());
@@ -117,7 +117,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void startChildItemWithoutUuid() throws Exception {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
+		rq.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		rq.setName("ChildItem");
 		rq.setType("TEST");
 		rq.setParameters(getParameters());

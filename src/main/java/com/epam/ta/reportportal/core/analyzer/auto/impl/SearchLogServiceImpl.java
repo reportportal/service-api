@@ -98,6 +98,9 @@ public class SearchLogServiceImpl implements SearchLogService {
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 
+		Launch launch = launchRepository.findById(item.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+
 		expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE,
 				item.getItemResults().getStatus()
 		);

@@ -211,13 +211,13 @@ public class AsyncReportingListener implements MessageListener {
         SaveLogRQ request = payload.getLeft();
         BinaryDataMetaInfo metaInfo = payload.getRight();
 
-        Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
+        Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
 
         if (itemOptional.isPresent()) {
             createItemLog(request, itemOptional.get(), metaInfo, projectId);
         } else {
-            Launch launch = launchRepository.findByUuid(request.getItemId())
-                    .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+            Launch launch = launchRepository.findByUuid(request.getItemUuid())
+                    .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemUuid()));
             createLaunchLog(request, launch, metaInfo, projectId);
         }
     }

@@ -212,7 +212,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 
 	private StartTestItemRQ prepareTestItem() {
 		StartTestItemRQ startTestItemRQ = new StartTestItemRQ();
-		startTestItemRQ.setLaunchId("a7b66ef2-db30-4db7-94df-f5f7786b398a");
+		startTestItemRQ.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		startTestItemRQ.setType("SUITE");
 		startTestItemRQ.setUniqueId(UUID.randomUUID().toString());
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));

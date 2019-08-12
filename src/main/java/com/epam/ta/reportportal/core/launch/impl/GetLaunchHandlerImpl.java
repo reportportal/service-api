@@ -18,10 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
@@ -43,7 +40,6 @@ import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +50,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.HAS_ANY_MODE;
@@ -284,7 +277,7 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	 * @return Updated filter
 	 */
 	private Filter addLaunchCommonCriteria(Mode mode, Filter filter) {
-		return ofNullable(filter).orElseGet(() -> new Filter(Launch.class, Sets.newHashSet()))
+		return ofNullable(filter).orElseGet(() -> new Filter(Launch.class, Lists.newArrayList()))
 				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, mode.name()).build());
 	}
 
@@ -294,7 +287,11 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 	 * @param filter
 	 */
 	private void validateModeConditions(Filter filter) {
-		expect(filter.getFilterConditions().stream().anyMatch(HAS_ANY_MODE), equalTo(false)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(filter.getFilterConditions()
+				.stream()
+				.map(ConvertibleCondition::getAllConditions)
+				.flatMap(Collection::stream)
+				.anyMatch(HAS_ANY_MODE), equalTo(false)).verify(INCORRECT_FILTER_PARAMETERS,
 				"Filters for 'mode' aren't applicable for project's launches."
 		);
 	}

@@ -1,0 +1,135 @@
+/*
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.epam.ta.reportportal.core.analyzer.pattern.impl;
+
+import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
+import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.PatternConditionProviderChain;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
+import com.epam.ta.reportportal.dao.IssueGroupRepository;
+import com.epam.ta.reportportal.dao.PatternTemplateRepository;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
+import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
+import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
+import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+@Service
+public class PatternAnalyzerImpl implements PatternAnalyzer {
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(PatternAnalyzerImpl.class);
+
+	private final IssueGroupRepository issueGroupRepository;
+
+	private final PatternTemplateRepository patternTemplateRepository;
+	private final PatternConditionProviderChain patternConditionProviderChain;
+
+	private final Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping;
+
+	private final TaskExecutor patternAnalysisTaskExecutor;
+
+	private final AnalyzerStatusCache analyzerStatusCache;
+
+	private final MessageBus messageBus;
+
+	@Autowired
+	public PatternAnalyzerImpl(IssueGroupRepository issueGroupRepository, PatternTemplateRepository patternTemplateRepository,
+			@Qualifier("patternAnalysisSelectorMapping") Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
+			TaskExecutor patternAnalysisTaskExecutor, PatternConditionProviderChain patternConditionProviderChain,
+			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus) {
+		this.issueGroupRepository = issueGroupRepository;
+		this.patternTemplateRepository = patternTemplateRepository;
+		this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
+		this.patternAnalysisTaskExecutor = patternAnalysisTaskExecutor;
+		this.patternConditionProviderChain = patternConditionProviderChain;
+		this.analyzerStatusCache = analyzerStatusCache;
+		this.messageBus = messageBus;
+	}
+
+	@Override
+	public void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes) {
+
+		try {
+			analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+
+			Filter filter = createItemFilter(launch.getId(), analyzeModes);
+			patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
+					.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> {
+						List<PatternTemplateTestItemPojo> patternTemplateTestItems = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType())
+								.selectItemsByPattern(filter, patternTemplate);
+						patternTemplateRepository.saveInBatch(patternTemplateTestItems);
+
+						PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
+								patternTemplate);
+						patternTemplateTestItems.forEach(patternItem -> {
+							PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(patternItem.getPatternTemplateId(),
+									patternItem.getTestItemId(),
+									patternTemplateActivityResource
+							);
+
+							messageBus.publishActivity(patternMatchedEvent);
+						});
+
+					}));
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		} finally {
+			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId());
+		}
+
+	}
+
+	private Filter createItemFilter(Long launchId, Set<AnalyzeItemsMode> analyzeModes) {
+
+		IssueGroup issueGroup = issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
+
+		CompositeFilterCondition testItemCondition = new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
+				.eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId))
+				.build(), FilterCondition.builder().eq(CRITERIA_ISSUE_GROUP_ID, String.valueOf(issueGroup.getId())).build()));
+		patternConditionProviderChain.provideCondition(analyzeModes)
+				.ifPresent(condition -> testItemCondition.getConditions().add(condition));
+
+		return Filter.builder().withTarget(TestItem.class).withCondition(testItemCondition).build();
+	}
+
+}

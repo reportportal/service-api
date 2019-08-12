@@ -2,7 +2,7 @@ package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.subscriber.LaunchFinishedEventSubscriber;
-import com.epam.ta.reportportal.core.pattern.PatternAnalyzer;
+import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;

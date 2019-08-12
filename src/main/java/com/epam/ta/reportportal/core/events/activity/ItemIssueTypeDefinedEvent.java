@@ -15,7 +15,7 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.core.analyzer.model.RelevantItemInfo;
+import com.epam.ta.reportportal.core.analyzer.auto.model.RelevantItemInfo;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.HistoryField;

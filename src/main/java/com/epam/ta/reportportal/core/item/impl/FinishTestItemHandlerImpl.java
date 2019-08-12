@@ -17,7 +17,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;

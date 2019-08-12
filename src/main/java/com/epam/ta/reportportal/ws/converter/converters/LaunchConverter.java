@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;

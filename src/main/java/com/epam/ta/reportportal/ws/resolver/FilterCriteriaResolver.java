@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.resolver;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -30,8 +31,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -80,7 +81,7 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 	private <T> Filter resolveAsList(MethodParameter methodParameter, NativeWebRequest webRequest) {
 		Class<T> domainModelType = (Class<T>) methodParameter.getParameterAnnotation(FilterFor.class).value();
 
-		Set<FilterCondition> filterConditions = webRequest.getParameterMap()
+		List<ConvertibleCondition> filterConditions = webRequest.getParameterMap()
 				.entrySet()
 				.stream()
 				.filter(parameter -> parameter.getKey().startsWith(DEFAULT_FILTER_PREFIX) && parameter.getValue().length > 0)
@@ -101,7 +102,7 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 					return new FilterCondition(condition, isNegative, parameter.getValue()[0], criteria);
 
 				})
-				.collect(Collectors.toSet());
+				.collect(Collectors.toList());
 		return new Filter(domainModelType, filterConditions);
 	}
 

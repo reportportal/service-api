@@ -78,7 +78,7 @@ class GetTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		launch.setId(1L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -96,7 +96,7 @@ class GetTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 		launch.setProjectId(2L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
@@ -115,7 +115,7 @@ class GetTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		launch.setId(1L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
@@ -139,7 +139,7 @@ class GetTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 		launch.setProjectId(2L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
@@ -166,7 +166,7 @@ class GetTestItemHandlerImplTest {
 		launch.setId(2L);
 		launch.setMode(LaunchModeEnum.DEBUG);
 		launch.setProjectId(1L);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(launchRepository.findById(2L)).thenReturn(Optional.of(launch));

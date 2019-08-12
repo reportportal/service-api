@@ -301,7 +301,7 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 
 	private void fillWithAdditionalParams(Map<String, Object> params, Launch launch, String userFullName) {
 
-		Optional<String> owner = userRepository.findById(launch.getUser().getId()).map(User::getFullName);
+		Optional<String> owner = userRepository.findById(launch.getUserId()).map(User::getFullName);
 
 		/* Check if launch owner still in system if not - setup principal */
 		params.put(LaunchReportConstants.OWNER, owner.orElse(userFullName));

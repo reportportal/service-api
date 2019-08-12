@@ -25,7 +25,9 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.collect.Lists;
@@ -41,7 +43,6 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTOR
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Creating items history based on {@link TestItem#uniqueId} field
@@ -69,18 +70,19 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		List<Long> itemIds = Lists.newArrayList(startPointsIds);
 		List<TestItem> itemsForHistory = testItemRepository.findAllById(itemIds);
 		validateItems(itemsForHistory, itemIds, projectDetails.getProjectId());
+		TestItem itemForHistory = itemsForHistory.get(0);
+		Launch launch = launchRepository.findById(itemForHistory.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, itemForHistory.getLaunchId()));
 		List<Launch> launchesHistory = launchRepository.findLaunchesHistory(historyDepth,
-				itemsForHistory.get(0).getLaunch().getId(),
-				itemsForHistory.get(0).getLaunch().getName(),
+				launch.getId(),
+				launch.getName(),
 				projectDetails.getProjectId()
 		);
 
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
-						.map(TestItem::getUniqueId)
-						.collect(Collectors.toList()),
-				launchesHistory.stream().map(Launch::getId).collect(toList())
-		);
-		Map<Long, List<TestItem>> groupedByLaunch = itemsHistory.stream().collect(Collectors.groupingBy(it -> it.getLaunch().getId()));
+				.map(TestItem::getUniqueId)
+				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()));
+		Map<Long, List<TestItem>> groupedByLaunch = itemsHistory.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		return launchesHistory.stream().map(l -> buildHistoryElement(l, groupedByLaunch.get(l.getId()))).collect(toList());
 	}
 
@@ -88,7 +90,11 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		BusinessRule.expect(itemsForHistory, Preconditions.NOT_EMPTY_COLLECTION)
 				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
-		Set<Long> projectIds = itemsForHistory.stream().map(item -> item.getLaunch().getProjectId()).collect(toSet());
+		Set<Long> projectIds = launchRepository.findAllById(itemsForHistory.stream().map(TestItem::getLaunchId).collect(Collectors.toSet()))
+				.stream()
+				.map(Launch::getProjectId)
+				.collect(Collectors.toSet());
+
 		BusinessRule.expect((projectIds.size() == 1) && (projectIds.contains(projectId)), Predicates.equalTo(TRUE))
 				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
@@ -106,15 +112,14 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		 * parent is empty check launch id - for example suite
 		 */
 		if (null == itemsForHistory.get(0).getParent()) {
-			Long launchId = itemsForHistory.get(0).getLaunch().getId();
-			itemsForHistory.forEach(it -> BusinessRule.expect(it.getLaunch().getId(), launch -> Objects.equals(launch, launchId))
+			Long launchId = itemsForHistory.get(0).getLaunchId();
+			itemsForHistory.forEach(it -> BusinessRule.expect(it.getLaunchId(), launch -> Objects.equals(launch, launchId))
 					.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
 		} else {
 			/* Validate that items do not contains different parents */
 			itemsForHistory.forEach(it -> BusinessRule.expect(it.getParent().getItemId(),
 					parent -> Objects.equals(parent, itemsForHistory.get(0).getParent().getItemId())
-			)
-					.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
+			).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
 		}
 	}
 

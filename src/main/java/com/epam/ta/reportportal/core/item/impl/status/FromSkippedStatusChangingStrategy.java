@@ -26,6 +26,9 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -51,8 +54,7 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 
 	@Override
 	public void changeStatus(TestItem item, StatusEnum providedStatus, ReportPortalUser user, Long projectId) {
-		expect(providedStatus, statusIn(PASSED, FAILED)).verify(
-				INCORRECT_REQUEST,
+		expect(providedStatus, statusIn(PASSED, FAILED)).verify(INCORRECT_REQUEST,
 				"Actual status: " + item.getItemResults().getStatus() + " can be switched only to: " + PASSED + " or " + FAILED
 		);
 		TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(item, projectId);
@@ -74,11 +76,10 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 
 		if (PASSED.equals(providedStatus)) {
 			changeStatusRecursively(item, user, projectId);
-			if (item.getLaunch().getStatus() != IN_PROGRESS) {
-				item.getLaunch()
-						.setStatus(launchRepository.hasItemsWithStatusNotEqual(item.getLaunch().getId(), StatusEnum.PASSED) ?
-								FAILED :
-								PASSED);
+			Launch launch = launchRepository.findById(item.getLaunchId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
+			if (launch.getStatus() != IN_PROGRESS) {
+				launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED);
 			}
 		}
 	}

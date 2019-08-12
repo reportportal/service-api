@@ -78,7 +78,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
-		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
+		Launch launch = launchRepository.findByUuidForUpdate(rq.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
 		validate(user, projectDetails, rq, launch);
 
@@ -89,7 +89,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 		testItemRepository.save(item);
 		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
@@ -115,7 +115,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
 				.addAttributes(rq.getAttributes())
-				.addLaunch(launch)
+				.addLaunchId(launch.getId())
 				.addParent(parentItem)
 				.get();
 

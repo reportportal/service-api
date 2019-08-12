@@ -142,7 +142,7 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 			);
 
 			if (isUserValidate) {
-				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
+				expect(launch.getUserId(), equalTo(user.getUserId())).verify(ACCESS_DENIED,
 						"You are not an owner of launches or have less than PROJECT_MANAGER project role."
 				);
 			}

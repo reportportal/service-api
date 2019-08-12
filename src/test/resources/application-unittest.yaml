@@ -2,6 +2,10 @@ rp:
   binarystore:
     type: filesystem
     path: ${java.io.tmpdir}
+  plugins:
+    rooDir: ${java.io.tmpdir}
+logging:
+  file: ${java.io.tmpdir}/${spring.application.name}.log
 embedded:
   datasource:
     dir: /embedded-postgres

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -46,6 +47,7 @@ class PredicatesTest {
 	@Test
 	void checkCanBeIndexed() {
 		TestItem testItem = new TestItem();
+		testItem.setType(TestItemTypeEnum.STEP);
 		final TestItemResults itemResults = new TestItemResults();
 		final IssueEntity issueEntity = new IssueEntity();
 		issueEntity.setIgnoreAnalyzer(false);
@@ -61,6 +63,7 @@ class PredicatesTest {
 	void checkTIIndexed() {
 		TestItem testItem = new TestItem();
 		final TestItemResults itemResults = new TestItemResults();
+		testItem.setType(TestItemTypeEnum.STEP);
 		final IssueEntity issue = new IssueEntity();
 		final IssueType issueType = new IssueType();
 		issueType.setIssueGroup(new IssueGroup(TestItemIssueGroup.TO_INVESTIGATE));
@@ -68,12 +71,13 @@ class PredicatesTest {
 		issue.setIssueType(issueType);
 		itemResults.setIssue(issue);
 		testItem.setItemResults(itemResults);
-		assertFalse(ITEM_CAN_BE_INDEXED.test(testItem), "Item with TI issue shouldn't be available for indexing");
+		assertTrue(ITEM_CAN_BE_INDEXED.test(testItem), "Item with TI issue is available for indexing");
 	}
 
 	@Test
 	void checkIgnoreIndexed() {
 		TestItem testItem = new TestItem();
+		testItem.setType(TestItemTypeEnum.STEP);
 		final TestItemResults itemResults = new TestItemResults();
 		final IssueEntity issueEntity = new IssueEntity();
 		issueEntity.setIgnoreAnalyzer(true);

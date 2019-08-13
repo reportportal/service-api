@@ -44,7 +44,7 @@ class LogControllerTest extends BaseMvcTest {
 	@Test
 	void createLogPositive() throws Exception {
 		SaveLogRQ rq = new SaveLogRQ();
-		rq.setLaunchId(UUID.randomUUID().toString());
+		rq.setLaunchUuid(UUID.randomUUID().toString());
 		rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
 		rq.setLevel("ERROR");
 		rq.setMessage("log message");

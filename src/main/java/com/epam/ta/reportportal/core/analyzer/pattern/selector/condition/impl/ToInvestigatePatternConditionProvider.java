@@ -26,7 +26,6 @@ import org.jooq.Operator;
 
 import java.util.function.Supplier;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.IssueCriteriaConstant.CRITERIA_ISSUE_AUTO_ANALYZED;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
 
 /**
@@ -45,10 +44,8 @@ public class ToInvestigatePatternConditionProvider extends AbstractPatternCondit
 	@Override
 	protected ConvertibleCondition provideCondition() {
 		return new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
-				.eq(CRITERIA_ISSUE_AUTO_ANALYZED, Boolean.TRUE.toString())
-				.build(), FilterCondition.builder().eq(CRITERIA_ISSUE_GROUP_ID, String.valueOf(issueGroupSupplier.get().getId())).build()),
-				Operator.OR
-		);
+				.eq(CRITERIA_ISSUE_GROUP_ID, String.valueOf(issueGroupSupplier.get().getId()))
+				.build()), Operator.OR);
 
 	}
 

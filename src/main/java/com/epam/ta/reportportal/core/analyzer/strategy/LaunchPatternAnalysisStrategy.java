@@ -29,16 +29,16 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -58,9 +58,16 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
 
 	public void analyze(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {
 
+		Set<AnalyzeItemsMode> analyzeItemsModes = analyzeRQ.getAnalyzeItemsModes()
+				.stream()
+				.map(AnalyzeItemsMode::fromString)
+				.collect(toSet());
+
+		BusinessRule.expect(analyzeItemsModes, CollectionUtils::isNotEmpty)
+				.verify(ErrorType.PATTERN_ANALYSIS_ERROR, "No analyze item mode specified.");
+
 		Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
-
 		validateLaunch(launch, projectDetails);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
@@ -68,13 +75,10 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
 
 		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
 				.get(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute()));
-
 		BusinessRule.expect(isPatternAnalysisEnabled, equalTo(Boolean.TRUE))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Pattern template analysis is disabled");
+				.verify(ErrorType.PATTERN_ANALYSIS_ERROR, "Pattern template analysis is disabled.");
 
-		patternAnalyzer.analyzeTestItems(launch,
-				ofNullable(analyzeRQ.getAnalyzeItemsMode()).map(modes -> modes.stream().map(AnalyzeItemsMode::fromString).collect(toSet()))
-						.orElseGet(Collections::emptySet)
-		);
+		patternAnalyzer.analyzeTestItems(launch, analyzeItemsModes);
+
 	}
 }

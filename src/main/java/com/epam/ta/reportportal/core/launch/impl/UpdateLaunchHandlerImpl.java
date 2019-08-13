@@ -124,11 +124,11 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(String analyzerTypeName, ReportPortalUser.ProjectDetails projectDetails,
-			AnalyzeLaunchRQ analyzeRQ) {
-		AnalyzerType analyzerType = AnalyzerType.fromString(analyzerTypeName);
+	public OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {
+		AnalyzerType analyzerType = AnalyzerType.fromString(analyzeRQ.getAnalyzerTypeName());
 		launchAnalysisStrategyMapping.get(analyzerType).analyze(projectDetails, analyzeRQ);
-		return new OperationCompletionRS(analyzerType.getName() + " analysis for launch with ID='" + analyzeRQ.getLaunchId() + "' started.");
+		return new OperationCompletionRS(
+				analyzerType.getName() + " analysis for launch with ID='" + analyzeRQ.getLaunchId() + "' started.");
 	}
 
 	@Override

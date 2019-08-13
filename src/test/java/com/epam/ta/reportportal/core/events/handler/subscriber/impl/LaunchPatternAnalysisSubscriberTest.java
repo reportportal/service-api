@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils;
@@ -30,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,7 +67,7 @@ class LaunchPatternAnalysisSubscriberTest {
 
 		patternAnalysisSubscriber.handleEvent(event, project, launch.get());
 
-		verify(patternAnalyzer, times(1)).analyzeTestItems(launch.get(), Sets.newHashSet());
+		verify(patternAnalyzer, times(1)).analyzeTestItems(launch.get(), Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
 
 	}
 

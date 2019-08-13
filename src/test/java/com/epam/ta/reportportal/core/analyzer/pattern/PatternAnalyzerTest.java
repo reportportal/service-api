@@ -61,8 +61,7 @@ class PatternAnalyzerTest {
 	private final Launch launch = mock(Launch.class);
 
 	private final Map<PatternTemplateType, PatternAnalysisSelector> analysisSelectorMapping = mock(Map.class);
-	private final PatternAnalyzer patternAnalyzer = new PatternAnalyzerImpl(issueGroupRepository,
-			patternTemplateRepository, analysisSelectorMapping, taskExecutor, patternConditionProviderChain, analyzerStatusCache, messageBus
+	private final PatternAnalyzer patternAnalyzer = new PatternAnalyzerImpl(patternTemplateRepository, analysisSelectorMapping, taskExecutor, patternConditionProviderChain, analyzerStatusCache, messageBus
 	);
 
 	@Test

@@ -70,7 +70,6 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
 		Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
-
 		validateLaunch(launch, projectDetails);
 
 		Project project = projectRepository.findById(projectDetails.getProjectId())
@@ -79,7 +78,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 		analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
-		List<Long> itemIds = collectItemsByModes(project, launch.getId(), analyzeRQ.getAnalyzeItemsMode());
+		List<Long> itemIds = collectItemsByModes(project, launch.getId(), analyzeRQ.getAnalyzeItemsModes());
 
 		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
 				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));

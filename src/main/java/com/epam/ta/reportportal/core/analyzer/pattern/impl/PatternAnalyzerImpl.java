@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.pattern.impl;
 
 import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
@@ -24,15 +25,13 @@ import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSe
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.PatternConditionProviderChain;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
-import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
-import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -46,9 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_GROUP_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATTERN_TEMPLATE_NAME;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.PATTERN_ANALYZER_KEY;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -57,8 +57,6 @@ import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteri
 public class PatternAnalyzerImpl implements PatternAnalyzer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(PatternAnalyzerImpl.class);
-
-	private final IssueGroupRepository issueGroupRepository;
 
 	private final PatternTemplateRepository patternTemplateRepository;
 	private final PatternConditionProviderChain patternConditionProviderChain;
@@ -72,11 +70,10 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public PatternAnalyzerImpl(IssueGroupRepository issueGroupRepository, PatternTemplateRepository patternTemplateRepository,
+	public PatternAnalyzerImpl(PatternTemplateRepository patternTemplateRepository,
 			@Qualifier("patternAnalysisSelectorMapping") Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
 			TaskExecutor patternAnalysisTaskExecutor, PatternConditionProviderChain patternConditionProviderChain,
 			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus) {
-		this.issueGroupRepository = issueGroupRepository;
 		this.patternTemplateRepository = patternTemplateRepository;
 		this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
 		this.patternAnalysisTaskExecutor = patternAnalysisTaskExecutor;
@@ -88,8 +85,11 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 	@Override
 	public void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes) {
 
+		BusinessRule.expect(analyzerStatusCache.getStartedAnalyzers(launch.getId()), not(started -> started.contains(PATTERN_ANALYZER_KEY)))
+				.verify(ErrorType.PATTERN_ANALYSIS_ERROR, "Pattern analysis is still in progress.");
+
 		try {
-			analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+			analyzerStatusCache.analyzeStarted(PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
 
 			ConvertibleCondition commonItemCondition = createCommonItemCondition(launch.getId(), analyzeModes);
 			patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
@@ -113,18 +113,15 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		} finally {
-			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.PATTERN_ANALYZER_KEY, launch.getId());
+			analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, launch.getId());
 		}
 
 	}
 
 	private ConvertibleCondition createCommonItemCondition(Long launchId, Set<AnalyzeItemsMode> analyzeModes) {
-
-		IssueGroup issueGroup = issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
-
 		CompositeFilterCondition testItemCondition = new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
 				.eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId))
-				.build(), FilterCondition.builder().eq(CRITERIA_ISSUE_GROUP_ID, String.valueOf(issueGroup.getId())).build()));
+				.build()));
 		patternConditionProviderChain.provideCondition(analyzeModes)
 				.ifPresent(condition -> testItemCondition.getConditions().add(condition));
 

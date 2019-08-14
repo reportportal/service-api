@@ -29,6 +29,8 @@ import javax.validation.Path;
 import javax.validation.Validator;
 import java.util.*;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.QUEUE_AMOUNT;
+
 /**
  * @author Konstantin Antipin
  */
@@ -84,6 +86,21 @@ public class ControllerUtils {
 			}
 		}
 		return uploadedFiles;
+	}
+
+	/**
+	 * Mapping launchId to reporting queue key.
+	 * Not sure if uniform distribution will be produced, intuitively would be uniform with random UUID input.
+	 * As {@link UUID#hashCode} may return negative int,
+	 * take absolute value by trimming high sign bit of complement representation
+	 *
+	 * @param launchUuid
+	 * @return
+	 */
+	public static String getReportingQueueKey(String launchUuid) {
+		int value = UUID.fromString(launchUuid).hashCode();
+		value = value & 0x7fffffff;
+		return String.valueOf(value % QUEUE_AMOUNT);
 	}
 
 }

@@ -83,13 +83,13 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 		validate(request);
 
-		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
+		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
 		if (itemOptional.isPresent()) {
 			return createItemLog(request, itemOptional.get(), file, projectDetails.getProjectId());
 		}
 
-		Launch launch = launchRepository.findByUuid(request.getItemId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+		Launch launch = launchRepository.findByUuid(request.getItemUuid())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemUuid()));
 		return createLaunchLog(request, launch, file, projectDetails.getProjectId());
 	}
 

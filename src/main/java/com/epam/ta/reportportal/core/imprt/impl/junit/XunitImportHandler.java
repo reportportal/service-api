@@ -209,7 +209,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void startStepItem(String name, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
+		rq.setLaunchUuid(launchId);
 		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(name);
@@ -243,7 +243,7 @@ public class XunitImportHandler extends DefaultHandler {
 			saveLogRQ.setLevel(logLevel.name());
 			saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
 			saveLogRQ.setMessage(message.toString().trim());
-			saveLogRQ.setItemId(currentId);
+			saveLogRQ.setItemUuid(currentId);
 			createLogHandler.createLog(saveLogRQ, null, projectDetails);
 		}
 	}
@@ -257,7 +257,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private StartTestItemRQ buildStartTestRq(String name) {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
+		rq.setLaunchUuid(launchId);
 		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.TEST.name());
 		rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);

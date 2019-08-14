@@ -1,6 +1,8 @@
 info:
   build:
     version: ${rp.api.version:5.0}
+    description: ReportPortal API Service
+    nane: API Service
 
 spring:
   application:
@@ -28,7 +30,11 @@ spring:
   rabbitmq:
     addresses: ${rp.amqp.addresses}
 
-server.connection-timeout: 30000
+server:
+  connection-timeout: 30000
+  port: 8585
+  servlet:
+    context-path: "/"
 
 logging:
   file: /var/${spring.application.name}.log

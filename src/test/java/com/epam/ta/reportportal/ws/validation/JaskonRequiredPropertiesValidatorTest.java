@@ -62,7 +62,7 @@ public class JaskonRequiredPropertiesValidatorTest {
 	@Test
 	public void testInnerRequiredFields1() {
 		FinishTestItemRQ issueRQ = new FinishTestItemRQ();
-		issueRQ.setLaunchId(UUID.randomUUID().toString());
+		issueRQ.setLaunchUuid(UUID.randomUUID().toString());
 		issueRQ.setEndTime(Calendar.getInstance().getTime());
 		issueRQ.setStatus("PASSED");
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();

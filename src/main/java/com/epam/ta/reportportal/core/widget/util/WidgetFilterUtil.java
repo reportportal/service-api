@@ -25,9 +25,9 @@ import org.springframework.data.domain.Sort;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Pavel Bortnik
@@ -43,13 +43,13 @@ public class WidgetFilterUtil {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Filters set should not be empty"))
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "No filters for widget were found"));
-		filters.stream().flatMap(f -> f.getFilterConditions().stream()).forEach(filter::withCondition);
+		filter.withConditions(filters.stream().map(Filter::getFilterConditions).flatMap(Collection::stream).collect(toList()));
 
 		return filter;
 	};
 
 	public static final Function<Collection<Sort>, Sort> GROUP_SORTS = sorts -> Sort.by(ofNullable(sorts).map(s -> s.stream()
 			.flatMap(sortStream -> Lists.newArrayList(sortStream.iterator()).stream())
-			.collect(Collectors.toList())).orElseGet(Lists::newArrayList));
+			.collect(toList())).orElseGet(Lists::newArrayList));
 
 }

@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.springframework.data.domain.Sort;
@@ -49,7 +50,7 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 			Filter filter = new Filter(
 					userFilter.getId(),
 					userFilter.getTargetClass().getClassObject(),
-					Sets.newLinkedHashSet(userFilter.getFilterCondition())
+					Lists.newArrayList(userFilter.getFilterCondition())
 			);
 			filter.withConditions(buildDefaultFilter(widget, projectId).getFilterConditions());
 
@@ -67,7 +68,7 @@ public class ProductStatusFilterStrategy extends AbstractStatisticsFilterStrateg
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
 		return new Filter(
 				Launch.class,
-				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
+				Lists.newArrayList(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
 		);
 	}
 }

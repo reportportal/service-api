@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeDeletedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -37,8 +37,8 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
-import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>

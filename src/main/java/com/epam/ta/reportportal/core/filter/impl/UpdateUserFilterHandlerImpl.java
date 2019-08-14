@@ -68,7 +68,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	@Autowired
 	public UpdateUserFilterHandlerImpl(GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
-			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler,
+			MessageBus messageBus) {
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
 		this.widgetRepository = widgetRepository;
@@ -85,7 +86,8 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		BusinessRule.expect(userFilterRepository.existsByNameAndOwnerAndProjectId(createFilterRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
-		), BooleanUtils::isFalse).verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
+		), BooleanUtils::isFalse)
+				.verify(ErrorType.USER_FILTER_ALREADY_EXISTS, createFilterRQ.getName(), user.getUsername(), projectName);
 
 		UserFilter filter = new UserFilterBuilder().addFilterRq(createFilterRQ)
 				.addProject(projectDetails.getProjectId())
@@ -127,7 +129,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 		if (before.isShared() != updated.isShared()) {
 			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
-			if(!updated.isShared()) {
+			if (!updated.isShared()) {
 				widgetRepository.deleteRelationByFilterIdAndNotOwner(updated.getId(), updated.getOwner());
 			}
 		}
@@ -176,19 +178,17 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Sort conditions should not be empty");
 
 		//filter conditions validation
-		updateFilerRq.getConditions().forEach(c -> {
-
-			CriteriaHolder criteriaHolder = filterTarget.getCriteriaByFilter(c.getFilteringField())
+		updateFilerRq.getConditions().forEach(it -> {
+			CriteriaHolder criteriaHolder = filterTarget.getCriteriaByFilter(it.getFilteringField())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
-							Suppliers.formattedSupplier("Filter parameter '{}' is not defined", c.getFilteringField()).get()
+							Suppliers.formattedSupplier("Filter parameter '{}' is not defined", it.getFilteringField()).get()
 					));
 
-			Condition condition = Condition.findByMarker(c.getCondition())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, c.getCondition()));
-			boolean isNegative = Condition.isNegative(c.getCondition());
-			condition.validate(criteriaHolder, c.getValue(), isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
-			condition.castArray(criteriaHolder, c.getValue(), ErrorType.INCORRECT_FILTER_PARAMETERS);
-
+			Condition condition = Condition.findByMarker(it.getCondition())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS, it.getCondition()));
+			boolean isNegative = Condition.isNegative(it.getCondition());
+			condition.validate(criteriaHolder, it.getValue(), isNegative, ErrorType.INCORRECT_FILTER_PARAMETERS);
+			condition.castValue(criteriaHolder, it.getValue(), ErrorType.INCORRECT_FILTER_PARAMETERS);
 		});
 
 		//order conditions validation

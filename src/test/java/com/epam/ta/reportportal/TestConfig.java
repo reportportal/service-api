@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal;
 
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;

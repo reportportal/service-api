@@ -51,11 +51,9 @@ public interface UpdateLaunchHandler {
 	 *
 	 * @param projectDetails  Project Details
 	 * @param analyzeLaunchRQ Launch analyze rq
-	 * @param user            Report portal user
 	 * @return OperationCompletionRS - Response Data
 	 */
-	OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeLaunchRQ,
-			ReportPortalUser user);
+	OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeLaunchRQ);
 
 	/**
 	 * Bulk launch update.

@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
@@ -52,7 +52,7 @@ public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStr
 		userFilters.forEach(userFilter -> {
 			Filter filter = new Filter(userFilter.getId(),
 					userFilter.getTargetClass().getClassObject(),
-					Sets.newHashSet(userFilter.getFilterCondition())
+					Lists.newArrayList(userFilter.getFilterCondition())
 			);
 			Optional<Set<FilterSort>> filterSorts = ofNullable(userFilter.getFilterSorts());
 			Sort sort = Sort.by(filterSorts.map(filterSort -> filterSort.stream()

@@ -100,6 +100,6 @@ public class PredefinedFilterCriteriaResolver implements HandlerMethodArgumentRe
 	}
 
 	private Queryable nop(Class<?> type) {
-		return new Filter(type, Collections.emptySet());
+		return new Filter(type, Collections.emptyList());
 	}
 }

@@ -17,11 +17,14 @@
 package com.epam.ta.reportportal.core.widget.content.loader.util;
 
 import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+
+import java.util.Collection;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
@@ -47,6 +50,8 @@ public final class FilterUtils {
 		return buildLatestLaunchFilter(
 				filter.getFilterConditions()
 						.stream()
+						.map(ConvertibleCondition::getAllConditions)
+						.flatMap(Collection::stream)
 						.filter(condition -> CRITERIA_PROJECT_ID.equalsIgnoreCase(condition.getSearchCriteria()))
 						.map(condition -> Long.parseLong(condition.getValue()))
 						.findAny()

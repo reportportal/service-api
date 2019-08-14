@@ -1,6 +1,8 @@
 info:
   build:
     version: ${rp.api.version:5.0}
+    description: ReportPortal API Service
+    nane: API Service
 
 spring:
   application:
@@ -28,13 +30,16 @@ spring:
   rabbitmq:
     addresses: ${rp.amqp.addresses}
 
-server.connection-timeout: 30000
+server:
+  connection-timeout: 30000
+  port: 8585
+  servlet:
+    context-path: "/"
 
 logging:
   file: /var/${spring.application.name}.log
   pattern:
     file: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %level %logger - %msg%n'
-    console: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %highlight(%-5level) %magenta(%logger) - %msg%n'
   level:
     org.hibernate: info
     org.hibernate.stat: info
@@ -55,7 +60,7 @@ rp:
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
-    host: rabbitmq
+    host: localhost
     port: 5672
     user: rabbitmq
     pass: rabbitmq
@@ -77,7 +82,7 @@ rp:
   db:
     url: jdbc:postgresql://${rp.db.host}:${rp.db.port}/${rp.db.name}
     name: reportportal
-    host: postgres
+    host: localhost
     port: 5432
     user: rpuser
     pass: rppass

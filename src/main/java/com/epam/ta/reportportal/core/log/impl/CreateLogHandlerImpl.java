@@ -88,8 +88,8 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 			return createItemLog(request, itemOptional.get(), file, projectDetails.getProjectId());
 		}
 
-		Launch launch = launchRepository.findByUuid(request.getItemUuid())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemUuid()));
+		Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
 		return createLaunchLog(request, launch, file, projectDetails.getProjectId());
 	}
 
@@ -112,7 +112,9 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
 					.withFile(file)
 					.withProjectId(projectId)
-					.withLogId(logId).withLaunchId(launchId).withItemId(itemId);
+					.withLogId(logId)
+					.withLaunchId(launchId)
+					.withItemId(itemId);
 
 			taskExecutor.execute(saveLogBinaryDataTask);
 		}

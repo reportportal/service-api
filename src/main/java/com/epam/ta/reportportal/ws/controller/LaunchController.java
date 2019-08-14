@@ -197,8 +197,6 @@ public class LaunchController {
 		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
 	}
 
-
-
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(OK)
@@ -304,7 +302,7 @@ public class LaunchController {
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
 			@RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.startLaunchAnalyzer(extractProjectDetails(user, normalizeId(projectName)), analyzeLaunchRQ, user);
+		return updateLaunchHandler.startLaunchAnalyzer(extractProjectDetails(user, normalizeId(projectName)), analyzeLaunchRQ);
 	}
 
 	@Transactional(readOnly = true)

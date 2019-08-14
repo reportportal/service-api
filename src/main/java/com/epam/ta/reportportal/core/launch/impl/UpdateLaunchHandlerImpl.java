@@ -17,19 +17,16 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.impl.LaunchPreparerService;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.LaunchPreparerService;
+import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
+import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -44,7 +41,6 @@ import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -55,11 +51,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
@@ -81,26 +77,23 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private final AnalyzerServiceAsync analyzerServiceAsync;
-
 	private final LogIndexer logIndexer;
 
 	private final LaunchPreparerService launchPreparerService;
 
-	private final AnalyzeCollectorFactory analyzeCollectorFactory;
+	private final Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
-			ProjectRepository projectRepository, AnalyzerServiceAsync analyzerServiceAsync, LogIndexer logIndexer,
-			LaunchPreparerService launchPreparerService, AnalyzeCollectorFactory analyzeCollectorFactory) {
+			ProjectRepository projectRepository, LogIndexer logIndexer, LaunchPreparerService launchPreparerService,
+			Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
-		this.analyzerServiceAsync = analyzerServiceAsync;
+		this.launchAnalysisStrategyMapping = launchAnalysisStrategyMapping;
 		this.logIndexer = logIndexer;
 		this.launchPreparerService = launchPreparerService;
-		this.analyzeCollectorFactory = analyzeCollectorFactory;
 	}
 
 	@Override
@@ -131,40 +124,11 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	}
 
 	@Override
-	public OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ,
-			ReportPortalUser user) {
-		expect(analyzerServiceAsync.hasAnalyzers(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"There are no analyzer services are deployed."
-		);
-
-		AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode())
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, analyzeRQ.getAnalyzeItemsMode()));
-
-		Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
-
-		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				Suppliers.formattedSupplier("Launch with ID '{}' is not under '{}' project.",
-						analyzeRQ.getLaunchId(),
-						projectDetails.getProjectName()
-				)
-		);
-
-		/* Do not process debug launches */
-		expect(launch.getMode(), equalTo(LaunchModeEnum.DEFAULT)).verify(INCORRECT_REQUEST, "Cannot analyze launches in debug mode.");
-
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-
-		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
-		analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
-
-		List<Long> itemIds = collectItemsByModes(project, user.getUsername(), launch.getId(), analyzeRQ.getAnalyzeItemsMode());
-
-		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
-
-		return new OperationCompletionRS("Auto-analyzer for launch ID='" + launch.getId() + "' started.");
+	public OperationCompletionRS startLaunchAnalyzer(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {
+		AnalyzerType analyzerType = AnalyzerType.fromString(analyzeRQ.getAnalyzerTypeName());
+		launchAnalysisStrategyMapping.get(analyzerType).analyze(projectDetails, analyzeRQ);
+		return new OperationCompletionRS(
+				analyzerType.getName() + " analysis for launch with ID='" + analyzeRQ.getLaunchId() + "' started.");
 	}
 
 	@Override
@@ -204,26 +168,6 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		});
 
 		return new OperationCompletionRS("Attributes successfully updated");
-	}
-
-	/**
-	 * Collect item ids for analyzer according to provided analyzer configuration.
-	 *
-	 * @param project          Project
-	 * @param username         Username
-	 * @param launchId         Launch id
-	 * @param analyzeItemsMode {@link AnalyzeItemsMode}
-	 * @return List of ids
-	 * @see AnalyzeItemsMode
-	 * @see AnalyzeCollectorFactory
-	 * @see com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector
-	 */
-	private List<Long> collectItemsByModes(Project project, String username, Long launchId, List<String> analyzeItemsMode) {
-		return analyzeItemsMode.stream()
-				.map(AnalyzeItemsMode::fromString)
-				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project.getId(), launchId, username).stream())
-				.distinct()
-				.collect(toList());
 	}
 
 	/**

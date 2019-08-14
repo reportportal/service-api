@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.configs.rabbit;
 
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.client.impl.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
 
-import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>

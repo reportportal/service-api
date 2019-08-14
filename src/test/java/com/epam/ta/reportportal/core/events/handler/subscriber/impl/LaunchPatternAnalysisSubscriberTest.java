@@ -16,10 +16,11 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
-import com.epam.ta.reportportal.core.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -27,8 +28,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -64,7 +67,7 @@ class LaunchPatternAnalysisSubscriberTest {
 
 		patternAnalysisSubscriber.handleEvent(event, project, launch.get());
 
-		verify(patternAnalyzer, times(1)).analyzeTestItems(launch.get());
+		verify(patternAnalyzer, times(1)).analyzeTestItems(launch.get(), Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
 
 	}
 
@@ -89,7 +92,7 @@ class LaunchPatternAnalysisSubscriberTest {
 
 		patternAnalysisSubscriber.handleEvent(event, project, launch.get());
 
-		verify(patternAnalyzer, times(0)).analyzeTestItems(launch.get());
+		verify(patternAnalyzer, times(0)).analyzeTestItems(launch.get(), Sets.newHashSet());
 
 	}
 }

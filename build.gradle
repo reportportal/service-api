@@ -96,9 +96,9 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile 'com.github.reportportal:commons-dao:7ace1df'
+        compile 'com.github.reportportal:commons-dao:8e3ba3d'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:e50dc42'
+        compile 'com.github.reportportal:commons-model:94c6d4a'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
         compile('com.github.reportportal:plugin-api:5.0.0-BETA-7')
     }
@@ -289,7 +289,7 @@ test {
                                             '**/configs/**',
                                             '**/demodata/**',
                                             '**/exception/**',
-                                            '**/analyzer/model/**'
+                                            '**/analyzer/auto/model/**'
                 ])
             })
         }

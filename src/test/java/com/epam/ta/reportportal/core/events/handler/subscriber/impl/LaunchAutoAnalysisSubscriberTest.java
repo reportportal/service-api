@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsCollector;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsCollector;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
@@ -91,7 +91,7 @@ class LaunchAutoAnalysisSubscriberTest {
 
 		when(analyzerServiceAsync.hasAnalyzers()).thenReturn(true);
 		when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
-		when(analyzeItemsCollector.collectItems(any(), any(), any())).thenReturn(Lists.newArrayList(1L, 2L));
+		when(analyzeItemsCollector.collectItems(any(), any())).thenReturn(Lists.newArrayList(1L, 2L));
 		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(indexed);
 		when(analyzerServiceAsync.analyze(any(), any(), any())).thenReturn(analyzed);
 		autoAnalysisSubscriber.handleEvent(event, project, launch.get());

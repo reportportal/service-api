@@ -2,7 +2,7 @@ info:
   build:
     version: ${rp.api.version:5.0}
     description: ReportPortal API Service
-    nane: API Service
+    name: API Service
 
 spring:
   application:

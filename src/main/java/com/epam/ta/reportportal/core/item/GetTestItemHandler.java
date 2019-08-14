@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * GET operations for {@link TestItem}
@@ -62,7 +63,7 @@ public interface GetTestItemHandler {
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Long launchId);
+			ReportPortalUser user, Long launchId, Optional<Long> widgetId);
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch

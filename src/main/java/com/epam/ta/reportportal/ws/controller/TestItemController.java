@@ -42,7 +42,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -145,14 +147,14 @@ public class TestItemController {
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID) Long launchId,
-			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
-			@SortFor(TestItem.class) Pageable pageable) {
-		return getTestItemHandler.getTestItems(
-				new CompositeFilter(Operator.AND, filter, predefinedFilter),
+			@Nullable @RequestParam(value = "widgetId", required = false) Long widgetId, @FilterFor(TestItem.class) Filter filter,
+			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable) {
+		return getTestItemHandler.getTestItems(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,
 				extractProjectDetails(user, projectName),
 				user,
-				launchId
+				launchId,
+				Optional.ofNullable(widgetId)
 		);
 	}
 

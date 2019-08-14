@@ -25,27 +25,31 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TicketRepository;
+import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -55,6 +59,8 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
+import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
@@ -78,15 +84,22 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TicketRepository ticketRepository;
 
+	private final WidgetRepository widgetRepository;
+
+	private final BuildFilterStrategy buildFilterStrategy;
+
 	@Autowired
 	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler,
-			TicketRepository ticketRepository) {
+			TicketRepository ticketRepository, WidgetRepository widgetRepository,
+			@Qualifier("generalLaunchFilterStrategy") BuildFilterStrategy buildFilterStrategy) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
 		this.ticketRepository = ticketRepository;
+		this.widgetRepository = widgetRepository;
+		this.buildFilterStrategy = buildFilterStrategy;
 	}
 
 	@Override
@@ -107,18 +120,31 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Long launchId) {
-		validate(launchId, projectDetails, user);
-		Page<TestItem> testItemPage = testItemRepository.findByFilter(filter, pageable);
+			ReportPortalUser user, Long launchId, Optional<Long> widgetId) {
+
+		Page<TestItem> testItemPage = widgetId.map(id -> {
+			validateProjectRole(projectDetails, user);
+			Widget widget = widgetRepository.findByIdAndProjectId(id, projectDetails.getProjectId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.WIDGET_NOT_FOUND_IN_PROJECT, id, projectDetails.getProjectId()));
+			Map<Filter, Sort> filterSortMap = buildFilterStrategy.buildFilter(projectDetails, widget);
+			Queryable launchFilter = GROUP_FILTERS.apply(filterSortMap.keySet());
+			Pageable launchPageable = PageRequest.of(0, widget.getItemsCount(), GROUP_SORTS.apply(filterSortMap.values()));
+			return Page.<TestItem>empty();
+
+		}).orElseGet(() -> {
+			validate(launchId, projectDetails, user);
+			return testItemRepository.findByFilter(filter, pageable);
+		});
+
 		return PagedResourcesAssembler.pageConverter(itemResourceAssembler::toResource).apply(testItemPage);
 	}
 
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(
-				ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-		);
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+				);
 		return ticketRepository.findByTerm(launchId, term);
 	}
 
@@ -146,15 +172,21 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	private void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
-					"Specified launch with id '{}' not referenced to specified project with id '{}'",
-					launch.getId(),
-					projectDetails.getProjectId()
-			));
-			expect(
-					projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
+							launch.getId(),
+							projectDetails.getProjectId()
+					)
+			);
+			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
 					Predicate.isEqual(false)
 			).verify(ACCESS_DENIED);
+		}
+	}
+
+	private void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
 		}
 	}
 

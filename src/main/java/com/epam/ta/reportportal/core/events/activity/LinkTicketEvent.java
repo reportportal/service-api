@@ -56,6 +56,14 @@ public class LinkTicketEvent extends AroundEvent<TestItemActivityResource> imple
 		this.activityAction = activityAction;
 	}
 
+	public ActivityAction getActivityAction() {
+		return activityAction;
+	}
+
+	public void setActivityAction(ActivityAction activityAction) {
+		this.activityAction = activityAction;
+	}
+
 	@Override
 	public Activity toActivity() {
 		ActivityBuilder builder = new ActivityBuilder().addCreatedNow()

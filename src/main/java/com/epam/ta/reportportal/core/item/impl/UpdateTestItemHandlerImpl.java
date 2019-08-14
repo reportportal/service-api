@@ -164,9 +164,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(issues,
-						user.getUsername()
-				)));
+				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.getTickets()
+						.addAll(collectTickets(issues, user.getUsername())));
 
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				issueEntityRepository.save(issueEntity);
@@ -375,12 +374,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			return Collections.emptySet();
 		}
 		return externalIssues.stream().map(it -> {
-			Ticket apply = TicketConverter.TO_TICKET.apply(it);
-			apply.setSubmitter(username);
-			apply.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
+			Ticket ticket;
+			Optional<Ticket> ticketOptional = ticketRepository.findByTicketId(it.getTicketId());
+			if (ticketOptional.isPresent()) {
+				ticket = ticketOptional.get();
+				ticket.setUrl(it.getUrl());
+				ticket.setBtsProject(it.getBtsProject());
+				ticket.setBtsUrl(it.getBtsUrl());
+			} else {
+				ticket = TicketConverter.TO_TICKET.apply(it);
+			}
+			ticket.setSubmitter(username);
+			ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
 					ZoneOffset.UTC
 			)).orElse(LocalDateTime.now()));
-			return apply;
+			return ticket;
 		}).collect(toSet());
 	}
 

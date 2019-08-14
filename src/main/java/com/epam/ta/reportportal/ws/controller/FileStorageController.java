@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.reportportal.commons.ContentTypeResolver;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
@@ -47,10 +48,13 @@ public class FileStorageController {
 
 	private final GetFileHandler getFileHandler;
 
+	private final ContentTypeResolver contentTypeResolver;
+
 	@Autowired
-	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler) {
+	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler, ContentTypeResolver contentTypeResolver) {
 		this.editUserHandler = editUserHandler;
 		this.getFileHandler = getFileHandler;
+		this.contentTypeResolver = contentTypeResolver;
 	}
 
 	@Transactional(readOnly = true)
@@ -105,6 +109,7 @@ public class FileStorageController {
 		if (inputStream != null) {
 
 			try {
+				response.setContentType(contentTypeResolver.detectContentType(inputStream));
 				IOUtils.copy(inputStream, response.getOutputStream());
 			} catch (IOException e) {
 				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);

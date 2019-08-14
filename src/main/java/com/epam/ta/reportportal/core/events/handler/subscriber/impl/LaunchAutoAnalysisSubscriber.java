@@ -1,10 +1,10 @@
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
-import com.epam.ta.reportportal.core.analyzer.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.subscriber.LaunchFinishedEventSubscriber;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -40,9 +40,11 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
-					.collectItems(project.getId(), launch.getId(), null);
+					.collectItems(project.getId(), launch.getId());
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
 			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
+
+			//TODO provide executor
 			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 		} else {
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);

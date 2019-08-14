@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ public class ProjectFilterStrategy extends AbstractStatisticsFilterStrategy {
 	@Override
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
 		return new Filter(Launch.class,
-				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
+				Lists.newArrayList(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
 		);
 	}
 }

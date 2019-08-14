@@ -48,7 +48,7 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 			FinishTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchUuid()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

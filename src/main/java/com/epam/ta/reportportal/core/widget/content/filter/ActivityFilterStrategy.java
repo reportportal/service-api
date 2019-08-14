@@ -22,7 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.widget.Widget;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +46,7 @@ public class ActivityFilterStrategy extends AbstractStatisticsFilterStrategy {
 	protected Filter buildDefaultFilter(Widget widget, Long projectId) {
 		return new Filter(
 				Activity.class,
-				Sets.newHashSet(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
+				Lists.newArrayList(new FilterCondition(Condition.EQUALS, false, String.valueOf(projectId), CRITERIA_PROJECT_ID))
 		);
 	}
 }

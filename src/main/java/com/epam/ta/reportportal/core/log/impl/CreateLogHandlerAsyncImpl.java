@@ -77,7 +77,8 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 		if (file != null) {
 			CompletableFuture.supplyAsync(saveLogBinaryDataTask.get()
 					.withRequest(request)
-					.withFile(file).withProjectId(projectDetails.getProjectId()), taskExecutor)
+					.withFile(file)
+					.withProjectId(projectDetails.getProjectId()), taskExecutor)
 					.thenAccept(metaInfo -> sendMessage(request, metaInfo, projectDetails.getProjectId()));
 		} else {
 			sendMessage(request, null, projectDetails.getProjectId());
@@ -89,13 +90,18 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 	}
 
 	private void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchId()), DeserializablePair.of(request, metaInfo), message -> {
-			Map<String, Object> headers = message.getMessageProperties().getHeaders();
-			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
-			headers.put(MessageHeaders.PROJECT_ID, projectId);
-			headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
-			return message;
-		});
+		amqpTemplate.convertAndSend(
+				EXCHANGE_REPORTING,
+				getReportingQueueKey(request.getLaunchUuid()),
+				DeserializablePair.of(request, metaInfo),
+				message -> {
+					Map<String, Object> headers = message.getMessageProperties().getHeaders();
+					headers.put(MessageHeaders.REQUEST_TYPE, RequestType.LOG);
+					headers.put(MessageHeaders.PROJECT_ID, projectId);
+					headers.put(MessageHeaders.ITEM_ID, request.getItemUuid());
+					return message;
+				}
+		);
 
 	}
 }

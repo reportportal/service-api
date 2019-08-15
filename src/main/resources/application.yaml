@@ -34,7 +34,7 @@ server:
   connection-timeout: 30000
   port: 8585
   servlet:
-    context-path: "/api"
+    context-path: "/"
 
 logging:
   file: /var/${spring.application.name}.log

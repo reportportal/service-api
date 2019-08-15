@@ -98,6 +98,7 @@ rp:
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
+    path: /data/storage
     master:
       host: seaweed-master
       port: 9333

@@ -34,7 +34,7 @@ server:
   connection-timeout: 30000
   port: 8585
   servlet:
-    context-path: "/"
+    context-path: "/api"
 
 logging:
   file: /var/${spring.application.name}.log
@@ -98,6 +98,7 @@ rp:
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
+    path: /Users/yumfriez/data/storage
     master:
       host: seaweed-master
       port: 9333

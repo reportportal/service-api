@@ -20,14 +20,18 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.filter.ObjectType;
+import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -56,6 +60,9 @@ class GetTestItemHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
+
+	@Mock
+	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
 	@InjectMocks
 	private GetTestItemHandlerImpl handler;
@@ -175,5 +182,93 @@ class GetTestItemHandlerImplTest {
 				() -> handler.getTestItem(1L, extractProjectDetails(operator, "test_project"), operator)
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	public void getItemsForNonExistingFilter() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		launch.setProjectId(2L);
+		item.setLaunchId(launch.getId());
+		when(getShareableEntityHandler.getPermitted(1L, extractProjectDetails(rpUser, "test_project"))).thenThrow(new ReportPortalException(
+				ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT,
+				1L,
+				"test_project"
+		));
+
+		final Executable executable = () -> handler.getTestItems(Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+						.withValue("100")
+						.withCondition(Condition.EQUALS)
+						.build())
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, 0);
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("User filter with ID '1' not found on project 'test_project'. Did you use correct User Filter ID?",
+				exception.getMessage()
+		);
+	}
+
+	@Test
+	public void getItemsForIncorrectTargetClass() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		launch.setProjectId(2L);
+		item.setLaunchId(launch.getId());
+		UserFilter filter = new UserFilter();
+		filter.setTargetClass(ObjectType.TestItem);
+		when(getShareableEntityHandler.getPermitted(1L, extractProjectDetails(rpUser, "test_project"))).thenReturn(filter);
+
+		final Executable executable = () -> handler.getTestItems(Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+						.withValue("100")
+						.withCondition(Condition.EQUALS)
+						.build())
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, 0);
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals(
+				"Error in handled Request. Please, check specified parameters: 'Incorrect filter target - 'TestItem'. Allowed: 'Launch''",
+				exception.getMessage()
+		);
+	}
+
+	@Test
+	public void getItemsForIncorrectLaunchesLimit() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		launch.setProjectId(2L);
+		item.setLaunchId(launch.getId());
+		UserFilter filter = new UserFilter();
+		filter.setTargetClass(ObjectType.Launch);
+		when(getShareableEntityHandler.getPermitted(1L, extractProjectDetails(rpUser, "test_project"))).thenReturn(filter);
+
+		final Executable executable = () -> handler.getTestItems(Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+						.withValue("100")
+						.withCondition(Condition.EQUALS)
+						.build())
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, 0);
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals(
+				"Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0 and less or equal to 600'",
+				exception.getMessage()
+		);
 	}
 }

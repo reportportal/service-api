@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.util.Date;
@@ -73,6 +74,7 @@ import static java.util.Optional.ofNullable;
  */
 @Service
 @Primary
+@Transactional
 class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final TestItemRepository testItemRepository;

@@ -85,7 +85,6 @@ public class TestItemController {
 
 	/* Report client API */
 
-	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
@@ -95,7 +94,6 @@ public class TestItemController {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
-	@Transactional
 	@PostMapping("/{parentItem}")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
@@ -105,7 +103,6 @@ public class TestItemController {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
-	@Transactional
 	@PutMapping("/{testItemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")

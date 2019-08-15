@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -65,6 +64,9 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v1/{projectName}/item")
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
+
+	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
+	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
 
 	private final StartTestItemHandler startTestItemHandler;
 	private final DeleteTestItemHandler deleteTestItemHandler;
@@ -146,15 +148,18 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID) Long launchId,
-			@Nullable @RequestParam(value = "widgetId", required = false) Long widgetId, @FilterFor(TestItem.class) Filter filter,
-			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable) {
+			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
+			@Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
+			@RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false) int launchesLimit,
+			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
+			@SortFor(TestItem.class) Pageable pageable) {
 		return getTestItemHandler.getTestItems(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,
 				extractProjectDetails(user, projectName),
 				user,
 				launchId,
-				Optional.ofNullable(widgetId)
+				filterId,
+				launchesLimit
 		);
 	}
 

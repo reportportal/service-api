@@ -75,7 +75,7 @@ public class LaunchBuilder implements Supplier<Launch> {
 		return this;
 	}
 
-	public LaunchBuilder addUser(Long userId) {
+	public LaunchBuilder addUserId(Long userId) {
 		launch.setUserId(userId);
 		return this;
 	}

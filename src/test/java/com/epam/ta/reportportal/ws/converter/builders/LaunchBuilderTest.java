@@ -54,7 +54,7 @@ class LaunchBuilderTest {
 				.addEndTime(date)
 				.addProject(projectId)
 				.addAttribute(attributeResource)
-				.addUser(userId)
+				.addUserId(userId)
 				.addStatus(passed)
 				.addMode(mode)
 				.get();

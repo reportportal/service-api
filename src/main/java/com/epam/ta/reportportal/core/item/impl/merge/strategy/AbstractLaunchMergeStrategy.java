@@ -106,7 +106,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 		Launch launch = new LaunchBuilder().addStartRQ(startRQ)
 				.addProject(projectId)
 				.addStatus(IN_PROGRESS.name())
-				.addUser(userId)
+				.addUserId(userId)
 				.addEndTime(endTime)
 				.get();
 		launchRepository.save(launch);

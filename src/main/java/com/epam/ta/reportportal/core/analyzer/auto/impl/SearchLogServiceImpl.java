@@ -127,12 +127,12 @@ public class SearchLogServiceImpl implements SearchLogService {
 		List<Log> foundLogs = logRepository.findAllById(foundLogIds);
 
 		Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
-		foundLogs.forEach(it -> {
-			foundLogsMap.computeIfPresent(it.getTestItem().getItemId(), (k, v) -> {
-				v.getLogMessages().add(it.getLogMessage());
-				return v;
+		foundLogs.forEach(log -> {
+			foundLogsMap.computeIfPresent(log.getTestItem().getItemId(), (key, value) -> {
+				value.getLogMessages().add(log.getLogMessage());
+				return value;
 			});
-			foundLogsMap.putIfAbsent(it.getTestItem().getItemId(), TO_SEARCH_LOG_RS.apply(it));
+			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(), TO_SEARCH_LOG_RS.apply(launch.getId(), log));
 		});
 
 		return foundLogsMap.values();

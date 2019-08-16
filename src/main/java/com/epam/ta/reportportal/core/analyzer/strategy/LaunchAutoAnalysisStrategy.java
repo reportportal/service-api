@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.AnalysisEvent;
@@ -51,18 +50,16 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
 	private final AnalyzerServiceAsync analyzerServiceAsync;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
-	private final LogIndexer logIndexer;
-
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public LaunchAutoAnalysisStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory, LogIndexer logIndexer) {
+			AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory,
+			ApplicationEventPublisher eventPublisher) {
 		super(projectRepository, launchRepository);
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
-		this.logIndexer = logIndexer;
+		this.eventPublisher = eventPublisher;
 	}
 
 	public void analyze(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {

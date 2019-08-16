@@ -42,6 +42,7 @@ import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.T
  */
 @Service
 @Primary
+@Transactional
 class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.StartLaunchHandler {
 
 	private final UserRepository userRepository;

@@ -92,7 +92,6 @@ public class LogController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	@Transactional
 	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);

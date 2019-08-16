@@ -20,15 +20,11 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.base.Preconditions;
 
-import java.util.Arrays;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
@@ -66,24 +62,6 @@ public final class LogConverter {
 		ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
 		return resource;
-	};
-
-	public static final BiFunction<Long, Log, SearchLogRs> TO_SEARCH_LOG_RS = (launchId, log) -> {
-		SearchLogRs searchLogRs = new SearchLogRs();
-		searchLogRs.setLaunchId(launchId);
-		searchLogRs.setItemId(log.getTestItem().getItemId());
-		searchLogRs.setItemName(log.getTestItem().getName());
-		searchLogRs.setPath(log.getTestItem().getPath());
-		searchLogRs.setPatternTemplates(log.getTestItem()
-				.getPatternTemplateTestItems()
-				.stream()
-				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
-				.collect(toSet()));
-		searchLogRs.setDuration(log.getTestItem().getItemResults().getDuration());
-		searchLogRs.setStatus(log.getTestItem().getItemResults().getStatus().name());
-		searchLogRs.setIssue(IssueConverter.TO_MODEL.apply(log.getTestItem().getItemResults().getIssue()));
-		searchLogRs.setLogMessages(Arrays.asList(log.getLogMessage()));
-		return searchLogRs;
 	};
 
 	private static boolean isBinaryDataExists(Log log) {

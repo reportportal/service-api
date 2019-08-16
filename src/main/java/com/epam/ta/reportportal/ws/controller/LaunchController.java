@@ -73,8 +73,8 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v1/{projectName}/launch")
 public class LaunchController {
 
-	private final StartLaunchHandler createLaunchMessageHandler;
-	private final FinishLaunchHandler finishLaunchMessageHandler;
+	private final StartLaunchHandler startLaunchHandler;
+	private final FinishLaunchHandler finishLaunchHandler;
 	private final StopLaunchHandler stopLaunchHandler;
 	private final DeleteLaunchHandler deleteLaunchMessageHandler;
 	private final GetLaunchHandler getLaunchMessageHandler;
@@ -83,12 +83,12 @@ public class LaunchController {
 	private final ImportLaunchHandler importLaunchHandler;
 	private final GetJasperReportHandler<Launch> getJasperHandler;
 
-	public LaunchController(StartLaunchHandler createLaunchMessageHandler, FinishLaunchHandler finishLaunchMessageHandler,
+	public LaunchController(StartLaunchHandler startLaunchHandler, FinishLaunchHandler finishLaunchHandler,
 			StopLaunchHandler stopLaunchHandler, DeleteLaunchHandler deleteLaunchMessageHandler, GetLaunchHandler getLaunchMessageHandler,
 			UpdateLaunchHandler updateLaunchHandler, MergeLaunchHandler mergeLaunchesHandler, ImportLaunchHandler importLaunchHandler,
 			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> getJasperHandler) {
-		this.createLaunchMessageHandler = createLaunchMessageHandler;
-		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
+		this.startLaunchHandler = startLaunchHandler;
+		this.finishLaunchHandler = finishLaunchHandler;
 		this.stopLaunchHandler = stopLaunchHandler;
 		this.deleteLaunchMessageHandler = deleteLaunchMessageHandler;
 		this.getLaunchMessageHandler = getLaunchMessageHandler;
@@ -100,7 +100,6 @@ public class LaunchController {
 
 	/* Report client API */
 
-	@Transactional
 	@PostMapping
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
@@ -108,10 +107,9 @@ public class LaunchController {
 	public StartLaunchRS startLaunch(@PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated @Valid StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+		return startLaunchHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
-	@Transactional
 	@PutMapping(value = "/{launchId}/finish")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
@@ -119,7 +117,7 @@ public class LaunchController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(launchId,
+		return finishLaunchHandler.finishLaunch(launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,

@@ -22,7 +22,7 @@ plugins {
     id "com.jfrog.bintray" version "1.8.4"
     id 'java'
     id 'jacoco'
-    id "org.owasp.dependencycheck" version "5.0.0-M3.1"
+    id "org.owasp.dependencycheck" version "5.2.0"
     id "org.ajoberstar.grgit" version "3.1.1"
 }
 
@@ -224,6 +224,11 @@ task copyJacocoAgentToLibs(type: Copy) {
     }
 }
 
+dependencyCheck {
+    formats = ['HTML', 'XML']
+//    cveValidForHours = 1
+}
+
 jar.dependsOn copyJacocoAgentToLibs
 jar.dependsOn gitInfo
 //End section for external jacoco test report
@@ -275,6 +280,11 @@ test {
     testLogging {
         events 'failed'
         exceptionFormat 'short'
+    }
+
+//    testLogging.showStandardStreams = true
+    reports {
+        junitXml.enabled = true
     }
 
     jacocoTestReport {

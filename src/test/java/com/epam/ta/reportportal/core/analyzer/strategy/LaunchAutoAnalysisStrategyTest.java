@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsCollector;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.events.AnalysisEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -29,16 +29,16 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.*;
 
@@ -51,21 +51,20 @@ class LaunchAutoAnalysisStrategyTest {
 	private final Project project = mock(Project.class);
 
 	@Mock
-	private CompletableFuture<Void> completableFuture;
+	private ProjectRepository projectRepository;
+	@Mock
+	private LaunchRepository launchRepository;
+	@Mock
+	private AnalyzerServiceAsync analyzerServiceAsync;
+	@Mock
+	private AnalyzeCollectorFactory analyzeCollectorFactory;
+	@Mock
+	private AnalyzeItemsCollector analyzeItemsCollector;
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
 
-	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
-	private final AnalyzerServiceAsync analyzerServiceAsync = mock(AnalyzerServiceAsync.class);
-	private final AnalyzeCollectorFactory analyzeCollectorFactory = mock(AnalyzeCollectorFactory.class);
-	private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
-	private final LogIndexer logIndexer = mock(LogIndexer.class);
-
-	private final LaunchAutoAnalysisStrategy launchAutoAnalysisStrategy = new LaunchAutoAnalysisStrategy(projectRepository,
-			launchRepository,
-			analyzerServiceAsync,
-			analyzeCollectorFactory,
-			logIndexer
-	);
+	@InjectMocks
+	private LaunchAutoAnalysisStrategy launchAutoAnalysisStrategy;
 
 	@Test
 	void analyzeTest() {
@@ -89,9 +88,7 @@ class LaunchAutoAnalysisStrategyTest {
 		analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");
 		analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
 		analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
-		when(analyzerServiceAsync.analyze(any(Launch.class), anyList(), any(AnalyzerConfig.class))).thenReturn(completableFuture);
 		launchAutoAnalysisStrategy.analyze(projectDetails, analyzeLaunchRQ);
-		verify(analyzerServiceAsync, times(1)).analyze(any(Launch.class), anyList(), any(AnalyzerConfig.class));
-
+		verify(eventPublisher, times(1)).publishEvent(any(AnalysisEvent.class));
 	}
 }

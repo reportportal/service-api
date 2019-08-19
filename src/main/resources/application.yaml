@@ -1,6 +1,8 @@
 info:
   build:
     version: ${rp.api.version:5.0}
+    description: ReportPortal API Service
+    name: API Service
 
 spring:
   application:
@@ -28,13 +30,21 @@ spring:
   rabbitmq:
     addresses: ${rp.amqp.addresses}
 
+server:
+  connection-timeout: 30000
+  port: 8585
+  servlet:
+    context-path: "/"
+
 logging:
+  file: /var/${spring.application.name}.log
+  pattern:
+    file: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %level %logger - %msg%n'
   level:
     org.hibernate: info
     org.hibernate.stat: info
     org.springframework.security: info
     org.springframework.web.bind: fatal
-    root: info
 
 
 springfox:
@@ -88,6 +98,7 @@ rp:
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
+    path: /data/storage
     master:
       host: seaweed-master
       port: 9333

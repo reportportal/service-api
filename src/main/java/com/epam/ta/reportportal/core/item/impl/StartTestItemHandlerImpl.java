@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -55,6 +56,7 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
  */
 @Service
 @Primary
+@Transactional
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
@@ -78,8 +80,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
-		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
+		Launch launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(user, projectDetails, rq, launch);
 
 		if (launch.isRerun()) {
@@ -89,7 +91,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunch(launch).get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 		testItemRepository.save(item);
 		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
@@ -102,8 +104,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			String parentId) {
 		TestItem parentItem = testItemRepository.findByUuid(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-		Launch launch = launchRepository.findByUuid(rq.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchId()));
+		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(rq, parentItem);
 
 		if (launch.isRerun()) {
@@ -115,7 +117,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
 				.addAttributes(rq.getAttributes())
-				.addLaunch(launch)
+				.addLaunchId(launch.getId())
 				.addParent(parentItem)
 				.get();
 

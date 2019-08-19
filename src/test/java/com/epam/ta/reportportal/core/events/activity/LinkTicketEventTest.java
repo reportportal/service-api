@@ -39,10 +39,12 @@ class LinkTicketEventTest {
 
 	@Test
 	void toActivity() {
-		final Activity actual = new LinkTicketEvent(getTestItem(EXISTED_TICKETS),
+		final Activity actual = new LinkTicketEvent(
+				getTestItem(EXISTED_TICKETS),
 				getTestItem(EXISTED_TICKETS + "," + LINKED_TICKET),
 				1L,
-				"user"
+				"user",
+				ActivityAction.LINK_ISSUE
 		).toActivity();
 		final Activity expected = getExpectedActivity();
 		checkActivity(expected, actual);

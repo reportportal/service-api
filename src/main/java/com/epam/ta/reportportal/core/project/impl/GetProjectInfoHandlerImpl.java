@@ -41,7 +41,7 @@ import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.project.LaunchesPerUser;
 import com.epam.ta.reportportal.ws.model.project.ProjectInfoResource;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -240,7 +240,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.filter(not(ACTIVITIES_PROJECT_FILTER))
 				.map(ActivityAction::getValue)
 				.collect(joining(","));
-		Filter filter = new Filter(Activity.class, Sets.newHashSet(new FilterCondition(IN, false, value, CRITERIA_ACTION),
+		Filter filter = new Filter(Activity.class, Lists.newArrayList(new FilterCondition(IN, false, value, CRITERIA_ACTION),
 				new FilterCondition(EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID),
 				new FilterCondition(GREATER_THAN_OR_EQUALS,
 						false,

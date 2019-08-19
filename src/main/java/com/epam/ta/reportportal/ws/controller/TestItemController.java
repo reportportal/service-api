@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
@@ -64,6 +65,9 @@ import static org.springframework.http.HttpStatus.OK;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
+	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
+	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
+
 	private final StartTestItemHandler startTestItemHandler;
 	private final DeleteTestItemHandler deleteTestItemHandler;
 	private final FinishTestItemHandler finishTestItemHandler;
@@ -85,7 +89,6 @@ public class TestItemController {
 
 	/* Report client API */
 
-	@Transactional
 	@PostMapping
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a root test item")
@@ -95,7 +98,6 @@ public class TestItemController {
 		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
-	@Transactional
 	@PostMapping("/{parentItem}")
 	@ResponseStatus(CREATED)
 	@ApiOperation("Start a child test item")
@@ -105,7 +107,6 @@ public class TestItemController {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
-	@Transactional
 	@PutMapping("/{testItemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Finish test item")
@@ -128,21 +129,34 @@ public class TestItemController {
 
 	}
 
+	@Transactional(readOnly = true)
+	@GetMapping("/uuid/{itemId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by UUID")
+	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable String itemId) {
+		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
+
+	}
+
 	//TODO check pre-defined filter
 	@Transactional(readOnly = true)
 	@GetMapping
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID) Long launchId,
+			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
+			@Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
+			@RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false) int launchesLimit,
 			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
 			@SortFor(TestItem.class) Pageable pageable) {
-		return getTestItemHandler.getTestItems(
-				new CompositeFilter(Operator.AND, filter, predefinedFilter),
+		return getTestItemHandler.getTestItems(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,
 				extractProjectDetails(user, projectName),
 				user,
-				launchId
+				launchId,
+				filterId,
+				launchesLimit
 		);
 	}
 

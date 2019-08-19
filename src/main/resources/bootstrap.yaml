@@ -1,11 +1,3 @@
-info:
-  build:
-    name: API Service
-    description: ReportPortal API Service
-    version: '@version@'
-    branch: '@branch@'
-    repo: '@repo@'
-
 spring:
   profiles:
     ## Profiles list

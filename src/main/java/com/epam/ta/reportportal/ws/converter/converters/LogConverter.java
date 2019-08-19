@@ -65,7 +65,6 @@ public final class LogConverter {
 	};
 
 	private static boolean isBinaryDataExists(Log log) {
-
 		return ofNullable(log.getAttachment()).map(a -> isNotEmpty(a.getContentType()) || isNotEmpty(a.getThumbnailId())
 				|| isNotEmpty(a.getFileId())).orElse(false);
 	}

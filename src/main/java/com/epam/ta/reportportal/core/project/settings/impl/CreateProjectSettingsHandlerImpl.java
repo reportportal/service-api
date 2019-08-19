@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.PatternCreatedEvent;
-import com.epam.ta.reportportal.core.pattern.CreatePatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;

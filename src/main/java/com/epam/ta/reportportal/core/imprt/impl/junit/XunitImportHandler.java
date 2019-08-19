@@ -54,23 +54,27 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportHandler.class);
 
-	@Autowired
-	private StartTestItemHandler startTestItemHandler;
+	private final StartTestItemHandler startTestItemHandler;
+
+	private final FinishTestItemHandler finishTestItemHandler;
+
+	private final CreateLogHandler createLogHandler;
 
 	@Autowired
-	private FinishTestItemHandler finishTestItemHandler;
-
-	@Autowired
-	private CreateLogHandler createLogHandler;
+	public XunitImportHandler(StartTestItemHandler startTestItemHandler, FinishTestItemHandler finishTestItemHandler,
+			CreateLogHandler createLogHandler) {
+		this.startTestItemHandler = startTestItemHandler;
+		this.finishTestItemHandler = finishTestItemHandler;
+		this.createLogHandler = createLogHandler;
+	}
 
 	//initial info
 	private ReportPortalUser.ProjectDetails projectDetails;
 	private ReportPortalUser user;
-	private String launchId;
-	private String uuid;
+	private String launchUuid;
 
 	//need to know item's id to attach System.out/System.err logs
-	private String currentId;
+	private String currentItemUuid;
 
 	private LocalDateTime startSuiteTime;
 
@@ -78,14 +82,14 @@ public class XunitImportHandler extends DefaultHandler {
 	private long currentDuration;
 
 	//items structure ids
-	private Deque<String> itemsIds;
+	private Deque<String> itemUuids;
 	private StatusEnum status;
 	private StringBuilder message;
 	private LocalDateTime startItemTime;
 
 	@Override
 	public void startDocument() {
-		itemsIds = new ArrayDeque<>();
+		itemUuids = new ArrayDeque<>();
 		message = new StringBuilder();
 		startSuiteTime = LocalDateTime.now();
 	}
@@ -98,7 +102,7 @@ public class XunitImportHandler extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		switch (XunitReportTag.fromString(qName)) {
 			case TESTSUITE:
-				if (itemsIds.isEmpty()) {
+				if (itemUuids.isEmpty()) {
 					startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
 							attributes.getValue(XunitReportTag.TIMESTAMP.getValue())
 					);
@@ -126,6 +130,7 @@ public class XunitImportHandler extends DefaultHandler {
 				message = new StringBuilder();
 				break;
 			case UNKNOWN:
+			default:
 				LOGGER.warn("Unknown tag: {}", qName);
 				break;
 		}
@@ -143,18 +148,17 @@ public class XunitImportHandler extends DefaultHandler {
 			case SKIPPED:
 			case ERROR:
 			case FAILURE:
+			case SYSTEM_ERR:
 				attachLog(LogLevel.ERROR);
 				break;
 			case SYSTEM_OUT:
 				attachLog(LogLevel.INFO);
 				break;
-			case SYSTEM_ERR:
-				attachLog(LogLevel.ERROR);
-				break;
 			case WARNING:
 				attachLog(LogLevel.WARN);
 				break;
 			case UNKNOWN:
+			default:
 				LOGGER.warn("Unknown tag: {}", qName);
 				break;
 		}
@@ -179,7 +183,7 @@ public class XunitImportHandler extends DefaultHandler {
 		}
 		StartTestItemRQ rq = buildStartTestRq(name);
 		String id = startTestItemHandler.startRootItem(user, projectDetails, rq).getUuid();
-		itemsIds.push(id);
+		itemUuids.push(id);
 	}
 
 	private LocalDateTime parseTimeStamp(String timestamp) {
@@ -203,26 +207,26 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void startTestItem(String name) {
 		StartTestItemRQ rq = buildStartTestRq(name);
-		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemsIds.peek()).getUuid();
-		itemsIds.push(id);
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getUuid();
+		itemUuids.push(id);
 	}
 
 	private void startStepItem(String name, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
+		rq.setLaunchUuid(launchUuid);
 		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(name);
-		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemsIds.peek()).getUuid();
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getUuid();
 		currentDuration = toMillis(duration);
-		currentId = id;
-		itemsIds.push(id);
+		currentItemUuid = id;
+		itemUuids.push(id);
 	}
 
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
-		finishTestItemHandler.finishTestItem(user, projectDetails, itemsIds.poll(), rq);
+		finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
 		status = null;
 	}
 
@@ -232,8 +236,8 @@ public class XunitImportHandler extends DefaultHandler {
 		commonDuration += currentDuration;
 		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setStatus(Optional.ofNullable(status).orElse(StatusEnum.PASSED).name());
-		currentId = itemsIds.poll();
-		finishTestItemHandler.finishTestItem(user, projectDetails, currentId, rq);
+		currentItemUuid = itemUuids.poll();
+		finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
 		status = null;
 	}
 
@@ -243,21 +247,21 @@ public class XunitImportHandler extends DefaultHandler {
 			saveLogRQ.setLevel(logLevel.name());
 			saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
 			saveLogRQ.setMessage(message.toString().trim());
-			saveLogRQ.setItemId(currentId);
+			saveLogRQ.setItemUuid(currentItemUuid);
 			createLogHandler.createLog(saveLogRQ, null, projectDetails);
 		}
 	}
 
 	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user) {
 		this.projectDetails = projectDetails;
-		this.launchId = launchId;
+		this.launchUuid = launchId;
 		this.user = user;
 		return this;
 	}
 
 	private StartTestItemRQ buildStartTestRq(String name) {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
+		rq.setLaunchUuid(launchUuid);
 		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.TEST.name());
 		rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);

@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
@@ -28,6 +29,8 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
+import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
@@ -56,6 +59,7 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Pavel Bortnik
@@ -68,14 +72,16 @@ public class LogController {
 	private final CreateLogHandler createLogHandler;
 	private final DeleteLogHandler deleteLogHandler;
 	private final GetLogHandler getLogHandler;
+	private final SearchLogService searchLogService;
 	private final Validator validator;
 
 	@Autowired
 	public LogController(@Autowired CreateLogHandler createLogHandler, DeleteLogHandler deleteLogHandler, GetLogHandler getLogHandler,
-			Validator validator) {
+			SearchLogService searchLogService, Validator validator) {
 		this.createLogHandler = createLogHandler;
 		this.deleteLogHandler = deleteLogHandler;
 		this.getLogHandler = getLogHandler;
+		this.searchLogService = searchLogService;
 		this.validator = validator;
 	}
 
@@ -86,7 +92,6 @@ public class LogController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	@Transactional
 	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
@@ -125,10 +130,9 @@ public class LogController {
 				} else {
 					/* Find by request part */
 					MultipartFile data = findByFileName(filename, uploadedFiles);
-					BusinessRule.expect(data, Predicates.notNull())
-							.verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
-									Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
-							);
+					BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+							Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
+					);
 					/*
 					 * If provided content type is null or this is octet
 					 * stream, try to detect real content type of binary
@@ -175,18 +179,34 @@ public class LogController {
 	}
 
 	@GetMapping(value = "/{logId}")
-	@ApiOperation("Get log")
+	@ApiOperation("Get log by ID")
 	@Transactional(readOnly = true)
 	public LogResource getLog(@PathVariable String projectName, @PathVariable Long logId, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
+	}
+
+	@GetMapping(value = "/uuid/{logId}")
+	@ApiOperation("Get log by UUID")
+	@Transactional(readOnly = true)
+	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
 	}
 
 	@GetMapping(value = "/nested/{parentId}")
 	@ApiOperation("Get nested steps with logs for the parent Test Item")
 	@Transactional(readOnly = true)
-	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId, @ApiParam(required = false) @RequestParam Map<String, String> params,
-			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
+	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId,
+			@ApiParam(required = false) @RequestParam Map<String, String> params, @FilterFor(Log.class) Filter filter,
+			@SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getNestedItems(parentId, extractProjectDetails(user, projectName), params, filter, pageable);
+	}
+
+	@PostMapping("search/{itemId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Search test items with similar error logs")
+	public Iterable<SearchLogRs> searchLogs(@PathVariable String projectName, @RequestBody SearchLogRq request, @PathVariable Long itemId,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return searchLogService.search(itemId, request, extractProjectDetails(user, projectName));
 	}
 
 }

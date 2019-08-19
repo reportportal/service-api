@@ -26,6 +26,7 @@ import org.springframework.validation.Errors;
 
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -61,6 +62,7 @@ public class JaskonRequiredPropertiesValidatorTest {
 	@Test
 	public void testInnerRequiredFields1() {
 		FinishTestItemRQ issueRQ = new FinishTestItemRQ();
+		issueRQ.setLaunchUuid(UUID.randomUUID().toString());
 		issueRQ.setEndTime(Calendar.getInstance().getTime());
 		issueRQ.setStatus("PASSED");
 		JaskonRequiredPropertiesValidator validator = new JaskonRequiredPropertiesValidator();

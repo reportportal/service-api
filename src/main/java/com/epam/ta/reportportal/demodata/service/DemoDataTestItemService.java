@@ -56,7 +56,7 @@ public class DemoDataTestItemService {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setName(rootItemName);
-		rq.setLaunchId(launchId);
+		rq.setLaunchUuid(launchId);
 		rq.setStartTime(new Date());
 		rq.setType(type.name());
 		if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
@@ -88,7 +88,7 @@ public class DemoDataTestItemService {
 				rq.setDescription(ContentUtils.getStepDescription());
 			}
 		}
-		rq.setLaunchId(launchId);
+		rq.setLaunchUuid(launchId);
 		rq.setStartTime(new Date());
 		rq.setName(name);
 		rq.setType(type.name());

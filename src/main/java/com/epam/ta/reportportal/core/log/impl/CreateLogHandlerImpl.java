@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
@@ -50,6 +51,7 @@ import java.util.Optional;
  */
 @Service
 @Primary
+@Transactional
 public class CreateLogHandlerImpl implements CreateLogHandler {
 
 	@Autowired
@@ -83,13 +85,13 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 		validate(request);
 
-		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemId());
+		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
 		if (itemOptional.isPresent()) {
 			return createItemLog(request, itemOptional.get(), file, projectDetails.getProjectId());
 		}
 
-		Launch launch = launchRepository.findByUuid(request.getItemId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_OR_LAUNCH_NOT_FOUND, request.getItemId()));
+		Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
 		return createLaunchLog(request, launch, file, projectDetails.getProjectId());
 	}
 
@@ -112,7 +114,9 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
 					.withFile(file)
 					.withProjectId(projectId)
-					.withLogId(logId).withLaunchId(launchId).withItemId(itemId);
+					.withLogId(logId)
+					.withLaunchId(launchId)
+					.withItemId(itemId);
 
 			taskExecutor.execute(saveLogBinaryDataTask);
 		}

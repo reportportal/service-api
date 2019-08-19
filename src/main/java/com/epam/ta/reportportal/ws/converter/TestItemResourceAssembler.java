@@ -23,6 +23,9 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
+import java.util.Map;
+
 /**
  * @author Pavel Bortnik
  */
@@ -40,6 +43,12 @@ public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem,
 	public TestItemResource toResource(TestItem entity) {
 		TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
 		resource.setPathNames(testItemRepository.selectPathNames(entity.getPath()));
+		return resource;
+	}
+
+	public TestItemResource toResource(TestItem entity, @Nullable Map<Long, String> pathNames) {
+		TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
+		resource.setPathNames(pathNames);
 		return resource;
 	}
 }

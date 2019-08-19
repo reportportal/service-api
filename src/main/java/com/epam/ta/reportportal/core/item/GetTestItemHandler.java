@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.data.domain.Pageable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -43,6 +44,16 @@ public interface GetTestItemHandler {
 	TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
+	 * Get {@link TestItem} instance
+	 *
+	 * @param testItemId     {@link TestItem#uuid}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
+	 * @return {@link TestItemResource}
+	 */
+	TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+
+	/**
 	 * Gets {@link TestItem} instances
 	 *
 	 * @param filter         {@link Filter}
@@ -52,7 +63,7 @@ public interface GetTestItemHandler {
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Long launchId);
+			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit);
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch

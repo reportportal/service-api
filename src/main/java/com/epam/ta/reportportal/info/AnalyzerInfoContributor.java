@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.info;
 
-import com.epam.ta.reportportal.core.analyzer.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.google.common.collect.ImmutableMap;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.analyzer.client.impl.AnalyzerUtils.ANALYZER_KEY;
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
 
 /**
  * Shows list of supported analyzers

@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -91,6 +92,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final ProjectRepository projectRepository;
 
+	private final LaunchRepository launchRepository;
+
 	private final TestItemRepository testItemRepository;
 
 	private final LogRepository logRepository;
@@ -108,11 +111,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, TestItemRepository testItemRepository,
-			LogRepository logRepository, TicketRepository ticketRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
+	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
+			TestItemRepository testItemRepository, LogRepository logRepository, TicketRepository ticketRepository,
+			IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
+		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.ticketRepository = ticketRepository;
@@ -160,9 +164,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(issues,
-						user.getUsername()
-				)));
+				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.getTickets()
+						.addAll(collectTickets(issues, user.getUsername())));
 
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				issueEntityRepository.save(issueEntity);
@@ -171,7 +174,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					Long launchId = testItem.getLaunch().getId();
+					Long launchId = testItem.getLaunchId();
 					Long itemId = testItem.getItemId();
 					if (logsToReindexMap.containsKey(launchId)) {
 						logsToReindexMap.get(launchId).add(itemId);
@@ -259,7 +262,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		before.forEach(it -> messageBus.publishActivity(new LinkTicketEvent(it,
 				after.stream().filter(t -> t.getId().equals(it.getId())).findFirst().get(),
 				user.getUserId(),
-				user.getUsername()
+				user.getUsername(),
+				ActivityAction.LINK_ISSUE
 		)));
 		return testItems.stream()
 				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
@@ -362,7 +366,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * TODO document this
 	 *
 	 * @param externalIssues {@link com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
-	 * @param userId         {@link ReportPortalUser#userId}
+	 * @param username       {@link com.epam.ta.reportportal.entity.user.User#login}
 	 * @return {@link Set} of the {@link Ticket}
 	 */
 	private Set<Ticket> collectTickets(Collection<Issue.ExternalSystemIssue> externalIssues, String username) {
@@ -370,12 +374,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			return Collections.emptySet();
 		}
 		return externalIssues.stream().map(it -> {
-			Ticket apply = TicketConverter.TO_TICKET.apply(it);
-			apply.setSubmitter(username);
-			apply.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
+			Ticket ticket;
+			Optional<Ticket> ticketOptional = ticketRepository.findByTicketId(it.getTicketId());
+			if (ticketOptional.isPresent()) {
+				ticket = ticketOptional.get();
+				ticket.setUrl(it.getUrl());
+				ticket.setBtsProject(it.getBtsProject());
+				ticket.setBtsUrl(it.getBtsUrl());
+			} else {
+				ticket = TicketConverter.TO_TICKET.apply(it);
+			}
+			ticket.setSubmitter(username);
+			ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
 					ZoneOffset.UTC
 			)).orElse(LocalDateTime.now()));
-			return apply;
+			return ticket;
 		}).collect(toSet());
 	}
 
@@ -387,15 +400,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem       Test Item
 	 */
 	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
-		Launch launch = ofNullable(testItem.getLaunch()).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
+		Launch launch = launchRepository.findById(testItem.getLaunchId())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, testItem.getLaunchId()));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
 					"Launch is not under the specified project."
 			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
-				expect(user.getUsername(), Predicate.isEqual(launch.getUser().getLogin())).verify(ACCESS_DENIED,
-						"You are not a launch owner."
-				);
+				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
 			}
 		}
 	}

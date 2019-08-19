@@ -50,16 +50,16 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v2/{projectName}/launch")
 public class LaunchAsyncController {
 
-	private final StartLaunchHandler createLaunchMessageHandler;
-	private final FinishLaunchHandler finishLaunchMessageHandler;
+	private final StartLaunchHandler startLaunchHandler;
+	private final FinishLaunchHandler finishLaunchHandler;
 	private final MergeLaunchHandler mergeLaunchesHandler;
 
 	@Autowired
-	public LaunchAsyncController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler createLaunchMessageHandler,
-			@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchMessageHandler,
+	public LaunchAsyncController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler startLaunchHandler,
+			@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchHandler,
 			MergeLaunchHandler mergeLaunchesHandler) {
-		this.createLaunchMessageHandler = createLaunchMessageHandler;
-		this.finishLaunchMessageHandler = finishLaunchMessageHandler;
+		this.startLaunchHandler = startLaunchHandler;
+		this.finishLaunchHandler = finishLaunchHandler;
 		this.mergeLaunchesHandler = mergeLaunchesHandler;
 	}
 
@@ -70,7 +70,7 @@ public class LaunchAsyncController {
 	public StartLaunchRS startLaunch(@PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createLaunchMessageHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+		return startLaunchHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
 	@PutMapping(value = "/{launchId}/finish")
@@ -80,7 +80,7 @@ public class LaunchAsyncController {
 	public FinishLaunchRS finishLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@RequestBody @Validated FinishExecutionRQ finishLaunchRQ, @AuthenticationPrincipal ReportPortalUser user,
 			HttpServletRequest request) {
-		return finishLaunchMessageHandler.finishLaunch(
+		return finishLaunchHandler.finishLaunch(
 				launchId,
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),

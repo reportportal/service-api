@@ -132,7 +132,7 @@ class RerunHandlerImplTest {
 	@Test
 	void returnEmptyOptionalWhenRootItemNotFound() {
 		StartTestItemRQ request = new StartTestItemRQ();
-		request.setLaunchId("launch_uuid");
+		request.setLaunchUuid("launch_uuid");
 		request.setType("STEP");
 		String itemName = "name";
 		request.setName(itemName);
@@ -148,7 +148,7 @@ class RerunHandlerImplTest {
 	@Test
 	void happyRerunRootItem() {
 		StartTestItemRQ request = new StartTestItemRQ();
-		request.setLaunchId("launch_uuid");
+		request.setLaunchUuid("launch_uuid");
 		request.setType("STEP");
 		String itemName = "name";
 		request.setName(itemName);
@@ -166,7 +166,7 @@ class RerunHandlerImplTest {
 	@Test
 	void returnEmptyOptionalWhenChildItemNotFound() {
 		StartTestItemRQ request = new StartTestItemRQ();
-		request.setLaunchId("launch_uuid");
+		request.setLaunchUuid("launch_uuid");
 		request.setType("STEP");
 		String itemName = "name";
 		request.setName(itemName);
@@ -184,7 +184,7 @@ class RerunHandlerImplTest {
 	@Test
 	void happyRerunChildItem() {
 		StartTestItemRQ request = new StartTestItemRQ();
-		request.setLaunchId("launch_uuid");
+		request.setLaunchUuid("launch_uuid");
 		request.setType("STEP");
 		String itemName = "name";
 		request.setName(itemName);
@@ -205,7 +205,7 @@ class RerunHandlerImplTest {
 		TestItem item = new TestItem();
 		item.setItemId(1L);
 		item.setName(name);
-		item.setLaunch(launch);
+		item.setLaunchId(launch.getId());
 		item.setDescription("desc");
 		item.setType(TestItemTypeEnum.STEP);
 		TestItemResults itemResults = new TestItemResults();

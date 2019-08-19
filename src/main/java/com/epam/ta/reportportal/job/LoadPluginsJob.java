@@ -78,10 +78,10 @@ public class LoadPluginsJob {
 		notLoadedPlugins.forEach(pluginInfo -> ofNullable(dataStore.load(pluginInfo.getFileId())).ifPresent(inputStream -> {
 			try {
 
-				LOGGER.info("Plugin loading has started...");
+				LOGGER.debug("Plugin loading has started...");
 
 				if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
-					LOGGER.info("Copying plugin file...");
+					LOGGER.debug("Copying plugin file...");
 					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
 				}
 
@@ -89,20 +89,20 @@ public class LoadPluginsJob {
 					String pluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginInfo.getFileName()));
 
 					ofNullable(pluginId).ifPresent(id -> {
-						LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
+						LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
 
 						PluginState pluginState = pluginBox.startUpPlugin(pluginId);
 
 						if (pluginState == PluginState.STARTED) {
-							LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
+							LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
 						} else {
-							LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
+							LOGGER.error(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
 						}
 					});
 				}
 
 			} catch (IOException ex) {
-				LOGGER.debug("Error has occurred during plugin copying from the Data store", ex);
+				LOGGER.error("Error has occurred during plugin copying from the Data store", ex);
 				//do nothing
 			}
 		}));
@@ -117,9 +117,9 @@ public class LoadPluginsJob {
 
 		disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
 			if (pluginBox.unloadPlugin(plugin.getPluginId())) {
-				LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
+				LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
 			} else {
-				LOGGER.info(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
+				LOGGER.error(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
 			}
 		}));
 	}

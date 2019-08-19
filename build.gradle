@@ -40,7 +40,7 @@ targetCompatibility = 1.8
 project.ext {
     limits = [
             'instruction': 70,
-            'branch'     : 55,
+            'branch'     : 54,
             'line'       : 75,
             'complexity' : 60,
             'method'     : 65,
@@ -96,11 +96,11 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
     } else {
-        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-7'
-        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:5.0.0-BETA-8'
-        compile('com.github.reportportal:commons:5.0.0-BETA-2')
-        compile('com.github.reportportal:plugin-api:5.0.0-BETA-7')
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-8'
+        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-10'
+        compile('com.epam.reportportal:commons:5.0.0-BETA-2')
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     }
 
     //saucelabs
@@ -231,7 +231,7 @@ jar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 ext.src = [
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'   : 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'       : 'V001__initialize_schema.sql',
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'            : 'V002__default_data.sql',
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/4_alter_test_item_location.up.sql': 'V003__alter_test_item_location.sql',
         'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/5_alter_ticket_submitter.up.sql'  : 'V004__alter_ticket_submitter.sql'
@@ -272,6 +272,11 @@ test {
     //    testLogging.showStandardStreams = true
     maxParallelForks = 1
 
+    testLogging {
+        events 'failed'
+        exceptionFormat 'short'
+    }
+
     jacocoTestReport {
         reports {
             xml.enabled true
@@ -284,7 +289,7 @@ test {
                                             '**/configs/**',
                                             '**/demodata/**',
                                             '**/exception/**',
-                                            '**/analyzer/model/**'
+                                            '**/analyzer/auto/model/**'
                 ])
             })
         }

@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
@@ -142,7 +142,7 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 			);
 
 			if (isUserValidate) {
-				expect(launch.getUser().getLogin(), equalTo(user.getUsername())).verify(ACCESS_DENIED,
+				expect(launch.getUserId(), equalTo(user.getUserId())).verify(ACCESS_DENIED,
 						"You are not an owner of launches or have less than PROJECT_MANAGER project role."
 				);
 			}

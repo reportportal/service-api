@@ -43,18 +43,20 @@ public final class IntegrationValidator {
 	 */
 	public static void validateProjectLevelIntegrationConstraints(Project project, Integration integration) {
 
-		BusinessRule.expect(integration.getProject(), Objects::isNull).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Integration with ID = '{}' is not global.", integration.getId())
-		);
+		BusinessRule.expect(integration.getProject(), Objects::isNull)
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("Integration with ID = '{}' is not global.", integration.getId())
+				);
 
 		BusinessRule.expect(project.getIntegrations()
 				.stream()
 				.map(Integration::getType)
-				.noneMatch(it -> it.getIntegrationGroup() == integration.getType().getIntegrationGroup()), equalTo(true))
-				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
-						"Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
-						integration.getId()
-				).get());
+				.noneMatch(it -> it.getName().equalsIgnoreCase(integration.getType().getName())), equalTo(true))
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier(
+								"Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
+								integration.getId()
+						).get()
+				);
 	}
 }

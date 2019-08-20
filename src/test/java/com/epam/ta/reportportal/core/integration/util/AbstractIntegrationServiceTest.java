@@ -97,13 +97,13 @@ class AbstractIntegrationServiceTest {
 		Integration jira = getCorrectJira();
 
 		//when
-		when(integrationRepository.findGlobalBtsByUrlAndLinkedProject("jira-url", "jira-project")).thenReturn(Optional.of(jira));
+		when(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(jira.getName(), jira.getType().getId())).thenReturn(true);
 
 		//then
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> abstractIntegrationService.validateIntegration(jira)
 		);
-		assertEquals("Integration 'jira-url & jira-project' already exists. You couldn't create the duplicate.", exception.getMessage());
+		assertEquals("Integration 'jira' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
@@ -133,21 +133,20 @@ class AbstractIntegrationServiceTest {
 		project.setId(projectId);
 
 		//when
-		when(integrationRepository.findProjectBtsByUrlAndLinkedProject("jira-url",
-				"jira-project",
-				projectId
-		)).thenReturn(Optional.of(jira));
+		when(integrationRepository.existsByNameAndTypeIdAndProjectId(jira.getName(), jira.getType().getId(), project.getId())).thenReturn(
+				true);
 
 		//then
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> abstractIntegrationService.validateIntegration(jira, project)
 		);
-		assertEquals("Integration 'jira-url & jira-project' already exists. You couldn't create the duplicate.", exception.getMessage());
+		assertEquals("Integration 'jira' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	private Integration getCorrectJira() {
 
 		Integration integration = new Integration();
+		integration.setName("jira");
 
 		IntegrationParams integrationParams = new IntegrationParams();
 		Map<String, Object> params = new HashMap<>();

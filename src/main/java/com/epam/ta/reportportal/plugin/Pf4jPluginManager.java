@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.AbstractIdleService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.pf4j.*;
 import org.slf4j.Logger;
@@ -190,7 +191,7 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 		String newPluginId = loadPlugin(Paths.get(pluginsTempDir, newPluginFileName));
 
 		if (ofNullable(newPluginId).isPresent()) {
-			IntegrationType newIntegrationType = startUpPlugin(newPluginId, previousPlugin, newPluginFileName, fileStream, integrationType);
+			IntegrationType newIntegrationType = startUpPlugin(newPluginId, previousPlugin, newPluginFileName, integrationType);
 			deleteTempPlugin(newPluginFileName);
 			return newIntegrationType;
 		} else {
@@ -386,18 +387,17 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	 * @param newPluginId       Id of the new plugin
 	 * @param previousPlugin    Previous plugin with the same id as the new one
 	 * @param newPluginFileName New plugin file name
-	 * @param fileStream        {@link InputStream} of the new plugin file
 	 * @param integrationType   {@link IntegrationType} with the info about the new plugin
 	 * @return updated {@link IntegrationType} object with the updated info about the new plugin
 	 */
 	private IntegrationType startUpPlugin(String newPluginId, Optional<PluginWrapper> previousPlugin, final String newPluginFileName,
-			final InputStream fileStream, final IntegrationType integrationType) {
+			final IntegrationType integrationType) {
 
 		startUpPlugin(newPluginId);
 		validateNewPluginExtensionClasses(newPluginId, previousPlugin, newPluginFileName);
 		unloadPlugin(newPluginId);
 
-		String fileId = uploadPlugin(newPluginFileName, fileStream, previousPlugin, newPluginId);
+		String fileId = uploadPlugin(newPluginFileName, previousPlugin, newPluginId);
 		IntegrationDetailsProperties.FILE_ID.setValue(integrationType.getDetails(), fileId);
 
 		copyPluginToRootDirectory(newPluginFileName, previousPlugin, newPluginId);
@@ -463,40 +463,34 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	 * Uploads plugin file to the instance of the configured {@link DataStore} and saves the file path to the {@link IntegrationType} object
 	 *
 	 * @param fileName       New plugin file name
-	 * @param fileStream     {@link InputStream} of the new plugin file
 	 * @param previousPlugin Previous plugin with the same 'id' as the new one
 	 * @param newPluginId    Id of the new plugin
 	 * @return File id
 	 */
-	private String uploadPlugin(final String fileName, final InputStream fileStream, Optional<PluginWrapper> previousPlugin,
-			String newPluginId) {
-		try {
+	private String uploadPlugin(final String fileName, Optional<PluginWrapper> previousPlugin, String newPluginId) {
+		try (InputStream fileStream = FileUtils.openInputStream(FileUtils.getFile(pluginsTempDir, fileName))) {
 			return pluginLoader.savePlugin(fileName, fileStream);
 		} catch (Exception e) {
 			previousPlugin.ifPresent(this::loadAndStartUpPlugin);
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 					Suppliers.formattedSupplier("Unable to upload the new plugin file with id = {} to the data store", newPluginId).get()
 			);
-		} finally {
-			removeUploadingPlugin(fileName);
 		}
 	}
 
 	private void copyPluginToRootDirectory(String newPluginFileName, Optional<PluginWrapper> previousPlugin, String newPluginId) {
 
-		File tempPluginFile = new File(pluginsTempDir, newPluginFileName);
+		File tempPluginFile = FileUtils.getFile(pluginsTempDir, newPluginFileName);
 
-		if (tempPluginFile.exists()) {
-			try {
-				org.apache.commons.io.FileUtils.copyFile(tempPluginFile, new File(pluginsDir, newPluginFileName));
-			} catch (IOException e) {
-				previousPlugin.ifPresent(this::loadAndStartUpPlugin);
-
-				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId)
-								.get()
-				);
-			}
+		try {
+			org.apache.commons.io.FileUtils.copyFile(tempPluginFile, new File(pluginsDir, newPluginFileName));
+		} catch (IOException e) {
+			previousPlugin.ifPresent(this::loadAndStartUpPlugin);
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+					Suppliers.formattedSupplier("Unable to copy the new plugin file with id = {} to the root directory", newPluginId).get()
+			);
+		} finally {
+			removeUploadingPlugin(newPluginFileName);
 		}
 	}
 

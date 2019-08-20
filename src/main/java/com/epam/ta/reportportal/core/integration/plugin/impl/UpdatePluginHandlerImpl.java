@@ -125,7 +125,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
 			if (!Files.exists(Paths.get(pluginsRootPath, pluginFileName))) {
 
-				String pluginFileId = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+				String pluginFileId = IntegrationDetailsProperties.FILE_ID.getValue(details)
 						.map(String::valueOf)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 								Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",

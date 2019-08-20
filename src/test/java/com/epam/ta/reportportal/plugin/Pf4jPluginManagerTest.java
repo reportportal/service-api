@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.plugin;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Plugin;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -69,6 +69,9 @@ class Pf4jPluginManagerTest {
 	);
 
 	private final InputStream fileStream = mock(InputStream.class);
+
+	Pf4jPluginManagerTest() throws IOException {
+	}
 
 	@BeforeEach
 	void setPluginManager() {

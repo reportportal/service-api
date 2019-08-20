@@ -29,6 +29,8 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+
 @Configuration
 public class PluginConfiguration {
 
@@ -48,7 +50,7 @@ public class PluginConfiguration {
 	private String pluginsTempPath;
 
 	@Bean
-	public Pf4jPluginBox pf4jPluginBox() {
+	public Pf4jPluginBox pf4jPluginBox() throws IOException {
 		Pf4jPluginManager manager = new Pf4jPluginManager(pluginsPath,
 				pluginsTempPath,
 				pluginLoader,

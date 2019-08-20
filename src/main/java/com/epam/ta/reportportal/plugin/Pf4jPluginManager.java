@@ -80,9 +80,11 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 
 	public Pf4jPluginManager(String pluginsDir, String pluginsTempPath, PluginLoader pluginLoader,
 			IntegrationTypeRepository integrationTypeRepository, Collection<PluginDescriptorFinder> pluginDescriptorFinders,
-			ExtensionFactory extensionFactory) {
+			ExtensionFactory extensionFactory) throws IOException {
 		this.pluginsDir = pluginsDir;
+		Files.createDirectories(Paths.get(this.pluginsDir));
 		this.pluginsTempDir = pluginsTempPath;
+		Files.createDirectories(Paths.get(this.pluginsTempDir));
 		this.pluginLoader = pluginLoader;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginDescriptorFinders = pluginDescriptorFinders;

@@ -74,13 +74,12 @@ public class CleanOutdatedPluginsJob {
 		removeTemporaryPlugins();
 
 		List<IntegrationType> integrationTypes = integrationTypeRepository.findAll();
-
 		integrationTypes.stream()
 				.filter(it -> it.getDetails() == null || it.getDetails().getDetails() == null)
 				.forEach(pluginLoaderService::checkAndDeleteIntegrationType);
 
 		unloadRemovedPlugins(integrationTypes);
-
+		unloadDisabledPlugins(integrationTypes);
 	}
 
 	private void removeTemporaryPlugins() {
@@ -116,11 +115,9 @@ public class CleanOutdatedPluginsJob {
 
 		pluginIds.forEach(pluginId -> pluginBox.getPluginById(pluginId).ifPresent(plugin -> {
 
-			if (!isPluginStillBeingUploaded(plugin) && pluginBox.unloadPlugin(plugin.getPluginId())) {
-				try {
-					Files.deleteIfExists(plugin.getPluginPath());
-				} catch (IOException e) {
-					LOGGER.error("Error has occurred during plugin file removing from the plugins directory", e);
+			if (!isPluginStillBeingUploaded(plugin)) {
+				if (!pluginBox.deletePlugin(plugin.getPluginId())) {
+					LOGGER.error("Error has occurred during plugin file removing from the plugins directory");
 				}
 			}
 		}));
@@ -129,7 +126,19 @@ public class CleanOutdatedPluginsJob {
 	}
 
 	private boolean isPluginStillBeingUploaded(@NotNull PluginWrapper pluginWrapper) {
-
 		return pluginBox.isInUploadingState(pluginWrapper.getPluginPath().getFileName().toString());
+	}
+
+	private void unloadDisabledPlugins(List<IntegrationType> integrationTypes) {
+
+		List<IntegrationType> disabledPlugins = integrationTypes.stream().filter(it -> !it.isEnabled()).collect(Collectors.toList());
+
+		disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
+			if (pluginBox.unloadPlugin(plugin.getPluginId())) {
+				LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
+			} else {
+				LOGGER.error(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
+			}
+		}));
 	}
 }

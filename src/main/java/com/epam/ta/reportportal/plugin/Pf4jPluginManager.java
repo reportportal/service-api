@@ -48,9 +48,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -223,6 +221,27 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 		@Override
 		protected ExtensionFactory createExtensionFactory() {
 			return Pf4jPluginManager.this.extensionFactory;
+		}
+
+		@Override
+		protected ExtensionFinder createExtensionFinder() {
+			RpExtensionFinder extensionFinder = new RpExtensionFinder(this);
+			addPluginStateListener(extensionFinder);
+			return extensionFinder;
+		}
+
+		private class RpExtensionFinder extends DefaultExtensionFinder {
+
+			private RpExtensionFinder(PluginManager pluginManager) {
+				super(pluginManager);
+				finders.clear();
+				finders.add(new LegacyExtensionFinder(pluginManager) {
+					@Override
+					public Set<String> findClassNames(String pluginId) {
+						return ofNullable(super.findClassNames(pluginId)).orElseGet(Collections::emptySet);
+					}
+				});
+			}
 		}
 	}
 

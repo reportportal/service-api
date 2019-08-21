@@ -24,9 +24,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_KEY;
 
 /**
  * Shows list of supported analyzers
@@ -45,7 +44,10 @@ public class AnalyzerInfoContributor implements ExtensionContributor {
 
 	@Override
 	public Map<String, ?> contribute() {
-		Set<String> names = managementClient.getAnalyzerExchangesInfo().stream().map(ExchangeInfo::getName).collect(Collectors.toSet());
-		return ImmutableMap.<String, Object>builder().put(ANALYZER_KEY, names).build();
+		Set<Object> analyzersInfo = managementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.map((Function<ExchangeInfo, Object>) ExchangeInfo::getArguments)
+				.collect(Collectors.toSet());
+		return ImmutableMap.<String, Object>builder().put("analyzers", analyzersInfo).build();
 	}
 }

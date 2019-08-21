@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -51,8 +52,8 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 		BusinessRule.expect(newPluginFileName, StringUtils::isNotBlank)
 				.verify(ErrorType.BAD_REQUEST_ERROR, "File name should be not empty.");
 
-		try {
-			IntegrationType integrationType = pluginBox.uploadPlugin(newPluginFileName, pluginFile.getInputStream());
+		try (InputStream inputStream = pluginFile.getInputStream()) {
+			IntegrationType integrationType = pluginBox.uploadPlugin(newPluginFileName, inputStream);
 			return new EntryCreatedRS(integrationType.getId());
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, "Error during file stream retrieving");

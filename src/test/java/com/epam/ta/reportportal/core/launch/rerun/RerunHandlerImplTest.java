@@ -125,7 +125,6 @@ class RerunHandlerImplTest {
 		verify(messageBus, times(1)).publishActivity(any(LaunchStartedEvent.class));
 		assertNotNull(response.getNumber());
 		assertNotNull(response.getId());
-		assertNotNull(response.getUuid());
 
 	}
 

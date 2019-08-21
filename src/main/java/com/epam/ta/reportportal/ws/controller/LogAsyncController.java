@@ -117,7 +117,7 @@ public class LogAsyncController {
 					//noinspection ConstantConditions
 					responseItem = createLogHandler.createLog(createLogRq, data, extractProjectDetails(user, projectName));
 				}
-				response.addResponse(new BatchElementCreatedRS(responseItem.getUuid()));
+				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
 			} catch (Exception e) {
 				response.addResponse(new BatchElementCreatedRS(ExceptionUtils.getStackTrace(e), ExceptionUtils.getMessage(e)));
 			}

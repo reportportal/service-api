@@ -59,7 +59,7 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 		});
 
 		FinishLaunchRS response = new FinishLaunchRS();
-		response.setUuid(launchId);
+		response.setId(launchId);
 		return response;
 	}
 }

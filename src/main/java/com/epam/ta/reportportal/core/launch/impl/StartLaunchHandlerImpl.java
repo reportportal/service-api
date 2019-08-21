@@ -81,8 +81,7 @@ class StartLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.Sta
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 
 		StartLaunchRS response = new StartLaunchRS();
-		response.setId(launch.getId());
-		response.setUuid(launch.getUuid());
+		response.setId(launch.getUuid());
 		response.setNumber(launch.getNumber());
 		return response;
 	}

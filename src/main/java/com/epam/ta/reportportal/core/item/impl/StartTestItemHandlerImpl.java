@@ -96,7 +96,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
 		LOGGER.debug("Created new root TestItem {}", item.getUuid());
-		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
+		return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
 	}
 
 	@Override
@@ -131,7 +131,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
-		return new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid());
+		return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
 	}
 
 	/**

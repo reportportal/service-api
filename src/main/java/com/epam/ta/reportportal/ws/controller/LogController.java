@@ -92,7 +92,7 @@ public class LogController {
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
 	@PreAuthorize(ALLOWED_TO_REPORT)
-	public EntryCreatedRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
+	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
 		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
@@ -114,7 +114,7 @@ public class LogController {
 		 */
 		Map<String, MultipartFile> uploadedFiles = getUploadedFiles(request);
 		BatchSaveOperatingRS response = new BatchSaveOperatingRS();
-		EntryCreatedRS responseItem;
+		EntryCreatedAsyncRS responseItem;
 		/* Go through all provided save log request items */
 		for (SaveLogRQ createLogRq : createLogRQs) {
 			try {
@@ -188,7 +188,8 @@ public class LogController {
 	@GetMapping(value = "/uuid/{logId}")
 	@ApiOperation("Get log by UUID")
 	@Transactional(readOnly = true)
-	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId, @AuthenticationPrincipal ReportPortalUser user) {
+	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId,
+			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
 	}
 

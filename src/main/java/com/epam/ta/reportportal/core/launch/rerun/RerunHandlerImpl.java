@@ -92,8 +92,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 
 		StartLaunchRS response = new StartLaunchRS();
-		response.setId(launch.getId());
-		response.setUuid(launch.getUuid());
+		response.setId(launch.getUuid());
 		response.setNumber(launch.getNumber());
 		return response;
 	}
@@ -111,7 +110,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		}
 
 		TestItem item = handleRerun(request, launch, itemOptional.get(), null);
-		return Optional.of(new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid()));
+		return Optional.of(new ItemCreatedRS(item.getUuid(), item.getUniqueId()));
 	}
 
 	@Override
@@ -130,7 +129,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		}
 
 		TestItem item = handleRerun(request, launch, itemOptional.get(), parent);
-		return Optional.of(new ItemCreatedRS(item.getItemId(), item.getUniqueId(), item.getUuid()));
+		return Optional.of(new ItemCreatedRS(item.getUuid(), item.getUniqueId()));
 	}
 
 	private boolean isParametersEqual(List<ParameterResource> fromRequest, Set<Parameter> stored) {

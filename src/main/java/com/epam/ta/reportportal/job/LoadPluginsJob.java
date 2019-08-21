@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -107,21 +106,6 @@ public class LoadPluginsJob {
 			}
 		}));
 
-		unloadDisabledPlugins(integrationTypes);
-
-	}
-
-	private void unloadDisabledPlugins(List<IntegrationType> integrationTypes) {
-
-		List<IntegrationType> disabledPlugins = integrationTypes.stream().filter(it -> !it.isEnabled()).collect(Collectors.toList());
-
-		disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
-			if (pluginBox.unloadPlugin(plugin.getPluginId())) {
-				LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
-			} else {
-				LOGGER.error(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());
-			}
-		}));
 	}
 
 }

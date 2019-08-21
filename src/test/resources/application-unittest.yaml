@@ -8,6 +8,6 @@ logging:
   file: ${java.io.tmpdir}/${spring.application.name}.log
 embedded:
   datasource:
-    dir: /embedded-postgres
+    dir: ${java.io.tmpdir}/embedded-postgres
     clean: true
     port: 0

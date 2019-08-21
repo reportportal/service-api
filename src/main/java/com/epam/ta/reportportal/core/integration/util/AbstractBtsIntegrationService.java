@@ -26,12 +26,12 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.Predicates.isPresent;
-import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
@@ -46,25 +46,28 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 
 	@Override
 	public boolean validateIntegration(Integration integration) {
-		String url = BtsConstants.URL.getParam(integration.getParams(), String.class)
+		BtsConstants.URL.getParam(integration.getParams(), String.class)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
-		String btsProject = BtsConstants.PROJECT.getParam(integration.getParams(), String.class)
+		BtsConstants.PROJECT.getParam(integration.getParams(), String.class)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
-		expect(integrationRepository.findGlobalBtsByUrlAndLinkedProject(url, btsProject),
-				not(isPresent())
-		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, url + " & " + btsProject);
+		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
+		expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(), integration.getType().getId()),
+				equalTo(Boolean.FALSE)
+		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
 		return true;
 	}
 
 	@Override
 	public boolean validateIntegration(Integration integration, Project project) {
-		String url = BtsConstants.URL.getParam(integration.getParams(), String.class)
+		BtsConstants.URL.getParam(integration.getParams(), String.class)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
-		String btsProject = BtsConstants.PROJECT.getParam(integration.getParams(), String.class)
+		BtsConstants.PROJECT.getParam(integration.getParams(), String.class)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
-		expect(integrationRepository.findProjectBtsByUrlAndLinkedProject(url, btsProject, project.getId()), not(isPresent())).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-				url + " & " + btsProject
-		);
+		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
+		expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
+				integration.getType().getId(),
+				project.getId()
+		), equalTo(Boolean.FALSE)).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
 		return true;
 	}
 

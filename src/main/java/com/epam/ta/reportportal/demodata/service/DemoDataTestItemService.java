@@ -64,7 +64,7 @@ public class DemoDataTestItemService {
 			rq.setDescription(ContentUtils.getSuiteDescription());
 		}
 
-		return startTestItemHandler.startRootItem(user, projectDetails, rq).getUuid();
+		return startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
 	}
 
 	@Transactional
@@ -93,7 +93,7 @@ public class DemoDataTestItemService {
 		rq.setName(name);
 		rq.setType(type.name());
 
-		return startTestItemHandler.startChildItem(user, projectDetails, rq, rootItemId).getUuid();
+		return startTestItemHandler.startChildItem(user, projectDetails, rq, rootItemId).getId();
 	}
 
 	@Transactional

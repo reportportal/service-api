@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
@@ -44,9 +45,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -55,7 +54,7 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_SEARCH_LOG_RS;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -101,14 +100,21 @@ public class SearchLogServiceImpl implements SearchLogService {
 		Launch launch = launchRepository.findById(item.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
 
-		expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE,
-				item.getItemResults().getStatus()
-		);
+		expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED);
 
+		return composeRequest(request, project, item, launch).map(rq -> processRequest(launch, rq)).orElse(Collections.emptyList());
+	}
+
+	private Optional<SearchRq> composeRequest(SearchLogRq request, Project project, TestItem item, Launch launch) {
 		SearchMode searchMode = SearchMode.fromString(request.getSearchMode())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, request.getSearchMode()));
 
 		SearchRq searchRq = searchMode == SearchMode.FILTER ? prepareFilter(request, project.getId()) : new SearchRq();
+		List<String> logMessages = logRepository.findMessagesByItemIdAndLevelGte(item.getItemId(), LogLevel.ERROR_INT);
+		if (CollectionUtils.isEmpty(logMessages)) {
+			return Optional.empty();
+		}
+		searchRq.setLogMessages(logMessages);
 		searchRq.setSearchConfig(SearchRq.SearchConfig.of(searchMode.getValue(),
 				AnalyzerUtils.getAnalyzerConfig(project).getNumberOfLogLines()
 		));
@@ -116,25 +122,22 @@ public class SearchLogServiceImpl implements SearchLogService {
 		searchRq.setLaunchId(launch.getId());
 		searchRq.setLaunchName(launch.getName());
 		searchRq.setProjectId(project.getId());
+		return Optional.of(searchRq);
+	}
 
-		List<String> logMessages = logRepository.findMessagesByItemIdAndLevelGte(item.getItemId(), LogLevel.ERROR_INT);
-		if (CollectionUtils.isEmpty(logMessages)) {
-			return Collections.emptyList();
-		}
-		searchRq.setLogMessages(logMessages);
-
-		List<Long> foundLogIds = analyzerServiceClient.searchLogs(searchRq);
-		List<Log> foundLogs = logRepository.findAllById(foundLogIds);
-
+	private Collection<SearchLogRs> processRequest(Launch launch, SearchRq rq) {
+		List<Log> foundLogs = logRepository.findAllById(analyzerServiceClient.searchLogs(rq));
 		Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
+
 		foundLogs.forEach(log -> {
 			foundLogsMap.computeIfPresent(log.getTestItem().getItemId(), (key, value) -> {
 				value.getLogMessages().add(log.getLogMessage());
 				return value;
 			});
-			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(), TO_SEARCH_LOG_RS.apply(launch.getId(), log));
+			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(),
+					composeResponse(launch, log, testItemRepository.selectPathNames(log.getTestItem().getPath()))
+			);
 		});
-
 		return foundLogsMap.values();
 	}
 
@@ -155,5 +158,25 @@ public class SearchLogServiceImpl implements SearchLogService {
 		SearchRq searchRq = new SearchRq();
 		searchRq.setFilteredLaunchIds(filteredLaunchIds);
 		return searchRq;
+	}
+
+	private SearchLogRs composeResponse(Launch launch, Log log, Map<Long, String> pathNames) {
+		SearchLogRs response = new SearchLogRs();
+		response.setLaunchId(launch.getId());
+		response.setLaunchName(launch.getName() + " #" + launch.getNumber());
+		response.setItemId(log.getTestItem().getItemId());
+		response.setItemName(log.getTestItem().getName());
+		response.setPath(log.getTestItem().getPath());
+		response.setPathNames(pathNames);
+		response.setPatternTemplates(log.getTestItem()
+				.getPatternTemplateTestItems()
+				.stream()
+				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
+				.collect(toSet()));
+		response.setDuration(log.getTestItem().getItemResults().getDuration());
+		response.setStatus(log.getTestItem().getItemResults().getStatus().name());
+		response.setIssue(IssueConverter.TO_MODEL.apply(log.getTestItem().getItemResults().getIssue()));
+		response.setLogMessages(Arrays.asList(log.getLogMessage()));
+		return response;
 	}
 }

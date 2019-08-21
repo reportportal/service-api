@@ -22,7 +22,7 @@ plugins {
     id "com.jfrog.bintray" version "1.8.4"
     id 'java'
     id 'jacoco'
-    id "org.owasp.dependencycheck" version "5.0.0-M3.1"
+    id "org.owasp.dependencycheck" version "5.2.0"
     id "org.ajoberstar.grgit" version "3.1.1"
 }
 
@@ -90,11 +90,11 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-7'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-9'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-8'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-10'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-6')
+        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
         compile 'com.github.reportportal:commons-dao:396d6f2'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
@@ -224,6 +224,11 @@ task copyJacocoAgentToLibs(type: Copy) {
     }
 }
 
+dependencyCheck {
+    formats = ['HTML', 'XML']
+//    cveValidForHours = 1
+}
+
 jar.dependsOn copyJacocoAgentToLibs
 jar.dependsOn gitInfo
 //End section for external jacoco test report
@@ -275,6 +280,11 @@ test {
     testLogging {
         events 'failed'
         exceptionFormat 'short'
+    }
+
+//    testLogging.showStandardStreams = true
+    reports {
+        junitXml.enabled = true
     }
 
     jacocoTestReport {

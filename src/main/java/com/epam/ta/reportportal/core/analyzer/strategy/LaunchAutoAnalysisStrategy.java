@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.events.AnalysisEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,15 +50,16 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
 	private final AnalyzerServiceAsync analyzerServiceAsync;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
-	private final LogIndexer logIndexer;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public LaunchAutoAnalysisStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory, LogIndexer logIndexer) {
+			AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory,
+			ApplicationEventPublisher eventPublisher) {
 		super(projectRepository, launchRepository);
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
-		this.logIndexer = logIndexer;
+		this.eventPublisher = eventPublisher;
 	}
 
 	public void analyze(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {
@@ -80,8 +82,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
 		List<Long> itemIds = collectItemsByModes(project, launch.getId(), analyzeRQ.getAnalyzeItemsModes());
 
-		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-				.thenApply(it -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+		eventPublisher.publishEvent(new AnalysisEvent(launch, itemIds, analyzerConfig));
 	}
 
 	/**

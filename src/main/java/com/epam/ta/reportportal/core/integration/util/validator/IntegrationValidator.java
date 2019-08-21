@@ -19,8 +19,10 @@ package com.epam.ta.reportportal.core.integration.util.validator;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -43,18 +45,21 @@ public final class IntegrationValidator {
 	 */
 	public static void validateProjectLevelIntegrationConstraints(Project project, Integration integration) {
 
-		BusinessRule.expect(integration.getProject(), Objects::isNull).verify(
-				ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Integration with ID = '{}' is not global.", integration.getId())
-		);
+		BusinessRule.expect(integration.getProject(), Objects::isNull)
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("Integration with ID = '{}' is not global.", integration.getId())
+				);
 
-		BusinessRule.expect(project.getIntegrations()
-				.stream()
-				.map(Integration::getType)
-				.noneMatch(it -> it.getIntegrationGroup() == integration.getType().getIntegrationGroup()), equalTo(true))
-				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, Suppliers.formattedSupplier(
-						"Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
-						integration.getId()
-				).get());
+		BusinessRule.expect(project.getIntegrations().stream().map(Integration::getType).noneMatch(it -> {
+			IntegrationType integrationType = integration.getType();
+			return it.getIntegrationGroup() == integrationType.getIntegrationGroup() && StringUtils.equalsIgnoreCase(it.getName(),
+					integrationType.getName());
+		}), equalTo(true))
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier(
+								"Global integration with ID = '{}' has been found, but you cannot use it, because you have project-level integration(s) of that type",
+								integration.getId()
+						).get()
+				);
 	}
 }

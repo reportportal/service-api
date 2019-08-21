@@ -58,7 +58,7 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 		});
 
 		StartLaunchRS response = new StartLaunchRS();
-		response.setUuid(request.getUuid());
+		response.setId(request.getUuid());
 		return response;
 	}
 }

@@ -182,7 +182,7 @@ public class XunitImportHandler extends DefaultHandler {
 			startItemTime = LocalDateTime.now();
 		}
 		StartTestItemRQ rq = buildStartTestRq(name);
-		String id = startTestItemHandler.startRootItem(user, projectDetails, rq).getUuid();
+		String id = startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
 		itemUuids.push(id);
 	}
 
@@ -207,7 +207,7 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void startTestItem(String name) {
 		StartTestItemRQ rq = buildStartTestRq(name);
-		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getUuid();
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
 		itemUuids.push(id);
 	}
 
@@ -217,7 +217,7 @@ public class XunitImportHandler extends DefaultHandler {
 		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
 		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(name);
-		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getUuid();
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
 		currentDuration = toMillis(duration);
 		currentItemUuid = id;
 		itemUuids.push(id);

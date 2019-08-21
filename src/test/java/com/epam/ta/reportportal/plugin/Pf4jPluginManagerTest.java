@@ -18,13 +18,15 @@ package com.epam.ta.reportportal.plugin;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.Plugin;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
@@ -34,6 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -70,13 +74,24 @@ class Pf4jPluginManagerTest {
 
 	private final InputStream fileStream = mock(InputStream.class);
 
+	Pf4jPluginManagerTest() throws IOException {
+	}
+
 	@BeforeEach
 	void setPluginManager() {
 		pluginBox.setPluginManager(pluginManager);
 	}
 
+	@AfterEach
+	void cleanUp() throws IOException {
+		File directory = new File("plugins");
+		if (directory.exists()) {
+			FileUtils.deleteDirectory(directory);
+		}
+	}
+
 	@Test
-	void uploadPlugin() throws PluginException {
+	void uploadPlugin() throws PluginException, IOException {
 
 		PluginInfo pluginInfo = getPluginInfo();
 		when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(pluginInfo);
@@ -87,8 +102,10 @@ class Pf4jPluginManagerTest {
 		when(pluginManager.getPlugin(NEW_PLUGIN_ID)).thenReturn(newPlugin);
 		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
 		when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
+		when(pluginLoader.savePlugin(NEW_PLUGIN_FILE_NAME, fileStream)).thenReturn(NEW_PLUGIN_ID);
 		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_PLUGIN_ID);
 		when(integrationTypeRepository.save(any(IntegrationType.class))).thenReturn(jiraIntegrationType);
+		Path file = Files.createFile(Paths.get(PLUGINS_TEMP_PATH, "plugin.jar"));
 		IntegrationType newIntegrationType = pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream);
 		assertEquals(1L, newIntegrationType.getId().longValue());
 	}

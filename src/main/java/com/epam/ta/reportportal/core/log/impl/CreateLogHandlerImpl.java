@@ -99,14 +99,14 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
 		logRepository.save(log);
 		saveBinaryData(file, projectId, log.getId(), testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
-		return new EntryCreatedAsyncRS(log.getId());
+		return new EntryCreatedAsyncRS(log.getUuid());
 	}
 
 	private EntryCreatedAsyncRS createLaunchLog(SaveLogRQ request, Launch launch, MultipartFile file, Long projectId) {
 		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
 		logRepository.save(log);
 		saveBinaryData(file, projectId, log.getId(), launch.getId(), null);
-		return new EntryCreatedAsyncRS(log.getId());
+		return new EntryCreatedAsyncRS(log.getUuid());
 	}
 
 	private void saveBinaryData(MultipartFile file, Long projectId, Long logId, Long launchId, Long itemId) {

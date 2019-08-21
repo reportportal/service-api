@@ -96,13 +96,11 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
-        compile 'com.github.reportportal:commons-dao:f26663d6'
-        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-10'
-        compile('com.epam.reportportal:commons:5.0.0-BETA-2')
-        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7') {
-            exclude group: 'com.epam.reportportal', module: 'commons-dao'
-        }
+        compile 'com.github.reportportal:commons-dao:396d6f2'
+        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
+        compile 'com.github.reportportal:commons-model:80d27d4'
+        compile('com.github.reportportal:commons:5.0.0-BETA-2')
+        compile('com.github.reportportal:plugin-api:5.0.0-BETA-7')
     }
 
     //saucelabs

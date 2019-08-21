@@ -48,13 +48,15 @@ class IntegrationValidatorTest {
 		Integration integration = new Integration();
 		integration.setId(1L);
 		IntegrationType type = new IntegrationType();
-		type.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+		type.setName("jira");
+		type.setIntegrationGroup(IntegrationGroupEnum.BTS);
 		integration.setType(type);
 
 		Project project = new Project();
 		Integration projectIntegration = new Integration();
 		IntegrationType projectIntegrationType = new IntegrationType();
-		projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+		projectIntegrationType.setName("jira");
+		projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
 		projectIntegration.setType(projectIntegrationType);
 		project.setIntegrations(Sets.newHashSet(projectIntegration));
 
@@ -72,12 +74,14 @@ class IntegrationValidatorTest {
 		Integration integration = new Integration();
 		integration.setId(1L);
 		IntegrationType type = new IntegrationType();
-		type.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+		type.setName("rally");
+		type.setIntegrationGroup(IntegrationGroupEnum.BTS);
 		integration.setType(type);
 
 		Project project = new Project();
 		Integration projectIntegration = new Integration();
 		IntegrationType projectIntegrationType = new IntegrationType();
+		projectIntegrationType.setName("jira");
 		projectIntegrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
 		projectIntegration.setType(projectIntegrationType);
 		project.setIntegrations(Sets.newHashSet(projectIntegration));

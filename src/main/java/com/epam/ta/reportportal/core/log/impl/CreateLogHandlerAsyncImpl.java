@@ -85,7 +85,7 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 		}
 
 		EntryCreatedAsyncRS response = new EntryCreatedAsyncRS();
-		response.setUuid(request.getUuid());
+		response.setId(request.getUuid());
 		return response;
 	}
 

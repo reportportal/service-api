@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.util.email;
 
 import com.epam.reportportal.commons.template.TemplateEngine;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
@@ -56,7 +57,8 @@ public class EmailService extends JavaMailSenderImpl {
 
 	private static final String FINISH_LAUNCH_EMAIL_SUBJECT = " Report Portal Notification: [%s] launch '%s' #%s finished";
 	private static final String URL_FORMAT = "%s/launches/all";
-	private static final String FILTER_TAG_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
+	private static final String FULL_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.key=%s&filter.has.value=%s";
+	private static final String VALUE_ATTRIBUTE_FILTER_FORMAT = "%s?filter.has.value=%s";
 	private static final String EMAIL_TEMPLATE_PREFIX = "templates/email/";
 	private TemplateEngine templateEngine;
 	/* Default value for FROM project notifications field */
@@ -132,12 +134,9 @@ public class EmailService extends JavaMailSenderImpl {
 					launch.getAttributes()
 							.stream()
 							.filter(it -> !it.isSystem())
-							.collect(toMap(attribute -> attribute.getKey().concat(":").concat(attribute.getValue()), attribute -> format(
-									FILTER_TAG_FORMAT,
-									basicUrl,
-									urlPathSegmentEscaper().escape(attribute.getKey()),
-									urlPathSegmentEscaper().escape(attribute.getValue())
-							)))
+							.collect(toMap(attribute -> ofNullable(attribute.getKey()).map(it -> it.concat(":"))
+									.orElse("")
+									.concat(attribute.getValue()), attribute -> buildAttributesLink(basicUrl, attribute)))
 			);
 		}
 
@@ -171,6 +170,19 @@ public class EmailService extends JavaMailSenderImpl {
 		fillEmail(email, "tiInfo", statistics, locatorsMapping, IssueRegexConstant.TO_INVESTIGATE_ISSUE_REGEX);
 
 		return templateEngine.merge("finish-launch-template.ftl", email);
+	}
+
+	private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
+		if (null != attribute.getKey()) {
+			return format(
+					FULL_ATTRIBUTE_FILTER_FORMAT,
+					basicUrl,
+					urlPathSegmentEscaper().escape(attribute.getKey()),
+					urlPathSegmentEscaper().escape(attribute.getValue())
+			);
+		} else {
+			return format(VALUE_ATTRIBUTE_FILTER_FORMAT, basicUrl, urlPathSegmentEscaper().escape(attribute.getValue()));
+		}
 	}
 
 	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics,
@@ -277,7 +289,7 @@ public class EmailService extends JavaMailSenderImpl {
 	 * If username is email, format will be "from \<email\>"
 	 */
 	private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-		if(StringUtils.isNotBlank(this.from)) {
+		if (StringUtils.isNotBlank(this.from)) {
 			if (UserUtils.isEmailValid(this.from) && isAddressValid(this.from)) {
 				message.setFrom(this.from);
 			} else if (UserUtils.isEmailValid(getUsername())) {

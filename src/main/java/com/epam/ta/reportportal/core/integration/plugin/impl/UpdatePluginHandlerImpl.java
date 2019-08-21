@@ -86,7 +86,8 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 		 *  and rewrite as a plugin
 		 */
 		if ("email".equalsIgnoreCase(integrationType.getName()) || "ldap".equalsIgnoreCase(integrationType.getName())) {
-			return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+			return new OperationCompletionRS(Suppliers.formattedSupplier(
+					"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 					integrationType.getName(),
 					isEnabled
 			).get());
@@ -98,7 +99,8 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 			unloadPlugin(integrationType.getName());
 		}
 
-		return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+		return new OperationCompletionRS(Suppliers.formattedSupplier(
+				"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 				integrationType.getName(),
 				isEnabled
 		).get());
@@ -113,7 +115,8 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 							"Integration type details have not been found"
 					));
 
-			String pluginFileName = IntegrationDetailsProperties.FILE_NAME.getValue(details).map(String::valueOf)
+			String pluginFileName = IntegrationDetailsProperties.FILE_NAME.getValue(details)
+					.map(String::valueOf)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 							Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
 									integrationType.getName()
@@ -122,22 +125,17 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
 			if (!Files.exists(Paths.get(pluginsRootPath, pluginFileName))) {
 
-				String pluginFileId = IntegrationDetailsProperties.FILE_NAME.getValue(details).map(String::valueOf)
+				String pluginFileId = IntegrationDetailsProperties.FILE_ID.getValue(details)
+						.map(String::valueOf)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 								Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
 										integrationType.getName()
 								).get()
 						));
 
-				try (InputStream inputStream = ofNullable(dataStore.load(pluginFileId)).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Error during downloading the file of the plugin with ID = '{}' from the data storage",
-								integrationType.getName()
-						)
-								.get()
-				))) {
+				try (InputStream inputStream = dataStore.load(pluginFileId)) {
 					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginFileName));
-				} catch (IOException e) {
-
+				} catch (IOException | ReportPortalException e) {
 					throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
 							Suppliers.formattedSupplier("Error during copying the file of the plugin with ID = '{}'",
 									integrationType.getName()

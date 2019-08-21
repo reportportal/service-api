@@ -60,7 +60,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 		});
 
 		ItemCreatedRS response = new ItemCreatedRS();
-		response.setUuid(request.getUuid());
+		response.setId(request.getUuid());
 		return response;
 	}
 
@@ -80,7 +80,7 @@ class StartTestItemHandlerAsyncImpl implements StartTestItemHandler {
 		});
 
 		ItemCreatedRS response = new ItemCreatedRS();
-		response.setUuid(request.getUuid());
+		response.setId(request.getUuid());
 		return response;
 	}
 }

@@ -131,8 +131,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Integration integration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
 				IntegrationGroupEnum.NOTIFICATION
 		)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Neither project nor global enabled email integrations have been found."
+				.orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+						"Please configure email server in Report Portal settings."
 				));
 
 		EmailService emailService = emailServiceFactory.getEmailService(integration, true);

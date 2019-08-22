@@ -242,3 +242,4 @@
 ### Bugfixes
 
 * EPMRPP-39590 - PostgreSQL. Restore of the password. Incorrect response from repeated request.
+* EPMRPP-40298 - PostgreSQL. API. Global Email server integration (Gmail). Incorrect number of emails deliver to the mailbox.

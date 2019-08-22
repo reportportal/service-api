@@ -1,0 +1,48 @@
+{
+  "info": {
+    "_postman_id": "1c81a0f3-8beb-4317-8749-0d506c95eac8",
+    "name": "service-api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Info",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "3e2613e1-567b-46da-a520-f54f5a7936f7",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Build Version is Present\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.build.version).to.not.eq(undefined);",
+              "});",
+              "",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{rp_url}}/api/info",
+          "host": [
+            "{{rp_url}}"
+          ],
+          "path": [
+            "api",
+            "info"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

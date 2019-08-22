@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -37,6 +38,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.demodata.service.Constants.NAME;
@@ -96,12 +100,22 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 		User creator = userRepository.findById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
-		return IntStream.range(0, rq.getLaunchesQuantity()).mapToObj(i -> {
-			Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
-			generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
-			demoDataLaunchService.finishLaunch(launch.getUuid());
-			return launch.getId();
-		}).collect(toList());
+		ExecutorService executor = Executors.newFixedThreadPool(rq.getLaunchesQuantity(),
+				new ThreadFactoryBuilder().setNameFormat("demo-data-task-%d").build()
+		);
+
+		List<CompletableFuture<Long>> futures = IntStream.range(0, rq.getLaunchesQuantity())
+				.mapToObj(i -> CompletableFuture.supplyAsync(() -> {
+					Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
+					generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
+					demoDataLaunchService.finishLaunch(launch.getUuid());
+					return launch.getId();
+				}, executor))
+				.collect(toList());
+
+		List<Long> generatedLaunchIds = futures.stream().map(CompletableFuture::join).collect(toList());
+		executor.shutdown();
+		return generatedLaunchIds;
 	}
 
 	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, ReportPortalUser user,
@@ -124,7 +138,11 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					}
 					String stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
 					StatusEnum status = status();
-					demoLogsService.generateDemoLogs(testItemRepository.findByUuid(stepId).get(), status, projectDetails.getProjectId(), launchId);
+					demoLogsService.generateDemoLogs(testItemRepository.findByUuid(stepId).get(),
+							status,
+							projectDetails.getProjectId(),
+							launchId
+					);
 					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
 						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());

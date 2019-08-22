@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,11 +37,11 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-
 /**
  * Controller implementation for async reporting client API for
  * {@link com.epam.ta.reportportal.entity.item.TestItem} entity
  * <p>
+ *
  * @author Konstantin Antipin
  */
 @RestController
@@ -55,7 +54,7 @@ public class TestItemAsyncController {
 
 	@Autowired
 	public TestItemAsyncController(@Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler,
-                                   @Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler) {
+			@Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler) {
 		this.startTestItemHandler = startTestItemHandler;
 		this.finishTestItemHandler = finishTestItemHandler;
 	}
@@ -74,7 +73,7 @@ public class TestItemAsyncController {
 	@ApiOperation("Start a child test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-										 @PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
+			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
 		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
@@ -83,7 +82,7 @@ public class TestItemAsyncController {
 	@ApiOperation("Finish test item")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-												@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
+			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
 		return finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
 	}
 

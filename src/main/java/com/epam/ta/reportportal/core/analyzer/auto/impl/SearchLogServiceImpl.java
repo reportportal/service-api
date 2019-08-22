@@ -102,7 +102,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 		expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED);
 
-		return composeRequest(request, project, item, launch).map(rq -> processRequest(launch, rq)).orElse(Collections.emptyList());
+		return composeRequest(request, project, item, launch).map(this::processRequest).orElse(Collections.emptyList());
 	}
 
 	private Optional<SearchRq> composeRequest(SearchLogRq request, Project project, TestItem item, Launch launch) {
@@ -125,8 +125,8 @@ public class SearchLogServiceImpl implements SearchLogService {
 		return Optional.of(searchRq);
 	}
 
-	private Collection<SearchLogRs> processRequest(Launch launch, SearchRq rq) {
-		List<Log> foundLogs = logRepository.findAllById(analyzerServiceClient.searchLogs(rq));
+	private Collection<SearchLogRs> processRequest(SearchRq request) {
+		List<Log> foundLogs = logRepository.findAllById(analyzerServiceClient.searchLogs(request));
 		Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
 
 		foundLogs.forEach(log -> {
@@ -134,9 +134,10 @@ public class SearchLogServiceImpl implements SearchLogService {
 				value.getLogMessages().add(log.getLogMessage());
 				return value;
 			});
-			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(),
-					composeResponse(launch, log, testItemRepository.selectPathNames(log.getTestItem().getPath()))
-			);
+			Launch launch = launchRepository.findById(log.getTestItem().getLaunchId())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, log.getTestItem().getLaunchId()));
+			Map<Long, String> pathNames = testItemRepository.selectPathNames(log.getTestItem().getPath());
+			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(), composeResponse(launch, log, pathNames));
 		});
 		return foundLogsMap.values();
 	}

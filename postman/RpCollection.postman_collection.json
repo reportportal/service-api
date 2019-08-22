@@ -1,0 +1,248 @@
+{
+	"info": {
+		"_postman_id": "318614d6-a5b9-4a7a-b040-e35f253ba572",
+		"name": "RpCollection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "API Info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2464c641-2864-4fb4-a92b-4744f3b77617",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Build Version\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.build.version).to.eql(\"5.0\")",
+							"});",
+							"",
+							"pm.test(\"Validate Metadate Activity Action\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    var activityActions = [\"createDashboard\",",
+							"            \"updateDashboard\",",
+							"            \"deleteDashboard\",",
+							"            \"createWidget\",",
+							"            \"updateWidget\",",
+							"            \"deleteWidget\",",
+							"            \"createFilter\",",
+							"            \"updateFilter\",",
+							"            \"deleteFilter\",",
+							"            \"analyzeItem\",",
+							"            \"createDefect\",",
+							"            \"updateDefect\",",
+							"            \"deleteDefect\",",
+							"            \"createIntegration\",",
+							"            \"updateIntegration\",",
+							"            \"deleteIntegration\",",
+							"            \"startLaunch\",",
+							"            \"finishLaunch\",",
+							"            \"deleteLaunch\",",
+							"            \"updateProject\",",
+							"            \"updateAnalyzer\",",
+							"            \"postIssue\",",
+							"            \"linkIssue\",",
+							"            \"linkIssueAa\",",
+							"            \"unlinkIssue\",",
+							"            \"updateItem\",",
+							"            \"createUser\",",
+							"            \"deleteIndex\",",
+							"            \"generateIndex\",",
+							"            \"startImport\",",
+							"            \"finishImport\",",
+							"            \"createPattern\",",
+							"            \"updatePattern\",",
+							"            \"deletePattern\",",
+							"            \"patternMatched\"];",
+							"    pm.expect(jsonData.metadata.activityAction.length).to.eql(activityActions.length);",
+							"",
+							"});",
+							"",
+							"pm.test(\"Validate Activity Entity Type\", function(){",
+							"    var jsonData = pm.response.json();",
+							"     var activityActions = [\"launch\",",
+							"            \"item\",",
+							"            \"dashboard\",",
+							"            \"defectType\",",
+							"            \"emailConfig\",",
+							"            \"filter\",",
+							"            \"import\",",
+							"            \"integration\",",
+							"            \"itemIssue\",",
+							"            \"project\",",
+							"            \"sharing\",",
+							"            \"ticket\",",
+							"            \"user\",",
+							"            \"widget\",",
+							"            \"pattern\"];",
+							"    pm.expect(jsonData.metadata.activityEntityType.length).to.eql(activityActions.length);",
+							"",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer 78afb592-b4e3-401c-8097-f45d7489898f",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://rp.avarabyeu.me/api/info",
+					"protocol": "https",
+					"host": [
+						"rp",
+						"avarabyeu",
+						"me"
+					],
+					"path": [
+						"api",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API Health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fe96f91f-1539-45a0-8e08-c11dc784ad65",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Health\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"UP\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://rp.avarabyeu.me/api/health",
+					"protocol": "https",
+					"host": [
+						"rp",
+						"avarabyeu",
+						"me"
+					],
+					"path": [
+						"api",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UAT Info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b1730e92-c7c7-4e73-8fe4-b3fbc92b2f9c",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Build Version\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.build.version).to.eql(\"5.0\")",
+							"});",
+							"",
+							"pm.test(\"Validate Project Roles\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    var prRoles = [\"OPERATOR\", \"CUSTOMER\", \"MEMBER\", \"PROJECT_MANAGER\"];",
+							"    pm.expect(jsonData.metadata.project_roles.length).to.eql(prRoles.length);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://rp.avarabyeu.me/uat/info",
+					"protocol": "https",
+					"host": [
+						"rp",
+						"avarabyeu",
+						"me"
+					],
+					"path": [
+						"uat",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UAT Health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d6803e52-8276-423b-941f-e0334b6364c8",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Health\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"UP\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://rp.avarabyeu.me/uat/health",
+					"protocol": "https",
+					"host": [
+						"rp",
+						"avarabyeu",
+						"me"
+					],
+					"path": [
+						"uat",
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

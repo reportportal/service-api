@@ -94,21 +94,20 @@
 					{
 						"key": "Authorization",
 						"value": "bearer 78afb592-b4e3-401c-8097-f45d7489898f",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					},
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"url": {
-					"raw": "https://rp.avarabyeu.me/api/info",
-					"protocol": "https",
+					"raw": "{{host}}/api/info",
 					"host": [
-						"rp",
-						"avarabyeu",
-						"me"
+						"{{host}}"
 					],
 					"path": [
 						"api",
@@ -143,12 +142,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://rp.avarabyeu.me/api/health",
-					"protocol": "https",
+					"raw": "{{host}}/api/health",
 					"host": [
-						"rp",
-						"avarabyeu",
-						"me"
+						"{{host}}"
 					],
 					"path": [
 						"api",
@@ -189,12 +185,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://rp.avarabyeu.me/uat/info",
-					"protocol": "https",
+					"raw": "{{host}}/uat/info",
 					"host": [
-						"rp",
-						"avarabyeu",
-						"me"
+						"{{host}}"
 					],
 					"path": [
 						"uat",
@@ -229,16 +222,186 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://rp.avarabyeu.me/uat/health",
-					"protocol": "https",
+					"raw": "{{host}}/uat/health",
 					"host": [
-						"rp",
-						"avarabyeu",
-						"me"
+						"{{host}}"
 					],
 					"path": [
 						"uat",
 						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/uat/sso/oauth/token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d338cddf-0851-4d2b-b414-9147a109cf31",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Access Token Value\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.access_token).not.eql(\"\")",
+							"});",
+							"",
+							"pm.test(\"Validate Token Type\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.token_type).to.eql(\"bearer\")",
+							"});",
+							"",
+							"pm.test(\"Validate Refresh Token Value\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.refresh_token).not.eql(\"\")",
+							"});",
+							"",
+							"pm.test(\"Validate Refresh Token Value\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.refresh_token).not.eql(\"\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic dWk6dWltYW4=",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "superadmin",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "erebus",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/uat/sso/oauth/token",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"uat",
+						"sso",
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/user/default",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a1315561-d45a-4879-b0a2-6cc2f07bb86a",
+						"exec": [
+							"pm.sendRequest({\r",
+							"    url: pm.environment.get(\"host\") + '/uat/sso/oauth/token',\r",
+							"    method: 'POST',\r",
+							"    header: {\r",
+							"        'Authorization': 'Basic dWk6dWltYW4=',\r",
+							"        'Content-Type': 'multpart/form-data'\r",
+							"     },\r",
+							"    body: {\r",
+							"          mode: 'formdata',\r",
+							"          formdata: [\r",
+							"            {key: \"grant_type\", value:'password'},\r",
+							"            {key: \"username\", value:'superadmin'},\r",
+							"            {key: \"password\", value:'erebus'}\r",
+							"        ]\r",
+							"    }\r",
+							"},\r",
+							"function (err, res) {\r",
+							"    pm.environment.set(\"token\", res.json().access_token);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f2a5311a-87cb-4b81-bb35-379713824833",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate UserId\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.userId).to.eql(\"default\")",
+							"});",
+							"",
+							"pm.test(\"Validate Assigned Project: default_personal\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.assignedProjects.default_personal).not.eql(\"\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"warning": "This is a duplicate header and will be overridden by the Authorization header generated by Postman.",
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{host}}/api/v1/user/default",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"user",
+						"default"
 					]
 				}
 			},

@@ -214,12 +214,19 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 		String email = EntityUtils.normalizeId(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
+
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, email));
-		expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
-		RestorePasswordBid bid = RestorePasswordBidConverter.TO_BID.apply(rq);
-		restorePasswordBidRepository.save(bid);
+		Optional<RestorePasswordBid> bidOptional = restorePasswordBidRepository.findByEmail(rq.getEmail());
+
+		RestorePasswordBid bid;
+		if (!bidOptional.isPresent()) {
+			expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
+			bid = RestorePasswordBidConverter.TO_BID.apply(rq);
+			restorePasswordBidRepository.save(bid);
+		} else {
+			bid = bidOptional.get();
+		}
 		try {
-			// TODO use default 'from' param or project specified?
 			emailService.sendRestorePasswordEmail("Password recovery",
 					new String[] { email },
 					baseUrl + "#login?reset=" + bid.getUuid(),

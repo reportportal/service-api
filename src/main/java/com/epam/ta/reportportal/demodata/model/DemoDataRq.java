@@ -19,9 +19,14 @@ package com.epam.ta.reportportal.demodata.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DemoDataRq {
 
+	@Min(1)
+	@Max(100)
 	@JsonProperty(defaultValue = "10")
 	private int launchesQuantity = 10;
 

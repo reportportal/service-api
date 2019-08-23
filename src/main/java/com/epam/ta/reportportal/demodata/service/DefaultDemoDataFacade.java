@@ -104,17 +104,20 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 				new ThreadFactoryBuilder().setNameFormat("demo-data-task-%d").build()
 		);
 
-		List<CompletableFuture<Long>> futures = IntStream.range(0, rq.getLaunchesQuantity())
-				.mapToObj(i -> CompletableFuture.supplyAsync(() -> {
-					Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
-					generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
-					demoDataLaunchService.finishLaunch(launch.getUuid());
-					return launch.getId();
-				}, executor))
-				.collect(toList());
-
-		List<Long> generatedLaunchIds = futures.stream().map(CompletableFuture::join).collect(toList());
-		executor.shutdown();
+		List<Long> generatedLaunchIds;
+		try {
+			List<CompletableFuture<Long>> futures = IntStream.range(0, rq.getLaunchesQuantity())
+					.mapToObj(i -> CompletableFuture.supplyAsync(() -> {
+						Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
+						generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
+						demoDataLaunchService.finishLaunch(launch.getUuid());
+						return launch.getId();
+					}, executor))
+					.collect(toList());
+			generatedLaunchIds = futures.stream().map(CompletableFuture::join).collect(toList());
+		} finally {
+			executor.shutdown();
+		}
 		return generatedLaunchIds;
 	}
 

@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
-        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-10'
+        compile 'com.github.reportportal:commons-dao:c0449d5'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:5.0.0-BETA-11'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
@@ -112,41 +112,17 @@ dependencies {
     compile('com.atlassian.jira:jira-rest-java-client-core:5.1.2-2bd0a62e')
     //*****************************
 
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
-
-
-    compile 'org.apache.commons:commons-lang3:3.7'
-
-    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compile 'javax.persistence:javax.persistence-api:2.2'
-    compile 'org.hibernate:hibernate-validator'
-    compile 'org.postgresql:postgresql'
-    compile 'org.jooq:jooq:3.11.4'
-    compile 'org.jooq:jooq-codegen:3.11.4'
-    compile 'org.jooq:jooq-meta:3.11.4'
-    compile 'org.jasypt:jasypt:1.9.2'
     compile("org.springframework.boot:spring-boot-starter-amqp")
     // Optional for spring-boot-starter-amqp
     compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
-    compile 'commons-fileupload:commons-fileupload:1.3.3'
-    compile 'commons-validator:commons-validator:1.6'
-    compile 'org.slf4j:slf4j-api:1.7.24'
-
-//    seaweedfs
-    compile 'org.lokra.seaweedfs:seaweedfs-client:0.7.3.RELEASE'
-//    end of seaweedfs
-
-    compile "ch.qos.logback:logback-classic"
-    compile 'net.coobird:thumbnailator:0.4.8'
+    compile 'ch.qos.logback:logback-classic'
     compile 'com.sun.mail:javax.mail'
-    compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.8.9'
-    compile group: 'org.aspectj', name: 'aspectjrt', version: '1.8.9'
+    compile 'org.aspectj:aspectjweaver:1.8.9'
+    compile 'org.aspectj:aspectjrt:1.8.9'
 
-//    compile 'org.springframework.cloud:spring-cloud-config-client'
     compile 'org.springframework.retry:spring-retry'
 
-//    compile 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-freemarker'
@@ -162,27 +138,20 @@ dependencies {
 
 ///// end of Security
 
-    compile 'org.apache.tika:tika-core'
-    compile 'org.apache.tika:tika-parsers'
-
-    compile group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.9.0'
-
+    compile 'net.sf.jasperreports:jasperreports:6.9.0'
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
     //higher than 3.14 since 3.15 contains breaking API changes
-    compile group: 'org.apache.poi', name: 'poi', version: '3.17'
+    compile 'org.apache.poi:poi:3.17'
 
-    compile 'javax.inject:javax.inject:1'
     compile 'com.google.code.findbugs:annotations:3.0.1'
 
     compile 'io.springfox:springfox-swagger-ui'
     compile 'io.springfox:springfox-swagger2'
 
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
-    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+    compile 'org.apache.commons:commons-collections4:4.1'
 
     api 'org.jacoco:org.jacoco.agent:0.8.3'
 
-    compile "com.querydsl:querydsl-jpa:4.2.1"
 
 //  Tests
     testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'
@@ -195,7 +164,7 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
 
     testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
-    testCompile 'com.bitmechanic:dumbster:1.9.0.2'
+//    testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 }
 
 wrapper {

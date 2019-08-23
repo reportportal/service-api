@@ -164,7 +164,6 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
 
     testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'
-//    testCompile 'com.bitmechanic:dumbster:1.9.0.2'
 }
 
 wrapper {

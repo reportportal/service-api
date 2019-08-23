@@ -124,20 +124,24 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 						"Email configuration is incorrect. Please, check your configuration. " + ex.getMessage()
 				);
 			}
-			try {
-				EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams()).ifPresent(authEnabled -> {
-					if (BooleanUtils.toBoolean(authEnabled)) {
-						String sendTo = EmailSettingsEnum.USERNAME.getAttribute(integration.getParams().getParams())
-								.orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
-										"Email server username is not specified."
-								));
-						emailService.get().sendConnectionTestEmail(sendTo);
-					}
-				});
-			} catch (Exception ex) {
-				fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-						formattedSupplier("Unable to send connection test email. " + ex.getMessage())
-				);
+
+			// if an email integration is new and not saved at db yet - try to send a creation integration message
+			if (integration.getId() == null) {
+				try {
+					EmailSettingsEnum.AUTH_ENABLED.getAttribute(integration.getParams().getParams()).ifPresent(authEnabled -> {
+						if (BooleanUtils.toBoolean(authEnabled)) {
+							String sendTo = EmailSettingsEnum.USERNAME.getAttribute(integration.getParams().getParams())
+									.orElseThrow(() -> new ReportPortalException(EMAIL_CONFIGURATION_IS_INCORRECT,
+											"Email server username is not specified."
+									));
+							emailService.get().sendConnectionTestEmail(sendTo);
+						}
+					});
+				} catch (Exception ex) {
+					fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
+							formattedSupplier("Unable to send connection test email. " + ex.getMessage())
+					);
+				}
 			}
 
 		} else {

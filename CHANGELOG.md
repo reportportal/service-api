@@ -228,10 +228,18 @@
 * EPMRPP-34212 - WS: No action for linked issue by ML on History of actions
 
 ## 4.3
-##### Released: XXX XX, 2017
+##### Released: 2018
 
 ### Bugfixes
 
 * EPMRPP-35134 - Registration is passed for user with login already in use
 * EPMRPP-35289 - WS: GET item controller returns items that do not belong to specified project, but all available items
 * EPMRPP-35291 - WS: Unclassified error on get latest launches. Improve latest query performance
+
+## 5.x.x
+##### Released: XXX XX, 2019
+
+### Bugfixes
+
+* EPMRPP-39590 - PostgreSQL. Restore of the password. Incorrect response from repeated request.
+* EPMRPP-40298 - PostgreSQL. API. Global Email server integration (Gmail). Incorrect number of emails deliver to the mailbox.

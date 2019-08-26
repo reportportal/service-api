@@ -89,7 +89,7 @@ podTemplate(
             dir('app') {
                 container('docker') {
                     container('docker') {
-                        def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
+                        def snapshotVersion = utils.readProperty("gradle.properties", "version")
                         image = "quay.io/reportportal/service-api:${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
                         sh "docker build -f docker/Dockerfile-develop -t $image ."
                         sh "docker push $image"

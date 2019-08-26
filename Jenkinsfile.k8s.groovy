@@ -29,7 +29,7 @@ podTemplate(
 ) {
 
     node("${label}") {
-        def srvRepo = "quay.io/reportportal/service-index"
+        def srvRepo = "quay.io/reportportal/service-api"
         def srvVersion = "BUILD-${env.BUILD_NUMBER}"
         def tag = "$srvRepo:$srvVersion"
 

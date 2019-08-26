@@ -17,7 +17,7 @@ podTemplate(
                         resourceLimitMemory: '2048Mi'),
 //                containerTemplate(name: 'jdk', image: 'quay.io/reportportal/openjdk-8-alpine-nonroot', command: 'cat', ttyEnabled: true),
 //                containerTemplate(name: 'gradle', image: 'quay.io/reportportal/gradle-nonroot', command: 'cat', ttyEnabled: true),
-//              containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
+              containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
               containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
@@ -29,30 +29,27 @@ podTemplate(
 ) {
 
     node("${label}") {
+        def srvRepo = "quay.io/reportportal/service-index"
+        def srvVersion = "BUILD-${env.BUILD_NUMBER}"
+        def tag = "$srvRepo:$srvVersion"
 
-        properties([
-                pipelineTriggers([
-                        pollSCM('H/10 * * * *')
-                ])
-        ])
+        def k8sDir = "kubernetes"
+        def ciDir = "reportportal-ci"
+        def appDir = "app"
 
-        stage('Configure') {
-            container('docker') {
-                sh 'echo "Initialize environment"'
-                sh """
-                QUAY_USER=\$(cat "/etc/.dockercreds/username")
-                cat "/etc/.dockercreds/password" | docker login -u \$QUAY_USER --password-stdin quay.io
-                """
-            }
-        }
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
                 sh 'ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts'
+                sh 'ssh-keyscan -t rsa git.epam.com >> ~/.ssh/known_hosts'
                 dir('kubernetes') {
-                    git branch: "v5", url: 'https://github.com/reportportal/kubernetes.git'
+                    git branch: "master", url: 'https://github.com/reportportal/kubernetes.git'
 
                 }
+                dir('reportportal-ci') {
+                    git credentialsId: 'epm-gitlab-key', branch: "master", url: 'git@git.epam.com:epmc-tst/reportportal-ci.git'
+                }
+
             }
         }, 'Checkout Service': {
             stage('Checkout Service') {
@@ -62,6 +59,14 @@ podTemplate(
             }
         }
 
+        def test = load "${ciDir}/jenkins/scripts/test.groovy"
+        def utils = load "${ciDir}/jenkins/scripts/util.groovy"
+        def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
+        def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
+
+        docker.init()
+        helm.init()
+        utils.scheduleRepoPoll()
 
 //        dir('app') {
 //            try {
@@ -78,17 +83,14 @@ podTemplate(
 //
 //        }
 
+
+
         stage('Build Docker Image') {
             dir('app') {
                 container('docker') {
                     container('docker') {
-                        version = """${
-                            sh(
-                                    returnStdout: true,
-                                    script: 'cat gradle.properties | grep "version" | cut -d "=" -f2'
-                            )
-                        }""".trim()
-                        image = "quay.io/reportportal/service-api:${version}-BUILD-${env.BUILD_NUMBER}"
+                        def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
+                        image = "quay.io/reportportal/service-api:${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
                         sh "docker build -f docker/Dockerfile-develop -t $image ."
                         sh "docker push $image"
                     }
@@ -98,6 +100,30 @@ podTemplate(
 
 
         }
+        stage('Deploy to Dev Environment') {
+            container('helm') {
+                dir('kubernetes/reportportal/v5') {
+                    sh 'helm dependency update'
+                }
+                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./reportportal-ci/rp/values-ci.yml reportportal ./kubernetes/reportportal/v5"
+            }
+        }
+
+        stage('Execute DVT Tests') {
+            def srvUrl
+            container('kubectl') {
+                def srvName = utils.getServiceName(k8sNs, "api")
+                srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
+            }
+            if (srvUrl == null) {
+                error("Unable to retrieve service URL")
+            }
+            container('httpie') {
+                def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
+                test.checkVersion("http://$srvUrl", "$snapshotVersion-$srvVersion")
+            }
+        }
+
     }
 }
 

@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.model.TestItemHistoryResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,12 @@ public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem,
 		ofNullable(pathName).ifPresent(pn -> {
 			resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn));
 		});
+		return resource;
+	}
+
+	public TestItemHistoryResource toHistoryResource(TestItem entity, @Nullable PathName pathName) {
+		TestItemHistoryResource resource = TestItemConverter.TO_HISTORY_RESOURCE.apply(entity);
+		ofNullable(pathName).ifPresent(pn -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn)));
 		return resource;
 	}
 }

@@ -12,7 +12,7 @@ podTemplate(
                 containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '500m',
                         resourceLimitCpu: '800m',
-                        resourceRequestMemory: '2048Mi',
+                        resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
 //                containerTemplate(name: 'jdk', image: 'quay.io/reportportal/openjdk-8-alpine-nonroot', command: 'cat', ttyEnabled: true),
 //                containerTemplate(name: 'gradle', image: 'quay.io/reportportal/gradle-nonroot', command: 'cat', ttyEnabled: true),

@@ -79,14 +79,15 @@ podTemplate(
 //
 //        }
         def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
-        def srvVersion = "${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
+        def buildVersion = "BUILD-${env.BUILD_NUMBER}"
+        def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
 
 
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }

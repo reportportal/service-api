@@ -30,8 +30,6 @@ podTemplate(
 
     node("${label}") {
         def srvRepo = "quay.io/reportportal/service-api"
-        def srvVersion = "BUILD-${env.BUILD_NUMBER}"
-        def tag = "$srvRepo:$srvVersion"
 
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
@@ -82,17 +80,17 @@ podTemplate(
 //            }
 //
 //        }
-
+        def snapshotVersion = utils.readProperty("gradle.properties", "version")
+        def srvVersion = "${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
+        def tag = "$srvRepo:$srvVersion"
 
 
         stage('Build Docker Image') {
             dir('app') {
                 container('docker') {
                     container('docker') {
-                        def snapshotVersion = utils.readProperty("gradle.properties", "version")
-                        image = "quay.io/reportportal/service-api:${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
-                        sh "docker build -f docker/Dockerfile-develop -t $image ."
-                        sh "docker push $image"
+                        sh "docker build -f docker/Dockerfile-develop -t $tag ."
+                        sh "docker push $tag"
                     }
 
                 }
@@ -119,8 +117,7 @@ podTemplate(
                 error("Unable to retrieve service URL")
             }
             container('httpie') {
-                def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
-                test.checkVersion("http://$srvUrl", "$snapshotVersion-$srvVersion")
+                test.checkVersion("http://$srvUrl", "$srvVersion")
             }
         }
 

@@ -33,24 +33,25 @@ podTemplate(
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
+        def k8sNs = "reportportal"
 
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
                 sh 'ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts'
                 sh 'ssh-keyscan -t rsa git.epam.com >> ~/.ssh/known_hosts'
-                dir('kubernetes') {
+                dir(k8sDir) {
                     git branch: "master", url: 'https://github.com/reportportal/kubernetes.git'
 
                 }
-                dir('reportportal-ci') {
+                dir(ciDir) {
                     git credentialsId: 'epm-gitlab-key', branch: "master", url: 'git@git.epam.com:epmc-tst/reportportal-ci.git'
                 }
 
             }
         }, 'Checkout Service': {
             stage('Checkout Service') {
-                dir('app') {
+                dir(appDir) {
                     checkout scm
                 }
             }
@@ -85,13 +86,10 @@ podTemplate(
 
 
         stage('Build Docker Image') {
-            dir('app') {
+            dir(appDir) {
                 container('docker') {
-                    container('docker') {
-                        sh "docker build -f docker/Dockerfile-develop -t $tag ."
-                        sh "docker push $tag"
-                    }
-
+                    sh "docker build -f docker/Dockerfile-develop -t $tag ."
+                    sh "docker push $tag"
                 }
             }
 
@@ -99,10 +97,10 @@ podTemplate(
         }
         stage('Deploy to Dev Environment') {
             container('helm') {
-                dir('kubernetes/reportportal/v5') {
+                dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./reportportal-ci/rp/values-ci.yml reportportal ./kubernetes/reportportal/v5"
+                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
             }
         }
 

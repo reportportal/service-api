@@ -107,10 +107,9 @@ public class FileStorageController {
 	 */
 	private void toResponse(HttpServletResponse response, InputStream inputStream) {
 		if (inputStream != null) {
-
 			try {
-				response.setContentType(contentTypeResolver.detectContentType(inputStream));
 				IOUtils.copy(inputStream, response.getOutputStream());
+				response.setContentType(contentTypeResolver.detectContentType(inputStream));
 			} catch (IOException e) {
 				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
 			}

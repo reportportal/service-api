@@ -79,7 +79,7 @@ podTemplate(
 //            }
 //
 //        }
-        def snapshotVersion = utils.readProperty("gradle.properties", "version")
+        def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
         def srvVersion = "${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
         def tag = "$srvRepo:$srvVersion"
 

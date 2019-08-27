@@ -9,20 +9,19 @@ podTemplate(
         label: "${label}",
         containers: [
                 containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:alpine'),
-                containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, alwaysPullImage: true, privileged: true,
-                        command: 'dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=overlay',
+                containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '500m',
                         resourceLimitCpu: '800m',
                         resourceRequestMemory: '2048Mi',
                         resourceLimitMemory: '2048Mi'),
 //                containerTemplate(name: 'jdk', image: 'quay.io/reportportal/openjdk-8-alpine-nonroot', command: 'cat', ttyEnabled: true),
 //                containerTemplate(name: 'gradle', image: 'quay.io/reportportal/gradle-nonroot', command: 'cat', ttyEnabled: true),
-              containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-              containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
-                emptyDirVolume(memory: false, mountPath: '/var/lib/docker'),
+                hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
 //                hostPathVolume(mountPath: '/home/gradle/.gradle', hostPath: '/tmp/jenkins/gradle')
         ]

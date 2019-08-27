@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -38,15 +39,23 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_TEST_ITEM_ID;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,6 +63,14 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 class GetTestItemHandlerImplTest {
+
+	private static final String TEST_USER_LOGIN = "test";
+	private static final String TEST_PROJECT_NAME = "test_project";
+
+	private static final Long LAUNCH_ID = 1L;
+	private static final long PROJECT_ID = 1L;
+	private static final long FILTER_ID = 2L;
+	private static final int LAUNCHES_LIMIT = 600;
 
 	@Mock
 	private TestItemRepository testItemRepository;
@@ -162,6 +179,324 @@ class GetTestItemHandlerImplTest {
 		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
 				exception.getMessage()
 		);
+	}
+
+	@Test
+	void getTestItemsIdsShouldReturnTestItemsIdsWhenFilterIdIsPresentAndLaunchIdIsPresent() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_NAME);
+		UserFilter userFilter = new UserFilter();
+		userFilter.setTargetClass(ObjectType.Launch);
+		when(getShareableEntityHandler.getPermitted(FILTER_ID, projectDetails)).thenReturn(userFilter);
+
+		List<Long> expectedTestItemsIds = Arrays.asList(1L, 2L, 3L);
+		Page<Long> expectedTestItemsIdsPage = new PageImpl<>(expectedTestItemsIds);
+		when(testItemRepository.findIdsByFilter(any(Queryable.class), eq(testItemFilter), any(Pageable.class), eq(testItemPageable)))
+				.thenReturn(expectedTestItemsIdsPage);
+
+		//WHEN
+		Page<Long> actualTestItemsIdsPage = handler.getTestItemsIds(projectDetails, rpUser, testItemFilter, testItemPageable, LAUNCH_ID,
+				FILTER_ID, LAUNCHES_LIMIT);
+
+		//THEN
+		assertEquals(expectedTestItemsIdsPage, actualTestItemsIdsPage);
+	}
+
+	@Test
+	void getTestItemsIdsShouldReturnTestItemsIdsWhenFilterIdIsPresentAndLaunchIdIsNull() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_NAME);
+		UserFilter userFilter = new UserFilter();
+		userFilter.setTargetClass(ObjectType.Launch);
+		when(getShareableEntityHandler.getPermitted(FILTER_ID, projectDetails)).thenReturn(userFilter);
+
+		List<Long> expectedTestItemsIds = Arrays.asList(1L, 2L, 3L);
+		Page<Long> expectedTestItemsIdsPage = new PageImpl<>(expectedTestItemsIds);
+		when(testItemRepository.findIdsByFilter(any(Queryable.class), eq(testItemFilter), any(Pageable.class), eq(testItemPageable)))
+				.thenReturn(expectedTestItemsIdsPage);
+
+		//WHEN
+		Page<Long> actualTestItemsIdsPage = handler.getTestItemsIds(projectDetails, rpUser, testItemFilter, testItemPageable, LAUNCH_ID,
+				FILTER_ID, LAUNCHES_LIMIT);
+
+		//THEN
+		assertEquals(expectedTestItemsIdsPage, actualTestItemsIdsPage);
+	}
+
+	@Test
+	void getTestItemsIdsShouldReturnTestItemsIdsWhenFilterIdIsPresentAndLaunchIdIsPresentAndUserRoleIsAdministrator() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.ADMINISTRATOR, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_NAME);
+		UserFilter userFilter = new UserFilter();
+		userFilter.setTargetClass(ObjectType.Launch);
+		when(getShareableEntityHandler.getPermitted(FILTER_ID, projectDetails)).thenReturn(userFilter);
+
+		List<Long> expectedTestItemsIds = Arrays.asList(1L, 2L, 3L);
+		Page<Long> expectedTestItemsIdsPage = new PageImpl<>(expectedTestItemsIds);
+		when(testItemRepository.findIdsByFilter(any(Queryable.class), eq(testItemFilter), any(Pageable.class), eq(testItemPageable)))
+				.thenReturn(expectedTestItemsIdsPage);
+
+		//WHEN
+		Page<Long> actualTestItemsIdsPage = handler.getTestItemsIds(projectDetails, rpUser, testItemFilter, testItemPageable, LAUNCH_ID,
+				FILTER_ID, LAUNCHES_LIMIT);
+
+		//THEN
+		assertEquals(expectedTestItemsIdsPage, actualTestItemsIdsPage);
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsPresentAndLaunchIdIsPresentAndProjectRoleIsOperator() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.OPERATOR, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, LAUNCH_ID, FILTER_ID, LAUNCHES_LIMIT);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsPresentAndLaunchIdIsPresentAndLaunchFilterTargetIsNull() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_NAME);
+		UserFilter userFilter = new UserFilter();
+		when(getShareableEntityHandler.getPermitted(FILTER_ID, projectDetails)).thenReturn(userFilter);
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(projectDetails, rpUser, testItemFilter, testItemPageable, LAUNCH_ID,
+				FILTER_ID, LAUNCHES_LIMIT);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Incorrect filter target - 'null'. "
+				+ "Allowed: 'Launch''", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsPresentAndLaunchIdIsPresentAndLaunchesLimitIsLessThanZero() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_NAME);
+		UserFilter userFilter = new UserFilter();
+		userFilter.setTargetClass(ObjectType.Launch);
+		when(getShareableEntityHandler.getPermitted(FILTER_ID, projectDetails)).thenReturn(userFilter);
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(projectDetails, rpUser, testItemFilter, testItemPageable, LAUNCH_ID,
+				FILTER_ID, -5);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0 "
+				+ "and less or equal to 600'", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsPresentAndLaunchIdIsPresentAndLaunchesLimitIsGreaterThanSixHundred() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(rpUser, TEST_PROJECT_NAME);
+		UserFilter userFilter = new UserFilter();
+		userFilter.setTargetClass(ObjectType.Launch);
+		when(getShareableEntityHandler.getPermitted(FILTER_ID, projectDetails)).thenReturn(userFilter);
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(projectDetails, rpUser, testItemFilter, testItemPageable, LAUNCH_ID,
+				FILTER_ID, 615);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0 "
+				+ "and less or equal to 600'", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldReturnTestItemsIdsWhenFilterIdIsNullAndLaunchIdIsPresent() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(LAUNCH_ID);
+		launch.setProjectId(PROJECT_ID);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(LAUNCH_ID)).thenReturn(Optional.of(launch));
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		List<Long> expectedTestItemsIds = Arrays.asList(1L, 2L, 3L);
+		Page<Long> expectedTestItemsIdsPage = new PageImpl<>(expectedTestItemsIds);
+		when(testItemRepository.findIdsByFilter(testItemFilter, testItemPageable)).thenReturn(expectedTestItemsIdsPage);
+
+		//WHEN
+		Page<Long> actualTestItemsIdsPage = handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, LAUNCH_ID, null, LAUNCHES_LIMIT
+		);
+
+		//THEN
+		assertEquals(expectedTestItemsIdsPage, actualTestItemsIdsPage);
+	}
+
+	@Test
+	void getTestItemsIdsShouldReturnTestItemsIdsWhenFilterIdIsNullAndLaunchIdIsPresentAndUserRoleIsAdministrator() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.ADMINISTRATOR, ProjectRole.MEMBER, PROJECT_ID);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(LAUNCH_ID);
+		launch.setProjectId(PROJECT_ID);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(LAUNCH_ID)).thenReturn(Optional.of(launch));
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		List<Long> expectedTestItemsIds = Arrays.asList(1L, 2L, 3L);
+		Page<Long> expectedTestItemsIdsPage = new PageImpl<>(expectedTestItemsIds);
+		when(testItemRepository.findIdsByFilter(testItemFilter, testItemPageable)).thenReturn(expectedTestItemsIdsPage);
+
+		//WHEN
+		Page<Long> actualTestItemsIdsPage = handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, LAUNCH_ID, null, LAUNCHES_LIMIT
+		);
+
+		//THEN
+		assertEquals(expectedTestItemsIdsPage, actualTestItemsIdsPage);
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsNullAndLaunchIdIsPresentAndLaunchIsNull() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		when(launchRepository.findById(LAUNCH_ID)).thenReturn(Optional.empty());
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, LAUNCH_ID, null, LAUNCHES_LIMIT
+		);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsNullAndLaunchIdIsPresentAndLaunchProjectIdIsNotEqualToProjectId() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, 2L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(LAUNCH_ID);
+		launch.setProjectId(PROJECT_ID);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(LAUNCH_ID)).thenReturn(Optional.of(launch));
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, LAUNCH_ID, null, LAUNCHES_LIMIT
+		);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '2'",
+				exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsNullAndLaunchIdIsPresentAndProjectRoleIsOperatorAndLaunchModeIsDebug() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.OPERATOR, PROJECT_ID);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(LAUNCH_ID);
+		launch.setProjectId(PROJECT_ID);
+		launch.setMode(LaunchModeEnum.DEBUG);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(LAUNCH_ID)).thenReturn(Optional.of(launch));
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, LAUNCH_ID, null, LAUNCHES_LIMIT
+		);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemsIdsShouldThrowExceptionWhenFilterIdIsNullAndLaunchIdIsNull() {
+		//GIVEN
+		final ReportPortalUser rpUser = getRpUser(TEST_USER_LOGIN, UserRole.USER, ProjectRole.MEMBER, PROJECT_ID);
+
+		Filter testItemFilter = prepareFilter();
+		Pageable testItemPageable = preparePageRequest();
+
+		//WHEN
+		final Executable executable = () -> handler.getTestItemsIds(extractProjectDetails(rpUser, TEST_PROJECT_NAME), rpUser,
+				testItemFilter, testItemPageable, null, null, LAUNCHES_LIMIT);
+
+		//THEN
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Neither launch nor filter id specified.'",
+				exception.getMessage());
+	}
+
+	private Filter prepareFilter() {
+		return Filter.builder().withTarget(TestItem.class).withCondition(new FilterCondition(Condition.EQUALS, false,
+				String.valueOf(LAUNCH_ID), CRITERIA_LAUNCH_ID)).build();
+	}
+
+	private Pageable preparePageRequest() {
+		return PageRequest.of(0, 10);
 	}
 
 	@Test

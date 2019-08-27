@@ -88,4 +88,16 @@ public class ExecutorConfiguration {
 		return threadPoolTaskExecutor;
 	}
 
+	@Bean(name = "demoDataTaskExecutor")
+	public TaskExecutor demoDataTaskExecutor() {
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setCorePoolSize(10);
+		threadPoolTaskExecutor.setMaxPoolSize(20);
+		threadPoolTaskExecutor.setQueueCapacity(50);
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setAwaitTerminationSeconds(15 * 60);
+		threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
+		return threadPoolTaskExecutor;
+	}
+
 }

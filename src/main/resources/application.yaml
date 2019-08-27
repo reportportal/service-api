@@ -1,6 +1,6 @@
 info:
   build:
-    version: @version@
+    version: '@version@'
     description: ReportPortal API Service
     name: API Service
 

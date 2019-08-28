@@ -80,13 +80,6 @@ public class MvcConfig implements WebMvcConfigurer {
 		}
 	}
 
-	//	@Override
-	//	public void addViewControllers(ViewControllerRegistry registry) {
-	//		registry.addViewController("/").setViewName("forward:/index.htm");
-	//		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
-	//
-	//	}
-
 	@Bean
 	public SortArgumentResolver sortArgumentResolver() {
 		SortArgumentResolver argumentResolver = new SortArgumentResolver();

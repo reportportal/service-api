@@ -107,7 +107,6 @@ public class FileStorageController {
 	 */
 	private void toResponse(HttpServletResponse response, InputStream inputStream) {
 		if (inputStream != null) {
-
 			try {
 				IOUtils.copy(inputStream, response.getOutputStream());
 				response.setContentType(contentTypeResolver.detectContentType(inputStream));

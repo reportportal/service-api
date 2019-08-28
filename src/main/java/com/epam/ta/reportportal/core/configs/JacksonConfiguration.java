@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 public class JacksonConfiguration {
 
 	/**
-	 * @return
+	 * @return Configured object mapper
 	 */
 	@Bean(name = "objectMapper")
 	public ObjectMapper objectMapper() {

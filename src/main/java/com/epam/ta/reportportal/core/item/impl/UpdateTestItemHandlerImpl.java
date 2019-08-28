@@ -301,7 +301,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			IssueType issueType = issueTypeHandler.defineIssueType(projectId, TestItemIssueGroup.TO_INVESTIGATE.getLocator());
 			IssueEntity issueEntity = new IssueEntityBuilder(issueEntityRepository.findById(itemId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.ISSUE_TYPE_NOT_FOUND, itemId))).addIssueType(issueType)
-					.addAutoAnalyzedFlag(true)
+					.addAutoAnalyzedFlag(false)
 					.get();
 			issueEntityRepository.save(issueEntity);
 		});

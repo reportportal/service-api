@@ -1,6 +1,6 @@
 info:
   build:
-    version: ${rp.api.version:5.0}
+    version: '@version@'
     description: ReportPortal API Service
     name: API Service
 

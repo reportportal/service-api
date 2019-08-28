@@ -222,7 +222,7 @@ dependencyCheck {
 }
 
 jar.dependsOn copyJacocoAgentToLibs
-jar.dependsOn gitInfo
+bootJar.dependsOn gitInfo
 //End section for external jacoco test report
 
 build.dependsOn jacocoTestReport

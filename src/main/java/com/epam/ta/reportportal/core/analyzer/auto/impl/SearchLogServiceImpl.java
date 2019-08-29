@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -131,7 +132,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 		foundLogs.forEach(log -> {
 			foundLogsMap.computeIfPresent(log.getTestItem().getItemId(), (key, value) -> {
-				value.getLogMessages().add(log.getLogMessage());
+				value.getLogs().add(TO_LOG_ENTRY.apply(log));
 				return value;
 			});
 			Launch launch = launchRepository.findById(log.getTestItem().getLaunchId())
@@ -177,7 +178,14 @@ public class SearchLogServiceImpl implements SearchLogService {
 		response.setDuration(log.getTestItem().getItemResults().getDuration());
 		response.setStatus(log.getTestItem().getItemResults().getStatus().name());
 		response.setIssue(IssueConverter.TO_MODEL.apply(log.getTestItem().getItemResults().getIssue()));
-		response.setLogMessages(Arrays.asList(log.getLogMessage()));
+		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
 	}
+
+	private static final Function<Log, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
+		SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
+		logEntry.setMessage(log.getLogMessage());
+		logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
+		return logEntry;
+	};
 }

@@ -12,18 +12,16 @@ podTemplate(
                 containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '500m',
                         resourceLimitCpu: '800m',
-                        resourceRequestMemory: '2048Mi',
+                        resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
-//                containerTemplate(name: 'jdk', image: 'quay.io/reportportal/openjdk-8-alpine-nonroot', command: 'cat', ttyEnabled: true),
-//                containerTemplate(name: 'gradle', image: 'quay.io/reportportal/gradle-nonroot', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
-                secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
-//                hostPathVolume(mountPath: '/home/gradle/.gradle', hostPath: '/tmp/jenkins/gradle')
+                secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds')
         ]
 ) {
 
@@ -33,24 +31,25 @@ podTemplate(
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
+        def k8sNs = "reportportal"
 
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
                 sh 'ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts'
                 sh 'ssh-keyscan -t rsa git.epam.com >> ~/.ssh/known_hosts'
-                dir('kubernetes') {
+                dir(k8sDir) {
                     git branch: "master", url: 'https://github.com/reportportal/kubernetes.git'
 
                 }
-                dir('reportportal-ci') {
+                dir(ciDir) {
                     git credentialsId: 'epm-gitlab-key', branch: "master", url: 'git@git.epam.com:epmc-tst/reportportal-ci.git'
                 }
 
             }
         }, 'Checkout Service': {
             stage('Checkout Service') {
-                dir('app') {
+                dir(appDir) {
                     checkout scm
                 }
             }
@@ -80,18 +79,16 @@ podTemplate(
 //
 //        }
         def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
-        def srvVersion = "${snapshotVersion}-BUILD-${env.BUILD_NUMBER}"
+        def buildVersion = "BUILD-${env.BUILD_NUMBER}"
+        def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
 
 
         stage('Build Docker Image') {
-            dir('app') {
+            dir(appDir) {
                 container('docker') {
-                    container('docker') {
-                        sh "docker build -f docker/Dockerfile-develop -t $tag ."
-                        sh "docker push $tag"
-                    }
-
+                    sh "docker build -f docker/Dockerfile-develop --build-arg buildNumber=$buildVersion -t $tag ."
+                    sh "docker push $tag"
                 }
             }
 
@@ -99,10 +96,10 @@ podTemplate(
         }
         stage('Deploy to Dev Environment') {
             container('helm') {
-                dir('kubernetes/reportportal/v5') {
+                dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./reportportal-ci/rp/values-ci.yml reportportal ./kubernetes/reportportal/v5"
+                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
             }
         }
 

@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -137,7 +138,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
 
-		Map<Long, Map<Long, String>> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
 				pathNamesMapping.get(item.getItemId())
@@ -253,7 +254,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		return PageRequest.of(0, launchesLimit, sort);
 	}
 
-	private Map<Long, Map<Long, String>> getPathNamesMapping(List<TestItem> testItems) {
+	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
 		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
 	}
 }

@@ -18,12 +18,16 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.NestedStep;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.NestedStepResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.item.LaunchPathName;
+import com.epam.ta.reportportal.ws.model.item.PathNameResource;
+import org.apache.commons.collections.MapUtils;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -79,6 +83,22 @@ public final class TestItemConverter {
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));
 		return resource;
+	};
+
+	public static final Function<PathName, PathNameResource> PATH_NAME_TO_RESOURCE = pathName -> {
+
+		PathNameResource pathNameResource = new PathNameResource();
+		ofNullable(pathName.getLaunchPathName()).ifPresent(lpn -> pathNameResource.setLaunchPathName(new LaunchPathName(lpn.getName(),
+				lpn.getNumber()
+		)));
+		ofNullable(pathName.getItemPaths()).ifPresent(itemPaths -> {
+			if (MapUtils.isNotEmpty(itemPaths)) {
+				pathNameResource.setItemPaths(itemPaths);
+			}
+		});
+
+		return pathNameResource;
+
 	};
 
 	public static final Function<NestedStep, NestedStepResource> TO_NESTED_STEP_RESOURCE = item -> {

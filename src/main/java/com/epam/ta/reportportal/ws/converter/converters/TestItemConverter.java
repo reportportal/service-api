@@ -25,9 +25,10 @@ import com.epam.ta.reportportal.ws.model.NestedStepResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.item.ItemPathName;
 import com.epam.ta.reportportal.ws.model.item.LaunchPathName;
 import com.epam.ta.reportportal.ws.model.item.PathNameResource;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -92,8 +93,10 @@ public final class TestItemConverter {
 				lpn.getNumber()
 		)));
 		ofNullable(pathName.getItemPaths()).ifPresent(itemPaths -> {
-			if (MapUtils.isNotEmpty(itemPaths)) {
-				pathNameResource.setItemPaths(itemPaths);
+			if (CollectionUtils.isNotEmpty(itemPaths)) {
+				pathNameResource.setItemPaths(itemPaths.stream()
+						.map(path -> new ItemPathName(path.getId(), path.getName()))
+						.collect(Collectors.toList()));
 			}
 		});
 

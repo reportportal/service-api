@@ -243,7 +243,8 @@ class ProjectControllerTest extends BaseMvcTest {
 
 	@Test
 	void getUsersForAssignPositive() throws Exception {
-		mockMvc.perform(get("/v1/project/test_project/assignable").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/project/test_project/assignable").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -256,6 +257,14 @@ class ProjectControllerTest extends BaseMvcTest {
 	void addUserPreference() throws Exception {
 		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	void addUserPreferenceNegative() throws Exception {
+		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk());
+		mockMvc.perform(put("/v1/project/test_project/preference/superadmin/2").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isConflict());
 	}
 
 	@Test

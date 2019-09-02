@@ -241,5 +241,6 @@
 
 ### Bugfixes
 
-* EPMRPP-39590 - PostgreSQL. Restore of the password. Incorrect response from repeated request.
-* EPMRPP-40298 - PostgreSQL. API. Global Email server integration (Gmail). Incorrect number of emails deliver to the mailbox.
+* EPMRPP-39590 - Restore of the password. Incorrect response from repeated request.
+* EPMRPP-40298 - API. Global Email server integration (Gmail). Incorrect number of emails deliver to the mailbox.
+* EPMRPP-41407 - Filters page. Unclassified error occurs when user turns filters On/Off in 2 browser tabs

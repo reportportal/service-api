@@ -161,8 +161,8 @@ class DeleteLogHandlerTest {
 		handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
 
 		verify(logRepository, times(1)).delete(log);
-		verify(dataStoreService, times(1)).delete(attachmentPath);
-		verify(dataStoreService, times(1)).delete(attachmentThumbnailPath);
+		verify(dataStoreService, times(1)).deleteLog(attachmentPath);
+		verify(dataStoreService, times(1)).deleteLog(attachmentThumbnailPath);
 	}
 
 	@Test

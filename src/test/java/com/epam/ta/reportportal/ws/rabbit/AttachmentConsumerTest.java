@@ -61,7 +61,7 @@ class AttachmentConsumerTest {
 		attachmentConsumer.onEvent(event);
 
 		verify(attachmentRepository, times(1)).deleteAllByIds(any());
-		verify(dataStoreService, times(1)).delete(attachment.getFileId());
-		verify(dataStoreService, times(1)).delete(attachment.getThumbnailId());
+		verify(dataStoreService, times(1)).deleteLog(attachment.getFileId());
+		verify(dataStoreService, times(1)).deleteLog(attachment.getThumbnailId());
 	}
 }

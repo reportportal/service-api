@@ -56,8 +56,8 @@ public class AttachmentConsumer {
 		List<Long> ids = Lists.newArrayListWithExpectedSize(event.getIds().size());
 		event.getIds().forEach(id -> attachmentRepository.findById(id).ifPresent(a -> {
 			try {
-				ofNullable(a.getFileId()).ifPresent(dataStoreService::delete);
-				ofNullable(a.getThumbnailId()).ifPresent(dataStoreService::delete);
+				ofNullable(a.getFileId()).ifPresent(dataStoreService::deleteLog);
+				ofNullable(a.getThumbnailId()).ifPresent(dataStoreService::deleteLog);
 				ids.add(id);
 			} catch (Exception e) {
 				LOGGER.error(Suppliers.formattedSupplier("Error during removing attachment with id = {}", id).get());

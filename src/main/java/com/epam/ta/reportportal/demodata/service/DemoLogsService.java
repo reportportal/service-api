@@ -17,37 +17,39 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.entity.enums.LogLevel.*;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 import static java.util.stream.Collectors.toList;
 
 @Service
 class DemoLogsService {
+	private static final int MIN_LOGS_COUNT = 5;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DemoLogsService.class);
+	private static final int MAX_LOGS_COUNT = 30;
+
+	private static final int BINARY_CONTENT_PROBABILITY = 7;
 
 	private SplittableRandom random;
 
@@ -55,35 +57,28 @@ class DemoLogsService {
 
 	private LaunchRepository launchRepository;
 
+	private TestItemRepository testItemRepository;
+
 	private DataStoreService dataStoreService;
 
-	private static final int MIN_LOGS_COUNT = 5;
-
-	private static final int MAX_LOGS_COUNT = 30;
-
-	private static final int BINARY_CONTENT_PROBABILITY = 7;
-
 	@Autowired
-	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, DataStoreService dataStoreService) {
+	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			DataStoreService dataStoreService) {
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 		this.dataStoreService = dataStoreService;
 	}
 
-	void generateDemoLogs(TestItem testItem, StatusEnum status, Long projectId, String launchId) {
-        BooleanHolder binaryDataAttached = new BooleanHolder();
-
+	List<Log> generateDemoLogs(String itemUuid, StatusEnum status, Long projectId, String launchId) {
+		TestItem testItem = testItemRepository.findByUuid(itemUuid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
-		Launch launch = launchRepository.findByUuid(launchId).get();
 		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
 			Log log = new Log();
-			log.setLogLevel(logLevel().toInt());
+			log.setLogLevel(infoLevel().toInt());
 			log.setLogTime(LocalDateTime.now());
-			if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-				attachFile(log, projectId, launch.getId(), testItem.getItemId());
-				binaryDataAttached.setValue(true);
-			}
 			log.setTestItem(testItem);
 			log.setLogMessage(ContentUtils.getLogMessage());
 			log.setUuid(UUID.randomUUID().toString());
@@ -93,24 +88,60 @@ class DemoLogsService {
 			List<String> errors = ContentUtils.getErrorLogs();
 			logs.addAll(errors.stream().map(msg -> {
 				Log log = new Log();
-				log.setLogLevel(ERROR.toInt());
+				log.setLogLevel(errorLevel().toInt());
 				log.setLogTime(LocalDateTime.now());
 				log.setTestItem(testItem);
 				log.setLogMessage(msg);
 				log.setUuid(UUID.randomUUID().toString());
-				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-					attachFile(log, projectId, launch.getId(), testItem.getItemId());
-				}
 				return log;
 			}).collect(toList()));
 		}
 		logRepository.saveAll(logs);
+		return logs;
 	}
 
-	private class BooleanHolder {
+	void attachFiles(List<Log> logs, Long projectId, String itemUuid, String launchUuid) {
+		Launch launch = launchRepository.findByUuid(launchUuid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
+		TestItem item = testItemRepository.findByUuid(itemUuid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
+		BooleanHolder binaryDataAttached = new BooleanHolder();
+		logs.forEach(it -> {
+			if (ERROR.toInt() >= it.getLogLevel()) {
+				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+					attachFile(projectId, item.getItemId(), launch.getId(), it);
+				}
+			} else {
+				if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+					attachFile(projectId, item.getItemId(), launch.getId(), it);
+					binaryDataAttached.setValue(true);
+				}
+			}
+		});
+	}
+
+	private void attachFile(Long projectId, Long testItemId, Long launchId, Log it) {
+		Attachment attachment = Attachment.PNG;
+		//		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
+		try {
+			dataStoreService.saveLogWithAttachment(
+					getMultipartFile(attachment.getResource().getPath()),
+					AttachmentMetaInfo.builder()
+							.withProjectId(projectId)
+							.withLaunchId(launchId)
+							.withItemId(testItemId)
+							.withLogId(it.getId())
+							.build()
+			);
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR, "Error generating demo data.");
+		}
+	}
+
+	private static class BooleanHolder {
 		private boolean value;
 
-		public BooleanHolder() {
+		BooleanHolder() {
 			value = false;
 		}
 
@@ -123,48 +154,7 @@ class DemoLogsService {
 		}
 	}
 
-	private void attachFile(Log log, Long projectId, Long launchId, Long itemId) {
-		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
-		saveAttachment(projectId, attachment).ifPresent(it -> log.setAttachment(new AttachmentBuilder().withFileId(it.getFileId())
-				.withThumbnailId(it.getThumbnailFileId())
-				.withContentType(attachment.getContentType())
-				.withProjectId(projectId)
-				.withLaunchId(launchId)
-				.withItemId(itemId)
-				.get()));
-	}
-
-	private Optional<BinaryDataMetaInfo> saveAttachment(Long projectId, Attachment attachment) {
-		try {
-			if (attachment == Attachment.PNG) {
-				final String fileId = dataStoreService.save(projectId,
-						attachment.getResource().getInputStream(),
-						attachment.getResource().getFilename()
-				);
-				final ClassPathResource thumbnailResource = new ClassPathResource("demo/attachments/img_tn.png");
-				final String thumbnailId = dataStoreService.save(projectId,
-						thumbnailResource.getInputStream(),
-						thumbnailResource.getFilename()
-				);
-				return Optional.of(BinaryDataMetaInfo.BinaryDataMetaInfoBuilder.aBinaryDataMetaInfo()
-						.withFileId(fileId)
-						.withThumbnailFileId(thumbnailId)
-						.build());
-			} else {
-				return Optional.of(BinaryDataMetaInfo.BinaryDataMetaInfoBuilder.aBinaryDataMetaInfo()
-						.withFileId(dataStoreService.save(projectId,
-								attachment.getResource().getInputStream(),
-								attachment.getResource().getFilename()
-						))
-						.build());
-			}
-		} catch (IOException e) {
-			LOGGER.error("Cannot attach file: ", e);
-		}
-		return Optional.empty();
-	}
-
-	private LogLevel logLevel() {
+	private LogLevel infoLevel() {
 		int i = random.nextInt(50);
 		if (i < 10) {
 			return DEBUG;
@@ -175,5 +165,9 @@ class DemoLogsService {
 		} else {
 			return INFO;
 		}
+	}
+
+	private LogLevel errorLevel() {
+		return random.nextBoolean() ? ERROR : FATAL;
 	}
 }

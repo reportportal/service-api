@@ -16,23 +16,21 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.BinaryData;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.filesystem.DataEncoder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
+import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -46,12 +44,12 @@ public class AttachDefaultPhotoEventHandler {
 
 	private final UserRepository userRepository;
 
-	private final DataEncoder encoder;
+	private final DataStoreService dataStoreService;
 
 	@Autowired
-	public AttachDefaultPhotoEventHandler(UserRepository userRepository, DataEncoder encoder) {
+	public AttachDefaultPhotoEventHandler(UserRepository userRepository, DataStoreService dataStoreService) {
 		this.userRepository = userRepository;
-		this.encoder = encoder;
+		this.dataStoreService = dataStoreService;
 	}
 
 	@EventListener
@@ -61,16 +59,11 @@ public class AttachDefaultPhotoEventHandler {
 	}
 
 	private void attachPhoto(User user, String photoPath) {
-		if (user.getAttachment() == null) {
-			final InputStream inputStream;
+		if (StringUtils.isEmpty(user.getAttachment())) {
 			try {
-				inputStream = new ClassPathResource(photoPath).getInputStream();
-				BinaryData binaryData = new BinaryData(MediaType.IMAGE_JPEG_VALUE, (long) inputStream.available(), inputStream);
-				final String path = userRepository.replaceUserPhoto(user.getLogin(), binaryData);
-				user.setAttachment(encoder.encode(path));
-
+				dataStoreService.saveUserPhoto(user, getMultipartFile(photoPath));
 			} catch (Exception exception) {
-				LOGGER.error("Cannot attach default photo to user {}. Error: {}", user.getLogin(), exception);
+				LOGGER.error("Cannot attach default photo to user '{}'. Error: {}", user.getLogin(), exception);
 			}
 		}
 	}

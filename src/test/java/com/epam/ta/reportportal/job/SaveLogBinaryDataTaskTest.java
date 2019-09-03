@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
+import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,14 +55,15 @@ class SaveLogBinaryDataTaskTest {
 		long logId = 1L;
 		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
 		long projectId = 2L;
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(projectId).withFile(file);
+		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file)
+				.withAttachmentMetaInfo(AttachmentMetaInfo.builder().withLogId(logId).withProjectId(projectId).build());
 		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
 
-		when(dataStoreService.save(any(), any())).thenReturn(Optional.of(binaryData));
+		when(dataStoreService.saveLog(any(), any())).thenReturn(Optional.of(binaryData));
 
 		saveLogBinaryDataTask.run();
 
-		verify(dataStoreService, times(1)).save(projectId, file);
+		verify(dataStoreService, times(1)).saveLog(projectId, file);
 		verify(createAttachmentHandler, times(1)).create(any(), eq(logId));
 
 	}
@@ -71,14 +73,15 @@ class SaveLogBinaryDataTaskTest {
 		long logId = 1L;
 		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
 		long projectId = 2L;
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withLogId(logId).withProjectId(projectId).withFile(file);
+		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file)
+				.withAttachmentMetaInfo(AttachmentMetaInfo.builder().withProjectId(projectId).withLogId(logId).build());
 		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
 
-		when(dataStoreService.save(any(), any())).thenReturn(Optional.of(binaryData));
+		when(dataStoreService.saveLog(any(), any())).thenReturn(Optional.of(binaryData));
 		doThrow(ReportPortalException.class).when(createAttachmentHandler).create(any(), eq(logId));
 
 		assertThrows(ReportPortalException.class, saveLogBinaryDataTask::run);
 
-		verify(dataStoreService, times(2)).delete(any());
+		verify(dataStoreService, times(2)).deleteLog(any());
 	}
 }

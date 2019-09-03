@@ -18,8 +18,11 @@ package com.epam.ta.reportportal.store.service;
 
 import com.epam.reportportal.commons.ContentTypeResolver;
 import com.epam.reportportal.commons.Thumbnailator;
+import com.epam.ta.reportportal.binary.CreateLogAttachmentService;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.filesystem.FilePathGenerator;
@@ -55,16 +58,29 @@ class DataStoreServiceTest {
 
 	private DataStoreService dataStoreService;
 
+	private CreateLogAttachmentService createLogAttachmentService;
+
+	private AttachmentRepository attachmentRepository;
+
 	@BeforeEach
 	void setUp() {
-
 		dataStore = mock(DataStore.class);
 		thumbnailator = mock(Thumbnailator.class);
 		contentTypeResolver = mock(ContentTypeResolver.class);
 		filePathGenerator = mock(FilePathGenerator.class);
 		dataEncoder = mock(DataEncoder.class);
+		createLogAttachmentService = mock(CreateLogAttachmentService.class);
+		attachmentRepository = mock(AttachmentRepository.class);
 
-		dataStoreService = new DataStoreService(dataStore, thumbnailator, contentTypeResolver, filePathGenerator, dataEncoder);
+		dataStoreService = new DataStoreService(
+				dataStore,
+				thumbnailator,
+				contentTypeResolver,
+				filePathGenerator,
+				dataEncoder,
+				createLogAttachmentService,
+				attachmentRepository
+		);
 	}
 
 	@Test
@@ -76,7 +92,7 @@ class DataStoreServiceTest {
 		when(file.getInputStream()).thenThrow(new IOException());
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(123L, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(123L, file);
 
 		//  then:
 		assertFalse(maybeResult.isPresent());
@@ -107,7 +123,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -138,7 +154,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -184,7 +200,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -222,7 +238,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.save(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -247,7 +263,7 @@ class DataStoreServiceTest {
 		when(dataStore.load(expectedFilePath)).thenReturn(expectedFile);
 
 		//  when:
-		InputStream loaded = dataStoreService.load(fileId);
+		BinaryData loaded = dataStoreService.loadLog(fileId);
 
 		//  then:
 		assertSame(expectedFile, loaded);
@@ -263,7 +279,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
 
 		//  when:
-		dataStoreService.delete(fileId);
+		dataStoreService.deleteLog(fileId);
 
 		//  then:
 		verify(dataStore).delete(expectedFilePath);

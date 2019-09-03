@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -30,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -103,8 +105,14 @@ class RepositoryAdaptersConsumerTest {
 	void load() {
 		String id = "id";
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("data".getBytes(Charset.forName("UTF8")));
-		when(dataStoreService.load(id)).thenReturn(byteArrayInputStream);
+		BinaryData data = null;
+		try {
+			data = new BinaryData("data", (long) byteArrayInputStream.available(), byteArrayInputStream);
+			when(dataStoreService.loadLog(id)).thenReturn(data);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-		assertEquals(byteArrayInputStream, repositoryAdaptersConsumer.fetchData(id));
+		assertEquals(data, repositoryAdaptersConsumer.fetchData(id));
 	}
 }

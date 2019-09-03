@@ -16,6 +16,7 @@
 package com.epam.ta.reportportal.core.file;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 
 import java.io.InputStream;
 
@@ -30,7 +31,7 @@ public interface GetFileHandler {
 	 * @param loggedInUser Logged-in {@link ReportPortalUser}
 	 * @return {@link InputStream}
 	 */
-	InputStream getUserPhoto(ReportPortalUser loggedInUser);
+	BinaryData getUserPhoto(ReportPortalUser loggedInUser);
 
 	/**
 	 * Returns {@link InputStream} for photo of the {@link com.epam.ta.reportportal.entity.user.User} with specified username
@@ -39,7 +40,7 @@ public interface GetFileHandler {
 	 * @param loggedInUser Logged-in {@link ReportPortalUser}
 	 * @return {@link InputStream}
 	 */
-	InputStream getUserPhoto(String username, ReportPortalUser loggedInUser);
+	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser);
 
 	/**
 	 * Returns {@link InputStream} for the file with the specified id
@@ -47,5 +48,5 @@ public interface GetFileHandler {
 	 * @param fileId Id of the file to get
 	 * @return {@link InputStream}
 	 */
-	InputStream loadFileById(String fileId);
+	BinaryData loadFileById(String fileId);
 }

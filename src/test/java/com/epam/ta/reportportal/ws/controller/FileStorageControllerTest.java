@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.Charset;
+import java.util.Optional;
 
+import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,9 +78,13 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 	@Test
 	void getFile() throws Exception {
-		final String dataId = dataStoreService.save(2L, new ClassPathResource("image/large_image.png").getInputStream(), "large_image.png");
+		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = dataStoreService.saveLog(2L, getMultipartFile("image/large_image.png"));
 
-		mockMvc.perform(get("/v1/data/" + dataId).with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/data/" + binaryDataMetaInfo.get().getFileId()).with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(get("/v1/data/" + binaryDataMetaInfo.get().getThumbnailFileId()).with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -87,11 +94,13 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 	@Test
 	void getUserPhotoByLoginNegative() throws Exception {
-		mockMvc.perform(get("/v1/data/userphoto?id=default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+		mockMvc.perform(get("/v1/data/userphoto?id=default").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
 	void getNotExistUserPhoto() throws Exception {
-		mockMvc.perform(get("/v1/data/userphoto?id=not_exist").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isNotFound());
+		mockMvc.perform(get("/v1/data/userphoto?id=not_exist").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isNotFound());
 	}
 }

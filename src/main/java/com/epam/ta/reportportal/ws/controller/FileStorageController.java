@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.reportportal.commons.ContentTypeResolver;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import io.swagger.annotations.ApiOperation;
@@ -48,13 +48,10 @@ public class FileStorageController {
 
 	private final GetFileHandler getFileHandler;
 
-	private final ContentTypeResolver contentTypeResolver;
-
 	@Autowired
-	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler, ContentTypeResolver contentTypeResolver) {
+	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler) {
 		this.editUserHandler = editUserHandler;
 		this.getFileHandler = getFileHandler;
-		this.contentTypeResolver = contentTypeResolver;
 	}
 
 	@Transactional(readOnly = true)
@@ -102,14 +99,14 @@ public class FileStorageController {
 	/**
 	 * Copies data from provided {@link InputStream} to Response
 	 *
-	 * @param response    Response
-	 * @param inputStream Stored data
+	 * @param response   Response
+	 * @param binaryData Stored data
 	 */
-	private void toResponse(HttpServletResponse response, InputStream inputStream) {
-		if (inputStream != null) {
+	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
+		if (binaryData.getInputStream() != null) {
 			try {
-				IOUtils.copy(inputStream, response.getOutputStream());
-				response.setContentType(contentTypeResolver.detectContentType(inputStream));
+				IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
+				response.setContentType(binaryData.getContentType());
 			} catch (IOException e) {
 				throw new ReportPortalException("Unable to retrieve binary data from data storage", e);
 			}

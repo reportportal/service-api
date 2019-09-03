@@ -17,7 +17,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.ComponentHealthCheckContentLoader;
+import com.epam.ta.reportportal.core.widget.content.loader.ComponentHealthCheckContentLoader;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.*;

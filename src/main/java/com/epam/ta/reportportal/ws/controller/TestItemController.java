@@ -218,6 +218,15 @@ public class TestItemController {
 	}
 
 	@Transactional(readOnly = true)
+	@GetMapping("/attribute/keys/all")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute keys of specified launch")
+	public List<String> getAttributeKeysForProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY) String value) {
+		return getTestItemHandler.getAttributeKeys(extractProjectDetails(user, projectName), value);
+	}
+
+	@Transactional(readOnly = true)
 	@GetMapping("/attribute/values")
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute values of specified launch")

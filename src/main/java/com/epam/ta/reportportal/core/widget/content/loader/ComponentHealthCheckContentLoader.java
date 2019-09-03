@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.widget.content;
+package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -55,6 +56,8 @@ import static java.util.stream.Collectors.joining;
 @Service
 public class ComponentHealthCheckContentLoader implements MultilevelLoadContentStrategy {
 
+	public static final Integer MAX_LEVEL_NUMBER = 10;
+
 	private final WidgetContentRepository widgetContentRepository;
 
 	@Autowired
@@ -65,6 +68,8 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			String[] attributes, Map<String, String> params, int limit) {
+
+		validateContentFields(contentFields);
 
 		List<String> attributeValues = ofNullable(attributes).map(a -> (List<String>) Lists.newArrayList(a))
 				.orElseGet(Collections::emptyList);
@@ -97,6 +102,13 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 		);
 
 		return CollectionUtils.isNotEmpty(content) ? Collections.singletonMap(RESULT, content) : emptyMap();
+	}
+
+	private void validateContentFields(List<String> contentFields) {
+		BusinessRule.expect(contentFields, CollectionUtils::isNotEmpty)
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "No keys were specified");
+		BusinessRule.expect(contentFields, cf -> cf.size() <= MAX_LEVEL_NUMBER)
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
 	}
 
 	private void validateAttributeValues(List<String> attributeValues) {

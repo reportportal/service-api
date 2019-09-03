@@ -43,11 +43,9 @@ public final class WidgetOptionUtil {
 	@Nullable
 	public static String getValueByKey(String key, WidgetOptions widgetOptions) {
 
-		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
-				.orElse(null));
+		Optional<Object> value = ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key)));
 
-		value.ifPresent(v -> expect(v, String.class::isInstance).verify(
-				ErrorType.OBJECT_RETRIEVAL_ERROR,
+		value.ifPresent(v -> expect(v, String.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. String expected.", key)
 		));
 
@@ -56,11 +54,9 @@ public final class WidgetOptionUtil {
 
 	public static Map<String, String> getMapByKey(String key, WidgetOptions widgetOptions) {
 
-		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
-				.orElse(null));
+		Optional<Object> value = ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key)));
 
-		value.ifPresent(v -> expect(v, Map.class::isInstance).verify(
-				ErrorType.OBJECT_RETRIEVAL_ERROR,
+		value.ifPresent(v -> expect(v, Map.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. Map expected.", key)
 		));
 
@@ -74,11 +70,9 @@ public final class WidgetOptionUtil {
 	}
 
 	public static List<String> getListByKey(String key, WidgetOptions widgetOptions) {
-		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
-				.orElse(null));
+		Optional<Object> value = ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key)));
 
-		value.ifPresent(v -> expect(v, List.class::isInstance).verify(
-				ErrorType.OBJECT_RETRIEVAL_ERROR,
+		value.ifPresent(v -> expect(v, List.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. List expected.", key)
 		));
 

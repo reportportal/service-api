@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
+import com.epam.ta.reportportal.core.widget.content.ComponentHealthCheckContentLoader;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.*;
@@ -82,7 +83,10 @@ public class WidgetConfig implements ApplicationContextAware {
 	public Map<WidgetType, MultilevelLoadContentStrategy> multilevelContentLoader() {
 		return ImmutableMap.<WidgetType, MultilevelLoadContentStrategy>builder().put(WidgetType.CUMULATIVE,
 				applicationContext.getBean(CumulativeTrendChartLoader.class)
-		).put(WidgetType.TOP_PATTERN_TEMPLATES, applicationContext.getBean(TopPatternContentLoader.class)).build();
+		)
+				.put(WidgetType.TOP_PATTERN_TEMPLATES, applicationContext.getBean(TopPatternContentLoader.class))
+				.put(WidgetType.COMPONENT_HEALTH_CHECK, applicationContext.getBean(ComponentHealthCheckContentLoader.class))
+				.build();
 	}
 
 	@Bean("buildFilterStrategy")
@@ -118,6 +122,9 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"))
 				.put(WidgetType.MOST_TIME_CONSUMING, (TestItemFilterStrategy) applicationContext.getBean("testItemFilterStrategy"))
 				.put(WidgetType.TOP_PATTERN_TEMPLATES,
+						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+				)
+				.put(WidgetType.COMPONENT_HEALTH_CHECK,
 						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 				)
 				.build();

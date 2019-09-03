@@ -31,8 +31,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -104,14 +104,9 @@ class RepositoryAdaptersConsumerTest {
 	@Test
 	void load() {
 		String id = "id";
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("data".getBytes(Charset.forName("UTF8")));
-		BinaryData data = null;
-		try {
-			data = new BinaryData("data", (long) byteArrayInputStream.available(), byteArrayInputStream);
-			when(dataStoreService.loadLog(id)).thenReturn(data);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("data".getBytes(StandardCharsets.UTF_8));
+		BinaryData data = new BinaryData("data", (long) byteArrayInputStream.available(), byteArrayInputStream);
+		when(dataStoreService.loadFile(id)).thenReturn(data);
 
 		assertEquals(data, repositoryAdaptersConsumer.fetchData(id));
 	}

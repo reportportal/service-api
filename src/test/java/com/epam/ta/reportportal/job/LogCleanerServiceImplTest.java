@@ -99,7 +99,7 @@ class LogCleanerServiceImplTest {
 
 		assertEquals(deletedLogsCount, removedLogsCount.get());
 		verify(activityRepository, times(1)).deleteModifiedLaterAgo(project.getId(), period);
-		verify(dataStoreService, times(4)).deleteLog(any());
+		verify(dataStoreService, times(4)).deleteFile(any());
 	}
 
 	@Test
@@ -129,7 +129,7 @@ class LogCleanerServiceImplTest {
 
 		logCleanerService.removeProjectAttachments(project, period, new AtomicLong(), new AtomicLong());
 
-		verify(dataStoreService, times(4)).deleteLog(any());
+		verify(dataStoreService, times(4)).deleteFile(any());
 		verify(attachmentRepository, times(2)).deleteById(any());
 
 	}

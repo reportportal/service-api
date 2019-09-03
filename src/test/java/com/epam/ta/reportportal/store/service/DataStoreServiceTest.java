@@ -34,7 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -92,7 +92,7 @@ class DataStoreServiceTest {
 		when(file.getInputStream()).thenThrow(new IOException());
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(123L, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(123L, file);
 
 		//  then:
 		assertFalse(maybeResult.isPresent());
@@ -105,7 +105,7 @@ class DataStoreServiceTest {
 		Long projectId = 123L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		String fileName = "file.test";
 		when(file.getOriginalFilename()).thenReturn(fileName);
@@ -123,7 +123,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -138,7 +138,7 @@ class DataStoreServiceTest {
 		Long projectId = 132L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("test-content-type");
 		String fileName = "file.test";
@@ -154,7 +154,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -169,11 +169,11 @@ class DataStoreServiceTest {
 	void save_does_not_use_type_resolver_with_thumbnail() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
-		Long projectId = 123L;
+		long projectId = 123L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
-		ByteArrayInputStream thumbnailFileInputStream = new ByteArrayInputStream("thumbnail-test".getBytes(Charset.forName("UTF-8")));
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
+		ByteArrayInputStream thumbnailFileInputStream = new ByteArrayInputStream("thumbnail-test".getBytes(StandardCharsets.UTF_8));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("image/png");
 		String fileName = "file.test";
@@ -200,7 +200,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -218,7 +218,7 @@ class DataStoreServiceTest {
 		Long projectId = 123L;
 
 		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(Charset.forName("UTF-8")));
+		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
 		when(file.getInputStream()).thenReturn(fileInputStream);
 		when(file.getContentType()).thenReturn("image/png");
 		String fileName = "file.test";
@@ -238,7 +238,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveLog(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
 
 		//  then:
 		assertTrue(maybeResult.isPresent());
@@ -254,7 +254,7 @@ class DataStoreServiceTest {
 	void load() throws Exception {
 		//  given:
 		String fileId = "test-file.id";
-		InputStream expectedFile = new ByteArrayInputStream("test-content".getBytes(Charset.forName("UTF-8")));
+		InputStream expectedFile = new ByteArrayInputStream("test-content".getBytes(StandardCharsets.UTF_8));
 
 		//  and: setups
 		String expectedFilePath = File.separator + "file" + File.separator + "path.test";
@@ -263,7 +263,7 @@ class DataStoreServiceTest {
 		when(dataStore.load(expectedFilePath)).thenReturn(expectedFile);
 
 		//  when:
-		BinaryData loaded = dataStoreService.loadLog(fileId);
+		BinaryData loaded = dataStoreService.loadFile(fileId);
 
 		//  then:
 		assertSame(expectedFile, loaded);
@@ -279,7 +279,7 @@ class DataStoreServiceTest {
 		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
 
 		//  when:
-		dataStoreService.deleteLog(fileId);
+		dataStoreService.deleteFile(fileId);
 
 		//  then:
 		verify(dataStore).delete(expectedFilePath);

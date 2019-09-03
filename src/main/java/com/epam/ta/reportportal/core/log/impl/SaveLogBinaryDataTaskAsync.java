@@ -51,7 +51,7 @@ public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> 
 
 	@Override
 	public BinaryDataMetaInfo get() {
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.saveLog(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.saveFile(projectId, file);
 		return maybeBinaryDataMetaInfo.orElseGet(() -> {
 			LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ", projectId, request.getItemUuid());
 			throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED);

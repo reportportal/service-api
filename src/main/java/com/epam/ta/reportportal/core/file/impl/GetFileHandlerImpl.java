@@ -26,8 +26,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -48,30 +46,17 @@ public class GetFileHandlerImpl implements GetFileHandler {
 	public BinaryData getUserPhoto(ReportPortalUser loggedInUser) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-		try {
-			return dataStoreService.loadUserPhoto(user);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR);
-		}
+		return dataStoreService.loadUserPhoto(user);
 	}
 
 	@Override
 	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-
-		try {
-			return dataStoreService.loadUserPhoto(user);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR);
-		}
+		return dataStoreService.loadUserPhoto(user);
 	}
 
 	@Override
 	public BinaryData loadFileById(String fileId) {
-		try {
-			return dataStoreService.loadLog(fileId);
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR);
-		}
+		return dataStoreService.loadFile(fileId);
 	}
 }

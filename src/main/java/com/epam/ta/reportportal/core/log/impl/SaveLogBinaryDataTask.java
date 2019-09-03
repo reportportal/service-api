@@ -46,7 +46,7 @@ public class SaveLogBinaryDataTask implements Runnable {
 
 	@Override
 	public void run() {
-		dataStoreService.saveLogWithAttachment(file, attachmentMetaInfo);
+		dataStoreService.saveFileAndAttachToLog(file, attachmentMetaInfo);
 	}
 
 	public SaveLogBinaryDataTask withFile(MultipartFile file) {

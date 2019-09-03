@@ -306,8 +306,8 @@ public class AsyncReportingListener implements MessageListener {
 		// we need to delete only binary data, log and attachment shouldn't be dirty created
 		if (payload.getRight() != null) {
 			BinaryDataMetaInfo metaInfo = payload.getRight();
-			dataStoreService.deleteLog(metaInfo.getFileId());
-			dataStoreService.deleteLog(metaInfo.getThumbnailFileId());
+			dataStoreService.deleteFile(metaInfo.getFileId());
+			dataStoreService.deleteFile(metaInfo.getThumbnailFileId());
 		}
 	}
 

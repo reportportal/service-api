@@ -121,10 +121,9 @@ class DemoLogsService {
 	}
 
 	private void attachFile(Long projectId, Long testItemId, Long launchId, Log it) {
-		Attachment attachment = Attachment.PNG;
-		//		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
+		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			dataStoreService.saveLogWithAttachment(
+			dataStoreService.saveFileAndAttachToLog(
 					getMultipartFile(attachment.getResource().getPath()),
 					AttachmentMetaInfo.builder()
 							.withProjectId(projectId)

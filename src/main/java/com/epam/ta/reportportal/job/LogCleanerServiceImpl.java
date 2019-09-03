@@ -141,11 +141,11 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 					attachmentRepository.deleteById(attachment.getId());
 
 					ofNullable(attachment.getFileId()).ifPresent(fileId -> {
-						dataStoreService.deleteLog(fileId);
+						dataStoreService.deleteFile(fileId);
 						attachmentsCount.addAndGet(1L);
 					});
 					ofNullable(attachment.getThumbnailId()).ifPresent(fileId -> {
-						dataStoreService.deleteLog(fileId);
+						dataStoreService.deleteFile(fileId);
 						thumbnailsCount.addAndGet(1L);
 					});
 

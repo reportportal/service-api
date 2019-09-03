@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,11 +60,11 @@ class SaveLogBinaryDataTaskTest {
 				.withAttachmentMetaInfo(AttachmentMetaInfo.builder().withLogId(logId).withProjectId(projectId).build());
 		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
 
-		when(dataStoreService.saveLog(any(), any())).thenReturn(Optional.of(binaryData));
+		when(dataStoreService.saveFile(any(), any())).thenReturn(Optional.of(binaryData));
 
 		saveLogBinaryDataTask.run();
 
-		verify(dataStoreService, times(1)).saveLog(projectId, file);
+		verify(dataStoreService, times(1)).saveFile(projectId, file);
 		verify(createAttachmentHandler, times(1)).create(any(), eq(logId));
 
 	}
@@ -71,17 +72,17 @@ class SaveLogBinaryDataTaskTest {
 	@Test
 	void saveBinaryDataNegative() {
 		long logId = 1L;
-		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
+		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(StandardCharsets.UTF_8));
 		long projectId = 2L;
 		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file)
 				.withAttachmentMetaInfo(AttachmentMetaInfo.builder().withProjectId(projectId).withLogId(logId).build());
 		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
 
-		when(dataStoreService.saveLog(any(), any())).thenReturn(Optional.of(binaryData));
+		when(dataStoreService.saveFile(any(), any())).thenReturn(Optional.of(binaryData));
 		doThrow(ReportPortalException.class).when(createAttachmentHandler).create(any(), eq(logId));
 
 		assertThrows(ReportPortalException.class, saveLogBinaryDataTask::run);
 
-		verify(dataStoreService, times(2)).deleteLog(any());
+		verify(dataStoreService, times(2)).deleteFile(any());
 	}
 }

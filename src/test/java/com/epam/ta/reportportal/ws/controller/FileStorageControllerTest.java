@@ -78,7 +78,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 	@Test
 	void getFile() throws Exception {
-		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = dataStoreService.saveLog(2L, getMultipartFile("image/large_image.png"));
+		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = dataStoreService.saveFile(2L, getMultipartFile("image/large_image.png"));
 
 		mockMvc.perform(get("/v1/data/" + binaryDataMetaInfo.get().getFileId()).with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());

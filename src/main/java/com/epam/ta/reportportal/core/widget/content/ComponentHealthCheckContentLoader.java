@@ -85,7 +85,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 				.build();
 
 		String currentLevelKey = ofNullable(contentFields.get(attributeValues.size())).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-				"Current level key should be not NULL"
+				"Current level key should be not null"
 		));
 
 		List<ComponentHealthCheckContent> content = widgetContentRepository.componentHealthCheck(launchesFilter,
@@ -101,7 +101,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 
 	private void validateAttributeValues(List<String> attributeValues) {
 		attributeValues.forEach(value -> BusinessRule.expect(value, Objects::nonNull)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Attribute value should not be NULL"));
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Attribute value should be not null"));
 	}
 
 	private ConvertibleCondition getTestItemCondition(List<String> attributeKeys, List<String> attributeValues) {

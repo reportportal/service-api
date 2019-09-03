@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.filesystem.FilePathGenerator;
+import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.multipart.MultipartFile;
@@ -261,12 +262,15 @@ class DataStoreServiceTest {
 		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
 
 		when(dataStore.load(expectedFilePath)).thenReturn(expectedFile);
+		when(attachmentRepository.findByFileId(fileId)).thenReturn(Optional.of(new AttachmentBuilder().withFileId(fileId)
+				.withContentType("contentType")
+				.get()));
 
 		//  when:
 		BinaryData loaded = dataStoreService.loadFile(fileId);
 
 		//  then:
-		assertSame(expectedFile, loaded);
+		assertSame(expectedFile, loaded.getInputStream());
 	}
 
 	@Test

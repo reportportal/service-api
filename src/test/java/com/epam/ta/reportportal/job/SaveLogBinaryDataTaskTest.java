@@ -17,11 +17,8 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,12 +26,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -45,44 +40,20 @@ class SaveLogBinaryDataTaskTest {
 	@Mock
 	private DataStoreService dataStoreService;
 
-	@Mock
-	private CreateAttachmentHandler createAttachmentHandler;
-
 	@InjectMocks
 	private SaveLogBinaryDataTask saveLogBinaryDataTask;
 
 	@Test
 	void saveBinaryDataPositive() {
 		long logId = 1L;
-		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(Charset.forName("UTF-8")));
+		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(StandardCharsets.UTF_8));
 		long projectId = 2L;
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file)
-				.withAttachmentMetaInfo(AttachmentMetaInfo.builder().withLogId(logId).withProjectId(projectId).build());
-		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
-
-		when(dataStoreService.saveFile(any(), any())).thenReturn(Optional.of(binaryData));
+		AttachmentMetaInfo attachmentMetaInfo = AttachmentMetaInfo.builder().withLogId(logId).withProjectId(projectId).build();
+		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file).withAttachmentMetaInfo(attachmentMetaInfo);
 
 		saveLogBinaryDataTask.run();
 
-		verify(dataStoreService, times(1)).saveFile(projectId, file);
-		verify(createAttachmentHandler, times(1)).create(any(), eq(logId));
+		verify(dataStoreService, times(1)).saveFileAndAttachToLog(file, attachmentMetaInfo);
 
-	}
-
-	@Test
-	void saveBinaryDataNegative() {
-		long logId = 1L;
-		MockMultipartFile file = new MockMultipartFile("file", "filename", "text/plain", "some data".getBytes(StandardCharsets.UTF_8));
-		long projectId = 2L;
-		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.withFile(file)
-				.withAttachmentMetaInfo(AttachmentMetaInfo.builder().withProjectId(projectId).withLogId(logId).build());
-		BinaryDataMetaInfo binaryData = new BinaryDataMetaInfo("fileId", "thumbnailId", "text/plain");
-
-		when(dataStoreService.saveFile(any(), any())).thenReturn(Optional.of(binaryData));
-		doThrow(ReportPortalException.class).when(createAttachmentHandler).create(any(), eq(logId));
-
-		assertThrows(ReportPortalException.class, saveLogBinaryDataTask::run);
-
-		verify(dataStoreService, times(2)).deleteFile(any());
 	}
 }

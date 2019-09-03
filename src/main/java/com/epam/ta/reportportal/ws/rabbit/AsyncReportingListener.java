@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -107,9 +106,6 @@ public class AsyncReportingListener implements MessageListener {
 
 	@Autowired
 	private DataStoreService dataStoreService;
-
-	@Autowired
-	private CreateAttachmentHandler createAttachmentHandler;
 
 	@Override
 	@Transactional

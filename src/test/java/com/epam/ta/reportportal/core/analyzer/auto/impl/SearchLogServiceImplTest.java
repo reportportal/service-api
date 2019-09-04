@@ -105,6 +105,7 @@ class SearchLogServiceImplTest {
 		Log log = new Log();
 		log.setTestItem(testItem);
 		log.setLogMessage("message");
+		log.setLogLevel(40000);
 		when(logRepository.findAllById(any())).thenReturn(Lists.newArrayList(log));
 
 		SearchLogRq searchLogRq = new SearchLogRq();

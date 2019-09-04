@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
+import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.KEY_VALUE_SEPARATOR;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
@@ -147,7 +148,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 			String attributeCriteria = IntStream.range(0, attributeValues.size()).mapToObj(index -> {
 				String attributeKey = attributeKeys.get(index);
 				String attributeValue = attributeValues.get(index);
-				return String.join(":", attributeKey, attributeValue);
+				return String.join(KEY_VALUE_SEPARATOR, attributeKey, attributeValue);
 			}).collect(joining(","));
 
 			conditions.add(FilterCondition.builder()

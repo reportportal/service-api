@@ -56,7 +56,8 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(get("/v1/data/photo").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
-		mockMvc.perform(get("/v1/data/userphoto?id=default").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/data/default_personal/userphoto?id=default").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 
 		mockMvc.perform(delete("/v1/data/photo").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
@@ -89,7 +90,8 @@ class FileStorageControllerTest extends BaseMvcTest {
 				AttachmentMetaInfo.builder().withProjectId(1L).withItemId(1L).withLaunchId(1L).withLogId(1L).build()
 		);
 
-		mockMvc.perform(get("/v1/data/" + binaryDataMetaInfo.get().getFileId()).with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(
+				"/v1/data/superadmin_personal/" + binaryDataMetaInfo.get().getFileId()).with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -100,7 +102,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 	@Test
 	void getUserPhotoByLoginNegative() throws Exception {
-		mockMvc.perform(get("/v1/data/userphoto?id=default").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?id=superadmin").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isBadRequest());
 	}
 

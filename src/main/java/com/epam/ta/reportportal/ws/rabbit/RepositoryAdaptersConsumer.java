@@ -92,12 +92,4 @@ public class RepositoryAdaptersConsumer {
 		List<Log> logs = logRepository.findByTestItemId(itemRef, limit /*, loadBinaryData*/);
 		return logs.stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
-
-	//TODO think about how to work with such content
-
-	@RabbitListener(queues = DATA_STORAGE_FETCH_DATA_QUEUE)
-	public BinaryData fetchData(String dataId) {
-		return dataStoreService.loadFile(dataId);
-	}
-
 }

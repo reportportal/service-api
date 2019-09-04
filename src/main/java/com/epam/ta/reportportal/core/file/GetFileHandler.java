@@ -40,7 +40,7 @@ public interface GetFileHandler {
 	 * @param loggedInUser Logged-in {@link ReportPortalUser}
 	 * @return {@link InputStream}
 	 */
-	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser);
+	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Returns {@link InputStream} for the file with the specified id
@@ -48,5 +48,5 @@ public interface GetFileHandler {
 	 * @param fileId Id of the file to get
 	 * @return {@link InputStream}
 	 */
-	BinaryData loadFileById(String fileId);
+	BinaryData loadFileById(String fileId, ReportPortalUser.ProjectDetails projectDetails);
 }

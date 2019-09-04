@@ -28,6 +28,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * @author Dzianis_Shybeka
@@ -55,10 +59,11 @@ public class FileStorageController {
 	}
 
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/{dataId}")
-	public void getFile(@PathVariable("dataId") String dataId, HttpServletResponse response,
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@GetMapping(value = "/{projectName}/{dataId}")
+	public void getFile(@PathVariable String projectName, @PathVariable("dataId") String dataId, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		toResponse(response, getFileHandler.loadFileById(dataId));
+		toResponse(response, getFileHandler.loadFileById(dataId, extractProjectDetails(user, projectName)));
 	}
 
 	/**
@@ -75,11 +80,16 @@ public class FileStorageController {
 	 * (non-Javadoc)
 	 */
 	@Transactional(readOnly = true)
-	@GetMapping(value = "/userphoto")
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@GetMapping(value = "/{projectName}/userphoto")
 	@ApiOperation("Get user's photo")
-	public void getUserPhoto(@RequestParam(value = "id") String username, HttpServletResponse response,
+	public void getUserPhoto(@PathVariable String projectName, @RequestParam(value = "id") String username, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		toResponse(response, getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user));
+		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username),
+				user,
+				extractProjectDetails(user, projectName)
+		);
+		toResponse(response, userPhoto);
 	}
 
 	@Transactional

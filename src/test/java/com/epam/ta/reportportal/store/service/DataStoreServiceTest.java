@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
+import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.filesystem.FilePathGenerator;
@@ -38,6 +40,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
@@ -73,8 +77,7 @@ class DataStoreServiceTest {
 		createLogAttachmentService = mock(CreateLogAttachmentService.class);
 		attachmentRepository = mock(AttachmentRepository.class);
 
-		dataStoreService = new DataStoreService(
-				dataStore,
+		dataStoreService = new DataStoreService(dataStore,
 				thumbnailator,
 				contentTypeResolver,
 				filePathGenerator,
@@ -263,11 +266,14 @@ class DataStoreServiceTest {
 
 		when(dataStore.load(expectedFilePath)).thenReturn(expectedFile);
 		when(attachmentRepository.findByFileId(fileId)).thenReturn(Optional.of(new AttachmentBuilder().withFileId(fileId)
+				.withProjectId(1L)
 				.withContentType("contentType")
 				.get()));
 
 		//  when:
-		BinaryData loaded = dataStoreService.loadFile(fileId);
+		BinaryData loaded = dataStoreService.loadFile(fileId,
+				extractProjectDetails(getRpUser("testUser", UserRole.USER, ProjectRole.MEMBER, 1L), "test_project")
+		);
 
 		//  then:
 		assertSame(expectedFile, loaded.getInputStream());

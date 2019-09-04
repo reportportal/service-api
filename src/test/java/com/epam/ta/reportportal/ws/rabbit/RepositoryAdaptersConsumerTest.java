@@ -100,14 +100,4 @@ class RepositoryAdaptersConsumerTest {
 
 		assertEquals(resources.size(), 2);
 	}
-
-	@Test
-	void load() {
-		String id = "id";
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("data".getBytes(StandardCharsets.UTF_8));
-		BinaryData data = new BinaryData("data", (long) byteArrayInputStream.available(), byteArrayInputStream);
-		when(dataStoreService.loadFile(id)).thenReturn(data);
-
-		assertEquals(data, repositoryAdaptersConsumer.fetchData(id));
-	}
 }

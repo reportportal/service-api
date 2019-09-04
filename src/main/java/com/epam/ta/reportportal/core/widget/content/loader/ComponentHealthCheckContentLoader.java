@@ -26,18 +26,15 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.ComponentHealthCheckContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
@@ -71,12 +68,12 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 
 		validateContentFields(contentFields);
 
-		List<String> attributeValues = ofNullable(attributes).map(a -> (List<String>) Lists.newArrayList(a))
-				.orElseGet(Collections::emptyList);
+		List<String> attributeValues = ofNullable(attributes).map(Arrays::asList).orElseGet(Collections::emptyList);
 
 		validateAttributeValues(attributeValues);
 
-		BusinessRule.expect(contentFields, keys -> keys.size() > attributeValues.size())
+		int currentLevel = attributeValues.size();
+		BusinessRule.expect(contentFields, keys -> keys.size() > currentLevel)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect level definition");
 
 		Filter launchesFilter = GROUP_FILTERS.apply(filterSortMapping.keySet());
@@ -89,9 +86,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 				.withCondition(getTestItemCondition(contentFields, attributeValues))
 				.build();
 
-		String currentLevelKey = ofNullable(contentFields.get(attributeValues.size())).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-				"Current level key should be not null"
-		));
+		String currentLevelKey = contentFields.get(currentLevel);
 
 		List<ComponentHealthCheckContent> content = widgetContentRepository.componentHealthCheck(launchesFilter,
 				launchesSort,
@@ -109,6 +104,8 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "No keys were specified");
 		BusinessRule.expect(contentFields, cf -> cf.size() <= MAX_LEVEL_NUMBER)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
+		contentFields.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not null"));
 	}
 
 	private void validateAttributeValues(List<String> attributeValues) {
@@ -147,7 +144,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 		);
 
 		if (CollectionUtils.isNotEmpty(attributeValues)) {
-			String attributeCriteria = IntStream.range(0, attributeValues.size()).boxed().map(index -> {
+			String attributeCriteria = IntStream.range(0, attributeValues.size()).mapToObj(index -> {
 				String attributeKey = attributeKeys.get(index);
 				String attributeValue = attributeValues.get(index);
 				return String.join(":", attributeKey, attributeValue);

@@ -45,9 +45,14 @@ public class MessageBusImpl implements MessageBus {
 		this.amqpTemplate.convertAndSend(EXCHANGE_EVENTS, "", o);
 	}
 
+	/**
+	 * Publishes activity to the queue with the following routing key
+	 * <pre>{@code activity.<project-id>.<entity-type>.<action>}</pre>
+	 * @param event Activity event to be converted to Activity object
+	 */
 	@Override
-	public void publishActivity(ActivityEvent o) {
-		final Activity activity = o.toActivity();
+	public void publishActivity(ActivityEvent event) {
+		final Activity activity = event.toActivity();
 		String key = "activity." + activity.getProjectId() + "." + activity.getActivityEntityType() + "." + activity.getAction();
 		this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, key, activity);
 	}

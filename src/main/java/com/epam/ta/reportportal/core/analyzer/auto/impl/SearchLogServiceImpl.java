@@ -54,6 +54,7 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -131,7 +132,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 		foundLogs.forEach(log -> {
 			foundLogsMap.computeIfPresent(log.getTestItem().getItemId(), (key, value) -> {
-				value.getLogMessages().add(log.getLogMessage());
+				value.getLogs().add(TO_LOG_ENTRY.apply(log));
 				return value;
 			});
 			Launch launch = launchRepository.findById(log.getTestItem().getLaunchId())
@@ -177,7 +178,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 		response.setDuration(log.getTestItem().getItemResults().getDuration());
 		response.setStatus(log.getTestItem().getItemResults().getStatus().name());
 		response.setIssue(IssueConverter.TO_MODEL.apply(log.getTestItem().getItemResults().getIssue()));
-		response.setLogMessages(Arrays.asList(log.getLogMessage()));
+		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
 	}
 }

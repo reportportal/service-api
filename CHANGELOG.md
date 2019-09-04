@@ -241,7 +241,9 @@
 
 ### Bugfixes
 
+
 * EPMRPP-39590 - Restore of the password. Incorrect response from repeated request.
 * EPMRPP-40298 - API. Global Email server integration (Gmail). Incorrect number of emails deliver to the mailbox.
 * EPMRPP-41407 - Filters page. Unclassified error occurs when user turns filters On/Off in 2 browser tabs
 * EPMRPP-41361 - All launches and not 'Launches with the same name' applied in case of automatic analysis on finish launch
+* EPMRPP-41388 - PostgreSQL. Level of log is not sent to 'Edit defect type' modal.

@@ -21,11 +21,14 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.LaunchPreparerService;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -38,7 +41,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -58,21 +60,28 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 
 	private final LaunchRepository launchRepository;
 
+	private final TestItemRepository testItemRepository;
+
 	private final ProjectRepository projectRepository;
 
 	private final LaunchMergeFactory launchMergeFactory;
 
 	private final LaunchConverter launchConverter;
 
+	private final LaunchPreparerService launchPreparerService;
+
 	private final LogIndexer logIndexer;
 
 	@Autowired
-	public MergeLaunchHandlerImpl(LaunchRepository launchRepository, ProjectRepository projectRepository,
-			LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter, LogIndexer logIndexer) {
+	public MergeLaunchHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ProjectRepository projectRepository, LaunchMergeFactory launchMergeFactory, LaunchConverter launchConverter,
+			LaunchPreparerService launchPreparerService, LogIndexer logIndexer) {
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 		this.projectRepository = projectRepository;
 		this.launchMergeFactory = launchMergeFactory;
 		this.launchConverter = launchConverter;
+		this.launchPreparerService = launchPreparerService;
 		this.logIndexer = logIndexer;
 	}
 
@@ -107,9 +116,11 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 		launchRepository.refresh(newLaunch);
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
-		logIndexer.cleanIndex(project.getId(), new ArrayList<>(launchesIds));
 		launchRepository.deleteAll(launchesList);
-		logIndexer.indexLaunchLogs(project.getId(), newLaunch.getId(), AnalyzerUtils.getAnalyzerConfig(project));
+
+		List<TestItem> newItems = testItemRepository.findTestItemsByLaunchId(newLaunch.getId());
+		launchPreparerService.prepare(newLaunch, newItems, AnalyzerUtils.getAnalyzerConfig(project))
+				.ifPresent(it -> logIndexer.indexPreparedLogs(project.getId(), it));
 
 		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}

@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
-        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-12'
+        compile 'com.github.reportportal:commons-dao:e3b76516'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:1b02f9c'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
@@ -152,7 +152,6 @@ dependencies {
     compile 'org.apache.commons:commons-collections4:4.1'
 
     api 'org.jacoco:org.jacoco.agent:0.8.3'
-
 
 //  Tests
     testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'

@@ -50,6 +50,12 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
 	@Override
 	public OperationCompletionRS addPreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
+
+		if (userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(), user.getUserId(), filterId)
+				.isPresent()) {
+			throw new ReportPortalException(ErrorType.RESOURCE_ALREADY_EXISTS, "User Preference");
+		}
+
 		UserFilter filter = getShareableEntityHandler.getPermitted(filterId, projectDetails);
 		UserPreference userPreference = new UserPreferenceBuilder().withUser(user.getUserId())
 				.withProject(projectDetails.getProjectId())
@@ -61,10 +67,10 @@ public class UpdatePreferenceHandlerImpl implements UpdatePreferenceHandler {
 
 	@Override
 	public OperationCompletionRS removePreference(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Long filterId) {
-		UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserId(projectDetails.getProjectId(), user.getUserId())
-				.stream()
-				.filter(it -> it.getFilter().getId().equals(filterId))
-				.findFirst()
+		UserPreference userPreference = userPreferenceRepository.findByProjectIdAndUserIdAndFilterId(projectDetails.getProjectId(),
+				user.getUserId(),
+				filterId
+		)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND, filterId));
 		userPreferenceRepository.delete(userPreference);
 		return new OperationCompletionRS("Filter with id = " + filterId + " successfully removed from launches tab.");

@@ -74,7 +74,7 @@ public class LaunchConverter {
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
-		userRepository.findLoginById(db.getUserId()).ifPresent(resource::setOwner);
+		ofNullable(db.getUserId()).flatMap(id -> userRepository.findLoginById(id)).ifPresent(resource::setOwner);
 		return resource;
 	};
 

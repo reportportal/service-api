@@ -23,10 +23,7 @@ import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
-import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
-import com.epam.ta.reportportal.ws.model.ParameterResource;
-import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -35,6 +32,7 @@ import com.epam.ta.reportportal.ws.model.issue.IssueDefinition;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -43,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -208,9 +207,34 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	void getItemHistoryPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/history?ids=1").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+	void getItemsHistoryShouldReturnItemsHistory() throws Exception {
+		//GIVEN
+		Long launchId = 1L;
+		String url = String.format("/item/history?filter.eq.launchId=%d&page.page=1&page.size=5"
+				+ "&page.sort=startTime,ASC&filter.eq.hasStats=true&filter.eq.hasChildren=false&filter.in.type=STEP&filter.in.status"
+				+ "=PASSED,FAILED,SKIPPED,INTERRUPTED&history_depth=30", launchId);
+
+		//WHEN
+		MvcResult result = mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + url).with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk()).andReturn();
+
+		//THEN
+		List<TestItemHistoryElement> testItemHistoryElements = objectMapper.readValue(result.getResponse().getContentAsString(),
+				new TypeReference<List<TestItemHistoryElement>>() {});
+		assertNotNull(testItemHistoryElements);
+		assertEquals(1, testItemHistoryElements.size());
+
+		TestItemHistoryElement testItemHistoryElement = testItemHistoryElements.get(0);
+		assertEquals(launchId, testItemHistoryElement.getLaunchId());
+
+		List<TestItemHistoryResource> resources = testItemHistoryElement.getResources();
+		assertEquals(1, resources.size());
+
+		TestItemHistoryResource historyResource = resources.get(0);
+		assertEquals("FAILED", historyResource.getStatus());
+		assertTrue(historyResource.isHasStats());
+		assertFalse(historyResource.isHasChildren());
+		assertEquals("STEP", historyResource.getType());
 	}
 
 	@Test

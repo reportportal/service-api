@@ -17,16 +17,23 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.model.IndexTestItem;
+import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.fromTestItem;
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,6 +61,18 @@ class AnalyzerUtilsTest {
 		test.getItemResults().setIssue(createIssue(true));
 		IndexTestItem indexTestItem = fromTestItem(test, createSameLogs(1));
 		assertTrue(indexTestItem.isAutoAnalyzed());
+	}
+
+	@Test
+	void testAnalyzerConfig() {
+		AnalyzerConfig config = AnalyzerUtils.getAnalyzerConfig(project());
+		assertEquals(String.valueOf(config.getIsAutoAnalyzerEnabled()), ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getDefaultValue());
+		assertEquals(String.valueOf(config.getNumberOfLogLines()), ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue());
+		assertEquals(config.getAnalyzerMode(), ProjectAttributeEnum.AUTO_ANALYZER_MODE.getDefaultValue());
+		assertEquals(String.valueOf(config.getMinDocFreq()), ProjectAttributeEnum.MIN_DOC_FREQ.getDefaultValue());
+		assertEquals(String.valueOf(config.getMinShouldMatch()), ProjectAttributeEnum.MIN_SHOULD_MATCH.getDefaultValue());
+		assertEquals(String.valueOf(config.getMinTermFreq()), ProjectAttributeEnum.MIN_TERM_FREQ.getDefaultValue());
+		assertEquals(String.valueOf(config.isIndexingRunning()), ProjectAttributeEnum.INDEXING_RUNNING.getDefaultValue());
 	}
 
 	private TestItem createTest() {
@@ -84,6 +103,16 @@ class AnalyzerUtilsTest {
 			logs.add(log);
 		}
 		return logs;
+	}
+
+	public static Project project() {
+		Project project = new Project();
+		project.setProjectAttributes(ProjectUtils.defaultProjectAttributes(project, Arrays.stream(ProjectAttributeEnum.values()).map(it -> {
+			Attribute attribute = new Attribute();
+			attribute.setName(it.getAttribute());
+			return attribute;
+		}).collect(Collectors.toSet())));
+		return project;
 	}
 
 }

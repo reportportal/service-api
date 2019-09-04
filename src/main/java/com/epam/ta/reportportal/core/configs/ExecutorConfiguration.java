@@ -95,7 +95,7 @@ public class ExecutorConfiguration {
 		threadPoolTaskExecutor.setMaxPoolSize(20);
 		threadPoolTaskExecutor.setQueueCapacity(50);
 		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
-		threadPoolTaskExecutor.setAwaitTerminationSeconds(15 * 60);
+		threadPoolTaskExecutor.setAwaitTerminationSeconds(60);
 		threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
 		return threadPoolTaskExecutor;
 	}

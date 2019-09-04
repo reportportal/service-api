@@ -12,3 +12,6 @@ logging:
     org:
       hibernate:
         SQL: debug
+server:
+  servlet:
+    context-path: '/api'

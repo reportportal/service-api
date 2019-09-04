@@ -51,6 +51,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 @Service
 public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
+	private final String RESERVED_PROJECT_NAME = "project";
+
 	private final ProjectRepository projectRepository;
 
 	private final UserRepository userRepository;
@@ -71,6 +73,11 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 	@Override
 	public EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user) {
 		String projectName = createProjectRQ.getProjectName().toLowerCase().trim();
+
+		expect(projectName, not(equalTo(RESERVED_PROJECT_NAME))).verify(ErrorType.INCORRECT_REQUEST,
+				Suppliers.formattedSupplier("Project with name '{}' is reserved by system", projectName)
+		);
+
 		expect(projectName, com.epam.ta.reportportal.util.Predicates.SPECIAL_CHARS_ONLY.negate()).verify(ErrorType.INCORRECT_REQUEST,
 				Suppliers.formattedSupplier("Project name '{}' consists only of special characters", projectName)
 		);

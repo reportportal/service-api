@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -55,6 +54,7 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -181,11 +181,4 @@ public class SearchLogServiceImpl implements SearchLogService {
 		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
 	}
-
-	private static final Function<Log, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
-		SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
-		logEntry.setMessage(log.getLogMessage());
-		logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
-		return logEntry;
-	};
 }

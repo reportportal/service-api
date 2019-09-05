@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils;

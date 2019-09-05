@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -69,12 +70,14 @@ class SearchLogServiceImplTest {
 
 	private final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 
+	private SearchCollectorFactory searchCollectorFactory = mock(SearchCollectorFactory.class);
+
 	private final SearchLogServiceImpl searchLogService = new SearchLogServiceImpl(projectRepository,
 			launchRepository,
 			testItemRepository,
 			logRepository,
 			analyzerServiceClient,
-			userFilterRepository
+			searchCollectorFactory
 	);
 
 	@Test
@@ -100,7 +103,8 @@ class SearchLogServiceImplTest {
 		when(userFilter.getTargetClass()).thenReturn(ObjectType.Launch);
 		when(userFilter.getFilterCondition()).thenReturn(Collections.emptySet());
 
-		when(logRepository.findMessagesByItemIdAndLevelGte(testItem.getItemId(), LogLevel.ERROR_INT)).thenReturn(Lists.newArrayList("message"));
+		when(logRepository.findMessagesByItemIdAndLevelGte(testItem.getItemId(), LogLevel.ERROR_INT)).thenReturn(Lists.newArrayList(
+				"message"));
 		when(analyzerServiceClient.searchLogs(any(SearchRq.class))).thenReturn(Lists.newArrayList(1L));
 		Log log = new Log();
 		log.setTestItem(testItem);

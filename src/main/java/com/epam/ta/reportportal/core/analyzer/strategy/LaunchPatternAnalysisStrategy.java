@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;

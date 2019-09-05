@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.auto.strategy;
+package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;

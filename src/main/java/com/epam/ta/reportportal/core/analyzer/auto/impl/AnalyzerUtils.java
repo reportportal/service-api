@@ -92,6 +92,7 @@ public class AnalyzerUtils {
 		analyzerConfig.setNumberOfLogLines(Integer.valueOf(ofNullable(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())).orElse(
 				NUMBER_OF_LOG_LINES.getDefaultValue())));
 		analyzerConfig.setIndexingRunning(BooleanUtils.toBoolean(configParameters.get(INDEXING_RUNNING.getAttribute())));
+		analyzerConfig.setAnalyzerMode(configParameters.get(AUTO_ANALYZER_MODE.getAttribute()));
 		return analyzerConfig;
 	}
 

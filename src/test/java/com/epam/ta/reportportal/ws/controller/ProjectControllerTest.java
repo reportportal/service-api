@@ -97,6 +97,16 @@ class ProjectControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void createProjectWithReservedName() throws Exception {
+		CreateProjectRQ rq = new CreateProjectRQ();
+		rq.setProjectName("project");
+		rq.setEntryType("INTERNAL");
+		mockMvc.perform(post("/v1/project").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void updateProjectPositive() throws Exception {
 		final UpdateProjectRQ rq = new UpdateProjectRQ();
 		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();

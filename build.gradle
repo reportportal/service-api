@@ -153,7 +153,6 @@ dependencies {
 
     api 'org.jacoco:org.jacoco.agent:0.8.3'
 
-
 //  Tests
     testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'
 

@@ -251,7 +251,7 @@ public class TestItemController {
 	@PutMapping("/issue/link")
 	@ResponseStatus(OK)
 	@ApiOperation("Attach external issue for specified test items")
-	public List<OperationCompletionRS> addExternalIssues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public List<OperationCompletionRS> linkExternalIssues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated LinkExternalIssueRQ rq) {
 		return updateTestItemHandler.processExternalIssues(rq, extractProjectDetails(user, projectName), user);
 	}

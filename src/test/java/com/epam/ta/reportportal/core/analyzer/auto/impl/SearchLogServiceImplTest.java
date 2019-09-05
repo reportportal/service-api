@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -39,10 +40,11 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.entity.SearchMode.CURRENT_LAUNCH;
+import static com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchLogsMode.CURRENT_LAUNCH;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -71,6 +73,8 @@ class SearchLogServiceImplTest {
 	private final UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 
 	private SearchCollectorFactory searchCollectorFactory = mock(SearchCollectorFactory.class);
+
+	private CurrentLaunchCollector currentLaunchCollector = mock(CurrentLaunchCollector.class);
 
 	private final SearchLogServiceImpl searchLogService = new SearchLogServiceImpl(projectRepository,
 			launchRepository,
@@ -115,6 +119,9 @@ class SearchLogServiceImplTest {
 		SearchLogRq searchLogRq = new SearchLogRq();
 		searchLogRq.setSearchMode(CURRENT_LAUNCH.getValue());
 		searchLogRq.setFilterId(1L);
+
+		when(searchCollectorFactory.getCollector(CURRENT_LAUNCH)).thenReturn(currentLaunchCollector);
+		when(currentLaunchCollector.collect(any(), any())).thenReturn(Arrays.asList(1L));
 
 		Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, projectDetails);
 		Assertions.assertNotNull(responses);

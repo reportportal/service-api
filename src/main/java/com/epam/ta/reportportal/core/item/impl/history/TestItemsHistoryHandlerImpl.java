@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -104,9 +105,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 	private void validateHistoryDepth(int historyDepth) {
 		Predicate<Integer> greaterThan = t -> t > MIN_HISTORY_DEPTH_BOUND;
 		Predicate<Integer> lessThan = t -> t < MAX_HISTORY_DEPTH_BOUND;
-		String historyDepthMessage =
-				"Items history depth should be greater than '" + MIN_HISTORY_DEPTH_BOUND + "' and lower than '" + MAX_HISTORY_DEPTH_BOUND
-						+ "'";
+		String historyDepthMessage = Suppliers.formattedSupplier("Items history depth should be greater than '{}' and lower than '{}'",
+				MIN_HISTORY_DEPTH_BOUND, MAX_HISTORY_DEPTH_BOUND).get();
 		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
 	}
 

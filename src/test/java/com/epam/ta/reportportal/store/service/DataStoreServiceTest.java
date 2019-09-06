@@ -99,7 +99,7 @@ class DataStoreServiceTest {
 	void loadTest() {
 		InputStream inputStream = mock(InputStream.class);
 
-		when(dataEncoder.encode("fileId")).thenReturn("filePath");
+		when(dataEncoder.decode("fileId")).thenReturn("filePath");
 		when(dataStore.load("filePath")).thenReturn(inputStream);
 
 		Optional<InputStream> content = dataStoreService.load("fileId");

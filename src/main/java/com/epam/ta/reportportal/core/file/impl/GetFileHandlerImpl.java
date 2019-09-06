@@ -16,7 +16,6 @@
 package com.epam.ta.reportportal.core.file.impl;
 
 import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
-import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.binary.UserDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
@@ -46,12 +45,12 @@ public class GetFileHandlerImpl implements GetFileHandler {
 
 	private AttachmentDataStoreService attachmentDataStoreService;
 
-	private final DataStoreService dataStoreService;
-
 	@Autowired
-	public GetFileHandlerImpl(UserRepository userRepository, DataStoreService dataStoreService) {
+	public GetFileHandlerImpl(UserRepository userRepository, UserDataStoreService userDataStoreService,
+			AttachmentDataStoreService attachmentDataStoreService) {
 		this.userRepository = userRepository;
-		this.dataStoreService = dataStoreService;
+		this.userDataStoreService = userDataStoreService;
+		this.attachmentDataStoreService = attachmentDataStoreService;
 	}
 
 	@Override

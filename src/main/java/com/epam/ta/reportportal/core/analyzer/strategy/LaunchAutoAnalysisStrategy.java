@@ -18,8 +18,9 @@ package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
 import com.epam.ta.reportportal.core.events.AnalysisEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -94,7 +95,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 	 * @return List of ids
 	 * @see AnalyzeItemsMode
 	 * @see AnalyzeCollectorFactory
-	 * @see com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsCollector
+	 * @see AnalyzeItemsCollector
 	 */
 	private List<Long> collectItemsByModes(Project project, Long launchId, List<String> analyzeItemsMode) {
 		return analyzeItemsMode.stream()

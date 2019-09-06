@@ -35,7 +35,7 @@ public class SearchRq {
 
 	private List<String> logMessages;
 
-	private SearchConfig searchConfig;
+	private Integer logLines;
 
 	public Long getLaunchId() {
 		return launchId;
@@ -69,6 +69,14 @@ public class SearchRq {
 		this.projectId = projectId;
 	}
 
+	public Integer getLogLines() {
+		return logLines;
+	}
+
+	public void setLogLines(Integer logLines) {
+		this.logLines = logLines;
+	}
+
 	public List<Long> getFilteredLaunchIds() {
 		return filteredLaunchIds;
 	}
@@ -83,43 +91,5 @@ public class SearchRq {
 
 	public void setLogMessages(List<String> logMessages) {
 		this.logMessages = logMessages;
-	}
-
-	public SearchConfig getSearchConfig() {
-		return searchConfig;
-	}
-
-	public void setSearchConfig(SearchConfig searchConfig) {
-		this.searchConfig = searchConfig;
-	}
-
-	public static class SearchConfig {
-		private String searchMode;
-		private Integer numberOfLogLines;
-
-		private SearchConfig(String searchMode, Integer numberOfLogLines) {
-			this.searchMode = searchMode;
-			this.numberOfLogLines = numberOfLogLines;
-		}
-
-		public String getSearchMode() {
-			return searchMode;
-		}
-
-		public void setSearchMode(String searchMode) {
-			this.searchMode = searchMode;
-		}
-
-		public Integer getNumberOfLogLines() {
-			return numberOfLogLines;
-		}
-
-		public void setNumberOfLogLines(Integer numberOfLogLines) {
-			this.numberOfLogLines = numberOfLogLines;
-		}
-
-		public static SearchConfig of(String searchMode, Integer numberOfLogLines) {
-			return new SearchConfig(searchMode, numberOfLogLines);
-		}
 	}
 }

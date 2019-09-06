@@ -17,15 +17,17 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchLogsMode;
+import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.filter.ObjectType;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -39,20 +41,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
 import static java.util.stream.Collectors.toSet;
 
@@ -62,8 +58,6 @@ import static java.util.stream.Collectors.toSet;
 @Service
 @Transactional
 public class SearchLogServiceImpl implements SearchLogService {
-
-	private static final int LAUNCHES_FILTER_LIMIT = 10;
 
 	private final ProjectRepository projectRepository;
 
@@ -75,18 +69,18 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 	private final AnalyzerServiceClient analyzerServiceClient;
 
-	private final UserFilterRepository userFilterRepository;
+	private final SearchCollectorFactory searchCollectorFactory;
 
 	@Autowired
 	public SearchLogServiceImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
 			TestItemRepository testItemRepository, LogRepository logRepository, AnalyzerServiceClient analyzerServiceClient,
-			UserFilterRepository userFilterRepository) {
+			SearchCollectorFactory searchCollectorFactory) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.analyzerServiceClient = analyzerServiceClient;
-		this.userFilterRepository = userFilterRepository;
+		this.searchCollectorFactory = searchCollectorFactory;
 	}
 
 	@Override
@@ -106,18 +100,19 @@ public class SearchLogServiceImpl implements SearchLogService {
 	}
 
 	private Optional<SearchRq> composeRequest(SearchLogRq request, Project project, TestItem item, Launch launch) {
-		SearchMode searchMode = SearchMode.fromString(request.getSearchMode())
+		SearchLogsMode searchMode = SearchLogsMode.fromString(request.getSearchMode())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, request.getSearchMode()));
 
-		SearchRq searchRq = searchMode == SearchMode.FILTER ? prepareFilter(request, project.getId()) : new SearchRq();
+		SearchRq searchRq = new SearchRq();
+
+		searchRq.setFilteredLaunchIds(searchCollectorFactory.getCollector(searchMode).collect(request.getFilterId(), launch));
+
 		List<String> logMessages = logRepository.findMessagesByItemIdAndLevelGte(item.getItemId(), LogLevel.ERROR_INT);
 		if (CollectionUtils.isEmpty(logMessages)) {
 			return Optional.empty();
 		}
 		searchRq.setLogMessages(logMessages);
-		searchRq.setSearchConfig(SearchRq.SearchConfig.of(searchMode.getValue(),
-				AnalyzerUtils.getAnalyzerConfig(project).getNumberOfLogLines()
-		));
+		searchRq.setLogLines(AnalyzerUtils.getAnalyzerConfig(project).getNumberOfLogLines());
 		searchRq.setItemId(item.getItemId());
 		searchRq.setLaunchId(launch.getId());
 		searchRq.setLaunchName(launch.getName());
@@ -140,25 +135,6 @@ public class SearchLogServiceImpl implements SearchLogService {
 			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(), composeResponse(launch, log, pathNames));
 		});
 		return foundLogsMap.values();
-	}
-
-	private SearchRq prepareFilter(SearchLogRq request, Long projectId) {
-		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(request.getFilterId(), projectId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, request.getFilterId(), projectId));
-		expect(userFilter.getTargetClass(), equalTo(ObjectType.Launch)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				formattedSupplier("Filter type '{}' is not supported", userFilter.getTargetClass())
-		);
-
-		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(), Lists.newArrayList(userFilter.getFilterCondition()));
-		PageRequest pageable = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));
-		List<Long> filteredLaunchIds = launchRepository.findByFilter(filter, pageable)
-				.stream()
-				.map(Launch::getId)
-				.collect(Collectors.toList());
-
-		SearchRq searchRq = new SearchRq();
-		searchRq.setFilteredLaunchIds(filteredLaunchIds);
-		return searchRq;
 	}
 
 	private SearchLogRs composeResponse(Launch launch, Log log, Map<Long, String> pathNames) {

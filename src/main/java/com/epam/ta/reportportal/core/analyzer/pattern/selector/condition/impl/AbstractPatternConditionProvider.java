@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl;
 
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.PatternConditionProvider;
 import org.apache.commons.collections4.CollectionUtils;
 

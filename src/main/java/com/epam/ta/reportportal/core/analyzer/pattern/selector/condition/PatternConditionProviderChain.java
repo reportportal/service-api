@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition;
 
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.AutoAnalyzedPatternConditionProvider;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ManualPatternConditionProvider;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ToInvestigatePatternConditionProvider;

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -41,7 +42,7 @@ public class ActivityConsumer {
 	}
 
 	@RabbitListener(queues = "#{ @activityQueue.name }")
-	public void onEvent(@Payload ActivityEvent rq) {
-		Optional.ofNullable(rq.toActivity()).ifPresent(activityRepository::save);
+	public void onEvent(@Payload Activity rq) {
+		Optional.ofNullable(rq).ifPresent(activityRepository::save);
 	}
 }

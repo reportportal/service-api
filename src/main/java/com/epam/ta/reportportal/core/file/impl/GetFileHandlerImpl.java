@@ -15,7 +15,9 @@
  */
 package com.epam.ta.reportportal.core.file.impl;
 
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.UserDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -40,6 +42,10 @@ public class GetFileHandlerImpl implements GetFileHandler {
 
 	private final UserRepository userRepository;
 
+	private UserDataStoreService userDataStoreService;
+
+	private AttachmentDataStoreService attachmentDataStoreService;
+
 	private final DataStoreService dataStoreService;
 
 	@Autowired
@@ -49,24 +55,25 @@ public class GetFileHandlerImpl implements GetFileHandler {
 	}
 
 	@Override
-	public BinaryData getUserPhoto(ReportPortalUser loggedInUser) {
+	public BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-		return dataStoreService.loadUserPhoto(user);
+		return userDataStoreService.loadUserPhoto(user, loadThumbnail);
 	}
 
 	@Override
-	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails) {
+	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails,
+			boolean loadThumbnail) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 		expect(
 				ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
 				Predicate.isEqual(true)
 		).verify(ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'", projectDetails.getProjectName()));
-		return dataStoreService.loadUserPhoto(user);
+		return userDataStoreService.loadUserPhoto(user, loadThumbnail);
 	}
 
 	@Override
 	public BinaryData loadFileById(String fileId, ReportPortalUser.ProjectDetails projectDetails) {
-		return dataStoreService.loadFile(fileId, projectDetails);
+		return attachmentDataStoreService.load(fileId, projectDetails);
 	}
 }

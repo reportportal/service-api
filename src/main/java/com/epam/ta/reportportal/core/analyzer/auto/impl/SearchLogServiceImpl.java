@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.SearchLogService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
 import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.SearchMode;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;

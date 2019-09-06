@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -59,16 +58,15 @@ class DemoLogsService {
 
 	private TestItemRepository testItemRepository;
 
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
-	@Autowired
 	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			DataStoreService dataStoreService) {
+			AttachmentDataStoreService attachmentDataStoreService) {
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.dataStoreService = dataStoreService;
+		this.attachmentDataStoreService = attachmentDataStoreService;
 	}
 
 	List<Log> generateDemoLogs(String itemUuid, StatusEnum status, Long projectId, String launchId) {
@@ -123,7 +121,7 @@ class DemoLogsService {
 	private void attachFile(Long projectId, Long testItemId, Long launchId, Log it) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			dataStoreService.saveFileAndAttachToLog(
+			attachmentDataStoreService.saveFileAndAttachToLog(
 					getMultipartFile(attachment.getResource().getPath()),
 					AttachmentMetaInfo.builder()
 							.withProjectId(projectId)

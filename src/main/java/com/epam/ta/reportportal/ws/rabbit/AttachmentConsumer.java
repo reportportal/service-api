@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
@@ -40,13 +40,13 @@ public class AttachmentConsumer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(AttachmentConsumer.class);
 
-	private final DataStoreService dataStoreService;
+	private final AttachmentDataStoreService attachmentDataStoreService;
 
 	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
-	public AttachmentConsumer(DataStoreService dataStoreService, AttachmentRepository attachmentRepository) {
-		this.dataStoreService = dataStoreService;
+	public AttachmentConsumer(AttachmentDataStoreService attachmentDataStoreService, AttachmentRepository attachmentRepository) {
+		this.attachmentDataStoreService = attachmentDataStoreService;
 		this.attachmentRepository = attachmentRepository;
 	}
 
@@ -56,8 +56,8 @@ public class AttachmentConsumer {
 		List<Long> ids = Lists.newArrayListWithExpectedSize(event.getIds().size());
 		event.getIds().forEach(id -> attachmentRepository.findById(id).ifPresent(a -> {
 			try {
-				ofNullable(a.getFileId()).ifPresent(dataStoreService::deleteFile);
-				ofNullable(a.getThumbnailId()).ifPresent(dataStoreService::deleteFile);
+				ofNullable(a.getFileId()).ifPresent(attachmentDataStoreService::delete);
+				ofNullable(a.getThumbnailId()).ifPresent(attachmentDataStoreService::delete);
 				ids.add(id);
 			} catch (Exception e) {
 				LOGGER.error(Suppliers.formattedSupplier("Error during removing attachment with id = {}", id).get());

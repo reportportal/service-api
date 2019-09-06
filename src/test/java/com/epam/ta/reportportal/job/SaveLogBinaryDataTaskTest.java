@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
 class SaveLogBinaryDataTaskTest {
 
 	@Mock
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@InjectMocks
 	private SaveLogBinaryDataTask saveLogBinaryDataTask;
@@ -53,7 +53,7 @@ class SaveLogBinaryDataTaskTest {
 
 		saveLogBinaryDataTask.run();
 
-		verify(dataStoreService, times(1)).saveFileAndAttachToLog(file, attachmentMetaInfo);
+		verify(attachmentDataStoreService, times(1)).saveFileAndAttachToLog(file, attachmentMetaInfo);
 
 	}
 }

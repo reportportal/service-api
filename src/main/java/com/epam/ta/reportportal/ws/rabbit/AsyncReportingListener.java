@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
@@ -105,7 +105,7 @@ public class AsyncReportingListener implements MessageListener {
 	private TestItemService testItemService;
 
 	@Autowired
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Override
 	@Transactional
@@ -284,7 +284,7 @@ public class AsyncReportingListener implements MessageListener {
 
 	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
 		if (!Objects.isNull(metaInfo)) {
-			dataStoreService.attachToLog(metaInfo,
+			attachmentDataStoreService.attachToLog(metaInfo,
 					AttachmentMetaInfo.builder().withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).withLogId(logId).build()
 			);
 		}
@@ -302,8 +302,8 @@ public class AsyncReportingListener implements MessageListener {
 		// we need to delete only binary data, log and attachment shouldn't be dirty created
 		if (payload.getRight() != null) {
 			BinaryDataMetaInfo metaInfo = payload.getRight();
-			dataStoreService.deleteFile(metaInfo.getFileId());
-			dataStoreService.deleteFile(metaInfo.getThumbnailFileId());
+			attachmentDataStoreService.delete(metaInfo.getFileId());
+			attachmentDataStoreService.delete(metaInfo.getThumbnailFileId());
 		}
 	}
 

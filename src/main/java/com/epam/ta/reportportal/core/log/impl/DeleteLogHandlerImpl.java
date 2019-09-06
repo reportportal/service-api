@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
@@ -57,17 +57,17 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	private final LogRepository logRepository;
 
-	private final DataStoreService dataStoreService;
+	private final AttachmentDataStoreService attachmentDataStoreService;
 
 	private final ProjectRepository projectRepository;
 
 	private final TestItemService testItemService;
 
 	@Autowired
-	public DeleteLogHandlerImpl(LogRepository logRepository, DataStoreService dataStoreService, ProjectRepository projectRepository,
-			TestItemService testItemService) {
+	public DeleteLogHandlerImpl(LogRepository logRepository, AttachmentDataStoreService attachmentDataStoreService,
+			ProjectRepository projectRepository, TestItemService testItemService) {
 		this.logRepository = logRepository;
-		this.dataStoreService = dataStoreService;
+		this.attachmentDataStoreService = attachmentDataStoreService;
 		this.projectRepository = projectRepository;
 		this.testItemService = testItemService;
 	}
@@ -94,10 +94,10 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 	private void cleanUpLogData(Log log) {
 		ofNullable(log.getAttachment()).ifPresent(a -> {
 			if (StringUtils.isNotBlank(a.getFileId())) {
-				dataStoreService.deleteFile(a.getFileId());
+				attachmentDataStoreService.delete(a.getFileId());
 			}
 			if (StringUtils.isNotBlank(a.getThumbnailId())) {
-				dataStoreService.deleteFile(a.getThumbnailId());
+				attachmentDataStoreService.delete(a.getThumbnailId());
 			}
 		});
 

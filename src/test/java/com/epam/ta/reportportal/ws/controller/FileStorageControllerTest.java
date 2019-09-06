@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class FileStorageControllerTest extends BaseMvcTest {
 
 	@Autowired
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Test
 	void userPhoto() throws Exception {
@@ -83,10 +83,11 @@ class FileStorageControllerTest extends BaseMvcTest {
 	@Test
 	@Sql("/db/data-store/data-store-fill.sql")
 	void getFile() throws Exception {
-		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = dataStoreService.saveFile(1L, getMultipartFile("image/large_image.png"));
+		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentDataStoreService.saveAttachment(1L,
+				getMultipartFile("image/large_image.png")
+		);
 		assertTrue(binaryDataMetaInfo.isPresent());
-		dataStoreService.attachToLog(
-				binaryDataMetaInfo.get(),
+		attachmentDataStoreService.attachToLog(binaryDataMetaInfo.get(),
 				AttachmentMetaInfo.builder().withProjectId(1L).withItemId(1L).withLaunchId(1L).withLogId(1L).build()
 		);
 

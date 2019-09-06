@@ -16,282 +16,95 @@
 
 package com.epam.ta.reportportal.store.service;
 
-import com.epam.reportportal.commons.ContentTypeResolver;
 import com.epam.reportportal.commons.Thumbnailator;
-import com.epam.ta.reportportal.binary.CreateLogAttachmentService;
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
-import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.binary.impl.DataStoreServiceImpl;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.filesystem.FilePathGenerator;
-import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
  * @author Dzianis_Shybeka
  */
+@ExtendWith(MockitoExtension.class)
 class DataStoreServiceTest {
 
+	@Mock
 	private DataStore dataStore;
 
+	@Mock
 	private Thumbnailator thumbnailator;
 
-	private ContentTypeResolver contentTypeResolver;
-
-	private FilePathGenerator filePathGenerator;
-
+	@Mock
 	private DataEncoder dataEncoder;
 
-	private DataStoreService dataStoreService;
-
-	private CreateLogAttachmentService createLogAttachmentService;
-
-	private AttachmentRepository attachmentRepository;
-
-	@BeforeEach
-	void setUp() {
-		dataStore = mock(DataStore.class);
-		thumbnailator = mock(Thumbnailator.class);
-		contentTypeResolver = mock(ContentTypeResolver.class);
-		filePathGenerator = mock(FilePathGenerator.class);
-		dataEncoder = mock(DataEncoder.class);
-		createLogAttachmentService = mock(CreateLogAttachmentService.class);
-		attachmentRepository = mock(AttachmentRepository.class);
-
-		dataStoreService = new DataStoreService(dataStore,
-				thumbnailator,
-				contentTypeResolver,
-				filePathGenerator,
-				dataEncoder,
-				createLogAttachmentService,
-				attachmentRepository
-		);
-	}
+	@InjectMocks
+	private DataStoreServiceImpl dataStoreService;
 
 	@Test
-	void save_empty_on_file_io_error() throws Exception {
+	void saveTest() throws Exception {
 		//  given:
 		MultipartFile file = mock(MultipartFile.class);
 
 		//  and: setups
-		when(file.getInputStream()).thenThrow(new IOException());
+		when(dataStore.save("fileName", file.getInputStream())).thenReturn("filePath");
+		when(dataEncoder.encode("filePath")).thenReturn("fileId");
 
 		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(123L, file);
+		String fileId = dataStoreService.save("fileName", file.getInputStream());
 
-		//  then:
-		assertFalse(maybeResult.isPresent());
+		assertEquals("fileId", fileId);
 	}
 
 	@Test
-	void save_use_type_resolver() throws Exception {
-		//  given:
+	void saveThumbnailTest() throws IOException {
 		MultipartFile file = mock(MultipartFile.class);
-		Long projectId = 123L;
 
-		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
-		when(file.getInputStream()).thenReturn(fileInputStream);
-		String fileName = "file.test";
-		when(file.getOriginalFilename()).thenReturn(fileName);
+		when(dataStore.save("fileName", file.getInputStream())).thenReturn("thumbnailPath");
+		when(dataEncoder.encode("thumbnailPath")).thenReturn("thumbnailId");
 
-		String resolvedContentType = "resolved-type";
-		when(contentTypeResolver.detectContentType(fileInputStream)).thenReturn(resolvedContentType);
-
-		String generatedFilePath = File.separator + "test" + File.separator + "path";
-		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
-
-		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
-		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
-
-		String fileId = "expected-encoded-file-id";
-		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
-
-		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
-
-		//  then:
-		assertTrue(maybeResult.isPresent());
-		assertEquals(fileId, maybeResult.get().getFileId());
-		assertNull(maybeResult.get().getThumbnailFileId());
+		assertEquals("thumbnailId", dataStoreService.saveThumbnail("fileName", file.getInputStream()));
 	}
 
 	@Test
-	void save_does_not_use_type_resolver() throws Exception {
-		//  given:
+	void saveThumbnailWithException() throws IOException {
 		MultipartFile file = mock(MultipartFile.class);
-		Long projectId = 132L;
-
-		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
-		when(file.getInputStream()).thenReturn(fileInputStream);
-		when(file.getContentType()).thenReturn("test-content-type");
-		String fileName = "file.test";
-		when(file.getOriginalFilename()).thenReturn(fileName);
-
-		String generatedFilePath = File.separator + "test" + File.separator + "path2";
-		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
-
-		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
-		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
-
-		String fileId = "expected-encoded-file-id2";
-		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
-
-		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
-
-		//  then:
-		assertTrue(maybeResult.isPresent());
-		assertEquals(fileId, maybeResult.get().getFileId());
-		assertNull(maybeResult.get().getThumbnailFileId());
-
-		//  and:
-		verifyZeroInteractions(contentTypeResolver);
-	}
-
-	@Test
-	void save_does_not_use_type_resolver_with_thumbnail() throws Exception {
-		//  given:
-		MultipartFile file = mock(MultipartFile.class);
-		long projectId = 123L;
-
-		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
-		ByteArrayInputStream thumbnailFileInputStream = new ByteArrayInputStream("thumbnail-test".getBytes(StandardCharsets.UTF_8));
-		when(file.getInputStream()).thenReturn(fileInputStream);
-		when(file.getContentType()).thenReturn("image/png");
-		String fileName = "file.test";
-		when(file.getOriginalFilename()).thenReturn(fileName);
-		when(file.getName()).thenReturn(fileName);
-
-		String generatedFilePath = File.separator + "test" + File.separator + "path2";
-		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
-
-		when(thumbnailator.createThumbnail(file.getInputStream())).thenReturn(thumbnailFileInputStream);
-
-		//  save thumbnail file
-		String expectedThumbnailFilePath = projectId + generatedFilePath + File.separator + "thumbnail-" + fileName;
-		when(dataStore.save(expectedThumbnailFilePath, thumbnailFileInputStream)).thenReturn(expectedThumbnailFilePath);
-
-		String thumbnailFileId = "thumbnail-encoded-file-id2";
-		when(dataEncoder.encode(expectedThumbnailFilePath)).thenReturn(thumbnailFileId);
-
-		//  save original file
-		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
-		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
-
-		String fileId = "expected-encoded-file-id2";
-		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
-
-		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
-
-		//  then:
-		assertTrue(maybeResult.isPresent());
-		assertEquals(fileId, maybeResult.get().getFileId());
-		assertEquals(thumbnailFileId, maybeResult.get().getThumbnailFileId());
-
-		//  and:
-		verifyZeroInteractions(contentTypeResolver);
-	}
-
-	@Test
-	void save_with_fail_on_thumbnail() throws Exception {
-		//  given:
-		MultipartFile file = mock(MultipartFile.class);
-		Long projectId = 123L;
-
-		//  and: setups
-		ByteArrayInputStream fileInputStream = new ByteArrayInputStream("test".getBytes(StandardCharsets.UTF_8));
-		when(file.getInputStream()).thenReturn(fileInputStream);
-		when(file.getContentType()).thenReturn("image/png");
-		String fileName = "file.test";
-		when(file.getOriginalFilename()).thenReturn(fileName);
-		when(file.getName()).thenReturn(fileName);
-
-		String generatedFilePath = File.separator + "test" + File.separator + "path2";
-		when(filePathGenerator.generate()).thenReturn(generatedFilePath);
 
 		when(thumbnailator.createThumbnail(file.getInputStream())).thenThrow(IOException.class);
 
-		//  save original file
-		String expectedFilePath = projectId + generatedFilePath + File.separator + fileName;
-		when(dataStore.save(expectedFilePath, fileInputStream)).thenReturn(expectedFilePath);
-
-		String fileId = "expected-encoded-file-id2";
-		when(dataEncoder.encode(expectedFilePath)).thenReturn(fileId);
-
-		//  when:
-		Optional<BinaryDataMetaInfo> maybeResult = dataStoreService.saveFile(projectId, file);
-
-		//  then:
-		assertTrue(maybeResult.isPresent());
-		assertEquals(fileId, maybeResult.get().getFileId());
-		assertNull(maybeResult.get().getThumbnailFileId());
-
-		//  and:
-		verifyZeroInteractions(contentTypeResolver);
-		verify(dataStore, times(1)).save(anyString(), any(InputStream.class));
+		assertNull(dataStoreService.saveThumbnail("fileName", file.getInputStream()));
 	}
 
 	@Test
-	void load() throws Exception {
-		//  given:
-		String fileId = "test-file.id";
-		InputStream expectedFile = new ByteArrayInputStream("test-content".getBytes(StandardCharsets.UTF_8));
+	void deleteTest() {
+		when(dataEncoder.decode("fileId")).thenReturn("filePath");
 
-		//  and: setups
-		String expectedFilePath = File.separator + "file" + File.separator + "path.test";
-		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
+		dataStoreService.delete("fileId");
 
-		when(dataStore.load(expectedFilePath)).thenReturn(expectedFile);
-		when(attachmentRepository.findByFileId(fileId)).thenReturn(Optional.of(new AttachmentBuilder().withFileId(fileId)
-				.withProjectId(1L)
-				.withContentType("contentType")
-				.get()));
-
-		//  when:
-		BinaryData loaded = dataStoreService.loadFile(fileId,
-				extractProjectDetails(getRpUser("testUser", UserRole.USER, ProjectRole.MEMBER, 1L), "test_project")
-		);
-
-		//  then:
-		assertSame(expectedFile, loaded.getInputStream());
+		verify(dataStore, times(1)).delete("filePath");
 	}
 
 	@Test
-	void delete() throws Exception {
-		//  given:
-		String fileId = "test-file.id";
+	void loadTest() {
+		InputStream inputStream = mock(InputStream.class);
 
-		//  and: setups
-		String expectedFilePath = File.separator + "file" + File.separator + "path.test";
-		when(dataEncoder.decode(fileId)).thenReturn(expectedFilePath);
+		when(dataEncoder.encode("fileId")).thenReturn("filePath");
+		when(dataStore.load("filePath")).thenReturn(inputStream);
 
-		//  when:
-		dataStoreService.deleteFile(fileId);
+		Optional<InputStream> content = dataStoreService.load("fileId");
 
-		//  then:
-		verify(dataStore).delete(expectedFilePath);
+		assertTrue(content.isPresent());
+		assertSame(inputStream, content.get());
 	}
 }

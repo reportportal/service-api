@@ -16,13 +16,12 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,19 +53,19 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private final TestItemRepository testItemRepository;
 
-	private final DataStoreService dataStoreService;
+	private final AttachmentDataStoreService attachmentDataStoreService;
 
 	private final ActivityRepository activityRepository;
 
 	private final AttachmentRepository attachmentRepository;
 
-	@Autowired
 	public LogCleanerServiceImpl(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			DataStoreService dataStoreService, ActivityRepository activityRepository, AttachmentRepository attachmentRepository) {
+			AttachmentDataStoreService attachmentDataStoreService, ActivityRepository activityRepository,
+			AttachmentRepository attachmentRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.dataStoreService = dataStoreService;
+		this.attachmentDataStoreService = attachmentDataStoreService;
 		this.activityRepository = activityRepository;
 		this.attachmentRepository = attachmentRepository;
 	}
@@ -141,11 +140,11 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 					attachmentRepository.deleteById(attachment.getId());
 
 					ofNullable(attachment.getFileId()).ifPresent(fileId -> {
-						dataStoreService.deleteFile(fileId);
+						attachmentDataStoreService.delete(fileId);
 						attachmentsCount.addAndGet(1L);
 					});
 					ofNullable(attachment.getThumbnailId()).ifPresent(fileId -> {
-						dataStoreService.deleteFile(fileId);
+						attachmentDataStoreService.delete(fileId);
 						thumbnailsCount.addAndGet(1L);
 					});
 

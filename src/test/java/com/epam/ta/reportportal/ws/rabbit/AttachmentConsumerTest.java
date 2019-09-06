@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 class AttachmentConsumerTest {
 
 	@Mock
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Mock
 	private AttachmentRepository attachmentRepository;
@@ -61,7 +61,7 @@ class AttachmentConsumerTest {
 		attachmentConsumer.onEvent(event);
 
 		verify(attachmentRepository, times(1)).deleteAllByIds(any());
-		verify(dataStoreService, times(1)).deleteFile(attachment.getFileId());
-		verify(dataStoreService, times(1)).deleteFile(attachment.getThumbnailId());
+		verify(attachmentDataStoreService, times(1)).delete(attachment.getFileId());
+		verify(attachmentDataStoreService, times(1)).delete(attachment.getThumbnailId());
 	}
 }

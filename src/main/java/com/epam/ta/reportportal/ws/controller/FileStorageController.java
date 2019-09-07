@@ -73,7 +73,7 @@ public class FileStorageController {
 	@GetMapping(value = "/photo")
 	@ApiOperation("Get photo of current user")
 	public void getMyPhoto(@AuthenticationPrincipal ReportPortalUser user, HttpServletResponse response,
-			@RequestParam("loadThumbnail") boolean loadThumbnail) {
+			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail) {
 		toResponse(response, getFileHandler.getUserPhoto(user, loadThumbnail));
 	}
 
@@ -85,7 +85,7 @@ public class FileStorageController {
 	@GetMapping(value = "/{projectName}/userphoto")
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@PathVariable String projectName, @RequestParam(value = "id") String username,
-			@RequestParam("loadThumbnail") boolean loadThumbnail, HttpServletResponse response,
+			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username),
 				user,

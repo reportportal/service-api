@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -30,7 +29,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -49,7 +47,6 @@ class FileStorageControllerTest extends BaseMvcTest {
 	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Test
-	@Disabled
 	void userPhoto() throws Exception {
 		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/photo")
 				.file(new MockMultipartFile("file", new ClassPathResource("image/image.png").getInputStream()))

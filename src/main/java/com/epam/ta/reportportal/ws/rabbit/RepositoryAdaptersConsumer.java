@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
@@ -34,7 +35,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,12 +92,4 @@ public class RepositoryAdaptersConsumer {
 		List<Log> logs = logRepository.findByTestItemId(itemRef, limit /*, loadBinaryData*/);
 		return logs.stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
 	}
-
-	//TODO think about how to work with such content
-
-	@RabbitListener(queues = DATA_STORAGE_FETCH_DATA_QUEUE)
-	public InputStream fetchData(String dataId) {
-		return dataStoreService.load(dataId);
-	}
-
 }

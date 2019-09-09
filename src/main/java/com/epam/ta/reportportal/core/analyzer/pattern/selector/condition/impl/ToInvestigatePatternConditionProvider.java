@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl;
 import com.epam.ta.reportportal.commons.querygen.CompositeFilterCondition;
 import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.google.common.collect.Lists;
 import org.jooq.Operator;

@@ -1,13 +1,13 @@
 rp:
   binarystore:
     type: filesystem
-    path: ${java.io.tmpdir}
+    path: ${java.io.tmpdir}/reportportal/datastore
   plugins:
-    rooDir: ${java.io.tmpdir}
+    rooDir: ${java.io.tmpdir}/reportportal/plugins
 logging:
-  file: ${java.io.tmpdir}/${spring.application.name}.log
+  file: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
 embedded:
   datasource:
-    dir: ${java.io.tmpdir}/embedded-postgres
+    dir: ${java.io.tmpdir}/reportportal/embedded-postgres
     clean: true
     port: 0

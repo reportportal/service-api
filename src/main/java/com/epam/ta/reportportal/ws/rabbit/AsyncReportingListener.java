@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
@@ -26,17 +26,15 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.core.log.impl.CreateAttachmentHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.attachment.Attachment;
+import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
@@ -107,10 +105,7 @@ public class AsyncReportingListener implements MessageListener {
 	private TestItemService testItemService;
 
 	@Autowired
-	private DataStoreService dataStoreService;
-
-	@Autowired
-	private CreateAttachmentHandler createAttachmentHandler;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Override
 	@Transactional
@@ -155,8 +150,7 @@ public class AsyncReportingListener implements MessageListener {
 					break;
 				case LOG:
 					Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
-					onLogCreate((DeserializablePair) converter.fromMessage(
-							message,
+					onLogCreate((DeserializablePair) converter.fromMessage(message,
 							new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {
 							}
 					), (Long) headers.get(MessageHeaders.PROJECT_ID));
@@ -264,8 +258,7 @@ public class AsyncReportingListener implements MessageListener {
 					return (String) message.getMessageProperties().getHeaders().get(MessageHeaders.ITEM_ID);
 				case LOG:
 					Jackson2JsonMessageConverter converter = (Jackson2JsonMessageConverter) messageConverter;
-					return ((SaveLogRQ) ((DeserializablePair) converter.fromMessage(
-							message,
+					return ((SaveLogRQ) ((DeserializablePair) converter.fromMessage(message,
 							new ParameterizedTypeReference<DeserializablePair<SaveLogRQ, BinaryDataMetaInfo>>() {
 							}
 					)).getLeft()).getUuid();
@@ -291,13 +284,9 @@ public class AsyncReportingListener implements MessageListener {
 
 	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
 		if (!Objects.isNull(metaInfo)) {
-			Attachment attachment = new AttachmentBuilder().withMetaInfo(metaInfo)
-					.withProjectId(projectId)
-					.withLaunchId(launchId)
-					.withItemId(itemId)
-					.get();
-
-			createAttachmentHandler.create(attachment, logId);
+			attachmentDataStoreService.attachToLog(metaInfo,
+					AttachmentMetaInfo.builder().withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).withLogId(logId).build()
+			);
 		}
 	}
 
@@ -313,8 +302,8 @@ public class AsyncReportingListener implements MessageListener {
 		// we need to delete only binary data, log and attachment shouldn't be dirty created
 		if (payload.getRight() != null) {
 			BinaryDataMetaInfo metaInfo = payload.getRight();
-			dataStoreService.delete(metaInfo.getFileId());
-			dataStoreService.delete(metaInfo.getThumbnailFileId());
+			attachmentDataStoreService.delete(metaInfo.getFileId());
+			attachmentDataStoreService.delete(metaInfo.getThumbnailFileId());
 		}
 	}
 

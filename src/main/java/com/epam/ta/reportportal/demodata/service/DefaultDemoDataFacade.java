@@ -17,12 +17,12 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -59,8 +59,6 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private final DemoLogsService demoLogsService;
 
-	private final TestItemRepository testItemRepository;
-
 	private final ObjectMapper objectMapper;
 
 	private final UserRepository userRepository;
@@ -71,12 +69,11 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private Resource resource;
 
 	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoDataTestItemService demoDataTestItemService,
-			DemoLogsService demoLogsService, TestItemRepository testItemRepository, ObjectMapper objectMapper,
-			UserRepository userRepository, @Qualifier("demoDataTaskExecutor") TaskExecutor executor) {
+			DemoLogsService demoLogsService, ObjectMapper objectMapper, UserRepository userRepository,
+			@Qualifier("demoDataTaskExecutor") TaskExecutor executor) {
 		this.demoDataLaunchService = demoDataLaunchService;
 		this.demoDataTestItemService = demoDataTestItemService;
 		this.demoLogsService = demoLogsService;
-		this.testItemRepository = testItemRepository;
 		this.objectMapper = objectMapper;
 		this.userRepository = userRepository;
 		this.executor = executor;
@@ -131,11 +128,8 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					}
 					String stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
 					StatusEnum status = status();
-					demoLogsService.generateDemoLogs(testItemRepository.findByUuid(stepId).get(),
-							status,
-							projectDetails.getProjectId(),
-							launchId
-					);
+					List<Log> logs = demoLogsService.generateDemoLogs(stepId, status, projectDetails.getProjectId(), launchId);
+					demoLogsService.attachFiles(logs, projectDetails.getProjectId(), stepId, launchId);
 					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
 					if (isGenerateAfterMethod) {
 						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());

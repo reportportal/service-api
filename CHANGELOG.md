@@ -247,5 +247,7 @@
 * EPMRPP-41407 - Filters page. Unclassified error occurs when user turns filters On/Off in 2 browser tabs
 * EPMRPP-41361 - All launches and not 'Launches with the same name' applied in case of automatic analysis on finish launch
 * EPMRPP-41388 - Level of log is not sent to 'Edit defect type' modal.
+* EPMRPP-41569 - 'AA' flag is shown on UI despite the last action (link issue) was done by user
 * EPMRPP-41055 - Incorrect response (500 error) in Launches page after deleting member from the project.
 * EPMRPP-39525 - Launches and filters are not shown for project if it has name 'project'
+* EPMRPP-40808 - Dashboard. PM can't delete not own shared dashboard

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.auto.strategy;
+package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
@@ -30,7 +30,7 @@ import java.util.List;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
-public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
+public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 
 	private final TestItemRepository testItemRepository;
 
@@ -41,7 +41,7 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 	private final UpdateTestItemHandler updateTestItemHandler;
 
 	@Autowired
-	public AutoAnalyzedCollector(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
+	public ManuallyAnalyzedCollector(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
 			UpdateTestItemHandler updateTestItemHandler) {
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
@@ -51,9 +51,10 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId) {
-		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, launchId, LogLevel.ERROR.toInt());
+		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(false, launchId, LogLevel.ERROR.toInt());
 		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
 		return itemIds;
 	}
+
 }

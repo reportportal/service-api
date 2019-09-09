@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
@@ -113,10 +114,12 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 		if (!Objects.isNull(file)) {
 			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
 					.withFile(file)
-					.withProjectId(projectId)
-					.withLogId(logId)
-					.withLaunchId(launchId)
-					.withItemId(itemId);
+					.withAttachmentMetaInfo(AttachmentMetaInfo.builder()
+							.withProjectId(projectId)
+							.withLaunchId(launchId)
+							.withItemId(itemId)
+							.withLogId(logId)
+							.build());
 
 			taskExecutor.execute(saveLogBinaryDataTask);
 		}

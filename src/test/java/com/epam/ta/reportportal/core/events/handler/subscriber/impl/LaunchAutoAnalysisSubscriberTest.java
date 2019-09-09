@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsCollector;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.util.LaunchFinishedTestUtils;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;

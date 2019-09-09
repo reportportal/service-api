@@ -16,8 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.BinaryData;
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.UserDataStoreService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -30,7 +29,6 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.util.UserUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -41,7 +39,6 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,7 +55,6 @@ import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.HASH
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-import static java.util.Optional.ofNullable;
 
 /**
  * Edit user handler
@@ -73,17 +69,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private final DataStoreService dataStoreService;
+	private final UserDataStoreService userDataStoreService;
 
-	private final DataEncoder dataEncoder;
-
-	@Autowired
-	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, DataStoreService dataStoreService,
-			DataEncoder dataEncoder) {
+	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
+			UserDataStoreService userDataStoreService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
-		this.dataStoreService = dataStoreService;
-		this.dataEncoder = dataEncoder;
+		this.userDataStoreService = userDataStoreService;
 	}
 
 	@Override
@@ -97,7 +89,6 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 			UserRole newRole = UserRole.findByName(editUserRQ.getRole())
 					.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
-			//noinspection ConstantConditions
 			user.setRole(newRole);
 		}
 
@@ -138,9 +129,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 		try {
 			validatePhoto(file);
-			BinaryData binaryData = new BinaryData(file.getContentType(), file.getSize(), file.getInputStream());
-			String path = userRepository.replaceUserPhoto(username, binaryData);
-			user.setAttachment(dataEncoder.encode(path));
+			userDataStoreService.saveUserPhoto(user, file);
 		} catch (IOException e) {
 			fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
 		}
@@ -151,11 +140,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	public OperationCompletionRS deletePhoto(String login) {
 		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
-		ofNullable(user.getAttachment()).ifPresent(attachment -> {
-			dataStoreService.delete(attachment);
-			user.setAttachment(null);
-			user.setAttachmentThumbnail(null);
-		});
+		userDataStoreService.deleteUserPhoto(user);
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
 	}
 

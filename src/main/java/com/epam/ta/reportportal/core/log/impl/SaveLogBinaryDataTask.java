@@ -16,18 +16,11 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
-import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.ws.converter.builders.AttachmentBuilder;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Optional;
 
 /**
  * Save binary data task. Expected to be executed asynchronously. Statefull, so
@@ -41,54 +34,19 @@ import java.util.Optional;
  */
 public class SaveLogBinaryDataTask implements Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SaveLogBinaryDataTask.class);
-
 	@Autowired
-	private CreateAttachmentHandler createAttachmentHandler;
-
-	@Autowired
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	/**
 	 * Binary data representation
 	 */
 	private MultipartFile file;
 
-	private Long projectId;
-
-	private Long launchId;
-
-	private Long itemId;
-	/**
-	 * {@link Log#id} related to this binary data
-	 */
-	private Long logId;
+	private AttachmentMetaInfo attachmentMetaInfo;
 
 	@Override
 	public void run() {
-
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = dataStoreService.save(projectId, file);
-
-		maybeBinaryDataMetaInfo.ifPresent(binaryDataMetaInfo -> {
-			try {
-				Attachment attachment = new AttachmentBuilder().withFileId(maybeBinaryDataMetaInfo.get().getFileId())
-						.withThumbnailId(maybeBinaryDataMetaInfo.get().getThumbnailFileId())
-						.withContentType(file.getContentType())
-						.withProjectId(projectId)
-						.withLaunchId(launchId)
-						.withItemId(itemId)
-						.get();
-
-				createAttachmentHandler.create(attachment, logId);
-			} catch (Exception exception) {
-
-				LOGGER.error("Cannot save log to database, remove files ", exception);
-
-				dataStoreService.delete(binaryDataMetaInfo.getFileId());
-				dataStoreService.delete(binaryDataMetaInfo.getThumbnailFileId());
-				throw exception;
-			}
-		});
+		attachmentDataStoreService.saveFileAndAttachToLog(file, attachmentMetaInfo);
 	}
 
 	public SaveLogBinaryDataTask withFile(MultipartFile file) {
@@ -97,26 +55,9 @@ public class SaveLogBinaryDataTask implements Runnable {
 		return this;
 	}
 
-	public SaveLogBinaryDataTask withProjectId(Long projectId) {
-		Preconditions.checkNotNull(projectId, "Project id should not be null");
-		this.projectId = projectId;
-		return this;
-	}
-
-	public SaveLogBinaryDataTask withLaunchId(Long launchId) {
-		Preconditions.checkNotNull(launchId, "Launch id shouldn't be null");
-		this.launchId = launchId;
-		return this;
-	}
-
-	public SaveLogBinaryDataTask withItemId(Long itemId) {
-		this.itemId = itemId;
-		return this;
-	}
-
-	public SaveLogBinaryDataTask withLogId(Long logId) {
-		Preconditions.checkNotNull(logId, "Log id shouldn't be null");
-		this.logId = logId;
+	public SaveLogBinaryDataTask withAttachmentMetaInfo(AttachmentMetaInfo metaInfo) {
+		Preconditions.checkNotNull(metaInfo);
+		this.attachmentMetaInfo = metaInfo;
 		return this;
 	}
 }

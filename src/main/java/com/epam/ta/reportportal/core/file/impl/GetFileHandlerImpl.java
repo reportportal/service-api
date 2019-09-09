@@ -15,20 +15,23 @@
  */
 package com.epam.ta.reportportal.core.file.impl;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.UserDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
+import java.util.function.Predicate;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -38,38 +41,38 @@ public class GetFileHandlerImpl implements GetFileHandler {
 
 	private final UserRepository userRepository;
 
-	private final DataStoreService dataStoreService;
+	private UserDataStoreService userDataStoreService;
+
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Autowired
-	public GetFileHandlerImpl(UserRepository userRepository, DataStoreService dataStoreService) {
+	public GetFileHandlerImpl(UserRepository userRepository, UserDataStoreService userDataStoreService,
+			AttachmentDataStoreService attachmentDataStoreService) {
 		this.userRepository = userRepository;
-		this.dataStoreService = dataStoreService;
+		this.userDataStoreService = userDataStoreService;
+		this.attachmentDataStoreService = attachmentDataStoreService;
 	}
 
 	@Override
-	public InputStream getUserPhoto(ReportPortalUser loggedInUser) {
-
+	public BinaryData getUserPhoto(ReportPortalUser loggedInUser, boolean loadThumbnail) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-
-		String path = ofNullable(user.getAttachment()).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-				formattedSupplier("User - '{}' does not have a photo.", user.getLogin())
-		));
-		return dataStoreService.load(path);
+		return userDataStoreService.loadUserPhoto(user, loadThumbnail);
 	}
 
 	@Override
-	public InputStream getUserPhoto(String username, ReportPortalUser loggedInUser) {
+	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails,
+			boolean loadThumbnail) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-
-		String path = ofNullable(user.getAttachment()).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-				formattedSupplier("User - '{}' does not have a photo.", user.getLogin())
-		));
-		return dataStoreService.load(path);
+		expect(
+				ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
+				Predicate.isEqual(true)
+		).verify(ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'", projectDetails.getProjectName()));
+		return userDataStoreService.loadUserPhoto(user, loadThumbnail);
 	}
 
 	@Override
-	public InputStream loadFileById(String fileId) {
-		return dataStoreService.load(fileId);
+	public BinaryData loadFileById(String fileId, ReportPortalUser.ProjectDetails projectDetails) {
+		return attachmentDataStoreService.load(fileId, projectDetails);
 	}
 }

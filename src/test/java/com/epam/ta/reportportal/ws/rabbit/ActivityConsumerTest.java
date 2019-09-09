@@ -49,7 +49,7 @@ class ActivityConsumerTest {
 
 	@Test
 	void nullTest() {
-		activityConsumer.onEvent(new EmptyActivity());
+		activityConsumer.onEvent(new EmptyActivity().toActivity());
 		verifyZeroInteractions(activityRepository);
 	}
 
@@ -82,7 +82,7 @@ class ActivityConsumerTest {
 	void consume() {
 		NotEmptyActivity notEmptyActivity = new NotEmptyActivity(1L, 2L, "username", 3L);
 
-		activityConsumer.onEvent(notEmptyActivity);
+		activityConsumer.onEvent(notEmptyActivity.toActivity());
 
 		verify(activityRepository, times(1)).save(any());
 	}

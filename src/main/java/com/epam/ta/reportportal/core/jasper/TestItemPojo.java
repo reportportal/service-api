@@ -60,7 +60,7 @@ public class TestItemPojo {
 		this.status = input.getItemResults().getStatus().name();
 
 		this.duration = Duration.between(input.getStartTime(), input.getItemResults().getEndTime()).toMillis()
-				/ (double) org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
+				/ (double) org.apache.commons.lang3.time.DateUtils.MILLIS_PER_SECOND;
 
 		Set<Statistics> statistics = input.getItemResults().getStatistics();
 

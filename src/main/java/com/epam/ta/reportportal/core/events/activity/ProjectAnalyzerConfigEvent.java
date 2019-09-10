@@ -49,9 +49,9 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 						.addActivityEntityType(PROJECT)
 						.addUserId(getUserId())
 						.addUserName(getUserLogin())
-						.addObjectId(getAfter().getProjectId())
-						.addObjectName(getAfter().getProjectName())
-						.addProjectId(getAfter().getProjectId())
+						.addObjectId(getBefore().getProjectId())
+						.addObjectName(getBefore().getProjectName())
+						.addProjectId(getBefore().getProjectId())
 						.addHistoryField(processParameter(getBefore().getConfig(),
 								getAfter().getConfig(),
 								AUTO_ANALYZER_MODE.getAttribute()

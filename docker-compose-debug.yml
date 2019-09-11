@@ -16,11 +16,11 @@ services:
   api:
     build:
       context: .
-      dockerfile: docker/Dockerfile-local
+      dockerfile: docker/Dockerfile-debug
     volumes:
-      - ./data/storage:/data/storage
-      - ./plugins:/plugins
-      - ./logs:/var
+      - ./tmp/data/storage:/data/storage
+      - ./tmo/plugins:/plugins
+      - ./tmp/logs:/var
     ports:
       - "8585:8585"
     environment:

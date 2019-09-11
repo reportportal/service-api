@@ -7,6 +7,7 @@ import org.apache.tika.Tika;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -23,15 +24,15 @@ public class MultipartFileUtils {
 
 	public static CommonsMultipartFile getMultipartFile(String path) throws IOException {
 		ClassPathResource resource = new ClassPathResource(path);
-		InputStream inputStream = resource.getInputStream();
+		InputStream bufferedInputStream = new BufferedInputStream(resource.getInputStream());
 		FileItem fileItem = new DiskFileItem("mainFile",
-				tika.detect(inputStream),
+				tika.detect(bufferedInputStream),
 				false,
 				resource.getFilename(),
-				inputStream.available(),
+				bufferedInputStream.available(),
 				null
 		);
-		IOUtils.copy(inputStream, fileItem.getOutputStream());
+		IOUtils.copy(bufferedInputStream, fileItem.getOutputStream());
 		return new CommonsMultipartFile(fileItem);
 	}
 }

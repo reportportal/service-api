@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
@@ -109,8 +108,6 @@ public class TopTestCasesContentLoader implements LoadContentStrategy {
 	private String validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(contentFields.size(), Predicate.isEqual(1))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Only one content field could be specified.");
 		return contentFields.get(0);
 	}
 }

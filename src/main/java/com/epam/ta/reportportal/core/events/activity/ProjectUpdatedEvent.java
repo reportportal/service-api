@@ -50,9 +50,9 @@ public class ProjectUpdatedEvent extends AroundEvent<ProjectAttributesActivityRe
 						.addActivityEntityType(PROJECT)
 						.addUserId(getUserId())
 						.addUserName(getUserLogin())
-						.addObjectId(getAfter().getProjectId())
-						.addObjectName(getAfter().getProjectName())
-						.addProjectId(getAfter().getProjectId())
+						.addObjectId(getBefore().getProjectId())
+						.addObjectName(getBefore().getProjectName())
+						.addProjectId(getBefore().getProjectId())
 						.addHistoryField(processParameter(getBefore().getConfig(),
 								getAfter().getConfig(),
 								INTERRUPT_JOB_TIME.getAttribute()

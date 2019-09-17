@@ -251,3 +251,4 @@
 * EPMRPP-41055 - Incorrect response (500 error) in Launches page after deleting member from the project.
 * EPMRPP-39525 - Launches and filters are not shown for project if it has name 'project'
 * EPMRPP-40808 - Dashboard. PM can't delete not own shared dashboard
+* EPMRPP-41168 - Admin can't delete test items on the Step View

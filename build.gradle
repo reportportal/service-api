@@ -67,7 +67,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:8706fef"
+        mavenBom "com.github.reportportal:commons-bom:7fd984c"
     }
 }
 
@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
-        compile 'com.github.reportportal:commons-dao:197c9ee'
+        compile 'com.github.reportportal:commons-dao:42d2f76'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:a4e04fa'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
@@ -142,7 +142,7 @@ dependencies {
     compile 'net.sf.jasperreports:jasperreports:6.9.0'
     //JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
     //higher than 3.14 since 3.15 contains breaking API changes
-    compile 'org.apache.poi:poi:3.17'
+    compile 'org.apache.poi:poi:4.1.0'
 
     compile 'com.google.code.findbugs:annotations:3.0.1'
 

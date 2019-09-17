@@ -1,22 +1,18 @@
-spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: ${rp.db.url}
-  rabbitmq:
-    addresses: ${rp.amqp.addresses}
-
 rp:
   amqp:
-    addresses: amqp://rabbitmq:rabbitmq@localhost:5672
-    api-address: http://rabbitmq:rabbitmq@localhost:15672/api
+    host: localhost
   db:
-    url: jdbc:postgresql://localhost:5432/reportportal?user=rpuser&password=rppass
+    host: localhost
   plugins:
-    path: /Users/pavel_bortnik/IdeaProjects/service-api/plugins
+    rootDir: plugins
+  datasource:
+    maximumPoolSize: 5
   binarystore:
-    path: /Users/pavel_bortnik/IdeaProjects/service-api/data/storage
+    type: filesystem
+    path: ${java.io.tmpdir}\reportportal\datastore\
 
 logging:
+  file: ${java.io.tmpdir}\reportportal\logs\${spring.application.name}.log
   level:
     org:
       hibernate:

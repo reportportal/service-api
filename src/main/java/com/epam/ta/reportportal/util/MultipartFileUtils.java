@@ -3,33 +3,36 @@ package com.epam.ta.reportportal.util;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public class MultipartFileUtils {
 
+	private static Tika tika = new Tika();
+
 	private MultipartFileUtils() {
 		//static only
 	}
 
 	public static CommonsMultipartFile getMultipartFile(String path) throws IOException {
-		File file = new ClassPathResource(path).getFile();
+		ClassPathResource resource = new ClassPathResource(path);
+		InputStream bufferedInputStream = new BufferedInputStream(resource.getInputStream());
 		FileItem fileItem = new DiskFileItem("mainFile",
-				Files.probeContentType(file.toPath()),
+				tika.detect(bufferedInputStream),
 				false,
-				file.getName(),
-				(int) file.length(),
-				file.getParentFile()
+				resource.getFilename(),
+				bufferedInputStream.available(),
+				null
 		);
-		IOUtils.copy(new FileInputStream(file), fileItem.getOutputStream());
+		IOUtils.copy(bufferedInputStream, fileItem.getOutputStream());
 		return new CommonsMultipartFile(fileItem);
 	}
 }

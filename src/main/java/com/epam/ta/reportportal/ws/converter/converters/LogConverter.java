@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * Converts internal DB model to DTO

@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
+import com.epam.reportportal.extension.plugin.Plugin;
+import com.epam.reportportal.extension.plugin.manager.PluginBox;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

@@ -15,8 +15,8 @@
  */
 package com.epam.ta.reportportal.info;
 
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
-import com.epam.ta.reportportal.core.plugin.Plugin;
+import com.epam.reportportal.extension.plugin.Plugin;
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

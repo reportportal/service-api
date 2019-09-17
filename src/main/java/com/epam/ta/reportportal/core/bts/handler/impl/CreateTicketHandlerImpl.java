@@ -18,12 +18,12 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.plugin.manager.PluginBox;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;

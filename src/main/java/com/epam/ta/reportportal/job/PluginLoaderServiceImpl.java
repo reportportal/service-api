@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.plugin.PluginInfo;
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.google.common.collect.Lists;
@@ -28,6 +28,7 @@ import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -46,12 +50,14 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PluginLoaderServiceImpl.class);
 
+	private final String pluginSerivce;
 	private final IntegrationTypeRepository integrationTypeRepository;
-
 	private final Pf4jPluginBox pluginBox;
 
 	@Autowired
-	public PluginLoaderServiceImpl(IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pluginBox) {
+	public PluginLoaderServiceImpl(@Value("${rp.plugins.service}") String pluginService,
+			IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pluginBox) {
+		this.pluginSerivce = pluginService;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginBox = pluginBox;
 	}
@@ -68,18 +74,18 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 				.filter(this::isMandatoryFieldsExist)
 				.forEach(it -> {
 
-					Map<IntegrationDetailsProperties, Object> pluginProperties = retrievePluginProperties(it);
+					Map<IntegrationTypeProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
+					if (pluginSerivce.equalsIgnoreCase(String.valueOf(pluginProperties.get(VERSION))) && (!pluginWrapper.isPresent()
+							|| !String.valueOf(pluginProperties.get(IntegrationTypeProperties.VERSION))
+							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion()))) {
 
-					if (!pluginWrapper.isPresent() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
-							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
-
-						PluginInfo pluginInfo = new PluginInfo(
-								it.getName(),
-								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION)),
-								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_ID)),
-								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_NAME)),
+						PluginInfo pluginInfo = new PluginInfo(it.getName(),
+								String.valueOf(pluginProperties.get(IntegrationTypeProperties.VERSION)),
+								String.valueOf(pluginProperties.get(SERVICE)),
+								String.valueOf(pluginProperties.get(FILE_ID)),
+								String.valueOf(pluginProperties.get(FILE_NAME)),
 								it.isEnabled()
 						);
 
@@ -103,15 +109,15 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 	private boolean isMandatoryFieldsExist(IntegrationType integrationType) {
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		return Arrays.stream(IntegrationDetailsProperties.values()).allMatch(property -> property.getValue(details).isPresent());
+		return Stream.of(FILE_ID, VERSION, SERVICE, FILE_NAME).allMatch(property -> property.getValue(details).isPresent());
 
 	}
 
-	private Map<IntegrationDetailsProperties, Object> retrievePluginProperties(IntegrationType integrationType) {
+	private Map<IntegrationTypeProperties, Object> retrievePluginProperties(IntegrationType integrationType) {
 
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		Map<IntegrationDetailsProperties, Object> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
-		Arrays.stream(IntegrationDetailsProperties.values())
+		Map<IntegrationTypeProperties, Object> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationTypeProperties.values().length);
+		Arrays.stream(IntegrationTypeProperties.values())
 				.forEach(property -> property.getValue(details).ifPresent(value -> pluginProperties.put(property, value)));
 		return pluginProperties;
 	}
@@ -122,7 +128,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 			return false;
 		} else {
 			return pluginBox.getPluginById(integrationType.getName()).map(p -> {
-				if (pluginBox.unloadPlugin(p.getPluginId())) {
+				if (pluginBox.unloadPlugin(integrationType)) {
 					try {
 						Files.deleteIfExists(p.getPluginPath());
 						return true;

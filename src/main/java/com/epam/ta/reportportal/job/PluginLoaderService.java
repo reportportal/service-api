@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
+import com.epam.reportportal.extension.plugin.PluginInfo;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 
 import java.util.List;

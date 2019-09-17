@@ -17,20 +17,23 @@
 package com.epam.ta.reportportal.plugin;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.plugin.Plugin;
+import com.epam.reportportal.extension.plugin.PluginInfo;
+import com.epam.reportportal.extension.plugin.loader.PluginLoader;
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginManager;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.plugin.Plugin;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.pf4j.*;
-import rp.com.google.common.collect.Sets;
+import org.pf4j.PluginException;
+import org.pf4j.PluginManager;
+import org.pf4j.PluginState;
+import org.pf4j.PluginWrapper;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +46,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -53,33 +55,30 @@ class Pf4jPluginManagerTest {
 
 	public static final String PLUGINS_PATH = "plugins";
 	public static final String PLUGINS_TEMP_PATH = "plugins/temp";
+	public static final String PLUGINS_RESOURCES_PATH = "resources";
 	public static final String NEW_PLUGIN_FILE_NAME = "plugin.jar";
 	public static final String NEW_PLUGIN_ID = "jira";
 
 	private final PluginLoader pluginLoader = mock(PluginLoader.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
-	private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
-	private final ExtensionFactory extensionFactory = mock(ExtensionFactory.class);
+	private final AutowireCapableBeanFactory beanFactory = mock(AutowireCapableBeanFactory.class);
 	private final PluginManager pluginManager = mock(PluginManager.class);
 	private final PluginWrapper previousPlugin = mock(PluginWrapper.class);
 	private final PluginWrapper newPlugin = mock(PluginWrapper.class);
 
-	private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(PLUGINS_PATH,
+	private final Pf4jPluginManager pluginBox = new Pf4jPluginManager("api",
+			PLUGINS_PATH,
 			PLUGINS_TEMP_PATH,
+			PLUGINS_RESOURCES_PATH,
 			pluginLoader,
 			integrationTypeRepository,
-			Sets.newHashSet(pluginDescriptorFinder),
-			extensionFactory
+			pluginManager,
+			beanFactory
 	);
 
 	private final InputStream fileStream = mock(InputStream.class);
 
 	Pf4jPluginManagerTest() throws IOException {
-	}
-
-	@BeforeEach
-	void setPluginManager() {
-		pluginBox.setPluginManager(pluginManager);
 	}
 
 	@AfterEach
@@ -102,7 +101,7 @@ class Pf4jPluginManagerTest {
 		when(pluginManager.getPlugin(NEW_PLUGIN_ID)).thenReturn(newPlugin);
 		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
 		when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
-		when(pluginLoader.savePlugin(NEW_PLUGIN_FILE_NAME, fileStream)).thenReturn(NEW_PLUGIN_ID);
+		doNothing().when(pluginLoader).savePlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME), fileStream);
 		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_PLUGIN_ID);
 		when(integrationTypeRepository.save(any(IntegrationType.class))).thenReturn(jiraIntegrationType);
 		Path file = Files.createFile(Paths.get(PLUGINS_TEMP_PATH, "plugin.jar"));
@@ -222,10 +221,10 @@ class Pf4jPluginManagerTest {
 	}
 
 	private PluginInfo getPluginInfo() {
-		return new PluginInfo("old_jira", "1.0");
+		return new PluginInfo("old_jira", "1.0", "api");
 	}
 
 	private PluginInfo getPluginInfoWithoutVersion() {
-		return new PluginInfo("jira", null);
+		return new PluginInfo("jira", null, "api");
 	}
 }

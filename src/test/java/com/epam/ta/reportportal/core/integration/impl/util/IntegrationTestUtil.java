@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.impl.util;
 
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -25,6 +26,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.collect.Maps;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -107,7 +109,9 @@ public final class IntegrationTestUtil {
 		integrationType.setId(1L);
 		integrationType.setIntegrationGroup(IntegrationGroupEnum.BTS);
 		IntegrationTypeDetails details = new IntegrationTypeDetails();
-		details.setDetails(Maps.newHashMap());
+		HashMap<String, Object> detailsMap = Maps.newHashMap();
+		detailsMap.put(IntegrationTypeProperties.SERVICE.getAttribute(), "api");
+		details.setDetails(detailsMap);
 		integrationType.setDetails(details);
 
 		return integrationType;

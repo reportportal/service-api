@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.plugin.PluginInfo;
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
@@ -78,7 +78,7 @@ class PluginLoaderServiceTest {
 		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
 		when(jiraPlugin.getPluginId()).thenReturn("jira");
 		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get("plugins", "file.jar"));
-		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(true);
+		when(pluginBox.unloadPlugin(integrationType)).thenReturn(true);
 
 		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 
@@ -93,7 +93,7 @@ class PluginLoaderServiceTest {
 
 		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
 		when(jiraPlugin.getPluginId()).thenReturn("jira");
-		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(false);
+		when(pluginBox.unloadPlugin(integrationType)).thenReturn(false);
 
 		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 
@@ -117,19 +117,21 @@ class PluginLoaderServiceTest {
 		jira.setName("jira");
 		IntegrationTypeDetails jiraDetails = new IntegrationTypeDetails();
 		Map<String, Object> jiraParams = Maps.newHashMap();
-		jiraParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f1");
-		jiraParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname1");
-		jiraParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v1");
-		jiraParams.put(IntegrationDetailsProperties.COMMANDS.getAttribute(), "");
+		jiraParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f1");
+		jiraParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname1");
+		jiraParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v1");
+		jiraParams.put(IntegrationTypeProperties.SERVICE.getAttribute(), "api");
+		jiraParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
 		jiraDetails.setDetails(jiraParams);
 		jira.setDetails(jiraDetails);
 
 		IntegrationType rally = new IntegrationType();
 		Map<String, Object> rallyParams = Maps.newHashMap();
-		rallyParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f2");
-		rallyParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname2");
-		rallyParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v2");
-		rallyParams.put(IntegrationDetailsProperties.COMMANDS.getAttribute(), "");
+		rallyParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f2");
+		rallyParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname2");
+		rallyParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v2");
+		rallyParams.put(IntegrationTypeProperties.SERVICE.getAttribute(), "api");
+		rallyParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
 		IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
 		rallyDetails.setDetails(rallyParams);
 		rally.setName("rally");

@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.reportportal.extension.plugin.manager.PluginBox;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.admin.ServerAdminHandlerImpl;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;

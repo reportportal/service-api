@@ -16,22 +16,21 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.reportportal.extension.plugin.PluginInfo;
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -54,6 +53,7 @@ class LoadPluginsJobTest {
 	private DataStore dataStore = mock(DataStore.class);
 
 	private PluginWrapper rallyPlugin = mock(PluginWrapper.class);
+	private IntegrationType rally = mock(IntegrationType.class);
 
 	private LoadPluginsJob loadPluginsJob = new LoadPluginsJob(pluginsRootPath,
 			integrationTypeRepository,
@@ -78,12 +78,12 @@ class LoadPluginsJobTest {
 		tempFile.deleteOnExit();
 
 		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
-		when(pluginBox.loadPlugin(any(Path.class))).thenReturn("jira");
-		when(pluginBox.startUpPlugin(any(String.class))).thenReturn(PluginState.STARTED);
+		when(pluginBox.loadPlugin(any(String.class), any(IntegrationTypeDetails.class))).thenReturn(true);
 		when(pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes)).thenReturn(pluginInfos);
 		when(pluginBox.getPluginById(any(String.class))).thenReturn(java.util.Optional.ofNullable(rallyPlugin));
 		when(rallyPlugin.getPluginId()).thenReturn("rally");
-		when(pluginBox.unloadPlugin(rallyPlugin.getPluginId())).thenReturn(true);
+		when(integrationTypeRepository.findByName(any(String.class))).thenReturn(java.util.Optional.ofNullable(rally));
+		when(pluginBox.unloadPlugin(rally)).thenReturn(true);
 
 		loadPluginsJob.execute();
 	}
@@ -98,8 +98,8 @@ class LoadPluginsJobTest {
 
 	private List<PluginInfo> getPluginInfos() {
 
-		return Lists.newArrayList(new PluginInfo("jira", "v1.0", "file Id", "jira file", true),
-				new PluginInfo("rally", "v2.0", "file Id", "rally file", false)
+		return Lists.newArrayList(new PluginInfo("jira", "v1.0", "api", "file Id", "jira file", true),
+				new PluginInfo("rally", "v2.0", "api", "file Id", "rally file", false)
 		);
 	}
 

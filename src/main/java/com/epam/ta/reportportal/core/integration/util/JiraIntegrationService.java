@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.reportportal.extension.plugin.manager.PluginBox;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;

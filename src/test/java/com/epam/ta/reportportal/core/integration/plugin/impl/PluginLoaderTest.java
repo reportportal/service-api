@@ -17,14 +17,19 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.reportportal.extension.common.descriptor.RpManifestPluginDescriptorFinder;
+import com.epam.reportportal.extension.common.descriptor.RpPluginDescriptor;
+import com.epam.reportportal.extension.plugin.PluginInfo;
+import com.epam.reportportal.extension.plugin.loader.PluginLoader;
+import com.epam.reportportal.extension.plugin.loader.PluginLoaderImpl;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
-import org.pf4j.*;
+import org.pf4j.PluginException;
+import org.pf4j.PluginManager;
+import org.pf4j.PluginWrapper;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -46,13 +51,13 @@ public class PluginLoaderTest {
 
 	private final String pluginRootPath = "plugins";
 
-	private final DataStore dataStore= mock(DataStore.class);
+	private final DataStore dataStore = mock(DataStore.class);
 
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
-	private final PluginDescriptorFinder pluginDescriptorFinder = mock(PluginDescriptorFinder.class);
+	private final RpManifestPluginDescriptorFinder pluginDescriptorFinder = mock(RpManifestPluginDescriptorFinder.class);
 
-	private final PluginDescriptor pluginDescriptor = mock(PluginDescriptor.class);
+	private final RpPluginDescriptor pluginDescriptor = mock(RpPluginDescriptor.class);
 
 	private final PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
@@ -60,8 +65,11 @@ public class PluginLoaderTest {
 
 	private final PluginInfo pluginInfo = mock(PluginInfo.class);
 
-	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, dataStore, integrationTypeRepository,
-			pluginDescriptorFinder);
+	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath,
+			dataStore,
+			integrationTypeRepository,
+			pluginDescriptorFinder
+	);
 
 	@Test
 	void shouldExtractPluginIdWhenExists() throws PluginException {

@@ -93,8 +93,11 @@ rp:
   analytics:
     enableByDefault: true
   plugins:
-    rootDir: /plugins
-    path: ${rp.plugins.rootDir}/resolved
+    service: api
+    rootDir: /plugins/api
+    resolved:
+      path: ${rp.plugins.rootDir}/resolved
+      resources: ${rp.plugins.rootDir}/resources
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:

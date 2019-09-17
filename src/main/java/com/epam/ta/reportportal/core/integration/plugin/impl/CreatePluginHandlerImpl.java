@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;

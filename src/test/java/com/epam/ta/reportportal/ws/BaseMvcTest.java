@@ -17,10 +17,10 @@
 package com.epam.ta.reportportal.ws;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
+import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
 import com.epam.ta.reportportal.TestConfig;
 import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import org.flywaydb.test.FlywayTestExecutionListener;

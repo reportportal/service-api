@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.IntegrationCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.IntegrationUpdatedEvent;
@@ -33,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -40,6 +43,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.ws.converter.converters.IntegrationConverter.TO_ACTIVITY_RESOURCE;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -79,6 +83,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integrationType.getName(),
 				this.basicIntegrationService
 		);
+
+		ofNullable(createRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
+			validateGlobalIntegrationUniqueness(name, integrationType);
+			createRequest.setName(name);
+		});
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setCreator(user.getUsername());
 		integrationService.validateIntegration(integration);
@@ -102,6 +111,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				this.basicIntegrationService
 		);
 
+		ofNullable(createRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
+			validateProjectIntegrationUniqueness(name, integrationType, project);
+			createRequest.setName(name);
+		});
+
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setProject(project);
 		integration.setCreator(user.getUsername());
@@ -121,17 +135,25 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 	@Override
 	public OperationCompletionRS updateGlobalIntegration(Long id, IntegrationRQ updateRequest) {
 
-		Integration integration = integrationRepository.findGlobalById(id)
+		final Integration integration = integrationRepository.findGlobalById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+
+		ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
+			if (!name.equals(integration.getName())) {
+				validateGlobalIntegrationUniqueness(name, integration.getType());
+				updateRequest.setName(name);
+			}
+		});
+
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
 				this.basicIntegrationService
 		);
 
-		integration = integrationService.updateIntegration(integration, updateRequest);
-		integrationService.checkConnection(integration);
-		integrationRepository.save(integration);
+		Integration updatedIntegration = integrationService.updateIntegration(integration, updateRequest);
+		integrationService.checkConnection(updatedIntegration);
+		integrationRepository.save(updatedIntegration);
 
-		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully updated.");
+		return new OperationCompletionRS("Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
 	}
 
 	@Override
@@ -140,22 +162,56 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 
-		Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
+		final Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
+
+		ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
+			if (!name.equals(integration.getName())) {
+				validateProjectIntegrationUniqueness(name, integration.getType(), project);
+				updateRequest.setName(name);
+			}
+		});
+
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
 				this.basicIntegrationService
 		);
-		integration = integrationService.updateIntegration(integration, updateRequest);
-		integration.setProject(project);
-		integrationService.checkConnection(integration);
-		integrationRepository.save(integration);
+		Integration updatedIntegration = integrationService.updateIntegration(integration, updateRequest);
+		updatedIntegration.setProject(project);
+		integrationService.checkConnection(updatedIntegration);
+		integrationRepository.save(updatedIntegration);
 
-		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),
+		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(updatedIntegration),
 				user.getUserId(),
 				user.getUsername()
 		));
 
-		return new OperationCompletionRS("Integration with id = " + integration.getId() + " has been successfully updated.");
+		return new OperationCompletionRS("Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
+	}
+
+	private void validateGlobalIntegrationUniqueness(String integrationName, IntegrationType integrationType) {
+		BusinessRule.expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integrationName, integrationType.getId()),
+				BooleanUtils::isFalse
+		)
+				.verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+						Suppliers.formattedSupplier("Global integration of type = '{}' with name = '{}' already exists",
+								integrationType.getName(),
+								integrationName
+						)
+				);
+	}
+
+	private void validateProjectIntegrationUniqueness(String integrationName, IntegrationType integrationType, Project project) {
+		BusinessRule.expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integrationName,
+				integrationType.getId(),
+				project.getId()
+		), BooleanUtils::isFalse)
+				.verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+						Suppliers.formattedSupplier("Project integration of type = '{}' with name = '{}' already exists on project = '{}'",
+								integrationType.getName(),
+								integrationName,
+								project.getName()
+						)
+				);
 	}
 
 }

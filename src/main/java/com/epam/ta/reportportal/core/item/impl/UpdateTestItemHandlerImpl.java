@@ -274,11 +274,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	}
 
 	private void checkInitialStatusAttribute(TestItem testItem) {
-		Optional<ItemAttribute> statusAttirbute = testItem.getAttributes()
+		Optional<ItemAttribute> statusAttribute = testItem.getAttributes()
 				.stream()
-				.filter(attribute -> attribute.getKey().equalsIgnoreCase(INITIAL_STATUS_ATTRIBUTE_KEY) && attribute.isSystem())
+				.filter(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey()) && attribute.isSystem())
 				.findAny();
-		if (!statusAttirbute.isPresent()) {
+		if (!statusAttribute.isPresent()) {
 			ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
 					testItem.getItemResults().getStatus().getExecutionCounterField(),
 					true

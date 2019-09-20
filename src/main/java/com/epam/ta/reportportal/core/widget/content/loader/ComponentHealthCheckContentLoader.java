@@ -67,15 +67,17 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			String[] attributes, Map<String, String> params, int limit) {
 
-		validateContentFields(contentFields);
 		validateWidgetOptions(widgetOptions);
+
+		List<String> attributeKeys = WidgetOptionUtil.getListByKey(ATTRIBUTE_KEYS, widgetOptions);
+		validateAttributeKeys(attributeKeys);
 
 		List<String> attributeValues = ofNullable(attributes).map(Arrays::asList).orElseGet(Collections::emptyList);
 
 		validateAttributeValues(attributeValues);
 
 		int currentLevel = attributeValues.size();
-		BusinessRule.expect(contentFields, keys -> keys.size() > currentLevel)
+		BusinessRule.expect(attributeKeys, keys -> keys.size() > currentLevel)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect level definition");
 
 		Filter launchesFilter = GROUP_FILTERS.apply(filterSortMapping.keySet());
@@ -85,10 +87,10 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 
 		Filter testItemFilter = Filter.builder()
 				.withTarget(TestItem.class)
-				.withCondition(getTestItemCondition(contentFields, attributeValues))
+				.withCondition(getTestItemCondition(attributeKeys, attributeValues))
 				.build();
 
-		String currentLevelKey = contentFields.get(currentLevel);
+		String currentLevelKey = attributeKeys.get(currentLevel);
 
 		List<ComponentHealthCheckContent> content = widgetContentRepository.componentHealthCheck(launchesFilter,
 				launchesSort,
@@ -101,12 +103,12 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 		return CollectionUtils.isNotEmpty(content) ? Collections.singletonMap(RESULT, content) : emptyMap();
 	}
 
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(contentFields, CollectionUtils::isNotEmpty)
+	private void validateAttributeKeys(List<String> attributeKeys) {
+		BusinessRule.expect(attributeKeys, CollectionUtils::isNotEmpty)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "No keys were specified");
-		BusinessRule.expect(contentFields, cf -> cf.size() <= MAX_LEVEL_NUMBER)
+		BusinessRule.expect(attributeKeys, cf -> cf.size() <= MAX_LEVEL_NUMBER)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
-		contentFields.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
+		attributeKeys.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not null"));
 	}
 

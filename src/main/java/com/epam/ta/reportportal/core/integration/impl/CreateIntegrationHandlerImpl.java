@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -84,10 +85,12 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				this.basicIntegrationService
 		);
 
-		ofNullable(createRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
-			validateGlobalIntegrationUniqueness(name, integrationType);
-			createRequest.setName(name);
-		});
+		String integrationName = ofNullable(createRequest.getName()).map(String::toLowerCase).map(name -> {
+			validateGlobalIntegrationName(name, integrationType);
+			return name;
+		}).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not null"));
+		createRequest.setName(integrationName);
+
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setCreator(user.getUsername());
 		integrationService.validateIntegration(integration);
@@ -111,10 +114,11 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				this.basicIntegrationService
 		);
 
-		ofNullable(createRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
-			validateProjectIntegrationUniqueness(name, integrationType, project);
-			createRequest.setName(name);
-		});
+		String integrationName = ofNullable(createRequest.getName()).map(String::toLowerCase).map(name -> {
+			validateProjectIntegrationName(name, integrationType, project);
+			return name;
+		}).orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not null"));
+		createRequest.setName(integrationName);
 
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setProject(project);
@@ -140,7 +144,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
 			if (!name.equals(integration.getName())) {
-				validateGlobalIntegrationUniqueness(name, integration.getType());
+				validateGlobalIntegrationName(name, integration.getType());
 				updateRequest.setName(name);
 			}
 		});
@@ -167,7 +171,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
 			if (!name.equals(integration.getName())) {
-				validateProjectIntegrationUniqueness(name, integration.getType(), project);
+				validateProjectIntegrationName(name, integration.getType(), project);
 				updateRequest.setName(name);
 			}
 		});
@@ -188,7 +192,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		return new OperationCompletionRS("Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
 	}
 
-	private void validateGlobalIntegrationUniqueness(String integrationName, IntegrationType integrationType) {
+	private void validateGlobalIntegrationName(String integrationName, IntegrationType integrationType) {
+		BusinessRule.expect(integrationName, StringUtils::isNotBlank)
+				.verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
 		BusinessRule.expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integrationName, integrationType.getId()),
 				BooleanUtils::isFalse
 		)
@@ -200,7 +206,9 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 				);
 	}
 
-	private void validateProjectIntegrationUniqueness(String integrationName, IntegrationType integrationType, Project project) {
+	private void validateProjectIntegrationName(String integrationName, IntegrationType integrationType, Project project) {
+		BusinessRule.expect(integrationName, StringUtils::isNotBlank)
+				.verify(ErrorType.INCORRECT_INTEGRATION_NAME, "Integration name should be not empty");
 		BusinessRule.expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integrationName,
 				integrationType.getId(),
 				project.getId()

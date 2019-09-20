@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.ComponentHealthCheckContent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -40,8 +41,7 @@ import java.util.stream.IntStream;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.KEY_VALUE_SEPARATOR;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
 import static java.util.Collections.emptyMap;
@@ -68,6 +68,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 			String[] attributes, Map<String, String> params, int limit) {
 
 		validateContentFields(contentFields);
+		validateWidgetOptions(widgetOptions);
 
 		List<String> attributeValues = ofNullable(attributes).map(Arrays::asList).orElseGet(Collections::emptyList);
 
@@ -107,6 +108,20 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
 		contentFields.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not null"));
+	}
+
+	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		WidgetOptionUtil.getIntegerByKey(MIN_PASSING_RATE, widgetOptions)
+				.map(value -> {
+					BusinessRule.expect(value, v -> v >= 0 && v <= 100)
+							.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+									"Minimum passing rate value should be greater or equal to 0 and less or equal to 100"
+							);
+					return value;
+				})
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+						"Minimum passing rate option was not specified"
+				));
 	}
 
 	private void validateAttributeValues(List<String> attributeValues) {

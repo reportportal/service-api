@@ -203,9 +203,8 @@ INSERT INTO public.filter_condition (id, filter_id, condition, value, search_cri
 INSERT INTO public.filter_sort (id, filter_id, field, direction) VALUES (1, 1, 'name', 'ASC');
 
 INSERT INTO public.shareable_entity (id, shared, owner, project_id) VALUES (2, false, 'superadmin', 1);
-INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options) VALUES (2, 'health', null, 'componentHealthCheck', 10, '{"options": {"latest": ""}}');
-INSERT INTO public.content_field (id, field) VALUES (2, 'build');
-INSERT INTO public.content_field (id, field) VALUES (2, 'platform');
-INSERT INTO public.content_field (id, field) VALUES (2, 'os');
+INSERT INTO public.widget (id, name, description, widget_type, items_count, widget_options) VALUES (2, 'health', null, 'componentHealthCheck', 10, '{"options": {"latest": "", "minPassingRate": 50, "attributeKeys": [
+"build", "platform", "os"
+]}}');
 
 INSERT INTO public.widget_filter (widget_id, filter_id) VALUES (2, 1);

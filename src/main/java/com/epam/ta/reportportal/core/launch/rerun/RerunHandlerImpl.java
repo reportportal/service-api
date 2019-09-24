@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.rerun;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
+import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -37,6 +38,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -61,6 +63,9 @@ public class RerunHandlerImpl implements RerunHandler {
 	private final LaunchRepository launchRepository;
 	private final UniqueIdGenerator uniqueIdGenerator;
 	private final MessageBus messageBus;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
@@ -144,6 +149,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		item.setDescription(request.getDescription());
 		if (item.getType().sameLevel(STEP)) {
+			eventPublisher.publishEvent(new ItemRetryEvent(launch.getProjectId(), item.getItemId()));
 			item = makeRetry(request, launch, parent);
 		}
 		ofNullable(request.getUuid()).ifPresent(item::setUuid);

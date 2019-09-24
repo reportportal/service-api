@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@Disabled
 class ProjectInfoWidgetDataConverterTest {
 
 	private ProjectInfoWidgetDataConverter converter;

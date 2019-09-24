@@ -34,9 +34,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -86,8 +86,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRQ.getIntegrationParams());
 		IntegrationParams params = getIntegrationParams(integration, integrationParams);
 		integration.setParams(params);
-		Optional.ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
-		Optional.ofNullable(integrationRQ.getName()).ifPresent(integration::setName);
+		ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
+		ofNullable(integrationRQ.getName()).ifPresent(integration::setName);
 		return integration;
 	}
 
@@ -117,7 +117,7 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 						integration.getType().getName()
 				));
 
-		PluginCommand commandToExecute = Optional.ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND))
+		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND))
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 						"Command {} is not found in plugin {}.",
 						TEST_CONNECTION_COMMAND,

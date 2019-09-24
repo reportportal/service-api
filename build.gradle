@@ -90,15 +90,15 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-12'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-13'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-12'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-13'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
-        compile 'com.github.reportportal:commons-dao:383d08c4'
+        compile 'com.github.reportportal:commons-dao:5.0.0-BETA-13'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:f9127f0'
+        compile 'com.github.reportportal:commons-model:5.0.0-BETA-13'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
         compile('com.github.reportportal:plugin-api:5.0.0-BETA-7')
     }

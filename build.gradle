@@ -100,7 +100,7 @@ dependencies {
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:520b7d86'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
-        compile('com.github.reportportal:plugin-api:e7d09f33')
+        compile('com.github.reportportal:plugin-api:fa28977c')
     }
 
     //saucelabs

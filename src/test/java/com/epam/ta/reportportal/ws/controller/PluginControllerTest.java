@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PluginControllerTest extends BaseMvcTest {
 
 	@Test
-	void getLaunchPositive() throws Exception {
+	void getPlugin() throws Exception {
 		mockMvc.perform(get("/v1/plugin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 

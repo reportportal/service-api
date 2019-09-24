@@ -77,7 +77,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					Map<IntegrationTypeProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
-					if (pluginSerivce.equalsIgnoreCase(String.valueOf(pluginProperties.get(VERSION))) && (!pluginWrapper.isPresent()
+					if (pluginSerivce.equalsIgnoreCase(String.valueOf(pluginProperties.get(SERVICE))) && (!pluginWrapper.isPresent()
 							|| !String.valueOf(pluginProperties.get(IntegrationTypeProperties.VERSION))
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion()))) {
 

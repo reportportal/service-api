@@ -155,7 +155,7 @@ class UpdatePluginHandlerTest {
 				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
 		);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration.",
+		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Error during loading the plugin with id = 'QWEQWE'",
 				wrongIntegrationTypeName
 		).get(), exception.getMessage());
 

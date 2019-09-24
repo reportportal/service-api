@@ -125,6 +125,11 @@ public final class IntegrationTestUtil {
 		integrationType.setCreationDate(LocalDateTime.now());
 		integrationType.setId(1L);
 		integrationType.setIntegrationGroup(IntegrationGroupEnum.NOTIFICATION);
+		IntegrationTypeDetails details = new IntegrationTypeDetails();
+		HashMap<String, Object> detailsMap = Maps.newHashMap();
+		detailsMap.put(IntegrationTypeProperties.SERVICE.getAttribute(), "api");
+		details.setDetails(detailsMap);
+		integrationType.setDetails(details);
 
 		return integrationType;
 	}

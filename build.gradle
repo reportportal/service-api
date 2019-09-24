@@ -40,7 +40,7 @@ targetCompatibility = 1.8
 project.ext {
     limits = [
             'instruction': 70,
-            'branch'     : 54,
+            'branch'     : 53,
             'line'       : 75,
             'complexity' : 60,
             'method'     : 65,

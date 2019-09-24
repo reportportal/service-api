@@ -45,7 +45,7 @@ class PluginLoaderServiceTest {
 
 	private Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 
-	private PluginLoaderService pluginLoaderService = new PluginLoaderServiceImpl(integrationTypeRepository, pluginBox);
+	private PluginLoaderService pluginLoaderService = new PluginLoaderServiceImpl("api", integrationTypeRepository, pluginBox);
 
 	private PluginWrapper jiraPlugin = mock(PluginWrapper.class);
 	private PluginWrapper rallyPlugin = mock(PluginWrapper.class);

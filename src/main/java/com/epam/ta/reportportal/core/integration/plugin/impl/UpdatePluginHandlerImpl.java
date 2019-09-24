@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.plugin.manager.Pf4jPluginBox;
+import com.epam.reportportal.extension.util.IntegrationTypeDetailsUtil;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.integration.plugin.util.IntegrationTypePropertiesExtractor;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -80,7 +80,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 			).get());
 		}
 
-		String service = IntegrationTypePropertiesExtractor.extractProperty(integrationType, IntegrationTypeProperties.SERVICE).orElse("");
+		String service = IntegrationTypeDetailsUtil.getDetailsValueByKey(IntegrationTypeProperties.SERVICE, integrationType).orElse("");
 		BusinessRule.expect(service, pluginService::equalsIgnoreCase)
 				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						Suppliers.formattedSupplier("Plugin service = '{}', but expected - '{}'", service, pluginService).get()

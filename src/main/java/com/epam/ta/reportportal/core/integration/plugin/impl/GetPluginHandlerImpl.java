@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import com.epam.reportportal.extension.util.IntegrationTypeDetailsUtil;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationTypeConverter;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,10 +35,12 @@ import java.util.stream.Collectors;
 @Service
 public class GetPluginHandlerImpl implements GetPluginHandler {
 
+	private final String pluginService;
 	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public GetPluginHandlerImpl(IntegrationTypeRepository integrationTypeRepository) {
+	public GetPluginHandlerImpl(@Value("${rp.plugins.service}") String pluginService, IntegrationTypeRepository integrationTypeRepository) {
+		this.pluginService = pluginService;
 		this.integrationTypeRepository = integrationTypeRepository;
 	}
 
@@ -43,6 +48,9 @@ public class GetPluginHandlerImpl implements GetPluginHandler {
 	public List<IntegrationTypeResource> getPlugins() {
 		return integrationTypeRepository.findAllByOrderByCreationDate()
 				.stream()
+				.filter(integrationType -> IntegrationTypeDetailsUtil.getDetailsValueByKey(IntegrationTypeProperties.SERVICE,
+						integrationType
+				).map(service -> service.equalsIgnoreCase(pluginService)).orElse(Boolean.FALSE))
 				.map(IntegrationTypeConverter.TO_RESOURCE)
 				.collect(Collectors.toList());
 	}

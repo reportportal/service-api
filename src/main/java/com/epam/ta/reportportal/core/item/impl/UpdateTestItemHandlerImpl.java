@@ -90,6 +90,8 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
+	public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
+
 	private final ProjectRepository projectRepository;
 
 	private final LaunchRepository launchRepository;
@@ -217,9 +219,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
+			checkInitialStatusAttribute(testItem);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
 			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(actualStatus);
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
@@ -252,7 +256,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		if (request.getClass().equals(UnlinkExternalIssueRQ.class)) {
 			unlinkIssues(testItems, (UnlinkExternalIssueRQ) request, errors);
 		}
-
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
 		List<TestItemActivityResource> after = testItems.stream()
@@ -270,6 +273,21 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				.collect(toList());
 	}
 
+	private void checkInitialStatusAttribute(TestItem testItem) {
+		Optional<ItemAttribute> statusAttribute = testItem.getAttributes()
+				.stream()
+				.filter(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey()) && attribute.isSystem())
+				.findAny();
+		if (!statusAttribute.isPresent()) {
+			ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
+					testItem.getItemResults().getStatus().getExecutionCounterField(),
+					true
+			);
+			initialStatusAttribute.setTestItem(testItem);
+			testItem.getAttributes().add(initialStatusAttribute);
+		}
+	}
+
 	private void linkIssues(List<TestItem> items, List<Ticket> existedTickets, Set<Ticket> ticketsFromRq, List<String> errors) {
 		items.forEach(testItem -> {
 			try {
@@ -277,6 +295,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				IssueEntity issue = testItem.getItemResults().getIssue();
 				issue.getTickets().addAll(existedTickets);
 				issue.getTickets().addAll(ticketsFromRq);
+				issue.setAutoAnalyzed(false);
 			} catch (Exception e) {
 				errors.add(e.getMessage());
 			}
@@ -287,8 +306,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		items.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
-
-				testItem.getItemResults().getIssue().getTickets().removeIf(it -> request.getTicketIds().contains(it.getTicketId()));
+				IssueEntity issue = testItem.getItemResults().getIssue();
+				if (issue.getTickets().removeIf(it -> request.getTicketIds().contains(it.getTicketId()))) {
+					issue.setAutoAnalyzed(false);
+				}
 			} catch (BusinessRuleViolationException e) {
 				errors.add(e.getMessage());
 			}
@@ -425,10 +446,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				Suppliers.formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(item.isHasChildren(),
 				equalTo(FALSE),

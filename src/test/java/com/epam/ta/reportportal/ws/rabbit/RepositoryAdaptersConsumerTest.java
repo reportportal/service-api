@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
@@ -31,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -97,14 +99,5 @@ class RepositoryAdaptersConsumerTest {
 		List<LogResource> resources = repositoryAdaptersConsumer.findLogsByTestItem(itemRef, limit, false);
 
 		assertEquals(resources.size(), 2);
-	}
-
-	@Test
-	void load() {
-		String id = "id";
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("data".getBytes(Charset.forName("UTF8")));
-		when(dataStoreService.load(id)).thenReturn(byteArrayInputStream);
-
-		assertEquals(byteArrayInputStream, repositoryAdaptersConsumer.fetchData(id));
 	}
 }

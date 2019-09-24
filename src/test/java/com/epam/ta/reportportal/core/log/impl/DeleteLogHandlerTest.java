@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -60,7 +60,7 @@ class DeleteLogHandlerTest {
 	private LogRepository logRepository;
 
 	@Mock
-	private DataStoreService dataStoreService;
+	private AttachmentDataStoreService attachmentDataStoreService;
 
 	@Mock
 	private TestItemService testItemService;
@@ -161,8 +161,8 @@ class DeleteLogHandlerTest {
 		handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
 
 		verify(logRepository, times(1)).delete(log);
-		verify(dataStoreService, times(1)).delete(attachmentPath);
-		verify(dataStoreService, times(1)).delete(attachmentThumbnailPath);
+		verify(attachmentDataStoreService, times(1)).delete(attachmentPath);
+		verify(attachmentDataStoreService, times(1)).delete(attachmentThumbnailPath);
 	}
 
 	@Test

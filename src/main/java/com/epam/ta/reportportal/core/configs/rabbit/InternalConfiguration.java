@@ -50,6 +50,7 @@ public class InternalConfiguration {
 	public static final String KEY_PLUGINS_PING = "broadcast.plugins.ping";
 	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
 	public static final String QUEUE_ACTIVITY = "activity";
+	public static final String QUEUE_ACTIVITY_KEY = "activity.#";
 	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
 
 	public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
@@ -85,8 +86,8 @@ public class InternalConfiguration {
 	}
 
 	@Bean
-	public DirectExchange activityExchange() {
-		return new DirectExchange(EXCHANGE_ACTIVITY, true, false);
+	public TopicExchange activityExchange() {
+		return new TopicExchange(EXCHANGE_ACTIVITY, true, false);
 	}
 
 	@Bean
@@ -166,7 +167,7 @@ public class InternalConfiguration {
 
 	@Bean
 	public Binding eventsActivityBinding() {
-		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY);
+		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY_KEY);
 	}
 
 //	@Bean

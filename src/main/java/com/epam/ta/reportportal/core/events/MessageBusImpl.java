@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.events;
 
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
+import com.epam.ta.reportportal.entity.activity.Activity;
 import org.springframework.amqp.core.AmqpTemplate;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.InternalConfiguration.*;
@@ -44,9 +45,19 @@ public class MessageBusImpl implements MessageBus {
 		this.amqpTemplate.convertAndSend(EXCHANGE_EVENTS, "", o);
 	}
 
+	/**
+	 * Publishes activity to the queue with the following routing key
+	 * <pre>{@code activity.<project-id>.<entity-type>.<action>}</pre>
+	 *
+	 * @param event Activity event to be converted to Activity object
+	 */
 	@Override
-	public void publishActivity(ActivityEvent o) {
-		this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, QUEUE_ACTIVITY, o);
+	public void publishActivity(ActivityEvent event) {
+		final Activity activity = event.toActivity();
+		if (activity != null) {
+			String key = "activity." + activity.getProjectId() + "." + activity.getActivityEntityType() + "." + activity.getAction();
+			this.amqpTemplate.convertAndSend(EXCHANGE_ACTIVITY, key, activity);
+		}
 	}
 
 	@Override

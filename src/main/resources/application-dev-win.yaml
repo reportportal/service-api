@@ -7,8 +7,15 @@ rp:
     rootDir: plugins
   datasource:
     maximumPoolSize: 5
+  binarystore:
+    type: filesystem
+    path: ${java.io.tmpdir}\reportportal\datastore\
 logging:
+  file: ${java.io.tmpdir}\reportportal\logs\${spring.application.name}.log
   level:
     org:
       hibernate:
         SQL: debug
+server:
+  servlet:
+    context-path: '/api'

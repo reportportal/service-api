@@ -20,12 +20,13 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.base.Preconditions;
 
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * Converts internal DB model to DTO
@@ -62,6 +63,13 @@ public final class LogConverter {
 		ofNullable(model.getLaunch()).ifPresent(launch -> resource.setLaunchId(launch.getId()));
 		ofNullable(model.getLogLevel()).ifPresent(level -> resource.setLevel(LogLevel.toLevel(level).toString()));
 		return resource;
+	};
+
+	public static final Function<Log, SearchLogRs.LogEntry> TO_LOG_ENTRY = log -> {
+		SearchLogRs.LogEntry logEntry = new SearchLogRs.LogEntry();
+		logEntry.setMessage(log.getLogMessage());
+		logEntry.setLevel(LogLevel.toLevel(log.getLogLevel()).name());
+		return logEntry;
 	};
 
 	private static boolean isBinaryDataExists(Log log) {

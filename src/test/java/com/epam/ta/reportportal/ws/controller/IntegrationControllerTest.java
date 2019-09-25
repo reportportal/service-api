@@ -43,6 +43,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createGlobalIntegration() throws Exception {
 		IntegrationRQ request = new IntegrationRQ();
+		request.setName("email");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -59,6 +60,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createGlobalIntegrationNegative() throws Exception {
 		IntegrationRQ request = new IntegrationRQ();
+		request.setName("name");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");
@@ -73,6 +75,7 @@ class IntegrationControllerTest extends BaseMvcTest {
 	@Test
 	void createProjectIntegration() throws Exception {
 		IntegrationRQ request = new IntegrationRQ();
+		request.setName("email");
 		Map<String, Object> params = new HashMap<>();
 		params.put("param1", "value");
 		params.put("param2", "lalala");

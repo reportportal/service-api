@@ -40,7 +40,7 @@ targetCompatibility = 1.8
 project.ext {
     limits = [
             'instruction': 70,
-            'branch'     : 54,
+            'branch'     : 53,
             'line'       : 75,
             'complexity' : 60,
             'method'     : 65,
@@ -90,15 +90,15 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-12'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-13'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-12'
+        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-13'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
     } else {
-        compile 'com.github.reportportal:commons-dao:42d2f76'
+        compile 'com.github.reportportal:commons-dao:413cf66'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:a4e04fa'
+        compile 'com.github.reportportal:commons-model:5.0.0-BETA-13'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
         compile('com.github.reportportal:plugin-api:5.0.0-BETA-7')
     }

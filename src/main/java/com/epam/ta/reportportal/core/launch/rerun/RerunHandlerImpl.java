@@ -63,17 +63,16 @@ public class RerunHandlerImpl implements RerunHandler {
 	private final LaunchRepository launchRepository;
 	private final UniqueIdGenerator uniqueIdGenerator;
 	private final MessageBus messageBus;
-
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
-			MessageBus messageBus) {
+			MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
 		this.messageBus = messageBus;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override

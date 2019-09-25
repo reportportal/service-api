@@ -100,7 +100,10 @@ public class ProjectInfoWidgetDataConverter {
 						investigated + extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, one.getStatistics()) + extractStatisticsCount(
 								DEFECTS_SYSTEM_ISSUE_TOTAL,
 								one.getStatistics()
-						) + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
+						) + extractStatisticsCount(
+								DEFECTS_AUTOMATION_BUG_TOTAL,
+								one.getStatistics()
+						);
 				toInvestigate = toInvestigate + extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, one.getStatistics());
 			}
 			if ((investigated + toInvestigate) > 0) {
@@ -265,7 +268,7 @@ public class ProjectInfoWidgetDataConverter {
 		Map<String, List<Launch>> result = new LinkedHashMap<>();
 		LocalDate prevDate = null;
 		for (Launch launch : initial) {
-			final LocalDate localDate = launch.getStartTime().toInstant(ZoneOffset.UTC).atZone(ZoneId.systemDefault()).toLocalDate();
+			final LocalDate localDate = launch.getStartTime().toInstant(ZoneOffset.UTC).atZone(ZoneId.of("UTC")).toLocalDate();
 
 			String key;
 			switch (criteria) {
@@ -283,7 +286,7 @@ public class ProjectInfoWidgetDataConverter {
 						}
 					}
 			}
-			if (!result.keySet().contains(key)) {
+			if (!result.containsKey(key)) {
 				result.put(key, Lists.newArrayList(launch));
 			} else {
 				List<Launch> prev = result.get(key);

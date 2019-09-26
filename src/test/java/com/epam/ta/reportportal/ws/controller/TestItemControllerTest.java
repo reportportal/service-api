@@ -237,6 +237,13 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getAttributeKeysForProject() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+				+ "/item/attribute/keys/all?filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	void getAttributeValues() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(token(
 				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());

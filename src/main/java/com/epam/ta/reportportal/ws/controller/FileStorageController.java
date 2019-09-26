@@ -33,11 +33,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
@@ -92,6 +94,17 @@ public class FileStorageController {
 				extractProjectDetails(user, projectName),
 				loadThumbnail
 		);
+		toResponse(response, userPhoto);
+	}
+
+	@Transactional
+	@PreAuthorize(ADMIN_ONLY)
+	@GetMapping("/userphoto")
+	@ApiIgnore
+	public void getUserPhotoByAdmin(@RequestParam(value = "id") String username,
+			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail, HttpServletResponse response,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user, null, loadThumbnail);
 		toResponse(response, userPhoto);
 	}
 

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,10 +65,12 @@ public class GetFileHandlerImpl implements GetFileHandler {
 	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails,
 			boolean loadThumbnail) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-		expect(
-				ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
-				Predicate.isEqual(true)
-		).verify(ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'", projectDetails.getProjectName()));
+		if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(
+					ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),
+					Predicate.isEqual(true)
+			).verify(ErrorType.ACCESS_DENIED, formattedSupplier("You are not assigned to project '{}'", projectDetails.getProjectName()));
+		}
 		return userDataStoreService.loadUserPhoto(user, loadThumbnail);
 	}
 

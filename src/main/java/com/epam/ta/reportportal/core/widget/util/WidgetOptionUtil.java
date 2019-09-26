@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.widget.util;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -43,28 +44,23 @@ public final class WidgetOptionUtil {
 	@Nullable
 	public static String getValueByKey(String key, WidgetOptions widgetOptions) {
 
-		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
-				.orElse(null));
+		Optional<Object> value = ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key)));
 
-		value.ifPresent(v -> expect(v, String.class::isInstance).verify(
-				ErrorType.OBJECT_RETRIEVAL_ERROR,
+		value.ifPresent(v -> expect(v, String.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. String expected.", key)
 		));
 
 		return (String) value.orElse(null);
 	}
 
-	public static Map<String, String> getMapByKey(String key, WidgetOptions widgetOptions) {
+	public static <K, V> Map<K, V> getMapByKey(String key, WidgetOptions widgetOptions) {
+		Optional<Object> value = ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key)));
 
-		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
-				.orElse(null));
-
-		value.ifPresent(v -> expect(v, Map.class::isInstance).verify(
-				ErrorType.OBJECT_RETRIEVAL_ERROR,
+		value.ifPresent(v -> expect(v, Map.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. Map expected.", key)
 		));
 
-		return (Map<String, String>) value.orElseGet(Collections::emptyMap);
+		return (Map<K, V>) value.orElseGet(Collections::emptyMap);
 	}
 
 	public static boolean getBooleanByKey(String key, WidgetOptions widgetOptions) {
@@ -73,15 +69,25 @@ public final class WidgetOptionUtil {
 				.get(key)).map(v -> BooleanUtils.toBoolean(String.valueOf(v))).orElse(false)).orElse(false);
 	}
 
-	public static List<String> getListByKey(String key, WidgetOptions widgetOptions) {
-		Optional<Object> value = ofNullable(widgetOptions).map(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))
-				.orElse(null));
+	public static Optional<Integer> getIntegerByKey(String key, WidgetOptions widgetOptions) {
+		return ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key))).map(value -> {
+			try {
+				return Integer.parseInt(String.valueOf(value));
+			} catch (NumberFormatException ex) {
+				throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("Error during parsing integer value of key = '{}'", key).get()
+				);
+			}
+		});
+	}
 
-		value.ifPresent(v -> expect(v, List.class::isInstance).verify(
-				ErrorType.OBJECT_RETRIEVAL_ERROR,
+	public static <T> List<T> getListByKey(String key, WidgetOptions widgetOptions) {
+		Optional<Object> value = ofNullable(widgetOptions).flatMap(wo -> ofNullable(wo.getOptions()).map(options -> options.get(key)));
+
+		value.ifPresent(v -> expect(v, List.class::isInstance).verify(ErrorType.OBJECT_RETRIEVAL_ERROR,
 				Suppliers.formattedSupplier("Wrong widget option value type for key = '{}'. List expected.", key)
 		));
 
-		return (List<String>) value.orElse(Collections.emptyList());
+		return (List<T>) value.orElse(Collections.emptyList());
 	}
 }

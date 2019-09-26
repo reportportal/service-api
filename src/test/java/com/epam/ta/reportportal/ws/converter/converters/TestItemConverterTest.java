@@ -16,27 +16,38 @@
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
+import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.bts.Ticket;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
-import com.epam.ta.reportportal.ws.model.TestItemHistoryResource;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
+import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.entity.statistics.StatisticsField;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.ws.converter.helper.TestItemCreationHelper.prepareTestItem;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 class TestItemConverterTest {
-
-	private static final double DURATION = 0.75355;
 
 	@Test
 	void toActivityResourceNullTest() {
@@ -50,13 +61,9 @@ class TestItemConverterTest {
 
 	@Test
 	void toActivityResource() {
-		//GIVEN
-		final TestItem item = prepareTestItem();
-
-		//WHEN
+		final TestItem item = getItem();
 		final TestItemActivityResource activityResource = TestItemConverter.TO_ACTIVITY_RESOURCE.apply(item, 4L);
 
-		//THEN
 		assertEquals(activityResource.getId(), item.getItemId());
 		assertEquals(activityResource.getName(), item.getName());
 		assertEquals((long) activityResource.getProjectId(), 4L);
@@ -78,175 +85,75 @@ class TestItemConverterTest {
 
 	@Test
 	void toResource() {
-		//GIVEN
-		final TestItem testItem = prepareTestItem();
+		final TestItem item = getItem();
+		final TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(item);
 
-		//WHEN
-		final TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(testItem);
-
-		//THEN
-		assertTestItemResourceFieldsEqual(testItem, resource);
-
-		assertEquals(testItem.getParent().getItemId(), resource.getParent());
-
-		assertNotNull(resource.getIssue());
-
-		assertThat(resource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(testItem.getParameters());
-	}
-
-	@Test
-	void toHistoryResourceShouldConvertTestItemToTestItemHistoryResource() {
-		//GIVEN
-		final TestItem testItem = prepareTestItem();
-		TestItemResults itemResults = testItem.getItemResults();
-		itemResults.setDuration(DURATION);
-
-		//WHEN
-		final TestItemHistoryResource historyResource = TestItemConverter.TO_HISTORY_RESOURCE.apply(testItem);
-
-		//THEN
-		assertTestItemResourceFieldsEqual(testItem, historyResource);
-
-		assertEquals(testItem.getParent().getItemId(), historyResource.getParent());
-
-		assertNotNull(historyResource.getIssue());
-
-		assertThat(historyResource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(testItem.getParameters());
-
-		assertEquals(itemResults.getDuration(), historyResource.getDuration());
-	}
-
-	@Test
-	void toHistoryResourceShouldConvertTestItemToTestItemHistoryResourceWhenParametersAreNull() {
-		//GIVEN
-		final TestItem testItem = prepareTestItem();
-		TestItemResults itemResults = testItem.getItemResults();
-		itemResults.setDuration(DURATION);
-		testItem.setParameters(null);
-
-		//WHEN
-		final TestItemHistoryResource historyResource = TestItemConverter.TO_HISTORY_RESOURCE.apply(testItem);
-
-		//THEN
-		assertTestItemResourceFieldsEqual(testItem, historyResource);
-
-		assertEquals(testItem.getParent().getItemId(), historyResource.getParent());
-
-		assertNotNull(historyResource.getIssue());
-
-		assertNull(testItem.getParameters());
-
-		assertEquals(itemResults.getDuration(), historyResource.getDuration());
-	}
-
-	@Test
-	void toHistoryResourceShouldConvertTestItemToTestItemHistoryResourceWhenParentIsNull() {
-		//GIVEN
-		final TestItem testItem = prepareTestItem();
-		TestItemResults itemResults = testItem.getItemResults();
-		itemResults.setDuration(DURATION);
-		testItem.setParent(null);
-
-		//WHEN
-		final TestItemHistoryResource historyResource = TestItemConverter.TO_HISTORY_RESOURCE.apply(testItem);
-
-		//THEN
-		assertTestItemResourceFieldsEqual(testItem, historyResource);
-
-		assertNull(testItem.getParent());
-
-		assertNotNull(historyResource.getIssue());
-
-		assertThat(historyResource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(testItem.getParameters());
-
-		assertEquals(itemResults.getDuration(), historyResource.getDuration());
-	}
-
-	@Test
-	void toHistoryResourceShouldConvertTestItemToTestItemHistoryResourceWhenIssueIsNull() {
-		//GIVEN
-		final TestItem testItem = prepareTestItem();
-		TestItemResults itemResults = testItem.getItemResults();
-		itemResults.setDuration(DURATION);
-		itemResults.setIssue(null);
-
-		//WHEN
-		final TestItemHistoryResource historyResource = TestItemConverter.TO_HISTORY_RESOURCE.apply(testItem);
-
-		//THEN
-		assertTestItemResourceFieldsEqual(testItem, historyResource);
-
-		assertEquals(testItem.getParent().getItemId(), historyResource.getParent());
-
-		assertNull(historyResource.getIssue());
-
-		assertThat(historyResource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(testItem.getParameters());
-
-		assertEquals(itemResults.getDuration(), historyResource.getDuration());
-	}
-
-	@Test
-	void toHistoryResourceShouldConvertTestItemToTestItemHistoryResourceWhenLaucnhIdIsNull() {
-		//GIVEN
-		final TestItem testItem = prepareTestItem();
-		TestItemResults itemResults = testItem.getItemResults();
-		itemResults.setDuration(DURATION);
-
-		testItem.setLaunchId(null);
-
-		//WHEN
-		final TestItemHistoryResource historyResource = TestItemConverter.TO_HISTORY_RESOURCE.apply(testItem);
-
-		//THEN
-		assertTestItemResourceFieldsEqual(testItem, historyResource);
-
-		assertEquals(testItem.getParent().getItemId(), historyResource.getParent());
-
-		assertNotNull(historyResource.getIssue());
-
-		assertNull(historyResource.getLaunchId());
-
-		assertThat(historyResource.getParameters()
-				.stream()
-				.map(ParametersConverter.TO_MODEL)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(testItem.getParameters());
-
-		assertEquals(itemResults.getDuration(), historyResource.getDuration());
-	}
-
-	private void assertTestItemResourceFieldsEqual(TestItem testItem, TestItemResource resource) {
-		assertEquals(testItem.getName(), resource.getName());
-		assertEquals(testItem.getDescription(), resource.getDescription());
-		assertEquals(testItem.getLaunchId(), resource.getLaunchId());
-		assertEquals(testItem.getUuid(), resource.getUuid());
-		assertEquals(testItem.getItemId(), resource.getItemId());
-		assertEquals(testItem.getPath(), resource.getPath());
-		assertEquals(testItem.getItemResults().getStatus().name(), resource.getStatus());
-		assertEquals(testItem.getType().name(), resource.getType());
-
-		assertEquals(Date.from(testItem.getStartTime().atZone(ZoneId.of("UTC")).toInstant()), resource.getStartTime());
-		assertEquals(Date.from(testItem.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()), resource.getEndTime());
-
-		assertEquals(testItem.getUniqueId(), resource.getUniqueId());
-
+		assertEquals(resource.getName(), item.getName());
+		assertEquals(resource.getDescription(), item.getDescription());
+		assertEquals(resource.getLaunchId(), item.getLaunchId());
+		assertEquals(resource.getUuid(), item.getUuid());
+		assertEquals(resource.getItemId(), item.getItemId());
+		assertEquals(resource.getParent(), item.getParent().getItemId());
+		assertEquals(resource.getPath(), item.getPath());
+		assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
+		assertEquals(resource.getType(), item.getType().name());
+		assertEquals(resource.getStartTime(), Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
+		assertEquals(resource.getEndTime(), Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
+		assertEquals(resource.getUniqueId(), item.getUniqueId());
 		assertThat(resource.getAttributes()
 				.stream()
 				.map(ItemAttributeConverter.FROM_RESOURCE)
-				.collect(Collectors.toSet())).containsExactlyElementsOf(testItem.getAttributes());
-
-		assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(StatisticsConverter.TO_RESOURCE.apply(testItem.getItemResults()
+				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
+		assertThat(resource.getParameters()
+				.stream()
+				.map(ParametersConverter.TO_MODEL)
+				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
+		assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
 				.getStatistics()));
 	}
+
+	private TestItem getItem() {
+		TestItem item = new TestItem();
+		item.setName("name");
+		item.setDescription("description");
+		item.setStartTime(LocalDateTime.now());
+		item.setUniqueId("uniqueId");
+		item.setUuid("uuid");
+		item.setItemId(1L);
+		item.setType(TestItemTypeEnum.STEP);
+		item.setPath("1.2.3");
+		final Parameter parameter = new Parameter();
+		parameter.setKey("key");
+		parameter.setValue("value");
+		item.setParameters(Sets.newHashSet(parameter));
+		item.setAttributes(Sets.newHashSet(new ItemAttribute("key1", "value1", false), new ItemAttribute("key2", "value2", false)));
+		final Launch launch = new Launch();
+		launch.setProjectId(4L);
+		launch.setId(2L);
+		item.setLaunchId(launch.getId());
+		item.setHasChildren(false);
+		final TestItem parent = new TestItem();
+		parent.setItemId(3L);
+		item.setParent(parent);
+		final TestItemResults itemResults = new TestItemResults();
+		itemResults.setStatus(StatusEnum.FAILED);
+		itemResults.setEndTime(LocalDateTime.now());
+		final IssueEntity issue = new IssueEntity();
+		issue.setIssueType(new IssueType(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG), "locator", "long name", "SNA", "color"));
+		issue.setIgnoreAnalyzer(false);
+		issue.setAutoAnalyzed(false);
+		issue.setIssueDescription("issue description");
+		final Ticket ticket = new Ticket();
+		ticket.setTicketId("ticketId1");
+		ticket.setUrl("http:/example.com/ticketId1");
+		final Ticket ticket1 = new Ticket();
+		ticket1.setTicketId("ticketId2");
+		ticket1.setUrl("http:/example.com/ticketId2");
+		issue.setTickets(Sets.newHashSet(ticket, ticket1));
+		itemResults.setIssue(issue);
+		itemResults.setStatistics(Sets.newHashSet(new Statistics(new StatisticsField("statistics$defects$automation_bug$total"), 1, 2L)));
+		item.setItemResults(itemResults);
+		return item;
+	}
+
 }

@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.NestedStepResource;
-import com.epam.ta.reportportal.ws.model.TestItemHistoryResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
@@ -51,18 +50,6 @@ public final class TestItemConverter {
 
 	public static final Function<TestItem, TestItemResource> TO_RESOURCE = item -> {
 		TestItemResource resource = new TestItemResource();
-		fillTestItemResource(resource, item);
-		return resource;
-	};
-
-	public static final Function<TestItem, TestItemHistoryResource> TO_HISTORY_RESOURCE = item -> {
-		TestItemHistoryResource resource = new TestItemHistoryResource();
-		fillTestItemResource(resource, item);
-		resource.setDuration(item.getItemResults().getDuration());
-		return resource;
-	};
-
-	private static void fillTestItemResource(TestItemResource resource, TestItem item) {
 		resource.setDescription(item.getDescription());
 		resource.setUniqueId(item.getUniqueId());
 		resource.setUuid(item.getUuid());
@@ -96,7 +83,8 @@ public final class TestItemConverter {
 		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));
-	}
+		return resource;
+	};
 
 	public static final Function<PathName, PathNameResource> PATH_NAME_TO_RESOURCE = pathName -> {
 

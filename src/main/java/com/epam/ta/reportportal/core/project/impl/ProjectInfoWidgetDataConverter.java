@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -100,10 +99,7 @@ public class ProjectInfoWidgetDataConverter {
 						investigated + extractStatisticsCount(DEFECTS_PRODUCT_BUG_TOTAL, one.getStatistics()) + extractStatisticsCount(
 								DEFECTS_SYSTEM_ISSUE_TOTAL,
 								one.getStatistics()
-						) + extractStatisticsCount(
-								DEFECTS_AUTOMATION_BUG_TOTAL,
-								one.getStatistics()
-						);
+						) + extractStatisticsCount(DEFECTS_AUTOMATION_BUG_TOTAL, one.getStatistics());
 				toInvestigate = toInvestigate + extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, one.getStatistics());
 			}
 			if ((investigated + toInvestigate) > 0) {
@@ -268,7 +264,7 @@ public class ProjectInfoWidgetDataConverter {
 		Map<String, List<Launch>> result = new LinkedHashMap<>();
 		LocalDate prevDate = null;
 		for (Launch launch : initial) {
-			final LocalDate localDate = launch.getStartTime().toInstant(ZoneOffset.UTC).atZone(ZoneId.of("UTC")).toLocalDate();
+			final LocalDate localDate = launch.getStartTime().atZone(ZoneOffset.UTC).toLocalDate();
 
 			String key;
 			switch (criteria) {

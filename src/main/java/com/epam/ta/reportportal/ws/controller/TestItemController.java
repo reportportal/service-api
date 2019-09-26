@@ -66,6 +66,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class TestItemController {
 
 	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
+	public static final String IS_LATEST_LAUNCHES_REQUEST_PARAM = "isLatest";
 	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
 
 	private final StartTestItemHandler startTestItemHandler;
@@ -147,6 +148,7 @@ public class TestItemController {
 	public Iterable<TestItemResource> getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
 			@Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
+			@RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false) boolean isLatest,
 			@RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false) int launchesLimit,
 			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
 			@SortFor(TestItem.class) Pageable pageable) {
@@ -156,6 +158,7 @@ public class TestItemController {
 				user,
 				launchId,
 				filterId,
+				isLatest,
 				launchesLimit
 		);
 	}

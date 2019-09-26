@@ -132,7 +132,7 @@ class GetTestItemHandlerImplTest {
 						.withValue("100")
 						.withCondition(Condition.EQUALS)
 						.build())
-				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, 1L, null, 0);
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, 1L, null, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
@@ -156,7 +156,7 @@ class GetTestItemHandlerImplTest {
 						.withValue("100")
 						.withCondition(Condition.EQUALS)
 						.build())
-				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, 1L, null, 0);
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, 1L, null, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
@@ -206,7 +206,7 @@ class GetTestItemHandlerImplTest {
 						.withValue("100")
 						.withCondition(Condition.EQUALS)
 						.build())
-				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, 0);
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals("User filter with ID '1' not found on project 'test_project'. Did you use correct User Filter ID?",
@@ -234,7 +234,7 @@ class GetTestItemHandlerImplTest {
 						.withValue("100")
 						.withCondition(Condition.EQUALS)
 						.build())
-				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, 0);
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals(
@@ -263,7 +263,7 @@ class GetTestItemHandlerImplTest {
 						.withValue("100")
 						.withCondition(Condition.EQUALS)
 						.build())
-				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, 0);
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, null, 1L, false, 0);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals(

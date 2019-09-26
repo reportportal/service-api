@@ -19,27 +19,21 @@ package com.epam.ta.reportportal.core.item.impl.history;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
-import com.epam.ta.reportportal.ws.model.TestItemHistoryResource;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -62,29 +56,20 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private LaunchRepository launchRepository;
 
-	private GetTestItemHandler getTestItemHandler;
-
-	private TestItemResourceAssembler itemResourceAssembler;
-
 	@Autowired
-	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			GetTestItemHandler getTestItemHandler, TestItemResourceAssembler itemResourceAssembler) {
+	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
-		this.getTestItemHandler = getTestItemHandler;
-		this.itemResourceAssembler = itemResourceAssembler;
 	}
 
 	@Override
-	public List<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Queryable filter, Pageable pageable, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit, int historyDepth) {
+	public List<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, Long[] startPointsIds,
+			int historyDepth, boolean showBrokenLaunches) {
 
 		validateHistoryDepth(historyDepth);
-		Page<TestItem> testItemsPage = getTestItemHandler.getTestItemsPage(projectDetails, user, filter, pageable, launchId, filterId, launchesLimit);
-
-		List<TestItem> itemsForHistory = new ArrayList<>(testItemsPage.getContent());
-		validateItems(itemsForHistory, projectDetails.getProjectId());
-
+		List<Long> itemIds = Lists.newArrayList(startPointsIds);
+		List<TestItem> itemsForHistory = testItemRepository.findAllById(itemIds);
+		validateItems(itemsForHistory, itemIds, projectDetails.getProjectId());
 		TestItem itemForHistory = itemsForHistory.get(0);
 		Launch launch = launchRepository.findById(itemForHistory.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, itemForHistory.getLaunchId()));
@@ -97,24 +82,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
 				.map(TestItem::getUniqueId)
 				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()));
-
 		Map<Long, List<TestItem>> groupedByLaunch = itemsHistory.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		return launchesHistory.stream().map(l -> buildHistoryElement(l, groupedByLaunch.get(l.getId()))).collect(toList());
 	}
 
-	private void validateHistoryDepth(int historyDepth) {
-		Predicate<Integer> greaterThan = t -> t > MIN_HISTORY_DEPTH_BOUND;
-		Predicate<Integer> lessThan = t -> t < MAX_HISTORY_DEPTH_BOUND;
-		String historyDepthMessage = Suppliers.formattedSupplier("Items history depth should be greater than '{}' and lower than '{}'",
-				MIN_HISTORY_DEPTH_BOUND, MAX_HISTORY_DEPTH_BOUND).get();
-		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
-	}
-
-	private void validateItems(List<TestItem> itemsForHistory, Long projectId) {
-		List<Long> testItemsIds = itemsForHistory.stream().map(TestItem::getItemId).collect(toList());
-
+	public void validateItems(List<TestItem> itemsForHistory, List<Long> ids, Long projectId) {
 		BusinessRule.expect(itemsForHistory, Preconditions.NOT_EMPTY_COLLECTION)
-				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + testItemsIds + "'.");
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
 		Set<Long> projectIds = launchRepository.findAllById(itemsForHistory.stream().map(TestItem::getLaunchId).collect(Collectors.toSet()))
 				.stream()
@@ -122,7 +96,11 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				.collect(Collectors.toSet());
 
 		BusinessRule.expect((projectIds.size() == 1) && (projectIds.contains(projectId)), Predicates.equalTo(TRUE))
-				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + testItemsIds + "'.");
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
+
+		ids.removeAll(itemsForHistory.stream().map(TestItem::getItemId).collect(Collectors.toList()));
+		BusinessRule.expect(ids.isEmpty(), Predicates.equalTo(TRUE))
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Unable to find history for items '" + ids + "'.");
 
 		// check all items is siblings
 		checkItemsIsSiblings(itemsForHistory);
@@ -145,14 +123,20 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		}
 	}
 
+	private void validateHistoryDepth(int historyDepth) {
+		Predicate<Integer> greaterThan = t -> t > MIN_HISTORY_DEPTH_BOUND;
+		Predicate<Integer> lessThan = t -> t < MAX_HISTORY_DEPTH_BOUND;
+		String historyDepthMessage =
+				"Items history depth should be greater than '" + MIN_HISTORY_DEPTH_BOUND + "' and lower than '" + MAX_HISTORY_DEPTH_BOUND
+						+ "'";
+		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
+	}
+
 	private TestItemHistoryElement buildHistoryElement(Launch launch, List<TestItem> testItems) {
-		List<TestItemHistoryResource> resources = new ArrayList<>();
-
+		List<TestItemResource> resources = new ArrayList<>();
 		if (testItems != null) {
-			Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
-			resources = testItems.stream().map(item -> itemResourceAssembler.toHistoryResource(item, pathNamesMapping.get(item.getItemId()))).collect(Collectors.toList());
+			resources = testItems.stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList());
 		}
-
 		TestItemHistoryElement testItemHistoryElement = new TestItemHistoryElement();
 		testItemHistoryElement.setLaunchId(launch.getId());
 		testItemHistoryElement.setLaunchNumber(launch.getNumber().toString());

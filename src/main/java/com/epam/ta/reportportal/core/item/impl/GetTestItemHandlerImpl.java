@@ -127,31 +127,72 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit) {
 
-		Page<TestItem> testItemsPage = getTestItemsPage(projectDetails, user, filter, pageable, launchId, filterId, launchesLimit);
-
-		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemsPage.getContent());
-
-		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
-				pathNamesMapping.get(item.getItemId())
-		)).apply(testItemsPage);
-	}
-
-	@Override
-	public Page<TestItem> getTestItemsPage(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Queryable testItemFilter,
-			Pageable testItemPageable, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit) {
-
 		Optional<Long> launchIdOptional = Optional.ofNullable(launchId);
 		Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
 
-		return filterIdOptional.map(launchFilterId -> {
+		Page<TestItem> testItemPage = filterIdOptional.map(launchFilterId -> {
 			validateProjectRole(projectDetails, user);
-			return getItemsWithLaunchesFiltering(projectDetails, testItemFilter, testItemPageable, launchFilterId, launchesLimit);
-
+			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, launchesLimit);
 		}).orElseGet(() -> launchIdOptional.map(id -> {
 			validate(id, projectDetails, user);
-			return testItemRepository.findByFilter(testItemFilter, testItemPageable);
-
+			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
+
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
+
+		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
+				pathNamesMapping.get(item.getItemId())
+		)).apply(testItemPage);
+	}
+
+	@Override
+	public List<String> getTicketIds(Long launchId, String term) {
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+				);
+		return ticketRepository.findByTerm(launchId, term);
+	}
+
+	@Override
+	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
+		return itemAttributeRepository.findKeysByProjectId(projectDetails.getProjectId(), keyPart, false);
+	}
+
+	@Override
+	public List<String> getAttributeKeys(Long launchId, String value) {
+		return itemAttributeRepository.findTestItemAttributeKeys(launchId, value, false);
+	}
+
+	@Override
+	public List<String> getAttributeValues(Long launchId, String key, String value) {
+		return itemAttributeRepository.findTestItemAttributeValues(launchId, key, value, false);
+	}
+
+	@Override
+	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		List<TestItem> items;
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			items = testItemRepository.findByFilter(getItemsFilter(ids, projectDetails));
+		} else {
+			items = testItemRepository.findAllById(Arrays.asList(ids));
+		}
+		return items.stream().map(itemResourceAssembler::toResource).collect(toList());
+	}
+
+	private void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
+							launch.getId(),
+							projectDetails.getProjectId()
+					)
+			);
+			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
+					Predicate.isEqual(false)
+			).verify(ACCESS_DENIED);
+		}
 	}
 
 	private void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
@@ -160,9 +201,23 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		}
 	}
 
-	private Page<TestItem> getItemsWithLaunchesFiltering(ReportPortalUser.ProjectDetails projectDetails, Queryable testItemFilter,
-			Pageable testItemPageable, Long launchFilterId, int launchesLimit) {
+	private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {
+		final Filter filter = Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_ID)
+						.withCondition(Condition.IN)
+						.withValue(Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
+						.build())
+				.build();
+		return projectDetails.getProjectRole() != ProjectRole.OPERATOR ?
+				filter :
+				filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
+	}
 
+	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
+			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, int launchesLimit) {
 		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
 		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
 		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
@@ -204,72 +259,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		return PageRequest.of(0, launchesLimit, sort);
 	}
 
-	private void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
-							launch.getId(),
-							projectDetails.getProjectId()
-					)
-			);
-			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
-					Predicate.isEqual(false)
-			).verify(ACCESS_DENIED);
-		}
-	}
-
 	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
 		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
-	}
-
-	@Override
-	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-				);
-		return ticketRepository.findByTerm(launchId, term);
-	}
-
-	@Override
-	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
-		return itemAttributeRepository.findKeysByProjectId(projectDetails.getProjectId(), keyPart, false);
-	}
-
-	@Override
-	public List<String> getAttributeKeys(Long launchId, String value) {
-		return itemAttributeRepository.findTestItemAttributeKeys(launchId, value, false);
-	}
-
-	@Override
-	public List<String> getAttributeValues(Long launchId, String key, String value) {
-		return itemAttributeRepository.findTestItemAttributeValues(launchId, key, value, false);
-	}
-
-	@Override
-	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		List<TestItem> items;
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			items = testItemRepository.findByFilter(getItemsFilter(ids, projectDetails));
-		} else {
-			items = testItemRepository.findAllById(Arrays.asList(ids));
-		}
-		return items.stream().map(itemResourceAssembler::toResource).collect(toList());
-	}
-
-	private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {
-		final Filter filter = Filter.builder()
-				.withTarget(TestItem.class)
-				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_ID)
-						.withCondition(Condition.IN)
-						.withValue(Arrays.stream(ids).map(Object::toString).collect(Collectors.joining(",")))
-						.build())
-				.build();
-		return projectDetails.getProjectRole() != ProjectRole.OPERATOR ?
-				filter :
-				filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
 	}
 }

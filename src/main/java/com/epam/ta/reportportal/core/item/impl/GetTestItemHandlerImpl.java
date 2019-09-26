@@ -125,14 +125,14 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit) {
+			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
 		Optional<Long> launchIdOptional = Optional.ofNullable(launchId);
 		Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
 
 		Page<TestItem> testItemPage = filterIdOptional.map(launchFilterId -> {
 			validateProjectRole(projectDetails, user);
-			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, launchesLimit);
+			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, isLatest, launchesLimit);
 		}).orElseGet(() -> launchIdOptional.map(id -> {
 			validate(id, projectDetails, user);
 			return testItemRepository.findByFilter(filter, pageable);
@@ -217,11 +217,11 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
-			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, int launchesLimit) {
+			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
 		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
 		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
 		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
-		return testItemRepository.findByFilter(launchFilter, testItemFilter, launchPageable, testItemPageable);
+		return testItemRepository.findByFilter(isLatest, launchFilter, testItemFilter, launchPageable, testItemPageable);
 	}
 
 	private Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails, UserFilter launchFilter) {

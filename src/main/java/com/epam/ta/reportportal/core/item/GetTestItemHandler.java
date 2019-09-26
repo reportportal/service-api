@@ -64,7 +64,7 @@ public interface GetTestItemHandler {
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit);
+			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch

@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.data.domain.Pageable;
@@ -63,7 +64,7 @@ public interface GetTestItemHandler {
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit);
+			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch
@@ -73,6 +74,15 @@ public interface GetTestItemHandler {
 	 * @return {@link List} of {@link com.epam.ta.reportportal.entity.bts.Ticket#ticketId}
 	 */
 	List<String> getTicketIds(Long launchId, String term);
+
+	/**
+	 * Get specified attribute keys of all test items and launches for project with provided id
+	 *
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param keyPart        Part of the {@link ItemAttribute#getKey()} to search
+	 * @return {@link List} of the {@link ItemAttribute#getKey()}
+	 */
+	List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String keyPart);
 
 	/**
 	 * Get specified attribute keys

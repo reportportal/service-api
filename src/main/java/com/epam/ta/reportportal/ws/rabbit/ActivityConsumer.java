@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

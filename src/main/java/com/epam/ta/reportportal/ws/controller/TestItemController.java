@@ -158,6 +158,7 @@ public class TestItemController {
 				user,
 				launchId,
 				filterId,
+				isLatest,
 				launchesLimit
 		);
 	}

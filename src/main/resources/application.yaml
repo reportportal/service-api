@@ -108,3 +108,10 @@ rp:
       secretKey: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
     # could be one of [seaweed, filesystem, minio]
     type: filesystem
+    thumbnail:
+      attachment:
+        width: 40
+        height: 60
+      avatar:
+        width: 80
+        height: 60

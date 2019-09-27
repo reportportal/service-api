@@ -16,13 +16,14 @@
 
 package com.epam.ta.reportportal.core.events.handler;
 
-import com.epam.ta.reportportal.binary.UserDataStoreService;
+import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.user.User;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -43,11 +44,12 @@ public class AttachDefaultPhotoEventHandler {
 
 	private final UserRepository userRepository;
 
-	private final UserDataStoreService userDataStoreService;
+	private final UserBinaryDataService userBinaryDataService;
 
-	public AttachDefaultPhotoEventHandler(UserRepository userRepository, UserDataStoreService userDataStoreService) {
+	@Autowired
+	public AttachDefaultPhotoEventHandler(UserRepository userRepository, UserBinaryDataService userBinaryDataService) {
 		this.userRepository = userRepository;
-		this.userDataStoreService = userDataStoreService;
+		this.userBinaryDataService = userBinaryDataService;
 	}
 
 	@EventListener
@@ -59,7 +61,7 @@ public class AttachDefaultPhotoEventHandler {
 	private void attachPhoto(User user, String photoPath) {
 		if (StringUtils.isEmpty(user.getAttachment())) {
 			try {
-				userDataStoreService.saveUserPhoto(user, getMultipartFile(photoPath));
+				userBinaryDataService.saveUserPhoto(user, getMultipartFile(photoPath));
 			} catch (Exception exception) {
 				LOGGER.error("Cannot attach default photo to user '{}'. Error: {}", user.getLogin(), exception);
 			}

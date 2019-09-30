@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -40,7 +41,7 @@ public class ToInvestigateCollector implements AnalyzeItemsCollector {
 	}
 
 	@Override
-	public List<Long> collectItems(Long projectId, Long launchId) {
+	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
 		return testItemRepository.findAllInIssueGroupByLaunch(launchId, TestItemIssueGroup.TO_INVESTIGATE)
 				.stream()
 				.filter(it -> !it.getItemResults().getIssue().getIgnoreAnalyzer())

@@ -56,7 +56,7 @@ public class LaunchPatternAnalysisStrategy extends AbstractLaunchAnalysisStrateg
 		this.patternAnalyzer = patternAnalyzer;
 	}
 
-	public void analyze(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {
+	public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
 		Set<AnalyzeItemsMode> analyzeItemsModes = analyzeRQ.getAnalyzeItemsModes()
 				.stream()

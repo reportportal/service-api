@@ -252,3 +252,4 @@
 * EPMRPP-39525 - Launches and filters are not shown for project if it has name 'project'
 * EPMRPP-40808 - Dashboard. PM can't delete not own shared dashboard
 * EPMRPP-41168 - Admin can't delete test items on the Step View
+* EPMRPP-42274 - History of actions. No actions are displayed for items analyzed manually.

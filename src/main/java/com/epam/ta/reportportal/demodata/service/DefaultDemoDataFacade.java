@@ -102,6 +102,8 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
 					generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
 					demoDataLaunchService.finishLaunch(launch.getUuid());
+					List<Log> logs = demoLogsService.generateDemoLaunchLogs(launch.getUuid(), launch.getStatus());
+					demoLogsService.attachFiles(logs, projectDetails.getProjectId(), launch.getUuid());
 					return launch.getId();
 				}, executor))
 				.collect(toList());
@@ -138,9 +140,16 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 				if (isGenerateClass) {
 					generateStepItem(testItemId, launchId, user, projectDetails, AFTER_CLASS, status());
 				}
-				demoDataTestItemService.finishTestItem(testItemId, beforeClassStatus.orElse(StatusEnum.FAILED), user, projectDetails);
+				StatusEnum status = beforeClassStatus.orElse(FAILED);
+				demoDataTestItemService.finishTestItem(testItemId, status, user, projectDetails);
+				if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
+					generateLogs(testItemId, launchId, status, projectDetails);
+				}
 			});
 			demoDataTestItemService.finishRootItem(suiteItemId, user, projectDetails);
+			if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
+				generateLogs(suiteItemId, launchId, PASSED, projectDetails);
+			}
 		});
 	}
 
@@ -156,9 +165,13 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private void generateStepWithLogs(String launchId, String rootItemId, String name, boolean retry,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, StatusEnum status) {
 		String stepId = demoDataTestItemService.startTestItem(rootItemId, launchId, name, STEP, retry, user, projectDetails);
-		List<Log> logs = demoLogsService.generateDemoLogs(stepId, status, projectDetails.getProjectId(), launchId);
-		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), stepId, launchId);
+		generateLogs(stepId, launchId, status, projectDetails);
 		demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
+	}
+
+	private void generateLogs(String itemId, String launchId, StatusEnum status, ReportPortalUser.ProjectDetails projectDetails) {
+		List<Log> logs = demoLogsService.generateDemoLogs(itemId, status);
+		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), itemId, launchId);
 	}
 
 	private void generateStepItem(String parentId, String launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,

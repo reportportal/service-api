@@ -30,8 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
-import static com.epam.ta.reportportal.demodata.service.Constants.ATTRIBUTES_COUNT;
-import static com.epam.ta.reportportal.demodata.service.Constants.CONTENT_PROBABILITY;
+import static com.epam.ta.reportportal.demodata.service.Constants.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 
 /**
@@ -56,6 +55,7 @@ public class DemoDataTestItemService {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setName(rootItemName);
+		rq.setCodeRef(PACKAGE + rootItemName);
 		rq.setLaunchUuid(launchId);
 		rq.setStartTime(new Date());
 		rq.setType(type.name());
@@ -88,6 +88,7 @@ public class DemoDataTestItemService {
 				rq.setDescription(ContentUtils.getStepDescription());
 			}
 		}
+		rq.setCodeRef(PACKAGE + name);
 		rq.setRetry(retry);
 		rq.setLaunchUuid(launchId);
 		rq.setStartTime(new Date());

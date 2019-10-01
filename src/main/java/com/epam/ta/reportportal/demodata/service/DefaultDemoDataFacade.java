@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CaseFormat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -162,10 +163,9 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private void generateStepItem(String parentId, String launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
 			TestItemTypeEnum type, StatusEnum status) {
-
 		String beforeMethodId = demoDataTestItemService.startTestItem(parentId,
 				launchId,
-				type.name().toLowerCase(),
+				CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, type.name()),
 				type,
 				false,
 				user,

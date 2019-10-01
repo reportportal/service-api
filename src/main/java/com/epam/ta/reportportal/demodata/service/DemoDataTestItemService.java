@@ -75,8 +75,8 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public String startTestItem(String rootItemId, String launchId, String name, TestItemTypeEnum type, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
+	public String startTestItem(String rootItemId, String launchId, String name, TestItemTypeEnum type, boolean retry,
+			ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
@@ -88,6 +88,7 @@ public class DemoDataTestItemService {
 				rq.setDescription(ContentUtils.getStepDescription());
 			}
 		}
+		rq.setRetry(retry);
 		rq.setLaunchUuid(launchId);
 		rq.setStartTime(new Date());
 		rq.setName(name);
@@ -97,7 +98,8 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public void finishTestItem(String testItemId, StatusEnum status, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public void finishTestItem(String testItemId, StatusEnum status, ReportPortalUser user,
+			ReportPortalUser.ProjectDetails projectDetails) {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(new Date());
 		rq.setStatus(status.name());

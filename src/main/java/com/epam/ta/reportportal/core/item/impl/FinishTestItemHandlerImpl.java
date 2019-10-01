@@ -168,9 +168,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private Optional<Launch> getLaunch(TestItem testItem) {
-		return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
+		return ofNullable(testItem.getLaunchId()).map(launchRepository::findByIdForUpdate)
 				.orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunchId)
-						.map(launchRepository::findById)
+						.map(launchRepository::findByIdForUpdate)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 	}
 
@@ -258,10 +258,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItemResults;
 	}
 
-	private void finishDescendants(TestItem testItem, StatusEnum status, Date endtime, ReportPortalUser user,
+	private void finishDescendants(TestItem testItem, StatusEnum status, Date endTime, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
-			finishHierarchyHandler.finishDescendants(testItem, status, endtime, user, projectDetails);
+			finishHierarchyHandler.finishDescendants(testItem, status, endTime, user, projectDetails);
 		}
 	}
 

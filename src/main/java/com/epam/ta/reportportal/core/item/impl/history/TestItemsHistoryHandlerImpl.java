@@ -52,6 +52,8 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
+	private static final int ITEMS_HISTORY_LIMIT = 2000;
+
 	private TestItemRepository testItemRepository;
 
 	private LaunchRepository launchRepository;
@@ -81,7 +83,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
 				.map(TestItem::getUniqueId)
-				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()));
+				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()), ITEMS_HISTORY_LIMIT);
 		Map<Long, List<TestItem>> groupedByLaunch = itemsHistory.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		return launchesHistory.stream().map(l -> buildHistoryElement(l, groupedByLaunch.get(l.getId()))).collect(toList());
 	}

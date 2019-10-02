@@ -39,7 +39,7 @@ class AnalyzerTypeTest {
 		String autoAnalyser = "incorrect";
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> AnalyzerType.fromString(autoAnalyser));
 		assertEquals(exception.getErrorType(), ErrorType.INCORRECT_REQUEST);
-		assertEquals(exception.getMessage(), "Incorrect Request. Incorrect analyzer type. Allowed are: [autoAnalyzer\\auto, patternAnalyzer\\pattern]");
+		assertEquals(exception.getMessage(), "Incorrect Request. Incorrect analyzer type. Allowed are: [autoAnalyzer, patternAnalyzer]");
 	}
 
 }

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -58,15 +58,15 @@ class DemoLogsService {
 
 	private TestItemRepository testItemRepository;
 
-	private AttachmentDataStoreService attachmentDataStoreService;
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			AttachmentDataStoreService attachmentDataStoreService) {
+			AttachmentBinaryDataService attachmentBinaryDataService) {
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.attachmentDataStoreService = attachmentDataStoreService;
+		this.attachmentBinaryDataService = attachmentBinaryDataService;
 	}
 
 	List<Log> generateDemoLogs(String itemUuid, StatusEnum status, Long projectId, String launchId) {
@@ -121,7 +121,7 @@ class DemoLogsService {
 	private void attachFile(Long projectId, Long testItemId, Long launchId, Log it) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			attachmentDataStoreService.saveFileAndAttachToLog(
+			attachmentBinaryDataService.saveFileAndAttachToLog(
 					getMultipartFile(attachment.getResource().getPath()),
 					AttachmentMetaInfo.builder()
 							.withProjectId(projectId)

@@ -43,7 +43,7 @@
       "testFilterTraceLog",
       "testFilterFatalLog"
     ],
-    "FilteringLaunchGltePassedTest": [
+    "FilteringLaunchGtePassedTest": [
       "testFilterLaunchGreaterThanEqualsNegativeValue",
       "testFilterLaunchGreaterThanEqualsNotNumber",
       "testFilterLaunchGreaterThanEqualsPositive",
@@ -105,7 +105,7 @@
   "Permission tests": {
     "Assign User to Project": [
       "testAssignUnexistingUser",
-      "testAssignUserToNonExtistingProject",
+      "testAssignUserToNonExistingProject",
       "testAssignUserToOtherProject",
       "testAssignUserToProject",
       "testAssignUserToProjectByAdmin"
@@ -119,9 +119,9 @@
     ],
     "Unnasign User from Project": [
       "testEmptyUserList",
-      "testUnassignNonExtistingUserFromProject",
+      "testUnassignNonExistingUserFromProject",
       "testUnassignUserFromDemoProjectByAdmin",
-      "testUnassignUserFromNonExtistingProject",
+      "testUnassignUserFromNonExistingProject",
       "testUnassignUserFromOtherProject"
     ],
     "Update Project": [

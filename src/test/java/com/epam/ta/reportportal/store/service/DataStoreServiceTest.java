@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.store.service;
 
 import com.epam.reportportal.commons.Thumbnailator;
-import com.epam.ta.reportportal.binary.impl.DataStoreServiceImpl;
+import com.epam.ta.reportportal.binary.impl.AttachmentDataStoreService;
 import com.epam.ta.reportportal.filesystem.DataEncoder;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class DataStoreServiceTest {
 	private DataEncoder dataEncoder;
 
 	@InjectMocks
-	private DataStoreServiceImpl dataStoreService;
+	private AttachmentDataStoreService dataStoreService;
 
 	@Test
 	void saveTest() throws Exception {

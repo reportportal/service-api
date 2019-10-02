@@ -253,3 +253,4 @@
 * EPMRPP-40808 - Dashboard. PM can't delete not own shared dashboard
 * EPMRPP-41168 - Admin can't delete test items on the Step View
 * EPMRPP-35338 - Add number of run to launch name on widgets for the particular launch.
+* EPMRPP-42004 - Step level. Unclassified error on bulk post/link issue

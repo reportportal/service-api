@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
@@ -53,6 +54,7 @@ import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -63,6 +65,7 @@ import static com.epam.ta.reportportal.core.hierarchy.AbstractFinishHierarchyHan
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
@@ -146,7 +149,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		Launch launch = retrieveLaunch(testItem);
 
-		verifyTestItem(launch, user, testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
+		validateRoles(user, projectDetails, launch);
+		verifyTestItem(testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
 
 		TestItemResults testItemResults;
 		if (hasChildren) {
@@ -183,17 +187,22 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
-	private void verifyTestItem(Launch launch, ReportPortalUser user, TestItem testItem, Optional<StatusEnum> actualStatus,
-			boolean hasChildren) {
+	private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+				testItem.getItemId()
+		));
+	}
 
-		expect(user.getUserId(), equalTo(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED, "You are not a launch owner.");
-
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-				formattedSupplier(
-						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-						testItem.getItemId()
-				)
-		);
+	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
+			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED,
+						"You are not launch owner."
+				);
+			}
+		}
 	}
 
 	private TestItemResults processParentItemResult(TestItem testItem, FinishTestItemRQ finishTestItemRQ, Launch launch,

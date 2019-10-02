@@ -88,6 +88,7 @@ class FinishTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		launch.setId(1L);
+		launch.setProjectId(1L);
 		User user = new User();
 		user.setId(2L);
 		user.setLogin("owner");
@@ -117,6 +118,7 @@ class FinishTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 		launch.setUserId(1L);
+		launch.setProjectId(1L);
 		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
 		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));

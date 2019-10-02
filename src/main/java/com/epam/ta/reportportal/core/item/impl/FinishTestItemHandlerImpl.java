@@ -199,7 +199,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
 			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED,
-						"You are not launch owner."
+						"You are not a launch owner."
 				);
 			}
 		}

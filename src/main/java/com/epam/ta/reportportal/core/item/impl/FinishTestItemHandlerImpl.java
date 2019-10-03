@@ -331,7 +331,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {
-		ofNullable(testItemResults.getIssue()).map(IssueEntity::getIssueId).ifPresent(issueEntityRepository::deleteById);
+		ofNullable(testItemResults.getIssue()).ifPresent(entity -> {
+			entity.setTestItemResults(null);
+			issueEntityRepository.delete(entity);
+			testItemResults.setIssue(null);
+		});
 		resolvedIssue.setTestItemResults(testItemResults);
 		issueEntityRepository.save(resolvedIssue);
 		testItemResults.setIssue(resolvedIssue);

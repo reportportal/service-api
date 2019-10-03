@@ -254,3 +254,4 @@
 * EPMRPP-41168 - Admin can't delete test items on the Step View
 * EPMRPP-35338 - Add number of run to launch name on widgets for the particular launch.
 * EPMRPP-42004 - Step level. Unclassified error on bulk post/link issue
+* EPMRPP-42337 - 'Issue' parameter should not be available for items without issue type or items have status Passed.

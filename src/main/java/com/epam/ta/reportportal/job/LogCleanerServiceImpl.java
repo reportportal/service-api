@@ -16,12 +16,13 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,14 +54,15 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private final TestItemRepository testItemRepository;
 
-	private final AttachmentDataStoreService attachmentDataStoreService;
+	private final AttachmentBinaryDataService attachmentDataStoreService;
 
 	private final ActivityRepository activityRepository;
 
 	private final AttachmentRepository attachmentRepository;
 
+	@Autowired
 	public LogCleanerServiceImpl(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			AttachmentDataStoreService attachmentDataStoreService, ActivityRepository activityRepository,
+			AttachmentBinaryDataService attachmentDataStoreService, ActivityRepository activityRepository,
 			AttachmentRepository attachmentRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;

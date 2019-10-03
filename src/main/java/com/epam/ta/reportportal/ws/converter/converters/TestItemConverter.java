@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.item.LaunchPathName;
 import com.epam.ta.reportportal.ws.model.item.PathNameResource;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,7 +64,11 @@ public final class TestItemConverter {
 		if (null != item.getParameters()) {
 			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}
-		ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
+		ofNullable(item.getItemResults().getIssue()).ifPresent(i -> {
+			if (!Objects.isNull(i.getIssueId())) {
+				resource.setIssue(IssueConverter.TO_MODEL.apply(i));
+			}
+		});
 		resource.setName(item.getName());
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);

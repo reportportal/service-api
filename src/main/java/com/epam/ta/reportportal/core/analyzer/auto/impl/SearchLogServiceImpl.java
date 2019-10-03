@@ -50,6 +50,7 @@ import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -129,8 +130,10 @@ public class SearchLogServiceImpl implements SearchLogService {
 				value.getLogs().add(TO_LOG_ENTRY.apply(log));
 				return value;
 			});
-			Launch launch = launchRepository.findById(log.getTestItem().getLaunchId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, log.getTestItem().getLaunchId()));
+			Long launchId = ofNullable(log.getTestItem()
+					.getLaunchId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+			Launch launch = launchRepository.findById(launchId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 			Map<Long, String> pathNames = testItemRepository.selectPathNames(log.getTestItem().getPath());
 			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(), composeResponse(launch, log, pathNames));
 		});

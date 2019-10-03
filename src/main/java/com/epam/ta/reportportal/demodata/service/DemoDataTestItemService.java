@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.demodata.service;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.demodata.model.DemoItemMetadata;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -50,21 +51,20 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public String startRootItem(String rootItemName, String launchId, TestItemTypeEnum type, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
+	public String startRootItem(DemoItemMetadata metadata) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setName(rootItemName);
-		rq.setCodeRef(PACKAGE + rootItemName);
-		rq.setLaunchUuid(launchId);
+		rq.setName(metadata.getName());
+		rq.setCodeRef(PACKAGE + metadata.getName());
+		rq.setLaunchUuid(metadata.getLaunchId());
 		rq.setStartTime(new Date());
-		rq.setType(type.name());
-		if (type.sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
+		rq.setType(metadata.getType().name());
+		if (metadata.getType().sameLevel(SUITE) && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
 			rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 			rq.setDescription(ContentUtils.getSuiteDescription());
 		}
 
-		return startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
+		return startTestItemHandler.startRootItem(metadata.getUser(), metadata.getProjectDetails(), rq).getId();
 	}
 
 	@Transactional
@@ -75,12 +75,11 @@ public class DemoDataTestItemService {
 	}
 
 	@Transactional
-	public String startTestItem(String rootItemId, String launchId, String name, TestItemTypeEnum type, boolean retry,
-			ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
+	public String startTestItem(DemoItemMetadata metadata) {
 
 		StartTestItemRQ rq = new StartTestItemRQ();
 		if (ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
-			if (hasChildren(type)) {
+			if (hasChildren(metadata.getType())) {
 				rq.setAttributes(ContentUtils.getAttributesInRange(ATTRIBUTES_COUNT));
 				rq.setDescription(ContentUtils.getTestDescription());
 			} else {
@@ -88,14 +87,15 @@ public class DemoDataTestItemService {
 				rq.setDescription(ContentUtils.getStepDescription());
 			}
 		}
-		rq.setCodeRef(PACKAGE + name);
-		rq.setRetry(retry);
-		rq.setLaunchUuid(launchId);
+		rq.setHasStats(!metadata.isNested());
+		rq.setCodeRef(PACKAGE + metadata.getType());
+		rq.setRetry(metadata.isRetry());
+		rq.setLaunchUuid(metadata.getLaunchId());
 		rq.setStartTime(new Date());
-		rq.setName(name);
-		rq.setType(type.name());
+		rq.setName(metadata.getName());
+		rq.setType(metadata.getType().name());
 
-		return startTestItemHandler.startChildItem(user, projectDetails, rq, rootItemId).getId();
+		return startTestItemHandler.startChildItem(metadata.getUser(), metadata.getProjectDetails(), rq, metadata.getParentId()).getId();
 	}
 
 	@Transactional

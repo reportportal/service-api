@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.demodata.service;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
+import com.epam.ta.reportportal.demodata.model.DemoItemMetadata;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.User;
@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CaseFormat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -43,6 +42,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.demodata.service.Constants.*;
+import static com.epam.ta.reportportal.demodata.service.ContentUtils.getNameFromType;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 import static java.util.stream.Collectors.toList;
@@ -113,32 +113,52 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		suitesStructure.entrySet().stream().limit(i + 1).forEach(suites -> {
-			String suiteItemId = demoDataTestItemService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
+			DemoItemMetadata metadata = new DemoItemMetadata().withLaunch(launchId)
+					.withName(suites.getKey())
+					.withType(SUITE)
+					.withUser(user)
+					.withProjectDetails(projectDetails);
+			String suiteItemId = demoDataTestItemService.startRootItem(metadata);
 			suites.getValue().forEach((key, value) -> {
-				String testItemId = demoDataTestItemService.startTestItem(suiteItemId, launchId, key, TEST, false, user, projectDetails);
+				boolean generateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
+				boolean generateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+				boolean generateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+				boolean generateNestedSteps = ContentUtils.getWithProbability(STORY_PROBABILITY);
+
+				metadata.withName(key).withParentId(suiteItemId).withType(generateNestedSteps ? STEP : TEST).withRetry(false);
+				String testItemId = demoDataTestItemService.startTestItem(metadata);
+
 				Optional<StatusEnum> beforeClassStatus = Optional.empty();
-				boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
-				if (isGenerateClass) {
+				if (generateClass) {
 					beforeClassStatus = Optional.of(status());
-					generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_CLASS, beforeClassStatus.get());
+					metadata.withParentId(testItemId).withType(BEFORE_CLASS).withName(getNameFromType(BEFORE_CLASS));
+					generateStepItem(metadata, beforeClassStatus.get());
 				}
-				boolean isGenerateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
-				boolean isGenerateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+
 				value.stream().limit(i + 1).forEach(name -> {
-					if (isGenerateBeforeMethod) {
-						generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_METHOD, status());
+					if (!generateNestedSteps && generateBeforeMethod) {
+						metadata.withType(BEFORE_METHOD).withName(getNameFromType(BEFORE_METHOD));
+						generateStepItem(metadata, status());
 					}
 
 					StatusEnum status = status();
-					generateStepWithLogs(launchId, testItemId, name, false, projectDetails, user, status);
-					generateRetries(launchId, testItemId, name, user, projectDetails, status);
+					metadata.withName(name).withType(STEP).withNested(generateNestedSteps);
+					generateStepWithLogs(metadata, status);
+					if (!generateNestedSteps) {
+						generateRetries(metadata, status);
+					}
 
-					if (isGenerateAfterMethod) {
-						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());
+					if (!generateNestedSteps && generateAfterMethod) {
+						metadata.withType(AFTER_METHOD).withName(getNameFromType(AFTER_METHOD));
+						generateStepItem(metadata, status());
 					}
 				});
-				if (isGenerateClass) {
-					generateStepItem(testItemId, launchId, user, projectDetails, AFTER_CLASS, status());
+				if (generateNestedSteps) {
+					metadata.withNested(false);
+				}
+				if (generateClass) {
+					metadata.withType(AFTER_CLASS).withName(getNameFromType(AFTER_CLASS));
+					generateStepItem(metadata, status());
 				}
 				StatusEnum status = beforeClassStatus.orElse(FAILED);
 				demoDataTestItemService.finishTestItem(testItemId, status, user, projectDetails);
@@ -153,20 +173,20 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 		});
 	}
 
-	private void generateRetries(String launchId, String testItemId, String name, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails, StatusEnum status) {
+	private void generateRetries(DemoItemMetadata metadata, StatusEnum status) {
 		if (status != PASSED && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
 			while ((status = status()) != PASSED) {
-				generateStepWithLogs(launchId, testItemId, name, true, projectDetails, user, status);
+				metadata.withRetry(true);
+				generateStepWithLogs(metadata, status);
 			}
 		}
+		metadata.withRetry(false);
 	}
 
-	private void generateStepWithLogs(String launchId, String rootItemId, String name, boolean retry,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, StatusEnum status) {
-		String stepId = demoDataTestItemService.startTestItem(rootItemId, launchId, name, STEP, retry, user, projectDetails);
-		generateLogs(stepId, launchId, status, projectDetails);
-		demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
+	private void generateStepWithLogs(DemoItemMetadata metadata, StatusEnum status) {
+		String stepId = demoDataTestItemService.startTestItem(metadata);
+		generateLogs(stepId, metadata.getLaunchId(), status, metadata.getProjectDetails());
+		demoDataTestItemService.finishTestItem(stepId, status, metadata.getUser(), metadata.getProjectDetails());
 	}
 
 	private void generateLogs(String itemId, String launchId, StatusEnum status, ReportPortalUser.ProjectDetails projectDetails) {
@@ -174,17 +194,9 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), itemId, launchId);
 	}
 
-	private void generateStepItem(String parentId, String launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
-			TestItemTypeEnum type, StatusEnum status) {
-		String beforeMethodId = demoDataTestItemService.startTestItem(parentId,
-				launchId,
-				CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, type.name()),
-				type,
-				false,
-				user,
-				projectDetails
-		);
-		demoDataTestItemService.finishTestItem(beforeMethodId, status, user, projectDetails);
+	private void generateStepItem(DemoItemMetadata metadata, StatusEnum status) {
+		String beforeMethodId = demoDataTestItemService.startTestItem(metadata);
+		demoDataTestItemService.finishTestItem(beforeMethodId, status, metadata.getUser(), metadata.getProjectDetails());
 
 	}
 

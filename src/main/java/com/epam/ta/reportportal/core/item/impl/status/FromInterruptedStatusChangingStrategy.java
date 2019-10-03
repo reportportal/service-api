@@ -41,6 +41,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -82,6 +83,11 @@ public class FromInterruptedStatusChangingStrategy extends StatusChangingStrateg
 		));
 
 		if (PASSED.equals(providedStatus)) {
+			ofNullable(item.getItemResults().getIssue()).ifPresent(issue -> {
+				issue.setTestItemResults(null);
+				issueEntityRepository.delete(issue);
+				item.getItemResults().setIssue(null);
+			});
 			changeStatusRecursively(item, user, projectId);
 			Launch launch = launchRepository.findById(item.getLaunchId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));

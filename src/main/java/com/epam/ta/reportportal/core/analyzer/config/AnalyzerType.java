@@ -27,33 +27,28 @@ import java.util.stream.Collectors;
  */
 public enum AnalyzerType {
 
-	AUTO_ANALYZER("autoAnalyzer", "auto"),
-	PATTERN_ANALYZER("patternAnalyzer", "pattern");
+	AUTO_ANALYZER("autoAnalyzer"),
+	PATTERN_ANALYZER("patternAnalyzer");
 
 	private final String name;
-	private final String shortName;
 
-	AnalyzerType(String name, String shortName) {
+	AnalyzerType(String name) {
 		this.name = name;
-		this.shortName = shortName;
 	}
 
 	public static AnalyzerType fromString(String type) {
 		return Arrays.stream(AnalyzerType.values())
-				.filter(it -> it.getName().equalsIgnoreCase(type) || it.getShortName().equalsIgnoreCase(type))
+				.filter(it -> it.getName().equalsIgnoreCase(type))
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+				.orElseThrow(() -> new ReportPortalException(
+						ErrorType.INCORRECT_REQUEST,
 						"Incorrect analyzer type. Allowed are: " + Arrays.stream(AnalyzerType.values())
-								.map(analyzerType -> analyzerType.getName() + "\\" + analyzerType.getShortName())
+								.map(AnalyzerType::getName)
 								.collect(Collectors.toList())
 				));
 	}
 
 	public String getName() {
 		return name;
-	}
-
-	public String getShortName() {
-		return shortName;
 	}
 }

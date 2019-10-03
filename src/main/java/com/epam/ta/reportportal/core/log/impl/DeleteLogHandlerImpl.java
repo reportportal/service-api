@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
@@ -57,17 +57,17 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	private final LogRepository logRepository;
 
-	private final AttachmentDataStoreService attachmentDataStoreService;
+	private final AttachmentBinaryDataService attachmentBinaryDataService;
 
 	private final ProjectRepository projectRepository;
 
 	private final TestItemService testItemService;
 
 	@Autowired
-	public DeleteLogHandlerImpl(LogRepository logRepository, AttachmentDataStoreService attachmentDataStoreService,
+	public DeleteLogHandlerImpl(LogRepository logRepository, AttachmentBinaryDataService attachmentBinaryDataService,
 			ProjectRepository projectRepository, TestItemService testItemService) {
 		this.logRepository = logRepository;
-		this.attachmentDataStoreService = attachmentDataStoreService;
+		this.attachmentBinaryDataService = attachmentBinaryDataService;
 		this.projectRepository = projectRepository;
 		this.testItemService = testItemService;
 	}
@@ -94,10 +94,10 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 	private void cleanUpLogData(Log log) {
 		ofNullable(log.getAttachment()).ifPresent(a -> {
 			if (StringUtils.isNotBlank(a.getFileId())) {
-				attachmentDataStoreService.delete(a.getFileId());
+				attachmentBinaryDataService.delete(a.getFileId());
 			}
 			if (StringUtils.isNotBlank(a.getThumbnailId())) {
-				attachmentDataStoreService.delete(a.getThumbnailId());
+				attachmentBinaryDataService.delete(a.getThumbnailId());
 			}
 		});
 
@@ -119,12 +119,11 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 		//TODO check if statistics is right in item results
 		if (itemOptional.isPresent()) {
-			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
-					formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state",
-							log.getId(),
-							itemOptional.get().getItemId()
-					)
-			);
+			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED, formattedSupplier(
+					"Unable to delete log '{}' when test item '{}' in progress state",
+					log.getId(),
+					itemOptional.get().getItemId()
+			));
 		} else {
 			expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 					formattedSupplier("Unable to delete log '{}' when launch '{}' in progress state", log.getId(), launch.getId())

@@ -41,8 +41,7 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -61,7 +60,7 @@ class TestItemConverterTest {
 
 	@Test
 	void toActivityResource() {
-		final TestItem item = getItem();
+		final TestItem item = getItem(true);
 		final TestItemActivityResource activityResource = TestItemConverter.TO_ACTIVITY_RESOURCE.apply(item, 4L);
 
 		assertEquals(activityResource.getId(), item.getItemId());
@@ -85,7 +84,7 @@ class TestItemConverterTest {
 
 	@Test
 	void toResource() {
-		final TestItem item = getItem();
+		final TestItem item = getItem(true);
 		final TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(item);
 
 		assertEquals(resource.getName(), item.getName());
@@ -110,9 +109,43 @@ class TestItemConverterTest {
 				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
 		assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
 				.getStatistics()));
+		assertEquals(resource.getIssue().getComment(), item.getItemResults().getIssue().getIssueDescription());
+		assertEquals(resource.getIssue().getAutoAnalyzed(), item.getItemResults().getIssue().getAutoAnalyzed());
+		assertEquals(resource.getIssue().getIssueType(), item.getItemResults().getIssue().getIssueType().getLocator());
+		assertEquals(resource.getIssue().getIgnoreAnalyzer(), item.getItemResults().getIssue().getIgnoreAnalyzer());
 	}
 
-	private TestItem getItem() {
+	@Test
+	void toResourceWithoutIssue() {
+		final TestItem item = getItem(false);
+		final TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(item);
+
+		assertEquals(resource.getName(), item.getName());
+		assertEquals(resource.getDescription(), item.getDescription());
+		assertEquals(resource.getLaunchId(), item.getLaunchId());
+		assertEquals(resource.getUuid(), item.getUuid());
+		assertEquals(resource.getItemId(), item.getItemId());
+		assertEquals(resource.getParent(), item.getParent().getItemId());
+		assertEquals(resource.getPath(), item.getPath());
+		assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
+		assertEquals(resource.getType(), item.getType().name());
+		assertEquals(resource.getStartTime(), Date.from(item.getStartTime().atZone(ZoneId.of("UTC")).toInstant()));
+		assertEquals(resource.getEndTime(), Date.from(item.getItemResults().getEndTime().atZone(ZoneId.of("UTC")).toInstant()));
+		assertEquals(resource.getUniqueId(), item.getUniqueId());
+		assertThat(resource.getAttributes()
+				.stream()
+				.map(ItemAttributeConverter.FROM_RESOURCE)
+				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getAttributes());
+		assertThat(resource.getParameters()
+				.stream()
+				.map(ParametersConverter.TO_MODEL)
+				.collect(Collectors.toSet())).containsExactlyElementsOf(item.getParameters());
+		assertThat(resource.getStatisticsResource()).isEqualToComparingFieldByField(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults()
+				.getStatistics()));
+		assertNull(resource.getIssue());
+	}
+
+	private TestItem getItem(boolean hasIssue) {
 		TestItem item = new TestItem();
 		item.setName("name");
 		item.setDescription("description");
@@ -138,19 +171,22 @@ class TestItemConverterTest {
 		final TestItemResults itemResults = new TestItemResults();
 		itemResults.setStatus(StatusEnum.FAILED);
 		itemResults.setEndTime(LocalDateTime.now());
-		final IssueEntity issue = new IssueEntity();
-		issue.setIssueType(new IssueType(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG), "locator", "long name", "SNA", "color"));
-		issue.setIgnoreAnalyzer(false);
-		issue.setAutoAnalyzed(false);
-		issue.setIssueDescription("issue description");
-		final Ticket ticket = new Ticket();
-		ticket.setTicketId("ticketId1");
-		ticket.setUrl("http:/example.com/ticketId1");
-		final Ticket ticket1 = new Ticket();
-		ticket1.setTicketId("ticketId2");
-		ticket1.setUrl("http:/example.com/ticketId2");
-		issue.setTickets(Sets.newHashSet(ticket, ticket1));
-		itemResults.setIssue(issue);
+		if (hasIssue) {
+			final IssueEntity issue = new IssueEntity();
+			issue.setIssueId(3L);
+			issue.setIssueType(new IssueType(new IssueGroup(TestItemIssueGroup.PRODUCT_BUG), "locator", "long name", "SNA", "color"));
+			issue.setIgnoreAnalyzer(false);
+			issue.setAutoAnalyzed(false);
+			issue.setIssueDescription("issue description");
+			final Ticket ticket = new Ticket();
+			ticket.setTicketId("ticketId1");
+			ticket.setUrl("http:/example.com/ticketId1");
+			final Ticket ticket1 = new Ticket();
+			ticket1.setTicketId("ticketId2");
+			ticket1.setUrl("http:/example.com/ticketId2");
+			issue.setTickets(Sets.newHashSet(ticket, ticket1));
+			itemResults.setIssue(issue);
+		}
 		itemResults.setStatistics(Sets.newHashSet(new Statistics(new StatisticsField("statistics$defects$automation_bug$total"), 1, 2L)));
 		item.setItemResults(itemResults);
 		return item;

@@ -88,7 +88,7 @@ public class DemoDataTestItemService {
 			}
 		}
 		rq.setHasStats(!metadata.isNested());
-		rq.setCodeRef(PACKAGE + metadata.getType());
+		rq.setCodeRef(PACKAGE + metadata.getName());
 		rq.setRetry(metadata.isRetry());
 		rq.setLaunchUuid(metadata.getLaunchId());
 		rq.setStartTime(new Date());

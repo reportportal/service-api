@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -41,7 +41,7 @@ public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SaveLogBinaryDataTaskAsync.class);
 
 	@Autowired
-	private AttachmentDataStoreService attachmentDataStoreService;
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	private SaveLogRQ request;
 
@@ -51,7 +51,7 @@ public class SaveLogBinaryDataTaskAsync implements Supplier<BinaryDataMetaInfo> 
 
 	@Override
 	public BinaryDataMetaInfo get() {
-		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = attachmentDataStoreService.saveAttachment(projectId, file);
+		Optional<BinaryDataMetaInfo> maybeBinaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(projectId, file);
 		return maybeBinaryDataMetaInfo.orElseGet(() -> {
 			LOGGER.error("Failed to save log content data into DataStore, projectId {}, itemId {} ", projectId, request.getItemUuid());
 			throw new ReportPortalException(ErrorType.BINARY_DATA_CANNOT_BE_SAVED);

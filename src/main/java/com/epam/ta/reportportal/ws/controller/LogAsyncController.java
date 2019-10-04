@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
@@ -63,6 +64,7 @@ public class LogAsyncController {
 
 	/* Report client API */
 
+	@HttpLogging
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
 	@ApiOperation("Create log")
@@ -73,6 +75,7 @@ public class LogAsyncController {
 		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
 	}
 
+	@HttpLogging
 	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	// @ApiOperation("Create log (batching operation)")
 	// Specific handler should be added for springfox in case of similar POST

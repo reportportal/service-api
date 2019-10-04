@@ -45,6 +45,7 @@ logging:
     org.hibernate.stat: info
     org.springframework.security: info
     org.springframework.web.bind: fatal
+    com.epam.ta.reportportal.ws.controller: debug
 
 
 springfox:

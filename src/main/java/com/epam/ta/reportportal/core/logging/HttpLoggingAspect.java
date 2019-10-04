@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +28,14 @@ import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
+@Aspect
 public class HttpLoggingAspect {
 
 	private static final String READABLE_CONTENT_TYPES = "text/plain text/html text/xml application/json application/xml application/hal+xml application/hal+json";
 
 	private static final String NEWLINE = "\n";
-	private static final String BODY_DENOMINATOR = "<< Body goes here >>";
-	private static final String BODY_BINARY_MARK = "-- binary body --";
+	private static final String BODY_DENOMINATOR = "-- Body --";
+	private static final String BODY_BINARY_MARK = "<binary body>";
 
 	private static final AtomicLong COUNTER = new AtomicLong();
 
@@ -83,15 +85,14 @@ public class HttpLoggingAspect {
 			Object arg = args[i];
 
 			if (arg != null) {
-				if (parameters[i].isAnnotationPresent(RequestBody.class)) {
+				if (arg instanceof MultipartHttpServletRequest) {
+					body = BODY_BINARY_MARK;
+					break;
+				} else if (parameters[i].isAnnotationPresent(RequestBody.class)) {
 					body = arg;
 					break;
-				} else if (arg instanceof HttpEntity) {
-					if (arg instanceof MultipartHttpServletRequest) {
-						body = BODY_BINARY_MARK;
-					} else {
-						body = ((HttpEntity) arg).getBody();
-					}
+				}  else if (arg instanceof HttpEntity) {
+					body = ((HttpEntity) arg).getBody();
 					break;
 				}
 			}
@@ -106,8 +107,8 @@ public class HttpLoggingAspect {
 		// uri
 		record.append(prefix)
 				.append(" (").append(count).append(')').append(" - Request")
-				.append(NEWLINE).append(' ').append(request.getMethod()).append(' ')
-				.append(NEWLINE).append(URLDecoder.decode(request.getRequestURI(), StandardCharsets.UTF_8.displayName()));
+				.append(NEWLINE).append(' ').append(request.getMethod())
+				.append(' ').append(URLDecoder.decode(request.getRequestURI(), StandardCharsets.UTF_8.displayName()));
 
 		// headers
 		if (annotation.logHeaders()) {
@@ -115,7 +116,7 @@ public class HttpLoggingAspect {
 			while (names.hasMoreElements()) {
 				String name = names.nextElement();
 				Enumeration<String> values = request.getHeaders(name);
-				record.append(NEWLINE).append(name).append(':');
+				record.append(NEWLINE).append(' ').append(name).append(':');
 				boolean comma = false;
 				while (values.hasMoreElements()) {
 					if (comma) {
@@ -130,7 +131,7 @@ public class HttpLoggingAspect {
 
 		// body
 		if (body != null && annotation.logRequestBody()) {
-			record.append(NEWLINE).append(BODY_DENOMINATOR)
+			record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
 					.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
 		}
 
@@ -138,10 +139,10 @@ public class HttpLoggingAspect {
 	}
 
 	private String formatResponseRecord(long count, String prefix, Object response, HttpLogging annotation, long executionTime) throws Exception {
-		boolean binaryBody = true;
+		boolean binaryBody = false;
 		StringBuilder record = new StringBuilder();
 
-		record.append(" (").append(count).append(')').append(" - Response ").append(" (").append(executionTime).append(" ms)");
+		record.append(prefix).append(" (").append(count).append(')').append(" - Response ").append(" (").append(executionTime).append(" ms)");
 
 		if (response instanceof ResponseEntity) {
 			HttpStatus status = ((ResponseEntity) response).getStatusCode();
@@ -153,8 +154,8 @@ public class HttpLoggingAspect {
 					record.append(NEWLINE).append(' ').append(name).append(':');
 					boolean comma = false;
 					for (String value : headers.get(name)) {
-						if (HttpHeaders.CONTENT_TYPE.equals(name) && readableContent(value)) {
-							binaryBody = false;
+						if (HttpHeaders.CONTENT_TYPE.equals(name) && !readableContent(value)) {
+							binaryBody = true;
 						}
 						if (comma) {
 							record.append(',');
@@ -169,7 +170,7 @@ public class HttpLoggingAspect {
 			if (annotation.logResponseBody()) {
 				record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
 				if (binaryBody) {
-					record.append(NEWLINE).append(' ').append(BODY_BINARY_MARK);
+					record.append(NEWLINE).append(' ').append('"').append(BODY_BINARY_MARK).append('"');
 				} else {
 					try {
 						record.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(((ResponseEntity<?>) response).getBody()));
@@ -177,6 +178,14 @@ public class HttpLoggingAspect {
 						record.append(NEWLINE).append(' ').append(((ResponseEntity<String>) response).getBody());
 					}
 				}
+			}
+		} else {
+			record.append(NEWLINE).append(' ').append("Status").append(" - ").append("OK (method return)");
+			record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
+			try {
+				record.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(response));
+			} catch (JsonProcessingException ex) {
+				// ignore
 			}
 		}
 

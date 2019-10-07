@@ -155,8 +155,12 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
-		return itemAttributeRepository.findKeysByProjectId(projectDetails.getProjectId(), keyPart, false);
+	public List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
+			ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
+		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
+		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
+		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
+		return itemAttributeRepository.findAllKeysByLaunchFilter(launchFilter, launchPageable, isLatest, keyPart, false);
 	}
 
 	@Override
@@ -226,13 +230,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails, UserFilter launchFilter) {
 
-		BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
-				.verify(ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
-								launchFilter.getTargetClass(),
-								ObjectType.Launch
-						)
-				);
+		validateLaunchFilterTarget(launchFilter);
 
 		Filter filter = Filter.builder()
 				.withTarget(launchFilter.getTargetClass().getClassObject())
@@ -246,6 +244,16 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 				.build();
 		filter.getFilterConditions().addAll(launchFilter.getFilterCondition());
 		return filter;
+	}
+
+	private void validateLaunchFilterTarget(UserFilter launchFilter) {
+		BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
+				.verify(ErrorType.BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
+								launchFilter.getTargetClass(),
+								ObjectType.Launch
+						)
+				);
 	}
 
 	private Pageable createLaunchPageable(UserFilter launchFilter, int launchesLimit) {

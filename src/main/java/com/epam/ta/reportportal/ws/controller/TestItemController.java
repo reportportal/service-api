@@ -225,8 +225,16 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute keys of specified launch")
 	public List<String> getAttributeKeysForProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY) String value) {
-		return getTestItemHandler.getAttributeKeys(extractProjectDetails(user, projectName), value);
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY) String value,
+			@RequestParam(value = FILTER_ID_REQUEST_PARAM) Long launchFilterId,
+			@RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false) boolean isLatest,
+			@RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0") int launchesLimit) {
+		return getTestItemHandler.getAttributeKeys(launchFilterId,
+				isLatest,
+				launchesLimit,
+				extractProjectDetails(user, projectName),
+				value
+		);
 	}
 
 	@Transactional(readOnly = true)

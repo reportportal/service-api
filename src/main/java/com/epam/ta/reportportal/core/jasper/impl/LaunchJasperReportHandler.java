@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.google.common.collect.Sets;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,10 +77,9 @@ public class LaunchJasperReportHandler extends AbstractJasperReportHandler<Launc
 						.collect(Collectors.toList())
 		);
 
-		ofNullable(launch.getEndTime()).map(endTime -> params.put(LaunchReportConstants.DURATION,
-				ExportUtils.durationToShortDHMS(Duration.between(launch.getStartTime(), endTime))
-		))
-				.orElseGet(() -> params.put(LaunchReportConstants.DURATION, null));
+		String duration = ofNullable(launch.getEndTime()).map(endTime -> ExportUtils.durationToShortDHMS(
+				Duration.between(launch.getStartTime(), endTime))).orElse(StringUtils.EMPTY);
+		params.put(LaunchReportConstants.DURATION, duration);
 
 		Set<Statistics> statistics = launch.getStatistics();
 		params.put(LaunchReportConstants.TOTAL, ExportUtils.getStatisticsCounter(statistics, EXECUTIONS_TOTAL));

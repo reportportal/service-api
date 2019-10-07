@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.logging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -100,8 +101,12 @@ public class RabbitMessageLoggingAspect {
 
 		// body
 		if (annotation.logBody() && body !=null) {
-			record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
-					.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
+			try {
+				record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
+						.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
+			} catch (JsonProcessingException e) {
+				// ignore
+			}
 		}
 
 		return record.toString();

@@ -145,8 +145,12 @@ public class HttpLoggingAspect {
 
 		// body
 		if (body != null && annotation.logRequestBody()) {
-			record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
-					.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
+			try {
+				record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR)
+						.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(body));
+			} catch (JsonProcessingException e) {
+				// ignore
+			}
 		}
 
 		return record.toString();
@@ -194,12 +198,14 @@ public class HttpLoggingAspect {
 				}
 			}
 		} else {
-			record.append(NEWLINE).append(' ').append("Status").append(" - ").append("OK (method return)");
-			record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
-			try {
-				record.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(response));
-			} catch (JsonProcessingException ex) {
-				// ignore
+			if (annotation.logResponseBody()) {
+				record.append(NEWLINE).append(' ').append("Status").append(" - ").append("OK (method return)");
+				record.append(NEWLINE).append(' ').append(BODY_DENOMINATOR);
+				try {
+					record.append(NEWLINE).append(' ').append(objectMapper.writeValueAsString(response));
+				} catch (JsonProcessingException ex) {
+					// ignore
+				}
 			}
 		}
 

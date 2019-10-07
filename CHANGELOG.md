@@ -252,6 +252,7 @@
 * EPMRPP-39525 - Launches and filters are not shown for project if it has name 'project'
 * EPMRPP-40808 - Dashboard. PM can't delete not own shared dashboard
 * EPMRPP-41168 - Admin can't delete test items on the Step View
+* EPMRPP-42274 - History of actions. No actions are displayed for items analyzed manually.
 * EPMRPP-35338 - Add number of run to launch name on widgets for the particular launch.
 * EPMRPP-42004 - Step level. Unclassified error on bulk post/link issue
 * EPMRPP-42337 - 'Issue' parameter should not be available for items without issue type or items have status Passed.

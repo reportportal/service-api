@@ -100,11 +100,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch),
-				baseUrl,
-				user.getUserId(),
-				user.getUsername()
-		);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user, baseUrl);
 		messageBus.publishActivity(event);
 		eventPublisher.publishEvent(event);
 

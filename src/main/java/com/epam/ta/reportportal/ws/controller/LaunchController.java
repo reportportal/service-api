@@ -300,7 +300,7 @@ public class LaunchController {
 	@ApiOperation("Start launch auto-analyzer on demand")
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
 			@RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateLaunchHandler.startLaunchAnalyzer(extractProjectDetails(user, normalizeId(projectName)), analyzeLaunchRQ);
+		return updateLaunchHandler.startLaunchAnalyzer(analyzeLaunchRQ, extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional(readOnly = true)

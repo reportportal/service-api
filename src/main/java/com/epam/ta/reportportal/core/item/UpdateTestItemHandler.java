@@ -72,7 +72,7 @@ public interface UpdateTestItemHandler {
 	 * @param itemIds   The {@link List} of the {@link com.epam.ta.reportportal.entity.item.TestItemResults#itemId}
 	 * @param projectId Project id
 	 */
-	void resetItemsIssue(List<Long> itemIds, Long projectId);
+	void resetItemsIssue(List<Long> itemIds, Long projectId, ReportPortalUser user);
 
 	OperationCompletionRS bulkInfoUpdate(BulkInfoUpdateRQ bulkUpdateRq, ReportPortalUser.ProjectDetails projectDetails);
 }

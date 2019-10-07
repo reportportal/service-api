@@ -63,7 +63,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 		this.eventPublisher = eventPublisher;
 	}
 
-	public void analyze(ReportPortalUser.ProjectDetails projectDetails, AnalyzeLaunchRQ analyzeRQ) {
+	public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		expect(analyzerServiceAsync.hasAnalyzers(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer services are deployed."
 		);
@@ -81,7 +81,7 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 		analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
-		List<Long> itemIds = collectItemsByModes(project, launch.getId(), analyzeRQ.getAnalyzeItemsModes());
+		List<Long> itemIds = collectItemsByModes(launch.getId(), analyzeRQ.getAnalyzeItemsModes(), project, user);
 
 		eventPublisher.publishEvent(new AnalysisEvent(launch, itemIds, analyzerConfig));
 	}
@@ -97,10 +97,10 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 	 * @see AnalyzeCollectorFactory
 	 * @see AnalyzeItemsCollector
 	 */
-	private List<Long> collectItemsByModes(Project project, Long launchId, List<String> analyzeItemsMode) {
+	private List<Long> collectItemsByModes(Long launchId, List<String> analyzeItemsMode, Project project, ReportPortalUser user) {
 		return analyzeItemsMode.stream()
 				.map(AnalyzeItemsMode::fromString)
-				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project.getId(), launchId).stream())
+				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project.getId(), launchId, user).stream())
 				.distinct()
 				.collect(toList());
 	}

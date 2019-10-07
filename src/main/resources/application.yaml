@@ -46,6 +46,7 @@ logging:
     org.springframework.security: info
     org.springframework.web.bind: fatal
     com.epam.ta.reportportal.ws.controller: debug
+    com.epam.ta.reportportal.ws.rabbit: debug
 
 
 springfox:

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info>
+    <mime-type type="application/har+json">
+        <glob pattern="*.har"/>
+        <sub-class-of type="application/json"/>
+    </mime-type>
+</mime-info>

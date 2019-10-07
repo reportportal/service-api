@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import org.apache.tika.mime.MediaType;
 import org.springframework.core.io.ClassPathResource;
 
+import static com.epam.ta.reportportal.util.detector.har.HarDetector.HAR_MIME_TYPE;
 import static org.springframework.http.MediaType.*;
 
 /**
@@ -37,7 +39,7 @@ public enum Attachment {
 	JSON("demo/demo_widgets.json", APPLICATION_JSON_VALUE),
 	PNG("demo/attachments/img.png", IMAGE_PNG_VALUE),
 	XML("demo/attachments/xml.xml", APPLICATION_XML_VALUE),
-	HAR("demo/attachments/har.har", "application/har+json"),
+	HAR("demo/attachments/har.har", MediaType.application(HAR_MIME_TYPE).toString()),
 	GZ("demo/attachments/gz.gz", "application/gzip"),
 	RAR("demo/attachments/rar.rar", "application/x-rar-compressed"),
 	TAR("demo/attachments/tar.tar", "application/tar");

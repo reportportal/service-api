@@ -9,6 +9,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicLong;
 
+
+/**
+ * @author Konstantin Antipin
+ */
+
 @Component
 @Aspect
 public class HttpLoggingAspect {
@@ -39,11 +45,19 @@ public class HttpLoggingAspect {
 
 	private static final AtomicLong COUNTER = new AtomicLong();
 
+	@Value("${rp.requestLogging:false}")
+	private boolean requestLoggingEnabled;
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Around("execution(public * *(..)) && @annotation(annotation)")
 	public Object log(ProceedingJoinPoint joinPoint, HttpLogging annotation) throws Throwable {
+
+		if (!requestLoggingEnabled) {
+			return joinPoint.proceed();
+		}
+
 		Logger logger = LoggerFactory.getLogger(joinPoint.getTarget().getClass());
 
 

@@ -69,6 +69,8 @@ rp:
     apiuser: rabbitmq
     apipass: rabbitmq
 
+  requestLogging: true
+
   jwt:
     signing-key: 123
 

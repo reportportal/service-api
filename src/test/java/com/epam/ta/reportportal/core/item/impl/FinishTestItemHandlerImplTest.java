@@ -88,6 +88,7 @@ class FinishTestItemHandlerImplTest {
 		TestItem item = new TestItem();
 		Launch launch = new Launch();
 		launch.setId(1L);
+		launch.setProjectId(1L);
 		User user = new User();
 		user.setId(2L);
 		user.setLogin("owner");
@@ -95,7 +96,7 @@ class FinishTestItemHandlerImplTest {
 		item.setItemId(1L);
 		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
-		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
+		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 
@@ -117,9 +118,10 @@ class FinishTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 		launch.setUserId(1L);
+		launch.setProjectId(1L);
 		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
-		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
+		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(

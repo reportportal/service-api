@@ -117,7 +117,8 @@ dependencies {
     // Optional for spring-boot-starter-amqp
     compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
-    compile "ch.qos.logback:logback-classic"
+    compile "ch.qos.logback:logback-classic:1.1.8"
+    compile "ch.qos.logback:logback-core:1.1.8"
     compile 'com.sun.mail:javax.mail'
     compile 'org.aspectj:aspectjweaver:1.8.9'
     compile 'org.aspectj:aspectjrt:1.8.9'

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.ws.rabbit;
 
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
@@ -54,7 +54,6 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -105,10 +104,9 @@ public class AsyncReportingListener implements MessageListener {
 	private TestItemService testItemService;
 
 	@Autowired
-	private AttachmentDataStoreService attachmentDataStoreService;
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	@Override
-	@Transactional
 	public void onMessage(Message message) {
 
 		try {
@@ -284,7 +282,7 @@ public class AsyncReportingListener implements MessageListener {
 
 	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
 		if (!Objects.isNull(metaInfo)) {
-			attachmentDataStoreService.attachToLog(metaInfo,
+			attachmentBinaryDataService.attachToLog(metaInfo,
 					AttachmentMetaInfo.builder().withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).withLogId(logId).build()
 			);
 		}
@@ -302,8 +300,8 @@ public class AsyncReportingListener implements MessageListener {
 		// we need to delete only binary data, log and attachment shouldn't be dirty created
 		if (payload.getRight() != null) {
 			BinaryDataMetaInfo metaInfo = payload.getRight();
-			attachmentDataStoreService.delete(metaInfo.getFileId());
-			attachmentDataStoreService.delete(metaInfo.getThumbnailFileId());
+			attachmentBinaryDataService.delete(metaInfo.getFileId());
+			attachmentBinaryDataService.delete(metaInfo.getThumbnailFileId());
 		}
 	}
 

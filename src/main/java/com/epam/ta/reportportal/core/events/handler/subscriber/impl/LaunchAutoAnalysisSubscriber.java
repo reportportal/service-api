@@ -40,7 +40,7 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
-					.collectItems(project.getId(), launch.getId());
+					.collectItems(project.getId(), launch.getId(), launchFinishedEvent.getUser());
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
 			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
 

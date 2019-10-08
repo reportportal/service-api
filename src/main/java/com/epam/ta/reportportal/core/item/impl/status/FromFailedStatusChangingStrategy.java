@@ -85,6 +85,7 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 
 		if (PASSED.equals(providedStatus)) {
 			ofNullable(item.getItemResults().getIssue()).ifPresent(issue -> {
+				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				item.getItemResults().setIssue(null);
 			});

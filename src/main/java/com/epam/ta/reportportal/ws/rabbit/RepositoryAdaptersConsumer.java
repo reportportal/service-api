@@ -16,11 +16,9 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
@@ -29,7 +27,6 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -54,26 +51,17 @@ public class RepositoryAdaptersConsumer {
 
 	private TestItemRepository testItemRepository;
 
-	private DataStoreService dataStoreService;
-
 	private ProjectConverter projectConverter;
 
 	private TestItemResourceAssembler itemResourceAssembler;
 
 	public RepositoryAdaptersConsumer(LogRepository logRepository, ProjectRepository projectRepository,
-			TestItemRepository testItemRepository, DataStoreService dataStoreService, ProjectConverter projectConverter,
-			TestItemResourceAssembler itemResourceAssembler) {
+			TestItemRepository testItemRepository, ProjectConverter projectConverter, TestItemResourceAssembler itemResourceAssembler) {
 		this.logRepository = logRepository;
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
-		this.dataStoreService = dataStoreService;
 		this.projectConverter = projectConverter;
 		this.itemResourceAssembler = itemResourceAssembler;
-	}
-
-	@Autowired
-	public void setDataStoreService(DataStoreService dataStoreService) {
-		this.dataStoreService = dataStoreService;
 	}
 
 	@RabbitListener(queues = PROJECTS_FIND_BY_NAME)

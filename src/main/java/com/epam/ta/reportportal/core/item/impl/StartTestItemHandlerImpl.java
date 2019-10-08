@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
@@ -36,6 +37,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,13 +71,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private final RerunHandler rerunHandler;
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			UniqueIdGenerator identifierGenerator, RerunHandler rerunHandler) {
+			UniqueIdGenerator identifierGenerator, RerunHandler rerunHandler, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.identifierGenerator = identifierGenerator;
 		this.rerunHandler = rerunHandler;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -156,6 +161,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void handleRetries(Launch launch, TestItem item) {
 		testItemRepository.handleRetries(item.getItemId());
+		eventPublisher.publishEvent(new ItemRetryEvent(launch.getProjectId(), item.getItemId()));
 		if (!launch.isHasRetries()) {
 			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		}

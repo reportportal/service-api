@@ -37,6 +37,8 @@ public final class ContentLoaderConstants {
 	public static final String FLAKY = "flaky";
 	public static final String CUSTOM_COLUMNS = "customColumns";
 	public static final String TIMELINE = "timeline";
+	public static final String ATTRIBUTE_KEYS = "attributeKeys";
+	public static final String MIN_PASSING_RATE = "minPassingRate";
 
 	private ContentLoaderConstants() {
 		//static only

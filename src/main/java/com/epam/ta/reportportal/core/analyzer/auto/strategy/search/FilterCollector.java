@@ -1,6 +1,8 @@
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.search;
 
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
@@ -46,7 +49,13 @@ public class FilterCollector implements SearchLaunchesCollector {
 				formattedSupplier("Filter type '{}' is not supported", userFilter.getTargetClass())
 		);
 
-		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(), Lists.newArrayList(userFilter.getFilterCondition()));
+		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(),
+				Lists.newArrayList(userFilter.getFilterCondition())
+		).withCondition(FilterCondition.builder()
+				.withSearchCriteria(CRITERIA_ID)
+				.withCondition(Condition.NOT_EQUALS)
+				.withValue(String.valueOf(launch.getId()))
+				.build());
 		PageRequest pageable = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));
 		return launchRepository.findByFilter(filter, pageable).stream().map(Launch::getId).collect(Collectors.toList());
 	}

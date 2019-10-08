@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -124,20 +125,20 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, int launchesLimit) {
+			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit) {
 
 		Optional<Long> launchIdOptional = Optional.ofNullable(launchId);
 		Optional<Long> filterIdOptional = Optional.ofNullable(filterId);
 
 		Page<TestItem> testItemPage = filterIdOptional.map(launchFilterId -> {
 			validateProjectRole(projectDetails, user);
-			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, launchesLimit);
+			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, isLatest, launchesLimit);
 		}).orElseGet(() -> launchIdOptional.map(id -> {
 			validate(id, projectDetails, user);
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
 
-		Map<Long, Map<Long, String>> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
 				pathNamesMapping.get(item.getItemId())
@@ -151,6 +152,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
 				);
 		return ticketRepository.findByTerm(launchId, term);
+	}
+
+	@Override
+	public List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
+			ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
+		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
+		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
+		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
+		return itemAttributeRepository.findAllKeysByLaunchFilter(launchFilter, launchPageable, isLatest, keyPart, false);
 	}
 
 	@Override
@@ -211,22 +221,16 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
-			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, int launchesLimit) {
+			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
 		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
 		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
 		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
-		return testItemRepository.findByFilter(launchFilter, testItemFilter, launchPageable, testItemPageable);
+		return testItemRepository.findByFilter(isLatest, launchFilter, testItemFilter, launchPageable, testItemPageable);
 	}
 
 	private Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails, UserFilter launchFilter) {
 
-		BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
-				.verify(ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
-								launchFilter.getTargetClass(),
-								ObjectType.Launch
-						)
-				);
+		validateLaunchFilterTarget(launchFilter);
 
 		Filter filter = Filter.builder()
 				.withTarget(launchFilter.getTargetClass().getClassObject())
@@ -242,6 +246,16 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		return filter;
 	}
 
+	private void validateLaunchFilterTarget(UserFilter launchFilter) {
+		BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
+				.verify(ErrorType.BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
+								launchFilter.getTargetClass(),
+								ObjectType.Launch
+						)
+				);
+	}
+
 	private Pageable createLaunchPageable(UserFilter launchFilter, int launchesLimit) {
 
 		BusinessRule.expect(launchesLimit, limit -> limit > 0 && limit <= LAUNCHES_COUNT)
@@ -253,7 +267,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		return PageRequest.of(0, launchesLimit, sort);
 	}
 
-	private Map<Long, Map<Long, String>> getPathNamesMapping(List<TestItem> testItems) {
+	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
 		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
 	}
 }

@@ -18,13 +18,19 @@ package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.entity.item.NestedStep;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.model.NestedStepResource;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
+import com.epam.ta.reportportal.ws.model.item.ItemPathName;
+import com.epam.ta.reportportal.ws.model.item.LaunchPathName;
+import com.epam.ta.reportportal.ws.model.item.PathNameResource;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,7 +64,11 @@ public final class TestItemConverter {
 		if (null != item.getParameters()) {
 			resource.setParameters(item.getParameters().stream().map(ParametersConverter.TO_RESOURCE).collect(Collectors.toList()));
 		}
-		ofNullable(item.getItemResults().getIssue()).ifPresent(i -> resource.setIssue(IssueConverter.TO_MODEL.apply(i)));
+		ofNullable(item.getItemResults().getIssue()).ifPresent(i -> {
+			if (!Objects.isNull(i.getIssueId())) {
+				resource.setIssue(IssueConverter.TO_MODEL.apply(i));
+			}
+		});
 		resource.setName(item.getName());
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setStatus(item.getItemResults().getStatus() != null ? item.getItemResults().getStatus().toString() : null);
@@ -79,6 +89,24 @@ public final class TestItemConverter {
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
 		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));
 		return resource;
+	};
+
+	public static final Function<PathName, PathNameResource> PATH_NAME_TO_RESOURCE = pathName -> {
+
+		PathNameResource pathNameResource = new PathNameResource();
+		ofNullable(pathName.getLaunchPathName()).ifPresent(lpn -> pathNameResource.setLaunchPathName(new LaunchPathName(lpn.getName(),
+				lpn.getNumber()
+		)));
+		ofNullable(pathName.getItemPaths()).ifPresent(itemPaths -> {
+			if (CollectionUtils.isNotEmpty(itemPaths)) {
+				pathNameResource.setItemPaths(itemPaths.stream()
+						.map(path -> new ItemPathName(path.getId(), path.getName()))
+						.collect(Collectors.toList()));
+			}
+		});
+
+		return pathNameResource;
+
 	};
 
 	public static final Function<NestedStep, NestedStepResource> TO_NESTED_STEP_RESOURCE = item -> {

@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.demodata.service;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.demodata.model.DemoDataRq;
+import com.epam.ta.reportportal.demodata.model.DemoItemMetadata;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.user.User;
@@ -41,8 +41,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
-import static com.epam.ta.reportportal.demodata.service.Constants.NAME;
-import static com.epam.ta.reportportal.demodata.service.Constants.STORY_PROBABILITY;
+import static com.epam.ta.reportportal.demodata.service.Constants.*;
+import static com.epam.ta.reportportal.demodata.service.ContentUtils.getNameFromType;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
 import static java.util.stream.Collectors.toList;
@@ -102,6 +102,8 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					Launch launch = demoDataLaunchService.startLaunch(NAME, i, creator, projectDetails);
 					generateSuites(suitesStructure, i, launch.getUuid(), user, projectDetails);
 					demoDataLaunchService.finishLaunch(launch.getUuid());
+					List<Log> logs = demoLogsService.generateDemoLaunchLogs(launch.getUuid(), launch.getStatus());
+					demoLogsService.attachFiles(logs, projectDetails.getProjectId(), launch.getUuid());
 					return launch.getId();
 				}, executor))
 				.collect(toList());
@@ -111,50 +113,90 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		suitesStructure.entrySet().stream().limit(i + 1).forEach(suites -> {
-			String suiteItemId = demoDataTestItemService.startRootItem(suites.getKey(), launchId, SUITE, user, projectDetails);
+			DemoItemMetadata metadata = new DemoItemMetadata().withLaunch(launchId)
+					.withName(suites.getKey())
+					.withType(SUITE)
+					.withUser(user)
+					.withProjectDetails(projectDetails);
+			String suiteItemId = demoDataTestItemService.startRootItem(metadata);
 			suites.getValue().forEach((key, value) -> {
-				String testItemId = demoDataTestItemService.startTestItem(suiteItemId, launchId, key, TEST, user, projectDetails);
+				boolean generateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
+				boolean generateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+				boolean generateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+				boolean generateNestedSteps = ContentUtils.getWithProbability(STORY_PROBABILITY);
+
+				metadata.withName(key).withParentId(suiteItemId).withType(generateNestedSteps ? STEP : TEST).withRetry(false);
+				String testItemId = demoDataTestItemService.startTestItem(metadata);
+
 				Optional<StatusEnum> beforeClassStatus = Optional.empty();
-				boolean isGenerateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
-				if (isGenerateClass) {
+				if (generateClass) {
 					beforeClassStatus = Optional.of(status());
-					generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_CLASS, beforeClassStatus.get());
+					metadata.withParentId(testItemId).withType(BEFORE_CLASS).withName(getNameFromType(BEFORE_CLASS));
+					generateStepItem(metadata, beforeClassStatus.get());
 				}
-				boolean isGenerateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
-				boolean isGenerateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
+
 				value.stream().limit(i + 1).forEach(name -> {
-					if (isGenerateBeforeMethod) {
-						generateStepItem(testItemId, launchId, user, projectDetails, BEFORE_METHOD, status());
+					if (!generateNestedSteps && generateBeforeMethod) {
+						metadata.withType(BEFORE_METHOD).withName(getNameFromType(BEFORE_METHOD));
+						generateStepItem(metadata, status());
 					}
-					String stepId = demoDataTestItemService.startTestItem(testItemId, launchId, name, STEP, user, projectDetails);
+
 					StatusEnum status = status();
-					List<Log> logs = demoLogsService.generateDemoLogs(stepId, status, projectDetails.getProjectId(), launchId);
-					demoLogsService.attachFiles(logs, projectDetails.getProjectId(), stepId, launchId);
-					demoDataTestItemService.finishTestItem(stepId, status, user, projectDetails);
-					if (isGenerateAfterMethod) {
-						generateStepItem(testItemId, launchId, user, projectDetails, AFTER_METHOD, status());
+					metadata.withName(name).withType(STEP).withNested(generateNestedSteps);
+					generateStepWithLogs(metadata, status);
+					if (!generateNestedSteps) {
+						generateRetries(metadata, status);
+					}
+
+					if (!generateNestedSteps && generateAfterMethod) {
+						metadata.withType(AFTER_METHOD).withName(getNameFromType(AFTER_METHOD));
+						generateStepItem(metadata, status());
 					}
 				});
-				if (isGenerateClass) {
-					generateStepItem(testItemId, launchId, user, projectDetails, AFTER_CLASS, status());
+				if (generateNestedSteps) {
+					metadata.withNested(false);
 				}
-				demoDataTestItemService.finishTestItem(testItemId, beforeClassStatus.orElse(StatusEnum.FAILED), user, projectDetails);
+				if (generateClass) {
+					metadata.withType(AFTER_CLASS).withName(getNameFromType(AFTER_CLASS));
+					generateStepItem(metadata, status());
+				}
+				StatusEnum status = beforeClassStatus.orElse(FAILED);
+				demoDataTestItemService.finishTestItem(testItemId, status, user, projectDetails);
+				if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
+					generateLogs(testItemId, launchId, status, projectDetails);
+				}
 			});
 			demoDataTestItemService.finishRootItem(suiteItemId, user, projectDetails);
+			if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
+				generateLogs(suiteItemId, launchId, PASSED, projectDetails);
+			}
 		});
 	}
 
-	private void generateStepItem(String parentId, String launchId, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails,
-			TestItemTypeEnum type, StatusEnum status) {
+	private void generateRetries(DemoItemMetadata metadata, StatusEnum status) {
+		if (status != PASSED && ContentUtils.getWithProbability(CONTENT_PROBABILITY)) {
+			while ((status = status()) != PASSED) {
+				metadata.withRetry(true);
+				generateStepWithLogs(metadata, status);
+			}
+		}
+		metadata.withRetry(false);
+	}
 
-		String beforeMethodId = demoDataTestItemService.startTestItem(parentId,
-				launchId,
-				type.name().toLowerCase(),
-				type,
-				user,
-				projectDetails
-		);
-		demoDataTestItemService.finishTestItem(beforeMethodId, status, user, projectDetails);
+	private void generateStepWithLogs(DemoItemMetadata metadata, StatusEnum status) {
+		String stepId = demoDataTestItemService.startTestItem(metadata);
+		generateLogs(stepId, metadata.getLaunchId(), status, metadata.getProjectDetails());
+		demoDataTestItemService.finishTestItem(stepId, status, metadata.getUser(), metadata.getProjectDetails());
+	}
+
+	private void generateLogs(String itemId, String launchId, StatusEnum status, ReportPortalUser.ProjectDetails projectDetails) {
+		List<Log> logs = demoLogsService.generateDemoLogs(itemId, status);
+		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), itemId, launchId);
+	}
+
+	private void generateStepItem(DemoItemMetadata metadata, StatusEnum status) {
+		String beforeMethodId = demoDataTestItemService.startTestItem(metadata);
+		demoDataTestItemService.finishTestItem(beforeMethodId, status, metadata.getUser(), metadata.getProjectDetails());
 
 	}
 

@@ -196,6 +196,7 @@ class DemoDashboardsService {
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(9), 0, 24, 7, 5));
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(10), 7, 24, 5, 5));
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(11), 0, 29, 12, 4));
+		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(12), 0, 31, 12, 4));
 
 		aclHandler.initAcl(dashboard, user.getUsername(), project.getId(), SHARED);
 		return dashboard;

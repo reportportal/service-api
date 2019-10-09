@@ -51,7 +51,8 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    git branch: "${env.COMMIT_HASH}?:'develop'", url: 'https://github.com/reportportal/service-api.git'
+                    def br = "${env.COMMIT_HASH}".isEmpty()?:'develop'
+                    git branch: br, url: 'https://github.com/reportportal/service-api.git'
                 }
             }
         }

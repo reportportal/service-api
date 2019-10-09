@@ -63,7 +63,7 @@ public class RabbitMessageLoggingAspect {
 		return joinPoint.proceed();
 	}
 
-	private Object getHeadersAndBody(ProceedingJoinPoint joinPoint, Method method, Map<String, Object> headers) {
+	protected Object getHeadersAndBody(ProceedingJoinPoint joinPoint, Method method, Map<String, Object> headers) {
 		Object body = null;
 		Object[] args = joinPoint.getArgs();
 		Parameter[] parameters = method.getParameters();
@@ -86,7 +86,7 @@ public class RabbitMessageLoggingAspect {
 		return body;
 	}
 
-	private String formatMessageRecord(String prefix, Map<String, Object> headers,
+	protected String formatMessageRecord(String prefix, Map<String, Object> headers,
 			Object body, RabbitMessageLogging annotation) throws Exception {
 		StringBuilder record = new StringBuilder();
 

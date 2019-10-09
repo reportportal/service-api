@@ -1,12 +1,12 @@
 package com.epam.ta.reportportal.core.logging;
 
+import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +58,7 @@ public class HttpLoggingAspect {
 			return joinPoint.proceed();
 		}
 
-		Logger logger = LoggerFactory.getLogger(joinPoint.getTarget().getClass());
+		Logger logger = (Logger) LoggerFactory.getLogger(joinPoint.getTarget().getClass());
 
 
 		Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
@@ -91,7 +91,7 @@ public class HttpLoggingAspect {
 		return response;
 	}
 
-	private Object getBody(ProceedingJoinPoint joinPoint, Method method) {
+	protected Object getBody(ProceedingJoinPoint joinPoint, Method method) {
 		Object body = null;
 		Object[] args = joinPoint.getArgs();
 		Parameter[] parameters = method.getParameters();
@@ -114,7 +114,7 @@ public class HttpLoggingAspect {
 		return body;
 	}
 
-	private String formatRequestRecord(long count, String prefix, HttpServletRequest request,
+	protected String formatRequestRecord(long count, String prefix, HttpServletRequest request,
 			Object body, HttpLogging annotation) throws Exception {
 		StringBuilder record = new StringBuilder();
 
@@ -156,11 +156,14 @@ public class HttpLoggingAspect {
 		return record.toString();
 	}
 
-	private String formatResponseRecord(long count, String prefix, Object response, HttpLogging annotation, long executionTime) throws Exception {
+	protected String formatResponseRecord(long count, String prefix, Object response, HttpLogging annotation, long executionTime) throws Exception {
 		boolean binaryBody = false;
 		StringBuilder record = new StringBuilder();
 
-		record.append(prefix).append(" (").append(count).append(')').append(" - Response ").append(" (").append(executionTime).append(" ms)");
+		record.append(prefix).append(" (").append(count).append(')').append(" - Response ");
+		if (annotation.logExecutionTime()) {
+			record.append(" (").append(executionTime).append(" ms)");
+		}
 
 		if (response instanceof ResponseEntity) {
 			HttpStatus status = ((ResponseEntity) response).getStatusCode();
@@ -212,7 +215,7 @@ public class HttpLoggingAspect {
 		return record.toString();
 	}
 
-	private boolean readableContent(String value) {
+	protected boolean readableContent(String value) {
 		int idx = value.indexOf(';');
 		return READABLE_CONTENT_TYPES.contains(value.substring(0, idx > 0 ? idx : value.length()));
 	}

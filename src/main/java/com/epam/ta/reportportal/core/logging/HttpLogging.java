@@ -17,4 +17,6 @@ public @interface HttpLogging {
 	boolean logRequestBody() default true;
 
 	boolean logResponseBody() default true;
+
+	boolean logExecutionTime() default true;
 }

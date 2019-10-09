@@ -23,33 +23,25 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.item.ItemAttributePojo;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.issue.IssueEntityPojo;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy.SKIPPED_ISSUE_KEY;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.SKIPPED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.SUITE;
-import static com.epam.ta.reportportal.jooq.enums.JStatusEnum.FAILED;
-import static com.epam.ta.reportportal.jooq.enums.JStatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 
 /**
@@ -59,9 +51,6 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 
 	public static final String ATTRIBUTE_KEY_STATUS = "status";
 	public static final String ATTRIBUTE_VALUE_INTERRUPTED = "interrupted";
-
-	public static final int INSERT_ATTRIBUTES_BATCH_SIZE = 75;
-	public static final int INSERT_ISSUE_BATCH_SIZE = 75;
 
 	protected final LaunchRepository launchRepository;
 	protected final TestItemRepository testItemRepository;
@@ -113,65 +102,40 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 			return Optional.of(issueTypeHandler.defineIssueType(projectId, locator));
 		}
 		return Optional.empty();
-
 	}
 
 	private void updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status, LocalDateTime endTime,
 			boolean isIssueRequired, ReportPortalUser user) {
-
 		Optional<IssueType> issueType = getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator());
-		List<IssueEntityPojo> issueEntities = issueType.isPresent() ?
-				Lists.newArrayListWithExpectedSize(INSERT_ISSUE_BATCH_SIZE) :
-				Collections.emptyList();
-		List<ItemAttributePojo> itemAttributes = Lists.newArrayListWithExpectedSize(INSERT_ATTRIBUTES_BATCH_SIZE);
-
 		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, false).forEach(itemId -> {
-			testItemRepository.updateStatusAndEndTimeById(itemId, JStatusEnum.valueOf(status.name()), endTime);
-			itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false));
-			if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
-				itemAttributeRepository.saveMultiple(itemAttributes);
-				itemAttributes.clear();
-			}
-			issueType.ifPresent(it -> {
-				TestItem testItem = testItemRepository.findById(itemId)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-				if (!SUITE.sameLevel(testItem.getType()) && testItem.isHasStats()) {
-					issueEntities.add(new IssueEntityPojo(itemId, it.getId(), null, false, false));
-				}
-				if (issueEntities.size() >= INSERT_ISSUE_BATCH_SIZE) {
-					issueEntityRepository.saveMultiple(issueEntities);
-					issueEntities.clear();
-				}
+			testItemRepository.findById(itemId).ifPresent(testItem -> {
+				finishItem(testItem, status, endTime);
+				issueType.ifPresent(it -> {
+					if (!SUITE.sameLevel(testItem.getType()) && testItem.isHasStats()) {
+						IssueEntity issueEntity = new IssueEntity();
+						issueEntity.setIssueType(it);
+						issueEntity.setTestItemResults(testItem.getItemResults());
+						issueEntityRepository.save(issueEntity);
+						testItem.getItemResults().setIssue(issueEntity);
+					}
+				});
+				changeStatusHandler.changeParentStatus(itemId, projectId, user);
 			});
-
-			changeStatusHandler.changeParentStatus(itemId, projectId, user);
-
 		});
-
-		if (!itemAttributes.isEmpty()) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-		}
-		if (!issueEntities.isEmpty()) {
-			issueEntityRepository.saveMultiple(issueEntities);
-		}
 	}
 
 	private void updateDescendantsWithChildren(T entity, LocalDateTime endTime) {
+		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, true).forEach(itemId -> testItemRepository.findById(itemId).ifPresent(testItem -> {
+			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, JStatusEnum.PASSED);
+			finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
+		}));
+	}
 
-		List<ItemAttributePojo> itemAttributes = Lists.newArrayListWithExpectedSize(INSERT_ATTRIBUTES_BATCH_SIZE);
-
-		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, true).forEach(itemId -> {
-			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, PASSED);
-			testItemRepository.updateStatusAndEndTimeById(itemId, isFailed ? FAILED : PASSED, endTime);
-			itemAttributes.add(new ItemAttributePojo(itemId, ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false));
-			if (itemAttributes.size() >= INSERT_ATTRIBUTES_BATCH_SIZE) {
-				itemAttributeRepository.saveMultiple(itemAttributes);
-				itemAttributes.clear();
-			}
-		});
-
-		if (!itemAttributes.isEmpty()) {
-			itemAttributeRepository.saveMultiple(itemAttributes);
-		}
+	private void finishItem(TestItem testItem, StatusEnum status, LocalDateTime endTime) {
+		testItem.getItemResults().setStatus(status);
+		testItem.getItemResults().setEndTime(endTime);
+		ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
+		interruptedAttribute.setTestItem(testItem);
+		testItem.getAttributes().add(interruptedAttribute);
 	}
 }

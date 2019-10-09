@@ -16,9 +16,11 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import org.apache.commons.lang3.tuple.Pair;
@@ -176,5 +178,9 @@ final class ContentUtils {
 			throw new ReportPortalException("Missing demo content.", e);
 		}
 		return content;
+	}
+
+	static String getNameFromType(TestItemTypeEnum type) {
+		return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, type.name());
 	}
 }

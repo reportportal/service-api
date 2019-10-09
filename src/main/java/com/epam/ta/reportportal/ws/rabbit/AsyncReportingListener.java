@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
-import com.epam.ta.reportportal.core.logging.RabbitMessageLogging;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -55,7 +54,6 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -109,8 +107,6 @@ public class AsyncReportingListener implements MessageListener {
 	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	@Override
-	@Transactional
-	@RabbitMessageLogging
 	public void onMessage(Message message) {
 
 		try {

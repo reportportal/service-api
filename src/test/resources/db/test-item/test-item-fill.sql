@@ -62,5 +62,10 @@ values ('testKey', 'testValue', 5, null, false);
 
 insert into test_item_results(result_id, status) values (5, 'IN_PROGRESS');
 
+INSERT INTO public.shareable_entity (id, shared, owner, project_id) VALUES (1, FALSE, 'default', 2);
+INSERT INTO public.filter (id, name, target, description) VALUES (1, 'Admin Filter', 'Launch', NULL);
+INSERT INTO public.filter_sort (id, filter_id, field, direction) VALUES (1, 1, 'name', 'ASC');
+INSERT INTO public.filter_condition (id, filter_id, condition, value, search_criteria, negative) VALUES (1, 1, 'CONTAINS', 'test', 'name', FALSE);
+
 alter sequence launch_id_seq restart with 4;
 alter sequence test_item_item_id_seq restart with 7;

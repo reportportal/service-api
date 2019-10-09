@@ -54,7 +54,6 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -108,7 +107,6 @@ public class AsyncReportingListener implements MessageListener {
 	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	@Override
-	@Transactional
 	public void onMessage(Message message) {
 
 		try {

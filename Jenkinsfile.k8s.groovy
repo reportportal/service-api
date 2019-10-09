@@ -26,11 +26,6 @@ podTemplate(
 ) {
 
     node("${label}") {
-        properties([
-                parameters([
-                        string(name: 'COMMIT_HASH', defaultValue: 'develop', description: 'Commit Hash or branch name', )
-                ])
-        ])
 
         def srvRepo = "quay.io/reportportal/service-api"
 

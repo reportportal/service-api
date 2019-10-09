@@ -18,10 +18,10 @@ package com.epam.ta.reportportal.core.project.settings.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DefectTypeCreatedEvent;
 import com.epam.ta.reportportal.core.events.activity.PatternCreatedEvent;
-import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.core.project.settings.CreateProjectSettingsHandler;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
@@ -50,6 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -139,17 +141,18 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 		issueTypeRepository.save(subType);
 		projectRepository.save(project);
 
-		widgetRepository.findAllByProjectId(project.getId())
-				.stream()
-				.filter(widget -> widget.getContentFields()
-						.stream()
-						.anyMatch(s -> s.contains(subType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase())))
-				.forEach(widget -> {
-					widget.getContentFields()
-							.add("statistics$defects$" + subType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$"
-									+ subType.getLocator());
-					widgetRepository.save(widget);
-				});
+		String issueGroupContentField =
+				"statistics$defects$" + subType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$";
+		widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldContaining(project.getId(),
+				Arrays.stream(WidgetType.values())
+						.filter(WidgetType::isIssueTypeUpdateSupported)
+						.map(WidgetType::getType)
+						.collect(Collectors.toList()),
+				issueGroupContentField
+		).forEach(widget -> {
+			widget.getContentFields().add(issueGroupContentField + subType.getLocator());
+			widgetRepository.save(widget);
+		});
 
 		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType),
 				user.getUserId(),

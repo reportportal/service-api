@@ -26,6 +26,7 @@ podTemplate(
 ) {
 
     node("${label}") {
+
         def srvRepo = "quay.io/reportportal/service-api"
 
         def k8sDir = "kubernetes"
@@ -50,7 +51,9 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    checkout scm
+                    def br = params.get('COMMIT_HASH', 'develop')
+                    checkout([$class: 'GitSCM', branches: [[name: br ]],
+                              userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
                 }
             }
         }

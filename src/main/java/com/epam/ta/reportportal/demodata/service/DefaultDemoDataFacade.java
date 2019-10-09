@@ -119,17 +119,28 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					.withUser(user)
 					.withProjectDetails(projectDetails);
 			String suiteItemId = demoDataTestItemService.startRootItem(metadata);
+
+			boolean generateNestedSteps = ContentUtils.getWithProbability(STORY_PROBABILITY);
+
+			StringBuilder nestedStepIdBuilder = new StringBuilder();
+			if (generateNestedSteps) {
+				metadata.withName(ITEM_WITH_NESTED_STEPS_NAME).withParentId(suiteItemId).withType(TEST);
+				nestedStepIdBuilder.append(demoDataTestItemService.startTestItem(metadata));
+			}
+
 			suites.getValue().forEach((key, value) -> {
 				boolean generateClass = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				boolean generateBeforeMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
 				boolean generateAfterMethod = ContentUtils.getWithProbability(STORY_PROBABILITY);
-				boolean generateNestedSteps = ContentUtils.getWithProbability(STORY_PROBABILITY);
 
-				metadata.withName(key).withParentId(suiteItemId).withType(generateNestedSteps ? STEP : TEST).withRetry(false);
+				metadata.withName(key)
+						.withParentId(nestedStepIdBuilder.length() > 0 ? nestedStepIdBuilder.toString() : suiteItemId)
+						.withType(generateNestedSteps ? STEP : TEST)
+						.withRetry(false);
 				String testItemId = demoDataTestItemService.startTestItem(metadata);
 
 				Optional<StatusEnum> beforeClassStatus = Optional.empty();
-				if (generateClass) {
+				if (!generateNestedSteps && generateClass) {
 					beforeClassStatus = Optional.of(status());
 					metadata.withParentId(testItemId).withType(BEFORE_CLASS).withName(getNameFromType(BEFORE_CLASS));
 					generateStepItem(metadata, beforeClassStatus.get());
@@ -156,7 +167,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 				if (generateNestedSteps) {
 					metadata.withNested(false);
 				}
-				if (generateClass) {
+				if (!generateNestedSteps && generateClass) {
 					metadata.withType(AFTER_CLASS).withName(getNameFromType(AFTER_CLASS));
 					generateStepItem(metadata, status());
 				}
@@ -166,6 +177,11 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					generateLogs(testItemId, launchId, status, projectDetails);
 				}
 			});
+
+			if (generateNestedSteps) {
+				demoDataTestItemService.finishTestItem(nestedStepIdBuilder.toString(), null, user, projectDetails);
+			}
+
 			demoDataTestItemService.finishRootItem(suiteItemId, user, projectDetails);
 			if (ContentUtils.getWithProbability(STORY_PROBABILITY)) {
 				generateLogs(suiteItemId, launchId, PASSED, projectDetails);

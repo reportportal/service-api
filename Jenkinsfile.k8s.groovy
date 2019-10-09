@@ -16,7 +16,8 @@ podTemplate(
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -32,6 +33,7 @@ podTemplate(
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
+        def testDir = "tests"
         def k8sNs = "reportportal"
 
         parallel 'Checkout Infra': {
@@ -120,6 +122,15 @@ podTemplate(
             }
         }
 
+        stage('Integration tests') {
+            def testEnv = 'gcp-k8s'
+            dir(testDir) {
+                git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-5", credentialsId: 'epm-gitlab-key'
+                container('maven') {
+                    echo "Running RP integration tests on env: ${testEnv}"
+                    sh "mvn clean test -Denv=${testEnv}"
+                }
+            }
+        }
     }
 }
-

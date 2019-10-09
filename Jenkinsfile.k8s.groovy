@@ -26,6 +26,12 @@ podTemplate(
 ) {
 
     node("${label}") {
+        properties([
+                parameters([
+                        string(name: 'COMMIT_HASH', defaultValue: 'develop', description: 'Commit Hash or branch name', )
+                ])
+        ])
+
         def srvRepo = "quay.io/reportportal/service-api"
 
         def k8sDir = "kubernetes"
@@ -50,7 +56,7 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    checkout scm
+                    git branch: "${env.COMMIT_HASH}", url: 'https://github.com/reportportal/service-api.git'
                 }
             }
         }

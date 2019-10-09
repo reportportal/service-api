@@ -33,6 +33,7 @@ import java.util.Date;
 
 import static com.epam.ta.reportportal.demodata.service.Constants.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -103,10 +104,12 @@ public class DemoDataTestItemService {
 			ReportPortalUser.ProjectDetails projectDetails) {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setEndTime(new Date());
-		rq.setStatus(status.name());
-		if (StatusEnum.FAILED.equals(status)) {
-			rq.setIssue(issueType());
-		}
+		ofNullable(status).ifPresent(it -> {
+			rq.setStatus(it.name());
+			if (StatusEnum.FAILED.equals(it)) {
+				rq.setIssue(issueType());
+			}
+		});
 		finishTestItemHandler.finishTestItem(user, projectDetails, testItemId, rq);
 	}
 

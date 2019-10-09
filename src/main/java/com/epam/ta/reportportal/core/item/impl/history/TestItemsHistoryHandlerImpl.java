@@ -81,9 +81,10 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				projectDetails.getProjectId()
 		);
 
+		int itemsLimitPerLaunch = ITEMS_HISTORY_LIMIT / historyDepth;
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
 				.map(TestItem::getUniqueId)
-				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()), ITEMS_HISTORY_LIMIT);
+				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()), itemsLimitPerLaunch);
 		Map<Long, List<TestItem>> groupedByLaunch = itemsHistory.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		return launchesHistory.stream().map(l -> buildHistoryElement(l, groupedByLaunch.get(l.getId()))).collect(toList());
 	}

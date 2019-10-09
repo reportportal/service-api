@@ -28,11 +28,13 @@ import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueTypeBuilder;
@@ -141,18 +143,7 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 		issueTypeRepository.save(subType);
 		projectRepository.save(project);
 
-		String issueGroupContentField =
-				"statistics$defects$" + subType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$";
-		widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldContaining(project.getId(),
-				Arrays.stream(WidgetType.values())
-						.filter(WidgetType::isIssueTypeUpdateSupported)
-						.map(WidgetType::getType)
-						.collect(Collectors.toList()),
-				issueGroupContentField
-		).forEach(widget -> {
-			widget.getContentFields().add(issueGroupContentField + subType.getLocator());
-			widgetRepository.save(widget);
-		});
+		updateWidgets(project, subType);
 
 		messageBus.publishActivity(new DefectTypeCreatedEvent(TO_ACTIVITY_RESOURCE.apply(subType),
 				user.getUserId(),
@@ -160,6 +151,28 @@ public class CreateProjectSettingsHandlerImpl implements CreateProjectSettingsHa
 				project.getId()
 		));
 		return new IssueSubTypeCreatedRS(subType.getId(), subType.getLocator());
+	}
+
+	/**
+	 * Update {@link Widget#getContentFields()} of the widgets that support issue type updates ({@link WidgetType#isSupportMultilevelStructure()})
+	 * and have content fields for the same {@link IssueGroup#getTestItemIssueGroup()} as provided issueType
+	 *
+	 * @param project   {@link Project}
+	 * @param issueType {@link IssueType}
+	 */
+	private void updateWidgets(Project project, IssueType issueType) {
+		String issueGroupContentField =
+				"statistics$defects$" + issueType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$";
+		widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldContaining(project.getId(),
+				Arrays.stream(WidgetType.values())
+						.filter(WidgetType::isIssueTypeUpdateSupported)
+						.map(WidgetType::getType)
+						.collect(Collectors.toList()),
+				issueGroupContentField
+		).forEach(widget -> {
+			widget.getContentFields().add(issueGroupContentField + issueType.getLocator());
+			widgetRepository.save(widget);
+		});
 	}
 
 	@Override

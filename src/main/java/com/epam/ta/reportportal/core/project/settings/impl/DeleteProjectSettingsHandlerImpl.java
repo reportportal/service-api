@@ -129,16 +129,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
 		issueTypeRepository.delete(type.getIssueType());
 
-		String contentField =
-				"statistics$defects$" + type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$"
-						+ type.getIssueType().getLocator();
-		widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldsContains(project.getId(),
-				Arrays.stream(WidgetType.values())
-						.filter(WidgetType::isIssueTypeUpdateSupported)
-						.map(WidgetType::getType)
-						.collect(Collectors.toList()),
-				contentField
-		).forEach(widget -> widget.getContentFields().remove(contentField));
+		updateWidgets(project, type.getIssueType());
 
 		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				user.getUserId(),
@@ -148,6 +139,25 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		messageBus.publishActivity(defectTypeDeletedEvent);
 		eventPublisher.publishEvent(defectTypeDeletedEvent);
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
+	}
+
+	/**
+	 * Builds content field from the provided issue type and removes it from widgets
+	 * that support issue type updates ({@link WidgetType#isSupportMultilevelStructure()})
+	 *
+	 * @param project   {@link Project}
+	 * @param issueType {@link IssueType}
+	 */
+	private void updateWidgets(Project project, IssueType issueType) {
+		String contentField = "statistics$defects$" + issueType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$"
+				+ issueType.getLocator();
+		widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldsContains(project.getId(),
+				Arrays.stream(WidgetType.values())
+						.filter(WidgetType::isIssueTypeUpdateSupported)
+						.map(WidgetType::getType)
+						.collect(Collectors.toList()),
+				contentField
+		).forEach(widget -> widget.getContentFields().remove(contentField));
 	}
 
 	@Override

@@ -125,12 +125,13 @@ podTemplate(
         stage('Integration tests') {
             def testEnv = 'gcp-k8s'
             dir(testDir) {
-                git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-5", credentialsId: 'epm-gitlab-key'
+                git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 container('maven') {
                     echo "Running RP integration tests on env: ${testEnv}"
                     sh "mvn clean test -Denv=${testEnv}"
                 }
             }
         }
+
     }
 }

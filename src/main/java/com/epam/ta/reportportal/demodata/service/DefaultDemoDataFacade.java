@@ -146,21 +146,21 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					generateStepItem(metadata, beforeClassStatus.get());
 				}
 
-				value.stream().limit(i + 1).forEach(name -> {
+				value.stream().limit(generateNestedSteps ? value.size() : i + 1).forEach(name -> {
 					if (!generateNestedSteps && generateBeforeMethod) {
-						metadata.withType(BEFORE_METHOD).withName(getNameFromType(BEFORE_METHOD));
+						metadata.withType(BEFORE_METHOD).withName(getNameFromType(BEFORE_METHOD)).withParentId(testItemId);
 						generateStepItem(metadata, status());
 					}
 
 					StatusEnum status = status();
-					metadata.withName(name).withType(STEP).withNested(generateNestedSteps);
+					metadata.withName(name).withType(STEP).withParentId(testItemId).withNested(generateNestedSteps);
 					generateStepWithLogs(metadata, status);
 					if (!generateNestedSteps) {
 						generateRetries(metadata, status);
 					}
 
 					if (!generateNestedSteps && generateAfterMethod) {
-						metadata.withType(AFTER_METHOD).withName(getNameFromType(AFTER_METHOD));
+						metadata.withType(AFTER_METHOD).withName(getNameFromType(AFTER_METHOD)).withParentId(testItemId);
 						generateStepItem(metadata, status());
 					}
 				});
@@ -168,7 +168,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 					metadata.withNested(false);
 				}
 				if (!generateNestedSteps && generateClass) {
-					metadata.withType(AFTER_CLASS).withName(getNameFromType(AFTER_CLASS));
+					metadata.withType(AFTER_CLASS).withName(getNameFromType(AFTER_CLASS)).withParentId(suiteItemId);
 					generateStepItem(metadata, status());
 				}
 				StatusEnum status = beforeClassStatus.orElse(FAILED);

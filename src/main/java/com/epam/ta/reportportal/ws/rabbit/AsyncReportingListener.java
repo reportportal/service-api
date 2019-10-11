@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.logging.RabbitMessageLogging;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -107,6 +108,7 @@ public class AsyncReportingListener implements MessageListener {
 	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	@Override
+	@RabbitMessageLogging
 	public void onMessage(Message message) {
 
 		try {

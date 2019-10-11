@@ -67,7 +67,6 @@ class LaunchPatternAnalysisStrategyTest {
 		ProjectAttribute projectAttribute = new ProjectAttribute();
 		projectAttribute.setValue("true");
 		Attribute attribute = new Attribute();
-		attribute.setName(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute());
 		projectAttribute.setAttribute(attribute);
 
 		when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));

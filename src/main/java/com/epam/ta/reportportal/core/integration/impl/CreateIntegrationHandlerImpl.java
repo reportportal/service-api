@@ -94,6 +94,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setCreator(user.getUsername());
 		integrationService.validateIntegration(integration);
+		integrationService.checkConnection(integration);
 		integrationRepository.save(integration);
 		return new EntryCreatedRS(integration.getId());
 
@@ -123,6 +124,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		integration.setProject(project);
 		integration.setCreator(user.getUsername());
 		integrationService.validateIntegration(integration, project);
+		integrationService.checkConnection(integration);
 
 		integrationRepository.save(integration);
 
@@ -152,6 +154,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		);
 
 		Integration updatedIntegration = integrationService.updateIntegration(integration, updateRequest);
+		integrationService.checkConnection(integration);
 		integrationRepository.save(updatedIntegration);
 
 		return new OperationCompletionRS("Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");
@@ -178,6 +181,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		);
 		Integration updatedIntegration = integrationService.updateIntegration(integration, updateRequest);
 		updatedIntegration.setProject(project);
+		integrationService.checkConnection(integration);
+
 		integrationRepository.save(updatedIntegration);
 
 		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(updatedIntegration),

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
+import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -40,14 +41,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.*;
-import static com.epam.ta.reportportal.entity.widget.WidgetType.LAUNCHES_TABLE;
-import static com.epam.ta.reportportal.entity.widget.WidgetType.STATISTIC_TREND;
 import static com.epam.ta.reportportal.ws.converter.converters.IssueTypeConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 
@@ -128,13 +129,7 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 
 		issueTypeRepository.delete(type.getIssueType());
 
-		widgetRepository.findAllByProjectId(project.getId())
-				.stream()
-				.filter(widget -> LAUNCHES_TABLE.getType().equals(widget.getWidgetType()) || STATISTIC_TREND.getType()
-						.equals(widget.getWidgetType()))
-				.forEach(widget -> widget.getContentFields()
-						.remove("statistics$defects$" + type.getIssueType().getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase()
-								+ "$" + type.getIssueType().getLocator()));
+		updateWidgets(project, type.getIssueType());
 
 		DefectTypeDeletedEvent defectTypeDeletedEvent = new DefectTypeDeletedEvent(TO_ACTIVITY_RESOURCE.apply(type.getIssueType()),
 				user.getUserId(),
@@ -144,6 +139,25 @@ public class DeleteProjectSettingsHandlerImpl implements DeleteProjectSettingsHa
 		messageBus.publishActivity(defectTypeDeletedEvent);
 		eventPublisher.publishEvent(defectTypeDeletedEvent);
 		return new OperationCompletionRS("Issue sub-type delete operation completed successfully.");
+	}
+
+	/**
+	 * Builds content field from the provided issue type and removes it from widgets
+	 * that support issue type updates ({@link WidgetType#isSupportMultilevelStructure()})
+	 *
+	 * @param project   {@link Project}
+	 * @param issueType {@link IssueType}
+	 */
+	private void updateWidgets(Project project, IssueType issueType) {
+		String contentField = "statistics$defects$" + issueType.getIssueGroup().getTestItemIssueGroup().getValue().toLowerCase() + "$"
+				+ issueType.getLocator();
+		widgetRepository.findAllByProjectIdAndWidgetTypeInAndContentFieldsContains(project.getId(),
+				Arrays.stream(WidgetType.values())
+						.filter(WidgetType::isIssueTypeUpdateSupported)
+						.map(WidgetType::getType)
+						.collect(Collectors.toList()),
+				contentField
+		).forEach(widget -> widget.getContentFields().remove(contentField));
 	}
 
 	@Override

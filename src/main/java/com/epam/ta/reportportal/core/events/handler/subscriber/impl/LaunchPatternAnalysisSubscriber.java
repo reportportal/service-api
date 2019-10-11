@@ -31,7 +31,7 @@ public class LaunchPatternAnalysisSubscriber implements LaunchFinishedEventSubsc
 	public void handleEvent(LaunchFinishedEvent launchFinishedEvent, Project project, Launch launch) {
 
 		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
-				.get(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute()));
+				.get(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
 
 		if (isPatternAnalysisEnabled) {
 			patternAnalyzer.analyzeTestItems(launch, Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));

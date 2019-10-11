@@ -58,7 +58,7 @@ class LaunchPatternAnalysisSubscriberTest {
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
-		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED,
+		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED,
 				"true"
 		).build();
 		Project project = new Project();
@@ -83,7 +83,7 @@ class LaunchPatternAnalysisSubscriberTest {
 
 		Optional<Launch> launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT);
 
-		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED,
+		Map<ProjectAttributeEnum, String> mapping = ImmutableMap.<ProjectAttributeEnum, String>builder().put(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED,
 				"false"
 		).build();
 		Project project = new Project();

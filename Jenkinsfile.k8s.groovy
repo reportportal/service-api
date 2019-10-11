@@ -54,8 +54,13 @@ podTemplate(
             stage('Checkout Service') {
                 dir(appDir) {
                     def br = params.get('COMMIT_HASH', 'develop')
-                    checkout([$class: 'GitSCM', branches: [[name: br ]],
-                              userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
+                    git url: 'https://github.com/reportportal/service-api.git', branch: br, credentialsId: 'epm-gitlab-key'
+                }
+            }
+        }, 'Checkout tests': {
+            stage('Checkout tests') {
+                dir(testDir) {
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 }
             }
         }
@@ -125,7 +130,6 @@ podTemplate(
         stage('Integration tests') {
             def testEnv = 'gcp-k8s'
             dir(testDir) {
-                git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 container('maven') {
                     echo "Running RP integration tests on env: ${testEnv}"
                     sh "mvn clean test -Denv=${testEnv}"

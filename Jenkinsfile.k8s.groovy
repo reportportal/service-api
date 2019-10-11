@@ -133,5 +133,6 @@ podTemplate(
             }
         }
 
+        junit 'tests/target/surefire-reports/*.xml'
     }
 }

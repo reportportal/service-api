@@ -35,7 +35,6 @@ podTemplate(
         def appDir = "app"
         def testDir = "tests"
         def k8sNs = "reportportal"
-
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
@@ -74,20 +73,6 @@ podTemplate(
         helm.init()
         utils.scheduleRepoPoll()
 
-//        dir('app') {
-//            try {
-//                container('docker') {
-//                    stage('Build App') {
-//                        sh "gradle build --full-stacktrace"
-//                    }
-//                }
-//            } finally {
-//                junit 'build/test-results/**/*.xml'
-//                dependencyCheckPublisher pattern: 'build/reports/dependency-check-report.xml'
-//
-//            }
-//
-//        }
         def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
@@ -127,13 +112,18 @@ podTemplate(
             }
         }
 
-        stage('Integration tests') {
-            def testEnv = 'gcp-k8s'
-            dir(testDir) {
-                container('maven') {
-                    echo "Running RP integration tests on env: ${testEnv}"
-                    sh "mvn clean test -Denv=${testEnv}"
+        try {
+            stage('Integration tests') {
+                def testEnv = 'gcp-k8s'
+                dir(testDir) {
+                    container('maven') {
+                        echo "Running RP integration tests on env: ${testEnv}"
+                        sh "mvn clean test -Denv=${testEnv}"
+                    }
                 }
+            }
+        } finally {
+            dir(testDir) {
                 junit 'target/surefire-reports/*.xml'
             }
         }

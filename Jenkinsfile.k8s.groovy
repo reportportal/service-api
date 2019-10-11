@@ -137,6 +137,8 @@ podTemplate(
             }
         }
 
-        junit 'tests/target/surefire-reports/*.xml'
+        dir(testDir) {
+            junit 'target/surefire-reports/*.xml'
+        }
     }
 }

@@ -54,7 +54,7 @@ podTemplate(
             stage('Checkout Service') {
                 dir(appDir) {
                     def br = params.get('COMMIT_HASH', 'develop')
-                    git url: 'https://github.com/reportportal/service-api.git', branch: br, credentialsId: 'epm-gitlab-key'
+                    git url: 'https://github.com/reportportal/service-api.git', branch: br
                 }
             }
         }, 'Checkout tests': {

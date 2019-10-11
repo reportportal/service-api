@@ -134,11 +134,9 @@ podTemplate(
                     echo "Running RP integration tests on env: ${testEnv}"
                     sh "mvn clean test -Denv=${testEnv}"
                 }
+                junit 'target/surefire-reports/*.xml'
             }
         }
 
-        dir(testDir) {
-            junit 'target/surefire-reports/*.xml'
-        }
     }
 }

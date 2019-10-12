@@ -17,12 +17,17 @@ podTemplate(
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '800m',
+                        resourceRequestMemory: '1024Mi',
+                        resourceLimitMemory: '2048Mi'),
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
-                secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds')
+                secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
+                hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
 

@@ -58,7 +58,9 @@ podTemplate(
             stage('Checkout Service') {
                 dir(appDir) {
                     def br = params.get('COMMIT_HASH', 'develop')
-                    git url: 'https://github.com/reportportal/service-api.git', branch: br
+                    checkout([$class: 'GitSCM', branches: [[name: br]],
+                              doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
+                              userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
                 }
             }
         }, 'Checkout tests': {

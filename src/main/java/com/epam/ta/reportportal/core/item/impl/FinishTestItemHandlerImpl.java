@@ -221,7 +221,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItem.getAttributes()
 					.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
 							&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
-			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
+
+			StatusEnum resolvedStatus = resolveStatus(testItem.getItemId());
+			StatusEnum status = actualStatus.isPresent() && actualStatus.get() == resolvedStatus ? actualStatus.get() : resolvedStatus;
+			testItemResults.setStatus(status);
 		}
 
 		changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);

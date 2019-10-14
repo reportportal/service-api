@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
+
 import java.util.List;
 
 /**
@@ -32,8 +34,9 @@ public interface AnalyzeItemsCollector {
 	 *
 	 * @param projectId Project id
 	 * @param launchId  Launch id
+	 * @param user      User started analysis
 	 * @return List of item ids
 	 */
-	List<Long> collectItems(Long projectId, Long launchId);
+	List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user);
 
 }

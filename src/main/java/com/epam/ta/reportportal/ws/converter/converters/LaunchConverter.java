@@ -75,6 +75,7 @@ public class LaunchConverter {
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
 		ofNullable(db.getUserId()).flatMap(id -> userRepository.findLoginById(id)).ifPresent(resource::setOwner);
+		resource.setRerun(db.isRerun());
 		return resource;
 	};
 

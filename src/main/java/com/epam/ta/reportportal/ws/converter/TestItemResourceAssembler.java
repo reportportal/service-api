@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
@@ -24,7 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Map;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -42,13 +46,17 @@ public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem,
 	@Override
 	public TestItemResource toResource(TestItem entity) {
 		TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
-		resource.setPathNames(testItemRepository.selectPathNames(entity.getPath()));
+		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(Collections.singletonList(entity.getItemId()));
+		ofNullable(pathNamesMapping.get(entity.getItemId())).ifPresent(pathName -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE
+				.apply(pathName)));
 		return resource;
 	}
 
-	public TestItemResource toResource(TestItem entity, @Nullable Map<Long, String> pathNames) {
+	public TestItemResource toResource(TestItem entity, @Nullable PathName pathName) {
 		TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
-		resource.setPathNames(pathNames);
+		ofNullable(pathName).ifPresent(pn -> {
+			resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn));
+		});
 		return resource;
 	}
 }

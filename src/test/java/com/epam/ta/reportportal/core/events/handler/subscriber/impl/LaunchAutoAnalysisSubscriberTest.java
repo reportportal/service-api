@@ -71,7 +71,7 @@ class LaunchAutoAnalysisSubscriberTest {
 	//	}
 
 	@Test
-	public void shouldAnalyzeWhenEnabled() {
+	void shouldAnalyzeWhenEnabled() {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);
@@ -91,7 +91,7 @@ class LaunchAutoAnalysisSubscriberTest {
 
 		when(analyzerServiceAsync.hasAnalyzers()).thenReturn(true);
 		when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
-		when(analyzeItemsCollector.collectItems(any(), any())).thenReturn(Lists.newArrayList(1L, 2L));
+		when(analyzeItemsCollector.collectItems(any(), any(), any())).thenReturn(Lists.newArrayList(1L, 2L));
 		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(indexed);
 		when(analyzerServiceAsync.analyze(any(), any(), any())).thenReturn(analyzed);
 		autoAnalysisSubscriber.handleEvent(event, project, launch.get());
@@ -102,7 +102,7 @@ class LaunchAutoAnalysisSubscriberTest {
 	}
 
 	@Test
-	public void shouldNotAnalyzeWhenDisabled() {
+	void shouldNotAnalyzeWhenDisabled() {
 
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(1L);

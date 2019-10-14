@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.Mockito.*;
 
 /**
@@ -65,17 +67,17 @@ class LaunchPatternAnalysisStrategyTest {
 		ProjectAttribute projectAttribute = new ProjectAttribute();
 		projectAttribute.setValue("true");
 		Attribute attribute = new Attribute();
-		attribute.setName(ProjectAttributeEnum.PATTERN_ANALYSIS_ENABLED.getAttribute());
 		projectAttribute.setAttribute(attribute);
 
 		when(project.getProjectAttributes()).thenReturn(Sets.newHashSet(projectAttribute));
 
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
 		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
 		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
 		analyzeLaunchRQ.setLaunchId(1L);
 		analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
 		analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
-		launchPatternAnalysisStrategy.analyze(projectDetails, analyzeLaunchRQ);
+		launchPatternAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
 
 		verify(patternAnalyzer, times(1)).analyzeTestItems(launch, Sets.newHashSet(AnalyzeItemsMode.TO_INVESTIGATE));
 

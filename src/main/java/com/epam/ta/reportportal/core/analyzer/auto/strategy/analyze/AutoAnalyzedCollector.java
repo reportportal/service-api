@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -50,10 +51,10 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 	}
 
 	@Override
-	public List<Long> collectItems(Long projectId, Long launchId) {
+	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
 		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, launchId, LogLevel.ERROR.toInt());
 		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
-		updateTestItemHandler.resetItemsIssue(itemIds, projectId);
+		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
 		return itemIds;
 	}
 }

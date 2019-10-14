@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -58,18 +58,47 @@ class DemoLogsService {
 
 	private TestItemRepository testItemRepository;
 
-	private AttachmentDataStoreService attachmentDataStoreService;
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			AttachmentDataStoreService attachmentDataStoreService) {
+			AttachmentBinaryDataService attachmentBinaryDataService) {
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.attachmentDataStoreService = attachmentDataStoreService;
+		this.attachmentBinaryDataService = attachmentBinaryDataService;
 	}
 
-	List<Log> generateDemoLogs(String itemUuid, StatusEnum status, Long projectId, String launchId) {
+	List<Log> generateDemoLaunchLogs(String launchUUid, StatusEnum status) {
+		Launch launch = launchRepository.findByUuid(launchUUid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
+		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
+		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
+			Log log = new Log();
+			log.setLogLevel(infoLevel().toInt());
+			log.setLaunch(launch);
+			log.setLogTime(LocalDateTime.now());
+			log.setLogMessage(ContentUtils.getLogMessage());
+			log.setUuid(UUID.randomUUID().toString());
+			return log;
+		}).collect(toList());
+		if (FAILED.equals(status)) {
+			List<String> errors = ContentUtils.getErrorLogs();
+			logs.addAll(errors.stream().map(msg -> {
+				Log log = new Log();
+				log.setLogLevel(errorLevel().toInt());
+				log.setLogTime(LocalDateTime.now());
+				log.setLaunch(launch);
+				log.setLogMessage(msg);
+				log.setUuid(UUID.randomUUID().toString());
+				return log;
+			}).collect(toList()));
+		}
+		logRepository.saveAll(logs);
+		return logs;
+	}
+
+	List<Log> generateDemoLogs(String itemUuid, StatusEnum status) {
 		TestItem testItem = testItemRepository.findByUuid(itemUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
@@ -98,30 +127,40 @@ class DemoLogsService {
 		return logs;
 	}
 
+	void attachFiles(List<Log> logs, Long projectId, String launchUuid) {
+		Launch launch = launchRepository.findByUuid(launchUuid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
+		createAttachments(logs, projectId, launch.getId(), null);
+	}
+
 	void attachFiles(List<Log> logs, Long projectId, String itemUuid, String launchUuid) {
 		Launch launch = launchRepository.findByUuid(launchUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		TestItem item = testItemRepository.findByUuid(itemUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
+		createAttachments(logs, projectId, launch.getId(), item.getItemId());
+	}
+
+	private void createAttachments(List<Log> logs, Long projectId, Long launchId, Long itemId) {
 		BooleanHolder binaryDataAttached = new BooleanHolder();
 		logs.forEach(it -> {
 			if (ERROR.toInt() >= it.getLogLevel()) {
 				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-					attachFile(projectId, item.getItemId(), launch.getId(), it);
+					createAttachment(projectId, itemId, launchId, it);
 				}
 			} else {
 				if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-					attachFile(projectId, item.getItemId(), launch.getId(), it);
+					createAttachment(projectId, itemId, launchId, it);
 					binaryDataAttached.setValue(true);
 				}
 			}
 		});
 	}
 
-	private void attachFile(Long projectId, Long testItemId, Long launchId, Log it) {
+	private void createAttachment(Long projectId, Long testItemId, Long launchId, Log it) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			attachmentDataStoreService.saveFileAndAttachToLog(
+			attachmentBinaryDataService.saveFileAndAttachToLog(
 					getMultipartFile(attachment.getResource().getPath()),
 					AttachmentMetaInfo.builder()
 							.withProjectId(projectId)

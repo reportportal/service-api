@@ -52,6 +52,8 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
+	private static final int ITEMS_HISTORY_LIMIT = 2000;
+
 	private TestItemRepository testItemRepository;
 
 	private LaunchRepository launchRepository;
@@ -70,19 +72,21 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		List<Long> itemIds = Lists.newArrayList(startPointsIds);
 		List<TestItem> itemsForHistory = testItemRepository.findAllById(itemIds);
 		validateItems(itemsForHistory, itemIds, projectDetails.getProjectId());
-		TestItem itemForHistory = itemsForHistory.get(0);
-		Launch launch = launchRepository.findById(itemForHistory.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, itemForHistory.getLaunchId()));
-		List<Launch> launchesHistory = launchRepository.findLaunchesHistory(historyDepth,
-				launch.getId(),
-				launch.getName(),
-				projectDetails.getProjectId()
-		);
 
+		TestItem itemForHistory = itemsForHistory.get(0);
+		Long launchId = itemForHistory.getLaunchId();
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+		List<Launch> launchesHistory = launchRepository.findLaunchesHistory(historyDepth, launchId, launch.getName(),
+				projectDetails.getProjectId());
+
+		int itemsLimitPerLaunch = ITEMS_HISTORY_LIMIT / historyDepth;
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
 				.map(TestItem::getUniqueId)
-				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()));
+				.collect(Collectors.toList()), launchesHistory.stream().map(Launch::getId).collect(toList()), itemsLimitPerLaunch);
+
 		Map<Long, List<TestItem>> groupedByLaunch = itemsHistory.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
+		addRequestedItemsToFirstLaunch(groupedByLaunch, launchId, itemsForHistory);
+
 		return launchesHistory.stream().map(l -> buildHistoryElement(l, groupedByLaunch.get(l.getId()))).collect(toList());
 	}
 
@@ -144,5 +148,14 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		testItemHistoryElement.setResources(resources);
 		testItemHistoryElement.setLaunchStatus(launch.getStatus().name());
 		return testItemHistoryElement;
+	}
+
+	private void addRequestedItemsToFirstLaunch(Map<Long, List<TestItem>> groupedByLaunch, Long launchId, List<TestItem> itemsForHistory) {
+		List<TestItem> firstLaunchLimitedItems = groupedByLaunch.get(launchId);
+		itemsForHistory.forEach(item -> {
+			if (!firstLaunchLimitedItems.contains(item)) {
+				firstLaunchLimitedItems.add(item);
+			}
+		});
 	}
 }

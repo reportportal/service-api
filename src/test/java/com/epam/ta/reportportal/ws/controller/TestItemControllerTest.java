@@ -181,7 +181,9 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getTestItemUuidPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -234,6 +236,13 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
 				+ "/item/attribute/keys?launch=1&filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getAttributeKeysForProject() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+				+ "/item/attribute/keys/all?filterId=1&launchesLimit=600&isLatest=false&filter.cnt.attributeKey=bro").with(token(oAuthHelper
+				.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -450,7 +459,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
-		assertEquals(StatusEnum.FAILED,launch.getStatus());
+		assertEquals(StatusEnum.FAILED, launch.getStatus());
 
 		verify(messageBus, times(1)).publishActivity(ArgumentMatchers.any());
 	}

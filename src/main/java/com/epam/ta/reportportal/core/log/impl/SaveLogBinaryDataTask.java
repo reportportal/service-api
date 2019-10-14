@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.AttachmentDataStoreService;
+import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.google.common.base.Preconditions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SaveLogBinaryDataTask implements Runnable {
 
 	@Autowired
-	private AttachmentDataStoreService attachmentDataStoreService;
+	private AttachmentBinaryDataService attachmentBinaryDataService;
 
 	/**
 	 * Binary data representation
@@ -46,7 +46,7 @@ public class SaveLogBinaryDataTask implements Runnable {
 
 	@Override
 	public void run() {
-		attachmentDataStoreService.saveFileAndAttachToLog(file, attachmentMetaInfo);
+		attachmentBinaryDataService.saveFileAndAttachToLog(file, attachmentMetaInfo);
 	}
 
 	public SaveLogBinaryDataTask withFile(MultipartFile file) {

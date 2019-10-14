@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.binary.UserDataStoreService;
+import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -39,6 +39,7 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,13 +70,14 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final ProjectRepository projectRepository;
 
-	private final UserDataStoreService userDataStoreService;
+	private final UserBinaryDataService userBinaryDataService;
 
+	@Autowired
 	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
-			UserDataStoreService userDataStoreService) {
+			UserBinaryDataService userBinaryDataService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
-		this.userDataStoreService = userDataStoreService;
+		this.userBinaryDataService = userBinaryDataService;
 	}
 
 	@Override
@@ -129,7 +131,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 		try {
 			validatePhoto(file);
-			userDataStoreService.saveUserPhoto(user, file);
+			userBinaryDataService.saveUserPhoto(user, file);
 		} catch (IOException e) {
 			fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
 		}
@@ -140,7 +142,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	public OperationCompletionRS deletePhoto(String login) {
 		User user = userRepository.findByLogin(login).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, login));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(ACCESS_DENIED, "Unable to change photo for external user");
-		userDataStoreService.deleteUserPhoto(user);
+		userBinaryDataService.deleteUserPhoto(user);
 		return new OperationCompletionRS("Profile photo has been deleted successfully");
 	}
 

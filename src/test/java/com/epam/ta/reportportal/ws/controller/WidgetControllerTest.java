@@ -157,8 +157,7 @@ class WidgetControllerTest extends BaseMvcTest {
 		widgetOptions.put("timeline", "WEEK");
 		contentParameters.setWidgetOptions(widgetOptions);
 		contentParameters.setItemsCount(20);
-		contentParameters.setContentFields(Arrays.asList(
-				"statistics$executions$total",
+		contentParameters.setContentFields(Arrays.asList("statistics$executions$total",
 				"statistics$executions$passed",
 				"statistics$executions$failed",
 				"statistics$executions$skipped"
@@ -825,6 +824,22 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.content.result[2].sum.statistics$executions$failed").value("6"))
 				.andExpect(jsonPath("$.content.result[2].sum.statistics$executions$total").value("10"))
 				.andExpect(jsonPath("$.content.result[2].averagePassingRate").value("30.0"));
+	}
+
+	@Sql("/db/widget/component-health-check.sql")
+	@Test
+	void getComponentHealthCheckContent() throws Exception {
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/multilevel/2?attributes=3.29.11.0,arch").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(jsonPath("$.name").value("health"))
+				.andExpect(jsonPath("$.widgetType").value("componentHealthCheck"))
+				.andExpect(jsonPath("$.content.result[0].attributeValue").value("android"))
+				.andExpect(jsonPath("$.content.result[0].total").value("1"))
+				.andExpect(jsonPath("$.content.result[0].passingRate").value("0.0"))
+				.andExpect(jsonPath("$.content.result[1].attributeValue").value("ios"))
+				.andExpect(jsonPath("$.content.result[1].total").value("1"))
+				.andExpect(jsonPath("$.content.result[1].passingRate").value("0.0"));
 	}
 
 	@Sql("/db/widget/product-status.sql")

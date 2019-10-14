@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -40,6 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.Mockito.*;
 
 /**
@@ -80,7 +82,8 @@ class LaunchAutoAnalysisStrategyTest {
 
 		when(project.getProjectAttributes()).thenReturn(Sets.newHashSet());
 		when(analyzeCollectorFactory.getCollector(any(AnalyzeItemsMode.class))).thenReturn(analyzeItemsCollector);
-		when(analyzeItemsCollector.collectItems(1L, 1L)).thenReturn(Lists.newArrayList());
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
+		when(analyzeItemsCollector.collectItems(1L, 1L, user)).thenReturn(Lists.newArrayList());
 
 		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
 		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
@@ -88,7 +91,7 @@ class LaunchAutoAnalysisStrategyTest {
 		analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");
 		analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
 		analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
-		launchAutoAnalysisStrategy.analyze(projectDetails, analyzeLaunchRQ);
+		launchAutoAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
 		verify(eventPublisher, times(1)).publishEvent(any(AnalysisEvent.class));
 	}
 }

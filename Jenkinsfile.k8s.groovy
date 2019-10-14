@@ -59,6 +59,7 @@ podTemplate(
                 dir(appDir) {
                     def br = params.get('COMMIT_HASH', 'develop')
                     checkout([$class: 'GitSCM', branches: [[name: br]],
+                              browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/reportportal/service-api.git'],
                               doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
                               userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
                 }

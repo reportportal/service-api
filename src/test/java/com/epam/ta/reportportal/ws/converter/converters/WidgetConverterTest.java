@@ -108,6 +108,7 @@ class WidgetConverterTest {
 		assertEquals(dashboardWidget.getPositionX(), widgetObjectModel.getWidgetPosition().getX());
 		assertEquals(dashboardWidget.getPositionY(), widgetObjectModel.getWidgetPosition().getY());
 		assertEquals(dashboardWidget.getWidgetName(), widget.getName());
+		assertEquals(dashboardWidget.isShare(), widget.isShared());
 		assertEquals("default", dashboardWidget.getWidgetOwner());
 		assertTrue(dashboardWidget.isCreatedOn());
 	}

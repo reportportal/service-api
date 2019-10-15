@@ -104,6 +104,7 @@ public class WidgetConverter {
 		dashboardWidget.setWidth(model.getWidgetSize().getWidth());
 		dashboardWidget.setHeight(model.getWidgetSize().getHeight());
 		dashboardWidget.setDashboard(dashboard);
+		dashboardWidget.setShare(widget.isShared());
 		dashboardWidget.setWidget(widget);
 		dashboardWidget.setCreatedOn(isCreatedOn);
 		dashboardWidget.setWidgetOwner(widget.getOwner());

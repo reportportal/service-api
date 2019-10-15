@@ -53,6 +53,7 @@ public final class TestItemConverter {
 		TestItemResource resource = new TestItemResource();
 		resource.setDescription(item.getDescription());
 		resource.setUniqueId(item.getUniqueId());
+		resource.setTestCaseId(item.getTestCaseId());
 		resource.setUuid(item.getUuid());
 		resource.setAttributes(item.getAttributes()
 				.stream()

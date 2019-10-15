@@ -85,6 +85,7 @@ class WidgetConverterTest {
 		assertEquals(widgetObjectModel.getWidgetPosition().getY(), dashboardWidget.getPositionY());
 		assertEquals(widgetObjectModel.getWidgetSize().getHeight(), dashboardWidget.getHeight());
 		assertEquals(widgetObjectModel.getWidgetSize().getWidth(), dashboardWidget.getWidth());
+		assertEquals(dashboardWidget.isShare(), widgetObjectModel.isShare());
 	}
 
 	@Test

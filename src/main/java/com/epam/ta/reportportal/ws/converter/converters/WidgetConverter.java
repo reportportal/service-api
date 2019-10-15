@@ -45,6 +45,7 @@ public class WidgetConverter {
 		objectModel.setWidgetId(dashboardWidget.getId().getWidgetId());
 		objectModel.setWidgetPosition(new Position(dashboardWidget.getPositionX(), dashboardWidget.getPositionY()));
 		objectModel.setWidgetSize(new Size(dashboardWidget.getWidth(), dashboardWidget.getHeight()));
+		objectModel.setShare(dashboardWidget.isShare());
 		return objectModel;
 	};
 

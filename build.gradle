@@ -96,7 +96,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-BETA-8')
     } else {
-        compile 'com.github.reportportal:commons-dao:f79b4bc'
+        compile 'com.github.reportportal:commons-dao:9de16dd'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:4e24149'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
@@ -204,8 +204,8 @@ bootJar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 ext.src = [
-        'https://raw.githubusercontent.com/reportportal/migrations/test-case-id-db/migrations/1_initialize_schema.up.sql'                      : 'V001__initialize_schema.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/test-case-id-db/migrations/3_default_data.up.sql': 'V002__default_data.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'                      : 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql': 'V002__default_data.sql',
 ]
 
 task copyTestDatabaseScripts {

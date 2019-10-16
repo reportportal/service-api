@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+        dependencies {
+            if(project.hasProperty('sealights')){
+                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
+            }
+        }
+    }
+}
+
 plugins {
     id "io.spring.dependency-management" version "1.0.7.RELEASE"
     id "org.springframework.boot" version "2.1.5.RELEASE"
@@ -33,6 +44,41 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
+if(project.hasProperty('sealights')){
+    apply plugin: 'io.sealights.on-premise.agents.plugin.sealights-gradle-plugin'
+    sealights {
+//        token = System.getenv('SL_TOKEN')
+        tokenFile="sl-token.txt"
+        buildSessionId = System.getenv('SL_BUILD_SESSION_ID')
+        createBuildSessionId = true
+        appName = System.getenv('JOB_NAME')
+        branch = System.getenv('GIT_BRANCH')
+        build = System.getenv('BUILD_NUMBER')
+        packagesIncluded = "*com.epam.ta.reportportal.*"
+        // packagesExcluded = "*com.sample.*"
+//          buildSessionId = new File('buildSessionId.txt').text
+
+        filesStorage="/tmp"
+
+        logEnabled = false
+        logLevel = "off"
+        logToFile = false
+        logToConsole = true;
+
+        includeResources=true
+
+//          runTestOnly=true
+//          testTasks=["test", "junitPlatformTest", "integrationTest"]
+//          filesIncluded="*sample*"
+//          filesExcluded="*sample*"
+
+//          proxy = "http://localhost:8888"
+
+//          sealightsJvmParams=["sl.param1":"true","sl.param2":"value"]
+//          buildScannerParams=["sl.param1":"true","sl.param2":"value"]
+//          testListenerJvmParams=["sl.param1":"true","sl.param2":"value"]
+    }
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

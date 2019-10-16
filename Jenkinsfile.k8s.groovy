@@ -21,7 +21,7 @@ podTemplate(
                         resourceRequestCpu: '1000m',
                         resourceLimitCpu: '2000m',
                         resourceRequestMemory: '1024Mi',
-                        resourceLimitMemory: '2048Mi'),
+                        resourceLimitMemory: '3072Mi'),
         ],
         imagePullSecrets: ["regcred"],
         volumes: [

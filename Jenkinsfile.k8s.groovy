@@ -27,7 +27,7 @@ podTemplate(
         volumes: [
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
-                hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
+                hostPathVolume(mountPath: '/root/.m2', hostPath: '/tmp/jenkins/.m2')
         ]
 ) {
 

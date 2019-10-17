@@ -28,6 +28,7 @@ podTemplate(
         volumes: [
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
+                secretVolume(mountPath: '/etc/.sealights-token', secretName: 'sealights-token'),
                 hostPathVolume(mountPath: '/root/.m2', hostPath: '/tmp/jenkins/.m2')
         ]
 ) {
@@ -109,6 +110,7 @@ podTemplate(
         stage ('Init Sealights') {
             dir("$appDir/sealights") {
                 sh "cat $sealightsTokenPath"
+                sh "ls -la /etc"
                 container ('jre') {
                     sh "cat $sealightsTokenPath"
                     sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"

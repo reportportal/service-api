@@ -23,7 +23,7 @@ RUN ./gradlew resolveDependencies --stacktrace
 ### Copy source and run build
 COPY --chown=rp-builder src/ ./src/
 COPY --chown=rp-builder .git/ .git/
-COPY --chown=rp-builder sl-token.txt sl-token.txt
+
 RUN ./gradlew build -P buildNumber=${buildNumber} -P sealightsSession=${sealightsSession} --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins

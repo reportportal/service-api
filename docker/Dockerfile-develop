@@ -25,7 +25,7 @@ RUN ./gradlew resolveDependencies --stacktrace
 COPY --chown=rp-builder src/ ./src/
 COPY --chown=rp-builder .git/ .git/
 
-RUN ./gradlew build -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
+RUN ./gradlew build -x jacocoTestReport -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins
 RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar

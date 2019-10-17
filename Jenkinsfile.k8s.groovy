@@ -22,6 +22,7 @@ podTemplate(
                         resourceLimitCpu: '2000m',
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '3072Mi'),
+                containerTemplate(name: 'jdk', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -33,6 +34,7 @@ podTemplate(
 
     node("${label}") {
 
+        def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
 
         def k8sDir = "kubernetes"
@@ -40,6 +42,10 @@ podTemplate(
         def appDir = "app"
         def testDir = "tests"
         def k8sNs = "reportportal"
+
+        def branchToBuild = params.get('COMMIT_HASH', 'develop')
+
+
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
@@ -57,8 +63,7 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    def br = params.get('COMMIT_HASH', 'develop')
-                    checkout([$class: 'GitSCM', branches: [[name: br]],
+                    checkout([$class: 'GitSCM', branches: [[name: branchToBuild]],
                               browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/reportportal/service-api/'],
                               doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
                               userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
@@ -81,16 +86,38 @@ podTemplate(
         helm.init()
         utils.scheduleRepoPoll()
 
+//        dir('app') {
+//            try {
+//                container('docker') {
+//                    stage('Build App') {
+//                        sh "gradle build --full-stacktrace"
+//                    }
+//                }
+//            } finally {
+//                junit 'build/test-results/**/*.xml'
+//                dependencyCheckPublisher pattern: 'build/reports/dependency-check-report.xml'
+//
+//            }
+//
+//        }
         def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
 
+        def sealightsSession;
+        stage ('Init Sealights') {
+            container ('jdk') {
+                sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname "$srvVersion" -pi '*com.epam.ta.reportportal.*'"
+                sealightsSession = utils.execStdout("cat buildSessionId.txt")
+            }
+
+        }
 
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop --build-arg buildNumber=$buildVersion -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg  --build-arg sealightsSession=$sealightsSession buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }

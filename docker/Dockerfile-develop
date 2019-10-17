@@ -14,6 +14,7 @@ COPY --chown=rp-builder gradlew*  ./
 RUN ./gradlew wrapper
 
 ARG buildNumber
+ARG sealightsSession
 
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
@@ -22,7 +23,8 @@ RUN ./gradlew resolveDependencies --stacktrace
 ### Copy source and run build
 COPY --chown=rp-builder src/ ./src/
 COPY --chown=rp-builder .git/ .git/
-RUN ./gradlew build -P buildNumber=${buildNumber} --full-stacktrace
+COPY --chown=rp-builder sl-token.txt sl-token.txt
+RUN ./gradlew build -P buildNumber=${buildNumber} -P sealightsSession=${sealightsSession} --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins
 RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar

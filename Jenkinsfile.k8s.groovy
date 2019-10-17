@@ -17,6 +17,7 @@ podTemplate(
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'jdk', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -27,12 +28,16 @@ podTemplate(
 
     node("${label}") {
 
+        def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
 
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
         def k8sNs = "reportportal"
+
+        def branchToBuild = params.get('COMMIT_HASH', 'develop')
+
 
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
@@ -51,8 +56,7 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    def br = params.get('COMMIT_HASH', 'develop')
-                    checkout([$class: 'GitSCM', branches: [[name: br ]],
+                    checkout([$class: 'GitSCM', branches: [[name: branchToBuild ]],
                               userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
                 }
             }
@@ -86,11 +90,19 @@ podTemplate(
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
 
+        def sealightsSession;
+        stage ('Init Sealights') {
+            container ('jdk') {
+                sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname "$srvVersion" -pi '*com.epam.ta.reportportal.*'"
+                sealightsSession = utils.execStdout("cat buildSessionId.txt")
+            }
+
+        }
 
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop --build-arg buildNumber=$buildVersion -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg  --build-arg sealightsSession=$sealightsSession buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }

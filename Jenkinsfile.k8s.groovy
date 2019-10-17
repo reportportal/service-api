@@ -22,7 +22,7 @@ podTemplate(
                         resourceLimitCpu: '2000m',
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '3072Mi'),
-                containerTemplate(name: 'jdk', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -107,7 +107,7 @@ podTemplate(
 
         def sealightsSession;
         stage ('Init Sealights') {
-            container ('jdk') {
+            container ('jre') {
                 sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname "$srvVersion" -pi '*com.epam.ta.reportportal.*'"
                 sealightsSession = utils.execStdout("cat buildSessionId.txt")
             }

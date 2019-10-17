@@ -120,7 +120,7 @@ podTemplate(
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop --build-arg sealightsSession=$sealightsSession --build-arg buildNumber=$buildVersion -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg sealightsTokenPath=$sealightsTokenPath --build-arg sealightsSession=$sealightsSession --build-arg buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }

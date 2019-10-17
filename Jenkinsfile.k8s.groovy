@@ -157,6 +157,7 @@ podTemplate(
                 dir(testDir) {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
+                        echo "${sealightsSession}" > 'buildsession.txt'
                         sh "mvn clean test -Denv=${testEnv}"
                     }
                 }

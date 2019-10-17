@@ -60,8 +60,8 @@ if(project.hasProperty('sealightsSession')){
 
         includeResources=true
 
-//          runTestOnly=true
-//          testTasks=["test", "junitPlatformTest", "integrationTest"]
+        runTestOnly=true
+        testTasks=["test", "junitPlatformTest", "integrationTest"]
 //          filesIncluded="*sample*"
 //          filesExcluded="*sample*"
 

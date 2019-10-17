@@ -48,7 +48,7 @@ if(project.hasProperty('sealightsSession')){
     apply plugin: 'io.sealights.on-premise.agents.plugin.sealights-gradle-plugin'
     sealights {
         buildSessionId = project.properties['sealightsSession']
-        tokenFile = project.properties['sealightsTokenFile']
+        token = project.properties['sealightsToken']
         createBuildSessionId = false
 
         filesStorage="/tmp"

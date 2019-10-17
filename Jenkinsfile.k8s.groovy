@@ -106,6 +106,7 @@ podTemplate(
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
 
+        def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
         def sealightsSession;
         stage ('Init Sealights') {
             dir("$appDir/sealights") {
@@ -120,7 +121,7 @@ podTemplate(
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop --build-arg sealightsTokenPath=$sealightsTokenPath --build-arg sealightsSession=$sealightsSession --build-arg buildNumber=$buildVersion -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg sealightsToken=$sealightsToken --build-arg sealightsSession=$sealightsSession --build-arg buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }

@@ -17,13 +17,11 @@
 package com.epam.ta.reportportal.core.item.impl.status;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.IssueEntityRepository;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -45,11 +43,17 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 @Component
 public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 
+	private final LogIndexer logIndexer;
+
+	private final LogRepository logRepository;
+
 	@Autowired
 	public FromSkippedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
 			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
-			MessageBus messageBus) {
+			MessageBus messageBus, LogIndexer logIndexer, LogRepository logRepository) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
+		this.logIndexer = logIndexer;
+		this.logRepository = logRepository;
 	}
 
 	@Override
@@ -62,6 +66,7 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 		if (PASSED.equals(providedStatus) && item.getItemResults().getIssue() != null) {
 			issueEntityRepository.delete(item.getItemResults().getIssue());
 			item.getItemResults().setIssue(null);
+			logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemId(item.getItemId()));
 		}
 		if (FAILED.equals(providedStatus) && item.getItemResults().getIssue() == null) {
 			addToInvestigateIssue(item, projectId);

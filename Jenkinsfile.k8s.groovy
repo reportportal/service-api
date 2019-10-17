@@ -107,9 +107,11 @@ podTemplate(
 
         def sealightsSession;
         stage ('Init Sealights') {
-            container ('jre') {
-                sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname "$srvVersion" -pi '*com.epam.ta.reportportal.*'"
-                sealightsSession = utils.execStdout("cat buildSessionId.txt")
+            dir("$appDir/sealights") {
+                container ('jre') {
+                    sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname "$srvVersion" -pi '*com.epam.ta.reportportal.*'"
+                    sealightsSession = utils.execStdout("cat buildSessionId.txt")
+                }
             }
 
         }

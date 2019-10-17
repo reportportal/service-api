@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
@@ -206,6 +207,10 @@ public class AsyncReportingListener implements MessageListener {
 		BinaryDataMetaInfo metaInfo = payload.getRight();
 
 		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
+
+		if (StringUtils.isNotEmpty(payload.getLeft().getItemUuid()) && !itemOptional.isPresent()) {
+			throw new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, payload.getLeft().getItemUuid());
+		}
 
 		if (itemOptional.isPresent()) {
 			createItemLog(request, itemOptional.get(), metaInfo, projectId);

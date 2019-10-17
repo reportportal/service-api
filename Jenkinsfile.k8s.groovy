@@ -109,12 +109,8 @@ podTemplate(
         def sealightsSession;
         stage ('Init Sealights') {
             dir("$appDir/sealights") {
-                sh "cat $sealightsTokenPath"
-                sh "ls -la /etc"
                 container ('jre') {
-                    sh "cat $sealightsTokenPath"
                     sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
-                    sh "ls -la"
                     sealightsSession = utils.execStdout("cat buildSessionId.txt")
                 }
             }
@@ -124,7 +120,7 @@ podTemplate(
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop --build-arg  --build-arg sealightsSession=$sealightsSession buildNumber=$buildVersion -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg sealightsSession=$sealightsSession buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }

@@ -158,7 +158,8 @@ podTemplate(
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                        sh "mvn clean test -Denv=${testEnv}"
+                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        sh "mvn clean test -P build -Denv=${testEnv}"
                     }
                 }
             }

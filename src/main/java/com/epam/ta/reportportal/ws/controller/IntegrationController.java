@@ -84,7 +84,7 @@ public class IntegrationController {
 	@GetMapping("/project/{projectName}/all")
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Get available global integrations")
+	@ApiOperation("Get available project integrations")
 	public List<IntegrationResource> getProjectIntegrations(@PathVariable String projectName,
 			@AuthenticationPrincipal ReportPortalUser reportPortalUser) {
 		return getIntegrationHandler.getProjectIntegrations(normalizeId(projectName));
@@ -94,7 +94,7 @@ public class IntegrationController {
 	@GetMapping("/project/{projectName}/all/{pluginName}")
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
-	@ApiOperation("Get available global integrations for plugin")
+	@ApiOperation("Get available project integrations for plugin")
 	public List<IntegrationResource> getProjectIntegrations(@AuthenticationPrincipal ReportPortalUser reportPortalUser,
 			@PathVariable String projectName, @PathVariable String pluginName) {
 		return getIntegrationHandler.getProjectIntegrations(pluginName, normalizeId(projectName));
@@ -173,7 +173,7 @@ public class IntegrationController {
 	@Transactional
 	@PutMapping(value = "/{projectName}/{integrationId}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Update global Report Portal integration instance")
+	@ApiOperation("Update project integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS updateProjectIntegration(@PathVariable Long integrationId, @RequestBody @Valid IntegrationRQ updateRequest,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
@@ -184,7 +184,7 @@ public class IntegrationController {
 	@Transactional
 	@DeleteMapping(value = "/{integrationId}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Delete integration instance")
+	@ApiOperation("Delete global integration instance")
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS deleteGlobalIntegration(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteIntegrationHandler.deleteGlobalIntegration(integrationId);
@@ -193,7 +193,7 @@ public class IntegrationController {
 	@Transactional
 	@DeleteMapping(value = "/all/{type}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Delete all integrations assigned to specified project")
+	@ApiOperation("Delete all global integrations by type")
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS deleteAllIntegrations(@PathVariable String type, @AuthenticationPrincipal ReportPortalUser user) {
 		return deleteIntegrationHandler.deleteGlobalIntegrationsByType(type);
@@ -202,7 +202,7 @@ public class IntegrationController {
 	@Transactional
 	@DeleteMapping(value = "/{projectName}/{integrationId}")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Delete integration instance")
+	@ApiOperation("Delete project integration instance")
 	@PreAuthorize(PROJECT_MANAGER)
 	public OperationCompletionRS deleteProjectIntegration(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {

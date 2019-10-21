@@ -81,9 +81,8 @@ podTemplate(
         }, 'Download Sealights': {
             stage('Download Sealights'){
                 dir(sealightsDir) {
-                    sh "sealightsUrl=${sealightsAgentUrl}"
-                    sh 'wget ${sealightsUrl}'
-                    sh 'tar -xzf ${sealightsUrl##*/}'
+                    sh "wget ${sealightsAgentUrl}"
+                    sh "tar -xzf \$( echo '${sealightsAgentUrl}' | rev | cut -d'/' -f1 | rev)"
                 }
             }
         }

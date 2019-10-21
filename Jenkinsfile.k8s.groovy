@@ -38,6 +38,7 @@ podTemplate(
         def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
         def sealightsAgentUrl = "https://agents.sealights.co/sealights-java/sealights-java-latest.zip"
+        def sealightsAgentArchive = sealightsAgentUrl.substring(sealightsAgentUrl.lastIndexOf('/') + 1)
 
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
@@ -82,7 +83,7 @@ podTemplate(
             stage('Download Sealights'){
                 dir(sealightsDir) {
                     sh "wget ${sealightsAgentUrl}"
-                    sh "tar -xzf \$( echo '${sealightsAgentUrl}' | rev | cut -d'/' -f1 | rev)"
+                    unzip sealightsAgentArchive
                 }
             }
         }

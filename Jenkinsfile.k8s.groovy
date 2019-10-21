@@ -29,7 +29,7 @@ podTemplate(
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
                 secretVolume(mountPath: '/etc/.sealights-token', secretName: 'sealights-token'),
-                hostPathVolume(mountPath: '/root/.m2', hostPath: '/tmp/jenkins/.m2')
+                hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
 

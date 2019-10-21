@@ -37,12 +37,14 @@ podTemplate(
 
         def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
+        def sealightsAgentUrl = "https://agents.sealights.co/sealights-java/sealights-java-latest.zip"
 
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
         def k8sNs = "reportportal"
+        def sealightsDir = 'sealights'
 
         def branchToBuild = params.get('COMMIT_HASH', 'develop')
 
@@ -76,6 +78,14 @@ podTemplate(
                     git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 }
             }
+        }, 'Download Sealights': {
+            stage('Download Sealights'){
+                dir(sealightsDir) {
+                    sh "sealightsUrl=${sealightsAgentUrl}"
+                    sh 'wget ${sealightsUrl}'
+                    sh 'tar -xzf ${sealightsUrl##*/}'
+                }
+            }
         }
 
         def test = load "${ciDir}/jenkins/scripts/test.groovy"
@@ -87,20 +97,6 @@ podTemplate(
         helm.init()
         utils.scheduleRepoPoll()
 
-//        dir('app') {
-//            try {
-//                container('docker') {
-//                    stage('Build App') {
-//                        sh "gradle build --full-stacktrace"
-//                    }
-//                }
-//            } finally {
-//                junit 'build/test-results/**/*.xml'
-//                dependencyCheckPublisher pattern: 'build/reports/dependency-check-report.xml'
-//
-//            }
-//
-//        }
         def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
@@ -109,7 +105,7 @@ podTemplate(
         def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
         def sealightsSession;
         stage ('Init Sealights') {
-            dir("$appDir/sealights") {
+            dir("$sealightsDir") {
                 container ('jre') {
                     sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
                     sealightsSession = utils.execStdout("cat buildSessionId.txt")

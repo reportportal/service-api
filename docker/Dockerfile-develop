@@ -17,8 +17,6 @@ ARG buildNumber
 ARG sealightsSession
 ARG sealightsToken
 
-
-
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
 RUN ./gradlew resolveDependencies --stacktrace
@@ -29,10 +27,10 @@ COPY --chown=rp-builder .git/ .git/
 
 RUN ./gradlew build -x jacocoTestReport -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
-RUN mkdir -p /home/rp-builder/plugins
-RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
-RUN curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
-RUN curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+RUN mkdir -p /home/rp-builder/plugins && \
+    curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar && \
+    curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar && \
+    curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
     unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins
 
 FROM openjdk:8-jre-slim

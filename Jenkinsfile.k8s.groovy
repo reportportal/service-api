@@ -39,6 +39,7 @@ podTemplate(
         def srvRepo = "quay.io/reportportal/service-api"
         def sealightsAgentUrl = "https://agents.sealights.co/sealights-java/sealights-java-latest.zip"
         def sealightsAgentArchive = sealightsAgentUrl.substring(sealightsAgentUrl.lastIndexOf('/') + 1)
+        def standardJvmOptions = '-Xmx2g -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
 
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
@@ -129,7 +130,9 @@ podTemplate(
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion" +
+                        "--set serviceapi.jvmArgs='${standardJvmOptions} -javaagent:./plugins/sl-test-listener.jar -Dsl.token=${sealightsToken} -Dsl.buildSessionId=${sealightsSession} -Dsl.filesStorage=/tmp'" +
+                        " --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
             }
         }
 

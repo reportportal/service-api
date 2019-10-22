@@ -67,10 +67,7 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    checkout([$class: 'GitSCM', branches: [[name: branchToBuild]],
-                              browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/reportportal/service-api/'],
-                              doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
-                              userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
+                    git branch: branchToBuild, url: 'https://github.com/reportportal/service-api.git'
                 }
             }
         }, 'Checkout tests': {

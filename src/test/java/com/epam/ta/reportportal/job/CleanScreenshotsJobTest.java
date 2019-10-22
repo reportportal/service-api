@@ -1,85 +1,86 @@
 /*
- * Copyright 2016 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.database.DataStorage;
-import com.epam.ta.reportportal.database.dao.LogRepository;
-import com.epam.ta.reportportal.database.dao.ProjectRepository;
-import com.epam.ta.reportportal.database.entity.Project;
-import com.mongodb.gridfs.GridFSDBFile;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.attribute.Attribute;
+import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Created by Andrey_Ivanov1 on 31-May-17.
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
+@ExtendWith(MockitoExtension.class)
+class CleanScreenshotsJobTest {
 
-@RunWith(SpringJUnit4ClassRunner.class)
-public class CleanScreenshotsJobTest {
-
-	@InjectMocks
-	private CleanScreenshotsJob cleanScreenshotsJob = new CleanScreenshotsJob();
-	@Mock
-	private DataStorage gridFS;
 	@Mock
 	private ProjectRepository projectRepository;
+
 	@Mock
-	private LogRepository logRepository;
+	private LogCleanerService logCleanerService;
+
+	@InjectMocks
+	private CleanScreenshotsJob cleanScreenshotsJob;
 
 	@Test
-	public void runTest() {
+	void runTest() {
 		String name = "name";
 		Project project = new Project();
-		Project.Configuration configuration = new Project.Configuration();
-		configuration.setKeepScreenshots("1 week");
+		final ProjectAttribute projectAttribute = new ProjectAttribute();
+		final Attribute attribute = new Attribute();
+		attribute.setName("job.keepScreenshots");
+		projectAttribute.setAttribute(attribute);
+		projectAttribute.setValue("2 weeks");
+		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 		project.setName(name);
-		project.setConfiguration(configuration);
 
-		GridFSDBFile grid = new GridFSDBFile();
-		grid.put("_id", name);
-		List<GridFSDBFile> list = new ArrayList<>();
-		list.add(grid);
-
-		when(projectRepository.findAllIdsAndConfiguration(Mockito.any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
-		when(gridFS.findModifiedLaterAgo(any(Duration.class), anyString())).thenReturn(list);
+		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanScreenshotsJob.execute(null);
 
-		verify(gridFS, times(1)).deleteData(anyString());
-		verify(logRepository, times(1)).removeBinaryContent(anyString());
+		verify(logCleanerService, times(1)).removeProjectAttachments(any(), any(), any(), any());
 	}
 
+	@Test
+	void wrongAttributeValue() {
+		String name = "name";
+		Project project = new Project();
+		final ProjectAttribute projectAttribute = new ProjectAttribute();
+		final Attribute attribute = new Attribute();
+		attribute.setName("job.keepScreenshots");
+		projectAttribute.setAttribute(attribute);
+		projectAttribute.setValue("wrong");
+		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
+		project.setName(name);
+
+		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+
+		cleanScreenshotsJob.execute(null);
+	}
 }

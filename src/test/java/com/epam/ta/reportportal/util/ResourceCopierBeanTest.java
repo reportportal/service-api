@@ -1,22 +1,17 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.util;
@@ -27,49 +22,49 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Resource copier bean test
  *
  * @author Andrei Varabyeu
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ResourceCopierBeanTest.TestConfig.class })
 public class ResourceCopierBeanTest {
-
 	private static final String RANDOM_NAME = RandomStringUtils.randomAlphabetic(5);
 
-	private static final String RESOURCE_TO_BE_COPIED = "classpath:logback.xml";
+	private static final String RESOURCE_TO_BE_COPIED = "classpath:logback-test.xml";
 
 	@Autowired
 	private ResourceLoader resourceLoader;
 
 	@Test
-	public void testResourceCopierBean() throws IOException {
+	void testResourceCopierBean() throws IOException {
 		File createdFile = new File(StandardSystemProperty.JAVA_IO_TMPDIR.value(), RANDOM_NAME);
 		Resource resource = resourceLoader.getResource(RESOURCE_TO_BE_COPIED);
-		String copied = Files.toString(createdFile, Charsets.UTF_8);
+		String copied = Files.asCharSource(createdFile, Charsets.UTF_8).read();
 		String fromResource = CharStreams.toString(new InputStreamReader(resource.getInputStream(), Charsets.UTF_8));
-		Assert.assertEquals("Copied file is not equal to resource source", fromResource, copied);
+		assertEquals(fromResource, copied, "Copied file is not equal to resource source");
 	}
 
-	@After
-	public void deleteCreatedFile() throws IOException {
+	@AfterEach
+	void deleteCreatedFile() throws IOException {
 		FileUtils.deleteQuietly(new File(StandardSystemProperty.JAVA_IO_TMPDIR.value(), RANDOM_NAME));
 	}
 
@@ -84,5 +79,4 @@ public class ResourceCopierBeanTest {
 			return rcb;
 		}
 	}
-
 }

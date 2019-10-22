@@ -1,66 +1,74 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.ws.converter.converters;
 
-import com.epam.ta.reportportal.database.entity.Log;
-import com.epam.ta.reportportal.database.entity.LogLevel;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
-/**
- * @author Pavel_Bortnik
- */
-public class LogConverterTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-	@Test(expected = NullPointerException.class)
-	public void testNull() {
-		LogConverter.TO_RESOURCE.apply(null);
+/**
+ * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ */
+class LogConverterTest {
+
+	private static Log getLog() {
+		Log log = new Log();
+		log.setLogLevel(50000);
+		log.setLogMessage("message");
+		final TestItem testItem = new TestItem();
+		testItem.setItemId(1L);
+		log.setTestItem(testItem);
+		Attachment attachment = new Attachment();
+		attachment.setFileId("attachId");
+		attachment.setContentType("contentType");
+		attachment.setThumbnailId("thumbnailId");
+		log.setAttachment(attachment);
+		log.setLogTime(LocalDateTime.now());
+		log.setId(2L);
+		log.setUuid("uuid");
+		log.setLastModified(LocalDateTime.now());
+		return log;
 	}
 
 	@Test
-	public void testConvert() {
-		Log log = new Log();
-		Date date = new Date(0);
-		log.setId("id");
-		log.setLastModified(date);
-		log.setTestItemRef("testItemRef");
-		log.setLevel(LogLevel.DEBUG);
-		log.setLogMsg("message");
-		log.setLogTime(date);
-		log.setBinaryContent(null);
-		validate(log, LogConverter.TO_RESOURCE.apply(log));
-	}
+	void toResource() {
+		final Log log = getLog();
+		final LogResource resource = LogConverter.TO_RESOURCE.apply(log);
 
-	private void validate(Log log, LogResource logResource) {
-		Assert.assertEquals(log.getId(), logResource.getIdLog());
-		Assert.assertEquals(log.getLastModified(), log.getLastModified());
-		Assert.assertEquals(log.getLevel().toString(), logResource.getLevel());
-		Assert.assertEquals(log.getLogMsg(), logResource.getMessage());
-		Assert.assertEquals(log.getLogTime(), logResource.getLogTime());
-		Assert.assertEquals(log.getTestItemRef(), log.getTestItemRef());
-		Assert.assertNull(logResource.getBinaryContent());
-	}
+		assertEquals(resource.getId(), log.getId());
+		assertEquals(resource.getUuid(), log.getUuid());
+		assertEquals(resource.getMessage(), log.getLogMessage());
+		assertEquals(resource.getLevel(), LogLevel.toLevel(log.getLogLevel()).toString());
+		assertEquals(resource.getLogTime(), Date.from(log.getLogTime().atZone(ZoneId.of("UTC")).toInstant()));
+		assertEquals(resource.getItemId(), log.getTestItem().getItemId());
 
+		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
+
+		assertEquals(binaryContent.getContentType(), log.getAttachment().getContentType());
+		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getFileId());
+		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailId());
+	}
 }

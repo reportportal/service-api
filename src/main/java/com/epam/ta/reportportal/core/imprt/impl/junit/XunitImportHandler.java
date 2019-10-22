@@ -1,31 +1,28 @@
 /*
- * Copyright 2017 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.core.imprt.impl.junit;
 
+import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.log.ICreateLogHandler;
-import com.epam.ta.reportportal.database.entity.LogLevel;
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.item.TestItemType;
+import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
@@ -33,6 +30,9 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -46,29 +46,35 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toDate;
 import static com.epam.ta.reportportal.core.imprt.impl.DateUtils.toMillis;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class XunitImportHandler extends DefaultHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XunitImportHandler.class);
 
-	@Autowired
-	private StartTestItemHandler startTestItemHandler;
+	private final StartTestItemHandler startTestItemHandler;
+
+	private final FinishTestItemHandler finishTestItemHandler;
+
+	private final CreateLogHandler createLogHandler;
 
 	@Autowired
-	private FinishTestItemHandler finishTestItemHandler;
-
-	@Autowired
-	private ICreateLogHandler createLogHandler;
+	public XunitImportHandler(StartTestItemHandler startTestItemHandler, FinishTestItemHandler finishTestItemHandler,
+			CreateLogHandler createLogHandler) {
+		this.startTestItemHandler = startTestItemHandler;
+		this.finishTestItemHandler = finishTestItemHandler;
+		this.createLogHandler = createLogHandler;
+	}
 
 	//initial info
-	private String projectId;
-	private String userName;
-	private String launchId;
+	private ReportPortalUser.ProjectDetails projectDetails;
+	private ReportPortalUser user;
+	private String launchUuid;
 
 	//need to know item's id to attach System.out/System.err logs
-	private String currentId;
+	private String currentItemUuid;
 
 	private LocalDateTime startSuiteTime;
 
@@ -76,14 +82,14 @@ public class XunitImportHandler extends DefaultHandler {
 	private long currentDuration;
 
 	//items structure ids
-	private Deque<String> itemsIds;
-	private Status status;
+	private Deque<String> itemUuids;
+	private StatusEnum status;
 	private StringBuilder message;
 	private LocalDateTime startItemTime;
 
 	@Override
 	public void startDocument() {
-		itemsIds = new ArrayDeque<>();
+		itemUuids = new ArrayDeque<>();
 		message = new StringBuilder();
 		startSuiteTime = LocalDateTime.now();
 	}
@@ -96,7 +102,7 @@ public class XunitImportHandler extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		switch (XunitReportTag.fromString(qName)) {
 			case TESTSUITE:
-				if (itemsIds.isEmpty()) {
+				if (itemUuids.isEmpty()) {
 					startRootItem(attributes.getValue(XunitReportTag.ATTR_NAME.getValue()),
 							attributes.getValue(XunitReportTag.TIMESTAMP.getValue())
 					);
@@ -112,11 +118,11 @@ public class XunitImportHandler extends DefaultHandler {
 			case ERROR:
 			case FAILURE:
 				message = new StringBuilder();
-				status = Status.FAILED;
+				status = StatusEnum.FAILED;
 				break;
 			case SKIPPED:
 				message = new StringBuilder();
-				status = Status.SKIPPED;
+				status = StatusEnum.SKIPPED;
 				break;
 			case SYSTEM_OUT:
 			case SYSTEM_ERR:
@@ -124,6 +130,7 @@ public class XunitImportHandler extends DefaultHandler {
 				message = new StringBuilder();
 				break;
 			case UNKNOWN:
+			default:
 				LOGGER.warn("Unknown tag: {}", qName);
 				break;
 		}
@@ -141,18 +148,17 @@ public class XunitImportHandler extends DefaultHandler {
 			case SKIPPED:
 			case ERROR:
 			case FAILURE:
+			case SYSTEM_ERR:
 				attachLog(LogLevel.ERROR);
 				break;
 			case SYSTEM_OUT:
 				attachLog(LogLevel.INFO);
 				break;
-			case SYSTEM_ERR:
-				attachLog(LogLevel.ERROR);
-				break;
 			case WARNING:
 				attachLog(LogLevel.WARN);
 				break;
 			case UNKNOWN:
+			default:
 				LOGGER.warn("Unknown tag: {}", qName);
 				break;
 		}
@@ -176,8 +182,8 @@ public class XunitImportHandler extends DefaultHandler {
 			startItemTime = LocalDateTime.now();
 		}
 		StartTestItemRQ rq = buildStartTestRq(name);
-		String id = startTestItemHandler.startRootItem(projectId, rq).getId();
-		itemsIds.push(id);
+		String id = startTestItemHandler.startRootItem(user, projectDetails, rq).getId();
+		itemUuids.push(id);
 	}
 
 	private LocalDateTime parseTimeStamp(String timestamp) {
@@ -201,26 +207,26 @@ public class XunitImportHandler extends DefaultHandler {
 
 	private void startTestItem(String name) {
 		StartTestItemRQ rq = buildStartTestRq(name);
-		String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peek()).getId();
-		itemsIds.push(id);
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
+		itemUuids.push(id);
 	}
 
 	private void startStepItem(String name, String duration) {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
-		rq.setStartTime(toDate(startItemTime));
-		rq.setType(TestItemType.STEP.name());
+		rq.setLaunchUuid(launchUuid);
+		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setType(TestItemTypeEnum.STEP.name());
 		rq.setName(name);
-		String id = startTestItemHandler.startChildItem(projectId, rq, itemsIds.peek()).getId();
+		String id = startTestItemHandler.startChildItem(user, projectDetails, rq, itemUuids.peek()).getId();
 		currentDuration = toMillis(duration);
-		currentId = id;
-		itemsIds.push(id);
+		currentItemUuid = id;
+		itemUuids.push(id);
 	}
 
 	private void finishRootItem() {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
-		rq.setEndTime(toDate(startItemTime));
-		finishTestItemHandler.finishTestItem(itemsIds.poll(), rq, userName);
+		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
+		finishTestItemHandler.finishTestItem(user, projectDetails, itemUuids.poll(), rq);
 		status = null;
 	}
 
@@ -228,10 +234,10 @@ public class XunitImportHandler extends DefaultHandler {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		startItemTime = startItemTime.plus(currentDuration, ChronoUnit.MILLIS);
 		commonDuration += currentDuration;
-		rq.setEndTime(toDate(startItemTime));
-		rq.setStatus(Optional.ofNullable(status).orElse(Status.PASSED).name());
-		currentId = itemsIds.poll();
-		finishTestItemHandler.finishTestItem(currentId, rq, userName);
+		rq.setEndTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setStatus(Optional.ofNullable(status).orElse(StatusEnum.PASSED).name());
+		currentItemUuid = itemUuids.poll();
+		finishTestItemHandler.finishTestItem(user, projectDetails, currentItemUuid, rq);
 		status = null;
 	}
 
@@ -239,25 +245,25 @@ public class XunitImportHandler extends DefaultHandler {
 		if (null != message && message.length() != 0) {
 			SaveLogRQ saveLogRQ = new SaveLogRQ();
 			saveLogRQ.setLevel(logLevel.name());
-			saveLogRQ.setLogTime(toDate(startItemTime));
+			saveLogRQ.setLogTime(EntityUtils.TO_DATE.apply(startItemTime));
 			saveLogRQ.setMessage(message.toString().trim());
-			saveLogRQ.setTestItemId(currentId);
-			createLogHandler.createLog(saveLogRQ, null, projectId);
+			saveLogRQ.setItemUuid(currentItemUuid);
+			createLogHandler.createLog(saveLogRQ, null, projectDetails);
 		}
 	}
 
-	XunitImportHandler withParameters(String projectId, String launchId, String user) {
-		this.projectId = projectId;
-		this.launchId = launchId;
-		this.userName = user;
+	XunitImportHandler withParameters(ReportPortalUser.ProjectDetails projectDetails, String launchId, ReportPortalUser user) {
+		this.projectDetails = projectDetails;
+		this.launchUuid = launchId;
+		this.user = user;
 		return this;
 	}
 
 	private StartTestItemRQ buildStartTestRq(String name) {
 		StartTestItemRQ rq = new StartTestItemRQ();
-		rq.setLaunchId(launchId);
-		rq.setStartTime(toDate(startItemTime));
-		rq.setType(TestItemType.TEST.name());
+		rq.setLaunchUuid(launchUuid);
+		rq.setStartTime(EntityUtils.TO_DATE.apply(startItemTime));
+		rq.setType(TestItemTypeEnum.TEST.name());
 		rq.setName(Strings.isNullOrEmpty(name) ? "no_name" : name);
 		return rq;
 	}

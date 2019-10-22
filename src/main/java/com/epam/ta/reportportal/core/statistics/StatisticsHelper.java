@@ -1,49 +1,77 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2019 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.epam.ta.reportportal.core.statistics;
 
-import com.epam.ta.reportportal.database.entity.Status;
-import com.epam.ta.reportportal.database.entity.statistics.ExecutionCounter;
-import com.epam.ta.reportportal.database.entity.statistics.Statistics;
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
+import com.epam.ta.reportportal.entity.statistics.StatisticsField;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE_FLAG;
+import static java.util.Optional.ofNullable;
 
 /**
- * Utility class to process statistics data and produce output, based on it
- *
- * @author Dzianis_Shlychkou
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class StatisticsHelper {
+public final class StatisticsHelper {
+
+	private static final String TOTAL = "statistics$executions$total";
+	private static final String PASSED = "statistics$executions$passed";
+	private static final String SKIPPED = "statistics$executions$skipped";
+	private static final String FAILED = "statistics$executions$failed";
 
 	private StatisticsHelper() {
+		//static only
 	}
 
-	public static Status getStatusFromStatistics(Statistics statistics) {
-
-		ExecutionCounter executionCounter = statistics.getExecutionCounter();
-		Integer toInvestigate = statistics.getIssueCounter().getToInvestigateTotal();
-		if (executionCounter.getFailed() > 0 || executionCounter.getSkipped() > 0 || toInvestigate > 0) {
-			return Status.FAILED;
-		} else {
-			return Status.PASSED;
-		}
+	public static StatusEnum getStatusFromStatistics(Set<Statistics> statistics) {
+		return statistics.stream().anyMatch(FAILED_PREDICATE) ? StatusEnum.FAILED : StatusEnum.PASSED;
 	}
 
+	private final static Predicate<Statistics> FAILED_PREDICATE = statistics -> {
+		StatisticsField statisticsField = ofNullable(statistics.getStatisticsField()).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+				"Statistics should contain a name field."
+		));
+		String field = statisticsField.getName();
+		Integer counter = statistics.getCounter();
+		return (field.contains("failed") || field.contains("skipped") || field.contains("to_investigate")) && counter > 0;
+	};
+
+	public static Integer extractStatisticsCount(String statisticsField, Set<Statistics> statistics) {
+		return statistics.stream()
+				.filter(it -> it.getStatisticsField().getName().equalsIgnoreCase(statisticsField))
+				.findFirst()
+				.orElse(new Statistics())
+				.getCounter();
+	}
+
+	public static Stream<String> defaultStatisticsFields() {
+		return Stream.concat(
+				Arrays.stream(TestItemIssueGroup.values())
+						.filter(value -> !value.getIssueCounterField().equalsIgnoreCase(NOT_ISSUE_FLAG.getIssueCounterField()))
+						.map(value -> "statistics$defects$" + value.getValue().toLowerCase() + "$" + value.getLocator()),
+				Stream.of(TOTAL, PASSED, SKIPPED, FAILED)
+		);
+	}
 }

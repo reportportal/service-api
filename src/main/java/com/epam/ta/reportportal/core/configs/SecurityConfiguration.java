@@ -1,51 +1,30 @@
 /*
- * Copyright 2016 EPAM Systems
- * 
- * 
- * This file is part of EPAM Report Portal.
- * https://github.com/reportportal/service-api
- * 
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
- */ 
-/*
- * This file is part of Report Portal.
+ * Copyright 2019 EPAM Systems
  *
- * Report Portal is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Report Portal is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Report Portal.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.ta.reportportal.auth.CombinedTokenStore;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
+import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
-import com.epam.ta.reportportal.auth.permissions.ProjectAuthority;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.AuthoritiesExtractor;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.FixedAuthoritiesExtractor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.PermissionEvaluator;
@@ -57,20 +36,18 @@ import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Spring's Security Configuration
@@ -112,6 +89,13 @@ class SecurityConfiguration {
 		@Autowired
 		private PermissionEvaluator permissionEvaluator;
 
+		@Autowired
+		private DatabaseUserDetailsService userDetailsService;
+
+		@Autowired
+		@Value("${rp.jwt.signing-key}")
+		private String signingKey;
+
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
@@ -123,23 +107,34 @@ class SecurityConfiguration {
 		}
 
 		@Bean
-		public static AuthoritiesExtractor rpAuthoritiesExtractor() {
-			return new ReportPortalAuthorityExtractor();
+		public TokenStore tokenStore() {
+			return new CombinedTokenStore(accessTokenConverter());
 		}
 
-        @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-            CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(ImmutableList.of("*"));
-            configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
-            configuration.setAllowCredentials(true);
-            configuration.setAllowedHeaders(ImmutableList.of("Authorization", "Cache-Control", "Content-Type"));
+		@Bean
+		public JwtAccessTokenConverter accessTokenConverter() {
+			JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
+			jwtConverter.setSigningKey(signingKey);
 
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", configuration);
+			DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
+			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
+			defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
+			accessTokenConverter.setUserTokenConverter(defaultUserAuthenticationConverter);
 
-            return source;
-        }
+			jwtConverter.setAccessTokenConverter(accessTokenConverter);
+
+			return jwtConverter;
+		}
+
+		@Bean
+		@Primary
+		public DefaultTokenServices tokenServices() {
+			DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+			defaultTokenServices.setTokenStore(tokenStore());
+			defaultTokenServices.setSupportRefreshToken(true);
+			defaultTokenServices.setTokenEnhancer(accessTokenConverter());
+			return defaultTokenServices;
+		}
 
 		private DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
 			OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
@@ -162,10 +157,10 @@ class SecurityConfiguration {
 		public void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
 					.accessDecisionManager(webAccessDecisionManager())
-					.antMatchers("/**/user/registration/info*", "/**/user/registration**", "/**/user/password/reset/*",
-							"/**/user/password/reset**", "/**/user/password/restore**",
-
-							"/documentation.html"
+					.antMatchers("/**/user/registration/info*",
+							"/**/user/registration**",
+							"/**/user/password/reset/*",
+							"/**/user/password/reset**", "/**/user/password/restore**", "/documentation.html", "/health", "/info"
 					)
 					.permitAll()
 					/* set of special endpoints for another microservices from RP ecosystem */
@@ -176,28 +171,11 @@ class SecurityConfiguration {
 					.anyRequest()
 					.authenticated()
 					.and()
-                    .cors()
-                    .and()
 					.csrf()
 					.disable();
 		}
 
 	}
-
-	static class ReportPortalAuthorityExtractor extends FixedAuthoritiesExtractor {
-		@Override
-		public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
-			List<GrantedAuthority> userRoles = super.extractAuthorities(map);
-			Optional.ofNullable(map.get("projects"))
-					.map(p -> ((Map<String, String>) p).entrySet()
-							.stream()
-							.map(e -> new ProjectAuthority(e.getKey(), e.getValue()))
-							.collect(Collectors.toList()))
-					.ifPresent(userRoles::addAll);
-			return userRoles;
-		}
-	}
-
 }
 
 

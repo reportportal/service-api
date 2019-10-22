@@ -1,0 +1,403 @@
+{
+	"info": {
+		"_postman_id": "318614d6-a5b9-4a7a-b040-e35f253ba572",
+		"name": "RpCollection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "API Info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2464c641-2864-4fb4-a92b-4744f3b77617",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Build Version\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.build.version).to.eql(pm.environment.get(\"build\"))",
+							"});",
+							"",
+							"pm.test(\"Validate Metadate Activity Action\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    var activityActions = [\"createDashboard\",",
+							"            \"updateDashboard\",",
+							"            \"deleteDashboard\",",
+							"            \"createWidget\",",
+							"            \"updateWidget\",",
+							"            \"deleteWidget\",",
+							"            \"createFilter\",",
+							"            \"updateFilter\",",
+							"            \"deleteFilter\",",
+							"            \"analyzeItem\",",
+							"            \"createDefect\",",
+							"            \"updateDefect\",",
+							"            \"deleteDefect\",",
+							"            \"createIntegration\",",
+							"            \"updateIntegration\",",
+							"            \"deleteIntegration\",",
+							"            \"startLaunch\",",
+							"            \"finishLaunch\",",
+							"            \"deleteLaunch\",",
+							"            \"updateProject\",",
+							"            \"updateAnalyzer\",",
+							"            \"postIssue\",",
+							"            \"linkIssue\",",
+							"            \"linkIssueAa\",",
+							"            \"unlinkIssue\",",
+							"            \"updateItem\",",
+							"            \"createUser\",",
+							"            \"deleteIndex\",",
+							"            \"generateIndex\",",
+							"            \"startImport\",",
+							"            \"finishImport\",",
+							"            \"createPattern\",",
+							"            \"updatePattern\",",
+							"            \"deletePattern\",",
+							"            \"patternMatched\"];",
+							"    pm.expect(jsonData.metadata.activityAction.length).to.eql(activityActions.length);",
+							"",
+							"});",
+							"",
+							"pm.test(\"Validate Activity Entity Type\", function(){",
+							"    var jsonData = pm.response.json();",
+							"     var activityActions = [\"launch\",",
+							"            \"item\",",
+							"            \"dashboard\",",
+							"            \"defectType\",",
+							"            \"emailConfig\",",
+							"            \"filter\",",
+							"            \"import\",",
+							"            \"integration\",",
+							"            \"itemIssue\",",
+							"            \"project\",",
+							"            \"sharing\",",
+							"            \"ticket\",",
+							"            \"user\",",
+							"            \"widget\",",
+							"            \"pattern\"];",
+							"    pm.expect(jsonData.metadata.activityEntityType.length).to.eql(activityActions.length);",
+							"",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer 78afb592-b4e3-401c-8097-f45d7489898f",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{host}}/api/info",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API Health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fe96f91f-1539-45a0-8e08-c11dc784ad65",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Health\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"UP\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/api/health",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UAT Info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b1730e92-c7c7-4e73-8fe4-b3fbc92b2f9c",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Build Version\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.build.version).to.eql(\"5.0\")",
+							"});",
+							"",
+							"pm.test(\"Validate Project Roles\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    var prRoles = [\"OPERATOR\", \"CUSTOMER\", \"MEMBER\", \"PROJECT_MANAGER\"];",
+							"    pm.expect(jsonData.metadata.project_roles.length).to.eql(prRoles.length);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/uat/info",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"uat",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UAT Health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d6803e52-8276-423b-941f-e0334b6364c8",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Health\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"UP\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/uat/health",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"uat",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/uat/sso/oauth/token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d338cddf-0851-4d2b-b414-9147a109cf31",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate Access Token Value\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.access_token).not.eql(\"\")",
+							"});",
+							"",
+							"pm.test(\"Validate Token Type\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.token_type).to.eql(\"bearer\")",
+							"});",
+							"",
+							"pm.test(\"Validate Refresh Token Value\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.refresh_token).not.eql(\"\")",
+							"});",
+							"",
+							"pm.test(\"Validate Refresh Token Value\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.refresh_token).not.eql(\"\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "grant_type",
+							"value": "{{grant_type}}",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/uat/sso/oauth/token",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"uat",
+						"sso",
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/user/default",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a1315561-d45a-4879-b0a2-6cc2f07bb86a",
+						"exec": [
+							"pm.sendRequest({\r",
+							"    url: pm.environment.get(\"host\") + '/uat/sso/oauth/token',\r",
+							"    method: 'POST',\r",
+							"    header: {\r",
+							"        'Authorization':  pm.environment.get(\"Authorization\"),\r",
+							"        'Content-Type': 'multpart/form-data'\r",
+							"     },\r",
+							"    body: {\r",
+							"          mode: 'formdata',\r",
+							"          formdata: [\r",
+							"            {key: \"grant_type\", value:pm.environment.get(\"grant_type\")},\r",
+							"            {key: \"username\", value:pm.environment.get(\"username\")},\r",
+							"            {key: \"password\", value:pm.environment.get(\"password\")}\r",
+							"        ]\r",
+							"    }\r",
+							"},\r",
+							"function (err, res) {\r",
+							"    pm.environment.set(\"token\", res.json().access_token);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f2a5311a-87cb-4b81-bb35-379713824833",
+						"exec": [
+							"pm.test(\"Validate Status\", function (){",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validate UserId\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.userId).to.eql(\"default\")",
+							"});",
+							"",
+							"pm.test(\"Validate Assigned Project: default_personal\", function(){",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.assignedProjects.default_personal).not.eql(\"\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/api/v1/user/default",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"user",
+						"default"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

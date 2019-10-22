@@ -135,7 +135,7 @@
 
 
 ## 3.2
-##### Released: Aug 29, 2017
+##### Released: Aug XXX, 2017
 
 ### New Features
 
@@ -157,7 +157,7 @@
 
 
 ## 3.3
-##### Released: Nov 03, 2017
+##### Released: XXX XX, 2017
 
 ### New Features
 
@@ -228,10 +228,31 @@
 * EPMRPP-34212 - WS: No action for linked issue by ML on History of actions
 
 ## 4.3
-##### Released: XXX XX, 2017
+##### Released: 2018
 
 ### Bugfixes
 
 * EPMRPP-35134 - Registration is passed for user with login already in use
 * EPMRPP-35289 - WS: GET item controller returns items that do not belong to specified project, but all available items
 * EPMRPP-35291 - WS: Unclassified error on get latest launches. Improve latest query performance
+
+## 5.x.x
+##### Released: XXX XX, 2019
+
+### Bugfixes
+
+
+* EPMRPP-39590 - Restore of the password. Incorrect response from repeated request.
+* EPMRPP-40298 - API. Global Email server integration (Gmail). Incorrect number of emails deliver to the mailbox.
+* EPMRPP-41407 - Filters page. Unclassified error occurs when user turns filters On/Off in 2 browser tabs
+* EPMRPP-41361 - All launches and not 'Launches with the same name' applied in case of automatic analysis on finish launch
+* EPMRPP-41388 - Level of log is not sent to 'Edit defect type' modal.
+* EPMRPP-41569 - 'AA' flag is shown on UI despite the last action (link issue) was done by user
+* EPMRPP-41055 - Incorrect response (500 error) in Launches page after deleting member from the project.
+* EPMRPP-39525 - Launches and filters are not shown for project if it has name 'project'
+* EPMRPP-40808 - Dashboard. PM can't delete not own shared dashboard
+* EPMRPP-41168 - Admin can't delete test items on the Step View
+* EPMRPP-42274 - History of actions. No actions are displayed for items analyzed manually.
+* EPMRPP-35338 - Add number of run to launch name on widgets for the particular launch.
+* EPMRPP-42004 - Step level. Unclassified error on bulk post/link issue
+* EPMRPP-42337 - 'Issue' parameter should not be available for items without issue type or items have status Passed.

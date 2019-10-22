@@ -1,13 +1,19 @@
-spring:
-  cloud:
-    consul:
-      discovery:
-        hostname: docker.for.mac.localhost
-      host: localhost
 rp:
-  mongo:
-    uri: mongodb://localhost:27017
-  uat:
-    serviceUrl: http://localhost:8080/uat
-  analyzer:
-    url: http://localhost:8080/analyzer
+  amqp:
+    host: localhost
+  db:
+    host: localhost
+  plugins:
+    rootDir: plugins
+  datasource:
+    maximumPoolSize: 5
+  binarystore:
+    type: filesystem
+    path: ${java.io.tmpdir}\reportportal\datastore\
+
+logging:
+  file: ${java.io.tmpdir}\reportportal\logs\${spring.application.name}.log
+  level:
+    org:
+      hibernate:
+        SQL: info

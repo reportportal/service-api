@@ -2,7 +2,9 @@ language: java
 
 dist: trusty
 sudo: required
-script: ./gradlew build --stacktrace
+before_install:
+  - sudo apt-get install -y fonts-noto
+script: ./gradlew build --full-stacktrace
 
 env:
   global:
@@ -16,8 +18,8 @@ notifications:
 
 cache:
   directories:
-  - $HOME/.m2
-  - $HOME/.gradle
+    - $HOME/.m2
+    - $HOME/.gradle
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

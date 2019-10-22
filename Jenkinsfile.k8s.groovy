@@ -131,7 +131,7 @@ podTemplate(
                     sh 'helm dependency update'
                 }
                 sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion" +
-                        "--set serviceapi.jvmArgs='${standardJvmOptions} -javaagent:./plugins/sl-test-listener.jar -Dsl.token=${sealightsToken} -Dsl.buildSessionId=${sealightsSession} -Dsl.filesStorage=/tmp'" +
+                        " --set serviceapi.jvmArgs='${standardJvmOptions} -javaagent:./plugins/sl-test-listener.jar -Dsl.token=${sealightsToken} -Dsl.buildSessionId=${sealightsSession} -Dsl.filesStorage=/tmp'" +
                         " --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
             }
         }

@@ -47,7 +47,7 @@ LABEL version=${version}
 LABEL description="ReportPortal API Service: Development Version"
 
 
-ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+ENV JAVA_OPTS="-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -javaagent:./plugins/sl-test-listener.jar -Dsl.token=${sealightsToken} -Dsl.buildSessionId=${sealightsSession} -Dsl.filesStorage=/tmp"
 ENV JAVA_APP=/app.jar
 
 RUN apt-get update && \

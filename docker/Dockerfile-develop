@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk-alpine as builder
 
-RUN apk add --no-cache ca-certificates git curl font-noto
+RUN apk add --no-cache ca-certificates git curl font-noto zip
 
 RUN addgroup -S -g 1000 rp-builder
 RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
@@ -17,6 +17,8 @@ ARG buildNumber
 ARG sealightsSession
 ARG sealightsToken
 
+
+
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
 RUN ./gradlew resolveDependencies --stacktrace
@@ -30,6 +32,8 @@ RUN ./gradlew build -x jacocoTestReport -P buildNumber=${buildNumber} -P sealigh
 RUN mkdir -p /home/rp-builder/plugins
 RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
 RUN curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
+RUN curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+    unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins
 
 FROM openjdk:8-jre-slim
 
@@ -60,6 +64,7 @@ VOLUME /tmp
 RUN mkdir plugins
 COPY --from=builder /home/rp-builder/plugins/JIRA.jar ./plugins/JIRA.jar
 COPY --from=builder /home/rp-builder/plugins/RALLY.jar ./plugins/RALLY.jar
+COPY --from=builder /home/rp-builder/plugins/sl-test-listener.jar ./plugins/sl-test-listener.jar
 
 COPY --from=builder /home/rp-builder/build/libs/service-api.jar ./app.jar
 

@@ -62,14 +62,7 @@ if(project.hasProperty('sealightsSession')){
 
         runTestOnly=false
         testTasks=["test", "junitPlatformTest", "integrationTest"]
-//          filesIncluded="*sample*"
-//          filesExcluded="*sample*"
-
-//          proxy = "http://localhost:8888"
-
         sealightsJvmParams=["sl.junitVersion":"5"]
-//          buildScannerParams=["sl.param1":"true","sl.param2":"value"]
-//          testListenerJvmParams=["sl.param1":"true","sl.param2":"value"]
     }
 }
 

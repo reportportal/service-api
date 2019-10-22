@@ -31,7 +31,10 @@ RUN mkdir -p /home/rp-builder/plugins && \
     curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar && \
     curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar && \
     curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
-    unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins
+    unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
+    mkdir -p /home/rp-builder/sealights && \
+    sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \
+    sh -c "echo '${sealightsSession}' > /home/rp-builder/sealights/sealights-session.txt"
 
 FROM openjdk:8-jre-slim
 
@@ -47,7 +50,7 @@ LABEL version=${version}
 LABEL description="ReportPortal API Service: Development Version"
 
 
-ENV JAVA_OPTS="-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -javaagent:./plugins/sl-test-listener.jar -Dsl.token=${sealightsToken} -Dsl.buildSessionId=${sealightsSession} -Dsl.filesStorage=/tmp"
+ENV JAVA_OPTS="-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp"
 ENV JAVA_APP=/app.jar
 
 RUN apt-get update && \
@@ -60,9 +63,8 @@ exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
 VOLUME /tmp
 
 RUN mkdir plugins
-COPY --from=builder /home/rp-builder/plugins/JIRA.jar ./plugins/JIRA.jar
-COPY --from=builder /home/rp-builder/plugins/RALLY.jar ./plugins/RALLY.jar
-COPY --from=builder /home/rp-builder/plugins/sl-test-listener.jar ./plugins/sl-test-listener.jar
+COPY --from=builder /home/rp-builder/plugins/JIRA.jar /home/rp-builder/plugins/RALLY.jar /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
+COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 
 COPY --from=builder /home/rp-builder/build/libs/service-api.jar ./app.jar
 

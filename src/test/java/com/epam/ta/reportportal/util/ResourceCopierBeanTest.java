@@ -58,7 +58,7 @@ public class ResourceCopierBeanTest {
 	void testResourceCopierBean() throws IOException {
 		File createdFile = new File(StandardSystemProperty.JAVA_IO_TMPDIR.value(), RANDOM_NAME);
 		Resource resource = resourceLoader.getResource(RESOURCE_TO_BE_COPIED);
-		String copied = Files.toString(createdFile, Charsets.UTF_8);
+		String copied = Files.asCharSource(createdFile, Charsets.UTF_8).read();
 		String fromResource = CharStreams.toString(new InputStreamReader(resource.getInputStream(), Charsets.UTF_8));
 		assertEquals(fromResource, copied, "Copied file is not equal to resource source");
 	}

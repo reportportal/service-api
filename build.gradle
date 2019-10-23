@@ -90,17 +90,17 @@ configurations {
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-BETA-13'
+        compile 'com.epam.reportportal:commons-dao:5.0.0-RC-2'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-BETA-13'
+        compile 'com.epam.reportportal:commons-model:5.0.0-RC-1'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile('com.epam.reportportal:plugin-api:5.0.0-BETA-7')
+        compile('com.epam.reportportal:plugin-api:5.0.0-RC-1')
     } else {
-        compile 'com.github.reportportal:commons-dao:aeb2fbc'
+        compile 'com.github.reportportal:commons-dao:5.0.0-RC-2'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:a043c91'
+        compile 'com.github.reportportal:commons-model:5.0.0-RC-1'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
-        compile('com.github.reportportal:plugin-api:7322d51')
+        compile('com.github.reportportal:plugin-api:5.0.0-RC-1')
     }
 
     //saucelabs
@@ -117,8 +117,7 @@ dependencies {
     // Optional for spring-boot-starter-amqp
     compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
-    compile "ch.qos.logback:logback-classic:1.1.8"
-    compile "ch.qos.logback:logback-core:1.1.8"
+    compile "ch.qos.logback:logback-classic"
     compile 'com.sun.mail:javax.mail'
     compile 'org.aspectj:aspectjweaver:1.8.9'
     compile 'org.aspectj:aspectjrt:1.8.9'
@@ -205,8 +204,8 @@ bootJar.dependsOn gitInfo
 build.dependsOn jacocoTestReport
 
 ext.src = [
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
-        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql'                      : 'V001__initialize_schema.sql',
+        'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql': 'V002__default_data.sql',
 ]
 
 task copyTestDatabaseScripts {

@@ -1,6 +1,5 @@
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.search;
 
-import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -12,7 +11,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -30,11 +30,6 @@ public class LaunchNameCollector implements SearchLaunchesCollector {
 	public List<Long> collect(Long filerId, Launch launch) {
 		Filter filter = Filter.builder()
 				.withTarget(Launch.class)
-				.withCondition(FilterCondition.builder()
-						.withSearchCriteria(CRITERIA_ID)
-						.withCondition(Condition.NOT_EQUALS)
-						.withValue(String.valueOf(launch.getId()))
-						.build())
 				.withCondition(FilterCondition.builder().eq(CRITERIA_NAME, launch.getName()).build())
 				.build();
 		PageRequest pageRequest = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));

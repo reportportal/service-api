@@ -140,7 +140,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * Generates and sets unique ID to {@link TestItem} if it is empty
+	 * Generates and sets {@link TestItem#getUniqueId()} and {@link TestItem#getTestCaseId()} if they are empty
 	 *
 	 * @param launch {@link Launch} of {@link TestItem}
 	 * @param item   {@link TestItem}
@@ -150,6 +150,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		item.setPath(path);
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
+		}
+		if (null == item.getTestCaseId()) {
+			item.setTestCaseId(item.getUniqueId().hashCode());
 		}
 	}
 
@@ -203,8 +206,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					)
-							.get()
+					).get()
 			);
 		}
 

@@ -17,13 +17,11 @@
 package com.epam.ta.reportportal.core.item.impl.status;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.IssueEntityRepository;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -49,11 +47,17 @@ import static java.util.Optional.ofNullable;
 @Component
 public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 
+	private final LogIndexer logIndexer;
+
+	private final LogRepository logRepository;
+
 	@Autowired
 	public FromFailedStatusChangingStrategy(TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository,
 			IssueTypeHandler issueTypeHandler, IssueEntityRepository issueEntityRepository, LaunchRepository launchRepository,
-			MessageBus messageBus) {
+			MessageBus messageBus, LogIndexer logIndexer, LogRepository logRepository) {
 		super(testItemRepository, itemAttributeRepository, issueTypeHandler, issueEntityRepository, launchRepository, messageBus);
+		this.logIndexer = logIndexer;
+		this.logRepository = logRepository;
 	}
 
 	@Override
@@ -88,6 +92,7 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				item.getItemResults().setIssue(null);
+				logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemId(item.getItemId()));
 			});
 			changeStatusRecursively(item, user, projectId);
 			Launch launch = launchRepository.findById(item.getLaunchId())

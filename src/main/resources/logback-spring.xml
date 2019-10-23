@@ -20,9 +20,13 @@
         </encoder>
     </appender>
 
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </appender>
+
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="ASYNC"/>
     </root>
 
 </configuration>

@@ -23,16 +23,11 @@ import java.util.Map;
 /**
  * @author Konstantin Antipin
  */
-
-@Component
 @Aspect
 public class RabbitMessageLoggingAspect {
 
 	private static final String NEWLINE = "\n";
 	private static final String BODY_DENOMINATOR = "-- Body --";
-
-	@Value("${rp.requestLogging:false}")
-	private boolean requestLoggingEnabled;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -42,10 +37,6 @@ public class RabbitMessageLoggingAspect {
 
 	@Around("execution(public * *(..)) && @annotation(annotation)")
 	public Object log(ProceedingJoinPoint joinPoint, RabbitMessageLogging annotation) throws Throwable {
-
-		if (!requestLoggingEnabled) {
-			return joinPoint.proceed();
-		}
 
 		Logger logger = LoggerFactory.getLogger(joinPoint.getTarget().getClass());
 

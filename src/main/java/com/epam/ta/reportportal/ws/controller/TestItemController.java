@@ -204,7 +204,7 @@ public class TestItemController {
 	@Transactional(readOnly = true)
 	@GetMapping("/ticket/ids")
 	@ResponseStatus(OK)
-	@ApiOperation("Get all unique attribute keys of specified launch")
+	@ApiOperation("Get tickets that contains a term as a part inside for specified launch")
 	public List<String> getTicketIds(@AuthenticationPrincipal ReportPortalUser user, @PathVariable String projectName,
 			@RequestParam(value = "launch") Long id, @RequestParam(value = "term") String term) {
 		return getTestItemHandler.getTicketIds(id, normalizeId(term));

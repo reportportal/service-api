@@ -23,6 +23,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -46,15 +47,19 @@ public class ReportingConfiguration {
 	public static final String EXCHANGE_REPORTING = "reporting";
 	public static final String EXCHANGE_REPORTING_RETRY = "reporting.retry";
 
-
 	/**
 	 * Queue definitions
 	 */
 	public static final String QUEUE_PREFIX = "reporting";
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
-	public static final int QUEUE_AMOUNT = 20;
 
+	public static int QUEUE_AMOUNT;
+
+	@Value("${rp.amqp.addresses}")
+	public void setQueueAmount(int queueAmount) {
+		QUEUE_AMOUNT = queueAmount;
+	}
 
 	@Bean
 	@Qualifier("reportingExchange")
@@ -71,7 +76,6 @@ public class ReportingConfiguration {
 		amqpAdmin.declareExchange(exchange);
 		return exchange;
 	}
-
 
 	@Bean
 	@Qualifier("reportingQueues")
@@ -118,10 +122,8 @@ public class ReportingConfiguration {
 
 	@Bean
 	public List<Binding> bindings(AmqpAdmin amqpAdmin, @Qualifier("reportingExchange") Exchange reportingExchange,
-								  @Qualifier("reportingRetryExchange") Exchange reportingRetryExchange,
-								  @Qualifier("reportingQueues") List<Queue> queues,
-								  @Qualifier("queueDlq") Queue queueDlq,
-								  @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
+			@Qualifier("reportingRetryExchange") Exchange reportingRetryExchange, @Qualifier("reportingQueues") List<Queue> queues,
+			@Qualifier("queueDlq") Queue queueDlq, @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
 		List<Binding> bindings = new ArrayList<>();
 		int i = 0;
 		for (Queue queue : queues) {
@@ -148,7 +150,7 @@ public class ReportingConfiguration {
 	@Bean
 	@Qualifier("reportingListenerContainers")
 	public List<AbstractMessageListenerContainer> listenerContainers(ConnectionFactory connectionFactory,
-																	 @Qualifier("queues") List<Queue> queues) {
+			@Qualifier("queues") List<Queue> queues) {
 		List<AbstractMessageListenerContainer> containers = new ArrayList<>();
 		for (Queue queue : queues) {
 			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);

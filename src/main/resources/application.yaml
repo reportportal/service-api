@@ -67,6 +67,7 @@ rp:
     apiport: 15672
     apiuser: rabbitmq
     apipass: rabbitmq
+    queuesPerPod: 5
 
   jwt:
     signing-key: 123

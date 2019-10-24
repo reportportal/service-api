@@ -54,7 +54,7 @@ public class ReportingConfiguration {
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
 
-	@Value("${rp.amqp.addresses}")
+	@Value("${rp.amqp.queues}")
 	public int QUEUE_AMOUNT;
 
 	@Bean

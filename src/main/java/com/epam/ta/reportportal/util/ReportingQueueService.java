@@ -28,7 +28,7 @@ import java.util.UUID;
 public class ReportingQueueService {
 
 	@Value("${rp.amqp.queues}")
-	public int QUEUE_AMOUNT;
+	public int queueAmount;
 
 	/**
 	 * Mapping launchId to reporting queue key.
@@ -42,7 +42,7 @@ public class ReportingQueueService {
 	public String getReportingQueueKey(String launchUuid) {
 		int value = UUID.fromString(launchUuid).hashCode();
 		value = value & 0x7fffffff;
-		return String.valueOf(value % QUEUE_AMOUNT);
+		return String.valueOf(value % queueAmount);
 	}
 
 

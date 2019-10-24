@@ -110,7 +110,7 @@ public class BugTrackingSystemController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{projectName}/{integrationId}/issue_types")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get list of fields required for posting ticket")
+	@ApiOperation("Get list of allowable issue types for bug tracking system")
 	@PreAuthorize(PROJECT_MANAGER)
 	public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {

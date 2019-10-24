@@ -41,7 +41,8 @@ public class DeepLaunchMergeStrategy extends AbstractLaunchMergeStrategy {
 
 		Launch newLaunch = createNewLaunch(projectDetails, user, rq, launchesList);
 		launchRepository.mergeLaunchTestItems(newLaunch.getId());
-
+		launchRepository.save(newLaunch);
+		launchRepository.refresh(newLaunch);
 		return newLaunch;
 	}
 }

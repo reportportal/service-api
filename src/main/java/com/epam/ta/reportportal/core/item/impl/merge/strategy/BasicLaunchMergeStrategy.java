@@ -47,6 +47,7 @@ public class BasicLaunchMergeStrategy extends AbstractLaunchMergeStrategy {
 		newLaunch.setStatistics(statisticsCalculationFactory.getStrategy(MergeStrategyType.BASIC)
 				.recalculateLaunchStatistics(newLaunch, launchesList));
 
+		launchRepository.save(newLaunch);
 		return newLaunch;
 
 	}

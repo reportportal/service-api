@@ -16,12 +16,18 @@ podTemplate(
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
+                        resourceRequestCpu: '1000m',
+                        resourceLimitCpu: '2000m',
+                        resourceRequestMemory: '1024Mi',
+                        resourceLimitMemory: '2048Mi'),
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
-                secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds')
+                secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
+                hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
 
@@ -32,8 +38,8 @@ podTemplate(
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
+        def testDir = "tests"
         def k8sNs = "reportportal"
-
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
@@ -52,8 +58,16 @@ podTemplate(
             stage('Checkout Service') {
                 dir(appDir) {
                     def br = params.get('COMMIT_HASH', 'develop')
-                    checkout([$class: 'GitSCM', branches: [[name: br ]],
+                    checkout([$class: 'GitSCM', branches: [[name: br]],
+                              browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/reportportal/service-api/'],
+                              doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
                               userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
+                }
+            }
+        }, 'Checkout tests': {
+            stage('Checkout tests') {
+                dir(testDir) {
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 }
             }
         }
@@ -67,20 +81,6 @@ podTemplate(
         helm.init()
         utils.scheduleRepoPoll()
 
-//        dir('app') {
-//            try {
-//                container('docker') {
-//                    stage('Build App') {
-//                        sh "gradle build --full-stacktrace"
-//                    }
-//                }
-//            } finally {
-//                junit 'build/test-results/**/*.xml'
-//                dependencyCheckPublisher pattern: 'build/reports/dependency-check-report.xml'
-//
-//            }
-//
-//        }
         def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
@@ -120,6 +120,21 @@ podTemplate(
             }
         }
 
+        try {
+            stage('Integration tests') {
+                def testEnv = 'gcp-k8s'
+                dir(testDir) {
+                    container('maven') {
+                        echo "Running RP integration tests on env: ${testEnv}"
+                        sh "mvn clean test -Denv=${testEnv}"
+                    }
+                }
+            }
+        } finally {
+            dir(testDir) {
+                junit 'target/surefire-reports/*.xml'
+            }
+        }
+
     }
 }
-

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
+import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -30,7 +31,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -43,19 +43,27 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 	@Qualifier(value = "rabbitTemplate")
 	AmqpTemplate amqpTemplate;
 
+	@Autowired
+	private ReportingQueueService reportingQueueService;
+
 	@Override
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchUuid()), request, message -> {
-			Map<String, Object> headers = message.getMessageProperties().getHeaders();
-			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
-			headers.put(MessageHeaders.USERNAME, user.getUsername());
-			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			headers.put(MessageHeaders.ITEM_ID, testItemId);
-			return message;
-		});
+		amqpTemplate.convertAndSend(
+				EXCHANGE_REPORTING,
+				reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
+				request,
+				message -> {
+					Map<String, Object> headers = message.getMessageProperties().getHeaders();
+					headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
+					headers.put(MessageHeaders.USERNAME, user.getUsername());
+					headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+					headers.put(MessageHeaders.ITEM_ID, testItemId);
+					return message;
+				}
+		);
 
 		OperationCompletionRS response = new OperationCompletionRS("Accepted finish request for test item ID = " + testItemId);
 		return response;

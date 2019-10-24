@@ -47,7 +47,6 @@ public class ReportingConfiguration {
 	public static final String EXCHANGE_REPORTING = "reporting";
 	public static final String EXCHANGE_REPORTING_RETRY = "reporting.retry";
 
-
 	/**
 	 * Queue definitions
 	 */
@@ -57,8 +56,8 @@ public class ReportingConfiguration {
 
 	public static int QUEUE_AMOUNT;
 
-	@Value("${rp.amqp.queues}")
-	public static void setQueueAmount(int queueAmount) {
+	@Value("${rp.amqp.addresses}")
+	public void setQueueAmount(int queueAmount) {
 		QUEUE_AMOUNT = queueAmount;
 	}
 
@@ -77,7 +76,6 @@ public class ReportingConfiguration {
 		amqpAdmin.declareExchange(exchange);
 		return exchange;
 	}
-
 
 	@Bean
 	@Qualifier("reportingQueues")
@@ -124,10 +122,8 @@ public class ReportingConfiguration {
 
 	@Bean
 	public List<Binding> bindings(AmqpAdmin amqpAdmin, @Qualifier("reportingExchange") Exchange reportingExchange,
-								  @Qualifier("reportingRetryExchange") Exchange reportingRetryExchange,
-								  @Qualifier("reportingQueues") List<Queue> queues,
-								  @Qualifier("queueDlq") Queue queueDlq,
-								  @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
+			@Qualifier("reportingRetryExchange") Exchange reportingRetryExchange, @Qualifier("reportingQueues") List<Queue> queues,
+			@Qualifier("queueDlq") Queue queueDlq, @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
 		List<Binding> bindings = new ArrayList<>();
 		int i = 0;
 		for (Queue queue : queues) {
@@ -154,7 +150,7 @@ public class ReportingConfiguration {
 	@Bean
 	@Qualifier("reportingListenerContainers")
 	public List<AbstractMessageListenerContainer> listenerContainers(ConnectionFactory connectionFactory,
-																	 @Qualifier("queues") List<Queue> queues) {
+			@Qualifier("queues") List<Queue> queues) {
 		List<AbstractMessageListenerContainer> containers = new ArrayList<>();
 		for (Queue queue : queues) {
 			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);

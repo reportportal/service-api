@@ -137,16 +137,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 						.eq(CRITERIA_HAS_STATS, String.valueOf(Boolean.TRUE))
 						.build(),
 				FilterCondition.builder().eq(CRITERIA_HAS_CHILDREN, String.valueOf(Boolean.FALSE)).build(),
-				FilterCondition.builder()
-						.withCondition(Condition.IN)
-						.withNegative(false)
-						.withSearchCriteria(CRITERIA_TYPE)
-						.withValue(String.join(",",
-								TestItemTypeEnum.STEP.name(),
-								TestItemTypeEnum.SCENARIO.name(),
-								TestItemTypeEnum.TEST.name()
-						))
-						.build(),
+				FilterCondition.builder().eq(CRITERIA_TYPE, TestItemTypeEnum.STEP.name()).build(),
 				FilterCondition.builder()
 						.withCondition(Condition.EXISTS)
 						.withNegative(true)

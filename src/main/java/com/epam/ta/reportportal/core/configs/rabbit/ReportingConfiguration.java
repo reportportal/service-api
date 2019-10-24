@@ -23,6 +23,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -53,8 +54,13 @@ public class ReportingConfiguration {
 	public static final String QUEUE_PREFIX = "reporting";
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
-	public static final int QUEUE_AMOUNT = 20;
 
+	public static int QUEUE_AMOUNT;
+
+	@Value("${rp.amqp.queues}")
+	public static void setQueueAmount(int queueAmount) {
+		QUEUE_AMOUNT = queueAmount;
+	}
 
 	@Bean
 	@Qualifier("reportingExchange")

@@ -54,12 +54,8 @@ public class ReportingConfiguration {
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
 
-	public static int QUEUE_AMOUNT;
-
-	@Value("${rp.amqp.addresses}")
-	public void setQueueAmount(int queueAmount) {
-		QUEUE_AMOUNT = queueAmount;
-	}
+	@Value("${rp.amqp.queues}")
+	public int queueAmount;
 
 	@Bean
 	@Qualifier("reportingExchange")
@@ -81,7 +77,7 @@ public class ReportingConfiguration {
 	@Qualifier("reportingQueues")
 	public List<Queue> queues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
-		for (int i = 0; i < QUEUE_AMOUNT; i++) {
+		for (int i = 0; i < queueAmount; i++) {
 			String index = String.valueOf(i);
 			String queueName = QUEUE_PREFIX + "." + index;
 			Queue queue = QueueBuilder.durable(queueName)
@@ -98,7 +94,7 @@ public class ReportingConfiguration {
 	@Qualifier("reportingRetryQueues")
 	public List<Queue> retryQueues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
-		for (int i = 0; i < QUEUE_AMOUNT; i++) {
+		for (int i = 0; i < queueAmount; i++) {
 			String index = String.valueOf(i);
 			String queueName = QUEUE_RETRY_PREFIX + "." + index;
 			Queue retryQueue = QueueBuilder.durable(queueName)

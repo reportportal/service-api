@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -44,12 +44,15 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 	@Qualifier(value = "rabbitTemplate")
 	AmqpTemplate amqpTemplate;
 
+	@Autowired
+	private ReportingQueueService reportingQueueService;
+
 	@Override
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
 		validateRoles(projectDetails, request);
 
 		request.setUuid(UUID.randomUUID().toString());
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getUuid()), request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, reportingQueueService.getReportingQueueKey(request.getUuid()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

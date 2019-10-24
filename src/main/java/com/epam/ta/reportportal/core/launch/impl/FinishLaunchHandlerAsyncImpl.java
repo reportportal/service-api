@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
+import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -30,7 +31,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * @author Konstantin Antipin
@@ -43,12 +43,15 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 	@Qualifier(value = "rabbitTemplate")
 	AmqpTemplate amqpTemplate;
 
+	@Autowired
+	private ReportingQueueService reportingQueueService;
+
 	@Override
 	public FinishLaunchRS finishLaunch(String launchId, FinishExecutionRQ request, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, String baseUrl) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(launchId), request, message -> {
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, reportingQueueService.getReportingQueueKey(launchId), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_LAUNCH);
 			headers.put(MessageHeaders.USERNAME, user.getUsername());

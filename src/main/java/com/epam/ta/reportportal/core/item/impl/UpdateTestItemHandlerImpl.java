@@ -167,10 +167,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> issueEntity.setTickets(collectTickets(
-						issues,
-						user.getUsername()
-				)));
+				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> {
+					Set<Ticket> tickets = collectTickets(issues, user.getUsername());
+					issueEntity.getTickets().removeIf(it -> !tickets.contains(it));
+					issueEntity.getTickets().addAll(tickets);
+					tickets.stream().filter(it -> CollectionUtils.isEmpty(it.getIssues())).forEach(it -> it.getIssues().add(issueEntity));
+				});
 
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				issueEntityRepository.save(issueEntity);
@@ -222,7 +224,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			checkInitialStatusAttribute(testItem);
@@ -421,7 +424,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
 					ZoneOffset.UTC
 			)).orElse(LocalDateTime.now()));
-			ticketRepository.save(ticket);
+			//			ticketRepository.save(ticket);
 			return ticket;
 		}).collect(toSet());
 	}

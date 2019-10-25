@@ -67,6 +67,7 @@ rp:
     apiport: 15672
     apiuser: rabbitmq
     apipass: rabbitmq
+    queues: 10
     queuesPerPod: 5
 
   jwt:

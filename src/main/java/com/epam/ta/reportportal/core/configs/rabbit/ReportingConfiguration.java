@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.configs.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.ws.rabbit.AsyncReportingListener;
-import com.epam.ta.reportportal.ws.validation.JaskonRequiredPropertiesValidator;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,14 +53,15 @@ public class ReportingConfiguration {
 	public static final String EXCHANGE_REPORTING = "reporting";
 	public static final String EXCHANGE_REPORTING_RETRY = "reporting.retry";
 
-
 	/**
 	 * Queue definitions
 	 */
 	public static final String QUEUE_PREFIX = "reporting";
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
-	public static final int QUEUE_AMOUNT = 20;
+
+	@Value("${rp.amqp.queues}")
+	public int queueAmount;
 
 	/**
 	 * Cluster configuration parameter.
@@ -87,12 +87,11 @@ public class ReportingConfiguration {
 		return exchange;
 	}
 
-
 	@Bean
 	@Qualifier("reportingQueues")
 	public List<Queue> queues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
-		for (int i = 0; i < QUEUE_AMOUNT; i++) {
+		for (int i = 0; i < queueAmount; i++) {
 			String index = String.valueOf(i);
 			String queueName = QUEUE_PREFIX + "." + index;
 			Queue queue = QueueBuilder.durable(queueName)
@@ -109,7 +108,7 @@ public class ReportingConfiguration {
 	@Qualifier("reportingRetryQueues")
 	public List<Queue> retryQueues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
-		for (int i = 0; i < QUEUE_AMOUNT; i++) {
+		for (int i = 0; i < queueAmount; i++) {
 			String index = String.valueOf(i);
 			String queueName = QUEUE_RETRY_PREFIX + "." + index;
 			Queue retryQueue = QueueBuilder.durable(queueName)
@@ -133,10 +132,8 @@ public class ReportingConfiguration {
 
 	@Bean
 	public List<Binding> bindings(AmqpAdmin amqpAdmin, @Qualifier("reportingExchange") Exchange reportingExchange,
-								  @Qualifier("reportingRetryExchange") Exchange reportingRetryExchange,
-								  @Qualifier("reportingQueues") List<Queue> queues,
-								  @Qualifier("queueDlq") Queue queueDlq,
-								  @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
+			@Qualifier("reportingRetryExchange") Exchange reportingRetryExchange, @Qualifier("reportingQueues") List<Queue> queues,
+			@Qualifier("queueDlq") Queue queueDlq, @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
 		List<Binding> bindings = new ArrayList<>();
 		int i = 0;
 		for (Queue queue : queues) {
@@ -163,7 +160,7 @@ public class ReportingConfiguration {
 	@Bean
 	@Qualifier("reportingListenerContainers")
 	public List<AbstractMessageListenerContainer> listenerContainers(ConnectionFactory connectionFactory,
-																	 @Qualifier("queues") List<Queue> queues) {
+			@Qualifier("queues") List<Queue> queues) {
 		List<AbstractMessageListenerContainer> containers = new ArrayList<>();
 		Channel channel = connectionFactory.createConnection().createChannel(false);
 		int myQueues = 0;

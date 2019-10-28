@@ -58,7 +58,6 @@ class RabbitMessageLoggingAspectTest {
 
 		ReflectionTestUtils.setField(aspect, "objectMapper", objectMapper);
 		ReflectionTestUtils.setField(aspect, "messageConverter", messageConverter);
-		ReflectionTestUtils.setField(aspect, "requestLoggingEnabled", true);
 
 		HelperListener listener = new HelperListener();
 		AspectJProxyFactory factory = new AspectJProxyFactory(listener);

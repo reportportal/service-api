@@ -50,7 +50,6 @@ class HttpLoggingAspectTest {
 	public static void beforeAll() {
 		aspect = new HttpLoggingAspect();
 		ReflectionTestUtils.setField(aspect, "objectMapper", new ObjectMapper());
-		ReflectionTestUtils.setField(aspect, "requestLoggingEnabled", true);
 
 		HelperController controller = new HelperController();
 		AspectJProxyFactory factory = new AspectJProxyFactory(controller);

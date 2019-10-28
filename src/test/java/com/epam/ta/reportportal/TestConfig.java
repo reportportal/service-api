@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -50,6 +51,9 @@ public class TestConfig {
 
 	@MockBean(name = "rabbitTemplate")
 	protected RabbitTemplate rabbitTemplate;
+
+	@MockBean
+	protected MessageConverter messageConverter;
 
 	@Bean
 	@Profile("unittest")

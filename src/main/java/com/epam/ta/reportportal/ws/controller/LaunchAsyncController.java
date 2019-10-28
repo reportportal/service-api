@@ -19,6 +19,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
+import com.epam.ta.reportportal.core.logging.HttpLogging;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import io.swagger.annotations.ApiOperation;
@@ -63,6 +64,7 @@ public class LaunchAsyncController {
 		this.mergeLaunchesHandler = mergeLaunchesHandler;
 	}
 
+	@HttpLogging
 	@PostMapping
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(CREATED)
@@ -73,6 +75,7 @@ public class LaunchAsyncController {
 		return startLaunchHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
+	@HttpLogging
 	@PutMapping(value = "/{launchId}/finish")
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	@ResponseStatus(OK)
@@ -89,6 +92,7 @@ public class LaunchAsyncController {
 		);
 	}
 
+	@HttpLogging
 	@Transactional
 	@PostMapping("/merge")
 	@PreAuthorize(ALLOWED_TO_REPORT)

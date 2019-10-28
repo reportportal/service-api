@@ -42,6 +42,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
 import static java.lang.Boolean.TRUE;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -75,9 +76,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		TestItem itemForHistory = itemsForHistory.get(0);
 		Long launchId = itemForHistory.getLaunchId();
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		List<Launch> launchesHistory = launchRepository.findLaunchesHistory(historyDepth, launchId, launch.getName(),
-				projectDetails.getProjectId());
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+		List<Launch> launchesHistory = launchRepository.findLaunchesHistory(historyDepth,
+				launchId,
+				launch.getName(),
+				projectDetails.getProjectId()
+		);
 
 		int itemsLimitPerLaunch = ITEMS_HISTORY_LIMIT / historyDepth;
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
@@ -123,7 +128,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 			/* Validate that items do not contains different parents */
 			itemsForHistory.forEach(it -> BusinessRule.expect(it.getParent().getItemId(),
 					parent -> Objects.equals(parent, itemsForHistory.get(0).getParent().getItemId())
-			).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
+			)
+					.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "All test items should be siblings."));
 		}
 	}
 
@@ -151,10 +157,10 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 	}
 
 	private void addRequestedItemsToFirstLaunch(Map<Long, List<TestItem>> groupedByLaunch, Long launchId, List<TestItem> itemsForHistory) {
-		List<TestItem> firstLaunchLimitedItems = groupedByLaunch.get(launchId);
+		Optional<List<TestItem>> firstLaunchLimitedItems = ofNullable(groupedByLaunch.get(launchId));
 		itemsForHistory.forEach(item -> {
-			if (!firstLaunchLimitedItems.contains(item)) {
-				firstLaunchLimitedItems.add(item);
+			if (firstLaunchLimitedItems.isPresent() && !firstLaunchLimitedItems.get().contains(item)) {
+				firstLaunchLimitedItems.get().add(item);
 			}
 		});
 	}

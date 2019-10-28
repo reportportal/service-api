@@ -68,6 +68,7 @@ rp:
     apiuser: rabbitmq
     apipass: rabbitmq
     queues: 10
+    queuesPerPod: 5
 
   jwt:
     signing-key: 123

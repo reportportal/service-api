@@ -25,8 +25,11 @@ import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -71,6 +74,12 @@ public class ReportingConfiguration {
 	@Value("${rp.amqp.queuesPerPod:1000000}")
 	private int queuesPerPod;
 
+	@Autowired
+	private ApplicationContext applicationContext;
+
+	@Autowired
+	private ConfigurableListableBeanFactory configurableBeanFactory;
+
 	@Bean
 	@Qualifier("reportingExchange")
 	public Exchange reportingExchange(AmqpAdmin amqpAdmin) {
@@ -98,8 +107,10 @@ public class ReportingConfiguration {
 					.withArgument("x-dead-letter-exchange", EXCHANGE_REPORTING_RETRY)
 					.withArgument("x-dead-letter-routing-key", index)
 					.build();
+			queue.setShouldDeclare(true);
+			queue.setAdminsThatShouldDeclare(amqpAdmin);
+			registerSingleton(queueName, queue);
 			queues.add(queue);
-			amqpAdmin.declareQueue(queue);
 		}
 		return queues;
 	}
@@ -116,8 +127,10 @@ public class ReportingConfiguration {
 					.withArgument("x-dead-letter-routing-key", index)
 					.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 					.build();
+			retryQueue.setShouldDeclare(true);
+            retryQueue.setAdminsThatShouldDeclare(amqpAdmin);
+			registerSingleton(queueName, retryQueue);
 			queues.add(retryQueue);
-			amqpAdmin.declareQueue(retryQueue);
 		}
 		return queues;
 	}
@@ -126,7 +139,8 @@ public class ReportingConfiguration {
 	@Qualifier("queueDlq")
 	public Queue queueDlq(AmqpAdmin amqpAdmin) {
 		Queue queue = QueueBuilder.durable(QUEUE_DLQ).build();
-		amqpAdmin.declareQueue(queue);
+		queue.setShouldDeclare(true);
+        queue.setAdminsThatShouldDeclare(amqpAdmin);
 		return queue;
 	}
 
@@ -140,7 +154,9 @@ public class ReportingConfiguration {
 			String index = String.valueOf(i);
 			Binding queueBinding = BindingBuilder.bind(queue).to(reportingExchange).with(index).noargs();
 			bindings.add(queueBinding);
-			amqpAdmin.declareBinding(queueBinding);
+			queueBinding.setShouldDeclare(true);
+			queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
+			registerSingleton("queueBinding." + queue.getName(), queueBinding);
 			i++;
 		}
 		i = 0;
@@ -148,7 +164,9 @@ public class ReportingConfiguration {
 			String index = String.valueOf(i);
 			Binding queueBinding = BindingBuilder.bind(retryQueue).to(reportingRetryExchange).with(index).noargs();
 			bindings.add(queueBinding);
-			amqpAdmin.declareBinding(queueBinding);
+			queueBinding.setShouldDeclare(true);
+			queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
+			registerSingleton("queueBinding." + retryQueue.getName(), queueBinding);
 			i++;
 		}
 		Binding queueBinding = BindingBuilder.bind(queueDlq).to(reportingRetryExchange).with(QUEUE_DLQ).noargs();
@@ -196,6 +214,12 @@ public class ReportingConfiguration {
 	@Qualifier("reportingListener")
 	public MessageListener reportingListener() {
 		return new AsyncReportingListener();
+	}
+
+	private void registerSingleton(String name, Object bean) {
+		configurableBeanFactory.registerSingleton(name.trim(), bean);
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(bean);
+		applicationContext.getAutowireCapableBeanFactory().initializeBean(bean, name);
 	}
 
 }

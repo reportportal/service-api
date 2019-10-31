@@ -18,15 +18,20 @@ package com.epam.ta.reportportal.core.configs.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.ws.rabbit.AsyncReportingListener;
+import com.rabbitmq.client.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +42,8 @@ import java.util.List;
 @Conditional(Conditions.NotTestCondition.class)
 public class ReportingConfiguration {
 
+	private static final Logger logger = LoggerFactory.getLogger(ReportingConfiguration.class);
+
 	public static final long DEAD_LETTER_DELAY_MILLIS = 60_000L;
 	public static final long DEAD_LETTER_MAX_RETRY = 10L;
 
@@ -46,15 +53,23 @@ public class ReportingConfiguration {
 	public static final String EXCHANGE_REPORTING = "reporting";
 	public static final String EXCHANGE_REPORTING_RETRY = "reporting.retry";
 
-
 	/**
 	 * Queue definitions
 	 */
 	public static final String QUEUE_PREFIX = "reporting";
 	public static final String QUEUE_RETRY_PREFIX = "reporting.retry";
 	public static final String QUEUE_DLQ = "reporting.dlq";
-	public static final int QUEUE_AMOUNT = 20;
 
+	@Value("${rp.amqp.queues}")
+	public int queueAmount;
+
+	/**
+	 * Cluster configuration parameter.
+	 * Number of queues to be processed by this service-api pod (default effectively infinite)
+	 * Note: should correlate with number QUEUE_AMOUNT & number of service-api pods being started in cluster
+	 */
+	@Value("${rp.amqp.queuesPerPod:1000000}")
+	private int queuesPerPod;
 
 	@Bean
 	@Qualifier("reportingExchange")
@@ -72,12 +87,11 @@ public class ReportingConfiguration {
 		return exchange;
 	}
 
-
 	@Bean
 	@Qualifier("reportingQueues")
 	public List<Queue> queues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
-		for (int i = 0; i < QUEUE_AMOUNT; i++) {
+		for (int i = 0; i < queueAmount; i++) {
 			String index = String.valueOf(i);
 			String queueName = QUEUE_PREFIX + "." + index;
 			Queue queue = QueueBuilder.durable(queueName)
@@ -94,7 +108,7 @@ public class ReportingConfiguration {
 	@Qualifier("reportingRetryQueues")
 	public List<Queue> retryQueues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
-		for (int i = 0; i < QUEUE_AMOUNT; i++) {
+		for (int i = 0; i < queueAmount; i++) {
 			String index = String.valueOf(i);
 			String queueName = QUEUE_RETRY_PREFIX + "." + index;
 			Queue retryQueue = QueueBuilder.durable(queueName)
@@ -118,10 +132,8 @@ public class ReportingConfiguration {
 
 	@Bean
 	public List<Binding> bindings(AmqpAdmin amqpAdmin, @Qualifier("reportingExchange") Exchange reportingExchange,
-								  @Qualifier("reportingRetryExchange") Exchange reportingRetryExchange,
-								  @Qualifier("reportingQueues") List<Queue> queues,
-								  @Qualifier("queueDlq") Queue queueDlq,
-								  @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
+			@Qualifier("reportingRetryExchange") Exchange reportingRetryExchange, @Qualifier("reportingQueues") List<Queue> queues,
+			@Qualifier("queueDlq") Queue queueDlq, @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
 		List<Binding> bindings = new ArrayList<>();
 		int i = 0;
 		for (Queue queue : queues) {
@@ -148,19 +160,36 @@ public class ReportingConfiguration {
 	@Bean
 	@Qualifier("reportingListenerContainers")
 	public List<AbstractMessageListenerContainer> listenerContainers(ConnectionFactory connectionFactory,
-																	 @Qualifier("queues") List<Queue> queues) {
+			@Qualifier("queues") List<Queue> queues) {
 		List<AbstractMessageListenerContainer> containers = new ArrayList<>();
+		Channel channel = connectionFactory.createConnection().createChannel(false);
+		int myQueues = 0;
 		for (Queue queue : queues) {
-			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
-			containers.add(listenerContainer);
-			listenerContainer.setConnectionFactory(connectionFactory);
-			listenerContainer.addQueueNames(queue.getName());
-			listenerContainer.setConcurrentConsumers(1);
-			listenerContainer.setMaxConcurrentConsumers(1);
-			listenerContainer.setupMessageListener(reportingListener());
-			listenerContainer.afterPropertiesSet();
+			try {
+				if (myQueues < queuesPerPod && getQueueConsumerCount(channel, queue) == 0) {
+					SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+					containers.add(listenerContainer);
+					listenerContainer.setConnectionFactory(connectionFactory);
+					listenerContainer.addQueueNames(queue.getName());
+					listenerContainer.setExclusive(true);
+					listenerContainer.setMissingQueuesFatal(false);
+					listenerContainer.setupMessageListener(reportingListener());
+					listenerContainer.afterPropertiesSet();
+					myQueues++;
+					logger.info("Consumer connected to queue {}, myQueues current count is {}", queue.getName(), myQueues);
+				}
+			} catch (Exception e) {
+				logger.error("Trying to connect to queue {}, myQueues current count is {}, exception ", queue.getName(), myQueues, e);
+			}
+		}
+		if (containers.size() < queuesPerPod) {
+			logger.error("Started amount of consumers less then configured (or single node start) : {} < {}", containers.size(), queuesPerPod);
 		}
 		return containers;
+	}
+
+	private int getQueueConsumerCount(Channel channel, Queue queue) throws IOException {
+		return channel.queueDeclarePassive(queue.getName()).getConsumerCount();
 	}
 
 	@Bean

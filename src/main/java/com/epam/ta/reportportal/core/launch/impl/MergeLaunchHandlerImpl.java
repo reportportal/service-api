@@ -112,8 +112,6 @@ public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.lau
 		expect(type, notNull()).verify(UNSUPPORTED_MERGE_STRATEGY_TYPE, type);
 
 		Launch newLaunch = launchMergeFactory.getLaunchMergeStrategy(type).mergeLaunches(projectDetails, user, rq, launchesList);
-		launchRepository.save(newLaunch);
-		launchRepository.refresh(newLaunch);
 		newLaunch.setStatus(StatisticsHelper.getStatusFromStatistics(newLaunch.getStatistics()));
 
 		launchRepository.deleteAll(launchesList);

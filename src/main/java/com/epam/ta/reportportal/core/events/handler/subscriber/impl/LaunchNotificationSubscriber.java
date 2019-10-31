@@ -100,7 +100,7 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, launch.getUserId())), recipients);
 				try {
 					emailService.sendLaunchFinishNotification(recipientsArray,
-							String.format("%s/ui#%s", baseUrl, project.getName()),
+							String.format("%s/ui/#%s", baseUrl, project.getName()),
 							project,
 							launch
 					);

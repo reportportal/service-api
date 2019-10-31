@@ -6,6 +6,7 @@
 # Package Files #
 *.jar
 !gradle/wrapper/**
+!sealights/**
 
 *.war
 *.ear

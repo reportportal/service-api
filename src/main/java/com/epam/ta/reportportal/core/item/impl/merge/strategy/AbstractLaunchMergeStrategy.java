@@ -109,6 +109,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.addUserId(userId)
 				.addEndTime(endTime)
 				.get();
+		launch.setHasRetries(launches.stream().anyMatch(Launch::isHasRetries));
+
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
 		mergeAttributes(mergeLaunchesRQ.getAttributes(), launches, launch);

@@ -45,6 +45,8 @@ logging:
     org.hibernate.stat: info
     org.springframework.security: info
     org.springframework.web.bind: fatal
+    com.epam.ta.reportportal.ws.controller: debug
+    com.epam.ta.reportportal.ws.rabbit: debug
 
 
 springfox:
@@ -69,6 +71,8 @@ rp:
     apipass: rabbitmq
     queues: 10
     queuesPerPod: 5
+
+  requestLogging: true
 
   jwt:
     signing-key: 123

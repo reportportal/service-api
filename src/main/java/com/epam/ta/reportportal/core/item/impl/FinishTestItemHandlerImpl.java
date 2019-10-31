@@ -196,7 +196,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+			if (!launch.isRerun() && projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED,
 						"You are not a launch owner."
 				);

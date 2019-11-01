@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+        dependencies {
+            if(project.hasProperty('sealightsSession')){
+                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
+            }
+        }
+    }
+}
+
 plugins {
     id "io.spring.dependency-management" version "1.0.7.RELEASE"
     id "org.springframework.boot" version "2.1.5.RELEASE"
@@ -33,6 +44,27 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 
+if(project.hasProperty('sealightsSession')){
+    apply plugin: 'io.sealights.on-premise.agents.plugin.sealights-gradle-plugin'
+    sealights {
+        buildSessionId = project.properties['sealightsSession']
+        token = project.properties['sealightsToken']
+        createBuildSessionId = false
+
+        filesStorage="/tmp"
+
+        logEnabled = false
+        logLevel = "off"
+        logToFile = false
+        logToConsole = true;
+
+        includeResources=true
+
+        runTestOnly=false
+        testTasks=["test", "junitPlatformTest", "integrationTest"]
+        sealightsJvmParams=["sl.junitVersion":"5"]
+    }
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

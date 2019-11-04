@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.model.AnalyzedItemRs;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -31,6 +30,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
@@ -66,7 +66,8 @@ class AnalyzerServiceServiceTest {
 			analyzerServiceClient,
 			logRepository,
 			issueTypeHandler,
-			testItemRepository, messageBus
+			testItemRepository,
+			messageBus
 	);
 
 	@Test

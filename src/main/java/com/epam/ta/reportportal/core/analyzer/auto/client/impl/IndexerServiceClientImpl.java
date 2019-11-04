@@ -18,15 +18,16 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.auto.model.CleanIndexRq;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexRs;
+import com.epam.ta.reportportal.ws.model.analyzer.CleanIndexRq;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_INDEX;
 
@@ -62,7 +63,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 						}
 				))
 				.mapToLong(it -> {
-					if (it.getItems() != null) {
+					if (Objects.nonNull(it) && it.getItems() != null) {
 						return it.getItems().size();
 					}
 					return 0;

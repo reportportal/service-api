@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLaunch;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexTestItem;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;

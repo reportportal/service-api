@@ -15,12 +15,12 @@
  */
 package com.epam.ta.reportportal.core.events.activity;
 
-import com.epam.ta.reportportal.core.analyzer.auto.model.RelevantItemInfo;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
+import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 
 import java.util.Optional;
 

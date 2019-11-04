@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexTestItem;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
@@ -27,6 +26,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 

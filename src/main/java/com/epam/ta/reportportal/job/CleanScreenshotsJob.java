@@ -57,29 +57,29 @@ public class CleanScreenshotsJob implements Job {
 	}
 
 	@Override
-	//	@Scheduled(cron = "${com.ta.reportportal.job.clean.screenshots.cron}")
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong attachmentsCount = new AtomicLong(0);
 			AtomicLong thumbnailsCount = new AtomicLong(0);
 
 			try {
-				LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
+				LOGGER.debug("Cleaning outdated screenshots for project {} has been started", project.getId());
 				proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
 			} catch (Exception e) {
 				LOGGER.error("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 			}
-			LOGGER.info(
-					"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
-					project.getId(),
-					attachmentsCount.get(),
-					thumbnailsCount.get()
-			);
+			if (attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
+				LOGGER.info(
+						"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
+						project.getId(),
+						attachmentsCount.get(),
+						thumbnailsCount.get()
+				);
+			}
 		}));
 
 	}

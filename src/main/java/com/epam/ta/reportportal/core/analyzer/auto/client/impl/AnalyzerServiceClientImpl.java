@@ -16,13 +16,13 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
-import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
-import com.epam.ta.reportportal.core.analyzer.auto.model.AnalyzedItemRs;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLaunch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

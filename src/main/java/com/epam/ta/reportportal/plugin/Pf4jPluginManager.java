@@ -40,7 +40,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.pf4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -162,6 +165,21 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	@Override
 	public <T> Optional<T> getInstance(String name, Class<T> extension) {
 		return pluginManager.getExtensions(extension, name).stream().findFirst();
+	}
+
+	@EventListener(ContextRefreshedEvent.class)
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		event.getApplicationContext().getBean(Pf4jPluginManager.class).checkStoredPlugins();
+	}
+
+	@Transactional
+	public void checkStoredPlugins() {
+		pluginManager.getPlugins().forEach(plugin -> {
+			if (!integrationTypeRepository.findByName(plugin.getPluginId()).isPresent()) {
+				IntegrationType integrationType = pluginLoader.retrieveIntegrationType(resolvePluginInfo(plugin.getPluginPath()));
+				storeIntegrationType(plugin, integrationType);
+			}
+		});
 	}
 
 	@Override
@@ -301,10 +319,9 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	private void validateFileExtension(String fileName) {
 		String resolvedExtension = FilenameUtils.getExtension(fileName);
 		Optional<PluginFileExtension> byExtension = PluginFileExtension.findByExtension("." + resolvedExtension);
-		BusinessRule.expect(byExtension, Optional::isPresent)
-				.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
-				);
+		BusinessRule.expect(byExtension, Optional::isPresent).verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+				Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
+		);
 	}
 
 	private void validatePluginVersion(PluginInfo newPluginInfo, String fileName) {
@@ -417,11 +434,46 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 			IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(), newPluginFileName);
 			integrationType.setEnabled(true);
 			return integrationTypeRepository.save(integrationType);
-		})
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
-				));
+		}).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+				Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
+		));
 
+	}
+
+	/**
+	 * Retrieves existed plugin info
+	 *
+	 * @param pluginPath Path to the plugin
+	 * @return Plugin info
+	 */
+	private PluginInfo resolvePluginInfo(Path pluginPath) {
+		try {
+			return pluginLoader.extractPluginInfo(pluginPath);
+		} catch (PluginException e) {
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
+		}
+	}
+
+	/**
+	 * Store existed plugin info from filesystem into database
+	 *
+	 * @param pluginWrapper   Plugin wrapper
+	 * @param integrationType Plugin representation in database
+	 */
+	private void storeIntegrationType(PluginWrapper pluginWrapper, IntegrationType integrationType) {
+		integrationType.setName(pluginWrapper.getPluginId());
+		IntegrationDetailsProperties.FILE_ID.setValue(integrationType.getDetails(), pluginWrapper.getPluginPath().toString());
+		Optional<ReportPortalExtensionPoint> instance = getInstance(integrationType.getName(), ReportPortalExtensionPoint.class);
+		if (instance.isPresent()) {
+			IntegrationDetailsProperties.COMMANDS.setValue(integrationType.getDetails(), instance.get().getCommandNames());
+			integrationType.setIntegrationGroup(IntegrationGroupEnum.valueOf(instance.get().getIntegrationGroup().name()));
+		}
+
+		IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(),
+				pluginWrapper.getPluginPath().getFileName().toString()
+		);
+		integrationType.setEnabled(true);
+		integrationTypeRepository.save(integrationType);
 	}
 
 	/**

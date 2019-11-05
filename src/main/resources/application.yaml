@@ -70,7 +70,7 @@ rp:
     apiuser: rabbitmq
     apipass: rabbitmq
     queues: 10
-    queuesPerPod: 5
+    queuesPerPod: 10
 
   requestLogging: true
 

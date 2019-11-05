@@ -16,13 +16,13 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLog;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexTestItem;
-import com.epam.ta.reportportal.core.analyzer.auto.model.RelevantItemInfo;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
+import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.lang3.BooleanUtils;
 

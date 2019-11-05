@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.model.SearchRq;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.CurrentLaunchCollector;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.search.SearchCollectorFactory;
 import com.epam.ta.reportportal.dao.*;
@@ -34,6 +33,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.collect.Lists;

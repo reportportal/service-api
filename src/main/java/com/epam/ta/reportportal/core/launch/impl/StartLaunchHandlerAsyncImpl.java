@@ -51,7 +51,9 @@ public class StartLaunchHandlerAsyncImpl implements StartLaunchHandler {
 	public StartLaunchRS startLaunch(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ request) {
 		validateRoles(projectDetails, request);
 
-		request.setUuid(UUID.randomUUID().toString());
+		if (request.getUuid() == null) {
+			request.setUuid(UUID.randomUUID().toString());
+		}
 		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, reportingQueueService.getReportingQueueKey(request.getUuid()), request, message -> {
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.START_LAUNCH);

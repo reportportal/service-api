@@ -18,9 +18,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexRs;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexRsIndex;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexRsItem;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -33,6 +30,9 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexRsIndex;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexRsItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 

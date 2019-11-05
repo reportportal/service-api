@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk-alpine as builder
 
-RUN apk add --no-cache ca-certificates git curl font-noto zip ps
+RUN apk add --no-cache ca-certificates git curl font-noto zip
 
 RUN addgroup -S -g 1000 rp-builder
 RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder

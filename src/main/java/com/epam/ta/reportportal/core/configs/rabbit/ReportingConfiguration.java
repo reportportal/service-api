@@ -129,7 +129,7 @@ public class ReportingConfiguration {
 					.withArgument("x-message-ttl", DEAD_LETTER_DELAY_MILLIS)
 					.build();
 			retryQueue.setShouldDeclare(true);
-            retryQueue.setAdminsThatShouldDeclare(amqpAdmin);
+			retryQueue.setAdminsThatShouldDeclare(amqpAdmin);
 			registerSingleton(queueName, retryQueue);
 			amqpAdmin.declareQueue(retryQueue);
 			queues.add(retryQueue);
@@ -142,7 +142,7 @@ public class ReportingConfiguration {
 	public Queue queueDlq(AmqpAdmin amqpAdmin) {
 		Queue queue = QueueBuilder.durable(QUEUE_DLQ).build();
 		queue.setShouldDeclare(true);
-        queue.setAdminsThatShouldDeclare(amqpAdmin);
+		queue.setAdminsThatShouldDeclare(amqpAdmin);
 		amqpAdmin.declareQueue(queue);
 		return queue;
 	}
@@ -159,6 +159,7 @@ public class ReportingConfiguration {
 			bindings.add(queueBinding);
 			queueBinding.setShouldDeclare(true);
 			queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
+			amqpAdmin.declareBinding(queueBinding);
 			registerSingleton("queueBinding." + queue.getName(), queueBinding);
 			i++;
 		}
@@ -169,6 +170,7 @@ public class ReportingConfiguration {
 			bindings.add(queueBinding);
 			queueBinding.setShouldDeclare(true);
 			queueBinding.setAdminsThatShouldDeclare(amqpAdmin);
+			amqpAdmin.declareBinding(queueBinding);
 			registerSingleton("queueBinding." + retryQueue.getName(), queueBinding);
 			i++;
 		}

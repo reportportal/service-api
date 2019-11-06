@@ -81,7 +81,6 @@ public class ReportingConfiguration {
 	private ConfigurableListableBeanFactory configurableBeanFactory;
 
 	@Bean
-	@Qualifier("reportingExchange")
 	public Exchange reportingExchange(AmqpAdmin amqpAdmin) {
 		Exchange exchange = ExchangeBuilder.directExchange(EXCHANGE_REPORTING).durable(true).build();
 		amqpAdmin.declareExchange(exchange);
@@ -89,7 +88,6 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	@Qualifier("reportingRetryExchange")
 	public Exchange reportingRetryExchange(AmqpAdmin amqpAdmin) {
 		Exchange exchange = ExchangeBuilder.directExchange(EXCHANGE_REPORTING_RETRY).durable(true).build();
 		amqpAdmin.declareExchange(exchange);
@@ -97,7 +95,6 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	@Qualifier("reportingQueues")
 	public List<Queue> queues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
 		for (int i = 0; i < queueAmount; i++) {
@@ -117,7 +114,6 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	@Qualifier("reportingRetryQueues")
 	public List<Queue> retryQueues(AmqpAdmin amqpAdmin) {
 		List<Queue> queues = new ArrayList();
 		for (int i = 0; i < queueAmount; i++) {
@@ -138,7 +134,6 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	@Qualifier("queueDlq")
 	public Queue queueDlq(AmqpAdmin amqpAdmin) {
 		Queue queue = QueueBuilder.durable(QUEUE_DLQ).build();
 		queue.setShouldDeclare(true);
@@ -149,8 +144,8 @@ public class ReportingConfiguration {
 
 	@Bean
 	public List<Binding> bindings(AmqpAdmin amqpAdmin, @Qualifier("reportingExchange") Exchange reportingExchange,
-			@Qualifier("reportingRetryExchange") Exchange reportingRetryExchange, @Qualifier("reportingQueues") List<Queue> queues,
-			@Qualifier("queueDlq") Queue queueDlq, @Qualifier("reportingRetryQueues") List<Queue> retryQueues) {
+			@Qualifier("reportingRetryExchange") Exchange reportingRetryExchange, @Qualifier("queues") List<Queue> queues,
+			@Qualifier("queueDlq") Queue queueDlq, @Qualifier("retryQueues") List<Queue> retryQueues) {
 		List<Binding> bindings = new ArrayList<>();
 		int i = 0;
 		for (Queue queue : queues) {
@@ -216,7 +211,6 @@ public class ReportingConfiguration {
 	}
 
 	@Bean
-	@Qualifier("reportingListener")
 	public MessageListener reportingListener() {
 		return new AsyncReportingListener();
 	}

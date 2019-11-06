@@ -110,6 +110,7 @@ public class ReportingConfiguration {
 			queue.setShouldDeclare(true);
 			queue.setAdminsThatShouldDeclare(amqpAdmin);
 			registerSingleton(queueName, queue);
+			amqpAdmin.declareQueue(queue);
 			queues.add(queue);
 		}
 		return queues;
@@ -130,6 +131,7 @@ public class ReportingConfiguration {
 			retryQueue.setShouldDeclare(true);
             retryQueue.setAdminsThatShouldDeclare(amqpAdmin);
 			registerSingleton(queueName, retryQueue);
+			amqpAdmin.declareQueue(retryQueue);
 			queues.add(retryQueue);
 		}
 		return queues;
@@ -141,6 +143,7 @@ public class ReportingConfiguration {
 		Queue queue = QueueBuilder.durable(QUEUE_DLQ).build();
 		queue.setShouldDeclare(true);
         queue.setAdminsThatShouldDeclare(amqpAdmin);
+		amqpAdmin.declareQueue(queue);
 		return queue;
 	}
 

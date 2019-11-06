@@ -17,18 +17,17 @@
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
 import com.rabbitmq.http.client.domain.ExchangeInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
  */
 public final class AnalyzerUtils {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerUtils.class);
 
 	public static final String ANALYZER_KEY = "analyzer";
 	static final String ANALYZER_PRIORITY = "analyzer_priority";
@@ -38,36 +37,17 @@ public final class AnalyzerUtils {
 	/**
 	 * Comparing by client service priority
 	 */
-	static final ToIntFunction<ExchangeInfo> EXCHANGE_PRIORITY = it -> {
-		try {
-			return (int) it.getArguments().get(ANALYZER_PRIORITY);
-		} catch (Exception e) {
-			LOGGER.warn(
-					"Incorrect specification of tag '{}' for service '{}'. Using the lowest priority",
-					ANALYZER_PRIORITY,
-					it.getArguments().get(ANALYZER_KEY),
-					e
-			);
-			return Integer.MAX_VALUE;
-		}
-	};
+	static final ToIntFunction<ExchangeInfo> EXCHANGE_PRIORITY = it -> ofNullable(it.getArguments()
+			.get(ANALYZER_PRIORITY)).map(val -> Integer.parseInt(val.toString())).orElse(Integer.MAX_VALUE);
 
 	/**
 	 * Checks if service support items indexing. <code>false</code>
 	 * by default
 	 */
-	static final Predicate<ExchangeInfo> DOES_SUPPORT_INDEX = it -> {
-		try {
-			return (Boolean) it.getArguments().get(ANALYZER_INDEX);
-		} catch (Exception e) {
-			LOGGER.warn(
-					"Incorrect specification of tag '{}' for service '{}'. Using 'false' as default value.",
-					ANALYZER_INDEX,
-					it.getArguments().get(ANALYZER_KEY),
-					e
-			);
-			return false;
-		}
-	};
+	static final Predicate<ExchangeInfo> DOES_SUPPORT_INDEX = it -> ofNullable(it.getArguments()
+			.get(ANALYZER_INDEX)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
+
+	static final Predicate<ExchangeInfo> DOES_SUPPORT_SEARCH = it -> ofNullable(it.getArguments()
+			.get(ANALYZER_LOG_SEARCH)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
 
 }

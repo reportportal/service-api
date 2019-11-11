@@ -17,11 +17,11 @@
 package com.epam.ta.reportportal.core.plugin;
 
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -40,26 +40,28 @@ public interface Pf4jPluginBox extends PluginBox {
 	/**
 	 * Load plugin to the plugin manager by plugin file path
 	 *
-	 * @param path Path to the plugin file to load
+	 * @param pluginId               {@link PluginWrapper#getPluginId()}
+	 * @param integrationTypeDetails {@link IntegrationTypeDetails}
 	 * @return {@link PluginWrapper#getPluginId()}
 	 */
-	String loadPlugin(Path path);
+	boolean loadPlugin(String pluginId, IntegrationTypeDetails integrationTypeDetails);
 
 	/**
 	 * Unload plugin from the plugin manager by id
 	 *
-	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @param integrationType {@link IntegrationType}
 	 * @return 'true' if a plugin was successfully unloaded, else 'false'
 	 */
-	boolean unloadPlugin(String pluginId);
+	boolean unloadPlugin(IntegrationType integrationType);
 
 	/**
 	 * Delete plugin by id
 	 *
-	 * @param pluginId {@link PluginWrapper#getPluginId()}
+	 * @param pluginId {@link IntegrationType#getName()}
 	 * @return 'true' if a plugin was successfully deleted, else 'false'
 	 */
 	boolean deletePlugin(String pluginId);
+
 
 	/**
 	 * Get plugin from the plugin manager by id

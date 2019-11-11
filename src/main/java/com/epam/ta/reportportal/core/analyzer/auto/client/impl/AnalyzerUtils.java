@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
+import com.mchange.lang.IntegerUtils;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -38,7 +39,7 @@ public final class AnalyzerUtils {
 	 * Comparing by client service priority
 	 */
 	static final ToIntFunction<ExchangeInfo> EXCHANGE_PRIORITY = it -> ofNullable(it.getArguments()
-			.get(ANALYZER_PRIORITY)).map(val -> Integer.parseInt(val.toString())).orElse(Integer.MAX_VALUE);
+			.get(ANALYZER_PRIORITY)).map(val -> IntegerUtils.parseInt(val.toString(), Integer.MAX_VALUE)).orElse(Integer.MAX_VALUE);
 
 	/**
 	 * Checks if service support items indexing. <code>false</code>
@@ -47,6 +48,10 @@ public final class AnalyzerUtils {
 	static final Predicate<ExchangeInfo> DOES_SUPPORT_INDEX = it -> ofNullable(it.getArguments()
 			.get(ANALYZER_INDEX)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
 
+	/**
+	 * Checks if service support logs searching. <code>false</code>
+	 * by default
+	 */
 	static final Predicate<ExchangeInfo> DOES_SUPPORT_SEARCH = it -> ofNullable(it.getArguments()
 			.get(ANALYZER_LOG_SEARCH)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
 

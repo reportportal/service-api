@@ -35,14 +35,14 @@ public interface PluginLoader {
 	 * Extract info about the plugin from the provided path
 	 *
 	 * @param pluginPath Plugin's path
-	 * @return {@link PluginInfo} with {@link PluginInfo#id} and {@link PluginInfo#version}
+	 * @return {@link PluginInfo} with {@link PluginInfo#getId()} and {@link PluginInfo#getVersion()}
 	 */
 	PluginInfo extractPluginInfo(Path pluginPath) throws PluginException;
 
 	/**
 	 * Creates the {@link IntegrationType} object based on the params of the plugin
 	 *
-	 * @param pluginInfo {@link PluginInfo} with {@link PluginInfo#id} and {@link PluginInfo#version}
+	 * @param pluginInfo {@link PluginInfo} with {@link PluginInfo#getId()} and {@link PluginInfo#getVersion()}
 	 * @return {@link IntegrationType}
 	 */
 	IntegrationType retrieveIntegrationType(PluginInfo pluginInfo);
@@ -55,6 +55,16 @@ public interface PluginLoader {
 	 * @return true if the plugin has mandatory extension class/classes, else false
 	 */
 	boolean validatePluginExtensionClasses(PluginWrapper plugin);
+
+	/**
+	 * Save plugin in the {@link com.epam.ta.reportportal.filesystem.DataStore}
+	 *
+	 * @param fileName   New plugin file name
+	 * @param fileStream {@link InputStream} of the new plugin file
+	 * @return File id of the saved file in the file system
+	 * @throws ReportPortalException
+	 */
+	String saveToDataStore(String fileName, InputStream fileStream) throws ReportPortalException;
 
 	/**
 	 * Save plugin in the file system
@@ -73,6 +83,21 @@ public interface PluginLoader {
 	 * @param fileStream {@link InputStream} of the plugin file
 	 */
 	void savePlugin(Path pluginPath, InputStream fileStream) throws IOException;
+
+	/**
+	 * Copy plugin with resources from the {@link com.epam.ta.reportportal.filesystem.DataStore} to the provided path
+	 *
+	 * @param fileId     {@link com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties#FILE_ID} value
+	 * @param pluginPath Path where to copy plugin file
+	 */
+	void copyFromDataStore(String fileId, Path pluginPath) throws IOException;
+
+	/**
+	 * Delete plugin file from the {@link com.epam.ta.reportportal.filesystem.DataStore}
+	 *
+	 * @param fileId {@link com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties#FILE_ID} value
+	 */
+	void deleteFromDataStore(String fileId);
 
 	/**
 	 * Remove old plugin file, if it wasn't replaced by the new one during the plugin uploading

@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
@@ -78,7 +78,7 @@ class PluginLoaderServiceTest {
 		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
 		when(jiraPlugin.getPluginId()).thenReturn("jira");
 		when(jiraPlugin.getPluginPath()).thenReturn(Paths.get("plugins", "file.jar"));
-		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(true);
+		when(pluginBox.unloadPlugin(integrationType)).thenReturn(true);
 
 		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 
@@ -93,7 +93,7 @@ class PluginLoaderServiceTest {
 
 		when(pluginBox.getPluginById(integrationType.getName())).thenReturn(Optional.ofNullable(jiraPlugin));
 		when(jiraPlugin.getPluginId()).thenReturn("jira");
-		when(pluginBox.unloadPlugin(jiraPlugin.getPluginId())).thenReturn(false);
+		when(pluginBox.unloadPlugin(integrationType)).thenReturn(false);
 
 		pluginLoaderService.checkAndDeleteIntegrationType(integrationType);
 

@@ -16,33 +16,19 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;
-import org.apache.commons.io.FileUtils;
-import org.pf4j.PluginState;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Map;
-import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -52,16 +38,11 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
 	private final Pf4jPluginBox pluginBox;
 	private final IntegrationTypeRepository integrationTypeRepository;
-	private final DataStore dataStore;
-	private final String pluginsRootPath;
 
 	@Autowired
-	public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox, IntegrationTypeRepository integrationTypeRepository, DataStore dataStore,
-			@Value("${rp.plugins.path}") String pluginsRootPath) {
+	public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox, IntegrationTypeRepository integrationTypeRepository) {
 		this.pluginBox = pluginBox;
 		this.integrationTypeRepository = integrationTypeRepository;
-		this.dataStore = dataStore;
-		this.pluginsRootPath = pluginsRootPath;
 	}
 
 	@Override
@@ -96,7 +77,7 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 		if (isEnabled) {
 			loadPlugin(integrationType);
 		} else {
-			unloadPlugin(integrationType.getName());
+			unloadPlugin(integrationType);
 		}
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier(
@@ -107,70 +88,22 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 	}
 
 	private void loadPlugin(IntegrationType integrationType) {
-
 		if (!pluginBox.getPluginById(integrationType.getName()).isPresent()) {
-
-			Map<String, Object> details = ofNullable(integrationType.getDetails()).map(IntegrationTypeDetails::getDetails)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-							"Integration type details have not been found"
-					));
-
-			String pluginFileName = IntegrationDetailsProperties.FILE_NAME.getValue(details)
-					.map(String::valueOf)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-							Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
-									integrationType.getName()
-							).get()
-					));
-
-			if (!Files.exists(Paths.get(pluginsRootPath, pluginFileName))) {
-
-				String pluginFileId = IntegrationDetailsProperties.FILE_ID.getValue(details)
-						.map(String::valueOf)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-								Suppliers.formattedSupplier("Plugin file name property for Integration type with name - '{}' not found.",
-										integrationType.getName()
-								).get()
-						));
-
-				try (InputStream inputStream = dataStore.load(pluginFileId)) {
-					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginFileName));
-				} catch (IOException | ReportPortalException e) {
-					throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-							Suppliers.formattedSupplier("Error during copying the file of the plugin with ID = '{}'",
-									integrationType.getName()
-							).get()
+			boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
+			BusinessRule.expect(isLoaded, BooleanUtils::isTrue)
+					.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+							Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
 					);
-				}
-			}
-
-			Optional<String> pluginId = ofNullable(pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginFileName)));
-
-			if (pluginId.isPresent()) {
-				startUpPlugin(pluginId.get());
-			} else {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
-				);
-			}
 		}
 	}
 
-	private void startUpPlugin(String pluginId) {
-		if (!(pluginBox.startUpPlugin(pluginId) == PluginState.STARTED)) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					Suppliers.formattedSupplier("Error during starting up the plugin with id = '{}'", pluginId).get()
-			);
-		}
-	}
+	private void unloadPlugin(IntegrationType integrationType) {
 
-	private void unloadPlugin(String pluginId) {
+		pluginBox.getPluginById(integrationType.getName()).ifPresent(plugin -> {
 
-		pluginBox.getPluginById(pluginId).ifPresent(plugin -> {
-
-			if (!pluginBox.unloadPlugin(plugin.getPluginId())) {
+			if (!pluginBox.unloadPlugin(integrationType)) {
 				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", pluginId).get()
+						Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", integrationType.getName()).get()
 				);
 			}
 		});

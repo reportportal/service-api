@@ -40,7 +40,7 @@ public class ActivityConsumer {
 		this.activityRepository = activityRepository;
 	}
 
-	@RabbitListener(queues = "#{ @activityQueue.name }")
+	@RabbitListener(queues = "#{ @activityQueue.name }", containerFactory = "rabbitListenerContainerFactory")
 	public void onEvent(@Payload Activity rq) {
 		Optional.ofNullable(rq).ifPresent(activityRepository::save);
 	}

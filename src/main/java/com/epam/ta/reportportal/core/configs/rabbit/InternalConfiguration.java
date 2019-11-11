@@ -60,7 +60,6 @@ public class InternalConfiguration {
 	public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
 	public static final String QUEUE_QUERY_RQ = "query-rq";
 
-
 	@Bean
 	public Service pluginBox(@Autowired MessageBus messageBus) {
 		Service service = new RabbitAwarePluginBox(messageBus).startAsync();
@@ -73,7 +72,9 @@ public class InternalConfiguration {
 		return new MessageBusImpl(amqpTemplate);
 	}
 
-	/** Exchanges definition */
+	/**
+	 * Exchanges definition
+	 */
 
 	@Bean
 	public FanoutExchange eventsExchange() {
@@ -95,7 +96,9 @@ public class InternalConfiguration {
 		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
 	}
 
-	/** Queues definition */
+	/**
+	 * Queues definition
+	 */
 
 	@Bean
 	public Queue pluginsPongQueue() {
@@ -121,7 +124,6 @@ public class InternalConfiguration {
 	public Queue deleteAttachmentQueue() {
 		return new Queue(QUEUE_ATTACHMENT_DELETE);
 	}
-
 
 	@Bean
 	public Queue projectRepoQueue() {
@@ -153,7 +155,9 @@ public class InternalConfiguration {
 		return new Queue(QUEUE_QUERY_RQ);
 	}
 
-	/** Bindings */
+	/**
+	 * Bindings
+	 */
 
 	@Bean
 	public Binding pluginsPongBinding() {
@@ -170,10 +174,10 @@ public class InternalConfiguration {
 		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY_KEY);
 	}
 
-//	@Bean
-//	public Binding pluginsPingBinding() {
-//		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
-//	}
+	//	@Bean
+	//	public Binding pluginsPingBinding() {
+	//		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
+	//	}
 
 	@Bean
 	public Binding attachmentDeleteBinding() {

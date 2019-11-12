@@ -53,8 +53,7 @@ import java.util.function.Predicate;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
-import static freemarker.template.utility.Collections12.singletonMap;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 
 /**
  * @author Pavel Bortnik
@@ -109,11 +108,11 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-						"Unsupported widget type {}" + widget.getWidgetType()
+						formattedSupplier("Unsupported widget type '{}'", widget.getWidgetType())
 				));
 
 		expect(widgetType.isSupportMultilevelStructure(), Predicate.isEqual(false)).verify(ErrorType.INCORRECT_REQUEST,
-				"Unsupported widget type '" + widgetType + "'"
+				formattedSupplier("Unsupported widget type '{}'", widgetType)
 		);
 
 		Map<String, ?> content;
@@ -140,13 +139,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-						"Unsupported widget type {}" + widget.getWidgetType()
+						formattedSupplier("Unsupported widget type '{}'", widget.getWidgetType())
 				));
 
 		expect(widgetType.isSupportMultilevelStructure(), Predicate.isEqual(true)).verify(ErrorType.INCORRECT_REQUEST,
-				"Widget type '" + widgetType + "' does not support multilevel structure."
+				formattedSupplier("Widget type '{}' does not support multilevel structure.", widgetType)
 		);
-
 		Map<String, ?> content;
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
@@ -172,7 +170,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		WidgetType widgetType = WidgetType.findByName(previewRQ.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
-						"Unsupported widget type {}" + previewRQ.getWidgetType()
+						formattedSupplier("Unsupported widget type '{}'", previewRQ.getWidgetType())
 				));
 
 		List<UserFilter> userFilter = null;
@@ -181,7 +179,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		}
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(userFilter)) {
-			return singletonMap(RESULT, Collections.emptyList());
+			return Collections.emptyMap();
 		}
 
 		Widget widget = new WidgetBuilder().addWidgetPreviewRq(previewRQ)
@@ -231,8 +229,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_NAME))
 				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, term, CRITERIA_OWNER))
 				.build();
-		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(
-				new CompositeFilter(Operator.AND, filter, termFilter),
+		Page<Widget> shared = widgetRepository.getShared(ProjectFilter.of(new CompositeFilter(Operator.AND, filter, termFilter),
 				projectDetails.getProjectId()
 		), pageable, user.getUsername());
 		return PagedResourcesAssembler.pageConverter(WidgetConverter.TO_WIDGET_RESOURCE).apply(shared);

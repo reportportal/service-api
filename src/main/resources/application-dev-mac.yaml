@@ -8,11 +8,11 @@ rp:
   datasource:
     maximumPoolSize: 5
   binarystore:
-    type: filesystem
-    path: ${java.io.tmpdir}\reportportal\datastore\
+  type: filesystem
+    path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
 
 logging:
-  file: ${java.io.tmpdir}\reportportal\logs\${spring.application.name}.log
+  file: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
   level:
     org:
       hibernate:

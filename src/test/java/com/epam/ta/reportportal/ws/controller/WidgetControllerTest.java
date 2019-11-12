@@ -157,7 +157,8 @@ class WidgetControllerTest extends BaseMvcTest {
 		widgetOptions.put("timeline", "WEEK");
 		contentParameters.setWidgetOptions(widgetOptions);
 		contentParameters.setItemsCount(20);
-		contentParameters.setContentFields(Arrays.asList("statistics$executions$total",
+		contentParameters.setContentFields(Arrays.asList(
+				"statistics$executions$total",
 				"statistics$executions$passed",
 				"statistics$executions$failed",
 				"statistics$executions$skipped"
@@ -347,7 +348,8 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getTopTestCasesWidgetWithNotExistLaunch() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isEmpty());
 	}
 
 	@Sql("/db/widget/top-test-cases.sql")
@@ -829,7 +831,8 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Sql("/db/widget/component-health-check.sql")
 	@Test
 	void getComponentHealthCheckContent() throws Exception {
-		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/multilevel/2?attributes=3.29.11.0,arch").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL
+				+ "/widget/multilevel/2?attributes=3.29.11.0,arch").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andExpect(jsonPath("$.name").value("health"))

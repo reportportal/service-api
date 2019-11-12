@@ -34,7 +34,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.*;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -71,7 +70,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	public List<Long> searchLogs(SearchRq rq) {
 		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
-				.filter(it -> ofNullable(it.getArguments().get(ANALYZER_LOG_SEARCH)).map(arg -> (Boolean) arg).orElse(Boolean.FALSE))
+				.filter(DOES_SUPPORT_SEARCH)
 				.collect(toList());
 		return search(rq, analyzerExchanges);
 	}
@@ -82,9 +81,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 					"There are no analyzer services with search logs support deployed."
 			);
 		}
-		ExchangeInfo prioritizedExchange = Collections.max(analyzerExchanges,
-				Comparator.comparing(exchangeInfo -> (int) exchangeInfo.getArguments().get(ANALYZER_PRIORITY))
-		);
+		ExchangeInfo prioritizedExchange = Collections.min(analyzerExchanges, Comparator.comparingInt(EXCHANGE_PRIORITY));
 		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
 				SEARCH_ROUTE,
 				rq,

@@ -305,10 +305,9 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	private void validateFileExtension(String fileName) {
 		String resolvedExtension = FilenameUtils.getExtension(fileName);
 		Optional<PluginFileExtension> byExtension = PluginFileExtension.findByExtension("." + resolvedExtension);
-		BusinessRule.expect(byExtension, Optional::isPresent)
-				.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
-				);
+		BusinessRule.expect(byExtension, Optional::isPresent).verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+				Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
+		);
 	}
 
 	private void validatePluginMetaInfo(PluginInfo newPluginInfo, String fileName) {
@@ -416,17 +415,16 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 			Optional<ReportPortalExtensionPoint> instance = getInstance(integrationType.getName(), ReportPortalExtensionPoint.class);
 
 			if (instance.isPresent()) {
-				IntegrationDetailsProperties.COMMANDS.setValue(integrationType.getDetails(), instance.get().getCommandNames());
+				integrationType.getDetails().getDetails().putAll(instance.get().getPluginParams());
 				integrationType.setIntegrationGroup(IntegrationGroupEnum.valueOf(instance.get().getIntegrationGroup().name()));
 			}
-
 			IntegrationDetailsProperties.FILE_NAME.setValue(integrationType.getDetails(), newPluginFileName);
 			integrationType.setEnabled(true);
 			return integrationTypeRepository.save(integrationType);
-		})
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-						Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
-				));
+
+		}).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+				Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
+		));
 
 	}
 

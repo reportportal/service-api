@@ -137,7 +137,7 @@ dependencies {
 
     //move this to the plugin-api
     compile 'io.atlassian.fugue:fugue:4.7.2'
-    compile('com.atlassian.jira:jira-rest-java-client-core:5.1.2-2bd0a62e')
+    compile('com.atlassian.jira:jira-rest-java-client-core:5.1.6')
     //*****************************
 
     compile 'org.hibernate:hibernate-core:5.4.4.Final'

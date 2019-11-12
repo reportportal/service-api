@@ -17,9 +17,9 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.google.common.collect.Lists;
@@ -37,6 +37,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -47,7 +50,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PluginLoaderServiceImpl.class);
 
 	private final IntegrationTypeRepository integrationTypeRepository;
-
 	private final Pf4jPluginBox pluginBox;
 
 	@Autowired
@@ -71,15 +73,13 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					Map<IntegrationDetailsProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
-
 					if (!pluginWrapper.isPresent() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
 
-						PluginInfo pluginInfo = new PluginInfo(
-								it.getName(),
+						PluginInfo pluginInfo = new PluginInfo(it.getName(),
 								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION)),
-								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_ID)),
-								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.FILE_NAME)),
+								String.valueOf(pluginProperties.get(FILE_ID)),
+								String.valueOf(pluginProperties.get(FILE_NAME)),
 								it.isEnabled()
 						);
 
@@ -103,7 +103,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 	private boolean isMandatoryFieldsExist(IntegrationType integrationType) {
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		return Arrays.stream(IntegrationDetailsProperties.values()).allMatch(property -> property.getValue(details).isPresent());
+		return Stream.of(FILE_ID, VERSION, FILE_NAME).allMatch(property -> property.getValue(details).isPresent());
 
 	}
 
@@ -122,7 +122,7 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 			return false;
 		} else {
 			return pluginBox.getPluginById(integrationType.getName()).map(p -> {
-				if (pluginBox.unloadPlugin(p.getPluginId())) {
+				if (pluginBox.unloadPlugin(integrationType)) {
 					try {
 						Files.deleteIfExists(p.getPluginPath());
 						return true;

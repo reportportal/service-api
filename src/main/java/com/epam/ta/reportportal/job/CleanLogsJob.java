@@ -79,25 +79,24 @@ public class CleanLogsJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		LOGGER.debug("Cleaning outdated logs has been started");
+		LOGGER.info("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(
-				buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
+		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
 				pageable
 		), projects -> projects.forEach(project -> {
 			AtomicLong removedLogsCount = new AtomicLong(0);
 			executor.submit(() -> {
 				try {
-					LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
+					LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
 					proceedLogsRemoving(project, removedLogsCount);
 
 				} catch (Exception e) {
 					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
-				LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+				LOGGER.debug("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
 						project.getId(),
 						removedLogsCount.get()
 				);

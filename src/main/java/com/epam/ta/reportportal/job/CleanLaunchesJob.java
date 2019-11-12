@@ -77,17 +77,17 @@ public class CleanLaunchesJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		LOGGER.debug("Cleaning outdated logs has been started");
+		LOGGER.info("Cleaning outdated logs has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-launches-job-thread-%d").build()
 		);
 
 		iterateOverPages(
 
-				pageable -> projectRepository.findAllIdsAndProjectAttributes(
-						buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LAUNCHES),
+				pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LAUNCHES),
 						pageable
-				), projects -> projects.forEach(project -> {
+				),
+				projects -> projects.forEach(project -> {
 					AtomicLong removedLaunchesCount = new AtomicLong(0);
 					AtomicLong removedAttachmentsCount = new AtomicLong(0);
 					AtomicLong removedThumbnailsCount = new AtomicLong(0);
@@ -99,17 +99,20 @@ public class CleanLaunchesJob implements Job {
 							LOGGER.error("Cleaning outdated launches for project {} has been failed", project.getId(), e);
 						}
 
-						LOGGER.info(
-								"Cleaning outdated launches for project {} has been finished. Total launches removed: {}. Attachments removed: {}. Thumbnails removed: {}",
-								project.getId(),
-								removedLaunchesCount.get(),
-								removedAttachmentsCount.get(),
-								removedThumbnailsCount.get()
-						);
+						if (removedLaunchesCount.get() > 0 || removedAttachmentsCount.get() > 0 || removedThumbnailsCount.get() > 0) {
+							LOGGER.info(
+									"Cleaning outdated launches for project {} has been finished. Total launches removed: {}. Attachments removed: {}. Thumbnails removed: {}",
+									project.getId(),
+									removedLaunchesCount.get(),
+									removedAttachmentsCount.get(),
+									removedThumbnailsCount.get()
+							);
+						}
 
 					});
 
-				}));
+				})
+		);
 
 		try {
 			executor.shutdown();

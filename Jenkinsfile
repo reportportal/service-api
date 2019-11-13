@@ -15,7 +15,7 @@ node {
                         }
 
                         stage('Deploy container') {
-                            sh "docker-compose -p reportportal5 -f $COMPOSE_FILE_RP_5_1 up -d --force-recreate api"
+                            sh "docker-compose -p reportportal5-1 -f $COMPOSE_FILE_RP_5_1 up -d --force-recreate api"
                         }
             }
 

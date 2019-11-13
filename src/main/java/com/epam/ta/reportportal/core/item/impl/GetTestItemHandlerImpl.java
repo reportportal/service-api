@@ -31,12 +31,9 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -44,12 +41,10 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.model.launch.Mode;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -57,20 +52,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
-import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.LAUNCHES_COUNT;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -81,9 +67,7 @@ import static java.util.stream.Collectors.toList;
  * @author Aliaksei Makayed
  */
 @Service
-class GetTestItemHandlerImpl implements GetTestItemHandler {
-
-	private final LaunchRepository launchRepository;
+class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
@@ -93,18 +77,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TicketRepository ticketRepository;
 
-	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
-
 	@Autowired
 	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler,
 			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
-		this.launchRepository = launchRepository;
+		super(launchRepository, getShareableEntityHandler);
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
 		this.ticketRepository = ticketRepository;
-		this.getShareableEntityHandler = getShareableEntityHandler;
 	}
 
 	@Override
@@ -145,6 +126,22 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		)).apply(testItemPage);
 	}
 
+	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
+			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
+		Pair<Queryable, Pageable> queryablePair = createQueryablePair(projectDetails, launchFilterId, launchesLimit);
+		return testItemRepository.findByFilter(isLatest,
+				queryablePair.getKey(),
+				testItemFilter,
+				queryablePair.getValue(),
+				testItemPageable
+		);
+	}
+
+
+	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
+		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
+	}
+
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
 		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
@@ -157,10 +154,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	@Override
 	public List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
 			ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
-		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
-		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
-		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
-		return itemAttributeRepository.findAllKeysByLaunchFilter(launchFilter, launchPageable, isLatest, keyPart, false);
+		Pair<Queryable, Pageable> queryablePair = createQueryablePair(projectDetails, launchFilterId, launchesLimit);
+		return itemAttributeRepository.findAllKeysByLaunchFilter(queryablePair.getKey(),
+				queryablePair.getValue(),
+				isLatest,
+				keyPart,
+				false
+		);
 	}
 
 	@Override
@@ -184,27 +184,6 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		return items.stream().map(itemResourceAssembler::toResource).collect(toList());
 	}
 
-	private void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
-							launch.getId(),
-							projectDetails.getProjectId()
-					)
-			);
-			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
-					Predicate.isEqual(false)
-			).verify(ACCESS_DENIED);
-		}
-	}
-
-	private void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
-		}
-	}
-
 	private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {
 		final Filter filter = Filter.builder()
 				.withTarget(TestItem.class)
@@ -220,54 +199,4 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 				filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build());
 	}
 
-	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
-			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
-		UserFilter userFilter = getShareableEntityHandler.getPermitted(launchFilterId, projectDetails);
-		Queryable launchFilter = createLaunchFilter(projectDetails, userFilter);
-		Pageable launchPageable = createLaunchPageable(userFilter, launchesLimit);
-		return testItemRepository.findByFilter(isLatest, launchFilter, testItemFilter, launchPageable, testItemPageable);
-	}
-
-	private Filter createLaunchFilter(ReportPortalUser.ProjectDetails projectDetails, UserFilter launchFilter) {
-
-		validateLaunchFilterTarget(launchFilter);
-
-		Filter filter = Filter.builder()
-				.withTarget(launchFilter.getTargetClass().getClassObject())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build())
-				.withCondition(FilterCondition.builder()
-						.withCondition(Condition.NOT_EQUALS)
-						.withSearchCriteria(CRITERIA_LAUNCH_STATUS)
-						.withValue(StatusEnum.IN_PROGRESS.name())
-						.build())
-				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, Mode.DEFAULT.toString()).build())
-				.build();
-		filter.getFilterConditions().addAll(launchFilter.getFilterCondition());
-		return filter;
-	}
-
-	private void validateLaunchFilterTarget(UserFilter launchFilter) {
-		BusinessRule.expect(launchFilter, f -> ObjectType.Launch.equals(f.getTargetClass()))
-				.verify(ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Incorrect filter target - '{}'. Allowed: '{}'",
-								launchFilter.getTargetClass(),
-								ObjectType.Launch
-						)
-				);
-	}
-
-	private Pageable createLaunchPageable(UserFilter launchFilter, int launchesLimit) {
-
-		BusinessRule.expect(launchesLimit, limit -> limit > 0 && limit <= LAUNCHES_COUNT)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Launches limit should be greater than 0 and less or equal to 600");
-
-		Sort sort = ofNullable(launchFilter.getFilterSorts()).map(sorts -> Sort.by(sorts.stream()
-				.map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))
-				.collect(toList()))).orElseGet(Sort::unsorted);
-		return PageRequest.of(0, launchesLimit, sort);
-	}
-
-	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
-		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
-	}
 }

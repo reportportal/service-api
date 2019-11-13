@@ -68,6 +68,9 @@ public class TestItemController {
 	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
 	public static final String IS_LATEST_LAUNCHES_REQUEST_PARAM = "isLatest";
 	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
+	private static final String HISTORY_DEPTH_PARAM = "historyDepth";
+	private static final String HISTORY_DEPTH_DEFAULT_VALUE = "5";
+	private static final String LAUNCHES_LIMIT_DEFAULT_VALUE = "0";
 
 	private final StartTestItemHandler startTestItemHandler;
 	private final DeleteTestItemHandler deleteTestItemHandler;
@@ -194,11 +197,24 @@ public class TestItemController {
 	@GetMapping("/history")
 	@ResponseStatus(OK)
 	@ApiOperation("Load history of test items")
-	public List<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "history_depth", required = false, defaultValue = "5") int historyDepth,
-			@RequestParam(value = "ids") Long[] ids,
-			@RequestParam(value = "is_full", required = false, defaultValue = "false") boolean showBrokenLaunches) {
-		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName), ids, historyDepth, showBrokenLaunches);
+	public Iterable<TestItemHistoryElement> getItemsHistory(@PathVariable String projectName,
+			@AuthenticationPrincipal ReportPortalUser user,
+			@Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
+			@RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false) boolean isLatest,
+			@RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = LAUNCHES_LIMIT_DEFAULT_VALUE, required = false)
+					int launchesLimit, @FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
+			@SortFor(TestItem.class) Pageable pageable,
+			@RequestParam(value = HISTORY_DEPTH_PARAM, required = false, defaultValue = HISTORY_DEPTH_DEFAULT_VALUE) int historyDepth) {
+
+		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName),
+				user,
+				new CompositeFilter(Operator.AND, filter, predefinedFilter),
+				pageable,
+				filterId,
+				isLatest,
+				launchesLimit,
+				historyDepth
+		);
 	}
 
 	@Transactional(readOnly = true)

@@ -54,9 +54,7 @@ public class TestItemResourceAssembler extends PagedResourcesAssembler<TestItem,
 
 	public TestItemResource toResource(TestItem entity, @Nullable PathName pathName) {
 		TestItemResource resource = TestItemConverter.TO_RESOURCE.apply(entity);
-		ofNullable(pathName).ifPresent(pn -> {
-			resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn));
-		});
+		ofNullable(pathName).ifPresent(pn -> resource.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pn)));
 		return resource;
 	}
 }

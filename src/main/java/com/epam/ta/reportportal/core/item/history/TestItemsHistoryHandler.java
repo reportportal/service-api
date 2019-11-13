@@ -17,9 +17,11 @@
 package com.epam.ta.reportportal.core.item.history;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Define handler's operations for loading testItem's history.
@@ -29,17 +31,19 @@ import java.util.List;
 public interface TestItemsHistoryHandler {
 
 	/**
-	 * Get history for of {@link TestItem}s according input parameters:<br>
-	 * <li>isSoloSelection - select history for specified by id item <li>isRoot
-	 * - select history for suites of specified by if launch <li>default -
-	 * select history for all children of specified by id item
+	 * Get history for {@link com.epam.ta.reportportal.entity.item.TestItem}s according to input parameters
 	 *
 	 * @param projectDetails - project details
-	 * @param startPointsIds - ids of history start points(launch id or testitem id)
+	 * @param user           - current user
+	 * @param filter         - filter
+	 * @param pageable       - paging parameters object
+	 * @param filterId       - filter id
+	 * @param isLatest       - lag defines whether all or latest launches launches will be included in the query condition
+	 * @param launchesLimit  - launches limit
 	 * @param historyDepth   - count of items in history
-	 * @return List of {@link TestItemHistoryElement}
+	 * @return {@link Iterable} of {@link TestItemHistoryElement}
 	 */
-	List<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, Long[] startPointsIds, int historyDepth,
-			boolean showBrokenLaunches);
+	Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Queryable filter,
+			Pageable pageable, @Nullable Long filterId, boolean isLatest, int launchesLimit, int historyDepth);
 
 }

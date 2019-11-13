@@ -190,7 +190,7 @@ dependencies {
     testCompile 'com.github.reportportal:agent-java-junit5:c6e131bdb2'
 
     testCompile('org.springframework.boot:spring-boot-starter-test') {
-        exclude group: 'junit', module: 'junit'
+//        exclude group: 'junit', module: 'junit'
     }
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.5.2'
     testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.5.2'

@@ -39,9 +39,9 @@ import java.util.List;
 import java.util.Properties;
 
 @Configuration
+@Conditional(Conditions.NotTestCondition.class)
 @EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
 		SchedulerConfiguration.CleanLaunchesJobProperties.class })
-@Conditional(Conditions.NotTestCondition.class)
 public class SchedulerConfiguration {
 
 	@Autowired

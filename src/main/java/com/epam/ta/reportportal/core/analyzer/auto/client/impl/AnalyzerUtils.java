@@ -16,9 +16,9 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
-import com.mchange.lang.IntegerUtils;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -39,7 +39,7 @@ public final class AnalyzerUtils {
 	 * Comparing by client service priority
 	 */
 	static final ToIntFunction<ExchangeInfo> EXCHANGE_PRIORITY = it -> ofNullable(it.getArguments()
-			.get(ANALYZER_PRIORITY)).map(val -> IntegerUtils.parseInt(val.toString(), Integer.MAX_VALUE)).orElse(Integer.MAX_VALUE);
+			.get(ANALYZER_PRIORITY)).map(val -> NumberUtils.toInt(val.toString(), Integer.MAX_VALUE)).orElse(Integer.MAX_VALUE);
 
 	/**
 	 * Checks if service support items indexing. <code>false</code>

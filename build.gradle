@@ -99,7 +99,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:7fd984c"
+        mavenBom "com.github.reportportal:commons-bom:f060f9c"
     }
 }
 
@@ -128,7 +128,7 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile('com.epam.reportportal:plugin-api:5.0.0-RC-1')
     } else {
-        compile 'com.github.reportportal:commons-dao:e0e535c'
+        compile 'com.github.reportportal:commons-dao:59502b2'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:5f85990'
         compile('com.github.reportportal:commons:5.0.0-BETA-2')
@@ -140,13 +140,14 @@ dependencies {
     compile('com.atlassian.jira:jira-rest-java-client-core:5.1.6')
     //*****************************
 
-    compile 'org.hibernate:hibernate-core:5.4.4.Final'
+//    compile 'org.hibernate:hibernate-core:5.4.4.Final'
+
 
     compile("org.springframework.boot:spring-boot-starter-amqp")
     // Optional for spring-boot-starter-amqp
     compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
-    compile "ch.qos.logback:logback-classic"
+//    compile "ch.qos.logback:logback-classic"
     compile 'com.sun.mail:javax.mail'
     compile 'org.aspectj:aspectjweaver:1.8.9'
     compile 'org.aspectj:aspectjrt:1.8.9'
@@ -155,14 +156,17 @@ dependencies {
 
     compile 'org.springframework.boot:spring-boot-starter-aop'
     compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-quartz'
     compile 'org.springframework.boot:spring-boot-starter-freemarker'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
 
+//    // https://mvnrepository.com/artifact/com.codahale.metrics/metrics-core
+//    compile group: 'com.codahale.metrics', name: 'metrics-core', version: '3.0.2'
+
+
 ///// Security
-    compile 'org.springframework.cloud:spring-cloud-starter-security'
-    compile 'org.springframework.cloud:spring-cloud-starter-oauth2'
-    compile 'org.springframework.security:spring-security-oauth2-client'
-    compile 'org.springframework.security:spring-security-jwt'
+    compile 'org.springframework.security.oauth:spring-security-oauth2:2.3.7.RELEASE'
+    compile 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
     compile 'org.springframework.security:spring-security-acl'
     compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
 
@@ -188,8 +192,8 @@ dependencies {
     testCompile('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'junit', module: 'junit'
     }
-    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
-    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.5.2'
+    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.5.2'
     testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
 
     testCompile group: 'org.flywaydb.flyway-test-extensions', name: 'flyway-spring-test', version: '5.2.1'

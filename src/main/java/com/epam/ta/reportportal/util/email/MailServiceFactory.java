@@ -25,9 +25,9 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.mchange.lang.IntegerUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,9 +113,8 @@ public class MailServiceFactory {
 			service.setTemplateEngine(templateEngine);
 
 			EmailSettingsEnum.HOST.getAttribute(config).ifPresent(service::setHost);
-			service.setPort(ofNullable(config.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> IntegerUtils.parseInt(String.valueOf(p),
-					25
-			)).orElse(25));
+			service.setPort(ofNullable(config.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> NumberUtils.toInt(String.valueOf(p), 25))
+					.orElse(25));
 			EmailSettingsEnum.PROTOCOL.getAttribute(config).ifPresent(service::setProtocol);
 			EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFrom);
 			if (authRequired) {

@@ -63,8 +63,3 @@ jacocoTestReport {
         }
     }
 }
-
-if (System.env.TRAVIS == 'true') {
-    minHeapSize = "128m"
-    maxHeapSize = "1g"
-}

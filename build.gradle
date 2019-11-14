@@ -58,7 +58,7 @@ if (project.hasProperty('sealightsSession')) {
         logEnabled = false
         logLevel = "off"
         logToFile = false
-        logToConsole = true;
+        logToConsole = true
 
         includeResources = true
 
@@ -197,4 +197,9 @@ test {
     reports {
         junitXml.enabled = true
     }
+}
+
+if (System.env.TRAVIS == 'true') {
+    minHeapSize = "128m"
+    maxHeapSize = "1g"
 }

@@ -146,7 +146,7 @@ public class Swagger2Configuration {
 	}
 
 	@Component
-	public class OperationPageableParameterReader implements OperationBuilderPlugin {
+	public static class OperationPageableParameterReader implements OperationBuilderPlugin {
 		private final TypeNameExtractor nameExtractor;
 		private final TypeResolver resolver;
 

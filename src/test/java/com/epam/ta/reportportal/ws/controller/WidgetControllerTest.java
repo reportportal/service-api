@@ -23,8 +23,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -622,16 +620,11 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Sql("/db/widget/investigated-trend.sql")
 	@Test
 	void getInvestigatedTrendWidgetWithTimeline() throws Exception {
-		MvcResult mvcResult = mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("investigated trend"))
-				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"))
-				.andReturn();
-
-		WidgetResource response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<WidgetResource>() {
-		});
-		System.out.println();
+				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"));
 	}
 
 	@Sql("/db/widget/unique-bug-table.sql")

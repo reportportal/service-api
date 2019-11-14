@@ -100,7 +100,7 @@ class Pf4jPluginManagerTest {
 		doNothing().when(pluginLoader).savePlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME), fileStream);
 		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_PLUGIN_ID);
 		when(integrationTypeRepository.save(any(IntegrationType.class))).thenReturn(jiraIntegrationType);
-		Path file = Files.createFile(Paths.get(PLUGINS_TEMP_PATH, "plugin.jar"));
+		Files.createFile(Paths.get(PLUGINS_TEMP_PATH, "plugin.jar"));
 		IntegrationType newIntegrationType = pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream);
 		assertEquals(1L, newIntegrationType.getId().longValue());
 	}

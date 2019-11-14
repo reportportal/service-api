@@ -52,8 +52,7 @@ import static org.mockito.Mockito.when;
  */
 class UpdatePluginHandlerTest {
 
-	private final String fileName = "file-name";
-	private final String service = "api";
+	private static final String FILE_NAME = "file-name";
 	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private final DataStore dataStore = mock(DataStore.class);
@@ -63,7 +62,7 @@ class UpdatePluginHandlerTest {
 	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository);
 
 	@AfterAll
-	public static void clearPluginDirectory() throws IOException {
+	static void clearPluginDirectory() throws IOException {
 		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
 	}
 
@@ -91,7 +90,7 @@ class UpdatePluginHandlerTest {
 		updatePluginStateRQ.setEnabled(true);
 
 		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(emailIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
 
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
@@ -107,7 +106,7 @@ class UpdatePluginHandlerTest {
 		updatePluginStateRQ.setEnabled(false);
 
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.ofNullable(pluginWrapper));
 		when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
@@ -126,7 +125,7 @@ class UpdatePluginHandlerTest {
 		updatePluginStateRQ.setEnabled(false);
 
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.ofNullable(pluginWrapper));
 		when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
@@ -189,7 +188,7 @@ class UpdatePluginHandlerTest {
 
 		Map<String, Object> params = new HashMap<>();
 		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "file-id");
-		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), fileName);
+		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), FILE_NAME);
 		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), "1.0.0");
 		return params;
 	}

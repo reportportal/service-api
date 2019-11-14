@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePropertiesBuilder;
@@ -22,9 +25,9 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import static com.epam.ta.reportportal.core.logging.HelperUtil.checkLoggingRecords;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class RabbitMessageLoggingAspectTest {
 
 	private static HelperListener proxy;
@@ -37,11 +40,13 @@ class RabbitMessageLoggingAspectTest {
 
 	private static Logger logger;
 
+	@Mock
 	private static Appender<ILoggingEvent> appender;
 
+	@Mock
 	private static RabbitMessageLogging annotation;
 
-	private static String log;
+	private String log;
 
 	private static ObjectMapper objectMapper;
 
@@ -50,7 +55,7 @@ class RabbitMessageLoggingAspectTest {
 	private static Map<String, Object> headers;
 
 	@BeforeAll
-	public static void beforeAll() throws Exception {
+	static void beforeAll() throws Exception {
 		aspect = new RabbitMessageLoggingAspect();
 
 		objectMapper = new ObjectMapper();
@@ -76,7 +81,6 @@ class RabbitMessageLoggingAspectTest {
 		headers.put("__TypeId__", "java.util.HashMap");
 		headers.put("__KeyTypeId__", "java.lang.Object");
 
-
 		MessagePropertiesBuilder properties = MessagePropertiesBuilder.newInstance();
 		for (Map.Entry<String, Object> entry : headers.entrySet()) {
 			properties.setHeader(entry.getKey(), entry.getValue());
@@ -89,16 +93,14 @@ class RabbitMessageLoggingAspectTest {
 	}
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		logger.detachAndStopAllAppenders();
-		appender = mock(Appender.class);
 		logger.addAppender(appender);
 	}
 
 	@Test
-	public void testMessageFull() throws Exception {
+	void testMessageFull() throws Exception {
 
-		annotation = mock(RabbitMessageLogging.class);
 		when(annotation.logHeaders()).thenReturn(true);
 		when(annotation.logBody()).thenReturn(true);
 
@@ -106,13 +108,12 @@ class RabbitMessageLoggingAspectTest {
 		log = aspect.formatMessageRecord("onMessageFull", headers, payload, annotation);
 		System.out.println(log);
 
-		checkLoggingRecords(appender, 1, new Level[] { Level.DEBUG}, log);
+		checkLoggingRecords(appender, 1, new Level[] { Level.DEBUG }, log);
 	}
 
 	@Test
-	public void testMessageWithoutHeader() throws Exception {
+	void testMessageWithoutHeader() throws Exception {
 
-		annotation = mock(RabbitMessageLogging.class);
 		when(annotation.logHeaders()).thenReturn(false);
 		when(annotation.logBody()).thenReturn(true);
 
@@ -120,13 +121,12 @@ class RabbitMessageLoggingAspectTest {
 		log = aspect.formatMessageRecord("onMessageWithoutHeaders", headers, payload, annotation);
 		System.out.println(log);
 
-		checkLoggingRecords(appender, 1, new Level[] { Level.DEBUG}, log);
+		checkLoggingRecords(appender, 1, new Level[] { Level.DEBUG }, log);
 	}
 
 	@Test
-	public void testMessageWithoutBody() throws Exception {
+	void testMessageWithoutBody() throws Exception {
 
-		annotation = mock(RabbitMessageLogging.class);
 		when(annotation.logHeaders()).thenReturn(true);
 		when(annotation.logBody()).thenReturn(false);
 
@@ -134,7 +134,7 @@ class RabbitMessageLoggingAspectTest {
 		log = aspect.formatMessageRecord("onMessageWithoutBody", headers, payload, annotation);
 		System.out.println(log);
 
-		checkLoggingRecords(appender, 1, new Level[] { Level.DEBUG}, log);
+		checkLoggingRecords(appender, 1, new Level[] { Level.DEBUG }, log);
 	}
 
 }

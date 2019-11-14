@@ -60,12 +60,12 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private final AttachmentRepository attachmentRepository;
 
-	@Qualifier("attachmentDataStoreService")
 	private final DataStoreService dataStoreService;
 
 	@Autowired
 	public LogCleanerServiceImpl(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ActivityRepository activityRepository, DataStoreService dataStoreService, AttachmentRepository attachmentRepository) {
+			ActivityRepository activityRepository, @Qualifier("attachmentDataStoreService") DataStoreService dataStoreService,
+			AttachmentRepository attachmentRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;

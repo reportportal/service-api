@@ -41,13 +41,13 @@ public class AttachmentConsumer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(AttachmentConsumer.class);
 
-	@Qualifier("attachmentDataStoreService")
 	private final DataStoreService dataStoreService;
 
 	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
-	public AttachmentConsumer(DataStoreService dataStoreService, AttachmentRepository attachmentRepository) {
+	public AttachmentConsumer(@Qualifier("attachmentDataStoreService") DataStoreService dataStoreService,
+			AttachmentRepository attachmentRepository) {
 		this.dataStoreService = dataStoreService;
 		this.attachmentRepository = attachmentRepository;
 	}

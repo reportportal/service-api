@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -54,21 +55,20 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private final TestItemRepository testItemRepository;
 
-	private final AttachmentBinaryDataService attachmentDataStoreService;
-
 	private final ActivityRepository activityRepository;
 
 	private final AttachmentRepository attachmentRepository;
 
+	private final DataStoreService dataStoreService;
+
 	@Autowired
 	public LogCleanerServiceImpl(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			AttachmentBinaryDataService attachmentDataStoreService, ActivityRepository activityRepository,
-			AttachmentRepository attachmentRepository) {
+			ActivityRepository activityRepository, DataStoreService dataStoreService, AttachmentRepository attachmentRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
-		this.attachmentDataStoreService = attachmentDataStoreService;
 		this.activityRepository = activityRepository;
+		this.dataStoreService = dataStoreService;
 		this.attachmentRepository = attachmentRepository;
 	}
 
@@ -137,28 +137,26 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	}
 
 	private void removeAttachmentsOfLogs(Collection<Log> logs, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+		List<Long> attachmentIds = new ArrayList<>();
 		logs.forEach(log -> {
 			try {
 				ofNullable(log.getAttachment()).ifPresent(attachment -> {
-
-					attachmentRepository.deleteById(attachment.getId());
-
 					ofNullable(attachment.getFileId()).ifPresent(fileId -> {
-						attachmentDataStoreService.delete(fileId);
+						dataStoreService.delete(fileId);
 						attachmentsCount.addAndGet(1L);
 					});
-					ofNullable(attachment.getThumbnailId()).ifPresent(fileId -> {
-						attachmentDataStoreService.delete(fileId);
+					ofNullable(attachment.getThumbnailId()).ifPresent(thumbnailId -> {
+						dataStoreService.delete(thumbnailId);
 						thumbnailsCount.addAndGet(1L);
 					});
-
+					attachmentIds.add(attachment.getId());
 				});
 			} catch (Exception ex) {
 				LOGGER.debug("Error has occurred during the attachments removing", ex);
 				//do nothing, because error that has occurred during the removing of current attachment shouldn't affect others
 			}
-
 		});
+		attachmentRepository.deleteAllByIds(attachmentIds);
 	}
 
 }

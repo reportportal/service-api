@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
@@ -54,7 +54,7 @@ class LogCleanerServiceImplTest {
 	private TestItemRepository testItemRepository;
 
 	@Mock
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+	private DataStoreService dataStoreService;
 
 	@Mock
 	private ActivityRepository activityRepository;
@@ -99,7 +99,7 @@ class LogCleanerServiceImplTest {
 
 		assertEquals(deletedLogsCount, removedLogsCount.get());
 		verify(activityRepository, times(1)).deleteModifiedLaterAgo(project.getId(), period);
-		verify(attachmentBinaryDataService, times(4)).delete(any());
+		verify(dataStoreService, times(4)).delete(any());
 	}
 
 	@Test
@@ -129,8 +129,8 @@ class LogCleanerServiceImplTest {
 
 		logCleanerService.removeProjectAttachments(project, period, new AtomicLong(), new AtomicLong());
 
-		verify(attachmentBinaryDataService, times(4)).delete(any());
-		verify(attachmentRepository, times(2)).deleteById(any());
+		verify(dataStoreService, times(4)).delete(any());
+		verify(attachmentRepository, times(1)).deleteAllByIds(any());
 
 	}
 }

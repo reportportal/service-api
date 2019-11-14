@@ -197,9 +197,9 @@ test {
     reports {
         junitXml.enabled = true
     }
+    if (System.env.TRAVIS == 'true') {
+        minHeapSize = "128m"
+        maxHeapSize = "1g"
+    }
 }
 
-if (System.env.TRAVIS == 'true') {
-    minHeapSize = "128m"
-    maxHeapSize = "1g"
-}

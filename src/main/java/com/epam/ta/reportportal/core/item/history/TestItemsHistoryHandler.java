@@ -21,8 +21,6 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import org.springframework.data.domain.Pageable;
 
-import javax.annotation.Nullable;
-
 /**
  * Define handler's operations for loading testItem's history.
  *
@@ -34,16 +32,12 @@ public interface TestItemsHistoryHandler {
 	 * Get history for {@link com.epam.ta.reportportal.entity.item.TestItem}s according to input parameters
 	 *
 	 * @param projectDetails - project details
-	 * @param user           - current user
 	 * @param filter         - filter
 	 * @param pageable       - paging parameters object
-	 * @param filterId       - filter id
-	 * @param isLatest       - lag defines whether all or latest launches launches will be included in the query condition
-	 * @param launchesLimit  - launches limit
 	 * @param historyDepth   - count of items in history
 	 * @return {@link Iterable} of {@link TestItemHistoryElement}
 	 */
-	Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Queryable filter,
-			Pageable pageable, @Nullable Long filterId, boolean isLatest, int launchesLimit, int historyDepth);
+	Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, Queryable filter, Pageable pageable,
+			int historyDepth);
 
 }

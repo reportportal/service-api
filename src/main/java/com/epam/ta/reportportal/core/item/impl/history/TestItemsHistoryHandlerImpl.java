@@ -41,7 +41,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -75,11 +74,10 @@ public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler impl
 	}
 
 	@Override
-	public Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Queryable filter, Pageable pageable, @Nullable Long filterId, boolean isLatest, int launchesLimit, int historyDepth) {
+	public Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, Queryable filter,
+			Pageable pageable, int historyDepth) {
 
 		validateHistoryDepth(historyDepth);
-		Optional<Long> filterIdOptional = ofNullable(filterId);
 
 		filter.getFilterConditions()
 				.add(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
@@ -88,15 +86,6 @@ public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler impl
 				projectDetails.getProjectId(),
 				historyDepth
 		);
-
-		//		Page<TestItemHistory> testItemPage = filterIdOptional.map(launchFilterId -> {
-		//			validateProjectRole(projectDetails, user);
-		//			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, isLatest, launchesLimit);
-		//		}).orElseGet(() -> {
-		//			filter.getFilterConditions()
-		//					.add(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
-		//			return testItemRepository.loadItemsHistoryPage(filter, pageable, projectDetails.getProjectId(), historyDepth);
-		//		});
 
 		return buildHistoryElements(testItemHistoryPage, pageable);
 

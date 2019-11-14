@@ -18,8 +18,11 @@ package com.epam.ta.reportportal.core.item.impl.history;
 
 import com.epam.ta.reportportal.ReportPortalUserUtil;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -28,7 +31,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
@@ -55,9 +60,12 @@ class TestItemsHistoryHandlerImplTest {
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.getItemsHistory(extractProjectDetails(rpUser, "test_project"),
-						new Long[] { 1L, 2L },
-						MIN_HISTORY_DEPTH_BOUND - 1,
-						false
+						Filter.builder()
+								.withTarget(TestItem.class)
+								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
+								.build(),
+						PageRequest.of(0, 10),
+						MIN_HISTORY_DEPTH_BOUND - 1
 				)
 		);
 	}
@@ -68,9 +76,12 @@ class TestItemsHistoryHandlerImplTest {
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.getItemsHistory(extractProjectDetails(rpUser, "test_project"),
-						new Long[] { 1L, 2L },
-						MAX_HISTORY_DEPTH_BOUND - 1,
-						false
+						Filter.builder()
+								.withTarget(TestItem.class)
+								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
+								.build(),
+						PageRequest.of(0, 10),
+						MAX_HISTORY_DEPTH_BOUND
 				)
 		);
 	}

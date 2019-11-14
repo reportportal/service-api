@@ -11,11 +11,12 @@ rp:
     type: filesystem
     path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
 logging:
-  file: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
   level:
     org:
       hibernate:
         SQL: debug
+  file:
+    name: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
 server:
   servlet:
     context-path: '/api'

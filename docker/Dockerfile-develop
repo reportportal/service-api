@@ -63,10 +63,9 @@ RUN mkdir plugins app
 COPY --from=builder /home/rp-builder/plugins/JIRA.jar /home/rp-builder/plugins/RALLY.jar /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
 COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 
-COPY --from=builder /home/rp-builder/build/libs/service-api.jar ./app/app.jar
+COPY --from=builder /home/rp-builder/build/libs/service-api.jar $JAVA_APP
 
 RUN sh -c "touch $JAVA_APP"
 
 EXPOSE 8080
-
 ENTRYPOINT /start.sh

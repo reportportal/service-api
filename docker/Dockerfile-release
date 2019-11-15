@@ -16,6 +16,7 @@ exec java \$JAVA_OPTS -jar \$JAVA_APP' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
 
+RUN mkdir /app
 RUN wget -O $JAVA_APP $APP_DOWNLOAD_URL
 
 EXPOSE 8080

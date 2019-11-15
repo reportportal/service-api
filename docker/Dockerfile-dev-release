@@ -21,6 +21,7 @@ exec java \$JAVA_OPTS -jar \$JAVA_APP' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
 
+RUN mkdir /app
 COPY build/libs/service-api.jar $JAVA_APP
 
 RUN sh -c "touch $JAVA_APP"

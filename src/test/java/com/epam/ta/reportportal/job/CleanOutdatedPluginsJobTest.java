@@ -44,9 +44,9 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  **/
 class CleanOutdatedPluginsJobTest {
 
-	public static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
+	private static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
 
-	private String pluginsRootPath = "plugins";
+	private String pluginsRootPath = System.getProperty("java.io.tmpdir") + "/plugins";
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
@@ -69,7 +69,9 @@ class CleanOutdatedPluginsJobTest {
 	void testExecutionWithoutPluginInCache() throws IOException {
 
 		File dir = new File(pluginsRootPath + PLUGIN_TEMP_DIRECTORY);
-		assertTrue(dir.mkdirs());
+		if (!dir.exists()) {
+			assertTrue(dir.mkdirs());
+		}
 
 		File file = new File(dir, "qwe.jar");
 
@@ -84,7 +86,9 @@ class CleanOutdatedPluginsJobTest {
 	void testExecutionWithPluginInCache() throws IOException {
 
 		File dir = new File(pluginsRootPath + PLUGIN_TEMP_DIRECTORY);
-		assertTrue(dir.mkdirs());
+		if (!dir.exists()) {
+			assertTrue(dir.mkdirs());
+		}
 
 		File file = File.createTempFile("test", ".jar", dir);
 

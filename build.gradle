@@ -94,8 +94,6 @@ repositories {
     maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
-//    maven { url "https://dl.bintray.com/michaelklishin/maven/" }
-//    maven { url 'https://repo.spring.io/libs-milestone' }
     maven { url 'https://jitpack.io' }
 }
 
@@ -196,10 +194,6 @@ test {
     }
     reports {
         junitXml.enabled = true
-    }
-    if (System.env.TRAVIS == 'true') {
-        minHeapSize = "128m"
-        maxHeapSize = "1g"
     }
 }
 

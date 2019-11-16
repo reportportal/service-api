@@ -16,60 +16,18 @@ import org.owasp.dependencycheck.reporting.ReportGenerator
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        mavenCentral()
-        dependencies {
-            if (project.hasProperty('sealightsSession')) {
-                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
-            }
-        }
-    }
-}
-
 plugins {
-    id "io.spring.dependency-management" version "1.0.7.RELEASE"
-    id "org.springframework.boot" version "2.2.1.RELEASE"
-    id "de.undercouch.download" version "3.4.3"
-    id 'net.researchgate.release' version '2.8.0'
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+    id "org.springframework.boot" version "2.2.0.RELEASE"
+    id "de.undercouch.download" version "4.0.1"
+    id 'net.researchgate.release' version '2.8.1'
     id "com.jfrog.bintray" version "1.8.4"
     id 'java'
     id 'jacoco'
     id "org.owasp.dependencycheck" version "5.2.0"
+    id 'com.bmuschko.docker-remote-api' version '6.0.0'
+    id 'org.ajoberstar.grgit' version '4.0.0'
 }
-
-apply from: 'build-quality.gradle'
-apply from: 'jacoco.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/copy-database-scripts.gradle'
-
-if (project.hasProperty('sealightsSession')) {
-    apply plugin: 'io.sealights.on-premise.agents.plugin.sealights-gradle-plugin'
-    sealights {
-        buildSessionId = project.properties['sealightsSession']
-        token = project.properties['sealightsToken']
-        createBuildSessionId = false
-
-        filesStorage = "/tmp"
-
-        logEnabled = false
-        logLevel = "off"
-        logToFile = false
-        logToConsole = true
-
-        includeResources = true
-
-        runTestOnly = false
-        testTasks = ["test", "junitPlatformTest", "integrationTest"]
-        sealightsJvmParams = ["sl.junitVersion": "5"]
-    }
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 project.ext {
     limits = [
@@ -86,7 +44,27 @@ project.ext {
             'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
     ]
+    excludeTests = ['**/entity/**',
+                    '**/aop/**',
+                    '**/jasper/**',
+                    '**/configs/**',
+                    '**/demodata/**',
+                    '**/exception/**',
+                    '**/analyzer/auto/model/**'
+    ]
 }
+
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/copy-database-scripts.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/build-quality.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/update-bom/jacoco.gradle'
+apply from: 'sealights.gradle'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -103,31 +81,17 @@ dependencyManagement {
     }
 }
 
-sourceSets {
-    generated {
-        java.srcDir "${buildDir}/generated/src/java/"
-    }
-}
-
-compileGeneratedJava {
-    classpath = configurations.compile
-}
-
-compileJava {
-    source += sourceSets.generated.java
-}
-
 dependencies {
     if (releaseMode) {
         compile 'com.epam.reportportal:commons-dao:5.0.0-RC-2'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.epam.reportportal:commons-model:5.0.0-RC-1'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile('com.epam.reportportal:plugin-api:5.0.0-RC-1')
+        compile 'com.epam.reportportal:plugin-api:5.0.0-RC-1'
     } else {
-        compile 'com.github.reportportal:commons-dao:523ba3f'
+        compile 'com.github.reportportal:commons-dao:daf9668'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:9840721'
+        compile 'com.github.reportportal:commons-model:435c977'
         compile 'com.github.reportportal:commons:5.0.0-BETA-2'
         compile 'com.github.reportportal:plugin-api:85babd8'
     }
@@ -180,13 +144,9 @@ bootJar {
 }
 
 bootJar.dependsOn gitInfo
-test.dependsOn copyTestDatabaseScripts
-build.dependsOn jacocoTestReport
-checkCommitNeeded.dependsOn removeScripts
 
 test {
     useJUnitPlatform()
-    //    testLogging.showStandardStreams = true
     maxParallelForks = 1
     testLogging {
         events = ['failed']
@@ -196,4 +156,3 @@ test {
         junitXml.enabled = true
     }
 }
-

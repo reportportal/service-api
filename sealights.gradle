@@ -1,0 +1,32 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        dependencies {
+            if (project.hasProperty('sealightsSession')) {
+                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
+            }
+        }
+    }
+}
+
+if (project.hasProperty('sealightsSession')) {
+    apply plugin: 'io.sealights.on-premise.agents.plugin.sealights-gradle-plugin'
+    sealights {
+        buildSessionId = project.properties['sealightsSession']
+        token = project.properties['sealightsToken']
+        createBuildSessionId = false
+
+        filesStorage = "/tmp"
+
+        logEnabled = false
+        logLevel = "off"
+        logToFile = false
+        logToConsole = true
+
+        includeResources = true
+
+        runTestOnly = false
+        testTasks = ["test", "junitPlatformTest", "integrationTest"]
+        sealightsJvmParams = ["sl.junitVersion": "5"]
+    }
+}

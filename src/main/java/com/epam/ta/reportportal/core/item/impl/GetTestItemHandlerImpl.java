@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
+import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -77,15 +78,19 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 
 	private final TicketRepository ticketRepository;
 
+	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
+
 	@Autowired
 	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler,
-			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
-		super(launchRepository, getShareableEntityHandler);
+			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+			GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
+		super(launchRepository);
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
 		this.ticketRepository = ticketRepository;
+		this.getShareableEntityHandler = getShareableEntityHandler1;
 	}
 
 	@Override
@@ -128,7 +133,11 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 
 	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
 			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
-		Pair<Queryable, Pageable> queryablePair = createQueryablePair(projectDetails, launchFilterId, launchesLimit);
+		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
+				getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
+				launchesLimit
+		);
+
 		return testItemRepository.findByFilter(isLatest,
 				queryablePair.getKey(),
 				testItemFilter,
@@ -136,7 +145,6 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 				testItemPageable
 		);
 	}
-
 
 	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
 		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
@@ -154,7 +162,10 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 	@Override
 	public List<String> getAttributeKeys(Long launchFilterId, boolean isLatest, int launchesLimit,
 			ReportPortalUser.ProjectDetails projectDetails, String keyPart) {
-		Pair<Queryable, Pageable> queryablePair = createQueryablePair(projectDetails, launchFilterId, launchesLimit);
+		Pair<Queryable, Pageable> queryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
+				getShareableEntityHandler.getPermitted(launchFilterId, projectDetails),
+				launchesLimit
+		);
 		return itemAttributeRepository.findAllKeysByLaunchFilter(queryablePair.getKey(),
 				queryablePair.getValue(),
 				isLatest,

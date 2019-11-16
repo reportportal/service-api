@@ -30,11 +30,13 @@ import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import org.apache.commons.lang3.tuple.Pair;
+import com.epam.ta.reportportal.ws.param.HistoryProviderFactory;
+import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,28 +66,33 @@ public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler impl
 
 	private final TestItemRepository testItemRepository;
 	private final TestItemResourceAssembler itemResourceAssembler;
+	private final HistoryProviderFactory historyProviderFactory;
 
 	@Autowired
 	public TestItemsHistoryHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			TestItemResourceAssembler itemResourceAssembler, GetShareableEntityHandler<UserFilter> getShareableEntityHandler) {
-		super(launchRepository, getShareableEntityHandler);
+			TestItemResourceAssembler itemResourceAssembler, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+			HistoryProviderFactory historyProviderFactory) {
+		super(launchRepository);
 		this.testItemRepository = testItemRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
+		this.historyProviderFactory = historyProviderFactory;
 	}
 
 	@Override
 	public Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, Queryable filter,
-			Pageable pageable, int historyDepth) {
+			Pageable pageable, HistoryRequestParams historyRequestParams, ReportPortalUser user) {
 
-		validateHistoryDepth(historyDepth);
+		validateHistoryDepth(historyRequestParams.getHistoryDepth());
 
+		validateProjectRole(projectDetails, user);
 		filter.getFilterConditions()
 				.add(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
-		Page<TestItemHistory> testItemHistoryPage = testItemRepository.loadItemsHistoryPage(filter,
-				pageable,
-				projectDetails.getProjectId(),
-				historyDepth
-		);
+
+		Page<TestItemHistory> testItemHistoryPage = historyProviderFactory.getProvider(historyRequestParams)
+				.orElseThrow(() -> new ReportPortalException(UNABLE_LOAD_TEST_ITEM_HISTORY,
+						"Unable to find suitable history baseline provider"
+				))
+				.provide(filter, pageable, projectDetails, historyRequestParams);
 
 		return buildHistoryElements(testItemHistoryPage, pageable);
 
@@ -99,17 +106,6 @@ public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler impl
 				MAX_HISTORY_DEPTH_BOUND
 		).get();
 		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
-	}
-
-	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,
-			ReportPortalUser.ProjectDetails projectDetails, Long launchFilterId, boolean isLatest, int launchesLimit) {
-		Pair<Queryable, Pageable> queryablePair = createQueryablePair(projectDetails, launchFilterId, launchesLimit);
-		return testItemRepository.findByFilter(isLatest,
-				queryablePair.getKey(),
-				testItemFilter,
-				queryablePair.getRight(),
-				testItemPageable
-		);
 	}
 
 	private Iterable<TestItemHistoryElement> buildHistoryElements(Page<TestItemHistory> testItemHistoryPage, Pageable pageable) {

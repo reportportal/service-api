@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,8 +36,6 @@ import org.springframework.data.domain.PageRequest;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
-import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -65,7 +64,8 @@ class TestItemsHistoryHandlerImplTest {
 								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
 								.build(),
 						PageRequest.of(0, 10),
-						MIN_HISTORY_DEPTH_BOUND - 1
+						HistoryRequestParams.of(1, 1L, 1L, 1, false),
+						rpUser
 				)
 		);
 	}
@@ -81,7 +81,8 @@ class TestItemsHistoryHandlerImplTest {
 								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
 								.build(),
 						PageRequest.of(0, 10),
-						MAX_HISTORY_DEPTH_BOUND
+						HistoryRequestParams.of(1, 1L, 1L, 1, false),
+						rpUser
 				)
 		);
 	}

@@ -91,7 +91,8 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
 					user.getUsername(),
 					projectDetails.getProjectId()
-			), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
+			), BooleanUtils::isFalse)
+					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, updateRQ.getName());
 		}
 
 		WidgetActivityResource before = TO_ACTIVITY_RESOURCE.apply(widget);
@@ -102,15 +103,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
 
-		if (before.isShared() != widget.isShared()) {
-			aclHandler.updateAcl(widget, projectDetails.getProjectId(), widget.isShared());
-			if (widget.isShared()) {
-				ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
-						projectDetails.getProjectId(),
-						true
-				));
-			}
-		}
+		updateSharing(widget, projectDetails.getProjectId(), updateRQ.getShare());
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(widget),
@@ -124,18 +117,20 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 
 	@Override
 	public void updateSharing(Collection<Widget> widgets, Long projectId, boolean isShared) {
-		widgets.forEach(widget -> {
-			if (isShared != widget.isShared()) {
-				widget.setShared(isShared);
-				aclHandler.updateAcl(widget, projectId, widget.isShared());
-				if (widget.isShared()) {
-					ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
-							projectId,
-							widget.isShared()
-					));
-				}
-			}
-		});
+		widgets.forEach(widget -> updateSharing(widget, projectId, isShared));
+	}
+
+	private void updateSharing(Widget widget, Long projectId, boolean shared) {
+		if (shared != widget.isShared()) {
+			widget.setShared(shared);
+			aclHandler.updateAcl(widget, projectId, widget.isShared());
+		}
+		if (widget.isShared()) {
+			ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
+					projectId,
+					widget.isShared()
+			));
+		}
 	}
 
 	private List<UserFilter> getUserFilters(List<Long> filterIds, Long projectId, String username) {

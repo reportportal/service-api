@@ -26,9 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -43,7 +43,7 @@ public class CleanExpiredCreationBidsJob implements Job {
 	@Override
 	@Transactional
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		int deletedCount = repository.expireBidsOlderThan(Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC)));
+		int deletedCount = repository.expireBidsOlderThan(TO_DATE.apply(LocalDateTime.now().minusDays(1)));
 		LOGGER.info("Cleaning expired user creation bids finished. Deleted {} bids", deletedCount);
 	}
 }

@@ -31,10 +31,10 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,8 +85,8 @@ class TestItemBuilderTest {
 		rq.setUniqueId(uuid);
 		final String description = "description";
 		rq.setDescription(description);
-		final LocalDateTime now = LocalDateTime.now();
-		rq.setStartTime(Date.from(now.atZone(ZoneId.of("UTC")).toInstant()));
+		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+		rq.setStartTime(TO_DATE.apply(now));
 		final String name = "name";
 		rq.setName(name);
 

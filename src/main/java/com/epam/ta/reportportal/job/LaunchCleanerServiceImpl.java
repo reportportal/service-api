@@ -24,12 +24,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -52,8 +50,9 @@ public class LaunchCleanerServiceImpl implements LaunchCleanerService {
 	@Transactional
 	public void cleanOutdatedLaunches(Project project, Duration period, AtomicLong launchesRemoved) {
 		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-		launchesRemoved.addAndGet(launchRepository.deleteLaunchesByProjectIdModifiedBefore(project.getId(),
-				TO_LOCAL_DATE_TIME.apply(Date.from(Instant.now().minusSeconds(period.getSeconds())))
+		launchesRemoved.addAndGet(launchRepository.deleteLaunchesByProjectIdModifiedBefore(
+				project.getId(),
+				LocalDateTime.now(ZoneOffset.UTC).minusSeconds(period.getSeconds())
 		));
 	}
 }

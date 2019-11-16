@@ -40,7 +40,7 @@ public abstract class AbstractStatisticsContentLoader {
 	 * @param period
 	 * @return
 	 */
-	protected Map<String, ChartStatisticsContent> groupByDate(List<ChartStatisticsContent> input, Period period) {
+	Map<String, ChartStatisticsContent> groupByDate(List<ChartStatisticsContent> input, Period period) {
 
 		final LongSummaryStatistics statistics = input.stream().mapToLong(object -> object.getStartTime().getTime()).summaryStatistics();
 		final DateTime start = new DateTime(statistics.getMin());
@@ -68,11 +68,10 @@ public abstract class AbstractStatisticsContentLoader {
 		return chart;
 	}
 
-	protected Map<String, ChartStatisticsContent> maxByDate(List<ChartStatisticsContent> statisticsContents, Period period,
-			String contentField) {
+	Map<String, ChartStatisticsContent> maxByDate(List<ChartStatisticsContent> statisticsContents, Period period, String contentField) {
 		final Function<ChartStatisticsContent, String> chartObjectToDate = chartObject -> new DateTime(chartObject.getStartTime().getTime())
 				.toString(DATE_PATTERN);
-		final BinaryOperator<ChartStatisticsContent> chartObjectReducer = (o1, o2) -> Integer.valueOf(o1.getValues().get(contentField)) > Integer.valueOf(o2.getValues().get(contentField)) ?
+		final BinaryOperator<ChartStatisticsContent> chartObjectReducer = (o1, o2) -> Integer.parseInt(o1.getValues().get(contentField)) > Integer.parseInt(o2.getValues().get(contentField)) ?
 				o1 :
 				o2;
 		final Map<String, Optional<ChartStatisticsContent>> groupByDate = statisticsContents.stream()
@@ -106,7 +105,7 @@ public abstract class AbstractStatisticsContentLoader {
 					.flatMap(Collection::stream)
 					.collect(Collectors.toMap(Map.Entry::getKey,
 							entry -> ofNullable(entry.getValue()).orElse("0"),
-							(prev, curr) -> prev = String.valueOf(Double.valueOf(prev) + Double.valueOf(curr))
+							(prev, curr) -> prev = String.valueOf(Double.parseDouble(prev) + Double.parseDouble(curr))
 					));
 
 			content.setValues(values);
@@ -169,16 +168,16 @@ public abstract class AbstractStatisticsContentLoader {
 			this.value = value;
 		}
 
-		public int getValue() {
-			return value;
-		}
-
 		public static boolean isPresent(String name) {
 			return findByName(name).isPresent();
 		}
 
 		public static Optional<Period> findByName(String name) {
 			return Arrays.stream(Period.values()).filter(time -> time.name().equalsIgnoreCase(name)).findAny();
+		}
+
+		public int getValue() {
+			return value;
 		}
 	}
 }

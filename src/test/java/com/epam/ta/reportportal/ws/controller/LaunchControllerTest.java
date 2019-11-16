@@ -46,6 +46,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
@@ -102,7 +103,9 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void getLaunchUuidPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().is(200));
 	}
 
 	@Test
@@ -154,7 +157,7 @@ class LaunchControllerTest extends BaseMvcTest {
 	@Test
 	void finishLaunch() throws Exception {
 		final FinishExecutionRQ finishExecutionRQ = new FinishExecutionRQ();
-		finishExecutionRQ.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		finishExecutionRQ.setEndTime(TO_DATE.apply(LocalDateTime.now()));
 		finishExecutionRQ.setStatus(StatusEnum.PASSED.name());
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/launch/befef834-b2ef-4acf-aea3-b5a5b15fd93c/finish").contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getDefaultToken()))

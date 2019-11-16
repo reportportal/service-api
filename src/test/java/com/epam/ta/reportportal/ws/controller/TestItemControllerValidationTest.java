@@ -25,10 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.UUID;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.*;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -47,15 +46,16 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 
 	private static final String FIELD_NAME_SIZE_MESSAGE = "Field 'name' should have size from '1' to '1,024'.";
 
-	private static final String LONG_NAME_VALUE = "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
-			+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt";
+	private static final String LONG_NAME_VALUE =
+			"ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+					+ "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt";
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -66,11 +66,9 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		StartTestItemRQ startTestItemRQ = prepareTestItem();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
@@ -85,16 +83,17 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
 		assertEquals(INCORRECT_REQUEST, error.getErrorType());
-		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+		assertEquals(
+				INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ",
+				error.getMessage()
+		);
 	}
 
 	@Test
@@ -104,16 +103,17 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
 		assertEquals(INCORRECT_REQUEST, error.getErrorType());
-		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+		assertEquals(
+				INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ",
+				error.getMessage()
+		);
 	}
 
 	@Test
@@ -123,11 +123,9 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
@@ -141,11 +139,10 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		StartTestItemRQ startTestItemRQ = prepareTestItem();
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(
+				DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
@@ -160,16 +157,18 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setName(EMPTY);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(
+				DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
 		assertEquals(INCORRECT_REQUEST, error.getErrorType());
-		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+		assertEquals(
+				INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ",
+				error.getMessage()
+		);
 	}
 
 	@Test
@@ -179,16 +178,18 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setName(WHITESPACES_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(
+				DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
 		assertEquals(INCORRECT_REQUEST, error.getErrorType());
-		assertEquals(INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ", error.getMessage());
+		assertEquals(
+				INCORRECT_REQUEST_MESSAGE + "[" + FIELD_NAME_IS_BLANK_MESSAGE + " " + FIELD_NAME_SIZE_MESSAGE + "] ",
+				error.getMessage()
+		);
 	}
 
 	@Test
@@ -198,11 +199,10 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setName(LONG_NAME_VALUE);
 
 		//WHEN
-		MvcResult mvcResult = mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH)
-				.with(token(oAuthHelper.getDefaultToken()))
+		MvcResult mvcResult = mockMvc.perform(post(
+				DEFAULT_PROJECT_BASE_URL + ITEM_PATH + PARENT_ID_PATH).with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(startTestItemRQ))
-				.contentType(APPLICATION_JSON))
-				.andExpect(status().isBadRequest()).andReturn();
+				.contentType(APPLICATION_JSON)).andExpect(status().isBadRequest()).andReturn();
 
 		//THEN
 		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
@@ -215,7 +215,7 @@ public class TestItemControllerValidationTest extends BaseMvcTest {
 		startTestItemRQ.setLaunchUuid("a7b66ef2-db30-4db7-94df-f5f7786b398a");
 		startTestItemRQ.setType("SUITE");
 		startTestItemRQ.setUniqueId(UUID.randomUUID().toString());
-		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		startTestItemRQ.setStartTime(TO_DATE.apply(LocalDateTime.now()));
 		return startTestItemRQ;
 	}
 }

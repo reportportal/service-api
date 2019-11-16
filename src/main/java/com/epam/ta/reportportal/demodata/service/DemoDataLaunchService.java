@@ -33,12 +33,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 
@@ -48,12 +48,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 @Service
 public class DemoDataLaunchService {
 
-	private final LaunchRepository launchRepository;
-
-	private final TestItemRepository testItemRepository;
-
 	private final static LocalDateTime lastLaunchTime = LocalDateTime.now();
-
+	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
 	private String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
 			"windows 10", "windows 7", "windows server", "debian", "alpine" };
 
@@ -73,9 +70,9 @@ public class DemoDataLaunchService {
 			LocalDateTime now = LocalDateTime.now();
 			rq.setName(name);
 			if (now.isAfter(lastLaunchTime)) {
-				rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+				rq.setStartTime(TO_DATE.apply(now));
 			} else {
-				rq.setStartTime(Date.from(lastLaunchTime.plusSeconds(3).atZone(ZoneId.systemDefault()).toInstant()));
+				rq.setStartTime(TO_DATE.apply(lastLaunchTime.plusSeconds(3)));
 			}
 			rq.setUuid(UUID.randomUUID().toString());
 			Set<ItemAttributesRQ> attributes = Sets.newHashSet(

@@ -1,12 +1,15 @@
-apply plugin: 'findbugs'
+apply plugin: 'com.github.spotbugs'
 
-findbugs {
+spotbugs {
+    toolVersion = '3.1.12'
     sourceSets = [sourceSets.main]
-    reportLevel = "high"
+    effort = 'max'
+    reportLevel = 'high'
 }
-tasks.withType(org.gradle.api.plugins.quality.FindBugs) {
+
+spotbugsMain {
     reports {
-        xml.enabled false
-        html.enabled true
+        html.enabled(true)
+        xml.enabled(false)
     }
 }

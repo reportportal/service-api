@@ -25,10 +25,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.UUID;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,7 +47,7 @@ class LogControllerTest extends BaseMvcTest {
 		rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
 		rq.setLevel("ERROR");
 		rq.setMessage("log message");
-		rq.setLogTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setLogTime(TO_DATE.apply(LocalDateTime.now()));
 		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/log").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
@@ -72,7 +71,9 @@ class LogControllerTest extends BaseMvcTest {
 
 	@Test
 	void getLogUuidPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test

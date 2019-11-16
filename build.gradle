@@ -146,7 +146,7 @@ dependencies {
     compile 'io.springfox:springfox-swagger2'
 
     ///// Security
-    compile 'org.springframework.security.oauth:spring-security-oauth2:2.3.6.RELEASE'
+    compile 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
     compile 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
     compile 'org.springframework.security:spring-security-acl'
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'

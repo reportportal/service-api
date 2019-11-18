@@ -29,7 +29,7 @@ plugins {
     id "io.spring.dependency-management" version "1.0.7.RELEASE"
     id "org.springframework.boot" version "2.1.5.RELEASE"
     id "de.undercouch.download" version "4.0.1"
-    id 'net.researchgate.release' version '2.8.0'
+    id 'net.researchgate.release' version '2.8.1'
     id "com.jfrog.bintray" version "1.8.4"
     id 'java'
     id 'jacoco'

@@ -11,11 +11,13 @@ public class HistoryRequestParams {
 
 	private int historyDepth;
 	private Long parentId;
+	private Long launchId;
 	private FilterParams filterParams;
 
-	private HistoryRequestParams(int historyDepth, Long parentId, Long filterId, int launchesLimit, boolean isLatest) {
+	private HistoryRequestParams(int historyDepth, Long parentId, Long launchId, Long filterId, int launchesLimit, boolean isLatest) {
 		this.historyDepth = historyDepth;
 		this.parentId = parentId;
+		this.launchId = launchId;
 		ofNullable(filterId).ifPresent(id -> this.filterParams = FilterParams.of(filterId, launchesLimit, isLatest));
 	}
 
@@ -60,7 +62,12 @@ public class HistoryRequestParams {
 		return ofNullable(parentId);
 	}
 
-	public static HistoryRequestParams of(int historyDepth, Long parentId, Long filterId, int launchesLimit, boolean isLatest) {
-		return new HistoryRequestParams(historyDepth, parentId, filterId, launchesLimit, isLatest);
+	public Optional<Long> getLaunchId() {
+		return ofNullable(launchId);
+	}
+
+	public static HistoryRequestParams of(int historyDepth, Long parentId, Long launchId, Long filterId, int launchesLimit,
+			boolean isLatest) {
+		return new HistoryRequestParams(historyDepth, parentId, launchId, filterId, launchesLimit, isLatest);
 	}
 }

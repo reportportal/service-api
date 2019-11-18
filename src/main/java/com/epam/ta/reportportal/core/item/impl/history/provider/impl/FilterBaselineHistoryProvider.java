@@ -1,12 +1,14 @@
-package com.epam.ta.reportportal.ws.param;
+package com.epam.ta.reportportal.core.item.impl.history.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
+import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,8 +32,8 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 	}
 
 	@Override
-	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			HistoryRequestParams historyRequestParams) {
+	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return historyRequestParams.getFilterParams()
 				.map(filterParams -> this.getItemsWithLaunchesFiltering(filter,
 						pageable,
@@ -40,7 +42,6 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 						historyRequestParams.getHistoryDepth()
 				))
 				.orElseGet(() -> Page.empty(pageable));
-
 	}
 
 	private Page<TestItemHistory> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,

@@ -22,20 +22,17 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
-import com.epam.ta.reportportal.core.item.impl.AbstractGetTestItemHandler;
-import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProviderFactory;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
+import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.ws.param.HistoryProviderFactory;
 import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,6 +47,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
@@ -57,22 +57,20 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.*;
 
 /**
- * Creating items history based on {@link TestItem#uniqueId} field
+ * Creating items history based on {@link TestItem#getTestCaseId()} field
  *
  * @author Pavel Bortnik
  */
 @Service
-public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler implements TestItemsHistoryHandler {
+public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private final TestItemRepository testItemRepository;
 	private final TestItemResourceAssembler itemResourceAssembler;
 	private final HistoryProviderFactory historyProviderFactory;
 
 	@Autowired
-	public TestItemsHistoryHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			TestItemResourceAssembler itemResourceAssembler, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemResourceAssembler,
 			HistoryProviderFactory historyProviderFactory) {
-		super(launchRepository);
 		this.testItemRepository = testItemRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
 		this.historyProviderFactory = historyProviderFactory;
@@ -92,7 +90,7 @@ public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler impl
 				.orElseThrow(() -> new ReportPortalException(UNABLE_LOAD_TEST_ITEM_HISTORY,
 						"Unable to find suitable history baseline provider"
 				))
-				.provide(filter, pageable, projectDetails, historyRequestParams);
+				.provide(filter, pageable, historyRequestParams, projectDetails, user);
 
 		return buildHistoryElements(testItemHistoryPage, pageable);
 
@@ -106,6 +104,12 @@ public class TestItemsHistoryHandlerImpl extends AbstractGetTestItemHandler impl
 				MAX_HISTORY_DEPTH_BOUND
 		).get();
 		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
+	}
+
+	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
+		}
 	}
 
 	private Iterable<TestItemHistoryElement> buildHistoryElements(Page<TestItemHistory> testItemHistoryPage, Pageable pageable) {

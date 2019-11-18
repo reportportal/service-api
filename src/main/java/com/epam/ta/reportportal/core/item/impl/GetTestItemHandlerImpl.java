@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -53,11 +52,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
+import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -68,9 +71,11 @@ import static java.util.stream.Collectors.toList;
  * @author Aliaksei Makayed
  */
 @Service
-class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTestItemHandler {
+class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
+
+	private final LaunchAccessValidator launchAccessValidator;
 
 	private final ItemAttributeRepository itemAttributeRepository;
 
@@ -81,12 +86,11 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
 	@Autowired
-	public GetTestItemHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler,
-			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchAccessValidator launchAccessValidator,
+			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler, TicketRepository ticketRepository,
 			GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
-		super(launchRepository);
 		this.testItemRepository = testItemRepository;
+		this.launchAccessValidator = launchAccessValidator;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.itemResourceAssembler = itemResourceAssembler;
 		this.ticketRepository = ticketRepository;
@@ -97,7 +101,7 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 	public TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		validate(testItem.getLaunchId(), projectDetails, user);
+		launchAccessValidator.validate(testItem.getLaunchId(), projectDetails, user);
 		return itemResourceAssembler.toResource(testItem);
 	}
 
@@ -105,7 +109,7 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 	public TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findByUuid(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		validate(testItem.getLaunchId(), projectDetails, user);
+		launchAccessValidator.validate(testItem.getLaunchId(), projectDetails, user);
 		return itemResourceAssembler.toResource(testItem);
 	}
 
@@ -120,7 +124,7 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 			validateProjectRole(projectDetails, user);
 			return getItemsWithLaunchesFiltering(filter, pageable, projectDetails, launchFilterId, isLatest, launchesLimit);
 		}).orElseGet(() -> launchIdOptional.map(id -> {
-			validate(id, projectDetails, user);
+			launchAccessValidator.validate(id, projectDetails, user);
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
 
@@ -129,6 +133,12 @@ class GetTestItemHandlerImpl extends AbstractGetTestItemHandler implements GetTe
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
 				pathNamesMapping.get(item.getItemId())
 		)).apply(testItemPage);
+	}
+
+	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
+		}
 	}
 
 	private Page<TestItem> getItemsWithLaunchesFiltering(Queryable testItemFilter, Pageable testItemPageable,

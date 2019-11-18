@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.springframework.stereotype.Service;
 
 import java.util.function.Predicate;
 
@@ -18,15 +19,17 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public abstract class AbstractGetTestItemHandler {
+@Service
+public class LaunchAccessValidatorImpl implements LaunchAccessValidator {
 
 	private final LaunchRepository launchRepository;
 
-	protected AbstractGetTestItemHandler(LaunchRepository launchRepository) {
+	public LaunchAccessValidatorImpl(LaunchRepository launchRepository) {
 		this.launchRepository = launchRepository;
 	}
 
-	protected void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	@Override
+	public void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
@@ -38,12 +41,6 @@ public abstract class AbstractGetTestItemHandler {
 			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
 					Predicate.isEqual(false)
 			).verify(ACCESS_DENIED);
-		}
-	}
-
-	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
 		}
 	}
 

@@ -22,8 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_INDEX;
-import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.ANALYZER_PRIORITY;
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -56,9 +55,10 @@ class AnalyzerUtilsTest {
 		ExchangeInfo mock = mock(ExchangeInfo.class);
 		when(mock.getArguments()).thenReturn(ImmutableMap.<String, Object>builder().put(ANALYZER_PRIORITY, "abracadabra")
 				.put(ANALYZER_INDEX, "666")
+				.put(ANALYZER_LOG_SEARCH, "666")
 				.build());
 		assertEquals(Integer.MAX_VALUE, AnalyzerUtils.EXCHANGE_PRIORITY.applyAsInt(mock));
 		assertFalse(AnalyzerUtils.DOES_SUPPORT_INDEX.test(mock));
+		assertFalse(DOES_SUPPORT_SEARCH.test(mock));
 	}
-
 }

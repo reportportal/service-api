@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -43,9 +44,9 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  **/
 class CleanOutdatedPluginsJobTest {
 
-	public static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
+	private static final String PLUGIN_TEMP_DIRECTORY = "/temp/";
 
-	private String pluginsRootPath = "plugins";
+	private String pluginsRootPath = System.getProperty("java.io.tmpdir") + "/plugins";
 
 	private IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
@@ -68,11 +69,13 @@ class CleanOutdatedPluginsJobTest {
 	void testExecutionWithoutPluginInCache() throws IOException {
 
 		File dir = new File(pluginsRootPath + PLUGIN_TEMP_DIRECTORY);
-		dir.mkdirs();
+		if (!dir.exists()) {
+			assertTrue(dir.mkdirs());
+		}
 
 		File file = new File(dir, "qwe.jar");
 
-		file.createNewFile();
+		assertTrue(file.createNewFile());
 
 		when(pluginBox.isInUploadingState(any(String.class))).thenReturn(false);
 
@@ -83,7 +86,9 @@ class CleanOutdatedPluginsJobTest {
 	void testExecutionWithPluginInCache() throws IOException {
 
 		File dir = new File(pluginsRootPath + PLUGIN_TEMP_DIRECTORY);
-		dir.mkdirs();
+		if (!dir.exists()) {
+			assertTrue(dir.mkdirs());
+		}
 
 		File file = File.createTempFile("test", ".jar", dir);
 

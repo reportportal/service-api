@@ -16,9 +16,11 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import com.epam.ta.reportportal.core.configs.Conditions;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -29,6 +31,7 @@ import java.util.List;
  * @author Konstantin Antipin
  */
 @Component
+@Conditional(Conditions.NotTestCondition.class)
 public class ReportingStartupService {
 
     @Autowired

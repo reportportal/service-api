@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +45,7 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Conditional(Conditions.NotTestCondition.class)
 @Service
 public class CleanOutdatedPluginsJob {
 

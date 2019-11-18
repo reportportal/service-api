@@ -49,8 +49,6 @@ class GetProjectSettingsHandlerImplTest {
 
 	@Test
 	void getProjectSettingOnNotExistProject() {
-		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
 		when(repository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.empty());
 

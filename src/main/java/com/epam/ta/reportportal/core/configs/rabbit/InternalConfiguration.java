@@ -102,17 +102,17 @@ public class InternalConfiguration {
 
 	@Bean
 	public Queue pluginsPongQueue() {
-		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_PLUGINS_PONG + "."));
+		return new AnonymousQueue(new Base64UrlNamingStrategy(KEY_PLUGINS_PONG + "."));
 	}
 
 	@Bean
 	public Queue pluginsPingQueue() {
-		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_PLUGINS_PING + "."));
+		return new AnonymousQueue(new Base64UrlNamingStrategy(KEY_PLUGINS_PING + "."));
 	}
 
 	@Bean
 	public Queue eventsQueue() {
-		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_EVENTS + "."));
+		return new AnonymousQueue(new Base64UrlNamingStrategy(KEY_EVENTS + "."));
 	}
 
 	@Bean

@@ -31,7 +31,6 @@ import com.epam.ta.reportportal.ws.model.ValidationConstraints;
 import com.epam.ta.reportportal.ws.model.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -126,7 +125,8 @@ class UserControllerTest extends BaseMvcTest {
 		MvcResult mvcResult = mockMvc.perform(post("/v1/user/bid").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated()).andReturn();
-		CreateUserBidRS createUserBidRS = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), CreateUserBidRS.class);
+
+		CreateUserBidRS createUserBidRS = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), CreateUserBidRS.class);
 		assertNotNull(createUserBidRS.getBackLink());
 		assertNotNull(createUserBidRS.getBid());
 		assertTrue(createUserBidRS.getBackLink().contains("/ui/#registration?uuid=" + createUserBidRS.getBid()));
@@ -234,7 +234,7 @@ class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	void getUserPositiveUsingApiToken() throws Exception {
-		mockMvc.perform(get("/v1/user/default").with(token("3a402a94-ed35-4be7-bbed-975fbde2f76d"))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/user/default").with(token("665bbbed-332f-4e94-ad69-73f7cf575159"))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -332,7 +332,7 @@ class UserControllerTest extends BaseMvcTest {
 		MvcResult mvcResult = mockMvc.perform(get("/v1/user/search?term=e").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
 				.andReturn();
-		Page userResources = new Gson().fromJson(mvcResult.getResponse().getContentAsString(), Page.class);
+		Page userResources = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Page.class);
 
 		Assertions.assertNotNull(userResources);
 		Assertions.assertEquals(2, userResources.getContent().size());

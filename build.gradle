@@ -124,6 +124,14 @@ dependencies {
     testCompile 'org.flywaydb.flyway-test-extensions:flyway-spring-test:6.0.0'
 }
 
+processResources {
+    filesMatching('application.properties') {
+        expand(project.properties)
+    }
+}
+
+processResources.dependsOn(gitInfo)
+
 wrapper {
     gradleVersion = '5.4.1'
 }

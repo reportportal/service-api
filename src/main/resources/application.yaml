@@ -1,9 +1,3 @@
-info:
-  build:
-    version: '@version@'
-    description: ReportPortal API Service
-    name: API Service
-
 spring:
   application:
     name: api

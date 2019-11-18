@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +74,6 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	}
 
 	@Override
-	@Async
 	@Transactional
 	public void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount) {
 		Date endDate = Date.from(Instant.now().minusSeconds(MIN_DELAY.getSeconds()));
@@ -115,7 +113,6 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	}
 
 	@Override
-	@Async
 	@Transactional
 	public void removeProjectAttachments(Project project, Duration period, AtomicLong removedAttachmentsCount,
 			AtomicLong removedThumbnailsCount) {

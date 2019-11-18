@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        dependencies {
-            if (project.hasProperty('sealightsSession')) {
-                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
-            }
-        }
-    }
-}
-
 if (project.hasProperty('sealightsSession')) {
     apply plugin: 'io.sealights.on-premise.agents.plugin.sealights-gradle-plugin'
     sealights {

@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
-import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
+import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
@@ -40,13 +41,14 @@ public class AttachmentConsumer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(AttachmentConsumer.class);
 
-	private final AttachmentBinaryDataService attachmentBinaryDataService;
+	private final DataStoreService dataStoreService;
 
 	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
-	public AttachmentConsumer(AttachmentBinaryDataService attachmentBinaryDataService, AttachmentRepository attachmentRepository) {
-		this.attachmentBinaryDataService = attachmentBinaryDataService;
+	public AttachmentConsumer(@Qualifier("attachmentDataStoreService") DataStoreService dataStoreService,
+			AttachmentRepository attachmentRepository) {
+		this.dataStoreService = dataStoreService;
 		this.attachmentRepository = attachmentRepository;
 	}
 
@@ -56,14 +58,13 @@ public class AttachmentConsumer {
 		List<Long> ids = Lists.newArrayListWithExpectedSize(event.getIds().size());
 		event.getIds().forEach(id -> attachmentRepository.findById(id).ifPresent(a -> {
 			try {
-				ofNullable(a.getFileId()).ifPresent(attachmentBinaryDataService::delete);
-				ofNullable(a.getThumbnailId()).ifPresent(attachmentBinaryDataService::delete);
+				ofNullable(a.getFileId()).ifPresent(dataStoreService::delete);
+				ofNullable(a.getThumbnailId()).ifPresent(dataStoreService::delete);
 				ids.add(id);
 			} catch (Exception e) {
 				LOGGER.error(Suppliers.formattedSupplier("Error during removing attachment with id = {}", id).get());
 			}
 		}));
-
 		attachmentRepository.deleteAllByIds(ids);
 	}
 }

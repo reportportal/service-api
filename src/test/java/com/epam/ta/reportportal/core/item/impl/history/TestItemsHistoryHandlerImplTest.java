@@ -64,7 +64,7 @@ class TestItemsHistoryHandlerImplTest {
 								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
 								.build(),
 						PageRequest.of(0, 10),
-						HistoryRequestParams.of(1, 1L, 1L, 1, false),
+						HistoryRequestParams.of(1, 1L, 1L, 1L, 1, false),
 						rpUser
 				)
 		);
@@ -81,7 +81,7 @@ class TestItemsHistoryHandlerImplTest {
 								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
 								.build(),
 						PageRequest.of(0, 10),
-						HistoryRequestParams.of(1, 1L, 1L, 1, false),
+						HistoryRequestParams.of(1, 1L, 1L, 1L, 1, false),
 						rpUser
 				)
 		);

@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +25,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.core.logging.HelperUtil.checkLoggingRecords;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class HttpLoggingAspectTest {
 	private static HelperController proxy;
 
@@ -36,8 +39,10 @@ class HttpLoggingAspectTest {
 
 	private static Logger logger;
 
+	@Mock
 	private static Appender<ILoggingEvent> appender;
 
+	@Mock
 	private static HttpLogging annotation;
 
 	private static String requestLog;
@@ -47,7 +52,7 @@ class HttpLoggingAspectTest {
 	private static AtomicLong COUNT = new AtomicLong();
 
 	@BeforeAll
-	public static void beforeAll() {
+	static void beforeAll() {
 		aspect = new HttpLoggingAspect();
 		ReflectionTestUtils.setField(aspect, "objectMapper", new ObjectMapper());
 
@@ -73,16 +78,14 @@ class HttpLoggingAspectTest {
 	}
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		logger.detachAndStopAllAppenders();
-		appender = mock(Appender.class);
 		logger.addAppender(appender);
 	}
 
 	@Test
-	public void testFull() throws Exception {
+	void testFull() throws Exception {
 
-		annotation = mock(HttpLogging.class);
 		when(annotation.logHeaders()).thenReturn(true);
 		when(annotation.logRequestBody()).thenReturn(true);
 		when(annotation.logResponseBody()).thenReturn(true);
@@ -96,9 +99,8 @@ class HttpLoggingAspectTest {
 	}
 
 	@Test
-	public void testWithoutHeaders() throws Exception {
+	void testWithoutHeaders() throws Exception {
 
-		annotation = mock(HttpLogging.class);
 		when(annotation.logHeaders()).thenReturn(false);
 		when(annotation.logRequestBody()).thenReturn(true);
 		when(annotation.logResponseBody()).thenReturn(true);
@@ -112,9 +114,8 @@ class HttpLoggingAspectTest {
 	}
 
 	@Test
-	public void testWithoutBody() throws Exception {
+	void testWithoutBody() throws Exception {
 
-		annotation = mock(HttpLogging.class);
 		when(annotation.logHeaders()).thenReturn(true);
 		when(annotation.logRequestBody()).thenReturn(false);
 		when(annotation.logResponseBody()).thenReturn(false);
@@ -127,7 +128,8 @@ class HttpLoggingAspectTest {
 		checkLoggingRecords(appender, 2, new Level[] { Level.DEBUG, Level.DEBUG }, requestLog, responseLog);
 	}
 
-	private void formatRequestResponseAndPrint(long count, String prefix, HttpServletRequest request, ResponseEntity response) throws Exception {
+	private void formatRequestResponseAndPrint(long count, String prefix, HttpServletRequest request, ResponseEntity response)
+			throws Exception {
 		requestLog = aspect.formatRequestRecord(count, prefix, request, payload, annotation);
 		responseLog = aspect.formatResponseRecord(count, prefix, response, annotation, 0L);
 		System.out.println(requestLog);

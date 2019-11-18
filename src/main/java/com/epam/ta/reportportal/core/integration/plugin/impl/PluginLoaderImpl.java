@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -81,13 +82,11 @@ public class PluginLoaderImpl implements PluginLoader {
 			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
 					.map(String::valueOf)
 					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
-							.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-									Suppliers.formattedSupplier(
-											"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
-											pluginInfo.getId(),
-											pluginInfo.getVersion()
-									)
-							));
+							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
+									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
+									pluginInfo.getId(),
+									pluginInfo.getVersion()
+							)));
 			return it;
 		}).orElseGet(() -> new IntegrationTypeBuilder().get());
 		if (integrationType.getDetails() == null) {
@@ -127,7 +126,9 @@ public class PluginLoaderImpl implements PluginLoader {
 
 	@Override
 	public void copyFromDataStore(String fileId, Path pluginPath) throws IOException {
-		Files.createDirectories(pluginPath.getParent());
+		if (Objects.nonNull(pluginPath.getParent())) {
+			Files.createDirectories(pluginPath.getParent());
+		}
 		Files.copy(dataStore.load(fileId), pluginPath);
 	}
 

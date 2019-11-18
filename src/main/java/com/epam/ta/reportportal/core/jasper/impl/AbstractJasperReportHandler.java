@@ -108,6 +108,8 @@ public abstract class AbstractJasperReportHandler<T> implements GetJasperReportH
 					jrCsvExporter.setConfiguration(csvExporterConfiguration);
 					jrCsvExporter.exportReport();
 					break;
+				default:
+					throw new UnsupportedOperationException(format.getValue());
 			}
 
 		} catch (JRException ex) {

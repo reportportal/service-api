@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
-import com.epam.ta.reportportal.ReportPortalUserUtil;
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.GetBugTrackingSystemHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
@@ -26,8 +24,6 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectRole;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import org.junit.jupiter.api.Test;
 
@@ -42,9 +38,9 @@ import static org.mockito.Mockito.when;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class GetIntegrationHandlerTest {
+class GetIntegrationHandlerTest {
 
-	private final Map<String, IntegrationService> integrationServiceMapming = mock(Map.class);
+	private final Map integrationServiceMapming = mock(Map.class);
 	private final IntegrationService basicIntegrationService = mock(IntegrationService.class);
 	private final IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
@@ -69,17 +65,14 @@ public class GetIntegrationHandlerTest {
 		project.setId(projectId);
 		project.setName(TEST_PROJECT_NAME);
 
-		final ReportPortalUser user = ReportPortalUserUtil.getRpUser("admin",
-				UserRole.ADMINISTRATOR,
-				ProjectRole.PROJECT_MANAGER,
-				projectId
-		);
-
 		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
 		when(integrationRepository.findByIdAndProjectId(emailIntegrationId,
 				projectId
-		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId, projectId)));
+		)).thenReturn(Optional.of(IntegrationTestUtil.getProjectEmailIntegration(
+				emailIntegrationId,
+				projectId
+		)));
 
 		IntegrationResource integrationResource = getIntegrationHandler.getProjectIntegrationById(emailIntegrationId, TEST_PROJECT_NAME);
 

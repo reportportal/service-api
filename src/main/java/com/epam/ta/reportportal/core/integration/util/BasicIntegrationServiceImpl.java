@@ -44,7 +44,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public class BasicIntegrationServiceImpl implements IntegrationService {
 
-	private final String TEST_CONNECTION_COMMAND = "testConnection";
+	private static final String TEST_CONNECTION_COMMAND = "testConnection";
 
 	protected IntegrationRepository integrationRepository;
 
@@ -61,7 +61,7 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return integrationParams;
 	}
 
-	public static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
+	private static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
 		if (integration.getParams() != null && integration.getParams().getParams() != null) {
 			integration.getParams().getParams().putAll(retrievedParams);
 			return integration.getParams();
@@ -117,12 +117,11 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 						integration.getType().getName()
 				));
 
-		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND))
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						"Command {} is not found in plugin {}.",
-						TEST_CONNECTION_COMMAND,
-						integration.getType().getName()
-				));
+		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+				"Command {} is not found in plugin {}.",
+				TEST_CONNECTION_COMMAND,
+				integration.getType().getName()
+		));
 
 		return (Boolean) commandToExecute.executeCommand(integration, integration.getParams().getParams());
 	}

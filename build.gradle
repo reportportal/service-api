@@ -147,7 +147,7 @@ dependencyCheck {
 
 bootJar {
     if (!releaseMode) {
-        getArchiveFileName().set("${archiveBaseName}.${archiveExtension}")
+        getArchiveFileName().set("${baseName}.${extension}")
     }
 }
 

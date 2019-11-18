@@ -16,6 +16,17 @@ import org.owasp.dependencycheck.reporting.ReportGenerator
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+        dependencies {
+            if (project.hasProperty('sealightsSession')) {
+                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
+            }
+        }
+    }
+}
+
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id "org.springframework.boot" version "2.2.0.RELEASE"

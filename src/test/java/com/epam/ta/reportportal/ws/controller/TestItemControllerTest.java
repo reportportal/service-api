@@ -211,7 +211,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getItemHistoryPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.id=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 

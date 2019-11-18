@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.ReportPortalUserUtil;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -47,9 +46,6 @@ class TestItemsHistoryHandlerImplTest {
 	@Mock
 	private TestItemRepository testItemRepository;
 
-	@Mock
-	private LaunchRepository launchRepository;
-
 	@InjectMocks
 	private TestItemsHistoryHandlerImpl handler;
 
@@ -64,7 +60,7 @@ class TestItemsHistoryHandlerImplTest {
 								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
 								.build(),
 						PageRequest.of(0, 10),
-						HistoryRequestParams.of(1, 1L, 1L, 1L, 1, false),
+						HistoryRequestParams.of(0, 1L, 1L, 1L, 1, false),
 						rpUser
 				)
 		);
@@ -81,7 +77,7 @@ class TestItemsHistoryHandlerImplTest {
 								.withCondition(FilterCondition.builder().eq(CRITERIA_ID, "1").build())
 								.build(),
 						PageRequest.of(0, 10),
-						HistoryRequestParams.of(1, 1L, 1L, 1L, 1, false),
+						HistoryRequestParams.of(31, 1L, 1L, 1L, 1, false),
 						rpUser
 				)
 		);

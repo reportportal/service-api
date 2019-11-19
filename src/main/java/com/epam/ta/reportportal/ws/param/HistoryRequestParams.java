@@ -73,7 +73,7 @@ public class HistoryRequestParams {
 		return ofNullable(launchId);
 	}
 
-	public static HistoryRequestParams of(int historyDepth, Long parentId, Long launchId, Long itemId, Long filterId, int launchesLimit,
+	public static HistoryRequestParams of(int historyDepth, Long parentId, Long itemId, Long launchId, Long filterId, int launchesLimit,
 			boolean isLatest) {
 		return new HistoryRequestParams(historyDepth, parentId, itemId, launchId, filterId, launchesLimit, isLatest);
 	}

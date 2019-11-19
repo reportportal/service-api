@@ -1,9 +1,10 @@
-FROM openjdk:8-jdk-alpine as builder
+FROM adoptopenjdk:11-jdk-hotspot-bionic as builder
 
-RUN apk add --no-cache ca-certificates git curl font-noto zip
+RUN apt-get update && \
+    apt-get install fonts-noto unzip -y
 
-RUN addgroup -S -g 1000 rp-builder
-RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
+RUN addgroup -system --gid 1000 rp-builder
+RUN adduser --disabled-password --system --ingroup rp-builder --uid 1000 --shell /bin/bash rp-builder
 
 USER rp-builder
 WORKDIR /home/rp-builder
@@ -36,7 +37,7 @@ RUN mkdir -p /home/rp-builder/plugins && \
     sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \
     sh -c "echo '${sealightsSession}' > /home/rp-builder/sealights/sealights-session.txt"
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:11-jre-slim
 
 ARG version
 
@@ -52,7 +53,8 @@ LABEL description="ReportPortal API Service: Development Version"
 ENV JAVA_OPTS="-DLOG_FILE=app.log -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
 ENV JAVA_APP=/app/app.jar
 
-RUN apk add --no-cache ca-certificates fontconfig freetype font-noto
+RUN apt-get update && \
+    apt-get install fonts-noto-core -y
 
 RUN sh -c "echo $'#!/bin/sh \n\
 exec java \$JAVA_OPTS -jar \$JAVA_APP' > /start.sh && chmod +x /start.sh"

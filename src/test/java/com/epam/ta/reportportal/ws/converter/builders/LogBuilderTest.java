@@ -22,9 +22,9 @@ import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.temporal.ChronoUnit;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,8 +39,8 @@ class LogBuilderTest {
 		final String message = "message";
 		createLogRQ.setMessage(message);
 		createLogRQ.setLevel("ERROR");
-		final LocalDateTime now = LocalDateTime.now();
-		createLogRQ.setLogTime(Date.from(now.atZone(ZoneId.of("UTC")).toInstant()));
+		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+		createLogRQ.setLogTime(TO_DATE.apply(now));
 		TestItem item = new TestItem();
 		item.setItemId(1L);
 		item.setUniqueId("uuid");

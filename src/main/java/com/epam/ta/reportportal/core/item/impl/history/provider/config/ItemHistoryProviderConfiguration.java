@@ -32,7 +32,7 @@ public class ItemHistoryProviderConfiguration implements ApplicationContextAware
 	public Map<ItemHistoryBaselineEnum, HistoryProvider> historyProviderMapping() {
 		Map<ItemHistoryBaselineEnum, HistoryProvider> mapping = new HashMap<>();
 		mapping.put(ItemHistoryBaselineEnum.FILTER, applicationContext.getBean(FilterBaselineHistoryProvider.class));
-		mapping.put(ItemHistoryBaselineEnum.PARENT, applicationContext.getBean(TestItemBaselineHistoryProvider.class));
+		mapping.put(ItemHistoryBaselineEnum.ITEM, applicationContext.getBean(TestItemBaselineHistoryProvider.class));
 		mapping.put(ItemHistoryBaselineEnum.LAUNCH, applicationContext.getBean(LaunchBaselineHistoryProvider.class));
 		return mapping;
 	}

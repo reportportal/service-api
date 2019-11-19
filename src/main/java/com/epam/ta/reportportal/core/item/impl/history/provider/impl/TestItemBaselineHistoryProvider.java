@@ -38,16 +38,19 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
-		return historyRequestParams.getParentId().map(itemId -> {
-			TestItem testItem = testItemRepository.findById(itemId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-			launchAccessValidator.validate(testItemService.getEffectiveLaunch(testItem).getId(), projectDetails, user);
+		return historyRequestParams.getParentId()
+				.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams.getHistoryDepth(), projectDetails, user))
+				.orElseGet(() -> historyRequestParams.getItemId()
+						.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams.getHistoryDepth(), projectDetails, user))
+						.orElseGet(() -> Page.empty(pageable)));
+	}
 
-			return testItemRepository.loadItemsHistoryPage(filter,
-					pageable,
-					projectDetails.getProjectId(),
-					historyRequestParams.getHistoryDepth()
-			);
-		}).orElseGet(() -> Page.empty(pageable));
+	private Page<TestItemHistory> loadHistory(Queryable filter, Pageable pageable, Long itemId, int historyDepth,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		TestItem testItem = testItemRepository.findById(itemId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
+		launchAccessValidator.validate(testItemService.getEffectiveLaunch(testItem).getId(), projectDetails, user);
+
+		return testItemRepository.loadItemsHistoryPage(filter, pageable, projectDetails.getProjectId(), historyDepth);
 	}
 }

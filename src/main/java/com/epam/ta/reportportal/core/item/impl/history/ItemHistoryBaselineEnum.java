@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 public enum ItemHistoryBaselineEnum {
 
 	FILTER(1, historyRequestParams -> historyRequestParams.getFilterParams().isPresent()),
-	PARENT(2, historyRequestParams -> historyRequestParams.getParentId().isPresent()),
+	ITEM(2, historyRequestParams -> historyRequestParams.getParentId().isPresent() || historyRequestParams.getItemId().isPresent()),
 	LAUNCH(3, historyRequestParams -> historyRequestParams.getLaunchId().isPresent());
 
 	private final int priority;

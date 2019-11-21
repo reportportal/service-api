@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
 import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEvent;
+import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -57,7 +58,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author Pavel Bortnik
  */
 @Service
-public class DeleteLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.DeleteLaunchHandler {
+public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 

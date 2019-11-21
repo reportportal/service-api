@@ -108,8 +108,9 @@ podTemplate(
                     sealightsSession = utils.execStdout("cat buildSessionId.txt")
                 }
             }
-
         }
+
+        env.BUILD_SL_SESSION = sealightsSession
 
         stage('Build Docker Image') {
             dir(appDir) {

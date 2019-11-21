@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -108,7 +109,11 @@ class GetLaunchHandlerImplTest {
 	void getLaunchNamesIncorrectInput() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), "qw"));
+		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), ""));
+		assertThrows(
+				ReportPortalException.class,
+				() -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), RandomStringUtils.random(257))
+		);
 	}
 
 	@Test

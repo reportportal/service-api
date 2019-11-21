@@ -263,7 +263,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	private String normalizeAndValidateEmail(String email) {
 		String normalizedEmail = EntityUtils.normalizeId(email.trim());
 		expect(UserUtils.isEmailValid(normalizedEmail), equalTo(true)).verify(BAD_REQUEST_ERROR, formattedSupplier("email='{}'", email));
-		Optional<User> emailUser = userRepository.findByEmail(email);
+		Optional<User> emailUser = userRepository.findByEmail(normalizedEmail);
 		expect(emailUser.isPresent(), equalTo(Boolean.FALSE)).verify(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", email));
 		return normalizedEmail;
 	}

@@ -111,6 +111,8 @@ podTemplate(
 
         }
 
+        params.put("BUILD_SL_SESSION", sealightsSession)
+
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {

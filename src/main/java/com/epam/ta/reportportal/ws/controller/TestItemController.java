@@ -68,6 +68,7 @@ import static org.springframework.http.HttpStatus.OK;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemController {
 
+	public static final String HISTORY_TYPE_PARAM = "type";
 	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
 	public static final String IS_LATEST_LAUNCHES_REQUEST_PARAM = "isLatest";
 	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
@@ -206,6 +207,7 @@ public class TestItemController {
 			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_PARENT_ID, required = false) Long parentId,
 			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ID, required = false) Long itemId,
 			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
+			@Nullable @RequestParam(value = HISTORY_TYPE_PARAM, required = false) String type,
 			@Nullable @RequestParam(value = FILTER_ID_REQUEST_PARAM, required = false) Long filterId,
 			@RequestParam(value = IS_LATEST_LAUNCHES_REQUEST_PARAM, defaultValue = "false", required = false) boolean isLatest,
 			@RequestParam(value = LAUNCHES_LIMIT_REQUEST_PARAM, defaultValue = "0", required = false) int launchesLimit,
@@ -214,7 +216,7 @@ public class TestItemController {
 		return testItemsHistoryHandler.getItemsHistory(extractProjectDetails(user, projectName),
 				new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,
-				HistoryRequestParams.of(historyDepth, parentId, itemId, launchId, filterId, launchesLimit, isLatest),
+				HistoryRequestParams.of(historyDepth, parentId, itemId, launchId, type, filterId, launchesLimit, isLatest),
 				user
 		);
 	}

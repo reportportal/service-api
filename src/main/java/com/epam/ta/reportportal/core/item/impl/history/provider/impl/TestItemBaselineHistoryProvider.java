@@ -8,6 +8,7 @@ import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
@@ -39,18 +40,32 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
 		return historyRequestParams.getParentId()
-				.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams.getHistoryDepth(), projectDetails, user))
+				.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user))
 				.orElseGet(() -> historyRequestParams.getItemId()
-						.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams.getHistoryDepth(), projectDetails, user))
+						.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user))
 						.orElseGet(() -> Page.empty(pageable)));
 	}
 
-	private Page<TestItemHistory> loadHistory(Queryable filter, Pageable pageable, Long itemId, int historyDepth,
+	private Page<TestItemHistory> loadHistory(Queryable filter, Pageable pageable, Long itemId, HistoryRequestParams historyRequestParams,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-		launchAccessValidator.validate(testItemService.getEffectiveLaunch(testItem).getId(), projectDetails, user);
+		Launch launch = testItemService.getEffectiveLaunch(testItem);
+		launchAccessValidator.validate(launch.getId(), projectDetails, user);
 
-		return testItemRepository.loadItemsHistoryPage(filter, pageable, projectDetails.getProjectId(), historyDepth);
+		return historyRequestParams.getHistoryType()
+				.filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
+				.map(type -> testItemRepository.loadItemsHistoryPage(filter,
+						pageable,
+						projectDetails.getProjectId(),
+						launch.getName(),
+						historyRequestParams.getHistoryDepth()
+				))
+				.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
+						pageable,
+						projectDetails.getProjectId(),
+						historyRequestParams.getHistoryDepth()
+				));
+
 	}
 }

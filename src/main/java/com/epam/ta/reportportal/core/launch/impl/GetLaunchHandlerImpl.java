@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -66,6 +67,8 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.*;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_LAUNCH_NAME_LENGTH;
+import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_LAUNCH_NAME_LENGTH;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEBUG;
 import static com.epam.ta.reportportal.ws.model.launch.Mode.DEFAULT;
 import static java.util.Collections.singletonMap;
@@ -78,7 +81,7 @@ import static java.util.Optional.ofNullable;
  * @author Andrei_Ramanchuk
  */
 @Service
-public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implements com.epam.ta.reportportal.core.launch.GetLaunchHandler {
+public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
@@ -179,8 +182,12 @@ public class GetLaunchHandlerImpl /*extends StatisticBasedContentLoader*/ implem
 
 	@Override
 	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		expect(value.length() > 2, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
-				formattedSupplier("Length of the launch name string '{}' is less than 3 symbols", value)
+		expect(value.length() >= MIN_LAUNCH_NAME_LENGTH && value.length() <= MAX_LAUNCH_NAME_LENGTH, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
+				formattedSupplier("Length of the launch name string '{}' is less than {} symbols or more than {} symbols",
+						value,
+						MIN_LAUNCH_NAME_LENGTH,
+						MAX_LAUNCH_NAME_LENGTH
+				)
 		);
 		return launchRepository.getLaunchNamesByModeExcludedByStatus(projectDetails.getProjectId(),
 				value,

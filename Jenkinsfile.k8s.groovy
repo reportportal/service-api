@@ -48,8 +48,6 @@ podTemplate(
         def sealightsDir = 'sealights'
 
         def branchToBuild = params.get('COMMIT_HASH', 'develop')
-        def jvmOptions = params.get('JAVA_OPTS', '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp')
-
 
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {

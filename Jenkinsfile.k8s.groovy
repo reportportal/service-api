@@ -124,7 +124,7 @@ podTemplate(
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=${jvmOptions}\" --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
             }
         }
 

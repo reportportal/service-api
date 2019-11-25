@@ -49,7 +49,6 @@ podTemplate(
 
         def branchToBuild = params.get('COMMIT_HASH', 'develop')
 
-
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
@@ -109,8 +108,6 @@ podTemplate(
                 }
             }
         }
-
-        env.BUILD_SL_SESSION = sealightsSession
 
         stage('Build Docker Image') {
             dir(appDir) {

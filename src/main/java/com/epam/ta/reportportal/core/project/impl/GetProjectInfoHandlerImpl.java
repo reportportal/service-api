@@ -52,19 +52,18 @@ import org.springframework.stereotype.Service;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.querygen.Condition.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_CREATION_DATE;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
@@ -81,10 +80,10 @@ import static java.util.stream.Collectors.*;
 @Service
 public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 
-	private DecimalFormat formatter = new DecimalFormat("###.##");
 	private static final Double WEEKS_IN_MONTH = 4.4;
 	private static final int LIMIT = 150;
-
+	private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
+			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
 	private final ProjectRepository projectRepository;
 
 	private final LaunchRepository launchRepository;
@@ -96,6 +95,7 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	private final LaunchConverter launchConverter;
 
 	private final UserRepository userRepository;
+	private DecimalFormat formatter = new DecimalFormat("###.##");
 
 	@Autowired
 	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
@@ -109,6 +109,16 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 		this.userRepository = userRepository;
 	}
 
+	/**
+	 * Utility method for calculation of start interval date
+	 *
+	 * @param interval Back interval
+	 * @return Now minus interval
+	 */
+	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
+		return LocalDateTime.now(ZoneOffset.UTC).minusMonths(interval.getCount());
+	}
+
 	@Override
 	public Iterable<ProjectInfoResource> getAllProjectsInfo(Queryable filter, Pageable pageable) {
 		return PagedResourcesAssembler.pageConverter(ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE)
@@ -118,13 +128,16 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	@Override
 	public ProjectInfoResource getProjectInfo(String projectName, String interval) {
 
-		Project project = projectRepository.findByName(projectName)
+		Project project = projectRepository.findByName(normalizeId(projectName))
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName));
 
 		InfoInterval infoInterval = InfoInterval.findByInterval(interval)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, interval));
 
-		Filter filter = projectInfoFilter(project, infoInterval);
+		Filter filter = Filter.builder()
+				.withTarget(ProjectInfo.class)
+				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_NAME, project.getName()).build())
+				.build();
 
 		Page<ProjectInfo> result = projectRepository.findProjectInfoByFilter(filter, Pageable.unpaged());
 		ProjectInfoResource projectInfoResource = ProjectSettingsConverter.TO_PROJECT_INFO_RESOURCE.apply(result.get()
@@ -202,38 +215,6 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				Collections.singletonMap(RESULT, launchConverter.TO_RESOURCE.apply(launchOptional.get())) :
 				Collections.emptyMap();
 	}
-
-	/**
-	 * Utility method for calculation of start interval date
-	 *
-	 * @param interval Back interval
-	 * @return Now minus interval
-	 */
-	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
-		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
-	}
-
-	/**
-	 * Filter that gets project info from selected date.
-	 *
-	 * @param project      Project
-	 * @param infoInterval Date interval
-	 * @return {@link Filter}
-	 */
-	private static Filter projectInfoFilter(Project project, InfoInterval infoInterval) {
-		return Filter.builder()
-				.withTarget(ProjectInfo.class)
-				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
-				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
-						false,
-						String.valueOf(getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
-						CRITERIA_PROJECT_CREATION_DATE
-				))
-				.build();
-	}
-
-	private static final Predicate<ActivityAction> ACTIVITIES_PROJECT_FILTER = it -> it == UPDATE_DEFECT || it == DELETE_DEFECT
-			|| it == LINK_ISSUE || it == LINK_ISSUE_AA || it == UNLINK_ISSUE || it == UPDATE_ITEM;
 
 	private Map<String, List<ActivityResource>> getActivities(Project project, InfoInterval infoInterval) {
 		String value = Arrays.stream(ActivityAction.values())

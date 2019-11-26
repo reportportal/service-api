@@ -92,7 +92,7 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 		return response;
 	}
 
-	private void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+	protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
 		amqpTemplate.convertAndSend(
 				EXCHANGE_REPORTING,
 				reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),

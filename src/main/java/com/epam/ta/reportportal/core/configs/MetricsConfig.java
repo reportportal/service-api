@@ -10,14 +10,18 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 
+/**
+ * Class-based metrics configuration. Place here common tags, filters, naming conventions, etc.
+ */
 @Configuration
 public class MetricsConfig {
 
-	@Autowired
+	@Autowired(required = false)
 	private BuildProperties buildProperties;
 
 	@Bean
 	public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
-		return registry -> registry.config().commonTags(Collections.singleton(Tag.of("version", buildProperties.getVersion())));
+		return registry -> registry.config()
+				.commonTags(Collections.singleton(Tag.of("version", buildProperties != null ? buildProperties.getVersion() : "")));
 	}
 }

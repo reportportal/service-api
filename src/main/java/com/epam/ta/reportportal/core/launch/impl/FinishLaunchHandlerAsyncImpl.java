@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.generateLaunchLink;
 
 /**
  * @author Konstantin Antipin
@@ -64,7 +63,6 @@ public class FinishLaunchHandlerAsyncImpl implements FinishLaunchHandler {
 
 		FinishLaunchRS response = new FinishLaunchRS();
 		response.setId(launchId);
-		response.setLink(generateLaunchLink(baseUrl, projectDetails.getProjectName(), String.valueOf(launchId)));
 		return response;
 	}
 }

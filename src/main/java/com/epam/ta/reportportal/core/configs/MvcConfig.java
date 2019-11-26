@@ -23,16 +23,11 @@ import com.epam.ta.reportportal.commons.exception.rest.RestExceptionHandler;
 import com.epam.ta.reportportal.ws.resolver.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-import io.micrometer.core.instrument.Tag;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.web.servlet.DefaultWebMvcTagsProvider;
-import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsProvider;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -54,9 +49,7 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,9 +69,6 @@ public class MvcConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private List<HttpMessageConverter<?>> converters;
-
-	@Autowired
-	private BuildProperties buildProperties;
 
 	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = { "classpath:/public/", "classpath:/META-INF/resources/",
 			"classpath:/resources/" };
@@ -239,28 +229,4 @@ public class MvcConfig implements WebMvcConfigurer {
 		}
 	}
 
-	@Bean
-	public WebMvcTagsProvider webMvcTagsProvider() {
-		return new DefaultWebMvcTagsProvider(){
-			@Override
-			public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler,
-					Throwable exception) {
-				Iterable<Tag> defaultTags = super.getTags(request, response, handler, exception);
-
-				return Iterables.concat(defaultTags, Collections.singleton(new Tag() {
-					@Nonnull
-					@Override
-					public String getKey() {
-						return "version";
-					}
-
-					@Nonnull
-					@Override
-					public String getValue() {
-						return buildProperties.getVersion();
-					}
-				}));
-			}
-		};
-	}
 }

@@ -61,7 +61,7 @@ public class FileStorageController {
 	@Transactional(readOnly = true)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping(value = "/{projectName}/{dataId}")
-	public void getFile(@PathVariable String projectName, @PathVariable("dataId") String dataId, HttpServletResponse response,
+	public void getFile(@PathVariable String projectName, @PathVariable("dataId") Long dataId, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		toResponse(response, getFileHandler.loadFileById(dataId, extractProjectDetails(user, projectName)));
 	}

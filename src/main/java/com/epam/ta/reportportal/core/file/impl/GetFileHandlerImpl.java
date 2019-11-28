@@ -75,7 +75,7 @@ public class GetFileHandlerImpl implements GetFileHandler {
 	}
 
 	@Override
-	public BinaryData loadFileById(String fileId, ReportPortalUser.ProjectDetails projectDetails) {
+	public BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails) {
 		return attachmentBinaryDataService.load(fileId, projectDetails);
 	}
 }

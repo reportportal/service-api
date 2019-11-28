@@ -72,7 +72,7 @@ podTemplate(
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "rp-report-disable", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 }
             }
         }, 'Download Sealights': {

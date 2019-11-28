@@ -42,6 +42,7 @@ class LogConverterTest {
 		testItem.setItemId(1L);
 		log.setTestItem(testItem);
 		Attachment attachment = new Attachment();
+		attachment.setId(1L);
 		attachment.setFileId("attachId");
 		attachment.setContentType("contentType");
 		attachment.setThumbnailId("thumbnailId");

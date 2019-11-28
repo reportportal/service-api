@@ -69,7 +69,7 @@ class LogConverterTest {
 		final LogResource.BinaryContent binaryContent = resource.getBinaryContent();
 
 		assertEquals(binaryContent.getContentType(), log.getAttachment().getContentType());
-		assertEquals(binaryContent.getBinaryDataId(), log.getAttachment().getId());
+		assertEquals(binaryContent.getBinaryDataId(), String.valueOf(log.getAttachment().getId()));
 		assertEquals(binaryContent.getThumbnailId(), log.getAttachment().getThumbnailId());
 	}
 }

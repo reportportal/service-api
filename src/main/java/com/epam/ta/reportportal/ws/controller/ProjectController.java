@@ -62,6 +62,7 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -284,7 +285,7 @@ public class ProjectController {
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
 
-		response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
+		response.setHeader(CONTENT_DISPOSITION,
 				String.format("attachment; filename=RP_PROJECTS_%s_Report.%s", format.name(), format.getValue())
 		);
 
@@ -300,7 +301,6 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/list/{projectName}")
 	@ResponseStatus(HttpStatus.OK)
-
 	public ProjectInfoResource getProjectInfo(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -311,7 +311,6 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping("/{projectName}/widget/{widgetCode}")
 	@ResponseStatus(HttpStatus.OK)
-
 	public Map<String, ?> getProjectWidget(@PathVariable String projectName,
 			@RequestParam(value = "interval", required = false, defaultValue = "3M") String interval, @PathVariable String widgetCode,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -322,7 +321,6 @@ public class ProjectController {
 	@PreAuthorize(ADMIN_ONLY)
 	@GetMapping(value = "/names")
 	@ResponseStatus(HttpStatus.OK)
-
 	public Iterable<String> getAllProjectNames(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAllProjectNames();
 	}
@@ -340,7 +338,6 @@ public class ProjectController {
 	@GetMapping("analyzer/status")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-
 	public Map<String, Boolean> getAnalyzerIndexingStatus(@AuthenticationPrincipal ReportPortalUser user) {
 		return getProjectHandler.getAnalyzerIndexingStatus();
 	}

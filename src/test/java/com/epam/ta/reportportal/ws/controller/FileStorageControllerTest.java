@@ -92,7 +92,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 		);
 
 		mockMvc.perform(get(
-				"/v1/data/superadmin_personal/" + binaryDataMetaInfo.get().getFileId()).with(token(oAuthHelper.getSuperadminToken())))
+				"/v1/data/superadmin_personal/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 

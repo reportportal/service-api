@@ -1,0 +1,31 @@
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+project.ext {
+    limits = [
+            'instruction': 70,
+            'branch'     : 53,
+            'line'       : 75,
+            'complexity' : 60,
+            'method'     : 65,
+            'class'      : 90
+    ]
+    isDebugMode = System.getProperty("DEBUG", "false") == "true"
+    releaseMode = project.hasProperty("releaseMode")
+    testScriptsSrc = [
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
+    ]
+    excludeTests = ['**/entity/**',
+                    '**/aop/**',
+                    '**/jasper/**',
+                    '**/configs/**',
+                    '**/demodata/**',
+                    '**/exception/**',
+                    '**/analyzer/auto/model/**'
+    ]
+}
+
+wrapper {
+    gradleVersion = '5.4.1'
+}

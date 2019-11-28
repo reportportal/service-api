@@ -92,9 +92,9 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	private final LaunchConverter launchConverter;
 
 	private final UserRepository userRepository;
-	private DecimalFormat formatter = new DecimalFormat("###.##");
 
 	private final TicketRepository ticketRepository;
+
 	private DecimalFormat formatter = new DecimalFormat("###.##");
 
 	@Autowired
@@ -137,16 +137,6 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 						CRITERIA_PROJECT_CREATION_DATE
 				))
 				.build();
-	}
-
-	/**
-	 * Utility method for calculation of start interval date
-	 *
-	 * @param interval Back interval
-	 * @return Now minus interval
-	 */
-	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
-		return LocalDateTime.now(ZoneOffset.UTC).minusMonths(interval.getCount());
 	}
 
 	@Override

@@ -29,7 +29,6 @@ buildscript {
 
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
-//    id "org.springframework.boot" version "2.2.0.RELEASE"
     id 'java'
     id "org.owasp.dependencycheck" version "5.2.0"
 }

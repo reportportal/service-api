@@ -117,11 +117,11 @@ dependencyCheck {
 //    cveValidForHours = 1
 }
 
-bootJar {
-    if (!releaseMode) {
-        getArchiveFileName().set("${getArchiveBaseName().get()}.${getArchiveExtension().get()}")
-    }
-}
+//bootJar {
+//    if (!releaseMode) {
+//        getArchiveFileName().set("${getArchiveBaseName().get()}.${getArchiveExtension().get()}")
+//    }
+//}
 
 test {
     useJUnitPlatform()

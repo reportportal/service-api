@@ -205,7 +205,7 @@ class UserControllerTest extends BaseMvcTest {
 		editUserRQ.setFullName("1");
 		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isBadRequest());
+				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(fail());
 	}
 
 	@Test
@@ -223,7 +223,7 @@ class UserControllerTest extends BaseMvcTest {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setFullName("Vasya Pupkin");
 		editUserRQ.setEmail("superadminemail@domain.com");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().is(409));
 	}
@@ -233,7 +233,7 @@ class UserControllerTest extends BaseMvcTest {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setFullName("Vasya Pupkin");
 		editUserRQ.setEmail("user1uniquemail@epam.com");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(editUserRQ))).andExpect(status().isOk());
 	}

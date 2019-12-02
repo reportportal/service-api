@@ -58,8 +58,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -153,7 +152,7 @@ public class UserController {
 
 	@Transactional
 	@PutMapping(value = "/{login}")
-	@PreAuthorize(ALLOWED_TO_EDIT_USER)
+	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {

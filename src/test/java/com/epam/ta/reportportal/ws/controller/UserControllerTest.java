@@ -182,9 +182,20 @@ class UserControllerTest extends BaseMvcTest {
 		rq.setFullName("Vasya Pupkin");
 		rq.setEmail("defaultemail@domain.com");
 		rq.setRole("USER");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getDefaultToken()))
+		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isOk());
+	}
+
+	@Test
+	void editUserNegative() throws Exception {
+		EditUserRQ rq = new EditUserRQ();
+		rq.setFullName("Vasya Pupkin");
+		rq.setEmail("defaultemail@domain.com");
+		rq.setRole("USER");
+		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().is(4003));
 	}
 
 	@Test

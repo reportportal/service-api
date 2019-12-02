@@ -88,11 +88,11 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 			BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(editor.getUsername()))
 					.verify(ErrorType.ACCESS_DENIED, "You cannot update your role.");
-
-			UserRole newRole = UserRole.findByName(editUserRQ.getRole())
-					.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
-			user.setRole(newRole);
 		}
+
+		UserRole newRole = UserRole.findByName(editUserRQ.getRole())
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Incorrect specified Account Role parameter."));
+		user.setRole(newRole);
 
 		if (null != editUserRQ.getEmail() && !editUserRQ.getEmail().equals(user.getEmail())) {
 			String updEmail = editUserRQ.getEmail().toLowerCase().trim();

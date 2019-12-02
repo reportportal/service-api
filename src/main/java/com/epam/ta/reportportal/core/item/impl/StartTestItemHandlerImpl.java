@@ -151,8 +151,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		if (null == item.getTestCaseId()) {
-			item.setTestCaseId(item.getUniqueId().hashCode());
+		if (null == item.getTestCaseHash()) {
+			item.setTestCaseHash(item.getUniqueId().hashCode());
 		}
 	}
 
@@ -171,7 +171,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * Validate {@link ReportPortalUser} credentials, {@link Launch#status}
+	 * Validate {@link ReportPortalUser} credentials, {@link Launch#getStatus()}
 	 * and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
 	 * @param user           {@link ReportPortalUser}

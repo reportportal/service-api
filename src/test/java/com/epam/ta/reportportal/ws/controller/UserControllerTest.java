@@ -188,17 +188,6 @@ class UserControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	void editUserIncorrectEditorRole() throws Exception {
-		EditUserRQ rq = new EditUserRQ();
-		rq.setFullName("Vasya Pupkin");
-		rq.setEmail("defaultemail@domain.com");
-		rq.setRole("USER");
-		mockMvc.perform(put("/v1/user/default").with(token(oAuthHelper.getDefaultToken()))
-				.contentType(APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(fail());
-	}
-
-	@Test
 	void editUserShortName() throws Exception {
 		EditUserRQ editUserRQ = new EditUserRQ();
 		editUserRQ.setEmail("defaltemail@domain.com");

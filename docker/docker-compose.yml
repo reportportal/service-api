@@ -48,15 +48,34 @@ services:
     depends_on:
       - postgres
       - rabbitmq
-    #      - seaweed-volume
+      - minio
     environment:
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-      - RP_RABBIT_HOST=rabbitmq
-      - RP_DB_URL=jdbc:postgresql://postgres:5432/reportportal
+      - RP_BINARYSTORE_TYPE=minio
+      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
+      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
+      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
     restart: always
     ports:
       - "8585:8585"
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - '9000:9000'
+    volumes:
+      - minio:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
 volumes:
   reportportal-database:
   elastic:
+  minio:

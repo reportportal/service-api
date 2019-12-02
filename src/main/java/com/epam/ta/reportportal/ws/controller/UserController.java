@@ -152,7 +152,7 @@ public class UserController {
 
 	@Transactional
 	@PutMapping(value = "/{login}")
-	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
+	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	@ApiOperation(value = "Edit specified user", notes = "Only for administrators and profile's owner")
 	public OperationCompletionRS editUser(@PathVariable String login, @RequestBody @Validated EditUserRQ editUserRQ,
 			@ActiveRole UserRole role, @AuthenticationPrincipal ReportPortalUser currentUser) {

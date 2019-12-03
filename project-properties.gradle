@@ -13,8 +13,10 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     testScriptsSrc = [
-            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/test-case-id-refactoring/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/test-case-id-refactoring/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/test-case-id-refactoring/migrations/4_size_limitations.up.sql'     : 'V003__size_limitations.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/test-case-id-refactoring/migrations/5_test_case_id_type.up.sql'     : 'V004__test_case_id_type.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

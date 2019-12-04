@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.acls.domain.BasePermission;
@@ -121,6 +122,8 @@ public class SaveDefaultProjectService {
 					.sendCreateUserConfirmationEmail(request, it), e -> response.setWarning(e.getMessage())));
 		} catch (DuplicateKeyException e) {
 			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
+		} catch (ConstraintViolationException exp) {
+			fail().withError(RESOURCE_ALREADY_EXISTS, exp.getSQLException());
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}

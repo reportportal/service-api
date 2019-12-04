@@ -124,14 +124,14 @@ podTemplate(
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
             }
         }
 
         stage('Execute DVT Tests') {
             def srvUrl
             container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "api")
+                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
                 srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
             }
             if (srvUrl == null) {

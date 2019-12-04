@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity
@@ -48,12 +47,12 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		Optional<User> user = userRepository.findByLogin(username);
+		Optional<ReportPortalUser> user = userRepository.findUserDetails(username);
 		if (!user.isPresent()) {
 			throw new UsernameNotFoundException("User not found");
 		}
 
-		String login = user.get().getLogin();
+		String login = user.get().getUsername();
 		String password = user.get().getPassword() == null ? "" : user.get().getPassword();
 
 		org.springframework.security.core.userdetails.User u = new org.springframework.security.core.userdetails.User(login,
@@ -62,13 +61,16 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 				true,
 				true,
 				true,
-				AuthUtils.AS_AUTHORITIES.apply(user.get().getRole())
+				AuthUtils.AS_AUTHORITIES.apply(user.get().getUserRole())
 		);
 
-		return new ReportPortalUser(u, user.get().getId(), user.get().getRole(), user.get().getProjects().stream().collect(Collectors.toMap(
-				p -> p.getProject().getName(),
-				p -> new ReportPortalUser.ProjectDetails(p.getProject().getId(), p.getProject().getName(), p.getProjectRole())
-		)), user.get().getEmail());
+		return new ReportPortalUser(
+				u,
+				user.get().getUserId(),
+				user.get().getUserRole(),
+				user.get().getProjectDetails(),
+				user.get().getEmail()
+		);
 	}
 
 }

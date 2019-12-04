@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.attachment.AttachmentMetaInfo;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.jupiter.api.Test;
@@ -45,6 +47,9 @@ class FileStorageControllerTest extends BaseMvcTest {
 
 	@Autowired
 	private AttachmentBinaryDataService attachmentBinaryDataService;
+
+	@Autowired
+	private AttachmentRepository attachmentRepository;
 
 	@Test
 	void userPhoto() throws Exception {
@@ -91,8 +96,11 @@ class FileStorageControllerTest extends BaseMvcTest {
 				AttachmentMetaInfo.builder().withProjectId(1L).withItemId(1L).withLaunchId(1L).withLogId(1L).build()
 		);
 
-		mockMvc.perform(get(
-				"/v1/data/superadmin_personal/1").with(token(oAuthHelper.getSuperadminToken())))
+		Optional<Attachment> attachment = attachmentRepository.findByFileId(binaryDataMetaInfo.get().getFileId());
+
+		assertTrue(attachment.isPresent());
+
+		mockMvc.perform(get("/v1/data/superadmin_personal/" + attachment.get().getId()).with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 

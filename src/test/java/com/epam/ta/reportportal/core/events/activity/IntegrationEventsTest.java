@@ -19,12 +19,14 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
 import static com.epam.ta.reportportal.core.events.activity.ActivityTestHelper.checkActivity;
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -61,6 +63,7 @@ class IntegrationEventsTest {
 	private static IntegrationActivityResource getIntegration() {
 		IntegrationActivityResource integration = new IntegrationActivityResource();
 		integration.setId(2L);
+		integration.setName("name");
 		integration.setProjectId(3L);
 		integration.setTypeName("type");
 		integration.setProjectName("test_project");
@@ -69,8 +72,12 @@ class IntegrationEventsTest {
 
 	@Test
 	void updated() {
-		final Activity actual = new IntegrationUpdatedEvent(getIntegration(), 1L, "user").toActivity();
+		final Activity actual = new IntegrationUpdatedEvent(1L, "user", getIntegration(), getIntegration()).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_INTEGRATION);
+		HistoryField historyField = new HistoryField();
+		historyField.setField(NAME);
+		historyField.setNewValue("name");
+		expected.getDetails().addHistoryField(historyField);
 		checkActivity(expected, actual);
 	}
 }

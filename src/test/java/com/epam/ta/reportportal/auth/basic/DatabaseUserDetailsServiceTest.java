@@ -17,20 +17,17 @@
 package com.epam.ta.reportportal.auth.basic;
 
 import com.epam.ta.reportportal.dao.UserRepository;
-import com.epam.ta.reportportal.entity.user.User;
-import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.entity.user.UserType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,30 +44,12 @@ class DatabaseUserDetailsServiceTest {
 
 	@Test
 	void userNotFoundTest() {
-		when(userRepository.findByLogin("not_exist")).thenReturn(Optional.empty());
+		when(userRepository.findUserDetails("not_exist")).thenReturn(Optional.empty());
 
 		UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
 				() -> userDetailsService.loadUserByUsername("not_exist")
 		);
 
 		assertEquals("User not found", exception.getMessage());
-	}
-
-	@Test
-	void loadUserWithEmptyPassword() {
-		User user = new User();
-		user.setLogin("user");
-		user.setId(1L);
-		user.setEmail("email@domain.com");
-		user.setExpired(false);
-		user.setUserType(UserType.INTERNAL);
-		user.setRole(UserRole.USER);
-		when(userRepository.findByLogin("user")).thenReturn(Optional.of(user));
-
-		UserDetails userDetails = userDetailsService.loadUserByUsername("user");
-
-		assertEquals(user.getLogin(), userDetails.getUsername());
-		assertTrue(userDetails.getPassword().isEmpty());
-		assertEquals(!user.isExpired(), userDetails.isAccountNonExpired());
 	}
 }

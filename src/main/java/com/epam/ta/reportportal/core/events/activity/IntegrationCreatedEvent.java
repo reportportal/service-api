@@ -17,9 +17,13 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.INTEGRATION;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.CREATE_INTEGRATION;
 
@@ -48,6 +52,11 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
 
 	@Override
 	public Activity toActivity() {
+
+		HistoryField integrationNameField = new HistoryField();
+		integrationNameField.setField(NAME);
+		integrationNameField.setNewValue(integrationActivityResource.getName());
+
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_INTEGRATION)
 				.addActivityEntityType(INTEGRATION)
@@ -56,6 +65,7 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName())
 				.addProjectId(integrationActivityResource.getProjectId())
+				.addHistoryField(Optional.of(integrationNameField))
 				.get();
 	}
 }

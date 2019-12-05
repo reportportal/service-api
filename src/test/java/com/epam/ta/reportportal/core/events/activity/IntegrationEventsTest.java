@@ -42,7 +42,12 @@ class IntegrationEventsTest {
 		activity.setProjectId(3L);
 		activity.setObjectId(2L);
 		activity.setCreatedAt(LocalDateTime.now());
-		activity.setDetails(new ActivityDetails("type"));
+		ActivityDetails expected = new ActivityDetails("type");
+		HistoryField historyField = new HistoryField();
+		historyField.setField(NAME);
+		historyField.setNewValue("name");
+		expected.addHistoryField(historyField);
+		activity.setDetails(expected);
 		return activity;
 	}
 
@@ -74,10 +79,6 @@ class IntegrationEventsTest {
 	void updated() {
 		final Activity actual = new IntegrationUpdatedEvent(1L, "user", getIntegration(), getIntegration()).toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.UPDATE_INTEGRATION);
-		HistoryField historyField = new HistoryField();
-		historyField.setField(NAME);
-		historyField.setNewValue("name");
-		expected.getDetails().addHistoryField(historyField);
 		checkActivity(expected, actual);
 	}
 }

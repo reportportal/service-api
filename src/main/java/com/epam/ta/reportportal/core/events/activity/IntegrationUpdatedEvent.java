@@ -45,9 +45,7 @@ public class IntegrationUpdatedEvent extends AroundEvent<IntegrationActivityReso
 
 		HistoryField integrationNameField;
 		if (StringUtils.equalsIgnoreCase(getBefore().getName(), getAfter().getName())) {
-			integrationNameField = new HistoryField();
-			integrationNameField.setField(NAME);
-			integrationNameField.setNewValue(getAfter().getName());
+			integrationNameField = HistoryField.of(NAME, null, getAfter().getName());
 		} else {
 			integrationNameField = HistoryField.of(NAME, getBefore().getName(), getAfter().getName());
 		}

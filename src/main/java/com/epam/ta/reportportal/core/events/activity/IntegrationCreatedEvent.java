@@ -53,10 +53,6 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
 	@Override
 	public Activity toActivity() {
 
-		HistoryField integrationNameField = new HistoryField();
-		integrationNameField.setField(NAME);
-		integrationNameField.setNewValue(integrationActivityResource.getName());
-
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(CREATE_INTEGRATION)
 				.addActivityEntityType(INTEGRATION)
@@ -65,7 +61,7 @@ public class IntegrationCreatedEvent extends AbstractEvent implements ActivityEv
 				.addObjectId(integrationActivityResource.getId())
 				.addObjectName(integrationActivityResource.getTypeName())
 				.addProjectId(integrationActivityResource.getProjectId())
-				.addHistoryField(Optional.of(integrationNameField))
+				.addHistoryField(Optional.of(HistoryField.of(NAME, null, integrationActivityResource.getName())))
 				.get();
 	}
 }

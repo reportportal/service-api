@@ -15,7 +15,7 @@ podTemplate(
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v2.14.2', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.0', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '1000m',
@@ -72,7 +72,7 @@ podTemplate(
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "rp-report-disable", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
                 }
             }
         }, 'Download Sealights': {
@@ -124,14 +124,14 @@ podTemplate(
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait reportportal ./$k8sDir/reportportal/v5"
             }
         }
 
         stage('Execute DVT Tests') {
             def srvUrl
             container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "api")
+                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
                 srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
             }
             if (srvUrl == null) {
@@ -150,6 +150,7 @@ podTemplate(
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.tags=v5;'${testEnv} >> src/test/resources/reportportal.properties"
                         sh "mvn clean test -P build -Denv=${testEnv}"
                     }
                 }

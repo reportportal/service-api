@@ -20,10 +20,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.project.GetProjectInfoHandler;
-import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
@@ -52,6 +49,7 @@ import org.springframework.stereotype.Service;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -65,6 +63,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteri
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_NAME;
+import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_CREATION_DATE;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.*;
 import static com.epam.ta.reportportal.ws.converter.converters.ActivityConverter.TO_RESOURCE;
@@ -95,18 +94,22 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	private final LaunchConverter launchConverter;
 
 	private final UserRepository userRepository;
+
+	private final TicketRepository ticketRepository;
+
 	private DecimalFormat formatter = new DecimalFormat("###.##");
 
 	@Autowired
 	public GetProjectInfoHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
 			ActivityRepository activityRepository, ProjectInfoWidgetDataConverter dataConverter, LaunchConverter launchConverter,
-			UserRepository userRepository) {
+			UserRepository userRepository, TicketRepository ticketRepository) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.activityRepository = activityRepository;
 		this.dataConverter = dataConverter;
 		this.launchConverter = launchConverter;
 		this.userRepository = userRepository;
+		this.ticketRepository = ticketRepository;
 	}
 
 	/**
@@ -116,7 +119,26 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 	 * @return Now minus interval
 	 */
 	private static LocalDateTime getStartIntervalDate(InfoInterval interval) {
-		return LocalDateTime.now(ZoneOffset.UTC).minusMonths(interval.getCount());
+		return LocalDateTime.now(Clock.systemUTC()).minusMonths(interval.getCount());
+	}
+
+	/**
+	 * Filter that gets project info from selected date.
+	 *
+	 * @param project      Project
+	 * @param infoInterval Date interval
+	 * @return {@link Filter}
+	 */
+	private static Filter projectInfoFilter(Project project, InfoInterval infoInterval) {
+		return Filter.builder()
+				.withTarget(ProjectInfo.class)
+				.withCondition(new FilterCondition(EQUALS, false, project.getName(), CRITERIA_PROJECT_NAME))
+				.withCondition(new FilterCondition(GREATER_THAN_OR_EQUALS,
+						false,
+						String.valueOf(getStartIntervalDate(infoInterval).toInstant(ZoneOffset.UTC).toEpochMilli()),
+						CRITERIA_PROJECT_CREATION_DATE
+				))
+				.build();
 	}
 
 	@Override
@@ -144,10 +166,14 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 				.findFirst()
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectName)));
 
+		LocalDateTime startIntervalDate = getStartIntervalDate(infoInterval);
+
 		Map<String, Integer> countPerUser = launchRepository.countLaunchesGroupedByOwner(project.getId(),
 				LaunchModeEnum.DEFAULT.toString(),
-				getStartIntervalDate(infoInterval)
+				startIntervalDate
 		);
+
+		projectInfoResource.setUniqueTickets(ticketRepository.findUniqueCountByProjectBefore(project.getId(), startIntervalDate));
 
 		projectInfoResource.setLaunchesPerUser(countPerUser.entrySet()
 				.stream()
@@ -246,5 +272,4 @@ public class GetProjectInfoHandlerImpl implements GetProjectInfoHandler {
 						.collect(toList())
 		);
 	}
-
 }

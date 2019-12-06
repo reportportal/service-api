@@ -4,8 +4,12 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
+import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +21,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class LaunchBaselineHistoryProvider implements HistoryProvider {
 
+	private final LaunchRepository launchRepository;
 	private final LaunchAccessValidator launchAccessValidator;
 	private final TestItemRepository testItemRepository;
 
-	public LaunchBaselineHistoryProvider(LaunchAccessValidator launchAccessValidator, TestItemRepository testItemRepository) {
+	public LaunchBaselineHistoryProvider(LaunchRepository launchRepository, LaunchAccessValidator launchAccessValidator,
+			TestItemRepository testItemRepository) {
+		this.launchRepository = launchRepository;
 		this.launchAccessValidator = launchAccessValidator;
 		this.testItemRepository = testItemRepository;
 	}
@@ -29,13 +36,23 @@ public class LaunchBaselineHistoryProvider implements HistoryProvider {
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		return historyRequestParams.getLaunchId().map(launchId -> {
-			launchAccessValidator.validate(launchId, projectDetails, user);
+			Launch launch = launchRepository.findById(launchId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+			launchAccessValidator.validate(launch.getId(), projectDetails, user);
 
-			return testItemRepository.loadItemsHistoryPage(filter,
-					pageable,
-					projectDetails.getProjectId(),
-					historyRequestParams.getHistoryDepth()
-			);
+			return historyRequestParams.getHistoryType()
+					.filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
+					.map(type -> testItemRepository.loadItemsHistoryPage(filter,
+							pageable,
+							projectDetails.getProjectId(),
+							launch.getName(),
+							historyRequestParams.getHistoryDepth()
+					))
+					.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
+							pageable,
+							projectDetails.getProjectId(),
+							historyRequestParams.getHistoryDepth()
+					));
 		}).orElseGet(() -> Page.empty(pageable));
 	}
 

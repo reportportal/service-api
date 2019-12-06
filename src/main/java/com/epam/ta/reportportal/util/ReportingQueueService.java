@@ -29,8 +29,16 @@ public class ReportingQueueService {
 
 	private static final String UUID_REGEX = "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}";
 
+	private int queueAmount;
+
+	public int getQueueAmount() {
+		return queueAmount;
+	}
+
 	@Value("${rp.amqp.queues}")
-	public int queueAmount;
+	public void setQueueAmount(int queueAmount) {
+		this.queueAmount = queueAmount;
+	}
 
 	/**
 	 * Mapping launchId to reporting queue key.

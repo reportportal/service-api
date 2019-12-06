@@ -17,45 +17,48 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.activity.HistoryField;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.NAME;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.INTEGRATION;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.UPDATE_INTEGRATION;
 
 /**
  * @author Andrei Varabyeu
  */
-public class IntegrationUpdatedEvent extends AbstractEvent implements ActivityEvent {
-
-	private IntegrationActivityResource integrationActivityResource;
+public class IntegrationUpdatedEvent extends AroundEvent<IntegrationActivityResource> implements ActivityEvent {
 
 	public IntegrationUpdatedEvent() {
 	}
 
-	public IntegrationUpdatedEvent(IntegrationActivityResource integrationActivityResource, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.integrationActivityResource = integrationActivityResource;
-	}
-
-	public IntegrationActivityResource getIntegrationActivityResource() {
-		return integrationActivityResource;
-	}
-
-	public void setIntegrationActivityResource(IntegrationActivityResource integrationActivityResource) {
-		this.integrationActivityResource = integrationActivityResource;
+	public IntegrationUpdatedEvent(Long userId, String userLogin, IntegrationActivityResource before, IntegrationActivityResource after) {
+		super(userId, userLogin, before, after);
 	}
 
 	@Override
 	public Activity toActivity() {
+
+		HistoryField integrationNameField;
+		if (StringUtils.equalsIgnoreCase(getBefore().getName(), getAfter().getName())) {
+			integrationNameField = HistoryField.of(NAME, null, getAfter().getName());
+		} else {
+			integrationNameField = HistoryField.of(NAME, getBefore().getName(), getAfter().getName());
+		}
+
 		return new ActivityBuilder().addCreatedNow()
 				.addAction(UPDATE_INTEGRATION)
 				.addActivityEntityType(INTEGRATION)
 				.addUserId(getUserId())
 				.addUserName(getUserLogin())
-				.addObjectId(integrationActivityResource.getId())
-				.addObjectName(integrationActivityResource.getTypeName())
-				.addProjectId(integrationActivityResource.getProjectId())
+				.addObjectId(getAfter().getId())
+				.addObjectName(getAfter().getTypeName())
+				.addProjectId(getAfter().getProjectId())
+				.addHistoryField(Optional.of(integrationNameField))
 				.get();
 	}
 }

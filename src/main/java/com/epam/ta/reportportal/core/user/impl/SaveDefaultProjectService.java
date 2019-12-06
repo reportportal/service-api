@@ -122,6 +122,9 @@ public class SaveDefaultProjectService {
 			if (exp.getMessage().contains("users_email_key")) {
 				fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 			}
+			if (exp.getMessage().contains("project_name_key")) {
+				fail().withError(PROJECT_ALREADY_EXISTS, projectName);
+			}
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 

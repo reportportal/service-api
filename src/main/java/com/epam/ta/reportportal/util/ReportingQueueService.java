@@ -27,8 +27,18 @@ import java.util.UUID;
 @Component
 public class ReportingQueueService {
 
+	private static final String UUID_REGEX = "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}";
+
+	private int queueAmount;
+
+	public int getQueueAmount() {
+		return queueAmount;
+	}
+
 	@Value("${rp.amqp.queues}")
-	public int queueAmount;
+	public void setQueueAmount(int queueAmount) {
+		this.queueAmount = queueAmount;
+	}
 
 	/**
 	 * Mapping launchId to reporting queue key.
@@ -40,10 +50,9 @@ public class ReportingQueueService {
 	 * @return
 	 */
 	public String getReportingQueueKey(String launchUuid) {
-		int value = UUID.fromString(launchUuid).hashCode();
+		int value = launchUuid.matches(UUID_REGEX) ? UUID.fromString(launchUuid).hashCode() : launchUuid.hashCode();
 		value = value & 0x7fffffff;
 		return String.valueOf(value % queueAmount);
 	}
-
 
 }

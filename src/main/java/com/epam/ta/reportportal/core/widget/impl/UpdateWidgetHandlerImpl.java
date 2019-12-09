@@ -116,20 +116,22 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	}
 
 	@Override
-	public void updateSharing(Collection<Widget> widgets, Long projectId, boolean isShared) {
+	public void updateSharing(Collection<Widget> widgets, Long projectId, Boolean isShared) {
 		widgets.forEach(widget -> updateSharing(widget, projectId, isShared));
 	}
 
-	private void updateSharing(Widget widget, Long projectId, boolean shared) {
-		if (shared != widget.isShared()) {
-			widget.setShared(shared);
-			aclHandler.updateAcl(widget, projectId, widget.isShared());
-		}
-		if (widget.isShared()) {
-			ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
-					projectId,
-					widget.isShared()
-			));
+	private void updateSharing(Widget widget, Long projectId, Boolean shared) {
+		if (null != shared) {
+			if (shared != widget.isShared()) {
+				widget.setShared(shared);
+				aclHandler.updateAcl(widget, projectId, widget.isShared());
+			}
+			if (widget.isShared()) {
+				ofNullable(widget.getFilters()).ifPresent(filters -> updateUserFilterHandler.updateSharing(filters,
+						projectId,
+						widget.isShared()
+				));
+			}
 		}
 	}
 

@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -169,6 +170,8 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		final Integration integration = integrationRepository.findByIdAndProjectId(id, project.getId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, id));
 
+		IntegrationActivityResource beforeUpdate = TO_ACTIVITY_RESOURCE.apply(integration);
+
 		ofNullable(updateRequest.getName()).map(String::toLowerCase).ifPresent(name -> {
 			if (!name.equals(integration.getName())) {
 				validateProjectIntegrationName(name, integration.getType(), project);
@@ -185,9 +188,10 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		integrationRepository.save(updatedIntegration);
 
-		messageBus.publishActivity(new IntegrationUpdatedEvent(TO_ACTIVITY_RESOURCE.apply(updatedIntegration),
-				user.getUserId(),
-				user.getUsername()
+		messageBus.publishActivity(new IntegrationUpdatedEvent(user.getUserId(),
+				user.getUsername(),
+				beforeUpdate,
+				TO_ACTIVITY_RESOURCE.apply(updatedIntegration)
 		));
 
 		return new OperationCompletionRS("Integration with id = " + updatedIntegration.getId() + " has been successfully updated.");

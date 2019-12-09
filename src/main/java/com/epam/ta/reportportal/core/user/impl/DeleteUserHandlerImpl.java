@@ -22,16 +22,17 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
-import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -50,16 +51,13 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final DeleteProjectHandler deleteProjectHandler;
 
-	private final ProjectUserRepository projectUserRepository;
-
 	private final ShareableObjectsHandler shareableObjectsHandler;
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ProjectUserRepository projectUserRepository, ShareableObjectsHandler shareableObjectsHandler) {
+			ShareableObjectsHandler shareableObjectsHandler) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
-		this.projectUserRepository = projectUserRepository;
 		this.shareableObjectsHandler = shareableObjectsHandler;
 	}
 
@@ -68,21 +66,25 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
+		ArrayList<Long> projectIdsToDelete = Lists.newArrayList();
 
 		user.getProjects().forEach(userProject -> {
+			Long projectId = userProject.getId().getProjectId();
 			if (ProjectUtils.isPersonalForUser(userProject.getProject().getProjectType(),
 					userProject.getProject().getName(),
 					user.getLogin()
 			)) {
-				projectUserRepository.delete(userProject);
-				deleteProjectHandler.deleteProject(userProject.getProject().getId());
+				projectIdsToDelete.add(projectId);
 			} else {
-				shareableObjectsHandler.preventSharedObjects(userProject.getId().getProjectId(), user.getLogin());
+				shareableObjectsHandler.preventSharedObjects(projectId, user.getLogin());
 				ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), userProject.getProject());
 			}
 		});
 
 		userRepository.delete(user);
+		if (CollectionUtils.isNotEmpty(projectIdsToDelete)) {
+			deleteProjectHandler.deleteProjects(new DeleteBulkRQ(projectIdsToDelete));
+		}
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}
 

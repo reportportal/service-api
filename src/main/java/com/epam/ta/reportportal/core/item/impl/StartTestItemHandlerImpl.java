@@ -151,7 +151,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
-		if (null == item.getTestCaseHash()) {
+		if (null == item.getTestCaseId()) {
 			item.setTestCaseHash(item.getUniqueId().hashCode());
 		}
 	}

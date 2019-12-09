@@ -62,7 +62,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 		testItem.setTestCaseId(rq.getTestCaseId());
-		testItem.setTestCaseHash(rq.getTestCaseHash());
+		testItem.setTestCaseHash(ofNullable(rq.getTestCaseHash()).orElse(0));
 		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 		testItem.setHasStats(rq.isHasStats());
 		testItem.setCodeRef(rq.getCodeRef());

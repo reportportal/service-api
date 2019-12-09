@@ -97,7 +97,7 @@ set status   = 'SKIPPED',
     end_time = now()
 where result_id = 9;
 
-insert into test_item(item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
+insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, unique_id, last_modified, path, parent_id, launch_id)
 values (10, 10, 'uuid10', 'test item 5', 'STEP', now(), 'desc', 'uuid5', now(), '10', null, 2);
 insert into test_item_results(result_id, status)
 values (10, 'IN_PROGRESS');

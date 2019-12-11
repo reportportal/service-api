@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LaunchPreparerService;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.LaunchMergeFactory;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.MergeStrategyType;
+import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.statistics.StatisticsHelper;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -56,7 +57,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
  * @author Pavel_Bortnik
  */
 @Service
-public class MergeLaunchHandlerImpl implements com.epam.ta.reportportal.core.launch.MergeLaunchHandler {
+public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 

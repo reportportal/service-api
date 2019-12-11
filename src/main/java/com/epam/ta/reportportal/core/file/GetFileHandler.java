@@ -49,5 +49,5 @@ public interface GetFileHandler {
 	 * @param fileId Id of the file to get
 	 * @return {@link InputStream}
 	 */
-	BinaryData loadFileById(String fileId, ReportPortalUser.ProjectDetails projectDetails);
+	BinaryData loadFileById(Long fileId, ReportPortalUser.ProjectDetails projectDetails);
 }

@@ -84,7 +84,10 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	public OperationCompletionRS editUser(String username, EditUserRQ editUserRQ, ReportPortalUser editor) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
 
-		if ((null != editUserRQ.getRole()) && editor.getUserRole() == UserRole.ADMINISTRATOR) {
+		if (null != editUserRQ.getRole()) {
+
+			BusinessRule.expect(editor.getUserRole(), equalTo(UserRole.ADMINISTRATOR))
+					.verify(ACCESS_DENIED, "Current Account Role can't update roles.");
 
 			BusinessRule.expect(user, u -> !u.getLogin().equalsIgnoreCase(editor.getUsername()))
 					.verify(ErrorType.ACCESS_DENIED, "You cannot update your role.");

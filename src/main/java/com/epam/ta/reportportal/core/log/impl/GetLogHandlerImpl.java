@@ -122,8 +122,6 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		Boolean excludeEmptySteps = ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
 		Boolean excludePassedLogs = ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);
 
-		queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
-
 		Page<NestedItem> nestedItems = logRepository.findNestedItems(parentId,
 				excludeEmptySteps,
 				isLogsExclusionRequired(parentItem, excludePassedLogs),
@@ -138,6 +136,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		Map<Long, Log> logMap = ofNullable(result.get(LogRepositoryConstants.LOG)).map(logs -> logRepository.findAllById(logs.stream()
 				.map(NestedItem::getId)
 				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
+
+		queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
 		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(
 				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()),
 				queryable,

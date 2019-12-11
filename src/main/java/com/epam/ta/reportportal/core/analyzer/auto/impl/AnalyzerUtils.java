@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class AnalyzerUtils {
 			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
 		}
 		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(logs.stream().map(TO_INDEX_LOG).collect(Collectors.toSet()));
+			indexTestItem.setLogs(logs.stream().filter(it -> StringUtils.isNotEmpty(it.getLogMessage())).map(TO_INDEX_LOG).collect(Collectors.toSet()));
 		}
 		return indexTestItem;
 	}

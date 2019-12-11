@@ -62,7 +62,7 @@ public class LoadPluginsJob {
 	private final DataStore dataStore;
 
 	@Autowired
-	public LoadPluginsJob(@Value("${rp.plugins.rootDir}") String pluginsRootPath, IntegrationTypeRepository integrationTypeRepository,
+	public LoadPluginsJob(@Value("${rp.plugins.path}") String pluginsRootPath, IntegrationTypeRepository integrationTypeRepository,
 			PluginLoaderService pluginLoaderService, Pf4jPluginBox pf4jPluginBox, DataStore dataStore) {
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginLoaderService = pluginLoaderService;

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -149,7 +150,9 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
-		CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
+		if (!CollectionUtils.isEmpty(ids)) {
+			CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
+		}
 	}
 
 	/**

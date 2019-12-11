@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -84,6 +85,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				projectDetails.getProjectId()
 		);
 
+		validateLaunches(launchesHistory);
+
 		int itemsLimitPerLaunch = ITEMS_HISTORY_LIMIT / historyDepth;
 		List<TestItem> itemsHistory = testItemRepository.loadItemsHistory(itemsForHistory.stream()
 				.map(TestItem::getUniqueId)
@@ -113,6 +116,11 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		// check all items is siblings
 		checkItemsIsSiblings(itemsForHistory);
+	}
+
+	private void validateLaunches(List<Launch> launches) {
+		BusinessRule.expect(CollectionUtils.isEmpty(launches), Predicate.isEqual(false))
+				.verify(UNABLE_LOAD_TEST_ITEM_HISTORY, "Launches are not found");
 	}
 
 	private void checkItemsIsSiblings(List<TestItem> itemsForHistory) {

@@ -35,6 +35,8 @@ import static java.util.Optional.ofNullable;
  */
 public final class IntegrationConverter {
 
+	private static final String ACCESS_TOKEN = "accessToken";
+
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
@@ -48,6 +50,7 @@ public final class IntegrationConverter {
 			ofNullable(it.getParams()).ifPresent(p -> p.entrySet()
 					.stream()
 					.filter(entry -> !EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()))
+					.filter(entry -> !ACCESS_TOKEN.equalsIgnoreCase(entry.getKey()))
 					.forEach(param -> params.put(param.getKey(), param.getValue())));
 			resource.setIntegrationParams(params);
 		});

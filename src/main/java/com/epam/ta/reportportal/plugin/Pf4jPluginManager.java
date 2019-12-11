@@ -54,6 +54,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -185,12 +186,33 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 
 	@Override
 	public boolean deletePlugin(String pluginId) {
-		ofNullable(pluginManager.getPlugin(pluginId)).ifPresent(pluginWrapper -> destroyDependency(pluginWrapper.getPluginId()));
-		integrationTypeRepository.findByName(pluginId)
-				.flatMap(integrationType -> ofNullable(integrationType.getDetails()).map(IntegrationTypeDetails::getDetails))
-				.flatMap(details -> IntegrationDetailsProperties.FILE_ID.getValue(details).map(String::valueOf))
-				.ifPresent(pluginLoader::deleteFromDataStore);
-		return pluginManager.deletePlugin(pluginId);
+		return integrationTypeRepository.findByName(pluginId).map(integrationType -> {
+			Optional<Map<String, Object>> pluginData = ofNullable(integrationType.getDetails()).map(IntegrationTypeDetails::getDetails);
+
+			pluginData.flatMap(details -> IntegrationDetailsProperties.FILE_ID.getValue(details).map(String::valueOf))
+					.ifPresent(pluginLoader::deleteFromDataStore);
+
+			return ofNullable(pluginManager.getPlugin(pluginId)).map(pluginWrapper -> {
+				destroyDependency(pluginWrapper.getPluginId());
+
+				if (integrationType.isEnabled()) {
+					return pluginManager.deletePlugin(pluginId);
+				} else {
+					return pluginData.flatMap(details -> IntegrationDetailsProperties.FILE_NAME.getValue(details)
+							.map(String::valueOf)
+							.map(fileName -> Paths.get(pluginsDir, fileName))).map(path -> {
+						try {
+							return Files.deleteIfExists(path);
+						} catch (IOException e) {
+							throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
+									"Error during plugin file removing from the filesystem: " + e.getMessage()
+							);
+						}
+					}).orElse(Boolean.TRUE);
+				}
+
+			}).orElse(Boolean.TRUE);
+		}).orElse(Boolean.TRUE);
 	}
 
 	@Override
@@ -305,9 +327,10 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 	private void validateFileExtension(String fileName) {
 		String resolvedExtension = FilenameUtils.getExtension(fileName);
 		Optional<PluginFileExtension> byExtension = PluginFileExtension.findByExtension("." + resolvedExtension);
-		BusinessRule.expect(byExtension, Optional::isPresent).verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-				Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
-		);
+		BusinessRule.expect(byExtension, Optional::isPresent)
+				.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Unsupported plugin file extension = {}", resolvedExtension).get()
+				);
 	}
 
 	private void validatePluginMetaInfo(PluginInfo newPluginInfo, String fileName) {
@@ -422,9 +445,10 @@ public class Pf4jPluginManager extends AbstractIdleService implements Pf4jPlugin
 			integrationType.setEnabled(true);
 			return integrationTypeRepository.save(integrationType);
 
-		}).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-				Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
-		));
+		})
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+						Suppliers.formattedSupplier("Error during loading the plugin file = '{}'", newPluginFileName).get()
+				));
 
 	}
 

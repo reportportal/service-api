@@ -20,7 +20,7 @@ ARG sealightsToken
 
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
-RUN ./gradlew resolveDependencies --stacktrace
+RUN ./gradlew resolveDependencies -P sealightsToken=${sealightsToken} --stacktrace
 
 ### Copy source and run build
 COPY --chown=rp-builder src/ ./src/

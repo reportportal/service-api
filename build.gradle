@@ -16,6 +16,15 @@ import org.owasp.dependencycheck.reporting.ReportGenerator
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+        dependencies {
+            classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
+        }
+    }
+}
+
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id "org.springframework.boot" version "2.2.0.RELEASE"
@@ -27,6 +36,7 @@ plugins {
     id "org.owasp.dependencycheck" version "5.2.0"
     id 'com.bmuschko.docker-remote-api' version '6.0.0'
     id 'org.ajoberstar.grgit' version '4.0.0'
+    id "com.github.spotbugs" version "2.0.1"
 }
 
 project.ext {
@@ -59,12 +69,12 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/maste
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/copy-database-scripts.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/build-quality.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/jacoco.gradle'
 apply from: 'sealights.gradle'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 repositories {
     mavenCentral()
@@ -89,10 +99,10 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile 'com.epam.reportportal:plugin-api:5.0.0-RC-1'
     } else {
-        compile 'com.github.reportportal:commons-dao:cae51cf'
-        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:435c977'
-        compile 'com.github.reportportal:commons:5.0.0-BETA-2'
+        compile 'com.github.reportportal:commons-dao:94b0779'
+        compile 'com.github.reportportal:commons-rules:3c46d7c'
+        compile 'com.github.reportportal:commons-model:9213a59'
+        compile 'com.github.reportportal:commons:89ba5a7'
         compile 'com.github.reportportal:plugin-api:85babd8'
     }
 
@@ -133,7 +143,7 @@ processResources {
 processResources.dependsOn(gitInfo)
 
 wrapper {
-    gradleVersion = '5.4.1'
+    gradleVersion = '6.0'
 }
 
 release {
@@ -147,7 +157,7 @@ dependencyCheck {
 
 bootJar {
     if (!releaseMode) {
-        getArchiveFileName().set("${archiveBaseName}.${archiveExtension}")
+        getArchiveFileName().set("${getArchiveBaseName().get()}.${getArchiveExtension().get()}")
     }
 }
 

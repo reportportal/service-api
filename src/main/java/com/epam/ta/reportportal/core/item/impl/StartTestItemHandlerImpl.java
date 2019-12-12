@@ -107,8 +107,15 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Override
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
-		TestItem parentItem = testItemRepository.findByUuid(parentId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry());
+		TestItem parentItem;
+		if (isRetry) {
+			parentItem = testItemRepository.findByUuidForUpdate(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		} else {
+			parentItem = testItemRepository.findByUuid(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		}
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(rq, parentItem);
@@ -131,7 +138,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (rq.isHasStats() && !parentItem.isHasChildren()) {
 			parentItem.setHasChildren(true);
 		}
-		if (BooleanUtils.toBoolean(rq.isRetry())) {
+		if (isRetry) {
 			handleRetries(launch, item);
 		}
 

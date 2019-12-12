@@ -155,8 +155,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		);
 	}
 
-	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
-		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
+	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems, Long projectId) {
+		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()), projectId);
 	}
 
 	@Override

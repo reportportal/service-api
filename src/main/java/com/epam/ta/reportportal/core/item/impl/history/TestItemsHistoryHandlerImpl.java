@@ -39,7 +39,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -93,7 +92,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				))
 				.provide(filter, pageable, historyRequestParams, projectDetails, user);
 
-		return buildHistoryElements(testItemHistoryPage, pageable);
+		return buildHistoryElements(testItemHistoryPage, projectDetails.getProjectId(), pageable);
 
 	}
 
@@ -113,7 +112,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		}
 	}
 
-	private Iterable<TestItemHistoryElement> buildHistoryElements(Page<TestItemHistory> testItemHistoryPage, Pageable pageable) {
+	private Iterable<TestItemHistoryElement> buildHistoryElements(Page<TestItemHistory> testItemHistoryPage, Long projectId,
+			Pageable pageable) {
 
 		List<TestItem> testItems = testItemRepository.findAllById(testItemHistoryPage.getContent()
 				.stream()
@@ -122,17 +122,17 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(testItems.stream()
 				.map(TestItem::getItemId)
-				.collect(toList()));
+				.collect(toList()), projectId);
 
 		Map<Integer, Map<Long, TestItemResource>> itemsMapping = testItems.stream()
 				.map(item -> itemResourceAssembler.toResource(item, pathNamesMapping.get(item.getItemId())))
-				.collect(groupingBy(TestItemResource::getTestCaseId, toMap(TestItemResource::getItemId, res -> res)));
+				.collect(groupingBy(TestItemResource::getTestCaseHash, toMap(TestItemResource::getItemId, res -> res)));
 
 		List<TestItemHistoryElement> testItemHistoryElements = testItemHistoryPage.getContent()
 				.stream()
-				.map(history -> ofNullable(itemsMapping.get(history.getTestCaseId())).map(mapping -> {
+				.map(history -> ofNullable(itemsMapping.get(history.getTestCaseHash())).map(mapping -> {
 					TestItemHistoryElement historyResource = new TestItemHistoryElement();
-					historyResource.setTestCaseId(history.getTestCaseId());
+					historyResource.setTestCaseHash(history.getTestCaseHash());
 					historyResource.setResources(ofNullable(history.getItemIds()).map(itemIds -> itemIds.stream()
 							.map(mapping::get)
 							.collect(toList())).orElseGet(Collections::emptyList));

@@ -34,13 +34,13 @@ import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -133,9 +133,10 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				.map(history -> ofNullable(itemsMapping.get(history.getTestCaseHash())).map(mapping -> {
 					TestItemHistoryElement historyResource = new TestItemHistoryElement();
 					historyResource.setTestCaseHash(history.getTestCaseHash());
-					historyResource.setResources(ofNullable(history.getItemIds()).map(itemIds -> itemIds.stream()
-							.map(mapping::get)
-							.collect(toList())).orElseGet(Collections::emptyList));
+					List<TestItemResource> resources = Lists.newArrayList();
+					ofNullable(history.getItemIds()).ifPresent(itemIds -> itemIds.forEach(itemId -> ofNullable(mapping.get(itemId)).ifPresent(
+							resources::add)));
+					historyResource.setResources(resources);
 					return historyResource;
 				}))
 				.filter(Optional::isPresent)

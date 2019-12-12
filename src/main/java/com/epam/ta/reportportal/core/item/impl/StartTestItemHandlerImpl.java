@@ -152,7 +152,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 		if (null == item.getTestCaseId()) {
-			item.setTestCaseId(item.getUniqueId().hashCode());
+			item.setTestCaseHash(item.getUniqueId().hashCode());
 		}
 	}
 
@@ -171,7 +171,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * Validate {@link ReportPortalUser} credentials, {@link Launch#status}
+	 * Validate {@link ReportPortalUser} credentials, {@link Launch#getStatus()}
 	 * and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
 	 * @param user           {@link ReportPortalUser}
@@ -210,7 +210,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			);
 		}
 
-		expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
+		if (rq.isHasStats()) {
+			expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
+		}
 
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(),

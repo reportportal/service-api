@@ -48,10 +48,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -102,7 +99,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 		launchAccessValidator.validate(testItem.getLaunchId(), projectDetails, user);
-		return itemResourceAssembler.toResource(testItem);
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(Collections.singletonList(testItem), projectDetails.getProjectId());
+		return itemResourceAssembler.toResource(testItem, pathNamesMapping.get(testItem.getItemId()));
 	}
 
 	@Override
@@ -110,7 +108,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		TestItem testItem = testItemRepository.findByUuid(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 		launchAccessValidator.validate(testItem.getLaunchId(), projectDetails, user);
-		return itemResourceAssembler.toResource(testItem);
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(Collections.singletonList(testItem), projectDetails.getProjectId());
+		return itemResourceAssembler.toResource(testItem, pathNamesMapping.get(testItem.getItemId()));
 	}
 
 	@Override
@@ -128,7 +127,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
 
-		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent(), projectDetails.getProjectId());
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
 				pathNamesMapping.get(item.getItemId())
@@ -162,10 +161,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-				);
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+		);
 		return ticketRepository.findByTerm(launchId, term);
 	}
 

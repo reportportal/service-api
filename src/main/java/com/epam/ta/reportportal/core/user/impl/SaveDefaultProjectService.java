@@ -36,7 +36,6 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Acl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -119,9 +118,13 @@ public class SaveDefaultProjectService {
 
 			ofNullable(basicUrl).ifPresent(it -> safe(() -> emailServiceFactory.getDefaultEmailService(true)
 					.sendCreateUserConfirmationEmail(request, it), e -> response.setWarning(e.getMessage())));
-		} catch (DuplicateKeyException e) {
-			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
 		} catch (Exception exp) {
+			if (exp.getMessage().contains("users_email_key")) {
+				fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
+			}
+			if (exp.getMessage().contains("project_name_key")) {
+				fail().withError(PROJECT_ALREADY_EXISTS, projectName);
+			}
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 

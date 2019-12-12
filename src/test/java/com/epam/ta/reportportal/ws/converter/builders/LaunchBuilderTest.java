@@ -27,9 +27,10 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,8 +43,8 @@ class LaunchBuilderTest {
 	@Test
 	void launchBuilder() {
 		final String description = "description";
-		final LocalDateTime now = LocalDateTime.now();
-		final Date date = Date.from(now.atZone(ZoneId.of("UTC")).toInstant());
+		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+		final Date date = TO_DATE.apply(now);
 		final Long projectId = 1L;
 		final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
 		final Long userId = 2L;
@@ -78,8 +79,8 @@ class LaunchBuilderTest {
 		request.setDescription(description);
 		final String name = "name";
 		request.setName(name);
-		final LocalDateTime now = LocalDateTime.now();
-		request.setStartTime(Date.from(now.atZone(ZoneId.of("UTC")).toInstant()));
+		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+		request.setStartTime(TO_DATE.apply(now));
 		request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
 		final Launch launch = new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes()).get();

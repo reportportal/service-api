@@ -29,49 +29,21 @@ buildscript {
 
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
-    id "org.springframework.boot" version "2.2.0.RELEASE"
+    id 'org.springframework.boot' version '2.2.1.RELEASE'
     id 'java'
-    id 'jacoco'
     id "org.owasp.dependencycheck" version "5.2.0"
-    id 'org.ajoberstar.grgit' version '4.0.0'
 }
 
-project.ext {
-    limits = [
-            'instruction': 70,
-            'branch'     : 53,
-            'line'       : 75,
-            'complexity' : 60,
-            'method'     : 65,
-            'class'      : 90
-    ]
-    isDebugMode = System.getProperty("DEBUG", "false") == "true"
-    releaseMode = project.hasProperty("releaseMode")
-    testScriptsSrc = [
-            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
-    ]
-    excludeTests = ['**/entity/**',
-                    '**/aop/**',
-                    '**/jasper/**',
-                    '**/configs/**',
-                    '**/demodata/**',
-                    '**/exception/**',
-                    '**/analyzer/auto/model/**'
-    ]
-}
-
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/copy-database-scripts.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/jacoco.gradle'
+apply from: 'project-properties.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/copy-database-scripts.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/build-quality.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/jacoco.gradle'
 apply from: 'sealights.gradle'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -96,10 +68,10 @@ dependencies {
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile 'com.epam.reportportal:plugin-api:5.0.0-RC-1'
     } else {
-        compile 'com.github.reportportal:commons-dao:66deb026'
-        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:86e4b06'
-        compile 'com.github.reportportal:commons:5.0.0-BETA-2'
+        compile 'com.github.reportportal:commons-dao:c35bd6dc'
+        compile 'com.github.reportportal:commons-rules:3c46d7c'
+        compile 'com.github.reportportal:commons-model:42cbc67'
+        compile 'com.github.reportportal:commons:89ba5a7'
         compile 'com.github.reportportal:plugin-api:85babd8'
     }
 
@@ -122,6 +94,9 @@ dependencies {
     compile 'org.springframework.security:spring-security-acl'
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
 
+    // Metrics
+    compile 'io.micrometer:micrometer-registry-prometheus:1.3.1'
+
 //    JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
 //    higher than 3.14 since 3.15 contains breaking API changes
 //    compile 'org.apache.poi:poi:4.1.0'
@@ -137,16 +112,6 @@ processResources {
     }
 }
 
-processResources.dependsOn(gitInfo)
-
-wrapper {
-    gradleVersion = '5.4.1'
-}
-
-release {
-    pushReleaseVersionBranch = 'master'
-}
-
 dependencyCheck {
     formats = [ReportGenerator.Format.HTML, ReportGenerator.Format.XML]
 //    cveValidForHours = 1
@@ -154,11 +119,10 @@ dependencyCheck {
 
 bootJar {
     if (!releaseMode) {
-        getArchiveFileName().set("${baseName}.${extension}")
+        getArchiveFileName().set("${getArchiveBaseName().get()}.${getArchiveExtension().get()}")
     }
 }
-
-bootJar.dependsOn gitInfo
+jar.enabled(true)
 
 test {
     useJUnitPlatform()
@@ -171,3 +135,16 @@ test {
         junitXml.enabled = true
     }
 }
+
+jar.dependsOn gitInfo
+processResources.dependsOn gitInfo
+prepareDockerfile.dependsOn build
+buildDocker.dependsOn prepareDockerfile
+addDockerfileToGit.dependsOn releaseDockerfile
+updateVersion.dependsOn removeDockerfileFromGit
+beforeReleaseBuild.dependsOn addDockerfileToGit
+afterReleaseBuild.dependsOn bintrayUpload
+checkCommitNeeded.dependsOn removeScripts
+test.dependsOn copyTestDatabaseScripts
+build.dependsOn jacocoTestReport
+

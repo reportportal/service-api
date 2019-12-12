@@ -1,9 +1,10 @@
-FROM openjdk:8-alpine
+FROM adoptopenjdk:11-jdk-hotspot-bionic
 
-RUN apk add --no-cache ca-certificates git curl font-noto
+RUN apt-get update && \
+    apt-get install fonts-noto-core -y
 
-RUN addgroup -S -g 1000 rp-builder
-RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
+RUN addgroup -system --gid 1000 rp-builder
+RUN adduser --disabled-password --system --ingroup rp-builder --uid 1000 --shell /bin/bash rp-builder
 
 USER rp-builder
 WORKDIR /home/rp-builder

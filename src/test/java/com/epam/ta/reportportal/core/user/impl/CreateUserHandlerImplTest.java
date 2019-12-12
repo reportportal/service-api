@@ -157,6 +157,24 @@ class CreateUserHandlerImplTest {
 	}
 
 	@Test
+	void createByAdminWithExistedEmailUppercase() {
+		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+		User creator = new User();
+		creator.setRole(UserRole.ADMINISTRATOR);
+		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
+		when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
+
+		final CreateUserRQFull request = new CreateUserRQFull();
+		request.setLogin("new_user");
+		request.setEmail("CORRECT@domain.com");
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.createUserByAdmin(request, rpUser, "url")
+		);
+		assertEquals("User with 'email='CORRECT@domain.com'' already exists. You couldn't create the duplicate.", exception.getMessage());
+	}
+
+	@Test
 	void CreateUserBidOnNotExistedProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 

@@ -100,9 +100,6 @@ rp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
     path: /data/storage
-    master:
-      host: seaweed-master
-      port: 9333
     minio:
       endpoint: http://play.min.io
       accessKey: Q3AM3UQ867SPQQA43P2F

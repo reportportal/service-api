@@ -41,5 +41,5 @@ public interface UpdateWidgetHandler {
 	 * @param projectId {@link com.epam.ta.reportportal.entity.project.Project#id}
 	 * @param isShared  flag that indicates whether widget should be shared or unshared
 	 */
-	void updateSharing(Collection<Widget> widgets, Long projectId, boolean isShared);
+	void updateSharing(Collection<Widget> widgets, Long projectId, Boolean isShared);
 }

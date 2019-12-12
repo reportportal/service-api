@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 /**
  * Spring's {@link UserDetailsService} implementation. Uses {@link User} entity
  * from ReportPortal database
@@ -50,7 +52,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<User> user = userRepository.findByLogin(username);
 		if (!user.isPresent()) {
-			throw new UsernameNotFoundException("User not found");
+			throw new UsernameNotFoundException(format("User [%s] not found", username));
 		}
 
 		String login = user.get().getLogin();

@@ -53,7 +53,7 @@ class DatabaseUserDetailsServiceTest {
 				() -> userDetailsService.loadUserByUsername("not_exist")
 		);
 
-		assertEquals("User not found", exception.getMessage());
+		assertEquals("User [not_exist] not found", exception.getMessage());
 	}
 
 	@Test

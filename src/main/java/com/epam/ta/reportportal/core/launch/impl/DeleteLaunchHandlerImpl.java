@@ -138,7 +138,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		expect(launch, not(l -> StatusEnum.IN_PROGRESS.equals(l.getStatus()))).verify(LAUNCH_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete launch '{}' in progress state", launch.getId())
 		);
-		if (UserRole.ADMINISTRATOR != user.getUserRole()) {
+		if (UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 					formattedSupplier("Target launch '{}' not under specified project '{}'", launch.getId(), projectDetails.getProjectId())
 			);

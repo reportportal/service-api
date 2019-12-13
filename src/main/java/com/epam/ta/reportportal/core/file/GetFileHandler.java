@@ -40,7 +40,7 @@ public interface GetFileHandler {
 	 * @param loggedInUser Logged-in {@link ReportPortalUser}
 	 * @return {@link InputStream}
 	 */
-	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails,
+	BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName,
 			boolean loadThumbnail);
 
 	/**

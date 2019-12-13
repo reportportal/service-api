@@ -87,11 +87,7 @@ public class FileStorageController {
 	public void getUserPhoto(@PathVariable String projectName, @RequestParam(value = "id") String username,
 			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username),
-				user,
-				extractProjectDetails(user, projectName),
-				loadThumbnail
-		);
+		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user, projectName, loadThumbnail);
 		toResponse(response, userPhoto);
 	}
 

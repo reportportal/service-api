@@ -279,7 +279,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	 */
 	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-		if (launch.getMode() == LaunchModeEnum.DEBUG) {
+		if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
 			expect(projectDetails.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
 	}

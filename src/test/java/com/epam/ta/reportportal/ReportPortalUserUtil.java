@@ -20,10 +20,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.Sets;
+import org.assertj.core.util.Maps;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -37,17 +35,16 @@ public class ReportPortalUserUtil {
 	}
 
 	public static ReportPortalUser getRpUser(String login, UserRole userRole, ProjectRole projectRole, Long projectId) {
-		Map<String, ReportPortalUser.ProjectDetails> detailsMap = new HashMap<>();
-		detailsMap.put("test_project", new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole));
-
-		return new ReportPortalUser(
-				login,
-				"test",
-				Sets.newHashSet(new SimpleGrantedAuthority(userRole.getAuthority())),
-				1L,
-				userRole,
-				detailsMap,
-				"test@email.com"
-		);
+		return ReportPortalUser.userBuilder()
+				.withUserName(login)
+				.withPassword("test")
+				.withAuthorities(Sets.newHashSet(new SimpleGrantedAuthority(userRole.getAuthority())))
+				.withUserId(1L)
+				.withEmail("test@email.com")
+				.withUserRole(userRole)
+				.withProjectDetails(Maps.newHashMap("test_project",
+						new ReportPortalUser.ProjectDetails(projectId, TEST_PROJECT_NAME, projectRole)
+				))
+				.build();
 	}
 }

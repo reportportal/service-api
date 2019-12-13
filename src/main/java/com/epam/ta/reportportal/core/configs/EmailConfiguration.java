@@ -22,6 +22,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Global Email Configuration<br>
  * Probably will be replaces by configuration per project
@@ -36,6 +39,11 @@ public class EmailConfiguration {
 	//			ServerSettingsRepository settingsRepository) {
 	//		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
 	//	}
+
+	@Bean
+	public ExecutorService emailExecutorService() {
+		return Executors.newSingleThreadExecutor();
+	}
 
 	@Bean
 	@Primary

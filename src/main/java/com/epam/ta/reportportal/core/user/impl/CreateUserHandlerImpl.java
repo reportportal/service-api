@@ -35,7 +35,6 @@ import com.epam.ta.reportportal.entity.user.*;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.Predicates;
 import com.epam.ta.reportportal.util.UserUtils;
-import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.RestorePasswordBidConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserCreationBidConverter;
@@ -51,11 +50,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.entity.project.ProjectUtils.findUserConfigByLogin;
@@ -87,9 +86,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final GetIntegrationHandler getIntegrationHandler;
 
+	private final ExecutorService emailExecutorService;
+
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler) {
+			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
+			ExecutorService emailExecutorService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.emailServiceFactory = emailServiceFactory;
@@ -98,6 +100,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		this.messageBus = messageBus;
 		this.saveDefaultProjectService = saveDefaultProjectService;
 		this.getIntegrationHandler = getIntegrationHandler;
+		this.emailExecutorService = emailExecutorService;
 	}
 
 	@Override
@@ -135,8 +138,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 						"Please configure email server in Report Portal settings."
 				));
 
-		EmailService emailService = emailServiceFactory.getEmailService(integration, true);
-
 		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
 
 		if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
@@ -156,19 +157,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			throw new ReportPortalException("Error while user creation bid registering.", e);
 		}
 
-		StringBuilder emailLink = new StringBuilder(emailURL);
-		try {
-			emailLink.append("/ui/#registration?uuid=");
-			emailLink.append(bid.getUuid());
-			emailService.sendCreateUserConfirmationEmail("User registration confirmation",
-					new String[] { bid.getEmail() },
-					emailLink.toString()
-			);
-		} catch (Exception e) {
-			fail().withError(EMAIL_CONFIGURATION_IS_INCORRECT,
-					formattedSupplier("Unable to send email for bid '{}'." + e.getMessage(), bid.getUuid())
-			);
-		}
+		StringBuilder emailLink = new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
+		emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, true)
+				.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString()));
 
 		CreateUserBidRS response = new CreateUserBidRS();
 		String msg = "Bid for user creation with email '" + request.getEmail()
@@ -211,7 +202,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	@Override
 	public OperationCompletionRS createRestorePasswordBid(RestorePasswordRQ rq, String baseUrl) {
-		EmailService emailService = emailServiceFactory.getDefaultEmailService(true);
 		String email = EntityUtils.normalizeId(rq.getEmail());
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 
@@ -226,15 +216,14 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		} else {
 			bid = bidOptional.get();
 		}
-		try {
-			emailService.sendRestorePasswordEmail("Password recovery",
-					new String[] { email },
-					baseUrl + "#login?reset=" + bid.getUuid(),
-					user.getLogin()
-			);
-		} catch (Exception e) {
-			fail().withError(FORBIDDEN_OPERATION, formattedSupplier("Unable to send email for bid '{}'.", bid.getUuid()));
-		}
+
+		emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
+				.sendRestorePasswordEmail("Password recovery",
+						new String[] { email },
+						baseUrl + "#login?reset=" + bid.getUuid(),
+						user.getLogin()
+				));
+
 		return new OperationCompletionRS("Email has been sent");
 	}
 

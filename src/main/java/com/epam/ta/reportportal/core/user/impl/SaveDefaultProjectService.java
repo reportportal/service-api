@@ -47,8 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.PersistenceException;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
-import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.auth.UserRoleHierarchy.ROLE_REGISTERED;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
@@ -72,14 +72,18 @@ public class SaveDefaultProjectService {
 
 	private final ShareableObjectsHandler aclHandler;
 
+	private final ExecutorService emailExecutorService;
+
 	@Autowired
 	public SaveDefaultProjectService(ProjectRepository projectRepository, UserRepository userRepository,
-			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler) {
+			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler,
+			ExecutorService emailExecutorService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
 		this.aclHandler = aclHandler;
+		this.emailExecutorService = emailExecutorService;
 	}
 
 	@Transactional
@@ -116,9 +120,8 @@ public class SaveDefaultProjectService {
 							.findFirst()
 							.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, personalProject.getName())));
 			userRepository.save(user);
-
-			ofNullable(basicUrl).ifPresent(it -> safe(() -> emailServiceFactory.getDefaultEmailService(true)
-					.sendCreateUserConfirmationEmail(request, it), e -> response.setWarning(e.getMessage())));
+			ofNullable(basicUrl).ifPresent(url -> emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
+					.sendCreateUserConfirmationEmail(request, url)));
 		} catch (PersistenceException pe) {
 			if (pe.getCause() instanceof ConstraintViolationException) {
 				fail().withError(RESOURCE_ALREADY_EXISTS, ((ConstraintViolationException) pe.getCause()).getConstraintName());

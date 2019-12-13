@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Acl;
@@ -44,12 +45,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.PersistenceException;
 import java.util.Set;
 
 import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.auth.UserRoleHierarchy.ROLE_REGISTERED;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -118,13 +119,12 @@ public class SaveDefaultProjectService {
 
 			ofNullable(basicUrl).ifPresent(it -> safe(() -> emailServiceFactory.getDefaultEmailService(true)
 					.sendCreateUserConfirmationEmail(request, it), e -> response.setWarning(e.getMessage())));
+		} catch (PersistenceException pe) {
+			if (pe.getCause() instanceof ConstraintViolationException) {
+				fail().withError(RESOURCE_ALREADY_EXISTS, ((ConstraintViolationException) pe.getCause()).getConstraintName());
+			}
+			throw new ReportPortalException("Error while User creating: " + pe.getMessage(), pe);
 		} catch (Exception exp) {
-			if (exp.getMessage().contains("users_email_key")) {
-				fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
-			}
-			if (exp.getMessage().contains("project_name_key")) {
-				fail().withError(PROJECT_ALREADY_EXISTS, projectName);
-			}
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}
 

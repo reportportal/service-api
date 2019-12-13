@@ -107,8 +107,17 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Override
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
-		TestItem parentItem = testItemRepository.findByUuid(parentId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry());
+
+		TestItem parentItem;
+		if (isRetry) {
+			parentItem = testItemRepository.findByUuidForUpdate(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		} else {
+			parentItem = testItemRepository.findByUuid(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		}
+
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(rq, parentItem);
@@ -131,7 +140,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (rq.isHasStats() && !parentItem.isHasChildren()) {
 			parentItem.setHasChildren(true);
 		}
-		if (BooleanUtils.toBoolean(rq.isRetry())) {
+		if (isRetry) {
 			handleRetries(launch, item);
 		}
 
@@ -180,7 +189,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * @param launch         {@link Launch}
 	 */
 	private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Launch launch) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
 			expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
 		}
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
@@ -206,7 +215,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

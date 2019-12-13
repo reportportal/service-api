@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,16 +43,19 @@ public class GetFileHandlerImpl implements GetFileHandler {
 
 	private final UserRepository userRepository;
 
-	private UserBinaryDataService userDataStoreService;
+	private final UserBinaryDataService userDataStoreService;
 
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+	private final AttachmentBinaryDataService attachmentBinaryDataService;
+
+	private final ProjectExtractor projectExtractor;
 
 	@Autowired
 	public GetFileHandlerImpl(UserRepository userRepository, UserBinaryDataService userDataStoreService,
-			AttachmentBinaryDataService attachmentBinaryDataService) {
+			AttachmentBinaryDataService attachmentBinaryDataService, ProjectExtractor projectExtractor) {
 		this.userRepository = userRepository;
 		this.userDataStoreService = userDataStoreService;
 		this.attachmentBinaryDataService = attachmentBinaryDataService;
+		this.projectExtractor = projectExtractor;
 	}
 
 	@Override
@@ -62,9 +66,9 @@ public class GetFileHandlerImpl implements GetFileHandler {
 	}
 
 	@Override
-	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, ReportPortalUser.ProjectDetails projectDetails,
-			boolean loadThumbnail) {
+	public BinaryData getUserPhoto(String username, ReportPortalUser loggedInUser, String projectName, boolean loadThumbnail) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetailsAdmin(loggedInUser, projectName);
 		if (loggedInUser.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(
 					ProjectUtils.isAssignedToProject(user, projectDetails.getProjectId()),

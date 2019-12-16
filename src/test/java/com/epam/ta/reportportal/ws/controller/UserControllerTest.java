@@ -234,7 +234,7 @@ class UserControllerTest extends BaseMvcTest {
 
 	@Test
 	void getUserPositiveUsingApiToken() throws Exception {
-		mockMvc.perform(get("/v1/user/default").with(token("68e590bb-9fcb-4e7d-98e7-518f871765cf"))).andExpect(status().isOk());
+		mockMvc.perform(get("/v1/user/default").with(token("7beef54b-4fea-45ee-9ad0-a48e09fd0f91"))).andExpect(status().isOk());
 	}
 
 	@Test

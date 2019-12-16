@@ -12,9 +12,14 @@ import java.util.function.Predicate;
  */
 public enum ItemHistoryBaselineEnum {
 
-	FILTER(1, historyRequestParams -> historyRequestParams.getFilterParams().isPresent()),
-	ITEM(2, historyRequestParams -> historyRequestParams.getParentId().isPresent() || historyRequestParams.getItemId().isPresent()),
-	LAUNCH(3, historyRequestParams -> historyRequestParams.getLaunchId().isPresent());
+	COMPARING(1,
+			historyRequestParams -> historyRequestParams.getHistoryType()
+					.map(HistoryRequestParams.HistoryTypeEnum.COMPARING::equals)
+					.orElse(Boolean.FALSE)
+	),
+	FILTER(2, historyRequestParams -> historyRequestParams.getFilterParams().isPresent()),
+	ITEM(3, historyRequestParams -> historyRequestParams.getParentId().isPresent() || historyRequestParams.getItemId().isPresent()),
+	LAUNCH(4, historyRequestParams -> historyRequestParams.getLaunchId().isPresent());
 
 	private final int priority;
 	private final Predicate<HistoryRequestParams> baseLinePredicate;

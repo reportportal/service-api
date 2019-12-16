@@ -1,5 +1,6 @@
 package com.epam.ta.reportportal.core.item.impl.history.provider.config;
 
+import com.epam.ta.reportportal.core.item.impl.history.provider.impl.ComparingBaselineHistoryProvider;
 import com.epam.ta.reportportal.core.item.impl.history.provider.impl.FilterBaselineHistoryProvider;
 import com.epam.ta.reportportal.core.item.impl.history.ItemHistoryBaselineEnum;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
@@ -31,6 +32,7 @@ public class ItemHistoryProviderConfiguration implements ApplicationContextAware
 	@Bean(name = "historyProviderMapping")
 	public Map<ItemHistoryBaselineEnum, HistoryProvider> historyProviderMapping() {
 		Map<ItemHistoryBaselineEnum, HistoryProvider> mapping = new HashMap<>();
+		mapping.put(ItemHistoryBaselineEnum.COMPARING, applicationContext.getBean(ComparingBaselineHistoryProvider.class));
 		mapping.put(ItemHistoryBaselineEnum.FILTER, applicationContext.getBean(FilterBaselineHistoryProvider.class));
 		mapping.put(ItemHistoryBaselineEnum.ITEM, applicationContext.getBean(TestItemBaselineHistoryProvider.class));
 		mapping.put(ItemHistoryBaselineEnum.LAUNCH, applicationContext.getBean(LaunchBaselineHistoryProvider.class));

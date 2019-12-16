@@ -36,7 +36,8 @@ public class HistoryRequestParams {
 
 	public enum HistoryTypeEnum {
 		TABLE,
-		LINE;
+		LINE,
+		COMPARING;
 
 		public static Optional<HistoryTypeEnum> fromValue(String type) {
 			return Arrays.stream(HistoryTypeEnum.values()).filter(v -> v.name().equalsIgnoreCase(type)).findFirst();

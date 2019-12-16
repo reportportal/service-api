@@ -31,7 +31,7 @@ plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id 'org.springframework.boot' version '2.2.1.RELEASE'
     id 'java'
-    id "org.owasp.dependencycheck" version "5.2.0"
+    id "org.owasp.dependencycheck" version "5.2.1"
 }
 
 apply from: 'project-properties.gradle'
@@ -48,10 +48,9 @@ apply from: 'sealights.gradle'
 repositories {
     mavenCentral()
     mavenLocal()
-    maven { url "http://dl.bintray.com/epam/reportportal" }
+    releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
-    maven { url 'https://jitpack.io' }
 }
 
 dependencyManagement {

@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
 import static java.util.Optional.ofNullable;
 
@@ -70,9 +71,6 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 					return message;
 				}
 		);
-
-		OperationCompletionRS response = new OperationCompletionRS("Accepted finish request for test item ID = " + testItemId);
-		return response;
-
+		return new OperationCompletionRS(formattedSupplier("Accepted finish request for test item ID = {}", testItemId).get());
 	}
 }

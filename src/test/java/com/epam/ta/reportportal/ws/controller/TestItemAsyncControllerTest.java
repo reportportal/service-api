@@ -103,20 +103,4 @@ class TestItemAsyncControllerTest {
 		assertEquals(user.getProjectDetails().get("test_project"), projectDetailsArgumentCaptor.getValue());
 		assertEquals(finishTestItemRQ, requestArgumentCaptor.getValue());
 	}
-
-	@Test
-	void finishTestItemWithoutLaunchUuid() {
-		ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
-
-		FinishTestItemRQ finishTestItemRQ = new FinishTestItemRQ();
-		String testItemId = UUID.randomUUID().toString();
-
-		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> testItemAsyncController.finishTestItem("test_project", user, testItemId, finishTestItemRQ)
-		);
-		assertEquals(
-				"Error in handled Request. Please, check specified parameters: 'Launch UUID should not be null or empty.'",
-				exception.getMessage()
-		);
-	}
 }

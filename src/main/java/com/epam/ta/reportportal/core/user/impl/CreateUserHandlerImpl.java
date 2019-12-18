@@ -47,10 +47,10 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
@@ -86,12 +86,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final GetIntegrationHandler getIntegrationHandler;
 
-	private final ExecutorService emailExecutorService;
+	private final ThreadPoolTaskExecutor emailExecutorService;
 
 	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
 			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
-			ExecutorService emailExecutorService) {
+			ThreadPoolTaskExecutor emailExecutorService) {
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.emailServiceFactory = emailServiceFactory;

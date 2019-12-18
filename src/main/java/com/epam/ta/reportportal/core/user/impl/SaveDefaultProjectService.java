@@ -37,6 +37,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Acl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.PersistenceException;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import static com.epam.ta.reportportal.auth.UserRoleHierarchy.ROLE_REGISTERED;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -72,12 +72,12 @@ public class SaveDefaultProjectService {
 
 	private final ShareableObjectsHandler aclHandler;
 
-	private final ExecutorService emailExecutorService;
+	private final ThreadPoolTaskExecutor emailExecutorService;
 
 	@Autowired
 	public SaveDefaultProjectService(ProjectRepository projectRepository, UserRepository userRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler,
-			ExecutorService emailExecutorService) {
+			ThreadPoolTaskExecutor emailExecutorService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.personalProjectService = personalProjectService;

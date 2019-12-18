@@ -46,11 +46,14 @@ public class RabbitMqManagementClientTemplate implements RabbitMqManagementClien
 		}
 	}
 
-	public List<ExchangeInfo> getAnalyzerExchangesInfo() {
-		return rabbitClient.getExchanges(ANALYZER_KEY)
-				.stream()
-				.filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
-				.sorted(comparingInt(EXCHANGE_PRIORITY))
-				.collect(Collectors.toList());
-	}
+    public List<ExchangeInfo> getAnalyzerExchangesInfo() {
+        List<ExchangeInfo> client = rabbitClient.getExchanges(ANALYZER_KEY);
+        if (client == null) {
+            throw new ReportPortalException(ErrorType.ANALYZER_NOT_FOUND, ANALYZER_KEY);
+        }
+        return client.stream()
+                .filter(it -> it.getArguments().get(ANALYZER_KEY) != null)
+                .sorted(comparingInt(EXCHANGE_PRIORITY))
+                .collect(Collectors.toList());
+    }
 }

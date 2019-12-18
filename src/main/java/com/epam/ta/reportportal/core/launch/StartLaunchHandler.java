@@ -53,7 +53,7 @@ public interface StartLaunchHandler {
 	 */
 	default void validateRoles(ReportPortalUser.ProjectDetails projectDetails, StartLaunchRQ startLaunchRQ) {
 		expect(
-				startLaunchRQ.getMode() == Mode.DEBUG && projectDetails.getProjectRole() == ProjectRole.CUSTOMER,
+				Mode.DEBUG.equals(startLaunchRQ.getMode()) && ProjectRole.CUSTOMER.equals(projectDetails.getProjectRole()),
 				Predicate.isEqual(false)
 		).verify(ErrorType.FORBIDDEN_OPERATION);
 	}

@@ -86,7 +86,7 @@ rp:
     host: postgres
     port: 5432
     user: rpuser
-    pass: rppass
+    pass: rppass123
 
   upload:
     maxUploadSize: 128MB

@@ -43,7 +43,7 @@ podTemplate(
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
-        def testDir = "tests"
+        def testDir = "tests/service-api"
         def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
@@ -72,7 +72,7 @@ podTemplate(
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "develop", credentialsId: 'epm-gitlab-key'
                 }
             }
         }, 'Download Sealights': {

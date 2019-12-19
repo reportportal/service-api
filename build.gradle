@@ -1,5 +1,3 @@
-import org.owasp.dependencycheck.reporting.ReportGenerator
-
 /*
  * Copyright 2019 EPAM Systems
  *
@@ -33,6 +31,8 @@ plugins {
     id 'java'
     id "org.owasp.dependencycheck" version "5.2.0"
 }
+
+import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'

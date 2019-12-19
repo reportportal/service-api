@@ -109,8 +109,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			String parentId) {
 		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry());
 
-		Launch launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+		Launch launch;
+		if (isRetry) {
+			launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+		} else {
+			launch = launchRepository.findByUuid(rq.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+		}
 
 		TestItem parentItem = testItemRepository.findByUuid(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));

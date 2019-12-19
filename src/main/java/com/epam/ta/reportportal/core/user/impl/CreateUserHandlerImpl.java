@@ -158,7 +158,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		}
 
 		StringBuilder emailLink = new StringBuilder(emailURL).append("/ui/#registration?uuid=").append(bid.getUuid());
-		emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, true)
+		emailExecutorService.execute(() -> emailServiceFactory.getEmailService(integration, false)
 				.sendCreateUserConfirmationEmail("User registration confirmation", new String[] { bid.getEmail() }, emailLink.toString()));
 
 		CreateUserBidRS response = new CreateUserBidRS();
@@ -217,7 +217,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			bid = bidOptional.get();
 		}
 
-		emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
+		emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(false)
 				.sendRestorePasswordEmail("Password recovery",
 						new String[] { email },
 						baseUrl + "#login?reset=" + bid.getUuid(),

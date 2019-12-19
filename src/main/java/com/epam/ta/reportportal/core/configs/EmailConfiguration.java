@@ -21,6 +21,7 @@ import com.epam.reportportal.commons.template.TemplateEngineProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * Global Email Configuration<br>
@@ -31,11 +32,17 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class EmailConfiguration {
 
-	//	@Bean
-	//	public MailServiceFactory initializeEmailServiceFactory(TemplateEngine templateEngine, BasicTextEncryptor encryptor,
-	//			ServerSettingsRepository settingsRepository) {
-	//		return new MailServiceFactory(templateEngine, encryptor, settingsRepository);
-	//	}
+	@Bean
+	public ThreadPoolTaskExecutor emailExecutorService() {
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setCorePoolSize(5);
+		threadPoolTaskExecutor.setMaxPoolSize(20);
+		threadPoolTaskExecutor.setQueueCapacity(50);
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setAwaitTerminationSeconds(20);
+		threadPoolTaskExecutor.setThreadNamePrefix("email-sending-exec");
+		return threadPoolTaskExecutor;
+	}
 
 	@Bean
 	@Primary

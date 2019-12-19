@@ -44,6 +44,7 @@ podTemplate(
         def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
+        def serviceName = "service-api"
         def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
@@ -72,7 +73,7 @@ podTemplate(
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "develop", credentialsId: 'epm-gitlab-key'
                 }
             }
         }, 'Download Sealights': {
@@ -145,7 +146,7 @@ podTemplate(
         try {
             stage('Integration tests') {
                 def testEnv = 'gcp-k8s'
-                dir(testDir) {
+                    dir("${testDir}/${serviceName}") {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
@@ -156,7 +157,7 @@ podTemplate(
                 }
             }
         } finally {
-            dir(testDir) {
+            dir("${testDir}/${serviceName}") {
                 junit 'target/surefire-reports/*.xml'
             }
         }

@@ -43,7 +43,8 @@ podTemplate(
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
-        def testDir = "tests/service-api"
+        def testDir = "tests"
+        def serviceName = "service-api"
         def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
@@ -145,7 +146,7 @@ podTemplate(
         try {
             stage('Integration tests') {
                 def testEnv = 'gcp-k8s'
-                dir(testDir) {
+                    dir("${testDir}/${serviceName}") {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
@@ -156,7 +157,7 @@ podTemplate(
                 }
             }
         } finally {
-            dir(testDir) {
+            dir("${testDir}/${serviceName}") {
                 junit 'target/surefire-reports/*.xml'
             }
         }

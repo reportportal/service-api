@@ -56,7 +56,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:f060f9c"
+        mavenBom "com.github.reportportal:commons-bom:14dab6c"
     }
 }
 

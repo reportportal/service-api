@@ -15,7 +15,7 @@ podTemplate(
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.0', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '1000m',

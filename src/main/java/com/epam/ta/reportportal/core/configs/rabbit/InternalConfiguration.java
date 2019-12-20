@@ -19,8 +19,6 @@ package com.epam.ta.reportportal.core.configs.rabbit;
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.MessageBusImpl;
-import com.epam.ta.reportportal.core.plugin.RabbitAwarePluginBox;
-import com.google.common.util.concurrent.Service;
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,49 +38,30 @@ public class InternalConfiguration {
 	 */
 	public static final String EXCHANGE_EVENTS = "broadcast.events";
 	public static final String EXCHANGE_ACTIVITY = "activity";
-	public static final String EXCHANGE_PLUGINS = "plugins";
 	public static final String EXCHANGE_ATTACHMENT = "attachment";
 
 	/**
 	 * Queues
 	 */
 	public static final String KEY_EVENTS = "broadcast.events";
-	public static final String KEY_PLUGINS_PING = "broadcast.plugins.ping";
-	public static final String KEY_PLUGINS_PONG = "broadcast.plugins.pong";
 	public static final String QUEUE_ACTIVITY = "activity";
 	public static final String QUEUE_ACTIVITY_KEY = "activity.#";
 	public static final String QUEUE_ATTACHMENT_DELETE = "attachment.delete";
 
-	public static final String LOGS_FIND_BY_TEST_ITEM_REF_QUEUE = "repository.find.logs.by.item";
-	public static final String DATA_STORAGE_FETCH_DATA_QUEUE = "repository.find.data";
-	public static final String TEST_ITEMS_FIND_ONE_QUEUE = "repository.find.item";
-	public static final String INTEGRATION_FIND_ONE = "repository.find.integration";
-	public static final String PROJECTS_FIND_BY_NAME = "repository.find.project.by.name";
 	public static final String QUEUE_QUERY_RQ = "query-rq";
-
-
-	@Bean
-	public Service pluginBox(@Autowired MessageBus messageBus) {
-		Service service = new RabbitAwarePluginBox(messageBus).startAsync();
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> service.stopAsync().awaitTerminated()));
-		return service;
-	}
 
 	@Bean
 	public MessageBus messageBus(@Autowired @Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
 		return new MessageBusImpl(amqpTemplate);
 	}
 
-	/** Exchanges definition */
+	/**
+	 * Exchanges definition
+	 */
 
 	@Bean
 	public FanoutExchange eventsExchange() {
 		return new FanoutExchange(EXCHANGE_EVENTS, false, false);
-	}
-
-	@Bean
-	public TopicExchange pluginsExchange() {
-		return new TopicExchange(EXCHANGE_PLUGINS, false, false);
 	}
 
 	@Bean
@@ -95,21 +74,13 @@ public class InternalConfiguration {
 		return new DirectExchange(EXCHANGE_ATTACHMENT, true, false);
 	}
 
-	/** Queues definition */
-
-	@Bean
-	public Queue pluginsPongQueue() {
-		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_PLUGINS_PONG + "."));
-	}
-
-	@Bean
-	public Queue pluginsPingQueue() {
-		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_PLUGINS_PING + "."));
-	}
+	/**
+	 * Queues definition
+	 */
 
 	@Bean
 	public Queue eventsQueue() {
-		return new AnonymousQueue(new AnonymousQueue.Base64UrlNamingStrategy(KEY_EVENTS + "."));
+		return new AnonymousQueue(new Base64UrlNamingStrategy(KEY_EVENTS + "."));
 	}
 
 	@Bean
@@ -122,43 +93,14 @@ public class InternalConfiguration {
 		return new Queue(QUEUE_ATTACHMENT_DELETE);
 	}
 
-
-	@Bean
-	public Queue projectRepoQueue() {
-		return new Queue(PROJECTS_FIND_BY_NAME);
-	}
-
-	@Bean
-	public Queue dataStorageQueue() {
-		return new Queue(DATA_STORAGE_FETCH_DATA_QUEUE);
-	}
-
-	@Bean
-	public Queue integrationRepoQueue() {
-		return new Queue(INTEGRATION_FIND_ONE);
-	}
-
-	@Bean
-	public Queue logRepoQueue() {
-		return new Queue(LOGS_FIND_BY_TEST_ITEM_REF_QUEUE);
-	}
-
-	@Bean
-	public Queue testItemRepoQueue() {
-		return new Queue(TEST_ITEMS_FIND_ONE_QUEUE);
-	}
-
 	@Bean
 	public Queue queryQueue() {
 		return new Queue(QUEUE_QUERY_RQ);
 	}
 
-	/** Bindings */
-
-	@Bean
-	public Binding pluginsPongBinding() {
-		return BindingBuilder.bind(pluginsPongQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PONG);
-	}
+	/**
+	 * Bindings
+	 */
 
 	@Bean
 	public Binding eventsQueueBinding() {
@@ -169,11 +111,6 @@ public class InternalConfiguration {
 	public Binding eventsActivityBinding() {
 		return BindingBuilder.bind(activityQueue()).to(activityExchange()).with(QUEUE_ACTIVITY_KEY);
 	}
-
-//	@Bean
-//	public Binding pluginsPingBinding() {
-//		return BindingBuilder.bind(pluginsPingQueue()).to(pluginsExchange()).with(KEY_PLUGINS_PING);
-//	}
 
 	@Bean
 	public Binding attachmentDeleteBinding() {

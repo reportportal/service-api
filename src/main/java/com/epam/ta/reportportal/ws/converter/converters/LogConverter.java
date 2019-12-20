@@ -53,7 +53,7 @@ public final class LogConverter {
 
 			LogResource.BinaryContent binaryContent = new LogResource.BinaryContent();
 
-			binaryContent.setBinaryDataId(model.getAttachment().getFileId());
+			binaryContent.setBinaryDataId(String.valueOf(model.getAttachment().getId()));
 			binaryContent.setContentType(model.getAttachment().getContentType());
 			binaryContent.setThumbnailId(model.getAttachment().getThumbnailId());
 			resource.setBinaryContent(binaryContent);

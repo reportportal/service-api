@@ -126,11 +126,15 @@ class StartTestItemHandlerImplTest {
 	void startChildItemUnderNotExistedParent() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
+		StartTestItemRQ rq = new StartTestItemRQ();
+		rq.setLaunchUuid("1");
+
+		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), new StartTestItemRQ(), "1")
-		);
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
+			handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1");
+		});
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 
@@ -144,8 +148,8 @@ class StartTestItemHandlerImplTest {
 
 		TestItem item = new TestItem();
 		item.setStartTime(LocalDateTime.now().plusHours(1));
-		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
+		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
@@ -165,8 +169,8 @@ class StartTestItemHandlerImplTest {
 		results.setStatus(StatusEnum.FAILED);
 		item.setItemResults(results);
 		item.setStartTime(LocalDateTime.now().minusHours(1));
-		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
+		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
@@ -183,10 +187,6 @@ class StartTestItemHandlerImplTest {
 		startTestItemRQ.setStartTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
 		startTestItemRQ.setLaunchUuid("1");
 
-		TestItem item = new TestItem();
-		item.setItemId(1L);
-
-		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,

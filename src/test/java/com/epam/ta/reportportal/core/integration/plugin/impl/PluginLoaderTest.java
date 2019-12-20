@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
@@ -38,15 +38,15 @@ import static org.mockito.Mockito.when;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class PluginLoaderTest {
+class PluginLoaderTest {
 
-	public static final String PLUGIN_ID = "pluginV1";
-	public static final String PLUGIN_VERSION = "1.0.0";
-	public static final String FILE_NAME = "file.jar";
+	private static final String PLUGIN_ID = "pluginV1";
+	private static final String PLUGIN_VERSION = "1.0.0";
+	private static final String FILE_NAME = "file.jar";
 
-	private final String pluginRootPath = "plugins";
+	private final static String PLUGIN_ROOT_PATH = "plugins";
 
-	private final DataStore dataStore= mock(DataStore.class);
+	private final DataStore dataStore = mock(DataStore.class);
 
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 
@@ -60,8 +60,12 @@ public class PluginLoaderTest {
 
 	private final PluginInfo pluginInfo = mock(PluginInfo.class);
 
-	private final PluginLoader pluginLoader = new PluginLoaderImpl(pluginRootPath, dataStore, integrationTypeRepository,
-			pluginDescriptorFinder);
+	private final PluginLoader pluginLoader = new PluginLoaderImpl(
+			PLUGIN_ROOT_PATH,
+			dataStore,
+			integrationTypeRepository,
+			pluginDescriptorFinder
+	);
 
 	@Test
 	void shouldExtractPluginIdWhenExists() throws PluginException {
@@ -106,14 +110,13 @@ public class PluginLoaderTest {
 	@Test
 	void shouldDeletePluginWhenPathsEqual() throws IOException {
 
-		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(pluginRootPath, FILE_NAME));
+		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(PLUGIN_ROOT_PATH, FILE_NAME));
 
 		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
 	}
 
 	@Test
 	void retrieveIntegrationTypeTest() {
-
-		IntegrationType integrationType = pluginLoader.retrieveIntegrationType(pluginInfo);
+		pluginLoader.retrieveIntegrationType(pluginInfo);
 	}
 }

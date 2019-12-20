@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -197,7 +196,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-			if (projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
+			if (!launch.isRerun() && projectDetails.getProjectRole().lowerThan(PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(FINISH_ITEM_NOT_ALLOWED,
 						"You are not a launch owner."
 				);
@@ -212,18 +211,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
-			ItemAttribute itemAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
-			itemAttribute.setTestItem(testItem);
-			testItem.getAttributes().add(itemAttribute);
-
 			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
-			testItem.getAttributes()
-					.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
-							&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
 		}
+
+		testItem.getAttributes()
+				.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
+						&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 
 		changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
 		changeStatusHandler.changeLaunchStatus(launch);

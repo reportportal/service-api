@@ -18,10 +18,14 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ReportingQueueService;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
 import com.epam.ta.reportportal.ws.rabbit.RequestType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,8 +33,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Konstantin Antipin
@@ -43,22 +48,29 @@ public class FinishTestItemHandlerAsyncImpl implements FinishTestItemHandler {
 	@Qualifier(value = "rabbitTemplate")
 	AmqpTemplate amqpTemplate;
 
+	@Autowired
+	private ReportingQueueService reportingQueueService;
+
 	@Override
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ request) {
 
 		// todo: may be problem - no access to repository, so no possibility to validateRoles() here
-		amqpTemplate.convertAndSend(EXCHANGE_REPORTING, getReportingQueueKey(request.getLaunchUuid()), request, message -> {
-			Map<String, Object> headers = message.getMessageProperties().getHeaders();
-			headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
-			headers.put(MessageHeaders.USERNAME, user.getUsername());
-			headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
-			headers.put(MessageHeaders.ITEM_ID, testItemId);
-			return message;
-		});
-
-		OperationCompletionRS response = new OperationCompletionRS("Accepted finish request for test item ID = " + testItemId);
-		return response;
-
+		amqpTemplate.convertAndSend(EXCHANGE_REPORTING,
+				reportingQueueService.getReportingQueueKey(ofNullable(request.getLaunchUuid()).filter(StringUtils::isNotEmpty)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+								"Launch UUID should not be null or empty."
+						))),
+				request,
+				message -> {
+					Map<String, Object> headers = message.getMessageProperties().getHeaders();
+					headers.put(MessageHeaders.REQUEST_TYPE, RequestType.FINISH_TEST);
+					headers.put(MessageHeaders.USERNAME, user.getUsername());
+					headers.put(MessageHeaders.PROJECT_NAME, projectDetails.getProjectName());
+					headers.put(MessageHeaders.ITEM_ID, testItemId);
+					return message;
+				}
+		);
+		return new OperationCompletionRS(formattedSupplier("Accepted finish request for test item ID = {}", testItemId).get());
 	}
 }

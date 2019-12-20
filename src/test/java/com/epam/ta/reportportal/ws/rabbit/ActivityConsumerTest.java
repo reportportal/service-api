@@ -39,7 +39,7 @@ class ActivityConsumerTest {
 	@InjectMocks
 	private ActivityConsumer activityConsumer;
 
-	private class EmptyActivity implements ActivityEvent {
+	private static class EmptyActivity implements ActivityEvent {
 
 		@Override
 		public Activity toActivity() {
@@ -50,17 +50,17 @@ class ActivityConsumerTest {
 	@Test
 	void nullTest() {
 		activityConsumer.onEvent(new EmptyActivity().toActivity());
-		verifyZeroInteractions(activityRepository);
+		verifyNoInteractions(activityRepository);
 	}
 
-	private class NotEmptyActivity implements ActivityEvent {
+	private static class NotEmptyActivity implements ActivityEvent {
 
 		private Long userId;
 		private Long projectId;
 		private String username;
 		private Long objectId;
 
-		public NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
+		NotEmptyActivity(Long userId, Long projectId, String username, Long objectId) {
 			this.userId = userId;
 			this.projectId = projectId;
 			this.username = username;

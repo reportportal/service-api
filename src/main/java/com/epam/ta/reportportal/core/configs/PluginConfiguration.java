@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.epam.ta.reportportal.plugin.ReportPortalExtensionFactory;
-import com.google.common.collect.Sets;
 import org.pf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +29,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Set;
+
+import static java.util.Optional.ofNullable;
 
 @Configuration
 public class PluginConfiguration {
@@ -55,16 +59,48 @@ public class PluginConfiguration {
 				pluginsTempPath,
 				pluginLoader,
 				integrationTypeRepository,
-				Sets.newHashSet(pluginDescriptorFinder()),
-				extensionFactory()
+				pluginManager(),
+				context
 		);
 		manager.startAsync();
 		return manager;
 	}
 
 	@Bean
-	public ExtensionFactory extensionFactory() {
-		return new ReportPortalExtensionFactory(context);
+	public PluginManager pluginManager() {
+
+		return new DefaultPluginManager(Paths.get(pluginsPath)) {
+			@Override
+			protected PluginDescriptorFinder createPluginDescriptorFinder() {
+				return pluginDescriptorFinder();
+			}
+
+			@Override
+			protected ExtensionFactory createExtensionFactory() {
+				return new ReportPortalExtensionFactory(this, context);
+			}
+
+			@Override
+			protected ExtensionFinder createExtensionFinder() {
+				RpExtensionFinder extensionFinder = new RpExtensionFinder(this);
+				addPluginStateListener(extensionFinder);
+				return extensionFinder;
+			}
+
+			class RpExtensionFinder extends DefaultExtensionFinder {
+
+				private RpExtensionFinder(PluginManager pluginManager) {
+					super(pluginManager);
+					finders.clear();
+					finders.add(new LegacyExtensionFinder(pluginManager) {
+						@Override
+						public Set<String> findClassNames(String pluginId) {
+							return ofNullable(super.findClassNames(pluginId)).orElseGet(Collections::emptySet);
+						}
+					});
+				}
+			}
+		};
 	}
 
 	@Bean

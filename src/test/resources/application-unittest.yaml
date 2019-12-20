@@ -5,7 +5,8 @@ rp:
   plugins:
     rooDir: ${java.io.tmpdir}/reportportal/plugins
 logging:
-  file: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
+  file:
+    name: ${java.io.tmpdir}/reportportal/logs/${spring.application.name}.log
 embedded:
   datasource:
     dir: ${java.io.tmpdir}/reportportal/embedded-postgres

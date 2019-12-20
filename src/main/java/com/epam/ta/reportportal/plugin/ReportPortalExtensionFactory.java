@@ -17,26 +17,39 @@
 package com.epam.ta.reportportal.plugin;
 
 import org.pf4j.DefaultExtensionFactory;
+import org.pf4j.PluginManager;
+import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class ReportPortalExtensionFactory extends DefaultExtensionFactory {
 
-	private final AutowireCapableBeanFactory autowireCapableBeanFactory;
+	private final PluginManager pluginManager;
+	private final AbstractAutowireCapableBeanFactory beanFactory;
 
-	public ReportPortalExtensionFactory(AutowireCapableBeanFactory autowireCapableBeanFactory) {
-		this.autowireCapableBeanFactory = autowireCapableBeanFactory;
+	public ReportPortalExtensionFactory(PluginManager pluginManager, AutowireCapableBeanFactory context) {
+		this.pluginManager = pluginManager;
+		this.beanFactory = (AbstractAutowireCapableBeanFactory) context;
 	}
 
 	@Override
 	public Object create(Class<?> extensionClass) {
-		Object extension = super.create(extensionClass);
-		if (null == extension) {
-			return null;
+		PluginWrapper pluginWrapper = pluginManager.whichPlugin(extensionClass);
+		if (beanFactory.containsSingleton(pluginWrapper.getPluginId())) {
+			return beanFactory.getSingleton(pluginWrapper.getPluginId());
+		} else {
+			return createExtension(extensionClass, pluginWrapper);
 		}
-		this.autowireCapableBeanFactory.autowireBean(extension);
-		return extension;
+	}
+
+	private Object createExtension(Class<?> extensionClass, PluginWrapper pluginWrapper) {
+		Object plugin = super.create(extensionClass);
+		beanFactory.autowireBean(plugin);
+		beanFactory.initializeBean(plugin, pluginWrapper.getDescriptor().getPluginId());
+		beanFactory.registerSingleton(pluginWrapper.getDescriptor().getPluginId(), plugin);
+		return plugin;
 	}
 }

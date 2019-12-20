@@ -23,8 +23,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.widget.ContentParameters;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetRQ;
-import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -157,7 +155,8 @@ class WidgetControllerTest extends BaseMvcTest {
 		widgetOptions.put("timeline", "WEEK");
 		contentParameters.setWidgetOptions(widgetOptions);
 		contentParameters.setItemsCount(20);
-		contentParameters.setContentFields(Arrays.asList("statistics$executions$total",
+		contentParameters.setContentFields(Arrays.asList(
+				"statistics$executions$total",
 				"statistics$executions$passed",
 				"statistics$executions$failed",
 				"statistics$executions$skipped"
@@ -175,7 +174,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getLaunchStatisticsWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launch stats"))
 				.andExpect(jsonPath("$.widgetType").value("launchStatistics"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -192,7 +191,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getNotPassedWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("not passed"))
 				.andExpect(jsonPath("$.widgetType").value("notPassed"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -212,7 +211,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getLaunchesComparisonWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launch comparison"))
 				.andExpect(jsonPath("$.widgetType").value("launchesComparisonChart"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -236,7 +235,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentLaunchesComparisonWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launch comparison"))
 				.andExpect(jsonPath("$.widgetType").value("launchesComparisonChart"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -247,7 +246,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getLaunchesDurationWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launches duration"))
 				.andExpect(jsonPath("$.widgetType").value("launchesDurationChart"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -261,7 +260,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentLaunchesDurationWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launches duration"))
 				.andExpect(jsonPath("$.widgetType").value("launchesDurationChart"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -272,7 +271,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getBugTrendWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("bug trend"))
 				.andExpect(jsonPath("$.widgetType").value("bugTrend"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -291,7 +290,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getLaunchesTableWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launches table"))
 				.andExpect(jsonPath("$.widgetType").value("launchesTable"))
 				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$skipped").value("1"))
@@ -309,7 +308,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentLaunchesTableWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("launches table"))
 				.andExpect(jsonPath("$.widgetType").value("launchesTable"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -320,7 +319,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getTopTestCasesWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("top test cases"))
 				.andExpect(jsonPath("$.widgetType").value("topTestCases"))
 				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
@@ -337,7 +336,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentTopTestCasesWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("top test cases"))
 				.andExpect(jsonPath("$.widgetType").value("topTestCases"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -347,7 +346,8 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getTopTestCasesWidgetWithNotExistLaunch() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content").isEmpty());
 	}
 
 	@Sql("/db/widget/top-test-cases.sql")
@@ -355,7 +355,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getTopTestCasesIncludeMethodsWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("top test cases"))
 				.andExpect(jsonPath("$.widgetType").value("topTestCases"))
 				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
@@ -372,7 +372,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getFlakyTestCasesWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("flaky test cases"))
 				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
 				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
@@ -392,7 +392,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentFlakyTestCasesWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("flaky test cases"))
 				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -403,7 +403,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getFlakyTestCasesWithIncludeMethodsWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("flaky test cases"))
 				.andExpect(jsonPath("$.widgetType").value("flakyTestCases"))
 				.andExpect(jsonPath("$.content.latestLaunch.name").value("test launch"))
@@ -416,7 +416,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getCasesTrendWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("cases trend"))
 				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -432,7 +432,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getCasesTrendWidgetWithTimeline() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("cases trend"))
 				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
 				.andExpect(jsonPath("$.content.result.*.name").value("test launch"))
@@ -445,7 +445,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentCasesTrendWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/6").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("cases trend"))
 				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -456,7 +456,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getCasesTrendWidgetWithWrongTimeLineOption() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/7").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("cases trend"))
 				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -472,7 +472,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getCasesTrendWidgetWithDescOrdering() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/8").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("cases trend"))
 				.andExpect(jsonPath("$.widgetType").value("casesTrend"))
 				.andExpect(jsonPath("$.content.result.*.name").value("test launch"))
@@ -485,7 +485,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getPassingRatePerLaunchWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("passing rate per launch"))
 				.andExpect(jsonPath("$.widgetType").value("passingRatePerLaunch"))
 				.andExpect(jsonPath("$.content.result.passed").value("1"))
@@ -498,7 +498,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentPassingRatePerLaunchWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("passing rate per launch"))
 				.andExpect(jsonPath("$.widgetType").value("passingRatePerLaunch"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -516,7 +516,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getPassingRateSummaryWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("passing rate summary"))
 				.andExpect(jsonPath("$.widgetType").value("passingRateSummary"))
 				.andExpect(jsonPath("$.content.result.passed").value("3"))
@@ -536,7 +536,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getOldLineChartWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("old line chart"))
 				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -553,7 +553,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentOldLineChartWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("old line chart"))
 				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -564,7 +564,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getOldLineChartWithTimeLineWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("old line chart"))
 				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
 				.andExpect(jsonPath("$.content.result.*.values.statistics$defects$automation_bug$ab001").value("1.0"))
@@ -580,7 +580,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentOldLineChartWithTimeLineWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/6").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("old line chart"))
 				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -591,7 +591,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getOldLineChartWidgetWithIncorrectTimeLine() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/7").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("old line chart"))
 				.andExpect(jsonPath("$.widgetType").value("oldLineChart"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -602,7 +602,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getInvestigatedTrendWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("investigated trend"))
 				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -620,16 +620,11 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Sql("/db/widget/investigated-trend.sql")
 	@Test
 	void getInvestigatedTrendWidgetWithTimeline() throws Exception {
-		MvcResult mvcResult = mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("investigated trend"))
-				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"))
-				.andReturn();
-
-		WidgetResource response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<WidgetResource>() {
-		});
-		System.out.println();
+				.andExpect(jsonPath("$.widgetType").value("investigatedTrend"));
 	}
 
 	@Sql("/db/widget/unique-bug-table.sql")
@@ -637,7 +632,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getUniqueBugTableWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("unique bug table"))
 				.andExpect(jsonPath("$.widgetType").value("uniqueBugTable"))
 				.andExpect(jsonPath("$.content.result.ticket1.submitter").value("superadmin"))
@@ -653,7 +648,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentUniqueBugTableWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("unique bug table"))
 				.andExpect(jsonPath("$.widgetType").value("uniqueBugTable"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -664,7 +659,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getMostTimeConsumingWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("most time consuming"))
 				.andExpect(jsonPath("$.widgetType").value("mostTimeConsuming"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test item 3"))
@@ -684,7 +679,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentMostTimeConsumingWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("most time consuming"))
 				.andExpect(jsonPath("$.widgetType").value("mostTimeConsuming"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -702,7 +697,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getMostTimeConsumingWidgetWithIncludeMethods() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/6").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("most time consuming"))
 				.andExpect(jsonPath("$.widgetType").value("mostTimeConsuming"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test item 3"))
@@ -722,7 +717,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getOverallStatisticsWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("overall statistics"))
 				.andExpect(jsonPath("$.widgetType").value("overallStatistics"))
 				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$automation_bug$ab001").value("1"))
@@ -738,7 +733,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentOverallStatisticsWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("overall statistics"))
 				.andExpect(jsonPath("$.widgetType").value("overallStatistics"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -749,7 +744,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getActivityStreamWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/1").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("activity stream"))
 				.andExpect(jsonPath("$.widgetType").value("activityStream"))
 				.andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
@@ -768,7 +763,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentActivityStreamWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("activity stream"))
 				.andExpect(jsonPath("$.widgetType").value("activityStream"))
 				.andExpect(jsonPath("$.content").isEmpty());
@@ -786,7 +781,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getActivityStreamWidgetWithEmptyUserOption() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("activity stream"))
 				.andExpect(jsonPath("$.widgetType").value("activityStream"))
 				.andExpect(jsonPath("$.content.result[0].user").value("superadmin"))
@@ -805,7 +800,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getProductStatusGroupedByLaunchWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/4").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("product status"))
 				.andExpect(jsonPath("$.widgetType").value("productStatus"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
@@ -829,9 +824,10 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Sql("/db/widget/component-health-check.sql")
 	@Test
 	void getComponentHealthCheckContent() throws Exception {
-		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/multilevel/2?attributes=3.29.11.0,arch").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL
+				+ "/widget/multilevel/2?attributes=3.29.11.0,arch").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("health"))
 				.andExpect(jsonPath("$.widgetType").value("componentHealthCheck"))
 				.andExpect(jsonPath("$.content.result[0].attributeValue").value("android"))
@@ -847,7 +843,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	void getEmptyContentProductStatusGroupedByLaunchWidget() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType("application/json"))
 				.andExpect(jsonPath("$.name").value("product status"))
 				.andExpect(jsonPath("$.widgetType").value("productStatus"))
 				.andExpect(jsonPath("$.content").isEmpty());

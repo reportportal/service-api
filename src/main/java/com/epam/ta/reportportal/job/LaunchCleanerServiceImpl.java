@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +47,6 @@ public class LaunchCleanerServiceImpl implements LaunchCleanerService {
 	}
 
 	@Override
-	@Async
 	@Transactional
 	public void cleanOutdatedLaunches(Project project, Duration period, AtomicLong launchesRemoved) {
 		activityRepository.deleteModifiedLaterAgo(project.getId(), period);

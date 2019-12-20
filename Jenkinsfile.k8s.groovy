@@ -15,31 +15,41 @@ podTemplate(
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:latest', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '1000m',
                         resourceLimitCpu: '2000m',
                         resourceRequestMemory: '1024Mi',
-                        resourceLimitMemory: '2048Mi'),
+                        resourceLimitMemory: '3072Mi'),
+                containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
+                secretVolume(mountPath: '/etc/.sealights-token', secretName: 'sealights-token'),
                 hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
 
     node("${label}") {
 
+        def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
+        def sealightsAgentUrl = "https://agents.sealights.co/sealights-java/sealights-java-latest.zip"
+        def sealightsAgentArchive = sealightsAgentUrl.substring(sealightsAgentUrl.lastIndexOf('/') + 1)
 
         def k8sDir = "kubernetes"
         def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
+        def serviceName = "service-api"
         def k8sNs = "reportportal"
+        def sealightsDir = 'sealights'
+
+        def branchToBuild = params.get('COMMIT_HASH', 'develop')
+
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
                 sh 'mkdir -p ~/.ssh'
@@ -57,17 +67,20 @@ podTemplate(
         }, 'Checkout Service': {
             stage('Checkout Service') {
                 dir(appDir) {
-                    def br = params.get('COMMIT_HASH', 'develop')
-                    checkout([$class: 'GitSCM', branches: [[name: br]],
-                              browser: [$class: 'GithubWeb', repoUrl: 'https://github.com/reportportal/service-api/'],
-                              doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [],
-                              userRemoteConfigs: [[url: 'https://github.com/reportportal/service-api.git']]])
+                    git branch: branchToBuild, url: 'https://github.com/reportportal/service-api.git'
                 }
             }
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "develop", credentialsId: 'epm-gitlab-key'
+                }
+            }
+        }, 'Download Sealights': {
+            stage('Download Sealights'){
+                dir(sealightsDir) {
+                    sh "wget ${sealightsAgentUrl}"
+                    unzip sealightsAgentArchive
                 }
             }
         }
@@ -86,11 +99,21 @@ podTemplate(
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
 
+        def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
+        def sealightsSession;
+        stage ('Init Sealights') {
+            dir(sealightsDir) {
+                container ('jre') {
+                    sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
+                    sealightsSession = utils.execStdout("cat buildSessionId.txt")
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             dir(appDir) {
                 container('docker') {
-                    sh "docker build -f docker/Dockerfile-develop --build-arg buildNumber=$buildVersion -t $tag ."
+                    sh "docker build -f docker/Dockerfile-develop --build-arg sealightsToken=$sealightsToken --build-arg sealightsSession=$sealightsSession --build-arg buildNumber=$buildVersion -t $tag ."
                     sh "docker push $tag"
                 }
             }
@@ -102,14 +125,14 @@ podTemplate(
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait reportportal ./$k8sDir/reportportal/v5"
             }
         }
 
         stage('Execute DVT Tests') {
             def srvUrl
             container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "api")
+                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
                 srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
             }
             if (srvUrl == null) {
@@ -123,15 +146,18 @@ podTemplate(
         try {
             stage('Integration tests') {
                 def testEnv = 'gcp-k8s'
-                dir(testDir) {
+                    dir("${testDir}/${serviceName}") {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
-                        sh "mvn clean test -Denv=${testEnv}"
+                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
+                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
+                        sh "mvn clean test -P build -Denv=${testEnv}"
                     }
                 }
             }
         } finally {
-            dir(testDir) {
+            dir("${testDir}/${serviceName}") {
                 junit 'target/surefire-reports/*.xml'
             }
         }

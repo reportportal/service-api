@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.BinaryDataMetaInfo;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.configs.rabbit.DeserializablePair;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.util.ReportingQueueService;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import com.epam.ta.reportportal.ws.rabbit.MessageHeaders;
@@ -38,7 +39,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.core.configs.rabbit.ReportingConfiguration.EXCHANGE_REPORTING;
-import static com.epam.ta.reportportal.util.ControllerUtils.getReportingQueueKey;
 
 /**
  * Asynchronous implementation of {@link CreateLogHandler} using RabbitMQ
@@ -61,6 +61,9 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 	@Autowired
 	@Qualifier("saveLogsTaskExecutor")
 	private TaskExecutor taskExecutor;
+
+	@Autowired
+	private ReportingQueueService reportingQueueService;
 
 	@Autowired
 	@Qualifier(value = "rabbitTemplate")
@@ -89,10 +92,10 @@ public class CreateLogHandlerAsyncImpl implements CreateLogHandler {
 		return response;
 	}
 
-	private void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
+	protected void sendMessage(SaveLogRQ request, BinaryDataMetaInfo metaInfo, Long projectId) {
 		amqpTemplate.convertAndSend(
 				EXCHANGE_REPORTING,
-				getReportingQueueKey(request.getLaunchUuid()),
+				reportingQueueService.getReportingQueueKey(request.getLaunchUuid()),
 				DeserializablePair.of(request, metaInfo),
 				message -> {
 					Map<String, Object> headers = message.getMessageProperties().getHeaders();

@@ -19,12 +19,12 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
-import com.epam.ta.reportportal.core.analyzer.auto.model.IndexLaunch;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -149,7 +150,9 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	public void cleanIndex(Long index, List<Long> ids) {
-		CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
+		if (!CollectionUtils.isEmpty(ids)) {
+			CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
+		}
 	}
 
 	/**

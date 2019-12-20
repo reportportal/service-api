@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk-alpine as builder
 
-RUN apk add --no-cache ca-certificates git curl font-noto
+RUN apk add --no-cache ca-certificates git curl font-noto zip
 
 RUN addgroup -S -g 1000 rp-builder
 RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
@@ -14,21 +14,29 @@ COPY --chown=rp-builder gradlew*  ./
 RUN ./gradlew wrapper
 
 ARG buildNumber
+ARG sealightsSession
+ARG sealightsToken
 
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
-RUN ./gradlew resolveDependencies --stacktrace
+RUN ./gradlew resolveDependencies -P sealightsToken=${sealightsToken} --stacktrace
 
 ### Copy source and run build
 COPY --chown=rp-builder src/ ./src/
 COPY --chown=rp-builder .git/ .git/
-RUN ./gradlew build -P buildNumber=${buildNumber} --full-stacktrace
 
-RUN mkdir -p /home/rp-builder/plugins
-RUN curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar
-RUN curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar
+RUN ./gradlew build -x jacocoTestReport -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
-FROM openjdk:8-jre-slim
+RUN mkdir -p /home/rp-builder/plugins && \
+    curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar && \
+    curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar && \
+    curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+    unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
+    mkdir -p /home/rp-builder/sealights && \
+    sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \
+    sh -c "echo '${sealightsSession}' > /home/rp-builder/sealights/sealights-session.txt"
+
+FROM openjdk:8-jre-alpine
 
 ARG version
 
@@ -41,27 +49,23 @@ LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
 LABEL version=${version}
 LABEL description="ReportPortal API Service: Development Version"
 
+ENV JAVA_OPTS="-DLOG_FILE=app.log -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+ENV JAVA_APP=/app/app.jar
 
-ENV JAVA_OPTS="-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
-ENV JAVA_APP=/app.jar
+RUN apk add --no-cache ca-certificates fontconfig freetype font-noto
 
-RUN apt-get update && \
-    apt-get install -y fontconfig libfreetype6 fonts-noto net-tools && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN sh -c "echo '#!/bin/sh \n\
-exec java $JAVA_OPTS -jar $JAVA_APP' > /start.sh && chmod +x /start.sh"
+RUN sh -c "echo $'#!/bin/sh \n\
+exec java \$JAVA_OPTS -jar \$JAVA_APP' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
 
-RUN mkdir plugins
-COPY --from=builder /home/rp-builder/plugins/JIRA.jar ./plugins/JIRA.jar
-COPY --from=builder /home/rp-builder/plugins/RALLY.jar ./plugins/RALLY.jar
+RUN mkdir plugins app
+COPY --from=builder /home/rp-builder/plugins/JIRA.jar /home/rp-builder/plugins/RALLY.jar /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
+COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 
-COPY --from=builder /home/rp-builder/build/libs/service-api.jar ./app.jar
+COPY --from=builder /home/rp-builder/build/libs/service-api.jar $JAVA_APP
 
-RUN sh -c 'touch /app.jar'
+RUN sh -c "touch $JAVA_APP"
 
 EXPOSE 8080
-
 ENTRYPOINT /start.sh

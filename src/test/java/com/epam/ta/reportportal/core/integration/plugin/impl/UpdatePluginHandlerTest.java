@@ -31,13 +31,11 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -54,22 +52,17 @@ import static org.mockito.Mockito.when;
  */
 class UpdatePluginHandlerTest {
 
-	private final String fileName = "file-name";
-	private final String pluginRootPath = "plugins";
+	private static final String FILE_NAME = "file-name";
 	private final Pf4jPluginBox pluginBox = mock(Pf4jPluginBox.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
 	private final DataStore dataStore = mock(DataStore.class);
 
 	private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
-	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox,
-			integrationTypeRepository,
-			dataStore,
-			pluginRootPath
-	);
+	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository);
 
 	@AfterAll
-	public static void clearPluginDirectory() throws IOException {
+	static void clearPluginDirectory() throws IOException {
 		FileUtils.deleteDirectory(new File(System.getProperty("user.dir") + "/plugins"));
 	}
 
@@ -85,10 +78,8 @@ class UpdatePluginHandlerTest {
 				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
 		);
 
-		assertEquals(
-				Suppliers.formattedSupplier("Impossible interact with integration. Integration type with id - '{}' not found.", 1L).get(),
-				exception.getMessage()
-		);
+		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Integration type with id - '{}' not found.", 1L)
+				.get(), exception.getMessage());
 
 	}
 
@@ -99,7 +90,7 @@ class UpdatePluginHandlerTest {
 		updatePluginStateRQ.setEnabled(true);
 
 		IntegrationType emailIntegrationType = IntegrationTestUtil.getEmailIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(emailIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(emailIntegrationType));
 
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
@@ -115,11 +106,11 @@ class UpdatePluginHandlerTest {
 		updatePluginStateRQ.setEnabled(false);
 
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.ofNullable(pluginWrapper));
 		when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
-		when(pluginBox.unloadPlugin(pluginWrapper.getPluginId())).thenReturn(true);
+		when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(true);
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
 		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
@@ -134,19 +125,18 @@ class UpdatePluginHandlerTest {
 		updatePluginStateRQ.setEnabled(false);
 
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(integrationTypeRepository.findById(1L)).thenReturn(ofNullable(jiraIntegrationType));
+		when(integrationTypeRepository.findById(1L)).thenReturn(Optional.of(jiraIntegrationType));
 
 		when(pluginBox.getPluginById(jiraIntegrationType.getName())).thenReturn(Optional.ofNullable(pluginWrapper));
 		when(pluginWrapper.getPluginId()).thenReturn(jiraIntegrationType.getName());
-		when(pluginBox.unloadPlugin(pluginWrapper.getPluginId())).thenReturn(false);
+		when(pluginBox.unloadPlugin(jiraIntegrationType)).thenReturn(false);
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
 		);
 
 		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Error during unloading the plugin with id = '{}'",
 				jiraIntegrationType.getName()
-		)
-				.get(), exception.getMessage());
+		).get(), exception.getMessage());
 	}
 
 	@Test
@@ -164,10 +154,9 @@ class UpdatePluginHandlerTest {
 				() -> updatePluginHandler.updatePluginState(1L, updatePluginStateRQ)
 		);
 
-		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Integration type details have not been found",
+		assertEquals(Suppliers.formattedSupplier("Impossible interact with integration. Error during loading the plugin with id = 'QWEQWE'",
 				wrongIntegrationTypeName
-		)
-				.get(), exception.getMessage());
+		).get(), exception.getMessage());
 
 	}
 
@@ -186,8 +175,7 @@ class UpdatePluginHandlerTest {
 		tempFile.deleteOnExit();
 
 		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
-		when(pluginBox.loadPlugin(any(Path.class))).thenReturn(jiraIntegrationType.getName());
-		when(pluginBox.startUpPlugin(jiraIntegrationType.getName())).thenReturn(PluginState.STARTED);
+		when(pluginBox.loadPlugin(jiraIntegrationType.getName(), jiraIntegrationType.getDetails())).thenReturn(true);
 		OperationCompletionRS operationCompletionRS = updatePluginHandler.updatePluginState(1L, updatePluginStateRQ);
 
 		Assertions.assertEquals(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
@@ -200,7 +188,7 @@ class UpdatePluginHandlerTest {
 
 		Map<String, Object> params = new HashMap<>();
 		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "file-id");
-		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), fileName);
+		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), FILE_NAME);
 		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), "1.0.0");
 		return params;
 	}

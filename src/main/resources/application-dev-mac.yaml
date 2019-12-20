@@ -8,11 +8,12 @@ rp:
   datasource:
     maximumPoolSize: 5
   binarystore:
+    path: /Users/pavel_bortnik/ReportPortal5/data/storage
     type: filesystem
-    path: ${java.io.tmpdir}\reportportal\datastore\
 
 logging:
-  file: ${java.io.tmpdir}\reportportal\logs\${spring.application.name}.log
+#  name:
+#    file: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
   level:
     org:
       hibernate:

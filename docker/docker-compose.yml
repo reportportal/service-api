@@ -1,9 +1,9 @@
-version: '2'
+version: '2.4'
 
 services:
 
   rabbitmq:
-    image: rabbitmq:3.7.16-management
+    image: rabbitmq:3.8.2-management
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -12,7 +12,7 @@ services:
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
 
   postgres:
-    image: postgres:10.1-alpine
+    image: postgres:12-alpine
     environment:
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
@@ -24,39 +24,58 @@ services:
     ports:
       - "5432:5432"
 
-  #  # start seaweedfs master
-  #  seaweed-master:
-  #    image: chrislusf/seaweedfs
-  #    ports:
-  #      - 9333:9333
-  #    command: master
-  #
-  #  # start seaweedfs volume
-  #  seaweed-volume:
-  #    image: chrislusf/seaweedfs
-  #    depends_on:
-  #      - seaweed-master
-  #    ports:
-  #      - 7001:7001
-  #    command: volume -max=5 -mserver="seaweed-master:9333" -port=7001
-  #    links:
-  #      - seaweed-master
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.3.0
+    restart: always
+    volumes:
+      - elastic:/usr/share/elasticsearch/data
+    environment:
+      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
+      - "logger.level=INFO"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
 
   api:
     image: service-api
     depends_on:
       - postgres
       - rabbitmq
-    #      - seaweed-volume
+      - minio
     environment:
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-      - RP_RABBIT_HOST=rabbitmq
-      #      - RP_BINARYSTORE_MASTER_HOST=seaweed-master
-      #      - RP_BINARYSTORE_TYPE=seaweed
-      - RP_DB_URL=jdbc:postgresql://postgres:5432/reportportal
+      - RP_BINARYSTORE_TYPE=minio
+      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
+      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
+      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
     restart: always
     ports:
       - "8585:8585"
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - '9000:9000'
+    volumes:
+      - minio:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
 volumes:
   reportportal-database:
+  elastic:
+  minio:

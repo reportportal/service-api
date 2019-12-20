@@ -61,7 +61,7 @@ public class FileStorageController {
 	@Transactional(readOnly = true)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@GetMapping(value = "/{projectName}/{dataId}")
-	public void getFile(@PathVariable String projectName, @PathVariable("dataId") String dataId, HttpServletResponse response,
+	public void getFile(@PathVariable String projectName, @PathVariable("dataId") Long dataId, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		toResponse(response, getFileHandler.loadFileById(dataId, extractProjectDetails(user, projectName)));
 	}
@@ -87,11 +87,7 @@ public class FileStorageController {
 	public void getUserPhoto(@PathVariable String projectName, @RequestParam(value = "id") String username,
 			@RequestParam(value = "loadThumbnail", required = false) boolean loadThumbnail, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username),
-				user,
-				extractProjectDetails(user, projectName),
-				loadThumbnail
-		);
+		BinaryData userPhoto = getFileHandler.getUserPhoto(EntityUtils.normalizeId(username), user, projectName, loadThumbnail);
 		toResponse(response, userPhoto);
 	}
 

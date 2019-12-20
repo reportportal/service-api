@@ -149,8 +149,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: docker/Dockerfile-debug
+      context: ..
+      dockerfile: Dockerfile-debug
     volumes:
       - ./tmp/data/storage:/data/storage
       - ./tmp/plugins:/plugins

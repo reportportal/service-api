@@ -25,7 +25,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.*;
@@ -34,10 +36,10 @@ import org.springframework.context.annotation.*;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Configuration
-@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
-@ComponentScan(value = "com.epam.ta.reportportal", excludeFilters = {
+@EnableAutoConfiguration(exclude = { QuartzAutoConfiguration.class, RabbitAutoConfiguration.class })
+@ComponentScan(value = { "com.epam.ta.reportportal" }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
-		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.job.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.epam.ta.reportportal.job.*" }),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ResourceCopierBeanTest.TestConfig.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) })
 public class TestConfig {
@@ -50,6 +52,9 @@ public class TestConfig {
 
 	@MockBean(name = "rabbitTemplate")
 	protected RabbitTemplate rabbitTemplate;
+
+	@MockBean
+	protected MessageConverter messageConverter;
 
 	@Bean
 	@Profile("unittest")

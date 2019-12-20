@@ -19,9 +19,9 @@ package com.epam.ta.reportportal.core.integration.plugin.impl;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
+import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -81,13 +82,11 @@ public class PluginLoaderImpl implements PluginLoader {
 			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
 					.map(String::valueOf)
 					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
-							.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-									Suppliers.formattedSupplier(
-											"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
-											pluginInfo.getId(),
-											pluginInfo.getVersion()
-									)
-							));
+							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
+									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
+									pluginInfo.getId(),
+									pluginInfo.getVersion()
+							)));
 			return it;
 		}).orElseGet(() -> new IntegrationTypeBuilder().get());
 		if (integrationType.getDetails() == null) {
@@ -111,6 +110,11 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
+	public String saveToDataStore(String fileName, InputStream fileStream) throws ReportPortalException {
+		return dataStore.save(fileName, fileStream);
+	}
+
+	@Override
 	public String savePlugin(String fileName, InputStream fileStream) throws ReportPortalException {
 		return dataStore.save(fileName, fileStream);
 	}
@@ -118,6 +122,19 @@ public class PluginLoaderImpl implements PluginLoader {
 	@Override
 	public void savePlugin(Path pluginPath, InputStream fileStream) throws IOException {
 		Files.copy(fileStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
+	}
+
+	@Override
+	public void copyFromDataStore(String fileId, Path pluginPath) throws IOException {
+		if (Objects.nonNull(pluginPath.getParent())) {
+			Files.createDirectories(pluginPath.getParent());
+		}
+		Files.copy(dataStore.load(fileId), pluginPath);
+	}
+
+	@Override
+	public void deleteFromDataStore(String fileId) {
+		dataStore.delete(fileId);
 	}
 
 	@Override

@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -43,12 +45,12 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Conditional(Conditions.NotTestCondition.class)
 @Service
 public class CleanOutdatedPluginsJob {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanOutdatedPluginsJob.class);
 
-	private final String pluginsRootPath;
 	private final String pluginsTempPath;
 
 	private final IntegrationTypeRepository integrationTypeRepository;
@@ -58,10 +60,8 @@ public class CleanOutdatedPluginsJob {
 	private final PluginLoaderService pluginLoaderService;
 
 	@Autowired
-	public CleanOutdatedPluginsJob(@Value("${rp.plugins.path}") String pluginsRootPath,
-			@Value("${rp.plugins.temp.path}") String pluginsTempPath, IntegrationTypeRepository integrationTypeRepository,
-			Pf4jPluginBox pf4jPluginBox, PluginLoaderService pluginLoaderService) {
-		this.pluginsRootPath = pluginsRootPath;
+	public CleanOutdatedPluginsJob(@Value("${rp.plugins.temp.path}") String pluginsTempPath,
+			IntegrationTypeRepository integrationTypeRepository, Pf4jPluginBox pf4jPluginBox, PluginLoaderService pluginLoaderService) {
 		this.pluginsTempPath = pluginsTempPath;
 		this.integrationTypeRepository = integrationTypeRepository;
 		this.pluginBox = pf4jPluginBox;
@@ -134,7 +134,7 @@ public class CleanOutdatedPluginsJob {
 		List<IntegrationType> disabledPlugins = integrationTypes.stream().filter(it -> !it.isEnabled()).collect(Collectors.toList());
 
 		disabledPlugins.forEach(dp -> pluginBox.getPluginById(dp.getName()).ifPresent(plugin -> {
-			if (pluginBox.unloadPlugin(plugin.getPluginId())) {
+			if (pluginBox.unloadPlugin(dp)) {
 				LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully unloaded.", plugin.getPluginId()).get());
 			} else {
 				LOGGER.error(Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'.", plugin.getPluginId()).get());

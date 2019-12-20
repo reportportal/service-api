@@ -17,17 +17,20 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.io.FileUtils;
-import org.pf4j.PluginState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +45,7 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+@Conditional(Conditions.NotTestCondition.class)
 @Service
 public class LoadPluginsJob {
 
@@ -85,19 +89,17 @@ public class LoadPluginsJob {
 				}
 
 				if (pluginInfo.isEnabled()) {
-					String pluginId = pluginBox.loadPlugin(Paths.get(pluginsRootPath, pluginInfo.getFileName()));
 
-					ofNullable(pluginId).ifPresent(id -> {
-						LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully loaded.", id).get());
+					IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId())
+							.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginInfo.getId()));
 
-						PluginState pluginState = pluginBox.startUpPlugin(pluginId);
-
-						if (pluginState == PluginState.STARTED) {
-							LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", id).get());
-						} else {
-							LOGGER.error(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", id).get());
-						}
-					});
+					boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
+					if (isLoaded) {
+						LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", integrationType.getName())
+								.get());
+					} else {
+						LOGGER.error(Suppliers.formattedSupplier("Plugin - '{}' has not been started.", integrationType.getName()).get());
+					}
 				}
 
 			} catch (IOException ex) {

@@ -71,6 +71,7 @@ class NotificationConfigConverterTest {
 		assertThat(senderCase.getLaunchNames()).containsExactlyInAnyOrderElementsOf(caseDTO.getLaunchNames());
 		//		assertThat(senderCase.getLaunchAttributes()).containsExactlyInAnyOrderElementsOf(caseDTO.getAttributes());
 		assertEquals(senderCase.getSendCase().getCaseString(), caseDTO.getSendCase());
+		assertEquals(senderCase.isEnabled(), caseDTO.isEnabled());
 	}
 
 	private static Set<SenderCase> getSenderCases() {
@@ -113,6 +114,7 @@ class NotificationConfigConverterTest {
 		launchAttribute.setValue("val");
 		senderCaseDTO.setAttributes(Sets.newHashSet(launchAttribute));
 		senderCaseDTO.setSendCase("always");
+		senderCaseDTO.setEnabled(true);
 		return senderCaseDTO;
 	}
 

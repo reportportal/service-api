@@ -109,17 +109,18 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			String parentId) {
 		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry());
 
-		TestItem parentItem;
+		Launch launch;
 		if (isRetry) {
-			parentItem = testItemRepository.findByUuidForUpdate(parentId)
-					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		} else {
-			parentItem = testItemRepository.findByUuid(parentId)
-					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			launch = launchRepository.findByUuid(rq.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		}
 
-		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+		TestItem parentItem = testItemRepository.findByUuid(parentId)
+				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+
 		validate(rq, parentItem);
 
 		if (launch.isRerun()) {
@@ -215,8 +216,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					)
-							.get()
+					).get()
 			);
 		}
 

@@ -84,7 +84,8 @@ class NotificationConfigConverterTest {
 				Sets.newHashSet("recipent3", "recipient8"),
 				Sets.newHashSet("launch1", "launch5", "launch10"),
 				Sets.newHashSet(launchAttributeRule),
-				SendCase.ALWAYS
+				SendCase.ALWAYS,
+				true
 		));
 		return senderCases;
 	}
@@ -98,7 +99,8 @@ class NotificationConfigConverterTest {
 				Sets.newHashSet("recipent1", "recipient2"),
 				Sets.newHashSet("launch1", "launch2", "launch3"),
 				Sets.newHashSet(launchAttributeRule),
-				SendCase.MORE_10
+				SendCase.MORE_10,
+				true
 		);
 	}
 

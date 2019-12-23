@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.rabbit;
 
+import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ShutdownSignalException;
@@ -28,6 +29,7 @@ import org.springframework.amqp.rabbit.listener.ListenerContainerConsumerFailedE
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -41,6 +43,7 @@ import java.util.List;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Component
+@Conditional(Conditions.NotTestCondition.class)
 public class ConsumerEventListener implements ApplicationListener<ListenerContainerConsumerFailedEvent> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerEventListener.class);

@@ -35,15 +35,6 @@ import java.util.List;
  * @author Aliaksei Makayed
  */
 public interface GetTestItemHandler {
-	/**
-	 * Get {@link TestItem} instance
-	 *
-	 * @param testItemId     {@link TestItem#itemId}
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param user           {@link ReportPortalUser}
-	 * @return {@link TestItemResource}
-	 */
-	TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * Get {@link TestItem} instance

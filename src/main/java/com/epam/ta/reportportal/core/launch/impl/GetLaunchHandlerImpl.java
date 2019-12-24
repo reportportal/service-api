@@ -108,15 +108,14 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		validate(launch, projectDetails);
-		return launchConverter.TO_RESOURCE.apply(launch);
-	}
-
-	@Override
 	public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		Launch launch;
+		try {
+			launch = launchRepository.findById(Long.parseLong(launchId))
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		} catch (NumberFormatException e) {
+			launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		}
 		validate(launch, projectDetails);
 		return launchConverter.TO_RESOURCE.apply(launch);
 	}

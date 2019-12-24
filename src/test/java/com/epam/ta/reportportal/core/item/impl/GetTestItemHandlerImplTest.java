@@ -73,7 +73,7 @@ class GetTestItemHandlerImplTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
@@ -90,7 +90,7 @@ class GetTestItemHandlerImplTest {
 		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
@@ -108,7 +108,7 @@ class GetTestItemHandlerImplTest {
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
 				exception.getMessage()
@@ -179,7 +179,7 @@ class GetTestItemHandlerImplTest {
 		when(launchRepository.findById(2L)).thenReturn(Optional.of(launch));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(operator, "test_project"), operator)
+				() -> handler.getTestItem("1", extractProjectDetails(operator, "test_project"), operator)
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}

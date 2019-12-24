@@ -181,7 +181,7 @@ public class LaunchController {
 	@GetMapping("/{launchId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch by ID")
-	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable Long launchId,
+	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable String launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
 	}
@@ -190,7 +190,7 @@ public class LaunchController {
 	@GetMapping("/uuid/{launchId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get specified launch by UUID")
-	public LaunchResource getLaunch(@PathVariable String projectName, @PathVariable String launchId,
+	public LaunchResource getLaunchByUuid(@PathVariable String projectName, @PathVariable String launchId,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLaunch(launchId, extractProjectDetails(user, normalizeId(projectName)));
 	}

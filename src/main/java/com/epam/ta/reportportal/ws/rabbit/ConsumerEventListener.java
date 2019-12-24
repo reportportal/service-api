@@ -66,7 +66,7 @@ public class ConsumerEventListener implements ApplicationListener<ListenerContai
 					&& throwable.getCause().getCause().getMessage().contains("in exclusive use")) {
 				for (Queue q : queues) {
 					if (getQueueConsumerCount(q) == 0) {
-						listenerContainer.setQueueNames(q.getName());
+						listenerContainer.setQueues(q);
 						LOGGER.info("Restarting consumer with a queue {}", q.getName());
 					}
 				}

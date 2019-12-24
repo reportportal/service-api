@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +65,13 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 		Sort sort = Sort.by(Sort.Order.desc(CRITERIA_START_TIME), Sort.Order.desc(CRITERIA_LAUNCH_NUMBER));
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
-		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
+
+		if (result.isEmpty()) {
+			return emptyMap();
+		} else {
+			Collections.reverse(result);
+			return singletonMap(RESULT, result);
+		}
 	}
 
 	/**

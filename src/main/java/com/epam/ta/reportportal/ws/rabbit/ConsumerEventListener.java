@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Finds a queue that doesn't have any connected consumers and set's it
@@ -74,10 +75,9 @@ public class ConsumerEventListener implements ApplicationListener<ListenerContai
 	}
 
 	private int getQueueConsumerCount(Queue queue) {
-		Channel channel = connectionFactory.createConnection().createChannel(false);
-		try {
+		try (Channel channel = connectionFactory.createConnection().createChannel(false)) {
 			return channel.queueDeclarePassive(queue.getName()).getConsumerCount();
-		} catch (IOException e) {
+		} catch (IOException | TimeoutException e) {
 			throw new ReportPortalException(e.getMessage());
 		}
 	}

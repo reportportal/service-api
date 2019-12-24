@@ -35,6 +35,7 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_NUMBER;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -60,7 +61,7 @@ public class LaunchesComparisonContentLoader implements LoadContentStrategy {
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
-		Sort sort = Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME);
+		Sort sort = Sort.by(Sort.Order.desc(CRITERIA_START_TIME), Sort.Order.desc(CRITERIA_LAUNCH_NUMBER));
 
 		List<ChartStatisticsContent> result = widgetContentRepository.launchesComparisonStatistics(filter, contentFields, sort, limit);
 		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);

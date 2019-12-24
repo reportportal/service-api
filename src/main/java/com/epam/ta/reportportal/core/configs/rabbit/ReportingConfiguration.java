@@ -184,7 +184,7 @@ public class ReportingConfiguration {
 			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 			containers.add(listenerContainer);
 			listenerContainer.setConnectionFactory(connectionFactory);
-			listenerContainer.addQueues(queues.get(consumersCount));
+			listenerContainer.addQueueNames(queues.get(consumersCount).getName());
 			listenerContainer.setExclusive(true);
 			listenerContainer.setMissingQueuesFatal(false);
 			listenerContainer.setApplicationEventPublisher(applicationEventPublisher);

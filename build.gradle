@@ -56,7 +56,11 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom "com.github.reportportal:commons-bom:14dab6c"
+        if (releaseMode) {
+            mavenBom "com.epam.reportportal:commons-bom:5.0.0-RC-5"
+        } else {
+            mavenBom "com.github.reportportal:commons-bom:5.0.0-RC-5"
+        }
     }
 }
 
@@ -64,13 +68,13 @@ dependencies {
     if (releaseMode) {
         compile 'com.epam.reportportal:commons-dao:5.0.0-RC-5'
         compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-RC-5'
+        compile 'com.epam.reportportal:commons-model:5.0.0-RC-6'
         compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
         compile 'com.epam.reportportal:plugin-api:5.0.0-RC-5'
     } else {
         compile 'com.github.reportportal:commons-dao:5.0.0-RC-5'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:5.0.0-RC-5'
+        compile 'com.github.reportportal:commons-model:5.0.0-RC-6'
         compile 'com.github.reportportal:commons:5.0.0-BETA-2'
         compile 'com.github.reportportal:plugin-api:5.0.0-RC-5'
     }

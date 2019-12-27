@@ -140,7 +140,7 @@ podTemplate(
             }
             container('httpie') {
                 srvUrls.each{ip ->
-                    test.checkVersion("http://$ip", "$srvVersion")
+                    test.checkVersion("http://$ip:8585", "$srvVersion")
                 }
             }
         }

@@ -130,16 +130,18 @@ podTemplate(
         }
 
         stage('Execute DVT Tests') {
-            def srvUrl
+            def srvUrls
             container('kubectl') {
                 def srvName = utils.getServiceName(k8sNs, "reportportal-api")
-                srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
+                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
             }
-            if (srvUrl == null) {
+            if (srvUrls == null) {
                 error("Unable to retrieve service URL")
             }
             container('httpie') {
-                test.checkVersion("http://$srvUrl", "$srvVersion")
+                srvUrls.each{ip ->
+                    test.checkVersion("http://$ip", "$srvVersion")
+                }
             }
         }
 

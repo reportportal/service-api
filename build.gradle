@@ -92,6 +92,8 @@ dependencies {
 
     compile 'com.sun.mail:javax.mail:1.6.2'
     compile 'net.sf.jasperreports:jasperreports:6.10.0'
+    // JasperReport's export to XLS uses Apache POI
+    compile 'org.apache.poi:poi:4.1.0'
     compile 'io.springfox:springfox-swagger2'
 
     ///// Security
@@ -102,10 +104,6 @@ dependencies {
 
     // Metrics
     compile 'io.micrometer:micrometer-registry-prometheus:1.3.1'
-
-//    JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
-//    higher than 3.14 since 3.15 contains breaking API changes
-//    compile 'org.apache.poi:poi:4.1.0'
 
 //  Tests
     testCompile 'org.springframework.boot:spring-boot-starter-test'

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -72,9 +73,115 @@ class GetTestItemHandlerImplTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemUnderNotExistedLaunch() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		item.setLaunchId(launch.getId());
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
+	}
+
+	@Test
+	void getTestItemFromAnotherProject() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		launch.setProjectId(2L);
+		item.setLaunchId(launch.getId());
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
+		);
+		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
+				exception.getMessage()
+		);
+	}
+
+	@Test
+	void getTestItemsUnderNotExistedLaunch() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
+
+		final Executable executable = () -> handler.getTestItems(Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+						.withValue("100")
+						.withCondition(Condition.EQUALS)
+						.build())
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, 1L, null, false, 0);
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
+	}
+
+	@Test
+	public void getTestItemUnderAnotherProject() {
+		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(1L);
+		launch.setProjectId(2L);
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+
+		final Executable executable = () -> handler.getTestItems(Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder()
+						.withSearchCriteria(CRITERIA_TEST_ITEM_ID)
+						.withValue("100")
+						.withCondition(Condition.EQUALS)
+						.build())
+				.build(), PageRequest.of(0, 10), extractProjectDetails(rpUser, "test_project"), rpUser, 1L, null, false, 0);
+
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
+		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
+				exception.getMessage()
+		);
+	}
+
+	@Test
+	void getItemByOperator() {
+		ReportPortalUser operator = getRpUser("operator", UserRole.USER, ProjectRole.OPERATOR, 1L);
+
+		TestItem item = new TestItem();
+		Launch launch = new Launch();
+		launch.setId(2L);
+		launch.setMode(LaunchModeEnum.DEBUG);
+		launch.setProjectId(1L);
+		item.setLaunchId(launch.getId());
+
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(launchRepository.findById(2L)).thenReturn(Optional.of(launch));
+
+		ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.getTestItem("1", extractProjectDetails(operator, "test_project"), operator)
+		);
+		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
 
 	@Test

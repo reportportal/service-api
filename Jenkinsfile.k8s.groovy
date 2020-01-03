@@ -15,7 +15,7 @@ podTemplate(
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.0', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '1000m',
@@ -44,6 +44,7 @@ podTemplate(
         def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
+        def serviceName = "service-api"
         def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
@@ -72,7 +73,7 @@ podTemplate(
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "develop", credentialsId: 'epm-gitlab-key'
                 }
             }
         }, 'Download Sealights': {
@@ -129,23 +130,25 @@ podTemplate(
         }
 
         stage('Execute DVT Tests') {
-            def srvUrl
+            def srvUrls
             container('kubectl') {
                 def srvName = utils.getServiceName(k8sNs, "reportportal-api")
-                srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
+                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
             }
-            if (srvUrl == null) {
+            if (srvUrls == null) {
                 error("Unable to retrieve service URL")
             }
             container('httpie') {
-                test.checkVersion("http://$srvUrl", "$srvVersion")
+                srvUrls.each{ip ->
+                    test.checkVersion("http://$ip:8585", "$srvVersion")
+                }
             }
         }
 
         try {
             stage('Integration tests') {
                 def testEnv = 'gcp-k8s'
-                dir(testDir) {
+                    dir("${testDir}/${serviceName}") {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
@@ -156,7 +159,7 @@ podTemplate(
                 }
             }
         } finally {
-            dir(testDir) {
+            dir("${testDir}/${serviceName}") {
                 junit 'target/surefire-reports/*.xml'
             }
         }

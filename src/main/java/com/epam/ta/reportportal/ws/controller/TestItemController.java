@@ -132,7 +132,7 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by ID")
 	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@PathVariable Long itemId) {
+			@PathVariable String itemId) {
 		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
 
 	}
@@ -141,7 +141,7 @@ public class TestItemController {
 	@GetMapping("/uuid/{itemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by UUID")
-	public TestItemResource getTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public TestItemResource getTestItemByUuid(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String itemId) {
 		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
 

@@ -42,16 +42,6 @@ public interface GetLogHandler {
 	Iterable<LogResource> getLogs(ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
 
 	/**
-	 * Returns log by ID
-	 *
-	 * @param logId          - target log ID value
-	 * @param projectDetails Project details
-	 * @param user           User
-	 * @return LogResource
-	 */
-	LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
-
-	/**
 	 * Returns log by UUID
 	 *
 	 * @param logId          - target log UUID value

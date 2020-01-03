@@ -108,15 +108,14 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
-	public LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
-		validate(launch, projectDetails);
-		return launchConverter.TO_RESOURCE.apply(launch);
-	}
-
-	@Override
 	public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
-		Launch launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		Launch launch;
+		try {
+			launch = launchRepository.findById(Long.parseLong(launchId))
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		} catch (NumberFormatException e) {
+			launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		}
 		validate(launch, projectDetails);
 		return launchConverter.TO_RESOURCE.apply(launch);
 	}
@@ -279,7 +278,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	 */
 	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
 		expect(launch.getProjectId(), Predicates.equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED);
-		if (launch.getMode() == LaunchModeEnum.DEBUG) {
+		if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
 			expect(projectDetails.getProjectRole(), not(Predicates.equalTo(ProjectRole.CUSTOMER))).verify(ACCESS_DENIED);
 		}
 	}

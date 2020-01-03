@@ -97,15 +97,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	@Override
-	public LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Log log = findById(logId);
-		validate(log, projectDetails);
-		return LogConverter.TO_RESOURCE.apply(log);
-	}
-
-	@Override
 	public LogResource getLog(String logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Log log = findByUuid(logId);
+		Log log;
+		try {
+			log = findById(Long.parseLong(logId));
+		} catch (NumberFormatException e) {
+			log = findByUuid(logId);
+		}
 		validate(log, projectDetails);
 		return LogConverter.TO_RESOURCE.apply(log);
 	}
@@ -138,11 +136,12 @@ public class GetLogHandlerImpl implements GetLogHandler {
 				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
 
 		queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
-		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(
-				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()),
+		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()),
 				queryable,
 				excludePassedLogs
-		).stream().collect(toMap(NestedStep::getId, i -> i))).orElseGet(Collections::emptyMap);
+		)
+				.stream()
+				.collect(toMap(NestedStep::getId, i -> i))).orElseGet(Collections::emptyMap);
 
 		List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());
 		content.forEach(nestedItem -> {

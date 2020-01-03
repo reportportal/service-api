@@ -40,15 +40,6 @@ import java.util.Map;
 public interface GetLaunchHandler {
 
 	/**
-	 * Get Launch resource by specified ID
-	 *
-	 * @param launchId       Launch id
-	 * @param projectDetails Project Details
-	 * @return
-	 */
-	LaunchResource getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails);
-
-	/**
 	 * Get Launch resource by specified UUID
 	 *
 	 * @param launchId       Launch uuid

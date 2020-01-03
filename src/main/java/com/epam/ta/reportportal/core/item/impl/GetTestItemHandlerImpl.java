@@ -105,18 +105,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		TestItem testItem = testItemRepository.findById(testItemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		validate(testItem.getLaunchId(), projectDetails, user);
-		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(Collections.singletonList(testItem), projectDetails.getProjectId());
-		return itemResourceAssembler.toResource(testItem, pathNamesMapping.get(testItem.getItemId()));
-	}
-
-	@Override
 	public TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		TestItem testItem = testItemRepository.findByUuid(testItemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		TestItem testItem;
+		try {
+			testItem = testItemRepository.findById(Long.parseLong(testItemId))
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		} catch (NumberFormatException e) {
+			testItem = testItemRepository.findByUuid(testItemId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		}
 		validate(testItem.getLaunchId(), projectDetails, user);
 		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(Collections.singletonList(testItem), projectDetails.getProjectId());
 		return itemResourceAssembler.toResource(testItem, pathNamesMapping.get(testItem.getItemId()));

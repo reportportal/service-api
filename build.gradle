@@ -74,9 +74,9 @@ dependencies {
         compile 'com.epam.reportportal:commons'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:49b1a5db'
+        compile 'com.github.reportportal:commons-dao:03abe67b'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:af4435a'
+        compile 'com.github.reportportal:commons-model:7f67536'
         compile 'com.github.reportportal:commons:5.0.0-BETA-2'
         compile 'com.github.reportportal:plugin-api:5.0.0-RC-5'
     }

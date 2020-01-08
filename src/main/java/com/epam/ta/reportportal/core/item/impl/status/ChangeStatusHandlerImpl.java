@@ -91,10 +91,10 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 
 	private boolean isParentStatusUpdateRequired(TestItem parent) {
 		return parent.getItemResults().getStatus() != StatusEnum.IN_PROGRESS
-				&& !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getPath(), StatusEnum.IN_PROGRESS);
+				&& !testItemRepository.hasItemsInStatusByParent(parent.getItemId(), parent.getPath(), StatusEnum.IN_PROGRESS.name());
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, JStatusEnum.PASSED) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED) ? FAILED : PASSED;
 	}
 }

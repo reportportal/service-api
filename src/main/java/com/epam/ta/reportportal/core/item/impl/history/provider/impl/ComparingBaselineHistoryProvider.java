@@ -37,6 +37,8 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 /**
+ * * Required for retrieving {@link TestItemHistory} content using {@link Launch} IDs as baseline for {@link TestItemHistory} selection.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

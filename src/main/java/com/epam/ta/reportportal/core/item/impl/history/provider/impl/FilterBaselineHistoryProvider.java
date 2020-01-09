@@ -37,6 +37,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
+ * Required for retrieving {@link TestItemHistory} content using `Launch` {@link com.epam.ta.reportportal.commons.querygen.Filter}
+ * as baseline for {@link TestItemHistory} selection.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

@@ -24,6 +24,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
+ * Enum for {@link com.epam.ta.reportportal.entity.item.history.TestItemHistory} retrieving type resolving.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public enum ItemHistoryBaselineEnum {
@@ -40,6 +42,13 @@ public enum ItemHistoryBaselineEnum {
 	private final int priority;
 	private final Predicate<HistoryRequestParams> baseLinePredicate;
 
+	/**
+	 * {@link ItemHistoryBaselineEnum} is resolved using {@link Predicate},
+	 * types ordered by `priority` field in ascending order, first matched type is returned.
+	 *
+	 * @param historyRequestParams {@link HistoryRequestParams}
+	 * @return {@link Optional} with {@link ItemHistoryBaselineEnum}
+	 */
 	public static Optional<ItemHistoryBaselineEnum> resolveType(HistoryRequestParams historyRequestParams) {
 		return Arrays.stream(ItemHistoryBaselineEnum.values())
 				.sorted(Comparator.comparingInt(ItemHistoryBaselineEnum::getPriority))

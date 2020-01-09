@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.item.history;
+package com.epam.ta.reportportal.core.item.impl.history.provider;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
+import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Define handler's operations for loading testItem's history.
+ * Interface for {@link TestItemHistory} content providers
  *
- * @author Aliaksei_Makayed
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface TestItemsHistoryHandler {
+public interface HistoryProvider {
 
 	/**
-	 * Get history for {@link com.epam.ta.reportportal.entity.item.TestItem}s according to input parameters
-	 *
-	 * @param projectDetails       - project details
-	 * @param filter               - filter
-	 * @param pageable             - paging parameters object
+	 * @param filter               - {@link Queryable}
+	 * @param pageable             - {@link Pageable}
 	 * @param historyRequestParams - {@link HistoryRequestParams}
+	 * @param projectDetails       - {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @param user                 - {@link ReportPortalUser}
-	 * @return {@link Iterable} of {@link TestItemHistoryElement}
+	 * @return {@link Page} with {@link TestItemHistory} content
 	 */
-	Iterable<TestItemHistoryElement> getItemsHistory(ReportPortalUser.ProjectDetails projectDetails, Queryable filter, Pageable pageable,
-			HistoryRequestParams historyRequestParams, ReportPortalUser user);
-
+	Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

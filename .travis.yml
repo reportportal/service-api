@@ -1,10 +1,9 @@
 language: java
-
 dist: trusty
-sudo: required
+
 before_install:
   - sudo apt-get install -y fonts-noto
-script: ./gradlew build --full-stacktrace
+script: ./gradlew buildDocker --full-stacktrace
 
 env:
   global:
@@ -16,10 +15,13 @@ jdk:
 notifications:
   slack: reportportal-dev:fl6xWHVQp1jvsMmCJxYW9YKP
 
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.m2
-    - $HOME/.gradle
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

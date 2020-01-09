@@ -4,7 +4,7 @@ rp:
   db:
     host: localhost
   plugins:
-    rootDir: plugins
+    rooDir: ${java.io.tmpdir}${file.separator}reportportal${file.separator}plugins
   datasource:
     maximumPoolSize: 5
   binarystore:

@@ -25,11 +25,9 @@ RUN ./gradlew resolveDependencies -P sealightsToken=${sealightsToken} --stacktra
 COPY --chown=rp-builder src/ ./src/
 COPY --chown=rp-builder .git/ .git/
 
-RUN ./gradlew build -x jacocoTestReport -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
+RUN ./gradlew build -x jacocoTestReport -P gcp -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins && \
-    curl -o /home/rp-builder/plugins/JIRA.jar https://jitpack.io/com/github/reportportal/plugin-bts-jira/master/plugin-bts-jira-master.jar && \
-    curl -o /home/rp-builder/plugins/RALLY.jar https://jitpack.io/com/github/reportportal/plugin-bts-rally/master/plugin-bts-rally-master.jar && \
     curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
     unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
     mkdir -p /home/rp-builder/sealights && \
@@ -60,10 +58,10 @@ exec java \$JAVA_OPTS -jar \$JAVA_APP' > /start.sh && chmod +x /start.sh"
 VOLUME /tmp
 
 RUN mkdir plugins app
-COPY --from=builder /home/rp-builder/plugins/JIRA.jar /home/rp-builder/plugins/RALLY.jar /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
+COPY --from=builder /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
 COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 
-COPY --from=builder /home/rp-builder/build/libs/service-api.jar $JAVA_APP
+COPY --from=builder /home/rp-builder/build/libs/app.jar /app/
 
 RUN sh -c "touch $JAVA_APP"
 

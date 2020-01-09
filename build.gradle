@@ -35,13 +35,13 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/build-commons.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/release-service.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/copy-database-scripts.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/fix/release-task/jacoco.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/copy-database-scripts.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/jacoco.gradle'
 apply from: 'sealights.gradle'
 
 

@@ -16,9 +16,8 @@ project.ext {
             'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/4_size_limitations.up.sql' : 'V003__size_limitations.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/5_auth_integration.up.sql' : 'V004__auth_integration.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/6_retries_handling.up.sql': 'V005__retries_handling.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/7_test_case_id_type.up.sql': 'V006__test_case_id_type.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/5_test_case_id_type.up.sql': 'V004__test_case_id_type.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/7_auth_integration.up.sql' : 'V005__auth_integration.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
@@ -47,7 +46,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaCons
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -59,7 +58,7 @@ class GetTestItemHandlerImplTest {
 	private TestItemRepository testItemRepository;
 
 	@Mock
-	private LaunchRepository launchRepository;
+	private LaunchAccessValidator launchAccessValidator;
 
 	@Mock
 	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
@@ -73,7 +72,7 @@ class GetTestItemHandlerImplTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
@@ -87,10 +86,12 @@ class GetTestItemHandlerImplTest {
 		launch.setId(1L);
 		item.setLaunchId(launch.getId());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
+
+		doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(launchAccessValidator)
+				.validate(item.getLaunchId(), extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Launch '1' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
@@ -105,10 +106,13 @@ class GetTestItemHandlerImplTest {
 		launch.setProjectId(2L);
 		item.setLaunchId(launch.getId());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+
+		doThrow(new ReportPortalException(
+				"Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
+				launchAccessValidator).validate(item.getLaunchId(), extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser)
+				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
 		);
 		assertEquals("Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'",
 				exception.getMessage()
@@ -123,8 +127,8 @@ class GetTestItemHandlerImplTest {
 		Launch launch = new Launch();
 		launch.setId(1L);
 		item.setLaunchId(launch.getId());
-		when(launchRepository.findById(1L)).thenReturn(Optional.empty());
-
+		doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(launchAccessValidator)
+				.validate(item.getLaunchId(), extractProjectDetails(rpUser, "test_project"), rpUser);
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
 				.withTarget(TestItem.class)
 				.withCondition(FilterCondition.builder()
@@ -147,7 +151,9 @@ class GetTestItemHandlerImplTest {
 		launch.setId(1L);
 		launch.setProjectId(2L);
 		item.setLaunchId(launch.getId());
-		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+		doThrow(new ReportPortalException(
+				"Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
+				launchAccessValidator).validate(item.getLaunchId(), extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		final Executable executable = () -> handler.getTestItems(Filter.builder()
 				.withTarget(TestItem.class)
@@ -176,10 +182,10 @@ class GetTestItemHandlerImplTest {
 		item.setLaunchId(launch.getId());
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(launchRepository.findById(2L)).thenReturn(Optional.of(launch));
+		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator).validate(item.getLaunchId(), extractProjectDetails(operator, "test_project"), operator);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getTestItem(1L, extractProjectDetails(operator, "test_project"), operator)
+				() -> handler.getTestItem("1", extractProjectDetails(operator, "test_project"), operator)
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}

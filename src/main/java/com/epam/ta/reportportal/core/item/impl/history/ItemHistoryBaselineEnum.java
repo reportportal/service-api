@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl.history;
 
-import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 
 import java.util.Arrays;
 import java.util.Comparator;

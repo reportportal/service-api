@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl.history.provider;
 
 import com.epam.ta.reportportal.core.item.impl.history.ItemHistoryBaselineEnum;
-import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

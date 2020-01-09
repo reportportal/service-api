@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.item.history;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
-import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import org.springframework.data.domain.Pageable;
 
 /**

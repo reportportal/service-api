@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.param.HistoryRequestParams;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +37,8 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 /**
+ * * Required for retrieving {@link TestItemHistory} content using {@link Launch} IDs as baseline for {@link TestItemHistory} selection.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.param;
+package com.epam.ta.reportportal.core.item.impl.history.param;
 
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -26,6 +26,8 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 
 /**
+ * NULL-safe container for {@link com.epam.ta.reportportal.ws.controller.TestItemController#getItemsHistory} request params
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class HistoryRequestParams {
@@ -60,6 +62,9 @@ public class HistoryRequestParams {
 		}
 	}
 
+	/**
+	 * Container for {@link com.epam.ta.reportportal.ws.controller.TestItemController#getItemsHistory} launch's filter-related request params
+	 */
 	public static final class FilterParams {
 		private Long filterId;
 		private int launchesLimit;

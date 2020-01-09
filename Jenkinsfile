@@ -17,6 +17,8 @@ node {
         sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST"
     }
     stage('Deploy container') {
-        sh "docker-compose -p reportportal5 -f $COMPOSE_FILE_RP_5 up -d --force-recreate api"
+        docker.withServer("$DOCKER_HOST") {
+            sh "docker-compose -p reportportal5 -f $COMPOSE_FILE_RP_5 up -d --force-recreate api"
+        }
     }
 }

@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.auto.strategy.search;
+package com.epam.ta.reportportal.core.item.impl;
 
-import java.util.Map;
+import com.epam.ta.reportportal.commons.ReportPortalUser;
 
 /**
- * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class SearchCollectorFactory {
+public interface LaunchAccessValidator {
 
-	private Map<SearchLogsMode, SearchLaunchesCollector> mapping;
-
-	public SearchCollectorFactory(Map<SearchLogsMode, SearchLaunchesCollector> mapping) {
-		this.mapping = mapping;
-	}
-
-	public SearchLaunchesCollector getCollector(SearchLogsMode mode) {
-		return mapping.get(mode);
-	}
+	/**
+	 * @param launchId       {@link com.epam.ta.reportportal.entity.launch.Launch#getId()}
+	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
+	 */
+	void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 }

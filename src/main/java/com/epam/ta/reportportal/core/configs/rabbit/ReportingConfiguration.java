@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.configs.rabbit;
 
 import com.epam.ta.reportportal.core.configs.Conditions;
 import com.epam.ta.reportportal.ws.rabbit.AsyncReportingListener;
-import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
@@ -30,11 +29,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -178,36 +177,23 @@ public class ReportingConfiguration {
 	@Bean
 	@Qualifier("reportingListenerContainers")
 	public List<AbstractMessageListenerContainer> listenerContainers(ConnectionFactory connectionFactory,
-			@Qualifier("queues") List<Queue> queues) {
+			ApplicationEventPublisher applicationEventPublisher, @Qualifier("queues") List<Queue> queues) {
 		List<AbstractMessageListenerContainer> containers = new ArrayList<>();
-		Channel channel = connectionFactory.createConnection().createChannel(false);
-		int myQueues = 0;
-		for (Queue queue : queues) {
-			try {
-				if (myQueues < queuesPerPod && getQueueConsumerCount(channel, queue) == 0) {
-					SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
-					containers.add(listenerContainer);
-					listenerContainer.setConnectionFactory(connectionFactory);
-					listenerContainer.addQueueNames(queue.getName());
-					listenerContainer.setExclusive(true);
-					listenerContainer.setMissingQueuesFatal(false);
-					listenerContainer.setupMessageListener(reportingListener());
-					listenerContainer.afterPropertiesSet();
-					myQueues++;
-					logger.info("Consumer connected to queue {}, myQueues current count is {}", queue.getName(), myQueues);
-				}
-			} catch (Exception e) {
-				logger.error("Trying to connect to queue {}, myQueues current count is {}, exception ", queue.getName(), myQueues, e);
-			}
-		}
-		if (containers.size() < queuesPerPod) {
-			logger.error("Started amount of consumers less then configured (or single node start) : {} < {}", containers.size(), queuesPerPod);
+		int consumersCount = 0;
+		while (consumersCount < queuesPerPod) {
+			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+			containers.add(listenerContainer);
+			listenerContainer.setConnectionFactory(connectionFactory);
+			listenerContainer.addQueueNames(queues.get(consumersCount).getName());
+			listenerContainer.setExclusive(true);
+			listenerContainer.setMissingQueuesFatal(false);
+			listenerContainer.setApplicationEventPublisher(applicationEventPublisher);
+			listenerContainer.setupMessageListener(reportingListener());
+			listenerContainer.afterPropertiesSet();
+			consumersCount++;
+			logger.info("Consumer is created, current consumers count is {}", consumersCount);
 		}
 		return containers;
-	}
-
-	private int getQueueConsumerCount(Channel channel, Queue queue) throws IOException {
-		return channel.queueDeclarePassive(queue.getName()).getConsumerCount();
 	}
 
 	@Bean

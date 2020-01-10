@@ -1,5 +1,5 @@
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 project.ext {
     limits = [
@@ -25,7 +25,6 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
-                    '**/analyzer/auto/model/**'
     ]
 }
 

@@ -121,7 +121,10 @@ podTemplate(
 
         }
 
-        def jvmArgs = params.get('JVM_ARGS', '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp')
+        def jvmArgs = params.get('JVM_ARGS')
+        if(jvmArgs == null){
+            jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+        }
 
         stage('Deploy to Dev Environment') {
             container('helm') {

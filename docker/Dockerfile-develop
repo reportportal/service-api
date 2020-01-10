@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk-alpine as builder
 
-RUN apk add --no-cache ca-certificates git curl font-noto zip
+RUN apk add --no-cache ca-certificates git font-noto zip
 
 RUN addgroup -S -g 1000 rp-builder
 RUN adduser -D -S -G rp-builder -u 1000 -s /bin/ash rp-builder
@@ -28,7 +28,7 @@ COPY --chown=rp-builder .git/ .git/
 RUN ./gradlew build -x jacocoTestReport -P gcp -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins && \
-    curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+    wget -O /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
     unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
     mkdir -p /home/rp-builder/sealights && \
     sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \

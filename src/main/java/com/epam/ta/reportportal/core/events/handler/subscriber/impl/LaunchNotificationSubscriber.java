@@ -104,7 +104,7 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 	 */
 	private void sendEmail(Launch launch, Project project, EmailService emailService, String baseUrl) {
 
-		project.getSenderCases().forEach(ec -> {
+		project.getSenderCases().stream().filter(SenderCase::isEnabled).forEach(ec -> {
 			SendCase sendCase = ec.getSendCase();
 			boolean successRate = isSuccessRateEnough(launch, sendCase);
 			boolean matchedNames = isLaunchNameMatched(launch, ec);

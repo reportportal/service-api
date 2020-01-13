@@ -178,7 +178,7 @@ podTemplate(
         try {
             stage('Integration tests') {
                 dir("${testDir}/${serviceName}") {
-                    wrap([$class: 'VaultBuildWrapper', configuration: vaultConfig, vaultSecrets: testSecrets]) {
+                    // wrap([$class: 'VaultBuildWrapper', configuration: vaultConfig, vaultSecrets: testSecrets]) {
                         container('maven') {
                             echo "Running RP integration tests on env: ${testEnv}"
                             writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
@@ -186,7 +186,7 @@ podTemplate(
                             sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
                             sh "mvn clean test -P build -Denv=${testEnv}"
                         }
-                    }
+                    //}
                 }
             }
         } finally {

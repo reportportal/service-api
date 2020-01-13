@@ -92,7 +92,7 @@ class ProjectControllerTest extends BaseMvcTest {
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
-		assertEquals(13, createdProjectOptional.get().getProjectAttributes().size());
+		assertEquals(11, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
 	}
 
@@ -117,8 +117,6 @@ class ProjectControllerTest extends BaseMvcTest {
 		projectAttributes.put("job.interruptJobTime", "1 week");
 		projectAttributes.put("job.keepScreenshots", "3 weeks");
 		projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
-		projectAttributes.put("analyzer.minDocFreq", "7");
-		projectAttributes.put("analyzer.minTermFreq", "10");
 		projectAttributes.put("analyzer.minShouldMatch", "5");
 		projectAttributes.put("analyzer.numberOfLogLines", "5");
 		projectAttributes.put("analyzer.isAutoAnalyzerEnabled", "false");

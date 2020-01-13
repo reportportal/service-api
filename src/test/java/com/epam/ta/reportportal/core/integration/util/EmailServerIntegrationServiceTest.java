@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
  */
 class EmailServerIntegrationServiceTest {
 
-	private final String integrationName = "email";
+	private static final String INTEGRATION_NAME = "email";
 
 	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
 	private final PluginBox pluginBox = mock(PluginBox.class);
@@ -67,7 +67,7 @@ class EmailServerIntegrationServiceTest {
 		//given
 		Integration integration = new Integration();
 		IntegrationType integrationType = new IntegrationType();
-		integrationType.setName(integrationName);
+		integrationType.setName(INTEGRATION_NAME);
 		integration.setType(integrationType);
 
 		//when

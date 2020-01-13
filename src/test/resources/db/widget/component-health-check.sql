@@ -8,87 +8,87 @@ Launch contains *randomly* generated `suites`, `tests`, `steps` with:
 * attachments with different formats.', '2019-08-29 08:37:34.468000', '2019-08-29 08:37:41.057000', 1, '2019-08-29 11:37:41.113000',
         'DEFAULT', 'FAILED', false, false, 0);
 
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (37, 'd645e519-6d1b-418d-a18c-65e0386de81d', 'Launch Tests', null, 'SUITE', '2019-08-29 08:37:34.714000',
+VALUES (37, 37, 'd645e519-6d1b-418d-a18c-65e0386de81d', 'Launch Tests', null, 'SUITE', '2019-08-29 08:37:34.714000',
         'Here could be **very important information** about `test-cases` that are inside.', '2019-08-29 11:37:34.957000', '37',
         'auto:ceced8811816018fc63fdc8108f4fa02', true, false, true, null, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (44, '6cbbad11-4e16-4e3c-8e20-e92d95fd1ac4', 'LaunchStatusTest', null, 'TEST', '2019-08-29 08:37:34.876000',
+VALUES (44, 44, '6cbbad11-4e16-4e3c-8e20-e92d95fd1ac4', 'LaunchStatusTest', null, 'TEST', '2019-08-29 08:37:34.876000',
         'This is a `test` level. Here you can handle *the aggregated information* per  `test`.', '2019-08-29 11:37:35.029000', '37.44',
         'auto:c490e23a31702cae558567606cfbcd16', true, false, true, 37, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (49, '2460b3ba-b039-4162-8159-f07454922eaf', 'before_class', null, 'BEFORE_CLASS', '2019-08-29 08:37:34.979000',
+VALUES (49, 49, '2460b3ba-b039-4162-8159-f07454922eaf', 'before_class', null, 'BEFORE_CLASS', '2019-08-29 08:37:34.979000',
         'Greater or equals filter test for test items product bugs criteria. Negative value', '2019-08-29 11:37:35.030000', '37.44.49',
         'auto:024ed80924a60ee9ad654e1d1332a6d4', false, false, true, 44, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (52, 'dd5105e8-b8e5-4cc3-bdc5-71585a8d60f9', 'before_method', null, 'BEFORE_METHOD', '2019-08-29 08:37:35.252000', null,
+VALUES (52, 52, 'dd5105e8-b8e5-4cc3-bdc5-71585a8d60f9', 'before_method', null, 'BEFORE_METHOD', '2019-08-29 08:37:35.252000', null,
         '2019-08-29 11:37:35.298000', '37.44.52', 'auto:950822a85767d38735fed9454f11c22d', false, false, true, 44, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (55, 'f3c84e8d-af4e-46b9-8ba7-f3d87e79fc9e', 'launchMixedItemsStatusText', null, 'STEP', '2019-08-29 08:37:35.352000', null,
+VALUES (55, 55, 'f3c84e8d-af4e-46b9-8ba7-f3d87e79fc9e', 'launchMixedItemsStatusText', null, 'STEP', '2019-08-29 08:37:35.352000', null,
         '2019-08-29 11:37:35.370000', '37.44.55', 'auto:e429b3e3b08bd6719de950aa38a4eee1', false, false, true, 44, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (56, '241baba5-8772-4fc6-b1b2-63267a587f4a', 'after_method', null, 'AFTER_METHOD', '2019-08-29 08:37:35.458000',
+VALUES (56, 56, '241baba5-8772-4fc6-b1b2-63267a587f4a', 'after_method', null, 'AFTER_METHOD', '2019-08-29 08:37:35.458000',
         'Greater or equals filter test for test items product bugs criteria. Negative value', '2019-08-29 11:37:35.474000', '37.44.56',
         'auto:3fb4be9706bfe8b2674d828c70dfa0b1', false, false, true, 44, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (57, 'f87bea9a-da86-4fa7-b60e-8583db706b4f', 'after_class', null, 'AFTER_CLASS', '2019-08-29 08:37:35.492000',
+VALUES (57, 57, 'f87bea9a-da86-4fa7-b60e-8583db706b4f', 'after_class', null, 'AFTER_CLASS', '2019-08-29 08:37:35.492000',
         'Greater or equals filter test for test items product bugs criteria. Negative value', '2019-08-29 11:37:35.505000', '37.44.57',
         'auto:ae5493ee1d67fc43007bfa35e3df4190', false, false, true, 44, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (58, '84778f7a-db06-490e-90dd-190116334f8e', 'UpdateLaunchTest', null, 'TEST', '2019-08-29 08:37:35.548000',
+VALUES (58, 58, '84778f7a-db06-490e-90dd-190116334f8e', 'UpdateLaunchTest', null, 'TEST', '2019-08-29 08:37:35.548000',
         'Here could be **very important information** about `test-cases` that are inside.', '2019-08-29 11:37:35.576000', '37.58',
         'auto:b8c3716f7a8e7fe45154106f429779ac', true, false, true, 37, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (59, '2c69ba9f-8439-4f8d-b5c0-90a49f6f4005', 'before_class', null, 'BEFORE_CLASS', '2019-08-29 08:37:35.564000', null,
+VALUES (59, 59, '2c69ba9f-8439-4f8d-b5c0-90a49f6f4005', 'before_class', null, 'BEFORE_CLASS', '2019-08-29 08:37:35.564000', null,
         '2019-08-29 11:37:35.576000', '37.58.59', 'auto:1598bf2521d6536608c236f399148999', false, false, true, 58, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (60, '620eedeb-4381-4cd6-801a-907c5eda4f67', 'updateDefaultMode', null, 'STEP', '2019-08-29 08:37:35.592000',
+VALUES (60, 60, '620eedeb-4381-4cd6-801a-907c5eda4f67', 'updateDefaultMode', null, 'STEP', '2019-08-29 08:37:35.592000',
         'This is the last **test case** of demo launch. There are only `logs` with `attachments` inside it.', '2019-08-29 11:37:35.605000',
         '37.58.60', 'auto:95851c62d74d8296fe185a76781bad74', false, false, true, 58, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (61, '717c3e04-4709-403b-8746-89b5300bbe39', 'after_class', null, 'AFTER_CLASS', '2019-08-29 08:37:35.680000',
+VALUES (61, 61, '717c3e04-4709-403b-8746-89b5300bbe39', 'after_class', null, 'AFTER_CLASS', '2019-08-29 08:37:35.680000',
         'This is the last **test case** of demo launch. There are only `logs` with `attachments` inside it.', '2019-08-29 11:37:35.692000',
         '37.58.61', 'auto:2a26611716b6199294d96bef5a7b95fe', false, false, true, 58, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (62, 'd758bd7c-1b38-4738-ac1d-37f3a81e5b56', 'FinishLaunchTest', null, 'TEST', '2019-08-29 08:37:35.720000',
+VALUES (62, 62, 'd758bd7c-1b38-4738-ac1d-37f3a81e5b56', 'FinishLaunchTest', null, 'TEST', '2019-08-29 08:37:35.720000',
         'Here could be **very important information** about `test-cases` that are inside.', '2019-08-29 11:37:35.746000', '37.62',
         'auto:e88e1e1bda69e11155a9696b3316172a', true, false, true, 37, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (63, '6756cd7b-95a3-4f65-9176-adb900158142', 'finishLaunch', null, 'STEP', '2019-08-29 08:37:35.737000', null,
+VALUES (63, 63, '6756cd7b-95a3-4f65-9176-adb900158142', 'finishLaunch', null, 'STEP', '2019-08-29 08:37:35.737000', null,
         '2019-08-29 11:37:35.747000', '37.62.63', 'auto:dbaf84d7b0c758692da412fe481e6fe2', false, false, true, 62, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (92, '227face6-6049-4747-be1f-02ab16ad7103', 'after_method', null, 'AFTER_METHOD', '2019-08-29 08:37:40.342000', null,
+VALUES (92, 92, '227face6-6049-4747-be1f-02ab16ad7103', 'after_method', null, 'AFTER_METHOD', '2019-08-29 08:37:40.342000', null,
         '2019-08-29 11:37:40.351000', '37.62.92', 'auto:6fa133d4dff8b98b9ceb657cc49e0321', false, false, true, 62, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (93, 'fa5aabaa-4eff-4a63-a1eb-b39f4c66365a', 'StartLaunchTest', null, 'TEST', '2019-08-29 08:37:40.384000',
+VALUES (93, 93, 'fa5aabaa-4eff-4a63-a1eb-b39f4c66365a', 'StartLaunchTest', null, 'TEST', '2019-08-29 08:37:40.384000',
         '**This is demonstration description.** This `test-item` contains automatically generated steps with logs and attachments.',
         '2019-08-29 11:37:40.407000', '37.93', 'auto:e28dda9a4e05d0b1d9379fd9782580cb', true, false, true, 37, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (94, '78f8424c-a5a6-472e-a92c-84057a05ebad', 'testCheckLaunchModeByDefault', null, 'STEP', '2019-08-29 08:37:40.398000', null,
+VALUES (94, 94, '78f8424c-a5a6-472e-a92c-84057a05ebad', 'testCheckLaunchModeByDefault', null, 'STEP', '2019-08-29 08:37:40.398000', null,
         '2019-08-29 11:37:40.408000', '37.93.94', 'auto:df6d649a2d66c5a431abc70c9f3f546d', false, false, true, 93, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (95, '0d48ebaf-12a6-4dc2-af2a-d7ea4af7d06f', 'DeleteLaunchTest', null, 'TEST', '2019-08-29 08:37:40.936000', null,
+VALUES (95, 95, '0d48ebaf-12a6-4dc2-af2a-d7ea4af7d06f', 'DeleteLaunchTest', null, 'TEST', '2019-08-29 08:37:40.936000', null,
         '2019-08-29 11:37:40.959000', '37.95', 'auto:6c242ef2e6d6ea1b41c7eb1157260c0a', true, false, true, 37, null, 6);
-INSERT INTO public.test_item (item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
+INSERT INTO public.test_item (test_case_hash, item_id, uuid, name, code_ref, type, start_time, description, last_modified, path, unique_id, has_children,
                               has_retries, has_stats, parent_id, retry_of, launch_id)
-VALUES (96, 'ed393708-6e04-4484-842e-b0d4738180c0', 'deleteLaunchInProgress', null, 'STEP', '2019-08-29 08:37:40.949000', null,
+VALUES (96, 96, 'ed393708-6e04-4484-842e-b0d4738180c0', 'deleteLaunchInProgress', null, 'STEP', '2019-08-29 08:37:40.949000', null,
         '2019-08-29 11:37:40.959000', '37.95.96', 'auto:e2460aaadd39267213b129a08545f378', false, false, true, 95, null, 6);
 
 INSERT INTO public.test_item_results (result_id, status, end_time, duration)

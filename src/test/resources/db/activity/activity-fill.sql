@@ -1,8 +1,8 @@
 INSERT INTO launch (id, uuid, project_id, user_id, name, start_time, number, last_modified, mode, status)
 VALUES (1, 'uuid', 2, 2, 'name', now(), 1, now(), 'DEFAULT', 'IN_PROGRESS');
 
-INSERT INTO test_item (item_id, uuid, type, start_time, last_modified, launch_id)
-VALUES (1, 'uuid', 'STEP', now(), now(), 1);
+INSERT INTO test_item (test_case_hash, item_id, uuid, type, start_time, last_modified, launch_id)
+VALUES (1, 1, 'uuid', 'STEP', now(), now(), 1);
 
 INSERT INTO activity(user_id, project_id, entity, action, details, creation_date, object_id) VALUES
 (2, 2, 'DASHBOARD', 'dashboard_update', '{

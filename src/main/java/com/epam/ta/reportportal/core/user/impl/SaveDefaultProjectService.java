@@ -35,8 +35,9 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRS;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Acl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,12 +46,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.PersistenceException;
 import java.util.Set;
 
-import static com.epam.reportportal.commons.Safe.safe;
 import static com.epam.ta.reportportal.auth.UserRoleHierarchy.ROLE_REGISTERED;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.forName;
 import static com.epam.ta.reportportal.ws.converter.converters.UserConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -72,14 +72,18 @@ public class SaveDefaultProjectService {
 
 	private final ShareableObjectsHandler aclHandler;
 
+	private final ThreadPoolTaskExecutor emailExecutorService;
+
 	@Autowired
 	public SaveDefaultProjectService(ProjectRepository projectRepository, UserRepository userRepository,
-			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler) {
+			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler,
+			ThreadPoolTaskExecutor emailExecutorService) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
 		this.aclHandler = aclHandler;
+		this.emailExecutorService = emailExecutorService;
 	}
 
 	@Transactional
@@ -116,11 +120,13 @@ public class SaveDefaultProjectService {
 							.findFirst()
 							.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, personalProject.getName())));
 			userRepository.save(user);
-
-			ofNullable(basicUrl).ifPresent(it -> safe(() -> emailServiceFactory.getDefaultEmailService(true)
-					.sendCreateUserConfirmationEmail(request, it), e -> response.setWarning(e.getMessage())));
-		} catch (DuplicateKeyException e) {
-			fail().withError(USER_ALREADY_EXISTS, formattedSupplier("email='{}'", request.getEmail()));
+			ofNullable(basicUrl).ifPresent(url -> emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(true)
+					.sendCreateUserConfirmationEmail(request, url)));
+		} catch (PersistenceException pe) {
+			if (pe.getCause() instanceof ConstraintViolationException) {
+				fail().withError(RESOURCE_ALREADY_EXISTS, ((ConstraintViolationException) pe.getCause()).getConstraintName());
+			}
+			throw new ReportPortalException("Error while User creating: " + pe.getMessage(), pe);
 		} catch (Exception exp) {
 			throw new ReportPortalException("Error while User creating: " + exp.getMessage(), exp);
 		}

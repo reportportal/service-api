@@ -52,6 +52,7 @@ class IntegrationConverterTest {
 		assertEquals(resource.getProjectId(), integration.getProject().getId());
 
 		assertThat(resource.getIntegrationParams()).containsOnlyKeys("param1", "param2");
+		assertThat(resource.getIntegrationParams()).doesNotContainKey("accessToken");
 		assertThat(resource.getIntegrationParams()).containsValues("qwerty", "asdfgh");
 
 		final IntegrationTypeResource integrationTypeResource = resource.getIntegrationType();
@@ -88,6 +89,7 @@ class IntegrationConverterTest {
 		final HashMap<String, Object> paramMap = new HashMap<>();
 		paramMap.put("param1", "qwerty");
 		paramMap.put("param2", "asdfgh");
+		paramMap.put("accessToken", "asdfgh");
 		params.setParams(paramMap);
 		integration.setParams(params);
 		integration.setEnabled(true);

@@ -15,7 +15,7 @@ podTemplate(
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v2.14.2', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '1000m',
@@ -44,11 +44,11 @@ podTemplate(
         def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
+        def serviceName = "service-api"
         def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
         def branchToBuild = params.get('COMMIT_HASH', 'develop')
-
 
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
@@ -73,7 +73,7 @@ podTemplate(
         }, 'Checkout tests': {
             stage('Checkout tests') {
                 dir(testDir) {
-                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "dev-v5", credentialsId: 'epm-gitlab-key'
+                    git url: 'git@git.epam.com:EPM-RPP/tests.git', branch: "develop", credentialsId: 'epm-gitlab-key'
                 }
             }
         }, 'Download Sealights': {
@@ -108,7 +108,6 @@ podTemplate(
                     sealightsSession = utils.execStdout("cat buildSessionId.txt")
                 }
             }
-
         }
 
         stage('Build Docker Image') {
@@ -121,43 +120,52 @@ podTemplate(
 
 
         }
+
+        def jvmArgs = params.get('JVM_ARGS')
+        if(jvmArgs == null){
+            jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+        }
+
         stage('Deploy to Dev Environment') {
             container('helm') {
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait -f ./$ciDir/rp/values-ci.yml reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=$jvmArgs\" --wait reportportal ./$k8sDir/reportportal/v5"
             }
         }
 
         stage('Execute DVT Tests') {
-            def srvUrl
+            def srvUrls
             container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "api")
-                srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
+                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
+                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
             }
-            if (srvUrl == null) {
+            if (srvUrls == null) {
                 error("Unable to retrieve service URL")
             }
             container('httpie') {
-                test.checkVersion("http://$srvUrl", "$srvVersion")
+                srvUrls.each{ip ->
+                    test.checkVersion("http://$ip:8585", "$srvVersion")
+                }
             }
         }
 
         try {
             stage('Integration tests') {
                 def testEnv = 'gcp-k8s'
-                dir(testDir) {
+                    dir("${testDir}/${serviceName}") {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
                         sh "mvn clean test -P build -Denv=${testEnv}"
                     }
                 }
             }
         } finally {
-            dir(testDir) {
+            dir("${testDir}/${serviceName}") {
                 junit 'target/surefire-reports/*.xml'
             }
         }

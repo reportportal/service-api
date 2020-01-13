@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -88,7 +89,7 @@ class GetLaunchHandlerImplTest {
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getLaunch(1L, extractProjectDetails(rpUser, "test_project"))
+				() -> handler.getLaunch("1", extractProjectDetails(rpUser, "test_project"))
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
@@ -99,7 +100,7 @@ class GetLaunchHandlerImplTest {
 		when(launchRepository.findById(1L)).thenReturn(getLaunch(StatusEnum.PASSED, LaunchModeEnum.DEBUG));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> handler.getLaunch(1L, extractProjectDetails(rpUser, "test_project"))
+				() -> handler.getLaunch("1", extractProjectDetails(rpUser, "test_project"))
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
 	}
@@ -108,15 +109,19 @@ class GetLaunchHandlerImplTest {
 	void getLaunchNamesIncorrectInput() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), "qw"));
+		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), ""));
+		assertThrows(
+				ReportPortalException.class,
+				() -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), RandomStringUtils.random(257))
+		);
 	}
 
 	@Test
 	void getNotExistLaunch() {
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
-		long launchId = 1L;
+		String launchId = "1";
 
-		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
+		when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))
@@ -234,12 +239,12 @@ class GetLaunchHandlerImplTest {
 	void getLaunchInDebugModeByCustomer() {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.CUSTOMER, projectId);
-		long launchId = 1L;
+		String launchId = "1";
 
 		Launch launch = new Launch();
 		launch.setProjectId(projectId);
 		launch.setMode(LaunchModeEnum.DEBUG);
-		when(launchRepository.findById(launchId)).thenReturn(Optional.of(launch));
+		when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))

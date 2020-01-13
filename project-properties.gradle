@@ -1,0 +1,33 @@
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+project.ext {
+    limits = [
+            'instruction': 70,
+            'branch'     : 53,
+            'line'       : 75,
+            'complexity' : 60,
+            'method'     : 65,
+            'class'      : 90
+    ]
+    isDebugMode = System.getProperty("DEBUG", "false") == "true"
+    releaseMode = project.hasProperty("releaseMode")
+    testScriptsSrc = [
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/0_extensions.up.sql'       : 'V001__extensions.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/1_initialize_schema.up.sql': 'V002__initialize_schema.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/3_default_data.up.sql'     : 'V003__default_data.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/4_size_limitations.up.sql' : 'V004__size_limitations.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/master/migrations/5_test_case_id_type.up.sql': 'V005__test_case_id_type.sql',
+    ]
+    excludeTests = ['**/entity/**',
+                    '**/aop/**',
+                    '**/jasper/**',
+                    '**/configs/**',
+                    '**/demodata/**',
+                    '**/exception/**',
+    ]
+}
+
+wrapper {
+    gradleVersion = '5.4.1'
+}

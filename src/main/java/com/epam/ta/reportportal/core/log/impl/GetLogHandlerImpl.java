@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
@@ -28,6 +29,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.NestedItem;
 import com.epam.ta.reportportal.entity.item.NestedStep;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -49,6 +51,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
@@ -94,16 +97,14 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	@Override
-	public LogResource getLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Log log = findById(logId);
-		validate(log, projectDetails, user);
-		return LogConverter.TO_RESOURCE.apply(log);
-	}
-
-	@Override
 	public LogResource getLog(String logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Log log = findByUuid(logId);
-		validate(log, projectDetails, user);
+		Log log;
+		try {
+			log = findById(Long.parseLong(logId));
+		} catch (NumberFormatException e) {
+			log = findByUuid(logId);
+		}
+		validate(log, projectDetails);
 		return LogConverter.TO_RESOURCE.apply(log);
 	}
 
@@ -111,12 +112,17 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	public Iterable<?> getNestedItems(Long parentId, ReportPortalUser.ProjectDetails projectDetails, Map<String, String> params,
 			Queryable queryable, Pageable pageable) {
 
+		TestItem parentItem = testItemRepository.findById(parentId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+		Launch launch = testItemService.getEffectiveLaunch(parentItem);
+		validate(launch, projectDetails);
+
 		Boolean excludeEmptySteps = ofNullable(params.get(EXCLUDE_EMPTY_STEPS)).map(BooleanUtils::toBoolean).orElse(false);
 		Boolean excludePassedLogs = ofNullable(params.get(EXCLUDE_PASSED_LOGS)).map(BooleanUtils::toBoolean).orElse(false);
 
 		Page<NestedItem> nestedItems = logRepository.findNestedItems(parentId,
 				excludeEmptySteps,
-				isLogsExclusionRequired(parentId, excludePassedLogs),
+				isLogsExclusionRequired(parentItem, excludePassedLogs),
 				queryable,
 				pageable
 		);
@@ -128,6 +134,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		Map<Long, Log> logMap = ofNullable(result.get(LogRepositoryConstants.LOG)).map(logs -> logRepository.findAllById(logs.stream()
 				.map(NestedItem::getId)
 				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
+
+		queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
 		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()),
 				queryable,
 				excludePassedLogs
@@ -154,14 +162,19 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	 *
 	 * @param log            - log item
 	 * @param projectDetails Project details
-	 * @param user           - report portal user
 	 */
-	private void validate(Log log, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+	private void validate(Log log, ReportPortalUser.ProjectDetails projectDetails) {
 		Long launchProjectId = ofNullable(log.getTestItem()).map(it -> testItemService.getEffectiveLaunch(it).getProjectId())
 				.orElseGet(() -> log.getLaunch().getProjectId());
 
 		expect(launchProjectId, equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-				formattedSupplier("Log '{}' not under specified '{}' project", log.getId(), projectDetails.getProjectId())
+				formattedSupplier("Log '{}' is not under '{}' project", log.getId(), projectDetails.getProjectName())
+		);
+	}
+
+	private void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails) {
+		expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+				formattedSupplier("Launch '{}' is not under '{}' project", launch.getId(), projectDetails.getProjectName())
 		);
 	}
 
@@ -185,19 +198,20 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		return logRepository.findByUuid(logId).orElseThrow(() -> new ReportPortalException(LOG_NOT_FOUND, logId));
 	}
 
+	private FilterCondition getLaunchCondition(Long launchId) {
+		return FilterCondition.builder().eq(CRITERIA_ITEM_LAUNCH_ID, String.valueOf(launchId)).build();
+	}
+
 	/**
-	 * Method to determine whether logs of the {@link TestItem} with provided 'parentId' and {@link StatusEnum#PASSED}
+	 * Method to determine whether logs of the {@link TestItem} with {@link StatusEnum#PASSED}
 	 * should be retrieved with nested steps or should be excluded from the select query
 	 *
-	 * @param parentId {@link Log#testItem} ID
-	 * @param params   {@link org.springframework.web.bind.annotation.RequestParam} mapping
+	 * @param parent            {@link Log#getTestItem()}
+	 * @param excludePassedLogs if 'true' logs of the passed items should be excluded
 	 * @return 'true' if logs should be excluded from the select query, else 'false'
 	 */
-	private boolean isLogsExclusionRequired(Long parentId, boolean excludePassedLogs) {
+	private boolean isLogsExclusionRequired(TestItem parent, boolean excludePassedLogs) {
 		if (excludePassedLogs) {
-			TestItem parent = testItemRepository.findById(parentId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
-
 			return StatusEnum.PASSED == parent.getItemResults().getStatus();
 		}
 		return false;

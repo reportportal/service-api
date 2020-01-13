@@ -53,10 +53,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -108,19 +105,18 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public TestItemResource getTestItem(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		TestItem testItem = testItemRepository.findById(testItemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
-		validate(testItem.getLaunchId(), projectDetails, user);
-		return itemResourceAssembler.toResource(testItem);
-	}
-
-	@Override
 	public TestItemResource getTestItem(String testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		TestItem testItem = testItemRepository.findByUuid(testItemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		TestItem testItem;
+		try {
+			testItem = testItemRepository.findById(Long.parseLong(testItemId))
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		} catch (NumberFormatException e) {
+			testItem = testItemRepository.findByUuid(testItemId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
+		}
 		validate(testItem.getLaunchId(), projectDetails, user);
-		return itemResourceAssembler.toResource(testItem);
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(Collections.singletonList(testItem), projectDetails.getProjectId());
+		return itemResourceAssembler.toResource(testItem, pathNamesMapping.get(testItem.getItemId()));
 	}
 
 	@Override
@@ -138,7 +134,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
 
-		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent());
+		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent(), projectDetails.getProjectId());
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
 				pathNamesMapping.get(item.getItemId())
@@ -147,10 +143,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-				);
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+		);
 		return ticketRepository.findByTerm(launchId, term);
 	}
 
@@ -187,12 +182,11 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	private void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
-							launch.getId(),
-							projectDetails.getProjectId()
-					)
-			);
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
+					"Specified launch with id '{}' not referenced to specified project with id '{}'",
+					launch.getId(),
+					projectDetails.getProjectId()
+			));
 			expect(projectDetails.getProjectRole() == OPERATOR && launch.getMode() == LaunchModeEnum.DEBUG,
 					Predicate.isEqual(false)
 			).verify(ACCESS_DENIED);
@@ -267,7 +261,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		return PageRequest.of(0, launchesLimit, sort);
 	}
 
-	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems) {
-		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()));
+	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems, Long projectId) {
+		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()), projectId);
 	}
 }

@@ -107,10 +107,20 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Override
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
+		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry());
+
+		Launch launch;
+		if (isRetry) {
+			launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+		} else {
+			launch = launchRepository.findByUuid(rq.getLaunchUuid())
+					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+		}
+
 		TestItem parentItem = testItemRepository.findByUuid(parentId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
+
 		validate(rq, parentItem);
 
 		if (launch.isRerun()) {
@@ -131,7 +141,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (rq.isHasStats() && !parentItem.isHasChildren()) {
 			parentItem.setHasChildren(true);
 		}
-		if (BooleanUtils.toBoolean(rq.isRetry())) {
+		if (isRetry) {
 			handleRetries(launch, item);
 		}
 
@@ -152,7 +162,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			item.setUniqueId(identifierGenerator.generate(item, launch));
 		}
 		if (null == item.getTestCaseId()) {
-			item.setTestCaseId(item.getUniqueId().hashCode());
+			item.setTestCaseHash(item.getUniqueId().hashCode());
 		}
 	}
 
@@ -171,7 +181,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	/**
-	 * Validate {@link ReportPortalUser} credentials, {@link Launch#status}
+	 * Validate {@link ReportPortalUser} credentials, {@link Launch#getStatus()}
 	 * and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
 	 * @param user           {@link ReportPortalUser}
@@ -180,7 +190,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 * @param launch         {@link Launch}
 	 */
 	private void validate(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq, Launch launch) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
+		if (!UserRole.ADMINISTRATOR.equals(user.getUserRole())) {
 			expect(projectDetails.getProjectId(), equalTo(launch.getProjectId())).verify(ACCESS_DENIED);
 		}
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(launch.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
@@ -210,7 +220,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			);
 		}
 
-		expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
+		if (rq.isHasStats()) {
+			expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
+		}
 
 		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
 				rq.getStartTime(),

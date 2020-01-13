@@ -56,7 +56,6 @@ class GetProjectHandlerImplTest {
 	@Test
 	void getUsersOnNotExistProject() {
 		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
 		String projectName = "test_project";
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
@@ -78,7 +77,6 @@ class GetProjectHandlerImplTest {
 	@Test
 	void getEmptyUserList() {
 		long projectId = 1L;
-		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
 		String projectName = "test_project";
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(new Project()));

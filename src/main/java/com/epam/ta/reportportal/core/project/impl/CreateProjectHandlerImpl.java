@@ -51,7 +51,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 @Service
 public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
-	private final String RESERVED_PROJECT_NAME = "project";
+	private static final String RESERVED_PROJECT_NAME = "project";
 
 	private final ProjectRepository projectRepository;
 

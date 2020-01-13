@@ -5,4 +5,3 @@ ignore:
   - "**/configs/**"
   - "**/demodata/**"
   - "**/exception/**"
-  - "**/analyzer/auto/model/**"

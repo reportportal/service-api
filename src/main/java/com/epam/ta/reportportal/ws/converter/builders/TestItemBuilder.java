@@ -46,6 +46,8 @@ import static java.util.Optional.ofNullable;
 
 public class TestItemBuilder implements Supplier<TestItem> {
 
+	public static final String PARAMETER_NULL_VALUE = "NULL";
+
 	private TestItem testItem;
 
 	public TestItemBuilder() {
@@ -62,6 +64,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
 		testItem.setTestCaseId(rq.getTestCaseId());
+		testItem.setTestCaseHash(ofNullable(rq.getTestCaseHash()).orElse(0));
 		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 		testItem.setHasStats(rq.isHasStats());
 		testItem.setCodeRef(rq.getCodeRef());
@@ -151,7 +154,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 			testItem.setParameters(parameters.stream().map(it -> {
 				Parameter parameter = new Parameter();
 				parameter.setKey(it.getKey());
-				parameter.setValue(it.getValue());
+				parameter.setValue(ofNullable(it.getValue()).orElse(PARAMETER_NULL_VALUE));
 				return parameter;
 			}).collect(Collectors.toSet()));
 		}

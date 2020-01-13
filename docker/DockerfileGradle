@@ -1,7 +1,0 @@
-FROM gradle:5.4.1-jdk8-alpine
-
-USER root
-RUN apk add --no-cache ca-certificates git curl font-noto
-
-USER gradle
-

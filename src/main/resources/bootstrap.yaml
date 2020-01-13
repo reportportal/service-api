@@ -1,6 +1,0 @@
-spring:
-  profiles:
-    ## Profiles list
-    active: ${rp.profiles:default}
-  application:
-    name: api

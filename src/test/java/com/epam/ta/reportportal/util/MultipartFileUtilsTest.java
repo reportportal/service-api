@@ -25,6 +25,8 @@ class MultipartFileUtilsTest {
 		assertEquals(expected.length(), file.getSize());
 		assertEquals(expected.getName(), file.getFileItem().getName());
 		assertEquals("image/png", file.getContentType());
-		assertTrue(IOUtils.contentEquals(new FileInputStream(expected), file.getInputStream()));
+		try (FileInputStream expectedStream = new FileInputStream(expected)) {
+			assertTrue(IOUtils.contentEquals(expectedStream, file.getInputStream()));
+		}
 	}
 }

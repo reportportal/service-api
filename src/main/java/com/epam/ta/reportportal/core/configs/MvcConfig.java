@@ -33,7 +33,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.validation.beanvalidation.BeanValidationPostProcessor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -111,6 +113,7 @@ public class MvcConfig implements WebMvcConfigurer {
 	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 		converters.clear();
 		converters.add(jsonConverter());
+		converters.add(stringConverter());
 	}
 
 	@Override
@@ -147,6 +150,13 @@ public class MvcConfig implements WebMvcConfigurer {
 	@Bean
 	public MappingJackson2HttpMessageConverter jsonConverter() {
 		return new MappingJackson2HttpMessageConverter(objectMapper);
+	}
+
+	@Bean
+	public StringHttpMessageConverter stringConverter() {
+		StringHttpMessageConverter converter = new StringHttpMessageConverter();
+		converter.setSupportedMediaTypes(Collections.singletonList(MediaType.TEXT_PLAIN));
+		return converter;
 	}
 
 	@Bean

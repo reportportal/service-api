@@ -120,12 +120,18 @@ podTemplate(
 
 
         }
+
+        def jvmArgs = params.get('JVM_ARGS')
+        if(jvmArgs == null){
+            jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+        }
+
         stage('Deploy to Dev Environment') {
             container('helm') {
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=$jvmArgs\" --wait reportportal ./$k8sDir/reportportal/v5"
             }
         }
 

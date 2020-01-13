@@ -10,7 +10,7 @@ podTemplate(
         containers: [
                 containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:alpine'),
                 containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true,
-                        resourceRequestCpu: '500m',
+                        resourceRequestCpu: '250m',
                         resourceLimitCpu: '800m',
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
@@ -18,8 +18,8 @@ podTemplate(
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
-                        resourceRequestCpu: '1000m',
-                        resourceLimitCpu: '2000m',
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '1500m',
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '3072Mi'),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
@@ -151,16 +151,40 @@ podTemplate(
             }
         }
 
+        def testEnv = 'gcp'
+        def testSecrets = [
+                [path: "secrets/infra/${testEnv}/test", engineVersion: 2, secretValues: [
+                        [envVar: 'admin.login', vaultKey: 'admin.login'],
+                        [envVar: 'admin.password', vaultKey: 'admin.password'],
+                        [envVar: 'data.base.password', vaultKey: 'data.base.password'],
+                        [envVar: 'data.base.user', vaultKey: 'data.base.user'],
+                        [envVar: 'email.password', vaultKey: 'email.password'],
+                        [envVar: 'email.username', vaultKey: 'email.username'],
+                        [envVar: 'jira.integration.password', vaultKey: 'jira.integration.password'],
+                        [envVar: 'jira.integration.username', vaultKey: 'jira.integration.username'],
+                        [envVar: 'jira.user.login', vaultKey: 'jira.user.login'],
+                        [envVar: 'jira.user.password', vaultKey: 'jira.user.password'],
+                        [envVar: 'rally.oauthAccessKey', vaultKey: 'rally.oauthAccessKey'],
+                        [envVar: 'rally.project', vaultKey: 'rally.project']
+                    ]
+                ]
+        ]
+
+        def vaultConfig = [vaultUrl: 'https://vault.service.consul.epm-sec.projects.epam.com:8200',
+                           vaultCredentialId: 'vault-jenkins-approle-credentials',
+                           engineVersion: 2]
+
         try {
             stage('Integration tests') {
-                def testEnv = 'gcp-k8s'
                     dir("${testDir}/${serviceName}") {
-                    container('maven') {
-                        echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "mvn clean test -P build -Denv=${testEnv}"
+                        withVault([configuration: vaultConfig, vaultSecrets: testSecrets]) {
+                            container('maven') {
+                                echo "Running RP integration tests on env: ${testEnv}"
+                                writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
+                                writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                                sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
+                                sh "mvn clean test -P build -Denv=${testEnv}"
+                            }
                     }
                 }
             }

@@ -73,9 +73,7 @@ class AnalyzerUtilsTest {
         assertEquals(String.valueOf(config.getIsAutoAnalyzerEnabled()), ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getDefaultValue());
         assertEquals(String.valueOf(config.getNumberOfLogLines()), ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue());
         assertEquals(config.getAnalyzerMode(), ProjectAttributeEnum.AUTO_ANALYZER_MODE.getDefaultValue());
-        assertEquals(String.valueOf(config.getMinDocFreq()), ProjectAttributeEnum.MIN_DOC_FREQ.getDefaultValue());
         assertEquals(String.valueOf(config.getMinShouldMatch()), ProjectAttributeEnum.MIN_SHOULD_MATCH.getDefaultValue());
-        assertEquals(String.valueOf(config.getMinTermFreq()), ProjectAttributeEnum.MIN_TERM_FREQ.getDefaultValue());
         assertEquals(String.valueOf(config.isIndexingRunning()), ProjectAttributeEnum.INDEXING_RUNNING.getDefaultValue());
     }
 

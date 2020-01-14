@@ -42,9 +42,6 @@ apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/copy-database-scripts.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/build-quality.gradle'
 apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/v5.1/jacoco.gradle'
-
-//TODO findbugs has been removed in 6.0. Replace with smth
-//apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
 apply from: 'sealights.gradle'
 
 

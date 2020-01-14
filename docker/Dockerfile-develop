@@ -28,7 +28,7 @@ COPY --chown=rp-builder .git/ .git/
 RUN ./gradlew build -x jacocoTestReport -P gcp -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
 RUN mkdir -p /home/rp-builder/plugins && \
-    wget -O /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+    curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
     unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
     mkdir -p /home/rp-builder/sealights && \
     sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \

@@ -20,11 +20,11 @@ node {
     stage('Build') {
         docker.withServer("$DOCKER_HOST") {
             stage('Build Docker Image') {
-                sh 'docker build -f docker/Dockerfile-develop -t reportportal-dev-5/service-api .'
+                sh 'docker build -f docker/Dockerfile-develop -t reportportal-dev-5-1/service-api .'
             }
 
             stage('Deploy container') {
-                sh "docker-compose -p reportportal5 -f $COMPOSE_FILE_RP_5 up -d --force-recreate api"
+                sh "docker-compose -p reportportal51 -f $COMPOSE_FILE_RP_5_1 up -d --force-recreate api"
             }
         }
     }

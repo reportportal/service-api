@@ -1,8 +1,6 @@
 FROM adoptopenjdk:11-jdk-hotspot-bionic as builder
 
-RUN apt-get update && \
-
-RUN apk add --no-cache ca-certificates git font-noto zip
+RUN apt-get update && apt-get install ca-certificates git fonts-noto zip -y
 
 RUN addgroup -system --gid 1000 rp-builder
 RUN adduser --disabled-password --system --ingroup rp-builder --uid 1000 --shell /bin/bash rp-builder

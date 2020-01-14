@@ -152,33 +152,32 @@ podTemplate(
         }
 
         def testEnv = 'gcp'
-
         def testSecrets = [
-                [$class: 'VaultSecret', path: 'secret/testing', engineVersion: 2, secretValues: [
-                        [$class: 'VaultSecretValue', envVar: 'admin.login', vaultKey: 'admin.login'],
-                        [$class: 'VaultSecretValue', envVar: 'admin.password', vaultKey: 'admin.password'],
-                        [$class: 'VaultSecretValue', envVar: 'data.base.password', vaultKey: 'data.base.password'],
-                        [$class: 'VaultSecretValue', envVar: 'data.base.user', vaultKey: 'data.base.user'],
-                        [$class: 'VaultSecretValue', envVar: 'email.password', vaultKey: 'email.password'],
-                        [$class: 'VaultSecretValue', envVar: 'email.username', vaultKey: 'email.username'],
-                        [$class: 'VaultSecretValue', envVar: 'jira.integration.password', vaultKey: 'jira.integration.password'],
-                        [$class: 'VaultSecretValue', envVar: 'jira.integration.username', vaultKey: 'jira.integration.username'],
-                        [$class: 'VaultSecretValue', envVar: 'jira.user.login', vaultKey: 'jira.user.login'],
-                        [$class: 'VaultSecretValue', envVar: 'jira.user.password', vaultKey: 'jira.user.password'],
-                        [$class: 'VaultSecretValue', envVar: 'rally.oauthAccessKey', vaultKey: 'rally.oauthAccessKey'],
-                        [$class: 'VaultSecretValue', envVar: 'rally.project', vaultKey: 'rally.project']
+                [path: "secrets/infra/${testEnv}/test", engineVersion: 2, secretValues: [
+                        [envVar: 'admin.login', vaultKey: 'admin.login'],
+                        [envVar: 'admin.password', vaultKey: 'admin.password'],
+                        [envVar: 'data.base.password', vaultKey: 'data.base.password'],
+                        [envVar: 'data.base.user', vaultKey: 'data.base.user'],
+                        [envVar: 'email.password', vaultKey: 'email.password'],
+                        [envVar: 'email.username', vaultKey: 'email.username'],
+                        [envVar: 'jira.integration.password', vaultKey: 'jira.integration.password'],
+                        [envVar: 'jira.integration.username', vaultKey: 'jira.integration.username'],
+                        [envVar: 'jira.user.login', vaultKey: 'jira.user.login'],
+                        [envVar: 'jira.user.password', vaultKey: 'jira.user.password'],
+                        [envVar: 'rally.oauthAccessKey', vaultKey: 'rally.oauthAccessKey'],
+                        [envVar: 'rally.project', vaultKey: 'rally.project']
                     ]
                 ]
         ]
 
-        def vaultConfig = [$class: 'VaultConfiguration',
-                          vaultUrl: 'https://vault.service.consul.epm-sec.projects.epam.com:8200',
-                          vaultCredentialId: 'vault-jenkins-approle-credentials']
+        def vaultConfig = [vaultUrl: 'https://vault.service.consul.epm-sec.projects.epam.com:8200',
+                           vaultCredentialId: 'vault-jenkins-approle-credentials',
+                           engineVersion: 2]
 
         try {
             stage('Integration tests') {
                 dir("${testDir}/${serviceName}") {
-                    // wrap([$class: 'VaultBuildWrapper', configuration: vaultConfig, vaultSecrets: testSecrets]) {
+                    withVault([configuration: vaultConfig, vaultSecrets: testSecrets]) {
                         container('maven') {
                             echo "Running RP integration tests on env: ${testEnv}"
                             writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
@@ -186,7 +185,7 @@ podTemplate(
                             sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
                             sh "mvn clean test -P build -Denv=${testEnv}"
                         }
-                    //}
+                    }
                 }
             }
         } finally {

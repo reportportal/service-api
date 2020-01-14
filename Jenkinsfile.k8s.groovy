@@ -152,39 +152,15 @@ podTemplate(
         }
 
         def testEnv = 'gcp'
-        def testSecrets = [
-                [path: "secrets/infra/${testEnv}/test", engineVersion: 2, secretValues: [
-                        [envVar: 'admin.login', vaultKey: 'admin.login'],
-                        [envVar: 'admin.password', vaultKey: 'admin.password'],
-                        [envVar: 'data.base.password', vaultKey: 'data.base.password'],
-                        [envVar: 'data.base.user', vaultKey: 'data.base.user'],
-                        [envVar: 'email.password', vaultKey: 'email.password'],
-                        [envVar: 'email.username', vaultKey: 'email.username'],
-                        [envVar: 'jira.integration.password', vaultKey: 'jira.integration.password'],
-                        [envVar: 'jira.integration.username', vaultKey: 'jira.integration.username'],
-                        [envVar: 'jira.user.login', vaultKey: 'jira.user.login'],
-                        [envVar: 'jira.user.password', vaultKey: 'jira.user.password'],
-                        [envVar: 'rally.oauthAccessKey', vaultKey: 'rally.oauthAccessKey'],
-                        [envVar: 'rally.project', vaultKey: 'rally.project']
-                    ]
-                ]
-        ]
-
-        def vaultConfig = [vaultUrl: 'https://vault.service.consul.epm-sec.projects.epam.com:8200',
-                           vaultCredentialId: 'vault-jenkins-approle-credentials',
-                           engineVersion: 2]
-
         try {
             stage('Integration tests') {
                 dir("${testDir}/${serviceName}") {
-                    withVault([configuration: vaultConfig, vaultSecrets: testSecrets]) {
-                        container('maven') {
-                            echo "Running RP integration tests on env: ${testEnv}"
-                            writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                            writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
-                            sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                            sh "mvn clean test -P build -Denv=${testEnv}"
-                        }
+                    container('maven') {
+                        echo "Running RP integration tests on env: ${testEnv}"
+                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
+                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
+                        sh "mvn clean test -P build -Denv=${testEnv}"
                     }
                 }
             }
@@ -193,6 +169,5 @@ podTemplate(
                 junit 'target/surefire-reports/*.xml'
             }
         }
-
     }
 }

@@ -28,7 +28,6 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
-                    '**/analyzer/auto/model/**'
     ]
 }
 

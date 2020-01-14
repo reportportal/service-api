@@ -51,9 +51,6 @@ repositories {
     releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
 }
 
 dependencyManagement {
@@ -74,9 +71,9 @@ dependencies {
         compile 'com.epam.reportportal:commons'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:1f77961'
+        compile 'com.github.reportportal:commons-dao:6635d47'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:a54ea23'
+        compile 'com.github.reportportal:commons-model:5ffc56d'
         compile 'com.github.reportportal:commons:5.0.0-BETA-2'
         compile 'com.github.reportportal:plugin-api:5.0.0-RC-5'
     }
@@ -111,6 +108,7 @@ dependencies {
 }
 
 processResources {
+    dependsOn(gitInfo)
     filesMatching('application.properties') {
         expand(project.properties)
     }
@@ -122,11 +120,12 @@ dependencyCheck {
 }
 
 bootJar {
-    releaseMode ? archiveClassifier.set('exec') : getArchiveFileName().set("${getArchiveBaseName().get()}.${getArchiveExtension().get()}")
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
 }
 jar.enabled(true)
 
 test {
+    dependsOn(copyTestDatabaseScripts)
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging {
@@ -138,15 +137,10 @@ test {
     }
 }
 
-jar.dependsOn gitInfo
-processResources.dependsOn gitInfo
-prepareDockerfile.dependsOn build
-buildDocker.dependsOn prepareDockerfile
-addDockerfileToGit.dependsOn releaseDockerfile
-updateVersion.dependsOn removeDockerfileFromGit
+addDockerfileToGit.dependsOn createDockerfile
 beforeReleaseBuild.dependsOn addDockerfileToGit
+bintrayUpload.mustRunAfter build
 afterReleaseBuild.dependsOn bintrayUpload
 checkCommitNeeded.dependsOn removeScripts
-test.dependsOn copyTestDatabaseScripts
 build.dependsOn jacocoTestReport
 

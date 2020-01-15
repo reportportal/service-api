@@ -13,11 +13,15 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     testScriptsSrc = [
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/1_initialize_schema.up.sql': 'V001__initialize_schema.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/3_default_data.up.sql'     : 'V002__default_data.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/4_size_limitations.up.sql' : 'V003__size_limitations.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/5_test_case_id_type.up.sql': 'V004__test_case_id_type.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/7_auth_integration.up.sql' : 'V005__auth_integration.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/0_extensions.up.sql'                       : 'V001__extensions.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/1_initialize_schema.up.sql'                : 'V002__initialize_schema.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/3_default_data.up.sql'                     : 'V003__default_data.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/4_size_limitations.up.sql'                 : 'V004__size_limitations.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/5_test_case_id_type.up.sql'                : 'V005__test_case_id_type.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/6_retries_handling.up.sql'                 : 'V006__retries_handling.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/7_auth_integration.up.sql'                 : 'V007__auth_integration.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/8_sender_case_enabled_field.up.sql'        : 'V008__sender_case_enabled_field.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/V5.1/migrations/9_analyzer_params.up.sql': 'V009__analyzer_params.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',
@@ -25,7 +29,6 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
-                    '**/analyzer/auto/model/**'
     ]
 }
 

@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -40,69 +41,69 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class LaunchBuilderTest {
 
-	@Test
-	void launchBuilder() {
-		final String description = "description";
-		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-		final Date date = TO_DATE.apply(now);
-		final Long projectId = 1L;
-		final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
-		final Long userId = 2L;
-		final String passed = "PASSED";
-		final Mode mode = Mode.DEFAULT;
+    @Test
+    void launchBuilder() {
+        final String description = "description";
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+        final Date date = TO_DATE.apply(now);
+        final Long projectId = 1L;
+        final ItemAttributeResource attributeResource = new ItemAttributeResource("key", "value");
+        final Long userId = 2L;
+        final String passed = "PASSED";
+        final Mode mode = Mode.DEFAULT;
 
-		final Launch launch = new LaunchBuilder().addDescription(description)
-				.addEndTime(date)
-				.addProject(projectId)
-				.addAttribute(attributeResource)
-				.addUserId(userId)
-				.addStatus(passed)
-				.addMode(mode)
-				.get();
+        final Launch launch = new LaunchBuilder().addDescription(description)
+                .addEndTime(date)
+                .addProject(projectId)
+                .addAttribute(attributeResource)
+                .addUserId(userId)
+                .addStatus(passed)
+                .addMode(mode)
+                .get();
 
-		assertEquals(description, launch.getDescription());
-		assertEquals(now, launch.getEndTime());
-		assertEquals(projectId, launch.getProjectId());
-		assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
-		assertEquals(userId, launch.getUserId());
-		assertEquals(passed, launch.getStatus().name());
-		assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
-	}
+        assertEquals(description, launch.getDescription());
+        assertEquals(now, launch.getEndTime());
+        assertEquals(projectId, launch.getProjectId());
+        assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
+        assertEquals(userId, launch.getUserId());
+        assertEquals(passed, launch.getStatus().name());
+        assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
+    }
 
-	@Test
-	void addStartRqTest() {
-		final StartLaunchRQ request = new StartLaunchRQ();
-		final String uuid = "uuid";
-		request.setUuid(uuid);
-		request.setMode(Mode.DEFAULT);
-		final String description = "description";
-		request.setDescription(description);
-		final String name = "name";
-		request.setName(name);
-		final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-		request.setStartTime(TO_DATE.apply(now));
-		request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
+    @Test
+    void addStartRqTest() {
+        final StartLaunchRQ request = new StartLaunchRQ();
+        final String uuid = "uuid";
+        request.setUuid(uuid);
+        request.setMode(Mode.DEFAULT);
+        final String description = "description";
+        request.setDescription(description);
+        final String name = "name";
+        request.setName(name);
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+        request.setStartTime(TO_DATE.apply(now));
+        request.setAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")));
 
-		final Launch launch = new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes()).get();
+        final Launch launch = new LaunchBuilder().addStartRQ(request).addAttributes(request.getAttributes()).get();
 
-		assertEquals(name, launch.getName());
-		assertEquals(uuid, launch.getUuid());
-		assertEquals(description, launch.getDescription());
-		assertEquals(now, launch.getStartTime());
-		assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
-		assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
-	}
+        assertEquals(name, launch.getName());
+        assertEquals(uuid, launch.getUuid());
+        assertEquals(description, launch.getDescription());
+        assertEquals(now, launch.getStartTime());
+        assertTrue(launch.getAttributes().contains(new ItemAttribute("key", "value", false)));
+        assertEquals(LaunchModeEnum.DEFAULT, launch.getMode());
+    }
 
-	@Test
-	void overwriteAttributes() {
-		Launch launch = new Launch();
-		final ItemAttribute systemAttribute = new ItemAttribute("key", "value", true);
-		launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));
+    @Test
+    void overwriteAttributes() {
+        Launch launch = new Launch();
+        final ItemAttribute systemAttribute = new ItemAttribute("key", "value", true);
+        launch.setAttributes(Sets.newHashSet(new ItemAttribute("key", "value", false), systemAttribute));
 
-		final Launch buildLaunch = new LaunchBuilder(launch).overwriteAttributes(Sets.newHashSet(new ItemAttributeResource("newKey",
-				"newVal"
-		))).get();
+        final Launch buildLaunch = new LaunchBuilder(launch).overwriteAttributes(Sets.newHashSet(new ItemAttributeResource("newKey",
+                "newVal"
+        ))).get();
 
-		assertThat(buildLaunch.getAttributes()).containsExactlyInAnyOrder(new ItemAttribute("newKey", "newVal", false), systemAttribute);
-	}
+        assertThat(buildLaunch.getAttributes()).containsExactlyInAnyOrder(new ItemAttribute("newKey", "newVal", false), systemAttribute);
+    }
 }

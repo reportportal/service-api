@@ -4,6 +4,8 @@ node {
 
     load "$JENKINS_HOME/jobvars.env"
 
+    def buildNumber = "BUILD-${env.BUILD_NUMBER}".toString()
+
     stage('Checkout') {
         checkout scm
     }
@@ -11,7 +13,7 @@ node {
         sh './gradlew clean test --full-stacktrace'
     }
     stage('Build') {
-        sh './gradlew build'
+        sh "./gradlew build -P buildNumber=$buildNumber"
     }
     stage('Docker image') {
         sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST"

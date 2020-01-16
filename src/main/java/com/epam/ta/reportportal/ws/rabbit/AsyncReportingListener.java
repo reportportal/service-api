@@ -278,19 +278,35 @@ public class AsyncReportingListener implements MessageListener {
 	private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
 		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
 		logRepository.save(log);
-		saveAttachment(metaInfo, log.getId(), projectId, testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
+		saveAttachment(metaInfo,
+				log.getId(),
+				projectId,
+				effectiveLaunch.getId(),
+				item.getItemId(),
+				effectiveLaunch.getUuid(),
+				log.getUuid()
+		);
 	}
 
 	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
 		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
 		logRepository.save(log);
-		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null);
+		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null, launch.getUuid(), log.getUuid());
 	}
 
-	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId) {
+	private void saveAttachment(BinaryDataMetaInfo metaInfo, Long logId, Long projectId, Long launchId, Long itemId, String launchUuid,
+			String logUuid) {
 		if (!Objects.isNull(metaInfo)) {
 			attachmentBinaryDataService.attachToLog(metaInfo,
-					AttachmentMetaInfo.builder().withProjectId(projectId).withLaunchId(launchId).withItemId(itemId).withLogId(logId).build()
+					AttachmentMetaInfo.builder()
+							.withProjectId(projectId)
+							.withLaunchId(launchId)
+							.withItemId(itemId)
+							.withLogId(logId)
+							.withLaunchUuid(launchUuid)
+							.withLogUuid(logUuid)
+							.build()
 			);
 		}
 	}

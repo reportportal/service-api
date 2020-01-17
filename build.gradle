@@ -24,13 +24,13 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/copy-database-scripts.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/jacoco.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/copy-database-scripts.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-quality.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/jacoco.gradle'
 project.hasProperty('sealightsSession') ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -43,11 +43,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        if (releaseMode) {
-            mavenBom "com.epam.reportportal:commons-bom:5.0.0-RC-5"
-        } else {
-            mavenBom "com.github.reportportal:commons-bom:4b7ed8a"
-        }
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0-RC-7' : 'com.github.reportportal:commons-bom:4b7ed8a')
     }
 }
 

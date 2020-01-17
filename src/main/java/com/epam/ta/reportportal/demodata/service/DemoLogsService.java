@@ -130,7 +130,7 @@ class DemoLogsService {
 	void attachFiles(List<Log> logs, Long projectId, String launchUuid) {
 		Launch launch = launchRepository.findByUuid(launchUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-		createAttachments(logs, projectId, launch.getId(), null);
+		createAttachments(logs, projectId, launch.getId(), null, launchUuid);
 	}
 
 	void attachFiles(List<Log> logs, Long projectId, String itemUuid, String launchUuid) {
@@ -138,26 +138,26 @@ class DemoLogsService {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		TestItem item = testItemRepository.findByUuid(itemUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-		createAttachments(logs, projectId, launch.getId(), item.getItemId());
+		createAttachments(logs, projectId, launch.getId(), item.getItemId(), launchUuid);
 	}
 
-	private void createAttachments(List<Log> logs, Long projectId, Long launchId, Long itemId) {
+	private void createAttachments(List<Log> logs, Long projectId, Long launchId, Long itemId, String launchUuid) {
 		BooleanHolder binaryDataAttached = new BooleanHolder();
 		logs.forEach(it -> {
 			if (ERROR.toInt() >= it.getLogLevel()) {
 				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-					createAttachment(projectId, itemId, launchId, it);
+					createAttachment(projectId, itemId, launchId, it, launchUuid);
 				}
 			} else {
 				if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
-					createAttachment(projectId, itemId, launchId, it);
+					createAttachment(projectId, itemId, launchId, it, launchUuid);
 					binaryDataAttached.setValue(true);
 				}
 			}
 		});
 	}
 
-	private void createAttachment(Long projectId, Long testItemId, Long launchId, Log it) {
+	private void createAttachment(Long projectId, Long testItemId, Long launchId, Log it, String launchUuid) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
 			attachmentBinaryDataService.saveFileAndAttachToLog(
@@ -167,6 +167,8 @@ class DemoLogsService {
 							.withLaunchId(launchId)
 							.withItemId(testItemId)
 							.withLogId(it.getId())
+							.withLaunchUuid(launchUuid)
+							.withLogUuid(it.getUuid())
 							.build()
 			);
 		} catch (IOException e) {

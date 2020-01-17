@@ -88,13 +88,19 @@ class FileStorageControllerTest extends BaseMvcTest {
 	@Test
 	@Sql("/db/data-store/data-store-fill.sql")
 	void getFile() throws Exception {
-		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(1L,
+		AttachmentMetaInfo metaInfo = AttachmentMetaInfo.builder()
+				.withProjectId(1L)
+				.withItemId(1L)
+				.withLaunchId(1L)
+				.withLogId(1L)
+				.withLogUuid("uuid")
+				.withLaunchUuid("uuid")
+				.build();
+		Optional<BinaryDataMetaInfo> binaryDataMetaInfo = attachmentBinaryDataService.saveAttachment(metaInfo,
 				getMultipartFile("image/large_image.png")
 		);
 		assertTrue(binaryDataMetaInfo.isPresent());
-		attachmentBinaryDataService.attachToLog(binaryDataMetaInfo.get(),
-				AttachmentMetaInfo.builder().withProjectId(1L).withItemId(1L).withLaunchId(1L).withLogId(1L).build()
-		);
+		attachmentBinaryDataService.attachToLog(binaryDataMetaInfo.get(), metaInfo);
 
 		Optional<Attachment> attachment = attachmentRepository.findByFileId(binaryDataMetaInfo.get().getFileId());
 

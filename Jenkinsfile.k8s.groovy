@@ -10,7 +10,7 @@ podTemplate(
         containers: [
                 containerTemplate(name: 'jnlp', image: 'jenkins/jnlp-slave:alpine'),
                 containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true,
-                        resourceRequestCpu: '500m',
+                        resourceRequestCpu: '250m',
                         resourceLimitCpu: '800m',
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
@@ -18,8 +18,8 @@ podTemplate(
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
-                        resourceRequestCpu: '1000m',
-                        resourceLimitCpu: '2000m',
+                        resourceRequestCpu: '500m',
+                        resourceLimitCpu: '1500m',
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '3072Mi'),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
@@ -120,33 +120,41 @@ podTemplate(
 
 
         }
+
+        def jvmArgs = params.get('JVM_ARGS')
+        if(jvmArgs == null){
+            jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+        }
+
         stage('Deploy to Dev Environment') {
             container('helm') {
                 dir("$k8sDir/reportportal/v5") {
                     sh 'helm dependency update'
                 }
-                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --wait reportportal ./$k8sDir/reportportal/v5"
+                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=$jvmArgs\" --wait reportportal ./$k8sDir/reportportal/v5"
             }
         }
 
         stage('Execute DVT Tests') {
-            def srvUrl
+            def srvUrls
             container('kubectl') {
                 def srvName = utils.getServiceName(k8sNs, "reportportal-api")
-                srvUrl = utils.getServiceEndpoint(k8sNs, srvName)
+                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
             }
-            if (srvUrl == null) {
+            if (srvUrls == null) {
                 error("Unable to retrieve service URL")
             }
             container('httpie') {
-                test.checkVersion("http://$srvUrl", "$srvVersion")
+                srvUrls.each{ip ->
+                    test.checkVersion("http://$ip:8585", "$srvVersion")
+                }
             }
         }
 
+        def testEnv = 'gcp'
         try {
             stage('Integration tests') {
-                def testEnv = 'gcp-k8s'
-                    dir("${testDir}/${serviceName}") {
+                dir("${testDir}/${serviceName}") {
                     container('maven') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
@@ -161,6 +169,5 @@ podTemplate(
                 junit 'target/surefire-reports/*.xml'
             }
         }
-
     }
 }

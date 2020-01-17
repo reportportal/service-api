@@ -14,17 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        mavenCentral()
-        dependencies {
-            if (project.hasProperty('sealightsSession')) {
-                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
-            }
-        }
-    }
-}
-
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id 'org.springframework.boot' version '2.2.1.RELEASE'
@@ -35,44 +24,38 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/copy-database-scripts.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/jacoco.gradle'
-apply from: 'sealights.gradle'
-
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-docker.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-commons.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-info.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/release-service.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/copy-database-scripts.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/build-quality.gradle'
+apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/5.0.0-RC-6/jacoco.gradle'
+project.hasProperty('sealightsSession') ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
     mavenCentral()
     mavenLocal()
-    maven { url "http://dl.bintray.com/epam/reportportal" }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
-    maven { url 'https://jitpack.io' }
+    releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
 }
 
 dependencyManagement {
     imports {
-        if (releaseMode) {
-            mavenBom "com.epam.reportportal:commons-bom:5.0.0-RC-5"
-        } else {
-            mavenBom "com.github.reportportal:commons-bom:5.0.0-RC-5"
-        }
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0-RC-7' : 'com.github.reportportal:commons-bom:4b7ed8a')
     }
 }
 
 dependencies {
     if (releaseMode) {
-        compile 'com.epam.reportportal:commons-dao:5.0.0-RC-5'
-        compile 'com.epam.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.epam.reportportal:commons-model:5.0.0-RC-6'
-        compile 'com.epam.reportportal:commons:5.0.0-BETA-2'
-        compile 'com.epam.reportportal:plugin-api:5.0.0-RC-5'
+        compile 'com.epam.reportportal:commons-dao'
+        compile 'com.epam.reportportal:commons-rules'
+        compile 'com.epam.reportportal:commons-model'
+        compile 'com.epam.reportportal:commons'
+        compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:5.0.0-RC-5'
+        compile 'com.github.reportportal:commons-dao:c6130271'
         compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
         compile 'com.github.reportportal:commons-model:5.0.0-RC-6'
         compile 'com.github.reportportal:commons:5.0.0-BETA-2'
@@ -90,6 +73,8 @@ dependencies {
 
     compile 'com.sun.mail:javax.mail:1.6.2'
     compile 'net.sf.jasperreports:jasperreports:6.10.0'
+    // JasperReport's export to XLS uses Apache POI
+    compile 'org.apache.poi:poi:4.1.0'
     compile 'io.springfox:springfox-swagger2'
 
     ///// Security
@@ -101,16 +86,13 @@ dependencies {
     // Metrics
     compile 'io.micrometer:micrometer-registry-prometheus:1.3.1'
 
-//    JasperReport's export to XLS uses Apache POI. Reports 6.3.1 needs version NOT
-//    higher than 3.14 since 3.15 contains breaking API changes
-//    compile 'org.apache.poi:poi:4.1.0'
-
 //  Tests
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'org.flywaydb.flyway-test-extensions:flyway-spring-test:6.0.0'
 }
 
 processResources {
+    dependsOn(gitInfo)
     filesMatching('application.properties') {
         expand(project.properties)
     }
@@ -122,14 +104,12 @@ dependencyCheck {
 }
 
 bootJar {
-    releaseMode ? archiveClassifier.set('exec') : getArchiveFileName().set("${getArchiveBaseName().get()}.${getArchiveExtension().get()}")
+    project.hasProperty('gcp') ? getArchiveFileName().set('app.jar') : archiveClassifier.set('exec')
 }
-
-jar {
-    enabled = true
-}
+jar.enabled(true)
 
 test {
+    dependsOn(copyTestDatabaseScripts)
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging {
@@ -141,15 +121,10 @@ test {
     }
 }
 
-jar.dependsOn gitInfo
-processResources.dependsOn gitInfo
-prepareDockerfile.dependsOn build
-buildDocker.dependsOn prepareDockerfile
-addDockerfileToGit.dependsOn releaseDockerfile
-updateVersion.dependsOn removeDockerfileFromGit
+addDockerfileToGit.dependsOn createDockerfile
 beforeReleaseBuild.dependsOn addDockerfileToGit
+bintrayUpload.mustRunAfter build
 afterReleaseBuild.dependsOn bintrayUpload
 checkCommitNeeded.dependsOn removeScripts
-test.dependsOn copyTestDatabaseScripts
 build.dependsOn jacocoTestReport
 

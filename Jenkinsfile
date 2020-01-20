@@ -7,11 +7,14 @@ node {
     stage('Checkout') {
         checkout scm
     }
+    stage('Assemble') {
+        sh "./gradlew clean assemble -P buildNumber=${env.BUILD_NUMBER}"
+    }
     stage('Test') {
-        sh './gradlew clean test --full-stacktrace'
+        sh './gradlew test --full-stacktrace'
     }
     stage('Build') {
-        sh "./gradlew build -P buildNumber=${env.BUILD_NUMBER}"
+        sh './gradlew build'
     }
     stage('Docker image') {
         sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST"

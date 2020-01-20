@@ -24,7 +24,9 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-def branch = releaseMode ? '5.0.0-RC-6' : 'v5.1'
+
+def branch = releaseMode ? '5.0.0' : 'v5.1'
+
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-docker.gradle"
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-commons.gradle"
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-info.gradle"
@@ -44,7 +46,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0-RC-7' : 'com.github.reportportal:commons-bom:4b7ed8a')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:4b7ed8a')
     }
 }
 

@@ -13,12 +13,12 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     testScriptsSrc = [
-            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0-RC-6/migrations/0_extensions.up.sql'       : 'V001__extensions.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0-RC-6/migrations/1_initialize_schema.up.sql': 'V002__initialize_schema.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0-RC-6/migrations/3_default_data.up.sql'     : 'V003__default_data.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0-RC-6/migrations/4_size_limitations.up.sql' : 'V004__size_limitations.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0-RC-6/migrations/5_test_case_id_type.up.sql': 'V005__test_case_id_type.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0-RC-6/migrations/6_retries_handling.up.sql' : 'V006__retries_handling.sql'
+            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0/migrations/0_extensions.up.sql'       : 'V001__extensions.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0/migrations/1_initialize_schema.up.sql': 'V002__initialize_schema.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0/migrations/3_default_data.up.sql'     : 'V003__default_data.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0/migrations/4_size_limitations.up.sql' : 'V004__size_limitations.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0/migrations/5_test_case_id_type.up.sql': 'V005__test_case_id_type.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.0.0/migrations/6_retries_handling.up.sql' : 'V006__retries_handling.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

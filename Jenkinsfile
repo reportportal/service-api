@@ -14,7 +14,7 @@ node {
         sh './gradlew clean test --full-stacktrace'
     }
     stage('Build') {
-        sh './gradlew build'
+        sh "./gradlew build -P buildNumber=${env.BUILD_NUMBER}"
     }
     stage('Docker image') {
         sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST"

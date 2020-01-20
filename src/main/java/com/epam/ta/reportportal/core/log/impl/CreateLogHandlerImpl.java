@@ -99,18 +99,20 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	private EntryCreatedAsyncRS createItemLog(SaveLogRQ request, TestItem item, MultipartFile file, Long projectId) {
 		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
 		logRepository.save(log);
-		saveBinaryData(file, projectId, log.getId(), testItemService.getEffectiveLaunch(item).getId(), item.getItemId());
+		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
+		saveBinaryData(file, projectId, log.getId(), effectiveLaunch.getId(), item.getItemId(), effectiveLaunch.getUuid(), log.getUuid());
 		return new EntryCreatedAsyncRS(log.getUuid());
 	}
 
 	private EntryCreatedAsyncRS createLaunchLog(SaveLogRQ request, Launch launch, MultipartFile file, Long projectId) {
 		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
 		logRepository.save(log);
-		saveBinaryData(file, projectId, log.getId(), launch.getId(), null);
+		saveBinaryData(file, projectId, log.getId(), launch.getId(), null, launch.getUuid(), log.getUuid());
 		return new EntryCreatedAsyncRS(log.getUuid());
 	}
 
-	private void saveBinaryData(MultipartFile file, Long projectId, Long logId, Long launchId, Long itemId) {
+	private void saveBinaryData(MultipartFile file, Long projectId, Long logId, Long launchId, Long itemId, String launchUuid,
+			String logUuid) {
 		if (!Objects.isNull(file)) {
 			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
 					.withFile(file)
@@ -119,6 +121,8 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 							.withLaunchId(launchId)
 							.withItemId(itemId)
 							.withLogId(logId)
+							.withLaunchUuid(launchUuid)
+							.withLogUuid(logUuid)
 							.build());
 
 			taskExecutor.execute(saveLogBinaryDataTask);

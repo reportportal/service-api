@@ -14,17 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        mavenCentral()
-        dependencies {
-            if (project.hasProperty('sealightsSession')) {
-                classpath 'io.sealights.on-premise.agents.plugin:sealights-gradle-plugin:latest.release'
-            }
-        }
-    }
-}
-
 plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id 'org.springframework.boot' version '2.2.1.RELEASE'
@@ -35,15 +24,15 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-docker.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-commons.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-info.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/release-service.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/copy-database-scripts.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/build-quality.gradle'
-apply from: 'https://raw.githubusercontent.com/reportportal/gradle-scripts/master/jacoco.gradle'
-apply from: 'sealights.gradle'
-
+def branch = releaseMode ? '5.0.0-RC-6' : 'master'
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-docker.gradle"
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-commons.gradle"
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-info.gradle"
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/release-service.gradle"
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/copy-database-scripts.gradle"
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-quality.gradle"
+apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/jacoco.gradle"
+project.hasProperty('sealightsSession') ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
     mavenCentral()
@@ -55,11 +44,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        if (releaseMode) {
-            mavenBom "com.epam.reportportal:commons-bom:5.0.0-RC-5"
-        } else {
-            mavenBom "com.github.reportportal:commons-bom:4b7ed8a"
-        }
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0-RC-7' : 'com.github.reportportal:commons-bom:4b7ed8a')
     }
 }
 

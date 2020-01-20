@@ -83,7 +83,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	public void changeLaunchStatus(Launch launch) {
 		if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
 			if (!launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-				StatusEnum launchStatus = launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED;
+				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED;
 				launch.setStatus(launchStatus);
 			}
 		}

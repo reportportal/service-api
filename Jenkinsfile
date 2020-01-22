@@ -24,7 +24,7 @@ node {
     }
     stage('Deploy Container') {
         docker.withServer("$DOCKER_HOST") {
-            sh "docker-compose -p reportportal51 -f $COMPOSE_FILE_RP_5_1 up -d --force-recreate api"
+            sh "docker-compose -p reportportal -f $COMPOSE_FILE_RP up -d --force-recreate api"
         }
     }
 }

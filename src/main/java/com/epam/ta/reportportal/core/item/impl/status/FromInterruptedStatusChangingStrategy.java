@@ -97,7 +97,7 @@ public class FromInterruptedStatusChangingStrategy extends StatusChangingStrateg
 			Launch launch = launchRepository.findById(item.getLaunchId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
 			if (launch.getStatus() != IN_PROGRESS) {
-				launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED);
+				launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED);
 			}
 		}
 	}

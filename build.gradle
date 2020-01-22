@@ -46,7 +46,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:4b7ed8a')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:7affe20')
     }
 }
 
@@ -58,11 +58,11 @@ dependencies {
         compile 'com.epam.reportportal:commons'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:36115cf'
-        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:a1830fe'
-        compile 'com.github.reportportal:commons:5.0.0-BETA-2'
-        compile 'com.github.reportportal:plugin-api:5.0.0-RC-5'
+        compile 'com.github.reportportal:commons-dao:f056ef5'
+        compile 'com.github.reportportal:commons-rules:0fd2060'
+        compile 'com.github.reportportal:commons-model:aad6245'
+        compile 'com.github.reportportal:commons:b10eade'
+        compile 'com.github.reportportal:plugin-api:62cf094'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

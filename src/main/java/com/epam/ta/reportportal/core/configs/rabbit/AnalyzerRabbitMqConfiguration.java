@@ -69,9 +69,11 @@ public class AnalyzerRabbitMqConfiguration {
 	}
 
 	@Bean(name = "analyzerRabbitTemplate")
-	public RabbitTemplate analyzerRabbitTemplate(@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory) {
+	public RabbitTemplate analyzerRabbitTemplate(@Autowired @Qualifier("analyzerConnectionFactory") ConnectionFactory connectionFactory,
+			@Value("${rp.amqp.reply-timeout}") long replyTimeout) {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(messageConverter);
+		rabbitTemplate.setReplyTimeout(replyTimeout);
 		return rabbitTemplate;
 	}
 

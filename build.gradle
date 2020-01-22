@@ -25,7 +25,7 @@ import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
 
-def branch = releaseMode ? '5.0.0' : 'v5.1'
+def branch = releaseMode ? '5.0.0' : 'develop'
 
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-docker.gradle"
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-commons.gradle"

@@ -66,6 +66,7 @@ rp:
     apipass: rabbitmq
     queues: 10
     queuesPerPod: 10
+    reply-timeout: 300000 #milliseconds
 
   requestLogging: true
 

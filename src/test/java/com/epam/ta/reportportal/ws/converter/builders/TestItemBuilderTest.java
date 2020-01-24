@@ -34,7 +34,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
 import static org.assertj.core.api.Assertions.assertThat;

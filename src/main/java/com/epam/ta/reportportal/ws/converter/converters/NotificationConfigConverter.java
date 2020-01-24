@@ -63,6 +63,7 @@ public final class NotificationConfigConverter {
 				.collect(Collectors.toSet())));
 		resource.setSendCase(model.getSendCase().getCaseString());
 		resource.setRecipients(Lists.newArrayList(model.getRecipients()));
+		resource.setEnabled(model.isEnabled());
 		return resource;
 	};
 
@@ -88,6 +89,7 @@ public final class NotificationConfigConverter {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						"Incorrect send case type " + resource.getSendCase()
 				)));
+		senderCase.setEnabled(resource.isEnabled());
 		return senderCase;
 	};
 }

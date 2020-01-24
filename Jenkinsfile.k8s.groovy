@@ -127,12 +127,7 @@ podTemplate(
         }
 
         stage('Deploy to Dev Environment') {
-            container('helm') {
-                dir("$k8sDir/reportportal/v5") {
-                    sh 'helm dependency update'
-                }
-                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=$jvmArgs\" --wait reportportal ./$k8sDir/reportportal/v5"
-            }
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : jvmArgs], true) // with wait
         }
 
         stage('Execute DVT Tests') {

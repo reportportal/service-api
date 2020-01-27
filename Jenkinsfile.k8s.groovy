@@ -85,7 +85,6 @@ podTemplate(
             }
         }
 
-        def test = load "${ciDir}/jenkins/scripts/test.groovy"
         def utils = load "${ciDir}/jenkins/scripts/util.groovy"
         def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
         def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
@@ -141,7 +140,7 @@ podTemplate(
             }
             container('httpie') {
                 srvUrls.each{ip ->
-                    test.checkVersion("http://$ip:8585", "$srvVersion")
+                    helm.checkVersion("http://$ip:8585", "$srvVersion")
                 }
             }
         }

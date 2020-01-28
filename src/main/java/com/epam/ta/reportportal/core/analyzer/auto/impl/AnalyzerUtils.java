@@ -73,6 +73,7 @@ public class AnalyzerUtils {
 		indexTestItem.setTestItemId(testItem.getItemId());
 		indexTestItem.setUniqueId(testItem.getUniqueId());
 		indexTestItem.setStartTime(testItem.getStartTime());
+		indexTestItem.setTestCaseHash(testItem.getTestCaseHash());
 		if (testItem.getItemResults().getIssue() != null) {
 			indexTestItem.setIssueTypeLocator(testItem.getItemResults().getIssue().getIssueType().getLocator());
 			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());

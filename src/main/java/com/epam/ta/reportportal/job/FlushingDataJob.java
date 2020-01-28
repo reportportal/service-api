@@ -87,7 +87,7 @@ public class FlushingDataJob implements Job {
 		userRepository.findAll().stream().filter(it -> !it.getLogin().equalsIgnoreCase(SUPERADMIN)).forEach(this::deleteUser);
 		truncateTables();
 		createDefaultUser();
-		LOGGER.info("Flushing demo instance data finished...");
+		LOGGER.info("Flushing demo instance data finished");
 	}
 
 	private void truncateTables() {
@@ -96,38 +96,38 @@ public class FlushingDataJob implements Job {
 		jdbcTemplate.execute("ALTER SEQUENCE oauth_access_token_id_seq RESTART WITH 2");
 		jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
 		jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.acl_object_identity RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.acl_entry RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.activity RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.attachment RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.dashboard_widget RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.dashboard RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.filter_sort RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.filter_condition RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.filter RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.issue RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.issue_ticket RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.launch RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.launch_attribute_rules RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.launch_names RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.launch_number RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.log RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.item_attribute RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.parameter RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.pattern_template RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.pattern_template_test_item RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.recipients RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.restore_password_bid RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.sender_case RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.shareable_entity RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.statistics RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.test_item RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.test_item_results RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.ticket RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.user_creation_bid RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.user_preference RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.widget_filter RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE reportportal.public.widget RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE acl_object_identity RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE acl_entry RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE activity RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE attachment RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE dashboard_widget RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE dashboard RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE filter_sort RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE filter_condition RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE filter RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE issue RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE launch RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE launch_attribute_rules RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE launch_names RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE launch_number RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE log RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE item_attribute RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE parameter RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE pattern_template RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE pattern_template_test_item RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE recipients RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE restore_password_bid RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE sender_case RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE statistics RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE test_item RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE test_item_results RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE ticket RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE user_creation_bid RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE user_preference RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE widget_filter RESTART IDENTITY CASCADE");
+		jdbcTemplate.execute("TRUNCATE TABLE widget RESTART IDENTITY CASCADE");
 	}
 
 	private void createDefaultUser() {

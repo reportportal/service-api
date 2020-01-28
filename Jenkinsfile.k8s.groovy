@@ -132,8 +132,8 @@ podTemplate(
         stage('Execute DVT Tests') {
             def srvUrls
             container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
-                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
+                def srvName = helm.getServiceName(k8sNs, "reportportal-api")
+                srvUrls = helm.getServiceEndpoints(k8sNs, srvName)
             }
             if (srvUrls == null) {
                 error("Unable to retrieve service URL")

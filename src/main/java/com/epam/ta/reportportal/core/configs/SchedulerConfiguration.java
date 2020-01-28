@@ -26,11 +26,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.scheduling.quartz.*;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.inject.Named;
 import javax.sql.DataSource;
@@ -38,6 +36,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 
+@Profile("!jobs-disabled")
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
 @EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
@@ -56,6 +55,9 @@ public class SchedulerConfiguration {
 	@Autowired
 	private DataSource dataSource;
 
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
 	@Bean
 	@Primary
 	public SchedulerFactoryBean schedulerFactoryBean() {
@@ -64,6 +66,7 @@ public class SchedulerConfiguration {
 
 		scheduler.setQuartzProperties(quartzProperties.getQuartz());
 		scheduler.setDataSource(dataSource);
+		scheduler.setTransactionManager(transactionManager);
 		scheduler.setAutoStartup(true);  // to not automatically start after startup
 		scheduler.setWaitForJobsToCompleteOnShutdown(true);
 		scheduler.setJobFactory(beanJobFactory());
@@ -89,8 +92,23 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
+	@Profile("!demo")
 	public SimpleTriggerFactoryBean createCleanLogsTrigger(@Named("cleanLogsJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.logs.cron}") String cleanLogsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
+	}
+
+	@Bean
+	@Profile("!demo")
+	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
+		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
+	}
+
+	@Bean
+	@Profile("!demo")
+	public SimpleTriggerFactoryBean createCleanLaunchesTrigger(@Named("cleanLaunchesJobBean") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLogsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
@@ -101,26 +119,16 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
-	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
-		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
-	}
-
-	@Bean
-	public SimpleTriggerFactoryBean createCleanLaunchesTrigger(@Named("cleanLaunchesJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLogsCron) {
-		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis());
-	}
-
-	@Bean
 	public SimpleTriggerFactoryBean cleanExpiredCreationBidsTrigger(@Named("cleanExpiredCreationBidsJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.clean.bids.cron}") String cleanBidsCron) {
 		return createTrigger(jobDetail, Duration.parse(cleanBidsCron).toMillis());
 	}
 
-	@Bean("cleanLogsJobBean")
-	public JobDetailFactoryBean cleanLogsJob() {
-		return createJobDetail(CleanLogsJob.class);
+	@Bean
+	@Profile("demo")
+	public SimpleTriggerFactoryBean flushingDataTrigger(@Named("flushingDataJob") JobDetail jobDetail,
+			@Value("${com.ta.reportportal.rp.flushing.time.cron}") String flushingCron) {
+		return createTrigger(jobDetail, Duration.parse(flushingCron).toMillis());
 	}
 
 	@Bean("interruptLaunchesJobBean")
@@ -128,19 +136,34 @@ public class SchedulerConfiguration {
 		return createJobDetail(InterruptBrokenLaunchesJob.class);
 	}
 
+	@Bean("cleanExpiredCreationBidsJobBean")
+	public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
+		return createJobDetail(CleanExpiredCreationBidsJob.class);
+	}
+
+	@Bean("cleanLogsJobBean")
+	@Profile("!demo")
+	public JobDetailFactoryBean cleanLogsJob() {
+		return createJobDetail(CleanLogsJob.class);
+	}
+
 	@Bean("cleanScreenshotsJobBean")
+	@Profile("!demo")
 	public JobDetailFactoryBean cleanScreenshotsJob() {
 		return createJobDetail(CleanScreenshotsJob.class);
 	}
 
 	@Bean("cleanLaunchesJobBean")
+	@Profile("!demo")
 	public JobDetailFactoryBean cleanLaunchesJob() {
 		return createJobDetail(CleanLaunchesJob.class);
 	}
 
-	@Bean("cleanExpiredCreationBidsJobBean")
-	public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
-		return createJobDetail(CleanExpiredCreationBidsJob.class);
+	@Bean
+	@Profile("demo")
+	@Named("flushingDataJob")
+	public static JobDetailFactoryBean flushingDataJob() {
+		return createJobDetail(FlushingDataJob.class);
 	}
 
 	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {

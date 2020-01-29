@@ -36,7 +36,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 
-@Profile("!jobs-disabled")
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
 @EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,

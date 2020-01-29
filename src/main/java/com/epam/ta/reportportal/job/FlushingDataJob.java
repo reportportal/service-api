@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.builders.UserBuilder;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
+import io.minio.MinioClient;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -37,10 +38,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.filesystem.distributed.minio.MinioDataStore.BUCKET_PREFIX;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -75,60 +79,72 @@ public class FlushingDataJob implements Job {
 	@Autowired
 	private UserBinaryDataService dataStore;
 
+	@Autowired
+	private MinioClient minioClient;
+
 	@Override
-	@Transactional
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Flushing demo instance data is starting...");
+		truncateTables();
 		projectRepository.findAllProjectNames()
 				.stream()
 				.filter(it -> !it.equalsIgnoreCase(SUPERADMIN_PERSONAL))
 				.collect(Collectors.toList())
 				.forEach(name -> projectRepository.findByName(name).ifPresent(this::deleteProject));
 		userRepository.findAll().stream().filter(it -> !it.getLogin().equalsIgnoreCase(SUPERADMIN)).forEach(this::deleteUser);
-		truncateTables();
+		restartSequences();
 		createDefaultUser();
 		LOGGER.info("Flushing demo instance data finished");
 	}
 
+	/**
+	 * Get exclusive lock. Kill all running transactions. Truncate tables
+	 */
 	private void truncateTables() {
+		jdbcTemplate.execute("BEGIN; " + "SELECT pg_advisory_xact_lock(1);"
+				+ "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
+				+ "AND pid <> pg_backend_pid()\n"
+				+ "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
+				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;"
+				+ "COMMIT;");
+	}
+
+	private void restartSequences() {
 		jdbcTemplate.execute("ALTER SEQUENCE project_id_seq RESTART WITH 2");
 		jdbcTemplate.execute("ALTER SEQUENCE users_id_seq RESTART WITH 2");
 		jdbcTemplate.execute("ALTER SEQUENCE oauth_access_token_id_seq RESTART WITH 2");
 		jdbcTemplate.execute("ALTER SEQUENCE project_attribute_attribute_id_seq RESTART WITH 15");
 		jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
-		jdbcTemplate.execute("TRUNCATE TABLE acl_object_identity RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE acl_entry RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE activity RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE attachment RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE dashboard_widget RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE dashboard RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE filter_sort RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE filter_condition RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE filter RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE issue RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE launch RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE launch_attribute_rules RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE launch_names RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE launch_number RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE log RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE item_attribute RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE parameter RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE pattern_template RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE pattern_template_test_item RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE recipients RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE restore_password_bid RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE sender_case RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE statistics RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE test_item RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE test_item_results RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE ticket RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE user_creation_bid RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE user_preference RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE widget_filter RESTART IDENTITY CASCADE");
-		jdbcTemplate.execute("TRUNCATE TABLE widget RESTART IDENTITY CASCADE");
 	}
+
+	//	private void truncateTables() {
+	//		jdbcTemplate.execute("TRUNCATE TABLE launch RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE activity RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE attachment RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE dashboard RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE filter RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE issue RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE launch_attribute_rules RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE launch_names RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE launch_number RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE item_attribute RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE pattern_template RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE pattern_template_test_item RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE recipients RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE restore_password_bid RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE sender_case RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE statistics RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE ticket RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE user_creation_bid RESTART IDENTITY CASCADE");
+	//		jdbcTemplate.execute("TRUNCATE TABLE widget RESTART IDENTITY CASCADE");
+	//	}
 
 	private void createDefaultUser() {
 		final CreateUserRQFull request = new CreateUserRQFull();
@@ -160,6 +176,11 @@ public class FlushingDataJob implements Job {
 				.collect(Collectors.toSet());
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
+		try {
+			minioClient.deleteBucketLifeCycle(BUCKET_PREFIX + project.getId());
+		} catch (Exception e) {
+			LOGGER.warn("Cannot delete attachments bucket " + BUCKET_PREFIX + project.getId());
+		}
 		logIndexer.deleteIndex(project.getId());
 		projectRepository.flush();
 		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));

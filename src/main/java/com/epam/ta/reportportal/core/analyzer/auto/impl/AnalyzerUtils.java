@@ -72,6 +72,8 @@ public class AnalyzerUtils {
 		IndexTestItem indexTestItem = new IndexTestItem();
 		indexTestItem.setTestItemId(testItem.getItemId());
 		indexTestItem.setUniqueId(testItem.getUniqueId());
+		indexTestItem.setStartTime(testItem.getStartTime());
+		indexTestItem.setTestCaseHash(testItem.getTestCaseHash());
 		if (testItem.getItemResults().getIssue() != null) {
 			indexTestItem.setIssueTypeLocator(testItem.getItemResults().getIssue().getIssueType().getLocator());
 			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
@@ -86,8 +88,6 @@ public class AnalyzerUtils {
 		Map<String, String> configParameters = ProjectUtils.getConfigParameters(project.getProjectAttributes());
 		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
 		analyzerConfig.setIsAutoAnalyzerEnabled(BooleanUtils.toBoolean(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
-		analyzerConfig.setMinDocFreq(Integer.valueOf(ofNullable(configParameters.get(MIN_DOC_FREQ.getAttribute())).orElse(MIN_DOC_FREQ.getDefaultValue())));
-		analyzerConfig.setMinTermFreq(Integer.valueOf(ofNullable(configParameters.get(MIN_TERM_FREQ.getAttribute())).orElse(MIN_TERM_FREQ.getDefaultValue())));
 		analyzerConfig.setMinShouldMatch(Integer.valueOf(ofNullable(configParameters.get(MIN_SHOULD_MATCH.getAttribute())).orElse(
 				MIN_SHOULD_MATCH.getDefaultValue())));
 		analyzerConfig.setNumberOfLogLines(Integer.valueOf(ofNullable(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())).orElse(

@@ -85,7 +85,6 @@ podTemplate(
             }
         }
 
-        def test = load "${ciDir}/jenkins/scripts/test.groovy"
         def utils = load "${ciDir}/jenkins/scripts/util.groovy"
         def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
         def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
@@ -127,26 +126,21 @@ podTemplate(
         }
 
         stage('Deploy to Dev Environment') {
-            container('helm') {
-                dir("$k8sDir/reportportal/v5") {
-                    sh 'helm dependency update'
-                }
-                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=$jvmArgs\" --wait reportportal ./$k8sDir/reportportal/v5"
-            }
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], true) // with wait
         }
 
         stage('Execute DVT Tests') {
             def srvUrls
             container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
-                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
+                def srvName = helm.getServiceName(k8sNs, "reportportal-api")
+                srvUrls = helm.getServiceEndpoints(k8sNs, srvName)
             }
             if (srvUrls == null) {
                 error("Unable to retrieve service URL")
             }
             container('httpie') {
                 srvUrls.each{ip ->
-                    test.checkVersion("http://$ip:8585", "$srvVersion")
+                    helm.checkVersion("http://$ip:8585", "$srvVersion")
                 }
             }
         }

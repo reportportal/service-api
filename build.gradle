@@ -18,14 +18,14 @@ plugins {
     id "io.spring.dependency-management" version "1.0.8.RELEASE"
     id 'org.springframework.boot' version '2.2.1.RELEASE'
     id 'java'
-    id "org.owasp.dependencycheck" version "5.2.0"
+    id "org.owasp.dependencycheck" version "5.2.1"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
 
-def branch = releaseMode ? '5.0.0' : 'master'
+def branch = releaseMode ? '5.0.0' : 'develop'
 
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-docker.gradle"
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-commons.gradle"
@@ -39,14 +39,14 @@ project.hasProperty('sealightsSession') ? apply(from: 'sealights.gradle') : prin
 repositories {
     mavenCentral()
     mavenLocal()
+    releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
-    releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
 }
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:4b7ed8a')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:7affe20')
     }
 }
 
@@ -58,11 +58,11 @@ dependencies {
         compile 'com.epam.reportportal:commons'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:c6130271'
-        compile 'com.github.reportportal:commons-rules:5.0.0-BETA-6'
-        compile 'com.github.reportportal:commons-model:5.0.0-RC-6'
-        compile 'com.github.reportportal:commons:5.0.0-BETA-2'
-        compile 'com.github.reportportal:plugin-api:5.0.0-RC-5'
+        compile 'com.github.reportportal:commons-dao:c88b298'
+        compile 'com.github.reportportal:commons-rules:0fd2060'
+        compile 'com.github.reportportal:commons-model:6be8d52a'
+        compile 'com.github.reportportal:commons:b10eade'
+        compile 'com.github.reportportal:plugin-api:62cf094'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

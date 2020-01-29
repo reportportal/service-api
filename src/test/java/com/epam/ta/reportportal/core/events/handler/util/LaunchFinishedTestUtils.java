@@ -52,7 +52,7 @@ public class LaunchFinishedTestUtils {
 
 	public static Set<SenderCase> getSenderCases() {
 		return Arrays.stream(SendCase.values())
-				.map(sc -> new SenderCase(recipientsSupplier.get(), launchNamesSupplier.get(), Collections.emptySet(), sc))
+				.map(sc -> new SenderCase(recipientsSupplier.get(), launchNamesSupplier.get(), Collections.emptySet(), sc, true))
 				.collect(Collectors.toSet());
 	}
 

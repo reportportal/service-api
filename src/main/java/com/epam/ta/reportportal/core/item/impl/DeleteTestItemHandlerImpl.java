@@ -36,11 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
@@ -48,7 +47,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
@@ -80,35 +78,64 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	}
 
 	@Override
-	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser reportPortalUser) {
+	public OperationCompletionRS deleteTestItem(Long itemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		TestItem item = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
-
 		Launch launch = launchRepository.findById(item.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
 
-		validate(item, launch, reportPortalUser, projectDetails);
+		validate(item, launch, user, projectDetails);
 		Optional<TestItem> parent = ofNullable(item.getParent());
 
 		testItemRepository.deleteById(item.getItemId());
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemId(item.getItemId()));
-
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
-
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
+		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemId(item.getItemId()));
 		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
 
-		return new OperationCompletionRS("Test Item with ID = '" + itemId + "' has been successfully deleted.");
+		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
 	}
 
 	@Override
-	public List<OperationCompletionRS> deleteTestItem(Long[] ids, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser reportPortalUser) {
-		return Stream.of(ids).map(it -> deleteTestItem(it, projectDetails, reportPortalUser)).collect(toList());
+	public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+		List<TestItem> items = testItemRepository.findAllById(ids);
+		List<Launch> launches = launchRepository.findAllById(items.stream().map(TestItem::getLaunchId).collect(Collectors.toSet()));
+
+		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
+		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
+
+		List<Long> willBeDeletedExplicitly = new ArrayList<>(items.size());
+		List<Long> shouldBeDeletedCascaded = new ArrayList<>(items.size());
+
+		Map<Integer, List<TestItem>> grouppedByLevel = items.stream()
+				.collect(Collectors.groupingBy(it -> it.getType().getLevel(), TreeMap::new, Collectors.toList()));
+
+		grouppedByLevel.forEach((key, value) -> value.stream().filter(item -> !shouldBeDeletedCascaded.contains(item.getItemId())).forEach(item -> {
+			willBeDeletedExplicitly.add(item.getItemId());
+			shouldBeDeletedCascaded.addAll(testItemRepository.selectAllDescendantsIds(item.getPath()));
+		}));
+
+		testItemRepository.deleteAllByItemIdIn(willBeDeletedExplicitly);
+
+		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
+		items.stream()
+				.map(TestItem::getParent)
+				.filter(Objects::nonNull)
+				.filter(it -> !shouldBeDeletedCascaded.contains(it.getItemId()))
+				.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
+
+		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemIds(shouldBeDeletedCascaded));
+		items.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it.getItemId())));
+
+		return shouldBeDeletedCascaded.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
 	}
+
+	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format("Test Item with ID = %d has been successfully deleted.",
+			it
+	));
 
 	/**
 	 * Validate {@link ReportPortalUser} credentials, {@link com.epam.ta.reportportal.entity.item.TestItemResults#status},

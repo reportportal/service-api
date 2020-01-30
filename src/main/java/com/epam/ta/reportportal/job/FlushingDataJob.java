@@ -122,30 +122,6 @@ public class FlushingDataJob implements Job {
 		jdbcTemplate.execute("ALTER SEQUENCE statistics_field_sf_id_seq RESTART WITH 15");
 	}
 
-	//	private void truncateTables() {
-	//		jdbcTemplate.execute("TRUNCATE TABLE launch RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE activity RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE attachment RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE dashboard RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE filter RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE issue RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE launch_attribute_rules RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE launch_names RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE launch_number RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE item_attribute RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE pattern_template RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE pattern_template_test_item RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE recipients RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE restore_password_bid RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE sender_case RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE statistics RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE ticket RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE user_creation_bid RESTART IDENTITY CASCADE");
-	//		jdbcTemplate.execute("TRUNCATE TABLE widget RESTART IDENTITY CASCADE");
-	//	}
-
 	private void createDefaultUser() {
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("default");

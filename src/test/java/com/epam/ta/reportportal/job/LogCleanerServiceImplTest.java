@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
@@ -92,7 +93,9 @@ class LogCleanerServiceImplTest {
 
 		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
-		when(logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(testItemId, period)).thenReturn(Arrays.asList(log1, log2));
+		when(attachmentRepository.findByItemIdsAndPeriod(Collections.singletonList(testItemId), period)).thenReturn(Arrays.asList(attachment1,
+				attachment2
+		));
 		when(logRepository.deleteByPeriodAndTestItemIds(eq(period), any())).thenReturn(deletedLogsCount);
 
 		logCleanerService.removeOutdatedLogs(project, period, removedLogsCount);
@@ -125,12 +128,13 @@ class LogCleanerServiceImplTest {
 
 		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
-		when(logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(testItemId, period)).thenReturn(Arrays.asList(log1, log2));
+		when(attachmentRepository.findByItemIdsAndPeriod(Collections.singletonList(testItemId), period)).thenReturn(Arrays.asList(attachment1,
+				attachment2
+		));
 
 		logCleanerService.removeProjectAttachments(project, period, new AtomicLong(), new AtomicLong());
 
 		verify(dataStoreService, times(4)).delete(any());
 		verify(attachmentRepository, times(1)).deleteAllByIds(any());
-
 	}
 }

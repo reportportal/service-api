@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.project.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +34,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.job.CleanLogsJob.MIN_DELAY;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -86,19 +86,19 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), TO_LOCAL_DATE_TIME.apply(endDate))) {
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					List<Long> itemIds = ids.peek(itemId -> {
-						List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId, period);
-						removeAttachmentsOfLogs(logs, attachmentsCount, thumbnailsCount);
-					}).collect(Collectors.toList());
+
+					List<Long> itemIds = ids.collect(toList());
+					List<Attachment> attachments = attachmentRepository.findByItemIdsAndPeriod(itemIds, period);
+					removeAttachments(attachments, attachmentsCount, thumbnailsCount);
 					long count = logRepository.deleteByPeriodAndTestItemIds(period, itemIds);
 					removedLogsCount.addAndGet(count);
 					removedLogsInThreadCount.addAndGet(count);
 				} catch (Exception e) {
-					LOGGER.error("Error during cleaning outdated logs {}", e);
+					LOGGER.error("Error during cleaning outdated logs", e);
 				}
 			});
 		} catch (Exception e) {
-			LOGGER.error("Error during cleaning outdated logs {}", e);
+			LOGGER.error("Error during cleaning outdated logs", e);
 		}
 
 		if (removedLogsInThreadCount.get() > 0 || attachmentsCount.get() > 0 || attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
@@ -120,26 +120,24 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), TO_LOCAL_DATE_TIME.apply(endDate))) {
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					ids.forEach(itemId -> {
-						List<Log> logs = logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(itemId, period);
-						removeAttachmentsOfLogs(logs, removedAttachmentsCount, removedThumbnailsCount);
-					});
+					List<Attachment> attachments = attachmentRepository.findByItemIdsAndPeriod(ids.collect(toList()), period);
+					removeAttachments(attachments, removedAttachmentsCount, removedThumbnailsCount);
 				} catch (Exception e) {
 					//do nothing
-					LOGGER.error("Error during cleaning project attachments {}", e);
+					LOGGER.error("Error during cleaning project attachments", e);
 				}
 			});
 		} catch (Exception e) {
 			//do nothing
-			LOGGER.error("Error during cleaning project attachments {}", e);
+			LOGGER.error("Error during cleaning project attachments", e);
 		}
 	}
 
-	private void removeAttachmentsOfLogs(Collection<Log> logs, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+	private void removeAttachments(Collection<Attachment> attachments, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
 		List<Long> attachmentIds = new ArrayList<>();
-		logs.forEach(log -> {
+		attachments.forEach(it -> {
 			try {
-				ofNullable(log.getAttachment()).ifPresent(attachment -> {
+				ofNullable(it).ifPresent(attachment -> {
 					ofNullable(attachment.getFileId()).ifPresent(fileId -> {
 						dataStoreService.delete(fileId);
 						attachmentsCount.addAndGet(1L);

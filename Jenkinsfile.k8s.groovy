@@ -149,12 +149,12 @@ podTemplate(
         try {
             stage('Integration tests') {
                 dir("${testDir}/${serviceName}") {
-                    container('maven') {
+                    container('gradle') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "mvn clean test -P build -Denv=${testEnv}"
+                        sh "gradlew :service-api:test  -Denv=${testEnv}"
                     }
                 }
             }

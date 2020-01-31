@@ -126,19 +126,7 @@ podTemplate(
         }
 
         stage('Execute DVT Tests') {
-            def srvUrls
-            container('kubectl') {
-                def srvName = helm.getServiceName(k8sNs, "reportportal-api")
-                srvUrls = helm.getServiceEndpoints(k8sNs, srvName)
-            }
-            if (srvUrls == null) {
-                error("Unable to retrieve service URL")
-            }
-            container('httpie') {
-                srvUrls.each{ip ->
-                    helm.checkVersion("http://$ip:8585", "$srvVersion")
-                }
-            }
+            helm.testDeployment("reportportal", "reportportal-api", "$srvVersion")
         }
 
         def testEnv = 'gcp'

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -39,6 +40,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
@@ -64,6 +66,9 @@ class DeleteLogHandlerTest {
 
 	@Mock
 	private TestItemService testItemService;
+
+	@Mock
+	private LogIndexer logIndexer;
 
 	@InjectMocks
 	private DeleteLogHandlerImpl handler;
@@ -161,6 +166,7 @@ class DeleteLogHandlerTest {
 		handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
 
 		verify(logRepository, times(1)).delete(log);
+		verify(logIndexer, times(1)).cleanIndex(projectId, Collections.singletonList(logId));
 		verify(attachmentBinaryDataService, times(1)).delete(attachmentPath);
 		verify(attachmentBinaryDataService, times(1)).delete(attachmentThumbnailPath);
 	}

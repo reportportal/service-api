@@ -154,7 +154,7 @@ podTemplate(
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "gradlew :service-api:test  -Denv=${testEnv}"
+                        sh "gradlew :service-api:test -Denv=${testEnv}"
                     }
                 }
             }

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -32,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -92,7 +94,13 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				item.getItemResults().setIssue(null);
-				logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemId(item.getItemId()));
+				//TODO done
+				logIndexer.cleanIndex(projectId,
+						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
+								Collections.singletonList(item.getItemId()),
+								LogLevel.ERROR.toInt()
+						)
+				);
 			});
 			changeStatusRecursively(item, user, projectId);
 			Launch launch = launchRepository.findById(item.getLaunchId())

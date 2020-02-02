@@ -148,7 +148,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		item.setDescription(request.getDescription());
 		if (item.getType().sameLevel(STEP)) {
-			eventPublisher.publishEvent(new ItemRetryEvent(launch.getProjectId(), item.getItemId()));
+			eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
 			item = makeRetry(request, launch, parent);
 		}
 		ofNullable(request.getUuid()).ifPresent(item::setUuid);

@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -180,8 +181,12 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		List<TestItem> items = testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE);
 		if (!CollectionUtils.isEmpty(items)) {
 			if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
+				//TODO done
 				logIndexer.cleanIndex(projectId,
-						logRepository.findIdsByTestItemIds(items.stream().map(TestItem::getItemId).collect(toList()))
+						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+								items.stream().map(TestItem::getItemId).collect(toList()),
+								LogLevel.ERROR.toInt()
+						)
 				);
 			} else {
 				launchPreparerService.prepare(launch, items, analyzerConfig).ifPresent(it -> logIndexer.indexPreparedLogs(projectId, it));

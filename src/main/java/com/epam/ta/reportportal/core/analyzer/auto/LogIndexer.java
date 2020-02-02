@@ -60,6 +60,7 @@ public interface LogIndexer {
 	 * @param index Index to to be cleaned
 	 * @param ids   The {@link List} of the {@link com.epam.ta.reportportal.entity.log.Log#id}
 	 */
+	//TODO to update
 	void cleanIndex(Long index, List<Long> ids);
 
 }

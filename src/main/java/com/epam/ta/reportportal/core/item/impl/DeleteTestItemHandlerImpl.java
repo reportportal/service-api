@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -93,7 +95,13 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		testItemRepository.deleteById(item.getItemId());
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemId(item.getItemId()));
+		//TODO done
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+						Collections.singletonList(item.getItemId()),
+						LogLevel.ERROR.toInt()
+				)
+		);
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 

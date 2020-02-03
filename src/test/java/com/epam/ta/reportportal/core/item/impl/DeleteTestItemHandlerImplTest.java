@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachments
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -182,10 +183,15 @@ class DeleteTestItemHandlerImplTest {
 		launch.setStatus(StatusEnum.PASSED);
 		launch.setProjectId(1L);
 		launch.setUserId(1L);
-		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
+
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
 		doNothing().when(logIndexer).cleanIndex(any(), any());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(logRepository.findIdsByTestItemId(item.getItemId())).thenReturn(Collections.emptyList());
+		when(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
+				Collections.singletonList(item.getItemId()),
+				LogLevel.ERROR.toInt()
+		)).thenReturn(Collections.emptyList());
 		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
 		doNothing().when(eventPublisher).publishEvent(any(DeleteTestItemAttachmentsEvent.class));

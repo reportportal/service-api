@@ -17,7 +17,6 @@ podTemplate(
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'gradle', image: 'gradle:5.2.1-jdk11', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
@@ -132,13 +131,13 @@ podTemplate(
         def testEnv = 'gcp'
         try {
             stage('Integration tests') {
-                dir("${testDir}/${serviceName}") {
-                    container('gradle') {
+                dir("${testDir}") {
+                    container('jre') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "gradlew :service-api:test -Denv=${testEnv}"
+                        sh "gradlew :${serviceName}:test -Denv=${testEnv}"
                     }
                 }
             }

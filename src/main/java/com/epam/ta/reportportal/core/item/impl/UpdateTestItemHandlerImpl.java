@@ -212,7 +212,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
 		}
 		if (!logIdsToCleanIndex.isEmpty()) {
-			//TODO done
 			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
 		}
 		events.forEach(messageBus::publishActivity);

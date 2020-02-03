@@ -181,7 +181,6 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		List<TestItem> items = testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE);
 		if (!CollectionUtils.isEmpty(items)) {
 			if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
-				//TODO done
 				logIndexer.cleanIndex(projectId,
 						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 								items.stream().map(TestItem::getItemId).collect(toList()),

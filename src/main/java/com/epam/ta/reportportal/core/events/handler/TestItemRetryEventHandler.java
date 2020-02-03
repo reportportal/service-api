@@ -46,7 +46,6 @@ public class TestItemRetryEventHandler {
 	@Async
 	@TransactionalEventListener
 	public void onItemRetry(ItemRetryEvent event) {
-		//TODO done
 		logIndexer.cleanIndex(event.getProjectId(),
 				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(event.getLaunchId(),
 						Collections.singletonList(event.getItemId()),

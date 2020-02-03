@@ -69,7 +69,6 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 		if (PASSED.equals(providedStatus) && item.getItemResults().getIssue() != null) {
 			issueEntityRepository.delete(item.getItemResults().getIssue());
 			item.getItemResults().setIssue(null);
-			//TODO done
 			logIndexer.cleanIndex(projectId,
 					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
 							Collections.singletonList(item.getItemId()),

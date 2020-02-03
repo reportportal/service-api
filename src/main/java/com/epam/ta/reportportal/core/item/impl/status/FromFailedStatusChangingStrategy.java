@@ -94,7 +94,6 @@ public class FromFailedStatusChangingStrategy extends StatusChangingStrategy {
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				item.getItemResults().setIssue(null);
-				//TODO done
 				logIndexer.cleanIndex(projectId,
 						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
 								Collections.singletonList(item.getItemId()),

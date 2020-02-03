@@ -95,7 +95,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		testItemRepository.deleteById(item.getItemId());
 
-		//TODO done
 		//TODO if item is under another project and action is performed by an admin, wrong request will be sent to the ES query
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),

@@ -82,7 +82,6 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
-		//TODO done
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				logRepository.findItemLogIdsByLaunchIdAndLogLevelGte(launchId, LogLevel.ERROR.toInt())
 		);
@@ -114,7 +113,6 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 			}
 		});
 
-		//TODO done
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
 						LogLevel.ERROR.toInt()

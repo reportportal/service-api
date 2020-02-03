@@ -137,13 +137,13 @@ podTemplate(
                         writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "gradlew :${serviceName}:test -Denv=${testEnv}"
+                        sh "./gradlew :${serviceName}:test -Denv=${testEnv}"
                     }
                 }
             }
         } finally {
             dir("${testDir}/${serviceName}") {
-                junit 'target/surefire-reports/*.xml'
+                junit 'build/test-results/test/*.xml'
             }
         }
     }

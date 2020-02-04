@@ -107,30 +107,32 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
 
-		List<Long> willBeDeletedExplicitly = new ArrayList<>(items.size());
-		List<Long> shouldBeDeletedCascaded = new ArrayList<>(items.size());
+		List<Long> itemsToDelete = new ArrayList<>(items.size());
+		List<Long> cascadeDeletedItems = new ArrayList<>(items.size());
 
 		Map<Integer, List<TestItem>> grouppedByLevel = items.stream()
 				.collect(Collectors.groupingBy(it -> it.getType().getLevel(), TreeMap::new, Collectors.toList()));
 
-		grouppedByLevel.forEach((key, value) -> value.stream().filter(item -> !shouldBeDeletedCascaded.contains(item.getItemId())).forEach(item -> {
-			willBeDeletedExplicitly.add(item.getItemId());
-			shouldBeDeletedCascaded.addAll(testItemRepository.selectAllDescendantsIds(item.getPath()));
-		}));
+		grouppedByLevel.forEach((key, value) -> value.stream()
+				.filter(item -> !cascadeDeletedItems.contains(item.getItemId()))
+				.forEach(item -> {
+					itemsToDelete.add(item.getItemId());
+					cascadeDeletedItems.addAll(testItemRepository.selectAllDescendantsIds(item.getPath()));
+				}));
 
-		testItemRepository.deleteAllByItemIdIn(willBeDeletedExplicitly);
+		testItemRepository.deleteAllByItemIdIn(itemsToDelete);
 
 		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
 		items.stream()
+				.filter(it -> itemsToDelete.contains(it.getItemId()))
 				.map(TestItem::getParent)
 				.filter(Objects::nonNull)
-				.filter(it -> !shouldBeDeletedCascaded.contains(it.getItemId()))
-				.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
+				.forEach(it -> it.setHasChildren(false));
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemIds(shouldBeDeletedCascaded));
+		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemIds(cascadeDeletedItems));
 		items.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it.getItemId())));
 
-		return shouldBeDeletedCascaded.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
+		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
 	}
 
 	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format("Test Item with ID = %d has been successfully deleted.",
@@ -147,12 +149,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
-							testItem.getItemId(),
-							projectDetails.getProjectId()
-					)
-			);
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
+					"Deleting testItem '{}' is not under specified project '{}'",
+					testItem.getItemId(),
+					projectDetails.getProjectId()
+			));
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
 			}
@@ -163,11 +164,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-						testItem.getItemId(),
-						launch.getId()
-				)
-		);
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
+				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+				testItem.getItemId(),
+				launch.getId()
+		));
 	}
 }

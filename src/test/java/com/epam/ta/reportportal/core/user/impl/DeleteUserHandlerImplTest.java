@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
+import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
@@ -45,6 +46,9 @@ class DeleteUserHandlerImplTest {
 	@Mock
 	private UserRepository repository;
 
+	@Mock
+	private UserBinaryDataService dataStore;
+
 	@InjectMocks
 	private DeleteUserHandlerImpl handler;
 
@@ -54,10 +58,12 @@ class DeleteUserHandlerImplTest {
 		user.setId(2L);
 
 		doReturn(Optional.of(user)).when(repository).findById(2L);
+		doNothing().when(dataStore).deleteUserPhoto(any());
 
 		handler.deleteUser(2L, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));
 
 		verify(repository, times(1)).findById(2L);
+		verify(dataStore, times(1)).deleteUserPhoto(any());
 
 	}
 
@@ -97,6 +103,8 @@ class DeleteUserHandlerImplTest {
 		User user2 = new User();
 		user.setId(3L);
 
+		doNothing().when(dataStore).deleteUserPhoto(any());
+
 		doReturn(Optional.of(user)).when(repository).findById(2L);
 		doReturn(Optional.of(user2)).when(repository).findById(3L);
 
@@ -107,5 +115,6 @@ class DeleteUserHandlerImplTest {
 
 		verify(repository, times(2)).findById(any(Long.class));
 		verify(repository, times(2)).delete(any(User.class));
+		verify(dataStore, times(2)).deleteUserPhoto(any(User.class));
 	}
 }

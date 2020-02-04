@@ -55,7 +55,6 @@ public class CleanLogsJob implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
 	public static final int DEFAULT_THREAD_COUNT = 5;
-	//	public static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
 
 	@Value("5")
 	private Integer threadsCount;

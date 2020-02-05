@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
@@ -30,7 +31,6 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -184,8 +185,8 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Delete test items by specified ids")
 	public List<OperationCompletionRS> deleteTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam(value = "ids") Long[] ids) {
-		return deleteTestItemHandler.deleteTestItem(ids, extractProjectDetails(user, projectName), user);
+			@RequestParam(value = "ids") Set<Long> ids) {
+		return deleteTestItemHandler.deleteTestItems(ids, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional

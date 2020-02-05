@@ -39,10 +39,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -140,13 +136,16 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.filter(Objects::nonNull)
 				.forEach(it -> it.setHasChildren(false));
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemIds(cascadeDeletedItems));
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsByTestItemIdsAndLogLevelGte(cascadeDeletedItems, LogLevel.ERROR.toInt())
+		);
 		items.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it.getItemId())));
 
 		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
 	}
 
-	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format("Test Item with ID = %d has been successfully deleted.",
+	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format(
+			"Test Item with ID = %d has been successfully deleted.",
 			it
 	));
 
@@ -160,11 +159,12 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
-					"Deleting testItem '{}' is not under specified project '{}'",
-					testItem.getItemId(),
-					projectDetails.getProjectId()
-			));
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
+							testItem.getItemId(),
+							projectDetails.getProjectId()
+					)
+			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
 			}
@@ -175,10 +175,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
-				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-				testItem.getItemId(),
-				launch.getId()
-		));
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+						testItem.getItemId(),
+						launch.getId()
+				)
+		);
 	}
 }

@@ -130,15 +130,17 @@ podTemplate(
         }
 
         def testEnv = 'gcp'
+        def sealightsTokenFile = "sl-token.txt"
+        def sealightsSessionFile = "buildsession.txt"
         try {
             stage('Integration tests') {
                 dir("${testDir}") {
                     container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        writeFile(file: sealightsSessionFile, text: sealightsSession, encoding: "UTF-8")
+                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:test -Denv=${testEnv}"
+                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionIdFile=${sealightsSessionFile}"
                     }
                 }
             }

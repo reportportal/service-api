@@ -29,10 +29,10 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.hibernate.Hibernate;
+
+import java.util.Collection;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
@@ -101,21 +101,21 @@ public abstract class StatusChangingStrategy {
 		}
 	}
 
-	void changeParentsStatusesToFailed(TestItem testItem, StatusEnum oldParentStatus, ReportPortalUser user, Long projectId) {
+	void changeParentsStatusesToFailed(TestItem testItem, Launch launch, StatusEnum oldParentStatus, ReportPortalUser user,
+			Collection<Long> itemsToReindex) {
 		if (!oldParentStatus.equals(StatusEnum.FAILED) || oldParentStatus != StatusEnum.IN_PROGRESS) {
 			TestItem parent = testItem.getParent();
-			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId());
 			while (parent != null) {
 				parent.getItemResults().setStatus(StatusEnum.FAILED);
 				messageBus.publishActivity(new TestItemStatusChangedEvent(before,
-						TO_ACTIVITY_RESOURCE.apply(parent, projectId),
+						TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId()),
 						user.getUserId(),
 						user.getUsername()
 				));
+				itemsToReindex.add(parent.getItemId());
 				parent = parent.getParent();
 			}
-			Launch launch = launchRepository.findById(testItem.getLaunchId())
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, testItem.getLaunchId()));
 			if (launch.getStatus() != IN_PROGRESS) {
 				launch.setStatus(FAILED);
 			}

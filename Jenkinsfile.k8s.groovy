@@ -120,6 +120,10 @@ podTemplate(
         if(jvmArgs == null){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
+        def enableSealights = params.get('ENABLE_SEALIGHTS') != null
+        if(enableSealights){
+            jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
+        }
 
         stage('Deploy to Dev Environment') {
             helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], false) // without wait
@@ -130,15 +134,17 @@ podTemplate(
         }
 
         def testEnv = 'gcp'
+        def sealightsTokenFile = "sl-token.txt"
+        def sealightsSessionFile = "buildsession.txt"
         try {
             stage('Integration tests') {
                 dir("${testDir}") {
                     container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                        writeFile(file: sealightsSessionFile, text: sealightsSession, encoding: "UTF-8")
+                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:test -Denv=${testEnv}"
+                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionIdFile=${sealightsSessionFile}"
                     }
                 }
             }

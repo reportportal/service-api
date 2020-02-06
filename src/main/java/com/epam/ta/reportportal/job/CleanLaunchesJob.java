@@ -16,34 +16,32 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.job.service.LaunchCleanerService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
+import static java.time.Duration.ofDays;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -57,8 +55,6 @@ public class CleanLaunchesJob implements Job {
 
 	private final ProjectRepository projectRepository;
 
-	private final LogCleanerService logCleaner;
-
 	private final SchedulerConfiguration.CleanLaunchesJobProperties cleanLaunchesJobProperties;
 
 	private final LaunchCleanerService launchCleaner;
@@ -66,18 +62,16 @@ public class CleanLaunchesJob implements Job {
 	@Value("5")
 	private Integer threadsCount;
 
-	@Autowired
-	public CleanLaunchesJob(ProjectRepository projectRepository, LogCleanerService logCleaner,
+	public CleanLaunchesJob(ProjectRepository projectRepository,
 			SchedulerConfiguration.CleanLaunchesJobProperties cleanLaunchesJobProperties, LaunchCleanerService launchCleaner) {
 		this.projectRepository = projectRepository;
-		this.logCleaner = logCleaner;
 		this.cleanLaunchesJobProperties = cleanLaunchesJobProperties;
 		this.launchCleaner = launchCleaner;
 	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		LOGGER.info("Cleaning outdated logs has been started");
+		LOGGER.info("Cleaning outdated launches has been started");
 		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
 				new ThreadFactoryBuilder().setNameFormat("clean-launches-job-thread-%d").build()
 		);
@@ -126,35 +120,14 @@ public class CleanLaunchesJob implements Job {
 		}
 	}
 
-	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
-		return Filter.builder()
-				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS,
-						false,
-						projectAttributeEnum.getAttribute(),
-						CRITERIA_PROJECT_ATTRIBUTE_NAME
-				))
-				.build();
-	}
-
-	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunchesCount, AtomicLong removedAttachmentsCount,
-			AtomicLong removedThumbnailsCount) {
-		project.getProjectAttributes()
-				.stream()
-				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute()))
-				.findFirst()
-				.ifPresent(pa -> {
-
-					KeepLaunchDelay delay = KeepLaunchDelay.findByName(pa.getValue())
-							.orElseThrow(() -> new ReportPortalException("Incorrect keep launch delay period: " + pa.getValue()));
-
-					Duration period = Duration.ofDays(delay.getDays());
-					if (!period.isZero()) {
-						logCleaner.removeProjectAttachments(project, period, removedAttachmentsCount, removedThumbnailsCount);
-						launchCleaner.cleanOutdatedLaunches(project, period, removedLaunchesCount);
-					}
-
-				});
+	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunches, AtomicLong removedAttachments,
+			AtomicLong removedThumbnails) {
+		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LAUNCHES)
+				.map(it -> ofDays(KeepLaunchDelay.findByName(it)
+						.orElseThrow(() -> new ReportPortalException("Incorrect keep launch delay period: " + it))
+						.getDays()))
+				.filter(it -> !it.isZero())
+				.ifPresent(it -> launchCleaner.cleanOutdatedLaunches(project, it, removedLaunches, removedAttachments, removedThumbnails));
 	}
 
 }

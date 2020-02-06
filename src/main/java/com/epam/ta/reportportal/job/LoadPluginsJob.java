@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
+import com.epam.ta.reportportal.job.service.PluginLoaderService;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

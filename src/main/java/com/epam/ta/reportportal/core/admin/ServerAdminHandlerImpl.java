@@ -18,13 +18,9 @@ package com.epam.ta.reportportal.core.admin;
 
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
-import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import com.epam.ta.reportportal.ws.converter.converters.ServerSettingsConverter;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.settings.AnalyticsResource;
-import org.jasypt.util.text.BasicTextEncryptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,25 +40,16 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class ServerAdminHandlerImpl implements ServerAdminHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
-
-	private final BasicTextEncryptor simpleEncryptor;
-
 	private final ServerSettingsRepository serverSettingsRepository;
 
-	private final MailServiceFactory emailServiceFactory;
-
 	@Autowired
-	public ServerAdminHandlerImpl(BasicTextEncryptor simpleEncryptor, ServerSettingsRepository serverSettingsRepository,
-			MailServiceFactory emailServiceFactory) {
-		this.simpleEncryptor = simpleEncryptor;
+	public ServerAdminHandlerImpl(ServerSettingsRepository serverSettingsRepository) {
 		this.serverSettingsRepository = serverSettingsRepository;
-		this.emailServiceFactory = emailServiceFactory;
 	}
 
 	@Override
 	public Map<String, String> getServerSettings() {
-		return ServerSettingsConverter.TO_RESOURCE.apply(serverSettingsRepository.findAll());
+		return ServerSettingsConverter.TO_RESOURCE.apply(serverSettingsRepository.selectServerSettings());
 	}
 
 	@Override
@@ -86,6 +73,8 @@ public class ServerAdminHandlerImpl implements ServerAdminHandler {
 	}
 
 	private Map<String, ServerSettings> findServerSettings() {
-		return serverSettingsRepository.findAll().stream().collect(toMap(ServerSettings::getKey, s -> s, (prev, curr) -> prev));
+		return serverSettingsRepository.selectServerSettings()
+				.stream()
+				.collect(toMap(ServerSettings::getKey, s -> s, (prev, curr) -> prev));
 	}
 }

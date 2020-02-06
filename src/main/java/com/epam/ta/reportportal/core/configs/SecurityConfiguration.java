@@ -19,7 +19,11 @@ import com.epam.ta.reportportal.auth.CombinedTokenStore;
 import com.epam.ta.reportportal.auth.UserRoleHierarchy;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
+import com.epam.ta.reportportal.dao.ServerSettingsRepository;
+import com.epam.ta.reportportal.entity.ServerSettings;
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -46,8 +50,10 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Spring's Security Configuration
@@ -56,6 +62,8 @@ import java.util.List;
  */
 @Configuration
 class SecurityConfiguration {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfiguration.class);
 
 	@Bean
 	public PermissionEvaluatorFactoryBean permissionEvaluator() {
@@ -86,6 +94,12 @@ class SecurityConfiguration {
 	@EnableResourceServer
 	public static class SecurityServerConfiguration extends ResourceServerConfigurerAdapter {
 
+		private static final String SECRET_KEY = "secret.key";
+
+		@Autowired
+		@Value("${rp.jwt.signing-key}")
+		private String signingKey;
+
 		@Autowired
 		private PermissionEvaluator permissionEvaluator;
 
@@ -93,8 +107,7 @@ class SecurityConfiguration {
 		private DatabaseUserDetailsService userDetailsService;
 
 		@Autowired
-		@Value("${rp.jwt.signing-key}")
-		private String signingKey;
+		private ServerSettingsRepository serverSettingsRepository;
 
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
@@ -114,7 +127,10 @@ class SecurityConfiguration {
 		@Bean
 		public JwtAccessTokenConverter accessTokenConverter() {
 			JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
-			jwtConverter.setSigningKey(signingKey);
+			String secret = getSecret();
+
+			LOGGER.info("Setting jwt signing key: '" + secret + "'");
+			jwtConverter.setSigningKey(secret);
 
 			DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
 			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
@@ -124,6 +140,14 @@ class SecurityConfiguration {
 			jwtConverter.setAccessTokenConverter(accessTokenConverter);
 
 			return jwtConverter;
+		}
+
+		private String getSecret() {
+			if (!StringUtils.isEmpty(signingKey)) {
+				return signingKey;
+			}
+			Optional<ServerSettings> secretKey = serverSettingsRepository.findByKey(SECRET_KEY);
+			return secretKey.isPresent() ? secretKey.get().getValue() : serverSettingsRepository.generateSecret();
 		}
 
 		@Bean
@@ -160,7 +184,11 @@ class SecurityConfiguration {
 					.antMatchers("/**/user/registration/info*",
 							"/**/user/registration**",
 							"/**/user/password/reset/*",
-							"/**/user/password/reset**", "/**/user/password/restore**", "/documentation.html", "/health", "/info"
+							"/**/user/password/reset**",
+							"/**/user/password/restore**",
+							"/documentation.html",
+							"/health",
+							"/info"
 					)
 					.permitAll()
 					/* set of special endpoints for another microservices from RP ecosystem */

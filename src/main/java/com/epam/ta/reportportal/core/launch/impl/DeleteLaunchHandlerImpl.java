@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEv
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -81,7 +82,9 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findItemLogIdsByLaunchId(launchId));
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findItemLogIdsByLaunchIdAndLogLevelGte(launchId, LogLevel.ERROR.toInt())
+		);
 
 		launchRepository.delete(launch);
 
@@ -111,7 +114,9 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		});
 
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findItemLogIdsByLaunchIds(toDelete.stream().map(Launch::getId).collect(Collectors.toList()))
+				logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
+						LogLevel.ERROR.toInt()
+				)
 		);
 
 		launchRepository.deleteAll(toDelete);

@@ -25,6 +25,7 @@ import java.util.Set;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
+//TODO should be updated according to the nested steps' logs retrieving logic
 public interface PatternConditionProvider {
 
 	Optional<ConvertibleCondition> provideCondition(Set<AnalyzeItemsMode> analyzeItemsModes);

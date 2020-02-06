@@ -21,12 +21,15 @@ package com.epam.ta.reportportal.core.events.item;
  */
 public class ItemRetryEvent {
 
-	private Long projectId;
+	private final Long projectId;
 
-	private Long itemId;
+	private final Long launchId;
 
-	public ItemRetryEvent(Long projectId, Long itemId) {
+	private final Long itemId;
+
+	private ItemRetryEvent(Long projectId, Long launchId, Long itemId) {
 		this.projectId = projectId;
+		this.launchId = launchId;
 		this.itemId = itemId;
 	}
 
@@ -34,7 +37,16 @@ public class ItemRetryEvent {
 		return projectId;
 	}
 
+	public Long getLaunchId() {
+		return launchId;
+	}
+
 	public Long getItemId() {
 		return itemId;
 	}
+
+	public static ItemRetryEvent of(Long projectId, Long launchId, Long itemId) {
+		return new ItemRetryEvent(projectId, launchId, itemId);
+	}
+
 }

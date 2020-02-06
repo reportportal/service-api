@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -30,6 +31,8 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -66,7 +69,12 @@ public class FromSkippedStatusChangingStrategy extends StatusChangingStrategy {
 		if (PASSED.equals(providedStatus) && item.getItemResults().getIssue() != null) {
 			issueEntityRepository.delete(item.getItemResults().getIssue());
 			item.getItemResults().setIssue(null);
-			logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemId(item.getItemId()));
+			logIndexer.cleanIndex(projectId,
+					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
+							Collections.singletonList(item.getItemId()),
+							LogLevel.ERROR.toInt()
+					)
+			);
 		}
 		if (FAILED.equals(providedStatus) && item.getItemResults().getIssue() == null) {
 			addToInvestigateIssue(item, projectId);

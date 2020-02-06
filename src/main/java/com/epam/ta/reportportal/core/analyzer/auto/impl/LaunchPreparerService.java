@@ -80,7 +80,8 @@ public class LaunchPreparerService {
 		return testItems.stream()
 				.filter(ITEM_CAN_BE_INDEXED)
 				.map(it -> AnalyzerUtils.fromTestItem(it,
-						logRepository.findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(Collections.singletonList(it.getItemId()),
+						logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(it.getLaunchId(),
+								Collections.singletonList(it.getItemId()),
 								LogLevel.ERROR.toInt()
 						)
 				))

@@ -17,12 +17,8 @@ podTemplate(
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
-                        resourceRequestCpu: '500m',
-                        resourceLimitCpu: '1500m',
-                        resourceRequestMemory: '1024Mi',
-                        resourceLimitMemory: '3072Mi'),
-                containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -124,43 +120,37 @@ podTemplate(
         if(jvmArgs == null){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
+        def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
+        if(enableSealights){
+            jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
+        }
 
         stage('Deploy to Dev Environment') {
-            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], true) // with wait
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], false) // without wait
         }
 
         stage('Execute DVT Tests') {
-            def srvUrls
-            container('kubectl') {
-                def srvName = helm.getServiceName(k8sNs, "reportportal-api")
-                srvUrls = helm.getServiceEndpoints(k8sNs, srvName)
-            }
-            if (srvUrls == null) {
-                error("Unable to retrieve service URL")
-            }
-            container('httpie') {
-                srvUrls.each{ip ->
-                    helm.checkVersion("http://$ip:8585", "$srvVersion")
-                }
-            }
+            helm.testDeployment("reportportal", "reportportal-api", "$srvVersion")
         }
 
         def testEnv = 'gcp'
+        def sealightsTokenFile = "sl-token.txt"
+        def sealightsSessionFile = "buildsession.txt"
         try {
             stage('Integration tests') {
-                dir("${testDir}/${serviceName}") {
-                    container('maven') {
+                dir("${testDir}") {
+                    container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "mvn clean test -P build -Denv=${testEnv}"
+                        writeFile(file: sealightsSessionFile, text: sealightsSession, encoding: "UTF-8")
+                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionIdFile=${sealightsSessionFile}"
                     }
                 }
             }
         } finally {
             dir("${testDir}/${serviceName}") {
-                junit 'target/surefire-reports/*.xml'
+                junit 'build/test-results/test/*.xml'
             }
         }
     }

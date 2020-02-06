@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
+import com.epam.ta.reportportal.job.service.LaunchCleanerService;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,9 +44,6 @@ class CleanLaunchesJobTest {
 
 	@Mock
 	private ProjectRepository projectRepository;
-
-	@Mock
-	private LogCleanerService logCleanerService;
 
 	@Mock
 	private LaunchCleanerService launchCleanerService;
@@ -74,8 +72,7 @@ class CleanLaunchesJobTest {
 
 		cleanLaunchesJob.execute(null);
 
-		verify(logCleanerService, times(1)).removeProjectAttachments(any(), any(), any(), any());
-		verify(launchCleanerService, times(1)).cleanOutdatedLaunches(any(), any(), any());
+		verify(launchCleanerService, times(1)).cleanOutdatedLaunches(any(), any(), any(), any(), any());
 	}
 
 	@Test

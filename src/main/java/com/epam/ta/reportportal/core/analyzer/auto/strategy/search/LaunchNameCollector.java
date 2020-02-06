@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.strategy.search;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import org.springframework.data.domain.PageRequest;
@@ -44,10 +45,10 @@ public class LaunchNameCollector implements SearchLaunchesCollector {
 
 	@Override
 	public List<Long> collect(Long filerId, Launch launch) {
-		Filter filter = Filter.builder()
+		Filter filter = ProjectFilter.of(Filter.builder()
 				.withTarget(Launch.class)
 				.withCondition(FilterCondition.builder().eq(CRITERIA_NAME, launch.getName()).build())
-				.build();
+				.build(), launch.getProjectId());
 		PageRequest pageRequest = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));
 
 		return launchRepository.findByFilter(filter, pageRequest).stream().map(Launch::getId).collect(Collectors.toList());

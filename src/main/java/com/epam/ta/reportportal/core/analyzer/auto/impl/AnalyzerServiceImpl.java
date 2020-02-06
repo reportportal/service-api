@@ -150,7 +150,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
 		return testItems.stream()
 				.map(it -> AnalyzerUtils.fromTestItem(it,
-						logRepository.findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(singletonList(it.getItemId()),
+						logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(it.getLaunchId(),
+								singletonList(it.getItemId()),
 								LogLevel.ERROR.toInt()
 						)
 				))

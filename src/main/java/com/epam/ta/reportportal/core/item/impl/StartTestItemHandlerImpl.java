@@ -174,7 +174,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void handleRetries(Launch launch, TestItem item) {
 		testItemRepository.handleRetries(item.getItemId());
-		eventPublisher.publishEvent(new ItemRetryEvent(launch.getProjectId(), item.getItemId()));
+		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
 		if (!launch.isHasRetries()) {
 			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		}

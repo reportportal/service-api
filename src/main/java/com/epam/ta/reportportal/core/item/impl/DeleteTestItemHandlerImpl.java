@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -92,7 +93,13 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemId(item.getItemId()));
+		//TODO if item is under another project and action is performed by an admin, wrong request will be sent to the ES query
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+						Collections.singletonList(item.getItemId()),
+						LogLevel.ERROR.toInt()
+				)
+		);
 		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
@@ -129,13 +136,16 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.filter(Objects::nonNull)
 				.forEach(it -> it.setHasChildren(false));
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemIds(cascadeDeletedItems));
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsByTestItemIdsAndLogLevelGte(cascadeDeletedItems, LogLevel.ERROR.toInt())
+		);
 		items.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it.getItemId())));
 
 		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
 	}
 
-	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format("Test Item with ID = %d has been successfully deleted.",
+	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format(
+			"Test Item with ID = %d has been successfully deleted.",
 			it
 	));
 
@@ -149,11 +159,12 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
-					"Deleting testItem '{}' is not under specified project '{}'",
-					testItem.getItemId(),
-					projectDetails.getProjectId()
-			));
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
+							testItem.getItemId(),
+							projectDetails.getProjectId()
+					)
+			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
 			}
@@ -164,10 +175,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
-				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-				testItem.getItemId(),
-				launch.getId()
-		));
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+						testItem.getItemId(),
+						launch.getId()
+				)
+		);
 	}
 }

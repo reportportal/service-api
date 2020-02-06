@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal;
 
+import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
@@ -26,11 +27,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rabbitmq.http.client.Client;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.*;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -56,10 +61,29 @@ public class TestConfig {
 	@MockBean
 	protected MessageConverter messageConverter;
 
+	@Autowired
+	private DatabaseUserDetailsService userDetailsService;
+
 	@Bean
 	@Profile("unittest")
 	protected RabbitMqManagementClient managementTemplate() {
 		return new RabbitMqManagementClientTemplate(rabbitClient);
+	}
+
+	@Bean
+	@Profile("unittest")
+	public JwtAccessTokenConverter accessTokenConverter() {
+		JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
+		jwtConverter.setSigningKey("123");
+
+		DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
+		DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();
+		defaultUserAuthenticationConverter.setUserDetailsService(userDetailsService);
+		accessTokenConverter.setUserTokenConverter(defaultUserAuthenticationConverter);
+
+		jwtConverter.setAccessTokenConverter(accessTokenConverter);
+
+		return jwtConverter;
 	}
 
 	@Bean

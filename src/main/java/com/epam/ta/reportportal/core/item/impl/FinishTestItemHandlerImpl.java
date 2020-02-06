@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -329,7 +331,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {
 		if (actualStatus == PASSED || ITEM_CAN_BE_INDEXED.test(testItem)) {
 			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
-					logRepository.findIdsByTestItemId(testItem.getItemId())
+					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							Collections.singletonList(testItem.getItemId()),
+							LogLevel.ERROR.toInt()
+					)
 			));
 		}
 	}

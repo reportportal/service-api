@@ -79,13 +79,15 @@ class AnalyzerServiceServiceTest {
 	@Test
 	void analyzeWithoutLogs() {
 		Launch launch = launch();
-		TestItem testItems = testItemsTI(1).get(0);
+		TestItem testItem = testItemsTI(1).get(0);
+		testItem.setLaunchId(launch.getId());
 
-		when(logRepository.findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(singletonList(testItems.getItemId()),
+		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+				singletonList(testItem.getItemId()),
 				LogLevel.ERROR.toInt()
 		)).thenReturn(Collections.emptyList());
 
-		when(testItemRepository.findAllById(singletonList(1L))).thenReturn(singletonList(testItems));
+		when(testItemRepository.findAllById(singletonList(1L))).thenReturn(singletonList(testItem));
 
 		Project project = project();
 
@@ -94,7 +96,8 @@ class AnalyzerServiceServiceTest {
 
 		issuesAnalyzer.runAnalyzers(launch, singletonList(1L), analyzerConfig());
 
-		verify(logRepository, times(1)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(singletonList(testItems.getItemId()),
+		verify(logRepository, times(1)).findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+				singletonList(testItem.getItemId()),
 				LogLevel.ERROR.toInt()
 		);
 		verify(analyzerStatusCache, times(1)).analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), project.getId());
@@ -109,9 +112,12 @@ class AnalyzerServiceServiceTest {
 		Launch launch = launch();
 
 		List<TestItem> items = testItemsTI(itemsCount);
+		items.forEach(item -> item.setLaunchId(launch.getId()));
 
-		when(logRepository.findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(anyList(), eq(LogLevel.ERROR.toInt()))).thenReturn(
-				errorLogs(2));
+		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(eq(launch.getId()),
+				anyList(),
+				eq(LogLevel.ERROR.toInt())
+		)).thenReturn(errorLogs(2));
 
 		when(testItemRepository.findAllById(anyList())).thenReturn(items);
 
@@ -123,7 +129,8 @@ class AnalyzerServiceServiceTest {
 
 		issuesAnalyzer.runAnalyzers(launch, items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig);
 
-		verify(logRepository, times(itemsCount)).findAllByTestItemItemIdInAndLogLevelIsGreaterThanEqual(anyList(),
+		verify(logRepository, times(itemsCount)).findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(eq((launch.getId())),
+				anyList(),
 				eq(LogLevel.ERROR.toInt())
 		);
 		verify(analyzerServiceClient, times(1)).analyze(any());

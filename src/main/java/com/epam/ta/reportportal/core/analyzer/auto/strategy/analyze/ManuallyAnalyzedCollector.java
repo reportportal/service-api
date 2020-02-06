@@ -53,7 +53,7 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
 		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(false, launchId, LogLevel.ERROR.toInt());
-		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemIds));
+		logIndexer.cleanIndex(projectId, logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt()));
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
 		return itemIds;
 	}

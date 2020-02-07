@@ -144,9 +144,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
 	}
 
-	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(formattedSupplier("Test Item with ID = '{}' has been successfully deleted.",
-			it
-	).toString());
+	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> {
+		String message = formattedSupplier("Test Item with ID = '{}' has been successfully deleted.", it).get();
+		return new OperationCompletionRS(message);
+	};
 
 	/**
 	 * Validate {@link ReportPortalUser} credentials, {@link com.epam.ta.reportportal.entity.item.TestItemResults#status},

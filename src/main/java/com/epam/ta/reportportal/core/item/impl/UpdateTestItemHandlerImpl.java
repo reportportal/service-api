@@ -69,6 +69,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -244,9 +245,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
 
-		return new OperationCompletionRS(formattedSupplier("TestItem with ID = '{}' successfully updated",
-				testItem.getItemId()
-		).toString());
+		return COMPOSE_UPDATE_RESPONSE.apply(itemId);
 	}
 
 	@Override
@@ -281,10 +280,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				user.getUsername(),
 				ActivityAction.LINK_ISSUE
 		)));
-		return testItems.stream()
-				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
-				.collect(toList());
+		return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE).collect(toList());
 	}
+
+	private static final Function<Long, OperationCompletionRS> COMPOSE_UPDATE_RESPONSE = it -> {
+		String message = formattedSupplier("TestItem with ID = '{}' successfully updated.", it).get();
+		return new OperationCompletionRS(message);
+	};
 
 	private void checkInitialStatusAttribute(TestItem testItem) {
 		Optional<ItemAttribute> statusAttribute = testItem.getAttributes()
@@ -469,10 +471,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(item.isHasChildren(),
 				equalTo(FALSE),

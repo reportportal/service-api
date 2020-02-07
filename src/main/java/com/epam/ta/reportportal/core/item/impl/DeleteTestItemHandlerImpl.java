@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -92,7 +93,13 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemId(item.getItemId()));
+		//TODO if item is under another project and action is performed by an admin, wrong request will be sent to the ES query
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+						Collections.singletonList(item.getItemId()),
+						LogLevel.ERROR.toInt()
+				)
+		);
 		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
@@ -129,7 +136,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.filter(Objects::nonNull)
 				.forEach(it -> it.setHasChildren(false));
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(), logRepository.findIdsByTestItemIds(cascadeDeletedItems));
+		logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsByTestItemIdsAndLogLevelGte(cascadeDeletedItems, LogLevel.ERROR.toInt())
+		);
 		items.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it.getItemId())));
 
 		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());

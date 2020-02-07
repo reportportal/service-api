@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -105,7 +106,12 @@ public class FromPassedStatusChangingStrategy extends StatusChangingStrategy {
 		itemsToReindex.add(item.getItemId());
 
 		changeParentsStatusesToFailed(item, launch, oldParentStatus, user, itemsToReindex);
-		logIndexer.cleanIndex(projectId, logRepository.findIdsByTestItemIds(itemsToReindex));
+		logIndexer.cleanIndex(projectId,
+				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
+						itemsToReindex,
+						LogLevel.ERROR.toInt()
+				)
+		);
 		logIndexer.indexItemsLogs(projectId, launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
 	}
 }

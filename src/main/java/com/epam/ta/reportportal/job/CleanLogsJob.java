@@ -16,15 +16,14 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.job.service.LogCleanerService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -35,14 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -57,8 +55,6 @@ public class CleanLogsJob implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
 	public static final int DEFAULT_THREAD_COUNT = 5;
-	public static final long JOB_EXECUTION_TIMEOUT = 1L;
-	public static final Duration MIN_DELAY = Duration.ofDays(KeepLogsDelay.TWO_WEEKS.getDays() - 1);
 
 	@Value("5")
 	private Integer threadsCount;
@@ -116,30 +112,13 @@ public class CleanLogsJob implements Job {
 
 	}
 
-	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
-		return Filter.builder()
-				.withTarget(Project.class)
-				.withCondition(new FilterCondition(Condition.EQUALS,
-						false,
-						projectAttributeEnum.getAttribute(),
-						CRITERIA_PROJECT_ATTRIBUTE_NAME
-				))
-				.build();
-	}
-
 	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
-		project.getProjectAttributes()
-				.stream()
-				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_LOGS.getAttribute()))
-				.findFirst()
-				.ifPresent(pa -> {
-					Duration period = ofDays(KeepLogsDelay.findByName(pa.getValue())
-							.orElseThrow(() -> new ReportPortalException("Incorrect keep logs delay period: " + pa.getValue()))
-							.getDays());
-					if (!period.isZero()) {
-						logCleaner.removeOutdatedLogs(project, period, removedLogsCount);
-					}
-				});
+		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LOGS)
+				.map(it -> ofDays(KeepLogsDelay.findByName(it)
+						.orElseThrow(() -> new ReportPortalException("Incorrect keep logs delay period: " + it))
+						.getDays()))
+				.filter(it -> !it.isZero())
+				.ifPresent(it -> logCleaner.removeOutdatedLogs(project, it, removedLogsCount));
 	}
 
 }

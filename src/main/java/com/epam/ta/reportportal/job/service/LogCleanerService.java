@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.job;
+package com.epam.ta.reportportal.job.service;
 
 import com.epam.ta.reportportal.entity.project.Project;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface LaunchCleanerService {
+public interface LogCleanerService {
 
-	void cleanOutdatedLaunches(Project project, Duration period, AtomicLong launchesRemoved);
+	void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount);
 }

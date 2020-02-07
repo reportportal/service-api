@@ -164,6 +164,7 @@ public class LogIndexerService implements LogIndexer {
 	 */
 	private List<IndexLaunch> prepareLaunches(List<Launch> launches, AnalyzerConfig analyzerConfig) {
 		return launches.stream()
+				//TODO change select to prevent all launch's items retrieving
 				.map(it -> launchPreparerService.prepare(it, testItemRepository.findTestItemsByLaunchId(it.getId()), analyzerConfig))
 				.filter(Optional::isPresent)
 				.map(Optional::get)

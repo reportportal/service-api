@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
+import com.epam.ta.reportportal.job.service.impl.LogCleanerServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
@@ -62,6 +64,9 @@ class LogCleanerServiceImplTest {
 	@Mock
 	private AttachmentRepository attachmentRepository;
 
+	@Mock
+	private AttachmentCleanerServiceImpl attachmentCleanerService;
+
 	@InjectMocks
 	private LogCleanerServiceImpl logCleanerService;
 
@@ -92,45 +97,15 @@ class LogCleanerServiceImplTest {
 
 		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
-		when(logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(testItemId, period)).thenReturn(Arrays.asList(log1, log2));
 		when(logRepository.deleteByPeriodAndTestItemIds(eq(period), any())).thenReturn(deletedLogsCount);
-
 		logCleanerService.removeOutdatedLogs(project, period, removedLogsCount);
 
 		assertEquals(deletedLogsCount, removedLogsCount.get());
+		verify(attachmentCleanerService, times(1)).removeOutdatedItemsAttachments(eq(Collections.singletonList(testItemId)),
+				any(),
+				any(),
+				any()
+		);
 		verify(activityRepository, times(1)).deleteModifiedLaterAgo(project.getId(), period);
-		verify(dataStoreService, times(4)).delete(any());
-	}
-
-	@Test
-	void removeProjectAttachments() {
-		Project project = new Project();
-		project.setId(1L);
-		Duration period = ofDays(KeepLogsDelay.SIX_MONTHS.getDays());
-
-		long launchId = 1L;
-		long testItemId = 2L;
-		Log log1 = new Log();
-		Attachment attachment1 = new Attachment();
-		attachment1.setId(2L);
-		attachment1.setFileId("qewr");
-		attachment1.setThumbnailId("asd");
-		log1.setAttachment(attachment1);
-		Log log2 = new Log();
-		Attachment attachment2 = new Attachment();
-		attachment2.setId(2L);
-		attachment2.setFileId("zxc");
-		attachment2.setThumbnailId("jkl");
-		log2.setAttachment(attachment2);
-
-		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
-		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
-		when(logRepository.findLogsWithThumbnailByTestItemIdAndPeriod(testItemId, period)).thenReturn(Arrays.asList(log1, log2));
-
-		logCleanerService.removeProjectAttachments(project, period, new AtomicLong(), new AtomicLong());
-
-		verify(dataStoreService, times(4)).delete(any());
-		verify(attachmentRepository, times(1)).deleteAllByIds(any());
-
 	}
 }

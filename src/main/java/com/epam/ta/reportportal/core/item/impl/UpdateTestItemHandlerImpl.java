@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.bts.Ticket;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -191,7 +192,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						logsToReindexMap.put(launchId, itemIds);
 					}
 				} else {
-					logIdsToCleanIndex.addAll(logRepository.findIdsByTestItemId(testItem.getItemId()));
+					logIdsToCleanIndex.addAll(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							Collections.singletonList(testItem.getItemId()),
+							LogLevel.ERROR.toInt()
+					));
 				}
 
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
@@ -224,7 +228,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			checkInitialStatusAttribute(testItem);

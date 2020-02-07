@@ -22,8 +22,6 @@ import com.epam.ta.reportportal.auth.permissions.PermissionEvaluatorFactoryBean;
 import com.epam.ta.reportportal.dao.ServerSettingsRepository;
 import com.epam.ta.reportportal.entity.ServerSettings;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -63,8 +61,6 @@ import java.util.Optional;
  */
 @Configuration
 class SecurityConfiguration {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfiguration.class);
 
 	@Bean
 	public PermissionEvaluatorFactoryBean permissionEvaluator() {
@@ -128,10 +124,7 @@ class SecurityConfiguration {
 		@Profile("!unittest")
 		public JwtAccessTokenConverter accessTokenConverter() {
 			JwtAccessTokenConverter jwtConverter = new JwtAccessTokenConverter();
-			String secret = getSecret();
-
-			LOGGER.info("Setting jwt signing key: '" + secret + "'");
-			jwtConverter.setSigningKey(secret);
+			jwtConverter.setSigningKey(getSecret());
 
 			DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
 			DefaultUserAuthenticationConverter defaultUserAuthenticationConverter = new DefaultUserAuthenticationConverter();

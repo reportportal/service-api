@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
 import com.google.common.collect.Sets;
@@ -241,5 +242,34 @@ class UpdateTestItemHandlerImplTest {
 				.stream()
 				.anyMatch(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey())
 						&& StatusEnum.PASSED.getExecutionCounterField().equalsIgnoreCase("passed")));
+	}
+
+	@Test
+	void updateItemPositive() {
+		ReportPortalUser user = getRpUser("user", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
+		UpdateTestItemRQ rq = new UpdateTestItemRQ();
+		rq.setDescription("new description");
+
+		long itemId = 1L;
+		TestItem item = new TestItem();
+		item.setItemId(itemId);
+		item.setDescription("old description");
+		item.setHasChildren(false);
+		item.setType(TestItemTypeEnum.STEP);
+		TestItemResults itemResults = new TestItemResults();
+		itemResults.setStatus(StatusEnum.FAILED);
+		item.setItemResults(itemResults);
+		Launch launch = new Launch();
+		launch.setId(2L);
+		item.setLaunchId(launch.getId());
+
+		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+		OperationCompletionRS response = handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
+
+		assertEquals("TestItem with ID = '1' successfully updated.", response.getResultMessage());
+		assertEquals(rq.getDescription(), item.getDescription());
 	}
 }

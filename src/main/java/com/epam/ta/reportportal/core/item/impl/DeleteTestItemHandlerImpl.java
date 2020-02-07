@@ -117,10 +117,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		List<Long> itemsToDelete = new ArrayList<>(items.size());
 		List<Long> cascadeDeletedItems = new ArrayList<>(items.size());
 
-		Map<Integer, List<TestItem>> grouppedByLevel = items.stream()
+		Map<Integer, List<TestItem>> groupedByLevel = items.stream()
 				.collect(Collectors.groupingBy(it -> it.getType().getLevel(), TreeMap::new, Collectors.toList()));
 
-		grouppedByLevel.forEach((key, value) -> value.stream()
+		groupedByLevel.forEach((key, value) -> value.stream()
 				.filter(item -> !cascadeDeletedItems.contains(item.getItemId()))
 				.forEach(item -> {
 					itemsToDelete.add(item.getItemId());
@@ -144,10 +144,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
 	}
 
-	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> new OperationCompletionRS(String.format(
-			"Test Item with ID = %d has been successfully deleted.",
-			it
-	));
+	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> {
+		String message = formattedSupplier("Test Item with ID = '{}' has been successfully deleted.", it).get();
+		return new OperationCompletionRS(message);
+	};
 
 	/**
 	 * Validate {@link ReportPortalUser} credentials, {@link com.epam.ta.reportportal.entity.item.TestItemResults#status},

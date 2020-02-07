@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -198,6 +199,24 @@ class DeleteTestItemHandlerImplTest {
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		assertFalse(parent.isHasChildren());
+	}
+
+	@Test
+	void deleteItemPositive() {
+		ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+		TestItem item = getTestItem(StatusEnum.FAILED, StatusEnum.FAILED, 1L, "owner");
+
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.FAILED);
+		launch.setProjectId(1L);
+		launch.setUserId(1L);
+
+		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
+
+		OperationCompletionRS response = handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+
+		assertEquals("Test Item with ID = '1' has been successfully deleted.", response.getResultMessage());
 
 	}
 

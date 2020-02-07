@@ -79,7 +79,7 @@ rp:
   requestLogging: true
 
   jwt:
-    signing-key: 123
+    signing-key:
 
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

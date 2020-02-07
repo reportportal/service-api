@@ -97,7 +97,6 @@ class SecurityConfiguration {
 
 		private static final String SECRET_KEY = "secret.key";
 
-		@Autowired
 		@Value("${rp.jwt.signing-key}")
 		private String signingKey;
 

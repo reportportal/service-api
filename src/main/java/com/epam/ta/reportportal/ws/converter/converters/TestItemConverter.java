@@ -89,7 +89,6 @@ public final class TestItemConverter {
 				.collect(toSet()));
 		resource.setPath(item.getPath());
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(item.getItemResults().getStatistics()));
-		resource.setRetries(item.getRetries().stream().map(TestItemConverter.TO_RESOURCE).collect(Collectors.toList()));
 		return resource;
 	};
 

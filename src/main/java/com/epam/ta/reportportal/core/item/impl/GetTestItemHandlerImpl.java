@@ -32,13 +32,15 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
-import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceContentRetriever;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
+import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemResourceUpdaterContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,7 +50,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -76,7 +81,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final ItemAttributeRepository itemAttributeRepository;
 
-	private final TestItemResourceAssembler itemResourceAssembler;
+	private final List<ResourceContentRetriever<TestItemResourceUpdaterContent, TestItemResource>> resourceContentRetrievers;
 
 	private final TicketRepository ticketRepository;
 
@@ -84,12 +89,12 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Autowired
 	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchAccessValidator launchAccessValidator,
-			ItemAttributeRepository itemAttributeRepository, TestItemResourceAssembler itemResourceAssembler, TicketRepository ticketRepository,
-			GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
+			ItemAttributeRepository itemAttributeRepository, List<ResourceContentRetriever<TestItemResourceUpdaterContent, TestItemResource>> resourceContentRetrievers,
+			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
 		this.testItemRepository = testItemRepository;
 		this.launchAccessValidator = launchAccessValidator;
 		this.itemAttributeRepository = itemAttributeRepository;
-		this.itemResourceAssembler = itemResourceAssembler;
+		this.resourceContentRetrievers = resourceContentRetrievers;
 		this.ticketRepository = ticketRepository;
 		this.getShareableEntityHandler = getShareableEntityHandler1;
 	}
@@ -105,8 +110,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 		}
 		launchAccessValidator.validate(testItem.getLaunchId(), projectDetails, user);
-		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(Collections.singletonList(testItem), projectDetails.getProjectId());
-		return itemResourceAssembler.toResource(testItem, pathNamesMapping.get(testItem.getItemId()));
+
+		List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),
+				Collections.singletonList(testItem)
+		);
+		TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(testItem);
+		resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+		return testItemResource;
 	}
 
 	@Override
@@ -124,11 +134,16 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
 
-		Map<Long, PathName> pathNamesMapping = getPathNamesMapping(testItemPage.getContent(), projectDetails.getProjectId());
-
-		return PagedResourcesAssembler.<TestItem, TestItemResource>pageConverter(item -> itemResourceAssembler.toResource(item,
-				pathNamesMapping.get(item.getItemId())
-		)).apply(testItemPage);
+		return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
+			List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),
+					testItemPage.getContent()
+			);
+			return items.stream().map(item -> {
+				TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+				resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+				return testItemResource;
+			}).collect(toList());
+		}).apply(testItemPage);
 	}
 
 	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
@@ -152,15 +167,19 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		);
 	}
 
-	private Map<Long, PathName> getPathNamesMapping(List<TestItem> testItems, Long projectId) {
-		return testItemRepository.selectPathNames(testItems.stream().map(TestItem::getItemId).collect(toList()), projectId);
+	private List<ResourceUpdater<TestItemResource>> getResourceUpdaters(Long projectId, List<TestItem> testItems) {
+		return resourceContentRetrievers.stream()
+				.map(retriever -> retriever.retrieve(TestItemResourceUpdaterContent.of(projectId, testItems)))
+				.collect(toList());
+
 	}
 
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-		);
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
+				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+				);
 		return ticketRepository.findByTerm(launchId, term);
 	}
 
@@ -197,7 +216,12 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		} else {
 			items = testItemRepository.findAllById(Arrays.asList(ids));
 		}
-		return items.stream().map(itemResourceAssembler::toResource).collect(toList());
+		List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(), items);
+		return items.stream().map(item -> {
+			TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+			resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+			return testItemResource;
+		}).collect(toList());
 	}
 
 	private Filter getItemsFilter(Long[] ids, ReportPortalUser.ProjectDetails projectDetails) {

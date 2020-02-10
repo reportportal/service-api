@@ -34,7 +34,7 @@ apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$bran
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/copy-database-scripts.gradle"
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-quality.gradle"
 apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/jacoco.gradle"
-project.hasProperty('sealightsSession') ? apply(from: 'sealights.gradle') : println('No sealights session')
+project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
     mavenCentral()

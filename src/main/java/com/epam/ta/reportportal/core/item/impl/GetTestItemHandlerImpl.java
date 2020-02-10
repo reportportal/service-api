@@ -38,9 +38,9 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.ta.reportportal.ws.converter.utils.ResourceContentRetriever;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
-import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemResourceUpdaterContent;
+import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.apache.commons.lang3.tuple.Pair;
@@ -81,7 +81,7 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final ItemAttributeRepository itemAttributeRepository;
 
-	private final List<ResourceContentRetriever<TestItemResourceUpdaterContent, TestItemResource>> resourceContentRetrievers;
+	private final List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
 
 	private final TicketRepository ticketRepository;
 
@@ -89,12 +89,12 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Autowired
 	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchAccessValidator launchAccessValidator,
-			ItemAttributeRepository itemAttributeRepository, List<ResourceContentRetriever<TestItemResourceUpdaterContent, TestItemResource>> resourceContentRetrievers,
+			ItemAttributeRepository itemAttributeRepository, List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders,
 			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
 		this.testItemRepository = testItemRepository;
 		this.launchAccessValidator = launchAccessValidator;
 		this.itemAttributeRepository = itemAttributeRepository;
-		this.resourceContentRetrievers = resourceContentRetrievers;
+		this.resourceUpdaterProviders = resourceUpdaterProviders;
 		this.ticketRepository = ticketRepository;
 		this.getShareableEntityHandler = getShareableEntityHandler1;
 	}
@@ -168,8 +168,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	private List<ResourceUpdater<TestItemResource>> getResourceUpdaters(Long projectId, List<TestItem> testItems) {
-		return resourceContentRetrievers.stream()
-				.map(retriever -> retriever.retrieve(TestItemResourceUpdaterContent.of(projectId, testItems)))
+		return resourceUpdaterProviders.stream()
+				.map(retriever -> retriever.retrieve(TestItemUpdaterContent.of(projectId, testItems)))
 				.collect(toList());
 
 	}

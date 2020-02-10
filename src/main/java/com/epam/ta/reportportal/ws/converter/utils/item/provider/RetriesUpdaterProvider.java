@@ -14,41 +14,44 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.ws.converter.utils.item.retriever;
+package com.epam.ta.reportportal.ws.converter.utils.item.provider;
 
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.converter.utils.ResourceContentRetriever;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
-import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemResourceUpdaterContent;
-import com.epam.ta.reportportal.ws.converter.utils.item.updater.PathNameResourceUpdater;
+import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
+import com.epam.ta.reportportal.ws.converter.utils.item.updater.RetriesUpdater;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class PathNamesRetriever implements ResourceContentRetriever<TestItemResourceUpdaterContent, TestItemResource> {
+public class RetriesUpdaterProvider implements ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource> {
 
 	private final TestItemRepository testItemRepository;
 
 	@Autowired
-	public PathNamesRetriever(TestItemRepository testItemRepository) {
+	public RetriesUpdaterProvider(TestItemRepository testItemRepository) {
 		this.testItemRepository = testItemRepository;
 	}
 
 	@Override
-	public ResourceUpdater<TestItemResource> retrieve(TestItemResourceUpdaterContent updaterContent) {
-		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(updaterContent.getTestItems()
+	public ResourceUpdater<TestItemResource> retrieve(TestItemUpdaterContent updaterContent) {
+		Map<Long, List<TestItem>> retriesMapping = testItemRepository.selectRetries(updaterContent.getTestItems()
 				.stream()
+				.filter(TestItem::isHasRetries)
 				.map(TestItem::getItemId)
-				.collect(Collectors.toList()), updaterContent.getProjectId());
-		return PathNameResourceUpdater.of(pathNamesMapping);
+				.collect(Collectors.toList())).stream().collect(groupingBy(TestItem::getRetryOf));
+		return RetriesUpdater.of(retriesMapping);
 	}
 }

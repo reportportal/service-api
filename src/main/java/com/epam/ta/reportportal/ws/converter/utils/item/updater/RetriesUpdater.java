@@ -30,11 +30,11 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class RetriesResourceUpdater implements ResourceUpdater<TestItemResource> {
+public class RetriesUpdater implements ResourceUpdater<TestItemResource> {
 
 	private final Map<Long, List<TestItem>> retriesMapping;
 
-	private RetriesResourceUpdater(Map<Long, List<TestItem>> retriesMapping) {
+	private RetriesUpdater(Map<Long, List<TestItem>> retriesMapping) {
 		this.retriesMapping = retriesMapping;
 	}
 
@@ -45,7 +45,7 @@ public class RetriesResourceUpdater implements ResourceUpdater<TestItemResource>
 				.collect(Collectors.toList())));
 	}
 
-	public static RetriesResourceUpdater of(Map<Long, List<TestItem>> retriesMapping) {
-		return new RetriesResourceUpdater(retriesMapping);
+	public static RetriesUpdater of(Map<Long, List<TestItem>> retriesMapping) {
+		return new RetriesUpdater(retriesMapping);
 	}
 }

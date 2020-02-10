@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.ws.converter.utils;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface ResourceContentRetriever<C extends ResourceUpdaterContent, R> {
+public interface ResourceUpdaterProvider<C extends ResourceUpdaterContent, R> {
 
 	ResourceUpdater<R> retrieve(C updaterContent);
 }

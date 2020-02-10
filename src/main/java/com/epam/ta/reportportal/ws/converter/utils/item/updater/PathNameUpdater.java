@@ -28,11 +28,11 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class PathNameResourceUpdater implements ResourceUpdater<TestItemResource> {
+public class PathNameUpdater implements ResourceUpdater<TestItemResource> {
 
 	private final Map<Long, PathName> pathNamesMapping;
 
-	private PathNameResourceUpdater(Map<Long, PathName> pathNamesMapping) {
+	private PathNameUpdater(Map<Long, PathName> pathNamesMapping) {
 		this.pathNamesMapping = pathNamesMapping;
 	}
 
@@ -42,7 +42,7 @@ public class PathNameResourceUpdater implements ResourceUpdater<TestItemResource
 				.apply(pathName)));
 	}
 
-	public static PathNameResourceUpdater of(Map<Long, PathName> pathNameMapping) {
-		return new PathNameResourceUpdater(pathNameMapping);
+	public static PathNameUpdater of(Map<Long, PathName> pathNameMapping) {
+		return new PathNameUpdater(pathNameMapping);
 	}
 }

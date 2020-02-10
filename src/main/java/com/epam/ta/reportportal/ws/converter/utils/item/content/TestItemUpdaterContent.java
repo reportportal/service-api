@@ -24,12 +24,12 @@ import java.util.List;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public final class TestItemResourceUpdaterContent implements ResourceUpdaterContent {
+public final class TestItemUpdaterContent implements ResourceUpdaterContent {
 
 	private final Long projectId;
 	private final List<TestItem> testItems;
 
-	private TestItemResourceUpdaterContent(Long projectId, List<TestItem> testItems) {
+	private TestItemUpdaterContent(Long projectId, List<TestItem> testItems) {
 		this.projectId = projectId;
 		this.testItems = testItems;
 	}
@@ -42,7 +42,7 @@ public final class TestItemResourceUpdaterContent implements ResourceUpdaterCont
 		return testItems;
 	}
 
-	public static TestItemResourceUpdaterContent of(Long projectId, List<TestItem> testItems) {
-		return new TestItemResourceUpdaterContent(projectId, testItems);
+	public static TestItemUpdaterContent of(Long projectId, List<TestItem> testItems) {
+		return new TestItemUpdaterContent(projectId, testItems);
 	}
 }

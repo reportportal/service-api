@@ -93,15 +93,21 @@ podTemplate(
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
+        def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
 
         def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
-        def sealightsSession;
+        def sealightsSession = "";
         stage ('Init Sealights') {
-            dir(sealightsDir) {
-                container ('jre') {
-                    sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
-                    sealightsSession = utils.execStdout("cat buildSessionId.txt")
+            if(enableSealights) {
+                dir(sealightsDir) {
+                    container('jre') {
+                        echo "Generating Sealights build session ID"
+                        sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
+                        sealightsSession = utils.execStdout("cat buildSessionId.txt")
+                    }
                 }
+            } else {
+                echo "Sealights is disabled. Skipping build session ID generation"
             }
         }
 
@@ -120,7 +126,6 @@ podTemplate(
         if(jvmArgs == null){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
-        def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
         if(enableSealights){
             jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
         }
@@ -135,16 +140,14 @@ podTemplate(
 
         def testEnv = 'gcp'
         def sealightsTokenFile = "sl-token.txt"
-        def sealightsSessionFile = "buildsession.txt"
         try {
             stage('Integration tests') {
                 dir("${testDir}") {
                     container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: sealightsSessionFile, text: sealightsSession, encoding: "UTF-8")
                         writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionIdFile=${sealightsSessionFile}"
+                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                     }
                 }
             }

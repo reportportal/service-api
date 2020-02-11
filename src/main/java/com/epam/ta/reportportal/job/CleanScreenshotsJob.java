@@ -16,13 +16,13 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -30,10 +30,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.commons.querygen.constant.ProjectCriteriaConstant.CRITERIA_PROJECT_ATTRIBUTE_NAME;
+import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofDays;
 
@@ -48,12 +49,12 @@ public class CleanScreenshotsJob implements Job {
 
 	private final ProjectRepository projectRepository;
 
-	private final LogCleanerService logCleaner;
+	private final AttachmentCleanerServiceImpl attachmentCleanerService;
 
 	@Autowired
-	public CleanScreenshotsJob(ProjectRepository projectRepository, LogCleanerService logCleaner) {
+	public CleanScreenshotsJob(ProjectRepository projectRepository, AttachmentCleanerServiceImpl attachmentCleanerService) {
 		this.projectRepository = projectRepository;
-		this.logCleaner = logCleaner;
+		this.attachmentCleanerService = attachmentCleanerService;
 	}
 
 	@Override
@@ -84,25 +85,13 @@ public class CleanScreenshotsJob implements Job {
 
 	}
 
-	private Filter buildProjectAttributesFilter(ProjectAttributeEnum projectAttributeEnum) {
-		return Filter.builder()
-				.withTarget(Project.class)
-				.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ATTRIBUTE_NAME, projectAttributeEnum.getAttribute()).build())
-				.build();
-	}
-
 	private void proceedScreenShotsCleaning(Project project, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
-		project.getProjectAttributes()
-				.stream()
-				.filter(pa -> pa.getAttribute().getName().equalsIgnoreCase(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute()))
-				.findFirst()
-				.ifPresent(pa -> {
-					Duration period = ofDays(KeepScreenshotsDelay.findByName(pa.getValue())
-							.orElseThrow(() -> new ReportPortalException("Incorrect keep screenshots delay period: " + pa.getValue()))
-							.getDays());
-					if (!period.isZero()) {
-						logCleaner.removeProjectAttachments(project, period, attachmentsCount, thumbnailsCount);
-					}
-				});
+		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_SCREENSHOTS)
+				.map(it -> ofDays(KeepScreenshotsDelay.findByName(it)
+						.orElseThrow(() -> new ReportPortalException("Incorrect keep screenshots delay period: " + it))
+						.getDays()))
+				.filter(it -> !it.isZero())
+				.map(it -> LocalDateTime.now(ZoneOffset.UTC).minus(it))
+				.ifPresent(it -> attachmentCleanerService.removeProjectAttachments(project, it, attachmentsCount, thumbnailsCount));
 	}
 }

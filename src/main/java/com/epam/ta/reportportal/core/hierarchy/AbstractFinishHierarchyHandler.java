@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.time.LocalDateTime;
@@ -126,7 +125,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 
 	private void updateDescendantsWithChildren(T entity, LocalDateTime endTime) {
 		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, true).forEach(itemId -> testItemRepository.findById(itemId).ifPresent(testItem -> {
-			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, JStatusEnum.PASSED);
+			boolean isFailed = testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED);
 			finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
 		}));
 	}

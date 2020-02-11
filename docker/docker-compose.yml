@@ -15,7 +15,7 @@ services:
     image: postgres:12-alpine
     environment:
       POSTGRES_USER: rpuser
-      POSTGRES_PASSWORD: rppass
+      POSTGRES_PASSWORD: rppass123
       POSTGRES_DB: reportportal
     volumes:
       - reportportal-database:/var/lib/postgresql/data

@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
@@ -30,6 +29,7 @@ import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.bts.Ticket;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -69,11 +69,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -150,7 +152,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		definitions.forEach(issueDefinition -> {
 			try {
 				TestItem testItem = testItemRepository.findById(issueDefinition.getId())
-						.orElseThrow(() -> new BusinessRuleViolationException(Suppliers.formattedSupplier(
+						.orElseThrow(() -> new BusinessRuleViolationException(formattedSupplier(
 								"Cannot update issue type for test item '{}', cause it is not found.",
 								issueDefinition.getId()
 						).get()));
@@ -191,7 +193,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						logsToReindexMap.put(launchId, itemIds);
 					}
 				} else {
-					logIdsToCleanIndex.addAll(logRepository.findIdsByTestItemId(testItem.getItemId()));
+					logIdsToCleanIndex.addAll(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							Collections.singletonList(testItem.getItemId()),
+							LogLevel.ERROR.toInt()
+					));
 				}
 
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
@@ -224,20 +229,23 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent()) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
+					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			checkInitialStatusAttribute(testItem);
 			StatusEnum actualStatus = testItem.getItemResults().getStatus();
 			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(actualStatus);
+
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
-					"Actual status: " + actualStatus + " can not be changed to: " + providedStatus.get()
+					formattedSupplier("Actual status: '{}' cannot be changed to '{}'.", actualStatus, providedStatus.get())
 			);
 			strategy.changeStatus(testItem, providedStatus.get(), user, projectDetails.getProjectId());
 		}
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
-		return new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated.");
+
+		return COMPOSE_UPDATE_RESPONSE.apply(itemId);
 	}
 
 	@Override
@@ -272,17 +280,20 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				user.getUsername(),
 				ActivityAction.LINK_ISSUE
 		)));
-		return testItems.stream()
-				.map(testItem -> new OperationCompletionRS("TestItem with ID = '" + testItem.getItemId() + "' successfully updated."))
-				.collect(toList());
+		return testItems.stream().map(TestItem::getItemId).map(COMPOSE_UPDATE_RESPONSE).collect(toList());
 	}
+
+	private static final Function<Long, OperationCompletionRS> COMPOSE_UPDATE_RESPONSE = it -> {
+		String message = formattedSupplier("TestItem with ID = '{}' successfully updated.", it).get();
+		return new OperationCompletionRS(message);
+	};
 
 	private void checkInitialStatusAttribute(TestItem testItem) {
 		Optional<ItemAttribute> statusAttribute = testItem.getAttributes()
 				.stream()
 				.filter(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey()) && attribute.isSystem())
 				.findAny();
-		if (!statusAttribute.isPresent()) {
+		if (statusAttribute.isEmpty()) {
 			ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
 					testItem.getItemResults().getStatus().getExecutionCounterField(),
 					true
@@ -457,35 +468,30 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private void verifyTestItem(TestItem item, Long id) throws BusinessRuleViolationException {
 		expect(item.getItemResults(),
 				notNull(),
-				Suppliers.formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
+				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(), not(equalTo(StatusEnum.PASSED)), Suppliers.formattedSupplier(
-				"Issue status update cannot be applied on {} test items, cause it is not allowed.",
-				StatusEnum.PASSED.name()
-		)).verify();
+		expect(
+				item.getItemResults().getStatus(),
+				not(equalTo(StatusEnum.PASSED)),
+				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
+						StatusEnum.PASSED.name()
+				)
+		).verify();
 
 		expect(item.isHasChildren(),
 				equalTo(FALSE),
-				Suppliers.formattedSupplier(
-						"It is not allowed to update issue type for items with descendants. Test item '{}' has descendants.",
-						id
-				)
+				formattedSupplier("It is not allowed to update issue type for items with descendants. Test item '{}' has descendants.", id)
 		).verify();
 
 		expect(item.getItemResults().getIssue(),
 				notNull(),
-				Suppliers.formattedSupplier(
-						"Cannot update issue type for test item '{}', cause there is no info about actual issue type value.",
-						id
-				)
+				formattedSupplier("Cannot update issue type for test item '{}', cause there is no info about actual issue type value.", id)
 		).verify();
 
 		expect(item.getItemResults().getIssue().getIssueType(),
 				notNull(),
-				Suppliers.formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.",
-						id
-				)
+				formattedSupplier("Cannot update issue type for test item {}, cause it's actual issue type value is not provided.", id)
 		).verify();
 	}
 }

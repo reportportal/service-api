@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.store.service;
+package com.epam.ta.reportportal.job.service;
 
-import java.lang.annotation.*;
+import com.epam.ta.reportportal.entity.project.Project;
 
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface PersistedProperty {
-	String value() default "";
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ */
+public interface LogCleanerService {
+
+	void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount);
 }

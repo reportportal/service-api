@@ -20,6 +20,9 @@ import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
+import com.epam.ta.reportportal.job.service.impl.LaunchCleanerServiceImpl;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,11 +31,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.time.Duration.ofDays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -47,6 +52,9 @@ class LaunchCleanerServiceImplTest {
 	@Mock
 	private ActivityRepository activityRepository;
 
+	@Mock
+	private AttachmentCleanerService attachmentCleanerService;
+
 	@InjectMocks
 	private LaunchCleanerServiceImpl launchCleanerService;
 
@@ -56,14 +64,17 @@ class LaunchCleanerServiceImplTest {
 		project.setId(1L);
 		Duration period = ofDays(KeepLaunchDelay.SIX_MONTHS.getDays());
 		AtomicLong launchesRemoved = new AtomicLong();
+		AtomicLong attachmentsRemoved = new AtomicLong();
+		AtomicLong thumbnailsRemoved = new AtomicLong();
+		ArrayList<Long> launchIds = Lists.newArrayList(1L, 2L, 3L);
 
-		int removedLaunchesCount = 3;
-		when(launchRepository.deleteLaunchesByProjectIdModifiedBefore(any(), any())).thenReturn(removedLaunchesCount);
+		when(launchRepository.findIdsByProjectIdModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(launchIds);
 
-		launchCleanerService.cleanOutdatedLaunches(project, period, launchesRemoved);
+		launchCleanerService.cleanOutdatedLaunches(project, period, launchesRemoved, attachmentsRemoved, thumbnailsRemoved);
 
-		assertEquals(removedLaunchesCount, launchesRemoved.get());
+		assertEquals(launchIds.size(), launchesRemoved.get());
 		verify(activityRepository, times(1)).deleteModifiedLaterAgo(project.getId(), period);
-		verify(launchRepository, times(1)).deleteLaunchesByProjectIdModifiedBefore(eq(project.getId()), any(LocalDateTime.class));
+		verify(launchRepository, times(1)).deleteAllByIdIn(launchIds);
+		verify(attachmentCleanerService, times(1)).removeOutdatedLaunchesAttachments(launchIds, attachmentsRemoved, thumbnailsRemoved);
 	}
 }

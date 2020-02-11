@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
+import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 @Service
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
+	private final UserBinaryDataService dataStore;
+
 	private final UserRepository userRepository;
 
 	private final DeleteProjectHandler deleteProjectHandler;
@@ -55,10 +58,11 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ShareableObjectsHandler shareableObjectsHandler) {
+			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.shareableObjectsHandler = shareableObjectsHandler;
+		this.dataStore = dataStore;
 	}
 
 	@Override
@@ -67,7 +71,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 		ArrayList<Long> projectIdsToDelete = Lists.newArrayList();
-
 		user.getProjects().forEach(userProject -> {
 			Long projectId = userProject.getId().getProjectId();
 			if (ProjectUtils.isPersonalForUser(userProject.getProject().getProjectType(),
@@ -81,6 +84,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 			}
 		});
 
+		dataStore.deleteUserPhoto(user);
 		userRepository.delete(user);
 		if (CollectionUtils.isNotEmpty(projectIdsToDelete)) {
 			deleteProjectHandler.deleteProjects(new DeleteBulkRQ(projectIdsToDelete));

@@ -10,7 +10,7 @@ env:
     - GRADLE_OPTS="-Xms128m -Xmx1g"
 
 jdk:
-  - oraclejdk8
+  - oraclejdk11
 
 notifications:
   slack: reportportal-dev:fl6xWHVQp1jvsMmCJxYW9YKP

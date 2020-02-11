@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import com.epam.ta.reportportal.job.service.PluginLoaderService;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.pf4j.PluginWrapper;

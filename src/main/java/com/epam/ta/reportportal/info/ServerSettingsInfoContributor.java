@@ -34,9 +34,6 @@ import java.util.Map;
 @Component
 public class ServerSettingsInfoContributor implements ExtensionContributor {
 
-	private static final String ANALYTICS_KEY = "analytics";
-	private static final String INSTANCE_ID_KEY = "instanceId";
-
 	private final ServerSettingsRepository settingsRepository;
 
 	@Autowired
@@ -48,7 +45,7 @@ public class ServerSettingsInfoContributor implements ExtensionContributor {
 	@Override
 	public Map<String, ?> contribute() {
 		Map<String, Object> info = new HashMap<>();
-		List<ServerSettings> all = settingsRepository.findAll();
+		List<ServerSettings> all = settingsRepository.selectServerSettings();
 		Map<String, String> result = ServerSettingsConverter.TO_RESOURCE.apply(all);
 		info.put("result", result);
 		return info;

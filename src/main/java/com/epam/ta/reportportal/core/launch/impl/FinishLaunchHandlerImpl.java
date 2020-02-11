@@ -90,9 +90,9 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 					user,
 					projectDetails
 			);
-			launch.setStatus(launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED);
+			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED);
 		} else {
-			launch.setStatus(status.orElseGet(() -> launchRepository.hasItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
+			launch.setStatus(status.orElseGet(() -> launchRepository.hasRootItemsWithStatusNotEqual(id, StatusEnum.PASSED) ? FAILED : PASSED));
 		}
 
 		launch = new LaunchBuilder(launch).addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))

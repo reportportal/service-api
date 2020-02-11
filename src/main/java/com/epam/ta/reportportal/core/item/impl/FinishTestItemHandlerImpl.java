@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -35,7 +36,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -180,17 +181,17 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	/**
 	 * Validation procedure for specified test item
 	 *
-	 * @param launch       {@link Launch}
-	 * @param user         Report portal user
 	 * @param testItem     Test item
 	 * @param actualStatus Actual status of item
 	 * @param hasChildren  Does item contain children
 	 */
 	private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-				testItem.getItemId()
-		));
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+				formattedSupplier(
+						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+						testItem.getItemId()
+				)
+		);
 	}
 
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
@@ -210,7 +211,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItemResults testItemResults = testItem.getItemResults();
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
-		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
+		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
 			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
@@ -265,13 +266,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void finishDescendants(TestItem testItem, StatusEnum status, Date endTime, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
-		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS)) {
+		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
 			finishHierarchyHandler.finishDescendants(testItem, status, endTime, user, projectDetails);
 		}
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, JStatusEnum.PASSED) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED) ? FAILED : PASSED;
 	}
 
 	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {
@@ -330,7 +331,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {
 		if (actualStatus == PASSED || ITEM_CAN_BE_INDEXED.test(testItem)) {
 			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
-					logRepository.findIdsByTestItemId(testItem.getItemId())
+					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							Collections.singletonList(testItem.getItemId()),
+							LogLevel.ERROR.toInt()
+					)
 			));
 		}
 	}

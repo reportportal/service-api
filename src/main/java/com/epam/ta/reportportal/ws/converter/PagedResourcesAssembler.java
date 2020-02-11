@@ -19,7 +19,9 @@ package com.epam.ta.reportportal.ws.converter;
 
 import com.google.common.base.Preconditions;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -43,6 +45,14 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 
 	public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageConverter(Function<T, R> modelConverter) {
 		return page -> PagedResourcesAssembler.<R>pageConverter().apply(page.map(modelConverter));
+	}
+
+	public static <T, R> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<R>> pageMultiConverter(
+			Function<List<T>, List<R>> modelConverter) {
+		return page -> PagedResourcesAssembler.<R>pageConverter().apply(new PageImpl<>(modelConverter.apply(page.getContent()),
+				page.getPageable(),
+				page.getTotalElements()
+		));
 	}
 
 	/**

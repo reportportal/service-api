@@ -17,12 +17,12 @@ podTemplate(
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'maven', image: 'maven:3.6.1-jdk-8-alpine', command: 'cat', ttyEnabled: true,
-                        resourceRequestCpu: '500m',
-                        resourceLimitCpu: '1500m',
-                        resourceRequestMemory: '1024Mi',
-                        resourceLimitMemory: '3072Mi'),
-                containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true,
+                        resourceRequestCpu: '800m',
+                        resourceLimitCpu: '3000m',
+                        resourceRequestMemory: '2867Mi',
+                        resourceLimitMemory: '4096Mi')
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -45,7 +45,6 @@ podTemplate(
         def appDir = "app"
         def testDir = "tests"
         def serviceName = "service-api"
-        def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
         def branchToBuild = params.get('COMMIT_HASH', 'develop')
@@ -85,7 +84,6 @@ podTemplate(
             }
         }
 
-        def test = load "${ciDir}/jenkins/scripts/test.groovy"
         def utils = load "${ciDir}/jenkins/scripts/util.groovy"
         def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
         def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
@@ -98,15 +96,21 @@ podTemplate(
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
+        def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
 
         def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
-        def sealightsSession;
+        def sealightsSession = "";
         stage ('Init Sealights') {
-            dir(sealightsDir) {
-                container ('jre') {
-                    sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
-                    sealightsSession = utils.execStdout("cat buildSessionId.txt")
+            if(enableSealights) {
+                dir(sealightsDir) {
+                    container('jre') {
+                        echo "Generating Sealights build session ID"
+                        sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
+                        sealightsSession = utils.execStdout("cat buildSessionId.txt")
+                    }
                 }
+            } else {
+                echo "Sealights is disabled. Skipping build session ID generation"
             }
         }
 
@@ -122,51 +126,37 @@ podTemplate(
         }
 
         def jvmArgs = params.get('JVM_ARGS')
-        if(jvmArgs == null){
+        if(jvmArgs == null || jvmArgs.trim().isEmpty()){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+        }
+        if(enableSealights){
+            jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
         }
 
         stage('Deploy to Dev Environment') {
-            container('helm') {
-                dir("$k8sDir/reportportal/v5") {
-                    sh 'helm dependency update'
-                }
-                sh "helm upgrade -n reportportal --reuse-values --set serviceapi.repository=$srvRepo --set serviceapi.tag=$srvVersion --set \"serviceapi.jvmArgs=$jvmArgs\" --wait reportportal ./$k8sDir/reportportal/v5"
-            }
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], false) // without wait
         }
 
         stage('Execute DVT Tests') {
-            def srvUrls
-            container('kubectl') {
-                def srvName = utils.getServiceName(k8sNs, "reportportal-api")
-                srvUrls = utils.getServiceEndpoints(k8sNs, srvName)
-            }
-            if (srvUrls == null) {
-                error("Unable to retrieve service URL")
-            }
-            container('httpie') {
-                srvUrls.each{ip ->
-                    test.checkVersion("http://$ip:8585", "$srvVersion")
-                }
-            }
+            helm.testDeployment("reportportal", "reportportal-api", "$srvVersion")
         }
 
         def testEnv = 'gcp'
+        def sealightsTokenFile = "sl-token.txt"
         try {
             stage('Integration tests') {
-                dir("${testDir}/${serviceName}") {
-                    container('maven') {
+                dir("${testDir}") {
+                    container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                        writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "mvn clean test -P build -Denv=${testEnv}"
+                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                     }
                 }
             }
         } finally {
             dir("${testDir}/${serviceName}") {
-                junit 'target/surefire-reports/*.xml'
+                junit 'build/test-results/test/*.xml'
             }
         }
     }

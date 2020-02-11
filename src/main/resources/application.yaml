@@ -54,6 +54,14 @@ springfox:
 #### Custom ReportPortal Properties ######
 ##########################################
 rp:
+  environment:
+    variable:
+      flushing:
+        time: PT24H
+      clean:
+        attach: P3D
+        logs: P7D
+        launches: P7D
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api
@@ -66,11 +74,12 @@ rp:
     apipass: rabbitmq
     queues: 10
     queuesPerPod: 10
+    reply-timeout: 300000 #milliseconds
 
   requestLogging: true
 
   jwt:
-    signing-key: 123
+    signing-key:
 
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

@@ -39,7 +39,7 @@ public class PluginManager extends AbstractIdleService implements PluginBox {
 	public Optional<Plugin> getPlugin(String type) {
 		return this.pluginBoxes.stream()
 				.flatMap(pluginBox -> pluginBox.getPlugins().stream())
-				.filter(plugin -> plugin.getType().equals(type))
+				.filter(plugin -> plugin.getType().name().equals(type))
 				.findAny();
 	}
 

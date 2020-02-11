@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachments
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -182,16 +184,39 @@ class DeleteTestItemHandlerImplTest {
 		launch.setStatus(StatusEnum.PASSED);
 		launch.setProjectId(1L);
 		launch.setUserId(1L);
-		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
+
+		item.setLaunchId(launch.getId());
+		when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
 		doNothing().when(logIndexer).cleanIndex(any(), any());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(logRepository.findIdsByTestItemId(item.getItemId())).thenReturn(Collections.emptyList());
+		when(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
+				Collections.singletonList(item.getItemId()),
+				LogLevel.ERROR.toInt()
+		)).thenReturn(Collections.emptyList());
 		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
 		doNothing().when(eventPublisher).publishEvent(any(DeleteTestItemAttachmentsEvent.class));
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		assertFalse(parent.isHasChildren());
+	}
+
+	@Test
+	void deleteItemPositive() {
+		ReportPortalUser rpUser = getRpUser("owner", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+		TestItem item = getTestItem(StatusEnum.FAILED, StatusEnum.FAILED, 1L, "owner");
+
+		Launch launch = new Launch();
+		launch.setStatus(StatusEnum.FAILED);
+		launch.setProjectId(1L);
+		launch.setUserId(1L);
+
+		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.of(launch));
+
+		OperationCompletionRS response = handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
+
+		assertEquals("Test Item with ID = '1' has been successfully deleted.", response.getResultMessage());
 
 	}
 

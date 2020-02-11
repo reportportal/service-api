@@ -123,7 +123,7 @@ podTemplate(
         }
 
         def jvmArgs = params.get('JVM_ARGS')
-        if(jvmArgs == null){
+        if(jvmArgs == null || jvmArgs.trim().isEmpty()){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
         if(enableSealights){

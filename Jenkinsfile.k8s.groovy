@@ -18,7 +18,11 @@ podTemplate(
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true)
+                containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true,
+                        resourceRequestCpu: '800m',
+                        resourceLimitCpu: '3000m',
+                        resourceRequestMemory: '2867Mi',
+                        resourceLimitMemory: '4096Mi')
         ],
         imagePullSecrets: ["regcred"],
         volumes: [
@@ -41,7 +45,6 @@ podTemplate(
         def appDir = "app"
         def testDir = "tests"
         def serviceName = "service-api"
-        def k8sNs = "reportportal"
         def sealightsDir = 'sealights'
 
         def branchToBuild = params.get('COMMIT_HASH', 'develop')

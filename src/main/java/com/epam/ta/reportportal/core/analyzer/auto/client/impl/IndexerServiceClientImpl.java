@@ -26,10 +26,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_INDEX;
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -72,10 +76,22 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void cleanIndex(Long index, List<Long> ids) {
-		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
-
+	public Long cleanIndex(Long index, List<Long> ids) {
+		Map<Integer, Long> priorityToCleanedLogsCountMapping = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt,
+						exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+								CLEAN_ROUTE,
+								new CleanIndexRq(index, ids),
+								new ParameterizedTypeReference<Long>() {
+								}
+						)
+				));
+		return priorityToCleanedLogsCountMapping.entrySet()
+				.stream()
+				.min(Map.Entry.comparingByKey())
+				.orElseGet(() -> new AbstractMap.SimpleEntry<Integer, Long>(0, 0L))
+				.getValue();
 	}
 
 	@Override

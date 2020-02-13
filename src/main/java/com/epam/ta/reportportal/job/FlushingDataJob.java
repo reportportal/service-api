@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
+import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -82,6 +83,9 @@ public class FlushingDataJob implements Job {
 	@Autowired
 	private MinioClient minioClient;
 
+	@Autowired
+	private UserPasswordService userPasswordService;
+
 	@Override
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public void execute(JobExecutionContext context) {
@@ -106,12 +110,9 @@ public class FlushingDataJob implements Job {
 				+ "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
 				+ "AND pid <> pg_backend_pid()\n"
 				+ "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
-				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;"
-				+ "COMMIT;");
+				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
 	}
 
 	private void restartSequences() {
@@ -127,6 +128,7 @@ public class FlushingDataJob implements Job {
 		request.setLogin("default");
 		request.setPassword("1q2w3e");
 		request.setEmail("defaultemail@domain.com");
+		userPasswordService.encrypt(request);
 		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER).get();
 		projectRepository.save(personalProjectService.generatePersonalProject(user));
 		userRepository.save(user);

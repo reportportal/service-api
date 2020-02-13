@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
+import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
@@ -43,10 +44,8 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.*;
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +67,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class CreateUserHandlerImpl implements CreateUserHandler {
 
-	static final HashFunction HASH_FUNCTION = Hashing.md5();
+	private final UserPasswordService userPasswordService;
 
 	private final UserRepository userRepository;
 
@@ -88,10 +87,13 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final ThreadPoolTaskExecutor emailExecutorService;
 
-	public CreateUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
+	@Autowired
+	public CreateUserHandlerImpl(UserPasswordService userPasswordService, UserRepository userRepository,
+			ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
 			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
 			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
 			ThreadPoolTaskExecutor emailExecutorService) {
+		this.userPasswordService = userPasswordService;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.emailServiceFactory = emailServiceFactory;
@@ -114,6 +116,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		request.setLogin(normalizeAndValidateLogin(request.getLogin()));
 		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
+
+		userPasswordService.encrypt(request);
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
@@ -191,6 +195,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		createUserRQFull.setAccountRole(UserRole.USER.name());
 		createUserRQFull.setProjectRole(bid.getRole());
 
+		userPasswordService.encrypt(createUserRQFull);
+
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId(), login);
 
@@ -209,7 +215,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Optional<RestorePasswordBid> bidOptional = restorePasswordBidRepository.findByEmail(rq.getEmail());
 
 		RestorePasswordBid bid;
-		if (!bidOptional.isPresent()) {
+		if (bidOptional.isEmpty()) {
 			expect(user.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
 			bid = RestorePasswordBidConverter.TO_BID.apply(rq);
 			restorePasswordBidRepository.save(bid);
@@ -235,7 +241,8 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User byEmail = userRepository.findByEmail(email).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
 		expect(byEmail.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
-		byEmail.setPassword(HASH_FUNCTION.hashString(rq.getPassword(), Charsets.UTF_8).toString());
+		userPasswordService.encrypt(rq);
+		byEmail.setPassword(rq.getPassword());
 		userRepository.save(byEmail);
 		restorePasswordBidRepository.deleteById(rq.getUuid());
 		OperationCompletionRS rs = new OperationCompletionRS();

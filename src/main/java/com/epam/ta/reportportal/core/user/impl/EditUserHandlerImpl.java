@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
+import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ImageFormat;
@@ -34,7 +35,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
-import com.google.common.base.Charsets;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -52,7 +52,6 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.HASH_FUNCTION;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
@@ -66,6 +65,8 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 @Service
 public class EditUserHandlerImpl implements EditUserHandler {
 
+	private final UserPasswordService userPasswordService;
+
 	private final UserRepository userRepository;
 
 	private final ProjectRepository projectRepository;
@@ -73,8 +74,9 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	private final UserBinaryDataService userBinaryDataService;
 
 	@Autowired
-	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
+	public EditUserHandlerImpl(UserPasswordService userPasswordService, UserRepository userRepository, ProjectRepository projectRepository,
 			UserBinaryDataService userBinaryDataService) {
+		this.userPasswordService = userPasswordService;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.userBinaryDataService = userBinaryDataService;
@@ -154,11 +156,7 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
-
-		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(FORBIDDEN_OPERATION,
-				"Old password not match with stored."
-		);
-		user.setPassword(HASH_FUNCTION.hashString(changePasswordRQ.getNewPassword(), Charsets.UTF_8).toString());
+		userPasswordService.checkAndUpdate(user, changePasswordRQ);
 		userRepository.save(user);
 		return new OperationCompletionRS("Password has been changed successfully");
 	}

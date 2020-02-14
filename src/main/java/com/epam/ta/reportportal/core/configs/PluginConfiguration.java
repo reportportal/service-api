@@ -55,15 +55,15 @@ public class PluginConfiguration {
 
 	@Bean
 	public Pf4jPluginBox pf4jPluginBox() throws IOException {
-		Pf4jPluginManager manager = new Pf4jPluginManager(pluginsPath,
+		Pf4jPluginManager pluginManager = new Pf4jPluginManager(pluginsPath,
 				pluginsTempPath,
 				pluginLoader,
 				integrationTypeRepository,
 				pluginManager(),
 				context
 		);
-		manager.startAsync();
-		return manager;
+		pluginManager.startUp();
+		return pluginManager;
 	}
 
 	@Bean

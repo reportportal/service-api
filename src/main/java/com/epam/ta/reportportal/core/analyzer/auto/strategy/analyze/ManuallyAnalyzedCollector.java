@@ -22,6 +22,8 @@ import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,8 @@ import java.util.List;
  */
 @Component
 public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzeItemsCollector.class);
 
 	private final TestItemRepository testItemRepository;
 
@@ -53,7 +57,11 @@ public class ManuallyAnalyzedCollector implements AnalyzeItemsCollector {
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
 		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(false, launchId, LogLevel.ERROR.toInt());
-		logIndexer.cleanIndex(projectId, logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt()));
+		Long deletedLogsCount = logIndexer.cleanIndex(
+				projectId,
+				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt())
+		).join();
+		LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
 		return itemIds;
 	}

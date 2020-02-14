@@ -20,7 +20,6 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
@@ -117,6 +116,6 @@ class PluginLoaderTest {
 
 	@Test
 	void retrieveIntegrationTypeTest() {
-		pluginLoader.retrieveIntegrationType(pluginInfo);
+		pluginLoader.resolvePluginDetails(pluginInfo);
 	}
 }

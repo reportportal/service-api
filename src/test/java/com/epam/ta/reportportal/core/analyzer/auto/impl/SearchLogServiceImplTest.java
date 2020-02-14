@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -94,6 +93,7 @@ class SearchLogServiceImplTest {
 		when(testItem.getLaunchId()).thenReturn(1L);
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 		when(testItem.getItemResults()).thenReturn(testItemResults);
+		when(testItem.isHasStats()).thenReturn(true);
 		when(testItemResults.getStatus()).thenReturn(StatusEnum.FAILED);
 
 		IssueType issueType = new IssueType();
@@ -121,7 +121,7 @@ class SearchLogServiceImplTest {
 		searchLogRq.setFilterId(1L);
 
 		when(searchCollectorFactory.getCollector(CURRENT_LAUNCH)).thenReturn(currentLaunchCollector);
-		when(currentLaunchCollector.collect(any(), any())).thenReturn(Arrays.asList(1L));
+		when(currentLaunchCollector.collect(any(), any())).thenReturn(Collections.singletonList(1L));
 
 		Iterable<SearchLogRs> responses = searchLogService.search(1L, searchLogRq, projectDetails);
 		Assertions.assertNotNull(responses);

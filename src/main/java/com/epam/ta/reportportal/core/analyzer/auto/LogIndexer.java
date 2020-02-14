@@ -59,7 +59,8 @@ public interface LogIndexer {
 	 *
 	 * @param index Index to to be cleaned
 	 * @param ids   The {@link List} of the {@link com.epam.ta.reportportal.entity.log.Log#id}
+	 * @return Amount of deleted logs
 	 */
-	void cleanIndex(Long index, List<Long> ids);
+	CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
 
 }

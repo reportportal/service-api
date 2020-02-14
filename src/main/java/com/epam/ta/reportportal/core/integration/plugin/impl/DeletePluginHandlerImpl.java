@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -24,14 +25,21 @@ import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
 public class DeletePluginHandlerImpl implements DeletePluginHandler {
+
+	private static final List<String> RESERVED_INTEGRATION_TYPES = Lists.newArrayList("email", "ldap");
 
 	private final IntegrationTypeRepository integrationTypeRepository;
 	private final Pf4jPluginBox pluginBox;
@@ -49,6 +57,14 @@ public class DeletePluginHandlerImpl implements DeletePluginHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
 						Suppliers.formattedSupplier("Plugin with id = '{}' not found", id).get()
 				));
+
+		RESERVED_INTEGRATION_TYPES.forEach(reserved -> BusinessRule.expect(reserved.equalsIgnoreCase(integrationType.getName()),
+				equalTo(Boolean.FALSE)
+		)
+				.verify(ErrorType.PLUGIN_REMOVE_ERROR,
+						Suppliers.formattedSupplier("Unable to remove reserved plugin - '{}'", integrationType.getName()).get()
+				));
+
 		if (!pluginBox.deletePlugin(integrationType.getName())) {
 			throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR, "Unable to remove from plugin manager.");
 		}

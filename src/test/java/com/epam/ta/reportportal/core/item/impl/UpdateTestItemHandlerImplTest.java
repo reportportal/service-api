@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -71,6 +72,9 @@ class UpdateTestItemHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
+
+	@Mock
+	private MessageBus messageBus;
 
 	@InjectMocks
 	private UpdateTestItemHandlerImpl handler;
@@ -168,6 +172,9 @@ class UpdateTestItemHandlerImplTest {
 		item.setItemId(itemId);
 		item.setHasChildren(true);
 		item.setType(TestItemTypeEnum.TEST);
+		TestItemResults itemResults = new TestItemResults();
+		itemResults.setStatus(StatusEnum.PASSED);
+		item.setItemResults(itemResults);
 		Launch launch = new Launch();
 		launch.setId(2L);
 		item.setLaunchId(launch.getId());
@@ -202,8 +209,9 @@ class UpdateTestItemHandlerImplTest {
 
 		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-		when(statusChangingStrategyMapping.get(item.getItemResults().getStatus())).thenReturn(statusChangingStrategy);
-		doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, 1L);
+		doNothing().when(messageBus).publishActivity(any());
+		when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
+		doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user);
 
 		handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
 		assertTrue(item.getAttributes()
@@ -234,8 +242,9 @@ class UpdateTestItemHandlerImplTest {
 
 		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
-		when(statusChangingStrategyMapping.get(item.getItemResults().getStatus())).thenReturn(statusChangingStrategy);
-		doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user, 1L);
+		doNothing().when(messageBus).publishActivity(any());
+		when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
+		doNothing().when(statusChangingStrategy).changeStatus(item, StatusEnum.PASSED, user);
 
 		handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);
 		assertTrue(item.getAttributes()

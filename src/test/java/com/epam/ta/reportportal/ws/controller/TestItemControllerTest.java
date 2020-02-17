@@ -218,7 +218,8 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getItemHistoryPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -390,8 +391,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -422,6 +422,37 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
 
 		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-passed.sql")
+	@Test
+	void finishTestItemWithFinishedParent() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid(UUID.randomUUID().toString());
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		rq.setIssue(issue);
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(11L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.IN_PROGRESS, updatedItem.get().getItemResults().getStatus());
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/uuid_s_2_9").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+
+		updatedItem = testItemRepository.findById(11L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(TestItemIssueGroup.PRODUCT_BUG,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+
+		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
+		assertEquals(StatusEnum.FAILED, launch.getStatus());
 	}
 
 	@Sql("/db/test-item/item-change-status-from-failed.sql")
@@ -459,8 +490,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.AUTOMATION_BUG,
+		assertEquals(TestItemIssueGroup.AUTOMATION_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -484,8 +514,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -553,8 +582,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -578,8 +606,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());

@@ -30,8 +30,9 @@ public interface IndexerServiceClient {
 	 *
 	 * @param index Index to to be cleaned
 	 * @param ids   Document ids to be deleted from index
+	 * @return Amount of deleted logs
 	 */
-	void cleanIndex(Long index, List<Long> ids);
+	Long cleanIndex(Long index, List<Long> ids);
 
 	/**
 	 * Delete index

@@ -19,6 +19,12 @@ logging:
     org:
       hibernate:
         SQL: debug
+    com:
+      epam:
+        ta:
+          reportportal:
+            core:
+              analyzer: debug
   file:
     name: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
 server:

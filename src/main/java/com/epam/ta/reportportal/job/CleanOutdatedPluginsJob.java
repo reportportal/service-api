@@ -117,7 +117,7 @@ public class CleanOutdatedPluginsJob {
 		pluginIds.forEach(pluginId -> pluginBox.getPluginById(pluginId).ifPresent(plugin -> {
 
 			if (!isPluginStillBeingUploaded(plugin)) {
-				if (!pluginBox.deletePlugin(plugin.getPluginId())) {
+				if (!pluginBox.deletePlugin(plugin)) {
 					LOGGER.error("Error has occurred during plugin file removing from the plugins directory");
 				}
 			}

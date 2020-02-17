@@ -22,18 +22,20 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProviderFactory;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
+import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -65,15 +67,15 @@ import static java.util.stream.Collectors.*;
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private final TestItemRepository testItemRepository;
-	private final TestItemResourceAssembler itemResourceAssembler;
 	private final HistoryProviderFactory historyProviderFactory;
+	private final List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
 
 	@Autowired
-	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemResourceAssembler,
-			HistoryProviderFactory historyProviderFactory) {
+	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, HistoryProviderFactory historyProviderFactory,
+			List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders) {
 		this.testItemRepository = testItemRepository;
-		this.itemResourceAssembler = itemResourceAssembler;
 		this.historyProviderFactory = historyProviderFactory;
+		this.resourceUpdaterProviders = resourceUpdaterProviders;
 	}
 
 	@Override
@@ -120,13 +122,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				.flatMap(history -> history.getItemIds().stream())
 				.collect(toList()));
 
-		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(testItems.stream()
-				.map(TestItem::getItemId)
-				.collect(toList()), projectId);
+		List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectId, testItems);
 
-		Map<Integer, Map<Long, TestItemResource>> itemsMapping = testItems.stream()
-				.map(item -> itemResourceAssembler.toResource(item, pathNamesMapping.get(item.getItemId())))
-				.collect(groupingBy(TestItemResource::getTestCaseHash, toMap(TestItemResource::getItemId, res -> res)));
+		Map<Integer, Map<Long, TestItemResource>> itemsMapping = testItems.stream().map(item -> {
+			TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+			resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+			return testItemResource;
+		}).collect(groupingBy(TestItemResource::getTestCaseHash, toMap(TestItemResource::getItemId, res -> res)));
 
 		List<TestItemHistoryElement> testItemHistoryElements = testItemHistoryPage.getContent()
 				.stream()
@@ -147,6 +149,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				pageable,
 				testItemHistoryPage::getTotalElements
 		));
+
+	}
+
+	private List<ResourceUpdater<TestItemResource>> getResourceUpdaters(Long projectId, List<TestItem> testItems) {
+		return resourceUpdaterProviders.stream()
+				.map(retriever -> retriever.retrieve(TestItemUpdaterContent.of(projectId, testItems)))
+				.collect(toList());
 
 	}
 }

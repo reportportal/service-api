@@ -72,12 +72,9 @@ public class JiraIntegrationService extends AbstractBtsIntegrationService {
 				resultParams.put(BtsProperties.PASSWORD.getName(), encryptedPassword);
 
 			} else if (AuthType.OAUTH.equals(authType)) {
-				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
-						BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
-								.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-										"AccessKey value cannot be NULL"
-								))
-				);
+				final String encryptedAccessKey = basicTextEncryptor.encrypt(BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
+						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "AccessKey value cannot be NULL")));
+				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), encryptedAccessKey);
 			} else {
 				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						"Unsupported auth type for Jira integration - " + authType.name()

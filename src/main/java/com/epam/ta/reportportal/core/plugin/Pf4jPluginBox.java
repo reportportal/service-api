@@ -29,6 +29,10 @@ import java.util.Optional;
  */
 public interface Pf4jPluginBox extends PluginBox {
 
+	void startUp();
+
+	void shutDown();
+
 	/**
 	 * Start up loaded plugin by id
 	 *
@@ -61,6 +65,14 @@ public interface Pf4jPluginBox extends PluginBox {
 	 * @return 'true' if a plugin was successfully deleted, else 'false'
 	 */
 	boolean deletePlugin(String pluginId);
+
+	/**
+	 * Delete plugin
+	 *
+	 * @param pluginWrapper {@link PluginWrapper}
+	 * @return 'true' if a plugin was successfully deleted, else 'false'
+	 */
+	boolean deletePlugin(PluginWrapper pluginWrapper);
 
 
 	/**

@@ -454,6 +454,6 @@ class ProjectControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(delete("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
-		verify(rabbitTemplate, times(1)).convertAndSend(eq(exchangeInfo.getName()), eq("delete"), eq(2L));
+		verify(rabbitTemplate, times(1)).convertSendAndReceiveAsType(eq(exchangeInfo.getName()), eq("delete"), eq(2L), any());
 	}
 }

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.integration.plugin;
 
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.pf4j.PluginException;
 import org.pf4j.PluginWrapper;
@@ -40,12 +40,12 @@ public interface PluginLoader {
 	PluginInfo extractPluginInfo(Path pluginPath) throws PluginException;
 
 	/**
-	 * Creates the {@link IntegrationType} object based on the params of the plugin
+	 * Creates the {@link IntegrationTypeDetails} object based on the params of the plugin
 	 *
 	 * @param pluginInfo {@link PluginInfo} with {@link PluginInfo#getId()} and {@link PluginInfo#getVersion()}
-	 * @return {@link IntegrationType}
+	 * @return {@link IntegrationTypeDetails}
 	 */
-	IntegrationType retrieveIntegrationType(PluginInfo pluginInfo);
+	IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo);
 
 	/**
 	 * Validate the plugin with {@link com.epam.reportportal.extension.common.ExtensionPoint}

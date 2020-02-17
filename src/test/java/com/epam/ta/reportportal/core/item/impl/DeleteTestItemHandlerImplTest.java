@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
@@ -187,7 +188,7 @@ class DeleteTestItemHandlerImplTest {
 
 		item.setLaunchId(launch.getId());
 		when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
-		doNothing().when(logIndexer).cleanIndex(any(), any());
+		when(logIndexer.cleanIndex(any(), any())).thenReturn(CompletableFuture.completedFuture(0L));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
 				Collections.singletonList(item.getItemId()),

@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.plugin.Plugin;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
@@ -39,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -55,7 +55,9 @@ class Pf4jPluginManagerTest {
 	public static final String PLUGINS_PATH = "plugins";
 	public static final String PLUGINS_TEMP_PATH = "plugins/temp";
 	public static final String NEW_PLUGIN_FILE_NAME = "plugin.jar";
-	public static final String NEW_PLUGIN_ID = "jira";
+
+	public static final String NEW_JIRA_PLUGIN_ID = "new_jira";
+	public static final String NEW_JIRA_PLUGIN_VERSION = "1.0";
 
 	private final PluginLoader pluginLoader = mock(PluginLoader.class);
 	private final IntegrationTypeRepository integrationTypeRepository = mock(IntegrationTypeRepository.class);
@@ -87,44 +89,29 @@ class Pf4jPluginManagerTest {
 
 	@Test
 	void uploadPlugin() throws PluginException, IOException {
-
 		PluginInfo pluginInfo = getPluginInfo();
+
 		when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(pluginInfo);
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(pluginLoader.retrieveIntegrationType(pluginInfo)).thenReturn(jiraIntegrationType);
-		when(pluginManager.getPlugin(pluginInfo.getId())).thenReturn(null);
-		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_PLUGIN_ID);
-		when(pluginManager.getPlugin(NEW_PLUGIN_ID)).thenReturn(newPlugin);
+		IntegrationTypeDetails jiraDetails = jiraIntegrationType.getDetails();
+		when(pluginLoader.resolvePluginDetails(pluginInfo)).thenReturn(jiraDetails);
+		when(pluginManager.getPlugin("old_jira")).then((i) -> {
+			pluginInfo.setId(NEW_JIRA_PLUGIN_ID);
+			return null;
+		});
+		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_JIRA_PLUGIN_ID);
+		when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
 		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
 		when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
 		doNothing().when(pluginLoader).savePlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME), fileStream);
-		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_PLUGIN_ID);
+
+		String pluginFileName = NEW_JIRA_PLUGIN_ID + "-" + NEW_JIRA_PLUGIN_VERSION + ".jar";
+		when(pluginLoader.saveToDataStore(pluginFileName, fileStream)).thenReturn(pluginFileName);
+		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, pluginFileName))).thenReturn(NEW_JIRA_PLUGIN_ID);
 		when(integrationTypeRepository.save(any(IntegrationType.class))).thenReturn(jiraIntegrationType);
 		Files.createFile(Paths.get(PLUGINS_TEMP_PATH, "plugin.jar"));
 		IntegrationType newIntegrationType = pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream);
 		assertEquals(1L, newIntegrationType.getId().longValue());
-	}
-
-	@Test
-	void uploadPluginWithExistingPlugin() throws PluginException, IOException {
-
-		File tempFile = File.createTempFile(NEW_PLUGIN_FILE_NAME, ".jar", new File(PLUGINS_PATH));
-		tempFile.deleteOnExit();
-		PluginInfo pluginInfo = getPluginInfo();
-		when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, tempFile.getName()))).thenReturn(pluginInfo);
-		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(pluginLoader.retrieveIntegrationType(pluginInfo)).thenReturn(jiraIntegrationType);
-		when(pluginManager.getPlugin(pluginInfo.getId())).thenReturn(previousPlugin);
-		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
-		when(previousPlugin.getPluginPath()).thenReturn(Paths.get("another/path"));
-		when(pluginManager.unloadPlugin(any())).thenReturn(true);
-		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> pluginBox.uploadPlugin(tempFile.getName(), fileStream)
-		);
-		assertEquals(
-				"Error during plugin uploading: 'Unable to rewrite plugin file = '" + tempFile.getName() + "' with different plugin type'",
-				exception.getMessage()
-		);
 	}
 
 	@Test
@@ -134,13 +121,18 @@ class Pf4jPluginManagerTest {
 		PluginInfo pluginInfo = getPluginInfo();
 		when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, tempFile.getName()))).thenReturn(pluginInfo);
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(pluginLoader.retrieveIntegrationType(pluginInfo)).thenReturn(jiraIntegrationType);
-		when(pluginManager.getPlugin(pluginInfo.getId())).thenReturn(null);
-		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, tempFile.getName()))).thenReturn(NEW_PLUGIN_ID);
-		when(pluginManager.getPlugin(NEW_PLUGIN_ID)).thenReturn(newPlugin);
+		IntegrationTypeDetails jiraDetails = jiraIntegrationType.getDetails();
+		when(pluginLoader.resolvePluginDetails(pluginInfo)).thenReturn(jiraDetails);
+		when(pluginManager.getPlugin("old_jira")).then((i) -> {
+			pluginInfo.setId(NEW_JIRA_PLUGIN_ID);
+			return null;
+		});
+		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, tempFile.getName()))).thenReturn(NEW_JIRA_PLUGIN_ID);
+		when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
 		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
 		when(pluginLoader.validatePluginExtensionClasses(newPlugin)).thenReturn(true);
-		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, tempFile.getName()))).thenReturn(NEW_PLUGIN_ID);
+		String pluginFileName = NEW_JIRA_PLUGIN_ID + "-" + NEW_JIRA_PLUGIN_VERSION + ".jar";
+		when(pluginManager.loadPlugin(Paths.get(PLUGINS_PATH, pluginFileName))).thenReturn(NEW_JIRA_PLUGIN_ID);
 		when(integrationTypeRepository.save(any(IntegrationType.class))).thenReturn(jiraIntegrationType);
 		IntegrationType newIntegrationType = pluginBox.uploadPlugin(tempFile.getName(), fileStream);
 		assertEquals(1L, newIntegrationType.getId().longValue());
@@ -152,15 +144,19 @@ class Pf4jPluginManagerTest {
 		PluginInfo pluginInfo = getPluginInfo();
 		when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(pluginInfo);
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(pluginLoader.retrieveIntegrationType(pluginInfo)).thenReturn(jiraIntegrationType);
-		when(pluginManager.getPlugin(pluginInfo.getId())).thenReturn(null);
+		IntegrationTypeDetails jiraDetails = jiraIntegrationType.getDetails();
+		when(pluginLoader.resolvePluginDetails(pluginInfo)).thenReturn(jiraDetails);
+		when(pluginManager.getPlugin("old_jira")).then((i) -> {
+			pluginInfo.setId(NEW_JIRA_PLUGIN_ID);
+			return null;
+		});
 		when(previousPlugin.getPluginState()).thenReturn(PluginState.STARTED);
 		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
 		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(null);
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
 		);
-		assertEquals("Error during plugin uploading: 'Failed to load new plugin from file = plugin.jar'", exception.getMessage());
+		assertEquals("Error during plugin uploading: 'Failed to load new plugin from file = 'plugin.jar''", exception.getMessage());
 	}
 
 	@Test
@@ -169,16 +165,20 @@ class Pf4jPluginManagerTest {
 		PluginInfo pluginInfo = getPluginInfo();
 		when(pluginLoader.extractPluginInfo(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(pluginInfo);
 		IntegrationType jiraIntegrationType = IntegrationTestUtil.getJiraIntegrationType();
-		when(pluginLoader.retrieveIntegrationType(pluginInfo)).thenReturn(jiraIntegrationType);
-		when(pluginManager.getPlugin(pluginInfo.getId())).thenReturn(null);
-		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_PLUGIN_ID);
-		when(pluginManager.getPlugin(NEW_PLUGIN_ID)).thenReturn(newPlugin);
+		IntegrationTypeDetails jiraDetails = jiraIntegrationType.getDetails();
+		when(pluginLoader.resolvePluginDetails(pluginInfo)).thenReturn(jiraDetails);
+		when(pluginManager.getPlugin("old_jira")).then((i) -> {
+			pluginInfo.setId(NEW_JIRA_PLUGIN_ID);
+			return null;
+		});
+		when(pluginManager.loadPlugin(Paths.get(PLUGINS_TEMP_PATH, NEW_PLUGIN_FILE_NAME))).thenReturn(NEW_JIRA_PLUGIN_ID);
+		when(pluginManager.getPlugin(NEW_JIRA_PLUGIN_ID)).thenReturn(newPlugin);
 		when(pluginManager.getPluginsRoot()).thenReturn(FileSystems.getDefault().getPath(PLUGINS_PATH));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> pluginBox.uploadPlugin(NEW_PLUGIN_FILE_NAME, fileStream)
 		);
-		assertEquals("Error during plugin uploading: 'New plugin with id = jira doesn't have mandatory extension classes.'",
+		assertEquals("Error during plugin uploading: 'New plugin with id = 'new_jira' doesn't have mandatory extension classes.'",
 				exception.getMessage()
 		);
 	}
@@ -209,15 +209,15 @@ class Pf4jPluginManagerTest {
 	@Test
 	void getPlugins() {
 		when(pluginManager.getPlugins()).thenReturn(Lists.newArrayList(newPlugin));
-		when(newPlugin.getPluginId()).thenReturn(NEW_PLUGIN_ID);
-		when(pluginManager.getExtensionClasses(NEW_PLUGIN_ID)).thenReturn(Lists.newArrayList(BtsExtension.class));
+		when(newPlugin.getPluginId()).thenReturn(NEW_JIRA_PLUGIN_ID);
+		when(pluginManager.getExtensionClasses(NEW_JIRA_PLUGIN_ID)).thenReturn(Lists.newArrayList(BtsExtension.class));
 		List<Plugin> plugins = pluginBox.getPlugins();
 		assertNotNull(plugins);
 		assertEquals(1L, plugins.size());
 	}
 
 	private PluginInfo getPluginInfo() {
-		return new PluginInfo("old_jira", "1.0");
+		return new PluginInfo("old_jira", NEW_JIRA_PLUGIN_VERSION);
 	}
 
 	private PluginInfo getPluginInfoWithoutVersion() {

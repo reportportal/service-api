@@ -185,7 +185,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		return rs.stream().map(analyzed -> {
 			Optional<TestItem> toUpdate = testItems.stream().filter(item -> item.getItemId().equals(analyzed.getItemId())).findAny();
 			toUpdate.ifPresent(testItem -> {
-				LOGGER.info("Analysis has found a match: {}", analyzed);
+				LOGGER.debug("Analysis has found a match: {}", analyzed);
 
 				if (!testItem.getItemResults().getIssue().getIssueType().getLocator().equals(analyzed.getLocator())) {
 					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);

@@ -23,7 +23,7 @@ import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
+import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
@@ -43,9 +43,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -76,28 +77,27 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public IntegrationType retrieveIntegrationType(PluginInfo pluginInfo) {
+	public IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo) {
 
-		IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId()).map(it -> {
-			IntegrationDetailsProperties.VERSION.getValue(it.getDetails().getDetails())
-					.map(String::valueOf)
-					.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
-							.verify(ErrorType.PLUGIN_UPLOAD_ERROR, Suppliers.formattedSupplier(
-									"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
-									pluginInfo.getId(),
-									pluginInfo.getVersion()
-							)));
-			return it;
-		}).orElseGet(() -> new IntegrationTypeBuilder().get());
-		if (integrationType.getDetails() == null) {
-			integrationType.setDetails(IntegrationTypeBuilder.createIntegrationTypeDetails());
-		}
+		IntegrationTypeDetails pluginDetails = integrationTypeRepository.findByName(pluginInfo.getId())
+				.flatMap(it -> ofNullable(it.getDetails()))
+				.map(typeDetails -> {
+					IntegrationDetailsProperties.VERSION.getValue(typeDetails.getDetails())
+							.map(String::valueOf)
+							.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
+									.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+											Suppliers.formattedSupplier(
+													"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
+													pluginInfo.getId(),
+													pluginInfo.getVersion()
+											)
+									));
+					return typeDetails;
+				})
+				.orElseGet(IntegrationTypeBuilder::createIntegrationTypeDetails);
 
-		integrationType.setIntegrationGroup(integrationType.getIntegrationGroup());
-		integrationType.setCreationDate(LocalDateTime.now());
-		IntegrationDetailsProperties.VERSION.setValue(integrationType.getDetails(), pluginInfo.getVersion());
-
-		return integrationType;
+		IntegrationDetailsProperties.VERSION.setValue(pluginDetails, pluginInfo.getVersion());
+		return pluginDetails;
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class PluginLoaderImpl implements PluginLoader {
 		if (Objects.nonNull(pluginPath.getParent())) {
 			Files.createDirectories(pluginPath.getParent());
 		}
-		Files.copy(dataStore.load(fileId), pluginPath);
+		Files.copy(dataStore.load(fileId), pluginPath, StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	@Override

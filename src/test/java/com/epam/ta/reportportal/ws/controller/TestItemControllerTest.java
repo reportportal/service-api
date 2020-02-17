@@ -402,6 +402,28 @@ class TestItemControllerTest extends BaseMvcTest {
 		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
 	}
 
+	@Sql("/db/test-item/item-change-status-from-passed.sql")
+	@Test
+	void changeStatusFromPassedToSkippedWithoutIssue() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("skipped");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/9/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(9L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
+		assertNull(updatedItem.get().getItemResults().getIssue());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+
+		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
+		assertEquals(StatusEnum.FAILED, launch.getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
 	@Sql("/db/test-item/item-change-status-from-failed.sql")
 	@Test
 	void changeStatusFromFailedToPassed() throws Exception {

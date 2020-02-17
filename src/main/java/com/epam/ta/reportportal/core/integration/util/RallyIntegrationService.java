@@ -40,7 +40,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
 @Service
 public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
-	private final BasicTextEncryptor basicTextEncryptor;
+	private BasicTextEncryptor basicTextEncryptor;
 
 	@Autowired
 	public RallyIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,

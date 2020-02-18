@@ -19,9 +19,7 @@ package com.epam.ta.reportportal.core.integration.util;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -72,17 +70,16 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 
 	@Override
 	public boolean checkConnection(Integration integration) {
-		HashMap<String, Object> copy = Maps.newHashMap();
-		copy.putAll(integration.getParams().getParams());
-		final String decrypted = encryptor.decrypt(ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "AccessKey value cannot be NULL")));
-		copy.put(ACCESS_TOKEN.getName(), decrypted);
-		return super.checkConnection(new IntegrationBuilder().withCreator(integration.getCreator())
-				.withCreationDate(integration.getCreationDate())
-				.withEnabled(integration.isEnabled())
-				.withType(integration.getType())
-				.withProject(integration.getProject())
-				.withParams(new IntegrationParams(copy))
-				.get());
+		decryptParams(integration);
+		boolean connection = super.checkConnection(integration);
+		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
+				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
+		return connection;
+	}
+
+	@Override
+	public void decryptParams(Integration integration) {
+		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
+				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.decrypt(it)));
 	}
 }

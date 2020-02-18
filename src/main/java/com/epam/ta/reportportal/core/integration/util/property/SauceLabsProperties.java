@@ -16,6 +16,9 @@
 
 package com.epam.ta.reportportal.core.integration.util.property;
 
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,5 +43,12 @@ public enum SauceLabsProperties {
 
 	public Optional<String> getParameter(Map<String, Object> parameters) {
 		return ofNullable(parameters.get(this.name)).map(String::valueOf);
+	}
+
+	public void setParameter(IntegrationParams params, String value) {
+		if (null == params.getParams()) {
+			params.setParams(new HashMap<>());
+		}
+		params.getParams().put(this.name, value);
 	}
 }

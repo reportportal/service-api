@@ -62,6 +62,11 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return integrationParams;
 	}
 
+	@Override
+	public void decryptParams(Integration integration) {
+
+	}
+
 	private static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
 		if (integration.getParams() != null && integration.getParams().getParams() != null) {
 			integration.getParams().getParams().putAll(retrievedParams);

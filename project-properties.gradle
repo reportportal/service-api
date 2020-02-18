@@ -1,6 +1,8 @@
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
+def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/'
+
 project.ext {
     limits = [
             'instruction': 70,
@@ -12,6 +14,7 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
+    scriptsUrl = commonScriptsUrl + (releaseMode ? '5.1.0-RC' : 'develop')
     testScriptsSrc = [
             'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/0_extensions.up.sql'               : 'V001__extensions.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/1_initialize_schema.up.sql'        : 'V002__initialize_schema.sql',

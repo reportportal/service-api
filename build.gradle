@@ -24,16 +24,13 @@ plugins {
 import org.owasp.dependencycheck.reporting.ReportGenerator
 
 apply from: 'project-properties.gradle'
-
-def branch = releaseMode ? '5.1.0-RC' : 'develop'
-
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-docker.gradle"
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-commons.gradle"
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-info.gradle"
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/release-service.gradle"
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/copy-database-scripts.gradle"
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/build-quality.gradle"
-apply from: "https://raw.githubusercontent.com/reportportal/gradle-scripts/$branch/jacoco.gradle"
+apply from: "$scriptsUrl/build-docker.gradle"
+apply from: "$scriptsUrl/build-commons.gradle"
+apply from: "$scriptsUrl/build-info.gradle"
+apply from: "$scriptsUrl/release-service.gradle"
+apply from: "$scriptsUrl/copy-database-scripts.gradle"
+apply from: "$scriptsUrl/build-quality.gradle"
+apply from: "$scriptsUrl/jacoco.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
@@ -58,7 +55,7 @@ dependencies {
         compile 'com.epam.reportportal:commons'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:7ec6833'
+        compile 'com.github.reportportal:commons-dao:b71809d'
         compile 'com.github.reportportal:commons-rules:0fd2060'
         compile 'com.github.reportportal:commons-model:6be8d52a'
         compile 'com.github.reportportal:commons:b10eade'

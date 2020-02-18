@@ -115,11 +115,6 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public String savePlugin(String fileName, InputStream fileStream) throws ReportPortalException {
-		return dataStore.save(fileName, fileStream);
-	}
-
-	@Override
 	public void savePlugin(Path pluginPath, InputStream fileStream) throws IOException {
 		Files.copy(fileStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
 	}
@@ -129,7 +124,9 @@ public class PluginLoaderImpl implements PluginLoader {
 		if (Objects.nonNull(pluginPath.getParent())) {
 			Files.createDirectories(pluginPath.getParent());
 		}
-		Files.copy(dataStore.load(fileId), pluginPath, StandardCopyOption.REPLACE_EXISTING);
+		try (InputStream inputStream = dataStore.load(fileId)) {
+			Files.copy(inputStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
+		}
 	}
 
 	@Override

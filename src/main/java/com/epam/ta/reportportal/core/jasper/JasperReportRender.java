@@ -65,6 +65,7 @@ public class JasperReportRender {
 		for (Map.Entry<ReportType, String> entry : reportTypeTemplatePathMapping.entrySet()) {
 			Resource reportTemplate = resourceLoader.getResource(entry.getValue());
 			checkArgument(reportTemplate.exists());
+			//TODO investigate stream closing requirement
 			InputStream inputStream = reportTemplate.getInputStream();
 
 			JasperDesign jasperDesign = JRXmlLoader.load(inputStream);

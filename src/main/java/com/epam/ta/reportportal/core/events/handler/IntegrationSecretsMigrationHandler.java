@@ -17,7 +17,9 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
+import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -29,7 +31,14 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -60,23 +69,46 @@ public class IntegrationSecretsMigrationHandler {
 	}
 
 	@EventListener
+	@Transactional
 	public void migrate(ApplicationReadyEvent event) {
 		try {
-			dataStore.load(integrationSaltPath + File.separator + migrationFile);
+			final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
+			dataStore.load(migrationFilePath);
+
 			BasicTextEncryptor staticSaltEncryptor = new BasicTextEncryptor();
 			staticSaltEncryptor.setPassword("reportportal");
-			integrationRepository.findAllPredefined().forEach(it -> {
-				BtsProperties.PASSWORD.getParam(it.getParams().getParams())
-						.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(),
-								encryptor.encrypt(staticSaltEncryptor.decrypt(pass))
-						));
-				BtsProperties.OAUTH_ACCESS_KEY.getParam(it.getParams().getParams())
-						.ifPresent(key -> BtsProperties.OAUTH_ACCESS_KEY.setParam(it.getParams(),
-								encryptor.encrypt(staticSaltEncryptor.decrypt(key))
-						));
+
+			final Map<String, List<Integration>> groupedByType = integrationRepository.findAllPredefined()
+					.stream()
+					.collect(Collectors.groupingBy(it -> it.getType().getName()));
+
+			ofNullable(groupedByType.get("jira")).ifPresent(collection -> {
+				collection.forEach(passwordUpdatingConsumer(staticSaltEncryptor));
 			});
+
+			ofNullable(groupedByType.get("email")).ifPresent(collection -> {
+				collection.forEach(passwordUpdatingConsumer(staticSaltEncryptor));
+			});
+
+			ofNullable(groupedByType.get("rally")).ifPresent(collection -> collection.forEach(it -> {
+				BtsProperties.OAUTH_ACCESS_KEY.getParam(it.getParams().getParams())
+						.ifPresent(key -> BtsProperties.OAUTH_ACCESS_KEY.setParam(it.getParams(), encryptor.encrypt(key)));
+				BtsProperties.PASSWORD.getParam(it.getParams().getParams())
+						.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(), encryptor.encrypt(pass)));
+			}));
+
+			ofNullable(groupedByType.get("saucelabs")).ifPresent(collection -> collection.forEach(it -> SauceLabsProperties.ACCESS_TOKEN.getParameter(
+					it.getParams().getParams())
+					.ifPresent(key -> SauceLabsProperties.ACCESS_TOKEN.setParameter(it.getParams(), encryptor.encrypt(key)))));
+			dataStore.delete(migrationFilePath);
 		} catch (ReportPortalException ex) {
 			LOGGER.info("Secrets migration is not needed");
 		}
 	}
+
+	private Consumer<Integration> passwordUpdatingConsumer(BasicTextEncryptor staticSaltEncryptor) {
+		return it -> BtsProperties.PASSWORD.getParam(it.getParams().getParams())
+				.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(), encryptor.encrypt(staticSaltEncryptor.decrypt(pass))));
+	}
+
 }

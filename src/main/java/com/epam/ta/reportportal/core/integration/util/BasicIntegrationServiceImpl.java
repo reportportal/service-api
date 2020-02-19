@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,11 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		return integrationParams;
 	}
 
+	@Override
+	public void decryptParams(Integration integration) {
+
+	}
+
 	private static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
 		if (integration.getParams() != null && integration.getParams().getParams() != null) {
 			integration.getParams().getParams().putAll(retrievedParams);
@@ -71,14 +77,12 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	@Override
 	public Integration createIntegration(IntegrationRQ integrationRq, IntegrationType integrationType) {
-		Integration integration = new Integration();
-		integration.setCreationDate(LocalDateTime.now());
-		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRq.getIntegrationParams());
-		integration.setParams(new IntegrationParams(integrationParams));
-		integration.setType(integrationType);
-		integration.setEnabled(integrationRq.getEnabled());
-		integration.setName(integrationRq.getName());
-		return integration;
+		return new IntegrationBuilder().withCreationDate(LocalDateTime.now())
+				.withType(integrationType)
+				.withEnabled(integrationRq.getEnabled())
+				.withName(integrationRq.getName())
+				.withParams(new IntegrationParams(retrieveIntegrationParams(integrationRq.getIntegrationParams())))
+				.get();
 	}
 
 	@Override

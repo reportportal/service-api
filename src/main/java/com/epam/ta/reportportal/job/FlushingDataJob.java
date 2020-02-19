@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
-import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -39,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,7 +84,7 @@ public class FlushingDataJob implements Job {
 	private MinioClient minioClient;
 
 	@Autowired
-	private UserPasswordService userPasswordService;
+	private PasswordEncoder passwordEncoder;
 
 	@Override
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
@@ -126,9 +126,8 @@ public class FlushingDataJob implements Job {
 	private void createDefaultUser() {
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("default");
-		request.setPassword("1q2w3e");
+		request.setPassword(passwordEncoder.encode("1q2w3e"));
 		request.setEmail("defaultemail@domain.com");
-		userPasswordService.encrypt(request);
 		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER).get();
 		projectRepository.save(personalProjectService.generatePersonalProject(user));
 		userRepository.save(user);

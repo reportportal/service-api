@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.user.impl;
 
-import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -32,13 +31,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,7 +53,7 @@ class EditUserHandlerImplTest {
 	private ProjectRepository projectRepository;
 
 	@Mock
-	private UserPasswordService userPasswordService;
+	private PasswordEncoder passwordEncoder;
 
 	@InjectMocks
 	private EditUserHandlerImpl handler;
@@ -131,9 +130,6 @@ class EditUserHandlerImplTest {
 
 		final ChangePasswordRQ changePasswordRQ = new ChangePasswordRQ();
 		changePasswordRQ.setOldPassword("wrongPass");
-
-		doThrow(new ReportPortalException("Forbidden operation. Old password not match with stored.")).when(userPasswordService)
-				.checkAndUpdate(user, changePasswordRQ);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L), changePasswordRQ)

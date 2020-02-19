@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.UserCreatedEvent;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.user.CreateUserHandler;
-import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.RestorePasswordBidRepository;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
@@ -47,6 +46,7 @@ import com.epam.ta.reportportal.ws.model.user.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -67,8 +67,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class CreateUserHandlerImpl implements CreateUserHandler {
 
-	private final UserPasswordService userPasswordService;
-
 	private final UserRepository userRepository;
 
 	private final ProjectRepository projectRepository;
@@ -87,13 +85,15 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 	private final ThreadPoolTaskExecutor emailExecutorService;
 
+	private final PasswordEncoder passwordEncoder;
+
 	@Autowired
-	public CreateUserHandlerImpl(UserPasswordService userPasswordService, UserRepository userRepository,
-			ProjectRepository projectRepository, MailServiceFactory emailServiceFactory,
-			UserCreationBidRepository userCreationBidRepository, RestorePasswordBidRepository restorePasswordBidRepository,
-			MessageBus messageBus, SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
+	public CreateUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProjectRepository projectRepository,
+			MailServiceFactory emailServiceFactory, UserCreationBidRepository userCreationBidRepository,
+			RestorePasswordBidRepository restorePasswordBidRepository, MessageBus messageBus,
+			SaveDefaultProjectService saveDefaultProjectService, GetIntegrationHandler getIntegrationHandler,
 			ThreadPoolTaskExecutor emailExecutorService) {
-		this.userPasswordService = userPasswordService;
+		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.emailServiceFactory = emailServiceFactory;
@@ -116,8 +116,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		request.setLogin(normalizeAndValidateLogin(request.getLogin()));
 		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
-
-		userPasswordService.encrypt(request);
+		request.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
@@ -194,8 +193,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		createUserRQFull.setDefaultProject(bid.getDefaultProject().getName());
 		createUserRQFull.setAccountRole(UserRole.USER.name());
 		createUserRQFull.setProjectRole(bid.getRole());
-
-		userPasswordService.encrypt(createUserRQFull);
+		createUserRQFull.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId(), login);
@@ -234,17 +232,16 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	}
 
 	@Override
-	public OperationCompletionRS resetPassword(ResetPasswordRQ rq) {
-		RestorePasswordBid bid = restorePasswordBidRepository.findById(rq.getUuid())
+	public OperationCompletionRS resetPassword(ResetPasswordRQ request) {
+		RestorePasswordBid bid = restorePasswordBidRepository.findById(request.getUuid())
 				.orElseThrow(() -> new ReportPortalException(ACCESS_DENIED, "The password change link is no longer valid."));
 		String email = bid.getEmail();
 		expect(UserUtils.isEmailValid(email), equalTo(true)).verify(BAD_REQUEST_ERROR, email);
 		User byEmail = userRepository.findByEmail(email).orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND));
 		expect(byEmail.getUserType(), equalTo(UserType.INTERNAL)).verify(BAD_REQUEST_ERROR, "Unable to change password for external user");
-		userPasswordService.encrypt(rq);
-		byEmail.setPassword(rq.getPassword());
+		byEmail.setPassword(passwordEncoder.encode(request.getPassword()));
 		userRepository.save(byEmail);
-		restorePasswordBidRepository.deleteById(rq.getUuid());
+		restorePasswordBidRepository.deleteById(request.getUuid());
 		OperationCompletionRS rs = new OperationCompletionRS();
 		rs.setResultMessage("Password has been changed");
 		return rs;

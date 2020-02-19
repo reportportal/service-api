@@ -21,7 +21,6 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
-import com.epam.ta.reportportal.core.user.UserPasswordService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ImageFormat;
@@ -40,6 +39,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,6 +48,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -65,18 +66,18 @@ import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
 @Service
 public class EditUserHandlerImpl implements EditUserHandler {
 
-	private final UserPasswordService userPasswordService;
-
 	private final UserRepository userRepository;
 
 	private final ProjectRepository projectRepository;
 
 	private final UserBinaryDataService userBinaryDataService;
 
+	private final PasswordEncoder passwordEncoder;
+
 	@Autowired
-	public EditUserHandlerImpl(UserPasswordService userPasswordService, UserRepository userRepository, ProjectRepository projectRepository,
+	public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProjectRepository projectRepository,
 			UserBinaryDataService userBinaryDataService) {
-		this.userPasswordService = userPasswordService;
+		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.userBinaryDataService = userBinaryDataService;
@@ -152,11 +153,14 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	}
 
 	@Override
-	public OperationCompletionRS changePassword(ReportPortalUser loggedInUser, ChangePasswordRQ changePasswordRQ) {
+	public OperationCompletionRS changePassword(ReportPortalUser loggedInUser, ChangePasswordRQ request) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
-		userPasswordService.checkAndUpdate(user, changePasswordRQ);
+		expect(passwordEncoder.matches(request.getOldPassword(), user.getPassword()), Predicate.isEqual(true)).verify(FORBIDDEN_OPERATION,
+				"Old password not match with stored."
+		);
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		userRepository.save(user);
 		return new OperationCompletionRS("Password has been changed successfully");
 	}

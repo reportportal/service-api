@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,20 +29,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
-public class JiraEmailSecretMigrationService {
+public class JiraEmailSecretMigrationService extends AbstractSecretMigrationService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JiraEmailSecretMigrationService.class);
-
 	private static final String JIRA_INTEGRATION_TYPE_NAME = "jira";
 	private static final String EMAIL_INTEGRATION_TYPE_NAME = "email";
 
-	private final IntegrationRepository integrationRepository;
-
-	private final BasicTextEncryptor encryptor;
-
+	@Autowired
 	public JiraEmailSecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		this.integrationRepository = integrationRepository;
-		this.encryptor = encryptor;
+		super(integrationRepository, encryptor);
 	}
 
 	@Transactional
@@ -52,7 +48,7 @@ public class JiraEmailSecretMigrationService {
 		staticSaltEncryptor.setPassword("reportportal");
 
 		integrationRepository.findAllByTypeIn(JIRA_INTEGRATION_TYPE_NAME, EMAIL_INTEGRATION_TYPE_NAME)
-				.forEach(it -> BtsProperties.PASSWORD.getParam(it.getParams().getParams())
+				.forEach(it -> extractParams(it).flatMap(BtsProperties.PASSWORD::getParam)
 						.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(),
 								encryptor.encrypt(staticSaltEncryptor.decrypt(pass))
 						)));

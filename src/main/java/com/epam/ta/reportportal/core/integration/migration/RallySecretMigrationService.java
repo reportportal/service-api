@@ -29,31 +29,25 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
-public class RallySecertMigrationService {
+public class RallySecretMigrationService extends AbstractSecretMigrationService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RallySecertMigrationService.class);
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(RallySecretMigrationService.class);
 	private static final String RALLY_INTEGRATION_TYPE_NAME = "rally";
 
-	private final IntegrationRepository integrationRepository;
-
-	private final BasicTextEncryptor encryptor;
-
 	@Autowired
-	public RallySecertMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		this.integrationRepository = integrationRepository;
-		this.encryptor = encryptor;
+	public RallySecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
+		super(integrationRepository, encryptor);
 	}
 
 	@Transactional
 	public void migrate() {
 		LOGGER.debug("Migration of rally secrets has been started");
-		integrationRepository.findAllByTypeIn(RALLY_INTEGRATION_TYPE_NAME).forEach(it -> {
-			BtsProperties.OAUTH_ACCESS_KEY.getParam(it.getParams().getParams())
+		integrationRepository.findAllByTypeIn(RALLY_INTEGRATION_TYPE_NAME).forEach(it -> extractParams(it).ifPresent(params -> {
+			BtsProperties.OAUTH_ACCESS_KEY.getParam(params)
 					.ifPresent(key -> BtsProperties.OAUTH_ACCESS_KEY.setParam(it.getParams(), encryptor.encrypt(key)));
-			BtsProperties.PASSWORD.getParam(it.getParams().getParams())
+			BtsProperties.PASSWORD.getParam(params)
 					.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(), encryptor.encrypt(pass)));
-		});
+		}));
 		LOGGER.debug("Migration of rally secrets has been finished");
 	}
 

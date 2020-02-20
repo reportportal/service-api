@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.integration.migration.JiraEmailSecretMigrationService;
-import com.epam.ta.reportportal.core.integration.migration.RallySecertMigrationService;
+import com.epam.ta.reportportal.core.integration.migration.RallySecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.SaucelabsSecretMigrationService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
@@ -51,16 +51,16 @@ public class IntegrationSecretsMigrationHandler {
 
 	private final JiraEmailSecretMigrationService jiraEmailSecretMigrationService;
 
-	private final RallySecertMigrationService rallySecertMigrationService;
+	private final RallySecretMigrationService rallySecretMigrationService;
 
 	private final SaucelabsSecretMigrationService saucelabsSecretMigrationService;
 
 	@Autowired
 	public IntegrationSecretsMigrationHandler(DataStore dataStore, JiraEmailSecretMigrationService jiraEmailSecretMigrationService,
-			RallySecertMigrationService rallySecertMigrationService, SaucelabsSecretMigrationService saucelabsSecretMigrationService) {
+			RallySecretMigrationService rallySecretMigrationService, SaucelabsSecretMigrationService saucelabsSecretMigrationService) {
 		this.dataStore = dataStore;
 		this.jiraEmailSecretMigrationService = jiraEmailSecretMigrationService;
-		this.rallySecertMigrationService = rallySecertMigrationService;
+		this.rallySecretMigrationService = rallySecretMigrationService;
 		this.saucelabsSecretMigrationService = saucelabsSecretMigrationService;
 	}
 
@@ -72,7 +72,7 @@ public class IntegrationSecretsMigrationHandler {
 
 			ExecutorService executor = Executors.newFixedThreadPool(3);
 			executor.execute(jiraEmailSecretMigrationService::migrate);
-			executor.execute(rallySecertMigrationService::migrate);
+			executor.execute(rallySecretMigrationService::migrate);
 			executor.execute(saucelabsSecretMigrationService::migrate);
 			executor.shutdown();
 

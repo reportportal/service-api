@@ -29,27 +29,21 @@ import org.springframework.transaction.annotation.Transactional;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
-public class SaucelabsSecretMigrationService {
+public class SaucelabsSecretMigrationService extends AbstractSecretMigrationService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SaucelabsSecretMigrationService.class);
-
 	private static final String SAUCELABS_INTEGRATION_TYPE_NAME = "saucelabs";
-
-	private final IntegrationRepository integrationRepository;
-
-	private final BasicTextEncryptor encryptor;
 
 	@Autowired
 	public SaucelabsSecretMigrationService(IntegrationRepository integrationRepository, BasicTextEncryptor encryptor) {
-		this.integrationRepository = integrationRepository;
-		this.encryptor = encryptor;
+		super(integrationRepository, encryptor);
 	}
 
 	@Transactional
 	public void migrate() {
 		LOGGER.debug("Migration of saucelabs secrets has been started");
 		integrationRepository.findAllByTypeIn(SAUCELABS_INTEGRATION_TYPE_NAME)
-				.forEach(it -> SauceLabsProperties.ACCESS_TOKEN.getParameter(it.getParams().getParams())
+				.forEach(it -> extractParams(it).flatMap(SauceLabsProperties.ACCESS_TOKEN::getParameter)
 						.ifPresent(key -> SauceLabsProperties.ACCESS_TOKEN.setParameter(it.getParams(), encryptor.encrypt(key))));
 		LOGGER.debug("Migration of saucelabs secrets has been finished");
 	}

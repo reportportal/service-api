@@ -144,7 +144,7 @@ podTemplate(
         def testEnv = 'gcp'
         def sealightsTokenFile = "sl-token.txt"
         try {
-            stage('Integration tests') {
+            stage('Smoke tests') {
                 dir("${testDir}") {
                     container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"

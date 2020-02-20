@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
+import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
@@ -35,8 +37,6 @@ import static java.util.Optional.ofNullable;
  */
 public final class IntegrationConverter {
 
-	private static final String ACCESS_TOKEN = "accessToken";
-
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
@@ -50,7 +50,8 @@ public final class IntegrationConverter {
 			ofNullable(it.getParams()).ifPresent(p -> p.entrySet()
 					.stream()
 					.filter(entry -> !EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()))
-					.filter(entry -> !ACCESS_TOKEN.equalsIgnoreCase(entry.getKey()))
+					.filter(entry -> !SauceLabsProperties.ACCESS_TOKEN.getName().equalsIgnoreCase(entry.getKey()))
+					.filter(entry -> !BtsProperties.OAUTH_ACCESS_KEY.getName().equalsIgnoreCase(entry.getKey()))
 					.forEach(param -> params.put(param.getKey(), param.getValue())));
 			resource.setIntegrationParams(params);
 		});

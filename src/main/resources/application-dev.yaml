@@ -24,6 +24,8 @@ logging:
         ta:
           reportportal:
             core:
+              integration:
+                migration: debug
               analyzer: debug
   file:
     name: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log

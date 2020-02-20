@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.integration.migration.JiraEmailSecretMigrationService;
+import com.epam.ta.reportportal.core.integration.migration.LdapSecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.RallySecretMigrationService;
 import com.epam.ta.reportportal.core.integration.migration.SaucelabsSecretMigrationService;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -55,13 +56,17 @@ public class IntegrationSecretsMigrationHandler {
 
 	private final SaucelabsSecretMigrationService saucelabsSecretMigrationService;
 
+	private final LdapSecretMigrationService ldapSecretMigrationService;
+
 	@Autowired
 	public IntegrationSecretsMigrationHandler(DataStore dataStore, JiraEmailSecretMigrationService jiraEmailSecretMigrationService,
-			RallySecretMigrationService rallySecretMigrationService, SaucelabsSecretMigrationService saucelabsSecretMigrationService) {
+			RallySecretMigrationService rallySecretMigrationService, SaucelabsSecretMigrationService saucelabsSecretMigrationService,
+			LdapSecretMigrationService ldapSecretMigrationService) {
 		this.dataStore = dataStore;
 		this.jiraEmailSecretMigrationService = jiraEmailSecretMigrationService;
 		this.rallySecretMigrationService = rallySecretMigrationService;
 		this.saucelabsSecretMigrationService = saucelabsSecretMigrationService;
+		this.ldapSecretMigrationService = ldapSecretMigrationService;
 	}
 
 	@EventListener
@@ -70,10 +75,11 @@ public class IntegrationSecretsMigrationHandler {
 			final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
 			dataStore.load(migrationFilePath);
 
-			ExecutorService executor = Executors.newFixedThreadPool(3);
+			ExecutorService executor = Executors.newFixedThreadPool(4);
 			executor.execute(jiraEmailSecretMigrationService::migrate);
 			executor.execute(rallySecretMigrationService::migrate);
 			executor.execute(saucelabsSecretMigrationService::migrate);
+			executor.execute(ldapSecretMigrationService::migrate);
 			executor.shutdown();
 
 			dataStore.delete(migrationFilePath);

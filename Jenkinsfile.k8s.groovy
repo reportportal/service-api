@@ -143,20 +143,21 @@ podTemplate(
 
         def testEnv = 'gcp'
         def sealightsTokenFile = "sl-token.txt"
+        def testPhase = "smoke"
         try {
-            stage('Integration tests') {
+            stage('Smoke tests') {
                 dir("${testDir}") {
                     container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:test -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                        sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                     }
                 }
             }
         } finally {
             dir("${testDir}/${serviceName}") {
-                junit 'build/test-results/test/*.xml'
+                junit "build/test-results/${testPhase}/*.xml"
             }
         }
     }

@@ -67,7 +67,7 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	public CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -87,7 +87,7 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -114,7 +114,7 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(projectId);

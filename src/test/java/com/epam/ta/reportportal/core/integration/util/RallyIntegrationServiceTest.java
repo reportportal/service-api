@@ -21,7 +21,12 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,20 +35,31 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@ExtendWith(MockitoExtension.class)
 class RallyIntegrationServiceTest {
 	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
-	private IntegrationRepository integrationRepository = mock(IntegrationRepository.class);
-	private PluginBox pluginBox = mock(PluginBox.class);
 
-	private RallyIntegrationService rallyIntegrationService = new RallyIntegrationService(integrationRepository, pluginBox);
+	@Mock
+	private IntegrationRepository integrationRepository;
+
+	@Mock
+	private PluginBox pluginBox;
+
+	@Mock
+	private BasicTextEncryptor encryptor;
+
+	@InjectMocks
+	private RallyIntegrationService rallyIntegrationService;
 
 	@Test
 	void testParameters() {
+		when(encryptor.encrypt(any())).thenReturn("encrypted");
 		Map<String, Object> res = rallyIntegrationService.retrieveIntegrationParams(getCorrectRallyIntegrationParams());
 		assertThat(res.keySet(), hasSize(4));
 	}

@@ -149,10 +149,10 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	public void cleanIndex(Long index, List<Long> ids) {
-		if (!CollectionUtils.isEmpty(ids)) {
-			CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
-		}
+	public CompletableFuture<Long> cleanIndex(Long index, List<Long> ids) {
+		return CollectionUtils.isEmpty(ids) ?
+				CompletableFuture.completedFuture(0L) :
+				CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
 	}
 
 	/**

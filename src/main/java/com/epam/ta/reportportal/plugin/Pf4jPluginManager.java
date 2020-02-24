@@ -394,6 +394,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	}
 
 	private void unloadPlugin(PluginWrapper pluginWrapper) {
+		destroyDependency(pluginWrapper.getPluginId());
 		if (!pluginManager.unloadPlugin(pluginWrapper.getPluginId())) {
 			throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
 					Suppliers.formattedSupplier("Failed to stop old plugin with id = '{}'", pluginWrapper.getPluginId()).get()

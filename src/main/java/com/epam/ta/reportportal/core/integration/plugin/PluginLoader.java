@@ -67,16 +67,6 @@ public interface PluginLoader {
 	String saveToDataStore(String fileName, InputStream fileStream) throws ReportPortalException;
 
 	/**
-	 * Save plugin in the file system
-	 *
-	 * @param fileName   New plugin file name
-	 * @param fileStream {@link InputStream} of the new plugin file
-	 * @return File id of the saved file in the file system
-	 * @throws ReportPortalException
-	 */
-	String savePlugin(String fileName, InputStream fileStream) throws ReportPortalException;
-
-	/**
 	 * Upload plugin file to the directory.
 	 *
 	 * @param pluginPath Path to save plugin file

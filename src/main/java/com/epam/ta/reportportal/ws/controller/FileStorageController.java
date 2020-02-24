@@ -112,6 +112,7 @@ public class FileStorageController {
 	 * @param binaryData Stored data
 	 */
 	private void toResponse(HttpServletResponse response, BinaryData binaryData) {
+		//TODO investigate stream closing requirement
 		if (binaryData.getInputStream() != null) {
 			try {
 				response.setContentType(binaryData.getContentType());

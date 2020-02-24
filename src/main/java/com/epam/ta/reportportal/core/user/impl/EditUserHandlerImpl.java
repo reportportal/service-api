@@ -165,11 +165,13 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private void validatePhoto(MultipartFile file) throws IOException {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
+		//TODO investigate stream closing requirement
 		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
 		String subtype = mediaType.getSubtype();
 		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
 				"Image format should be " + ImageFormat.getValues()
 		);
+		//TODO investigate stream closing requirement
 		BufferedImage read = ImageIO.read(file.getInputStream());
 		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED,
 				"Image size should be 300x500px or less"

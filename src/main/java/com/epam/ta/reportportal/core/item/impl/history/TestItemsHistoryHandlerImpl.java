@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.item.impl.history;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -25,6 +27,7 @@ import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProviderFactory;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -37,6 +40,7 @@ import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterC
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.collect.Lists;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +53,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
@@ -85,14 +90,23 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		validateHistoryDepth(historyRequestParams.getHistoryDepth());
 
 		validateProjectRole(projectDetails, user);
-		filter.getFilterConditions()
-				.add(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
+
+		CompositeFilter itemHistoryFilter = new CompositeFilter(Operator.AND,
+				filter,
+				Filter.builder()
+						.withTarget(filter.getTarget().getClazz())
+						.withCondition(FilterCondition.builder()
+								.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
+								.build())
+						.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build())
+						.build()
+		);
 
 		Page<TestItemHistory> testItemHistoryPage = historyProviderFactory.getProvider(historyRequestParams)
 				.orElseThrow(() -> new ReportPortalException(UNABLE_LOAD_TEST_ITEM_HISTORY,
 						"Unable to find suitable history baseline provider"
 				))
-				.provide(filter, pageable, historyRequestParams, projectDetails, user);
+				.provide(itemHistoryFilter, pageable, historyRequestParams, projectDetails, user);
 
 		return buildHistoryElements(testItemHistoryPage, projectDetails.getProjectId(), pageable);
 

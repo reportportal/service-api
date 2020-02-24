@@ -64,6 +64,7 @@ public final class AuthUtils {
 			}
 
 			try {
+				//TODO investigate stream closing requirement
 				ObjectInputStream is = new SerialUidReplacingInputStream(new ByteArrayInputStream(data));
 				T t = (T) is.readObject();
 				if (null != mismatchCallback) {

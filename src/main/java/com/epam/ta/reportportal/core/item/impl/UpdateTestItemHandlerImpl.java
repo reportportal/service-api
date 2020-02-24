@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
+import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
@@ -228,19 +229,27 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		validate(projectDetails, user, testItem);
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
-		if (providedStatus.isPresent()) {
+		if (providedStatus.isPresent() && !providedStatus.get().equals(testItem.getItemResults().getStatus())) {
 			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
 					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			checkInitialStatusAttribute(testItem);
-			StatusEnum actualStatus = testItem.getItemResults().getStatus();
-			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(actualStatus);
+			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(providedStatus.get());
 
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
-					formattedSupplier("Actual status: '{}' cannot be changed to '{}'.", actualStatus, providedStatus.get())
+					formattedSupplier("Actual status: '{}' cannot be changed to '{}'.",
+							testItem.getItemResults().getStatus(),
+							providedStatus.get()
+					)
 			);
-			strategy.changeStatus(testItem, providedStatus.get(), user, projectDetails.getProjectId());
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+			strategy.changeStatus(testItem, providedStatus.get(), user);
+			messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+					TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId()),
+					user.getUserId(),
+					user.getUsername()
+			));
 		}
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
@@ -471,8 +480,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(
-				item.getItemResults().getStatus(),
+		expect(item.getItemResults().getStatus(),
 				not(equalTo(StatusEnum.PASSED)),
 				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						StatusEnum.PASSED.name()

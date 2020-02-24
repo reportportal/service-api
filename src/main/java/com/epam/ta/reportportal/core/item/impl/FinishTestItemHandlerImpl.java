@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
@@ -41,6 +43,7 @@ import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,6 +70,7 @@ import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.NOT_ISSUE
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
+import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 
@@ -100,12 +104,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final ApplicationEventPublisher eventPublisher;
 
+	private final MessageBus messageBus;
+
 	@Autowired
 	FinishTestItemHandlerImpl(TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
 			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher,
-			LaunchRepository launchRepository) {
+			LaunchRepository launchRepository, MessageBus messageBus) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -116,6 +122,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.launchRepository = launchRepository;
 		this.changeStatusHandler = changeStatusHandler;
 		this.eventPublisher = eventPublisher;
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -309,14 +316,14 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		resolvedIssue.ifPresent(issue -> deleteOldIssueIndex(actualStatus, testItem, testItemResults, projectId));
 
 		if (testItemResults.getStatus() != actualStatus) {
-
-			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(testItemResults.getStatus()));
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectId);
+			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(actualStatus));
 			if (statusChangingStrategy.isPresent()) {
-				statusChangingStrategy.get().changeStatus(testItem, actualStatus, user, projectId);
+				statusChangingStrategy.get().changeStatus(testItem, actualStatus, user);
 			} else {
 				testItemResults.setStatus(actualStatus);
 			}
-
+			publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(testItem, projectId), user);
 		}
 
 		resolvedIssue.ifPresent(issue -> {
@@ -326,6 +333,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 			}
 		});
+	}
+
+	private void publishUpdateActivity(TestItemActivityResource before, TestItemActivityResource after, ReportPortalUser user) {
+		messageBus.publishActivity(new TestItemStatusChangedEvent(before, after, user.getUserId(), user.getUsername()));
 	}
 
 	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {

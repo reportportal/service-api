@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetail
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.job.service.PluginLoaderService;
 import com.google.common.collect.Lists;
@@ -74,10 +75,11 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					Map<IntegrationDetailsProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
-					if (!pluginWrapper.isPresent() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
+					if (pluginWrapper.isEmpty() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
 
-						PluginInfo pluginInfo = new PluginInfo(it.getName(),
+						PluginInfo pluginInfo = new PluginInfo(
+								it.getName(),
 								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION)),
 								String.valueOf(pluginProperties.get(FILE_ID)),
 								String.valueOf(pluginProperties.get(FILE_NAME)),
@@ -118,8 +120,8 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	}
 
 	private boolean isIntegrationTypeAvailableForRemoving(IntegrationType integrationType) {
-		/* hack: while email isn't a plugin - it shouldn't be proceeded as a plugin */
-		if ("email".equalsIgnoreCase(integrationType.getName()) || "ldap".equalsIgnoreCase(integrationType.getName())) {
+		/* hack: while email, ad, ldap, saml aren't  plugins - it shouldn't be proceeded as a plugin */
+		if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
 			return false;
 		} else {
 			return pluginBox.getPluginById(integrationType.getName()).map(p -> {
@@ -135,7 +137,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					return false;
 				}
 			}).orElse(true);
-
 		}
 	}
 }

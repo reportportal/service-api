@@ -22,7 +22,7 @@ project.ext {
             'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/7_auth_integration.up.sql'            : 'V007__auth_integration.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/8_sender_case_enabled_field.up.sql'   : 'V008__sender_case_enabled_field.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/9_analyzer_params.up.sql'             : 'V009__analyzer_params.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/attachment-size-impl/migrations/10_attachment_size.up.sql': 'V010__attachment_size.sql'
+            'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/10_attachment_size.up.sql': 'V010__attachment_size.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

@@ -16,16 +16,17 @@ project.ext {
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? '5.1.0-RC' : 'develop')
     testScriptsSrc = [
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/0_extensions.up.sql'                  : 'V001__extensions.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/1_initialize_schema.up.sql'           : 'V002__initialize_schema.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/3_default_data.up.sql'                : 'V003__default_data.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/4_size_limitations.up.sql'            : 'V004__size_limitations.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/5_test_case_id_type.up.sql'           : 'V005__test_case_id_type.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/6_retries_handling.up.sql'            : 'V006__retries_handling.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/7_auth_integration.up.sql'            : 'V007__auth_integration.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/8_sender_case_enabled_field.up.sql'   : 'V008__sender_case_enabled_field.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/9_analyzer_params.up.sql'             : 'V009__analyzer_params.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/10_attachment_size.up.sql': 'V010__attachment_size.sql'
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/0_extensions.up.sql'                       : 'V001__extensions.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/1_initialize_schema.up.sql'                : 'V002__initialize_schema.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/3_default_data.up.sql'                     : 'V003__default_data.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/4_size_limitations.up.sql'                 : 'V004__size_limitations.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/5_test_case_id_type.up.sql'                : 'V005__test_case_id_type.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/6_retries_handling.up.sql'                 : 'V006__retries_handling.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/7_auth_integration.up.sql'                 : 'V007__auth_integration.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/8_sender_case_enabled_field.up.sql'        : 'V008__sender_case_enabled_field.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/9_analyzer_params.up.sql'                  : 'V009__analyzer_params.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/10_attachment_size.up.sql'                  : 'V010__attachment_size.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/change-password-hashing/migrations/11_password_encoding.up.sql': 'V011__password_encoding.sql'
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

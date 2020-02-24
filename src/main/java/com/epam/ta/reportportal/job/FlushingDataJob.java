@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +83,9 @@ public class FlushingDataJob implements Job {
 	@Autowired
 	private MinioClient minioClient;
 
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	@Override
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public void execute(JobExecutionContext context) {
@@ -106,12 +110,9 @@ public class FlushingDataJob implements Job {
 				+ "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
 				+ "AND pid <> pg_backend_pid()\n"
 				+ "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
-				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
-				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;"
-				+ "COMMIT;");
+				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
+				+ "TRUNCATE TABLE issue_ticket RESTART IDENTITY CASCADE;" + "COMMIT;");
 	}
 
 	private void restartSequences() {
@@ -125,7 +126,7 @@ public class FlushingDataJob implements Job {
 	private void createDefaultUser() {
 		final CreateUserRQFull request = new CreateUserRQFull();
 		request.setLogin("default");
-		request.setPassword("1q2w3e");
+		request.setPassword(passwordEncoder.encode("1q2w3e"));
 		request.setEmail("defaultemail@domain.com");
 		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER).get();
 		projectRepository.save(personalProjectService.generatePersonalProject(user));

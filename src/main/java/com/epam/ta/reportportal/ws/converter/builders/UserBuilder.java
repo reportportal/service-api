@@ -23,9 +23,6 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -40,9 +37,6 @@ import static java.util.Optional.ofNullable;
 public class UserBuilder implements Supplier<User> {
 
 	public static final String USER_LAST_LOGIN = "last_login";
-
-	private static final HashFunction HASH_FUNCTION = Hashing.md5();
-
 	private User user;
 
 	public UserBuilder() {
@@ -79,7 +73,7 @@ public class UserBuilder implements Supplier<User> {
 
 	private void fillUser(String login, String password, String email, String fullName) {
 		user.setLogin(EntityUtils.normalizeId(login));
-		user.setPassword(HASH_FUNCTION.hashString(password, Charsets.UTF_8).toString());
+		user.setPassword(password);
 		user.setEmail(EntityUtils.normalizeId(email.trim()));
 		user.setFullName(fullName);
 		user.setUserType(UserType.INTERNAL);

@@ -8,11 +8,11 @@ rp:
   datasource:
     maximumPoolSize: 5
   binarystore:
-#    type: filesystem
-#    minio:
-#      endpoint: http://localhost:9000
-#      accessKey: minio
-#      secretKey: minio123
+    type: minio
+    minio:
+      endpoint: http://localhost:9000
+      accessKey: minio
+      secretKey: minio123
     path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
 logging:
   level:
@@ -24,6 +24,8 @@ logging:
         ta:
           reportportal:
             core:
+              integration:
+                migration: debug
               analyzer: debug
   file:
     name: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log

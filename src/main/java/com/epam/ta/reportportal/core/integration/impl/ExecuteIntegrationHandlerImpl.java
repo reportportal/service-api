@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.integration.impl;
 
-import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
@@ -29,10 +28,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -61,7 +60,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 	public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId, String command,
 			Map<String, ?> executionParams) {
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
-				.orElse(integrationRepository.findGlobalById(integrationId)
+				.orElseGet(() -> integrationRepository.findGlobalById(integrationId)
 						.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId)));
 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
@@ -75,13 +74,11 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 						integration.getType().getName()
 				));
 
-		PluginCommand commandToExecute = Optional.ofNullable(pluginInstance.getCommandToExecute(command))
+		return ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> it.executeCommand(integration, executionParams))
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 						"Command {} is not found in plugin {}.",
 						command,
 						integration.getType().getName()
 				));
-
-		return commandToExecute.executeCommand(integration, executionParams);
 	}
 }

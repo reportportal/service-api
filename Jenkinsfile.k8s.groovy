@@ -161,7 +161,7 @@ podTemplate(
                     try {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
                         sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                     } finally {
                         junit "build/test-results/${testPhase}/*.xml"
@@ -177,7 +177,7 @@ podTemplate(
                         try {
                             echo "Running RP integration tests on env: ${testEnv}"
                             writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                            sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                            sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
                             sh "./gradlew :${serviceName}:regressionTests -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                         } finally {
                             junit "build/test-results/regressionTests/*.xml"

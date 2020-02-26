@@ -30,6 +30,7 @@ podTemplate(
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
                 secretVolume(mountPath: '/etc/.sealights-token', secretName: 'sealights-token'),
+                secretVolume(mountPath: '/etc/.saucelabs-accesskey', secretName: 'saucelabs-accesskey'),
                 hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
@@ -178,9 +179,9 @@ podTemplate(
                             echo "Running RP integration tests on env: ${testEnv}"
                             writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                             sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                            sh "gradle :${serviceName}:regressionTests -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                            sh "gradle :${serviceName}:regressionTesting -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                         } finally {
-                            junit "build/test-results/regressionTests/*.xml"
+                            junit "build/test-results/regressionTesting/*.xml"
                         }
                     }
                 }

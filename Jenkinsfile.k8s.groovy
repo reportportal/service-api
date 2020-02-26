@@ -19,12 +19,11 @@ podTemplate(
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true,
+                containerTemplate(name: 'gradle', image: 'gradle:5.2.1-jdk11', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '800m',
                         resourceLimitCpu: '3000m',
                         resourceRequestMemory: '2867Mi',
-                        resourceLimitMemory: '4096Mi'),
-                containerTemplate(name: 'gradle', image: 'gradle:5.2.1-jdk11', command: 'cat', ttyEnabled: true)
+                        resourceLimitMemory: '4096Mi')
         ],
         imagePullSecrets: ["regcred"],
         volumes: [

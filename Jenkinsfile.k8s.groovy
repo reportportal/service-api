@@ -120,8 +120,21 @@ podTemplate(
                     sh "docker push $tag"
                 }
             }
+        }
 
-
+        // Add to the main CI pipelines SAST step:
+        def sastJobName = 'reportportal_services_sast'
+        stage('Run SAST') {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                println("Triggering build of SAST job: ${sastJobName}...")
+                build job: sastJobName,
+                        parameters: [
+                                string(name: 'CONFIG', value: 'rp/carrier/config.yaml'),
+                                string(name: 'SUITE', value: env.JOB_NAME),
+                                booleanParam(name: 'DEBUG', value: false)
+                        ],
+                        propagate: false, wait: false // true or false: Wait for job finish
+            }
         }
 
         def jvmArgs = params.get('JVM_ARGS')
@@ -241,21 +254,6 @@ podTemplate(
                         }
                     }
                 }
-            }
-        }
-
-        // Add to the main CI pipelines SAST step:
-        def sastJobName = 'reportportal_services_sast'
-        stage('Run SAST') {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                println("Triggering build of SAST job: ${sastJobName}...")
-                build job: sastJobName,
-                        parameters: [
-                                string(name: 'CONFIG', value: 'rp/carrier/config.yaml'),
-                                string(name: 'SUITE', value: env.JOB_NAME),
-                                booleanParam(name: 'DEBUG', value: false)
-                        ],
-                        propagate: false, wait: false // true or false: Wait for job finish
             }
         }
 

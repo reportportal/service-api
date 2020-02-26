@@ -130,7 +130,7 @@ podTemplate(
                 build job: sastJobName,
                         parameters: [
                                 string(name: 'CONFIG', value: 'rp/carrier/config.yaml'),
-                                string(name: 'SUITE', value: env.JOB_NAME),
+                                string(name: 'SUITE', value: 'service-api'),
                                 booleanParam(name: 'DEBUG', value: false)
                         ],
                         propagate: false, wait: false // true or false: Wait for job finish

@@ -23,7 +23,8 @@ podTemplate(
                         resourceRequestCpu: '800m',
                         resourceLimitCpu: '3000m',
                         resourceRequestMemory: '2867Mi',
-                        resourceLimitMemory: '4096Mi')
+                        resourceLimitMemory: '4096Mi'),
+                containerTemplate(name: 'gradle', image: 'gradle:5.2.1-jdk11', command: 'cat', ttyEnabled: true)
         ],
         imagePullSecrets: ["regcred"],
         volumes: [

@@ -157,47 +157,103 @@ podTemplate(
             }
         }
 
-        testPhase = "regressionTests"
-        stage('Regression tests') {
-            dir("${testDir}") {
-                container('jdk') {
-                    try {
-                        echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
-                    } finally {
-                        junit "build/test-results/${testPhase}/*.xml"
+        parallel 'Regression tests': {
+            stage('Regression tests') {
+                dir("${testDir}") {
+                    container('jdk') {
+                        try {
+                            echo "Running RP integration tests on env: ${testEnv}"
+                            writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                            sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                            sh "./gradlew :${serviceName}:regressionTests -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                        } finally {
+                            junit "build/test-results/regressionTests/*.xml"
+                        }
                     }
                 }
             }
-        }
-
-        def browser = 'firefox'
-        def accessKey = util.execStdout 'cat /etc/.saucelabs-accesskey/accesskey'
-        def url = "https://avarabyeu:$accessKey@ondemand.eu-central-1.saucelabs.com:443/wd/hub"
-        stage('UI tests') {
-            dir("${testDir}") {
-                container('jdk') {
-                    try {
-                        echo "Run ui desktop tests on env: ${testEnv}"
-                        if (!sealightsSession.empty) {
-                            writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                            writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                        }
-                        sh """
+        }, 'UI tests': {
+            stage('UI tests') {
+                dir("${testDir}") {
+                    container('jdk') {
+                        try {
+                            echo "Run ui desktop tests on env: ${testEnv}"
+                            if (!sealightsSession.empty) {
+                                writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
+                                writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                            }
+                            def browser = 'firefox'
+                            def accessKey = util.execStdout 'cat /etc/.saucelabs-accesskey/accesskey'
+                            def url = "https://avarabyeu:$accessKey@ondemand.eu-central-1.saucelabs.com:443/wd/hub"
+                            sh """
                                gradle --build-cache :ui-tests:cucumber \
                                       -Dspring.profiles.active=desktop \
                                       -Dbrowser.remote=true \
                                       -Dbrowser.url=$url \
                                       -Dbrowser.name=$browser
                            """
-                    } finally {
-                        step([$class             : 'CucumberReportPublisher',
-                              jsonReportDirectory: 'reports',
-                              fileIncludePattern : '*.json'])
+                        } finally {
+                            step([$class             : 'CucumberReportPublisher',
+                                  jsonReportDirectory: 'reports',
+                                  fileIncludePattern : '*.json'])
+                        }
                     }
                 }
+            }
+        }, 'Mobile tests': {
+            stage('Execute Tests') {
+                container('gradle') {
+                    withEnv(['K8S=true']) {
+                        dir("$testDir/ui-tests") {
+                            try {
+                                echo "Run ui mobile tests on env: ${testEnv}"
+                                if (!sealightsSession.empty) {
+                                    writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
+                                    writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
+                                }
+
+                                def accessKey = util.execStdout('cat /etc/.saucelabs-accesskey/accesskey')
+                                def url = "https://avarabyeu:$accessKey@ondemand.eu-central-1.saucelabs.com:443/wd/hub"
+                                def platformName = 'Android'
+                                def platformVersion = '8.1'
+                                def browser = 'Chrome'
+                                def deviceName = 'Samsung Galaxy Tab A 10 GoogleAPI Emulator'
+                                def deviceOrientation = 'Portrait'
+
+                                sh """
+                                   gradle --build-cache :ui-tests:cucumber \
+                                          -Dspring.profiles.active=mobile \
+                                          -Dmobile.platform.name=$platformName \
+                                          -Dmobile.platform.version=$platformVersion \
+                                          -Dmobile.browser.name=$browser \
+                                          -Dmobile.device.name="$deviceName" \
+                                          -Dmobile.device.orientation=$deviceOrientation \
+                                          -Dappium.server.url=$url \
+                                          -Dappium.server.version=1.16.0
+                                    """
+                            } finally {
+                                step([$class             : 'CucumberReportPublisher',
+                                      jsonReportDirectory: 'reports',
+                                      fileIncludePattern : '*.json'])
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add to the main CI pipelines SAST step:
+        def sastJobName = 'reportportal_services_sast'
+        stage('Run SAST') {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                println("Triggering build of SAST job: ${sastJobName}...")
+                build job: sastJobName,
+                        parameters: [
+                                string(name: 'CONFIG', value: 'rp/carrier/config.yaml'),
+                                string(name: 'SUITE', value: env.JOB_NAME),
+                                booleanParam(name: 'DEBUG', value: false)
+                        ],
+                        propagate: false, wait: false // true or false: Wait for job finish
             }
         }
 

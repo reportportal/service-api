@@ -1,4 +1,5 @@
 #!groovy
+@Library('commons') _
 
 //String podTemplateConcat = "${serviceName}-${buildNumber}-${uuid}"
 def label = "worker-${UUID.randomUUID().toString()}"
@@ -76,7 +77,7 @@ podTemplate(
                 }
             }
         }, 'Download Sealights': {
-            stage('Download Sealights'){
+            stage('Download Sealights') {
                 dir(sealightsDir) {
                     sh "wget ${sealightsAgentUrl}"
                     unzip sealightsAgentArchive
@@ -84,29 +85,25 @@ podTemplate(
             }
         }
 
-        def utils = load "${ciDir}/jenkins/scripts/util.groovy"
-        def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
-        def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
-
         docker.init()
         helm.init()
-        utils.scheduleRepoPoll()
+        util.scheduleRepoPoll()
 
-        def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
+        def snapshotVersion = util.readProperty("app/gradle.properties", "version")
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
         def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
 
-        def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
+        def sealightsToken = util.execStdout("cat $sealightsTokenPath")
         def sealightsSession = "";
-        stage ('Init Sealights') {
-            if(enableSealights) {
+        stage('Init Sealights') {
+            if (enableSealights) {
                 dir(sealightsDir) {
                     container('jre') {
                         echo "Generating Sealights build session ID"
                         sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
-                        sealightsSession = utils.execStdout("cat buildSessionId.txt")
+                        sealightsSession = util.execStdout("cat buildSessionId.txt")
                     }
                 }
             } else {
@@ -126,15 +123,16 @@ podTemplate(
         }
 
         def jvmArgs = params.get('JVM_ARGS')
-        if(jvmArgs == null || jvmArgs.trim().isEmpty()){
+        if (jvmArgs == null || jvmArgs.trim().isEmpty()) {
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
-        if(enableSealights){
+        if (enableSealights) {
             jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
         }
 
         stage('Deploy to Dev Environment') {
-            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], false) // without wait
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs": "\"$jvmArgs\""], false)
+            // without wait
         }
 
         stage('Execute DVT Tests') {
@@ -144,20 +142,77 @@ podTemplate(
         def testEnv = 'gcp'
         def sealightsTokenFile = "sl-token.txt"
         def testPhase = "smoke"
-        try {
-            stage('Smoke tests') {
-                dir("${testDir}") {
-                    container('jdk') {
+        stage('Smoke tests') {
+            dir("${testDir}") {
+                container('jdk') {
+                    try {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
                         sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                    } finally {
+                        junit "build/test-results/${testPhase}/*.xml"
                     }
                 }
             }
-        } finally {
-            dir("${testDir}/${serviceName}") {
-                junit "build/test-results/${testPhase}/*.xml"
+        }
+
+        testPhase = "regressionTests"
+        stage('Regression tests') {
+            dir("${testDir}") {
+                container('jdk') {
+                    try {
+                        echo "Running RP integration tests on env: ${testEnv}"
+                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                        sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                    } finally {
+                        junit "build/test-results/${testPhase}/*.xml"
+                    }
+                }
+            }
+        }
+
+        def browser = 'firefox'
+        def accessKey = util.execStdout 'cat /etc/.saucelabs-accesskey/accesskey'
+        def url = "https://avarabyeu:$accessKey@ondemand.eu-central-1.saucelabs.com:443/wd/hub"
+        stage('UI tests') {
+            dir("${testDir}") {
+                container('jdk') {
+                    try {
+                        echo "Run ui desktop tests on env: ${testEnv}"
+                        if (!sealightsSession.empty) {
+                            writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
+                            writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                        }
+                        sh """
+                               gradle --build-cache :ui-tests:cucumber \
+                                      -Dspring.profiles.active=desktop \
+                                      -Dbrowser.remote=true \
+                                      -Dbrowser.url=$url \
+                                      -Dbrowser.name=$browser
+                           """
+                    } finally {
+                        step([$class             : 'CucumberReportPublisher',
+                              jsonReportDirectory: 'reports',
+                              fileIncludePattern : '*.json'])
+                    }
+                }
+            }
+        }
+
+        // Add to the service-ui ci pipeline DAST step:
+        def dastJobName = 'reportportal_dast'
+        stage('Run DAST') {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                println("Triggering build of SAST job: ${dastJobName}...")
+                build job: dastJobName,
+                        parameters: [
+                                string(name: "CONFIG", value: "rp/carrier/config.yaml"),
+                                string(name: "SUITE", value: "rpportal_dev_dast"),
+                                booleanParam(name: "DEBUG", defaultValue: false)
+                        ],
+                        propagate: false, wait: false // true or false: Wait for job finish
             }
         }
     }

@@ -85,14 +85,12 @@ podTemplate(
             }
         }
 
-        def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
-
-        docker.init()
+        dockerUtil.init()
         helm.init()
         util.scheduleRepoPoll()
 
         def snapshotVersion = util.readProperty("app/gradle.properties", "version")
-        def buildVersion = "BUILD-${env.BUILD_NUMBER}"
+        def buildVersion = "BUILD-DEMO-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
         def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
@@ -158,7 +156,7 @@ podTemplate(
         def sealightsTokenFile = "sl-token.txt"
         def testPhase = "smoke"
         stage('Smoke tests') {
-            dir("${testDir}") {
+            dir("${testDir}/${serviceName}") {
                 container('jdk') {
                     try {
                         echo "Running RP integration tests on env: ${testEnv}"
@@ -174,7 +172,7 @@ podTemplate(
 
         parallel 'Regression tests': {
             stage('Regression tests') {
-                dir("${testDir}") {
+                dir("${testDir}/${serviceName}") {
                     container('jdk') {
                         try {
                             echo "Running RP integration tests on env: ${testEnv}"
@@ -189,7 +187,7 @@ podTemplate(
             }
         }, 'UI tests': {
             stage('UI tests') {
-                dir("${testDir}") {
+                dir("${testDir}/ui-tests") {
                     container('jdk') {
                         try {
                             echo "Run ui desktop tests on env: ${testEnv}"
@@ -209,7 +207,7 @@ podTemplate(
                            """
                         } finally {
                             step([$class             : 'CucumberReportPublisher',
-                                  jsonReportDirectory: 'reports',
+                                  jsonReportDirectory: 'ui-tests/reports',
                                   fileIncludePattern : '*.json'])
                         }
                     }
@@ -248,7 +246,7 @@ podTemplate(
                                     """
                             } finally {
                                 step([$class             : 'CucumberReportPublisher',
-                                      jsonReportDirectory: 'reports',
+                                      jsonReportDirectory: 'ui-tests/reports',
                                       fileIncludePattern : '*.json'])
                             }
                         }

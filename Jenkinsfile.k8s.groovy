@@ -85,6 +85,8 @@ podTemplate(
             }
         }
 
+        def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
+
         docker.init()
         helm.init()
         util.scheduleRepoPoll()

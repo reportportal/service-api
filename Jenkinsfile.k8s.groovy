@@ -157,12 +157,12 @@ podTemplate(
         def testPhase = "smoke"
         stage('Smoke tests') {
             dir("${testDir}/${serviceName}") {
-                container('jdk') {
+                container('gradle') {
                     try {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                         sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                        sh "gradle :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                     } finally {
                         junit "build/test-results/${testPhase}/*.xml"
                     }
@@ -173,12 +173,12 @@ podTemplate(
         parallel 'Regression tests': {
             stage('Regression tests') {
                 dir("${testDir}/${serviceName}") {
-                    container('jdk') {
+                    container('gradle') {
                         try {
                             echo "Running RP integration tests on env: ${testEnv}"
                             writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
                             sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                            sh "./gradlew :${serviceName}:regressionTests -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                            sh "gradle :${serviceName}:regressionTests -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                         } finally {
                             junit "build/test-results/regressionTests/*.xml"
                         }
@@ -188,7 +188,7 @@ podTemplate(
         }, 'UI tests': {
             stage('UI tests') {
                 dir("${testDir}/ui-tests") {
-                    container('jdk') {
+                    container('gradle') {
                         try {
                             echo "Run ui desktop tests on env: ${testEnv}"
                             if (!sealightsSession.empty) {

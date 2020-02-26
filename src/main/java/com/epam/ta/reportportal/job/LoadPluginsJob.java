@@ -73,10 +73,7 @@ public class LoadPluginsJob {
 
 	@Scheduled(fixedDelayString = "${com.ta.reportportal.job.load.plugins.cron}")
 	public void execute() {
-
-		List<IntegrationType> integrationTypes = integrationTypeRepository.findAll();
-
-		List<PluginInfo> notLoadedPlugins = pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes);
+		List<PluginInfo> notLoadedPlugins = pluginLoaderService.getNotLoadedPluginsInfo();
 
 		notLoadedPlugins.forEach(pluginInfo -> {
 			try (InputStream inputStream = dataStore.load(pluginInfo.getFileId())) {

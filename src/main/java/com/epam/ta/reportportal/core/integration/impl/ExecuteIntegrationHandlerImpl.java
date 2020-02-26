@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -70,15 +71,12 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						"Plugin for {} isn't installed",
-						integration.getType().getName()
+						Suppliers.formattedSupplier("Plugin for '{}' isn't installed", integration.getType().getName()).get()
 				));
 
 		return ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> it.executeCommand(integration, executionParams))
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						"Command {} is not found in plugin {}.",
-						command,
-						integration.getType().getName()
+						Suppliers.formattedSupplier("Command '{}' is not found in plugin {}.", command, integration.getType().getName()).get()
 				));
 	}
 }

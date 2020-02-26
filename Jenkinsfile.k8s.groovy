@@ -231,7 +231,7 @@ podTemplate(
                                 def platformName = 'Android'
                                 def platformVersion = '8.1'
                                 def browser = 'Chrome'
-                                def deviceName = 'Samsung Galaxy Tab A 10 GoogleAPI Emulator'
+                                def deviceName = 'Samsung Galaxy S9 HD GoogleAPI Emulator'
                                 def deviceOrientation = 'Portrait'
 
                                 sh """

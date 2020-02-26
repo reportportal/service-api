@@ -6,5 +6,7 @@ RUN sh -c "echo $'#!/bin/sh \n\
 exec java $JAVA_OPTS -jar $ARTIFACT' > /start.sh && chmod +x /start.sh"
 VOLUME ["/tmp"]
 RUN wget $APP_DOWNLOAD_URL
+RUN mkdir /plugins
+RUN chmod a+w /var /plugins
 EXPOSE 8080
 ENTRYPOINT ["/start.sh"]

@@ -287,10 +287,13 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 		integrationTypeRepository.findAll()
 				.stream()
 				.filter(IntegrationType::isEnabled)
-				.forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(integrationTypeDetails -> loadPlugin(
-						integrationType.getName(),
-						integrationTypeDetails
-				)));
+				.forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(integrationTypeDetails -> {
+					try {
+						loadPlugin(integrationType.getName(), integrationTypeDetails);
+					} catch (Exception ex) {
+						LOGGER.error("Unable to load plugin '{}'", integrationType.getName());
+					}
+				}));
 
 	}
 

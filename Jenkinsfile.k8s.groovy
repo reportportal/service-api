@@ -1,5 +1,4 @@
 #!groovy
-@Library('commons') _
 
 //String podTemplateConcat = "${serviceName}-${buildNumber}-${uuid}"
 def label = "worker-${UUID.randomUUID().toString()}"
@@ -19,7 +18,7 @@ podTemplate(
                 containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'gradle', image: 'gradle:5.2.1-jdk11', command: 'cat', ttyEnabled: true,
+                containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true,
                         resourceRequestCpu: '800m',
                         resourceLimitCpu: '3000m',
                         resourceRequestMemory: '2867Mi',
@@ -30,7 +29,6 @@ podTemplate(
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
                 secretVolume(mountPath: '/etc/.sealights-token', secretName: 'sealights-token'),
-                secretVolume(mountPath: '/etc/.saucelabs-accesskey', secretName: 'saucelabs-accesskey'),
                 hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
@@ -78,7 +76,7 @@ podTemplate(
                 }
             }
         }, 'Download Sealights': {
-            stage('Download Sealights') {
+            stage('Download Sealights'){
                 dir(sealightsDir) {
                     sh "wget ${sealightsAgentUrl}"
                     unzip sealightsAgentArchive
@@ -86,25 +84,29 @@ podTemplate(
             }
         }
 
-        dockerUtil.init()
-        helm.init()
-        util.scheduleRepoPoll()
+        def utils = load "${ciDir}/jenkins/scripts/util.groovy"
+        def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
+        def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
 
-        def snapshotVersion = util.readProperty("app/gradle.properties", "version")
-        def buildVersion = "BUILD-DEMO-${env.BUILD_NUMBER}"
+        docker.init()
+        helm.init()
+        utils.scheduleRepoPoll()
+
+        def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
+        def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
         def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
 
-        def sealightsToken = util.execStdout("cat $sealightsTokenPath")
+        def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
         def sealightsSession = "";
-        stage('Init Sealights') {
-            if (enableSealights) {
+        stage ('Init Sealights') {
+            if(enableSealights) {
                 dir(sealightsDir) {
                     container('jre') {
                         echo "Generating Sealights build session ID"
                         sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
-                        sealightsSession = util.execStdout("cat buildSessionId.txt")
+                        sealightsSession = utils.execStdout("cat buildSessionId.txt")
                     }
                 }
             } else {
@@ -119,34 +121,20 @@ podTemplate(
                     sh "docker push $tag"
                 }
             }
-        }
 
-        // Add to the main CI pipelines SAST step:
-        def sastJobName = 'reportportal_services_sast'
-        stage('Run SAST') {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                println("Triggering build of SAST job: ${sastJobName}...")
-                build job: sastJobName,
-                        parameters: [
-                                string(name: 'CONFIG', value: 'rp/carrier/config.yaml'),
-                                string(name: 'SUITE', value: 'service-api'),
-                                booleanParam(name: 'DEBUG', value: false)
-                        ],
-                        propagate: false, wait: false // true or false: Wait for job finish
-            }
+
         }
 
         def jvmArgs = params.get('JVM_ARGS')
-        if (jvmArgs == null || jvmArgs.trim().isEmpty()) {
+        if(jvmArgs == null || jvmArgs.trim().isEmpty()){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
-        if (enableSealights) {
+        if(enableSealights){
             jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
         }
 
         stage('Deploy to Dev Environment') {
-            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs": "\"$jvmArgs\""], false)
-            // without wait
+            helm.deploy("$k8sDir/reportportal/v5", ["serviceapi.repository": srvRepo, "serviceapi.tag": srvVersion, "serviceapi.jvmArgs" : "\"$jvmArgs\""], false) // without wait
         }
 
         stage('Execute DVT Tests') {
@@ -156,118 +144,20 @@ podTemplate(
         def testEnv = 'gcp'
         def sealightsTokenFile = "sl-token.txt"
         def testPhase = "smoke"
-        stage('Smoke tests') {
-            dir("${testDir}/${serviceName}") {
-                container('gradle') {
-                    try {
+        try {
+            stage('Smoke tests') {
+                dir("${testDir}") {
+                    container('jdk') {
                         echo "Running RP integration tests on env: ${testEnv}"
                         writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                        sh "gradle :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
-                    } finally {
-                        junit "build/test-results/${testPhase}/*.xml"
+                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                        sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
                     }
                 }
             }
-        }
-
-        parallel 'Regression tests': {
-            stage('Regression tests') {
-                dir("${testDir}/${serviceName}") {
-                    container('gradle') {
-                        try {
-                            echo "Running RP integration tests on env: ${testEnv}"
-                            writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                            sh "echo 'rp.attributes=v5:${testEnv};' >> src/test/resources/reportportal.properties"
-                            sh "gradle :${serviceName}:regressionTesting -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
-                        } finally {
-                            junit "build/test-results/regressionTesting/*.xml"
-                        }
-                    }
-                }
-            }
-        }, 'UI tests': {
-            stage('UI tests') {
-                dir("${testDir}/ui-tests") {
-                    container('gradle') {
-                        try {
-                            echo "Run ui desktop tests on env: ${testEnv}"
-                            if (!sealightsSession.empty) {
-                                writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                                writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                            }
-                            def browser = 'firefox'
-                            def accessKey = util.execStdout 'cat /etc/.saucelabs-accesskey/accesskey'
-                            def url = "https://avarabyeu:$accessKey@ondemand.eu-central-1.saucelabs.com:443/wd/hub"
-                            sh """
-                               gradle --build-cache :ui-tests:cucumber \
-                                      -Dspring.profiles.active=desktop \
-                                      -Dbrowser.remote=true \
-                                      -Dbrowser.url=$url \
-                                      -Dbrowser.name=$browser
-                           """
-                        } finally {
-                            step([$class             : 'CucumberReportPublisher',
-                                  jsonReportDirectory: 'ui-tests/reports',
-                                  fileIncludePattern : '*.json'])
-                        }
-                    }
-                }
-            }
-        }, 'Mobile tests': {
-            stage('Execute Tests') {
-                container('gradle') {
-                    withEnv(['K8S=true']) {
-                        dir("$testDir/ui-tests") {
-                            try {
-                                echo "Run ui mobile tests on env: ${testEnv}"
-                                if (!sealightsSession.empty) {
-                                    writeFile(file: 'buildsession.txt', text: sealightsSession, encoding: "UTF-8")
-                                    writeFile(file: 'sl-token.txt', text: sealightsToken, encoding: "UTF-8")
-                                }
-
-                                def accessKey = util.execStdout('cat /etc/.saucelabs-accesskey/accesskey')
-                                def url = "https://avarabyeu:$accessKey@ondemand.eu-central-1.saucelabs.com:443/wd/hub"
-                                def platformName = 'Android'
-                                def platformVersion = '8.1'
-                                def browser = 'Chrome'
-                                def deviceName = 'Samsung Galaxy S9 HD GoogleAPI Emulator'
-                                def deviceOrientation = 'Portrait'
-
-                                sh """
-                                   gradle --build-cache :ui-tests:cucumber \
-                                          -Dspring.profiles.active=mobile \
-                                          -Dmobile.platform.name=$platformName \
-                                          -Dmobile.platform.version=$platformVersion \
-                                          -Dmobile.browser.name=$browser \
-                                          -Dmobile.device.name="$deviceName" \
-                                          -Dmobile.device.orientation=$deviceOrientation \
-                                          -Dappium.server.url=$url \
-                                          -Dappium.server.version=1.16.0
-                                    """
-                            } finally {
-                                step([$class             : 'CucumberReportPublisher',
-                                      jsonReportDirectory: 'ui-tests/reports',
-                                      fileIncludePattern : '*.json'])
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Add to the service-ui ci pipeline DAST step:
-        def dastJobName = 'reportportal_dast'
-        stage('Run DAST') {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                println("Triggering build of SAST job: ${dastJobName}...")
-                build job: dastJobName,
-                        parameters: [
-                                string(name: "CONFIG", value: "rp/carrier/config.yaml"),
-                                string(name: "SUITE", value: "rpportal_dev_dast"),
-                                booleanParam(name: "DEBUG", defaultValue: false)
-                        ],
-                        propagate: false, wait: false // true or false: Wait for job finish
+        } finally {
+            dir("${testDir}/${serviceName}") {
+                junit "build/test-results/${testPhase}/*.xml"
             }
         }
     }

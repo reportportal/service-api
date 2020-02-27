@@ -14,8 +14,8 @@ COPY --chown=rp-builder gradlew*  ./
 RUN ./gradlew wrapper
 
 ARG buildNumber
-ARG sealightsSession
-ARG sealightsToken
+ARG sealightsSession=
+ARG sealightsToken=
 
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./

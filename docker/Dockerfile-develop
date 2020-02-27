@@ -13,7 +13,7 @@ COPY --chown=rp-builder gradle/ ./gradle/
 COPY --chown=rp-builder gradlew*  ./
 RUN ./gradlew wrapper
 
-ARG buildNumber
+ARG buildNumber=0.0.1-SNAPSHOT
 ARG sealightsSession=
 ARG sealightsToken=
 

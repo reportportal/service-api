@@ -63,11 +63,11 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);
-		if (testItem.getItemResults().getIssue() == null) {
+		if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
 			addToInvestigateIssue(testItem, project.getId());
 		}
 
-		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, user);
+		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
 		itemsToReindex.add(testItem.getItemId());
 		logIndexer.cleanIndex(project.getId(),
 				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),

@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -37,12 +38,15 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -106,7 +110,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 		testItem.getItemResults().setIssue(issueEntity);
 	}
 
-	protected List<Long> changeParentsStatuses(TestItem testItem, Launch launch, ReportPortalUser user) {
+	protected List<Long> changeParentsStatuses(TestItem testItem, Launch launch, boolean issueRequired, ReportPortalUser user) {
 		List<Long> updatedParents = Lists.newArrayList();
 
 		TestItem parent = testItem.getParent();
@@ -119,6 +123,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 				if (!currentParentStatus.equals(newParentStatus)) {
 					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId());
 					parent.getItemResults().setStatus(newParentStatus);
+					updateItem(parent, launch.getProjectId(), issueRequired).ifPresent(updatedParents::add);
 					publishUpdateActivity(before, TO_ACTIVITY_RESOURCE.apply(parent, launch.getProjectId()), user);
 				} else {
 					return updatedParents;
@@ -126,10 +131,6 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 
 			} else {
 				return updatedParents;
-			}
-
-			if (parent.isHasStats() && !parent.isHasChildren()) {
-				updatedParents.add(parent.getItemId());
 			}
 
 			parent = parent.getParent();
@@ -140,6 +141,34 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 		}
 
 		return updatedParents;
+	}
+
+	private Optional<Long> updateItem(TestItem parent, Long projectId, boolean issueRequired) {
+		if (parent.isHasStats() && !parent.isHasChildren()) {
+			updateIssue(parent, projectId, issueRequired);
+			return Optional.of(parent.getItemId());
+		}
+		return Optional.empty();
+	}
+
+	private void updateIssue(TestItem parent, Long projectId, boolean issueRequired) {
+		if (issueRequired) {
+			if (ofNullable(parent.getItemResults().getIssue()).isEmpty()) {
+				addToInvestigateIssue(parent, projectId);
+			}
+		} else {
+			ofNullable(parent.getItemResults().getIssue()).ifPresent(issue -> {
+				issue.setTestItemResults(null);
+				issueEntityRepository.delete(issue);
+				parent.getItemResults().setIssue(null);
+				logIndexer.cleanIndex(projectId,
+						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(parent.getLaunchId(),
+								Collections.singletonList(parent.getItemId()),
+								LogLevel.ERROR.toInt()
+						)
+				);
+			});
+		}
 	}
 
 	private void publishUpdateActivity(TestItemActivityResource before, TestItemActivityResource after, ReportPortalUser user) {

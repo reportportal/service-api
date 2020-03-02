@@ -313,12 +313,13 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	}
 
 	private void linkIssues(List<TestItem> items, List<Ticket> existedTickets, Set<Ticket> ticketsFromRq, List<String> errors) {
+		List<Ticket> tickets = ticketRepository.saveAll(ticketsFromRq);
 		items.forEach(testItem -> {
 			try {
 				verifyTestItem(testItem, testItem.getItemId());
 				IssueEntity issue = testItem.getItemResults().getIssue();
 				issue.getTickets().addAll(existedTickets);
-				issue.getTickets().addAll(ticketsFromRq);
+				issue.getTickets().addAll(tickets);
 				issue.setAutoAnalyzed(false);
 			} catch (Exception e) {
 				errors.add(e.getMessage());

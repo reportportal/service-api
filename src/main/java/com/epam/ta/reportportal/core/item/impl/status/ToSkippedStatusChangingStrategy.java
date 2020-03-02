@@ -78,7 +78,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 		boolean issueRequired = skippedIssueAttribute.isPresent() && BooleanUtils.toBoolean(skippedIssueAttribute.get().getValue());
 
 		if (issueRequired) {
-			if (testItem.getItemResults().getIssue() == null) {
+			if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
 				addToInvestigateIssue(testItem, project.getId());
 			}
 		} else {
@@ -89,7 +89,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 			}).ifPresent(issueEntityRepository::deleteById);
 		}
 
-		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, user);
+		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
 		itemsToReindex.add(testItem.getItemId());
 		logIndexer.cleanIndex(project.getId(),
 				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),

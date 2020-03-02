@@ -16,17 +16,11 @@ rp:
     path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
 logging:
   level:
-    org:
-      hibernate:
-        SQL: debug
-    com:
-      epam:
-        ta:
-          reportportal:
-            core:
-              integration:
-                migration: debug
-              analyzer: debug
+    org.hibernate.SQL: debug
+    com.epam.ta.reportportal.core:
+      integration:
+        migration: debug
+      analyzer: debug
   file:
     name: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
 server:

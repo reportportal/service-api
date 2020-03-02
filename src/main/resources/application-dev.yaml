@@ -8,7 +8,7 @@ rp:
   datasource:
     maximumPoolSize: 5
   binarystore:
-    type: minio
+    type: filesystem
     minio:
       endpoint: http://localhost:9000
       accessKey: minio

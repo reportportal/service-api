@@ -15,7 +15,7 @@ exec java \$JAVA_OPTS -jar \$APP_FILE' > /start.sh && chmod +x /start.sh"
 
 VOLUME /tmp
 
-RUN wget -O /$APP_FILE $APP_DOWNLOAD_URL
+RUN wget -O /$APP_FILE $APP_DOWNLOAD_URL && mkdir /plugins && chmod a+w /var /plugins
 
 EXPOSE 8080
 ENTRYPOINT /start.sh

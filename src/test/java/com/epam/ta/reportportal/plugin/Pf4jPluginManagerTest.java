@@ -34,6 +34,7 @@ import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +54,7 @@ import static org.mockito.Mockito.*;
 class Pf4jPluginManagerTest {
 
 	public static final String PLUGINS_PATH = "plugins";
+	public static final String RESOURCES_PATH = "resources";
 	public static final String PLUGINS_TEMP_PATH = "plugins/temp";
 	public static final String NEW_PLUGIN_FILE_NAME = "plugin.jar";
 
@@ -65,13 +67,16 @@ class Pf4jPluginManagerTest {
 	private final PluginManager pluginManager = mock(PluginManager.class);
 	private final PluginWrapper previousPlugin = mock(PluginWrapper.class);
 	private final PluginWrapper newPlugin = mock(PluginWrapper.class);
+	private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 
 	private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(PLUGINS_PATH,
 			PLUGINS_TEMP_PATH,
+			RESOURCES_PATH,
 			pluginLoader,
 			integrationTypeRepository,
 			pluginManager,
-			beanFactory
+			beanFactory,
+			applicationEventPublisher
 	);
 
 	private final InputStream fileStream = mock(InputStream.class);

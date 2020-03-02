@@ -26,7 +26,7 @@ import java.util.List;
  */
 public interface PluginLoaderService {
 
-	List<PluginInfo> getNotLoadedPluginsInfo(List<IntegrationType> integrationTypes);
+	List<PluginInfo> getNotLoadedPluginsInfo();
 
 	void checkAndDeleteIntegrationType(IntegrationType integrationType);
 }

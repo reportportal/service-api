@@ -77,10 +77,11 @@ public interface PluginLoader {
 	/**
 	 * Copy plugin with resources from the {@link com.epam.ta.reportportal.filesystem.DataStore} to the provided path
 	 *
-	 * @param fileId     {@link com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties#FILE_ID} value
-	 * @param pluginPath Path where to copy plugin file
+	 * @param fileId              {@link com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties#FILE_ID} value
+	 * @param pluginPath          Path where to copy plugin file
+	 * @param pluginResourcesPath Path were to copy plugin resources
 	 */
-	void copyFromDataStore(String fileId, Path pluginPath) throws IOException;
+	void copyFromDataStore(String fileId, Path pluginPath, Path pluginResourcesPath) throws IOException;
 
 	/**
 	 * Delete plugin file from the {@link com.epam.ta.reportportal.filesystem.DataStore}
@@ -88,6 +89,15 @@ public interface PluginLoader {
 	 * @param fileId {@link com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties#FILE_ID} value
 	 */
 	void deleteFromDataStore(String fileId);
+
+	/**
+	 * Copy plugin resources to the target path
+	 *
+	 * @param pluginPath          Plugin path in the filesystem
+	 * @param resourcesTargetPath Path to copy plugin resources
+	 * @throws IOException
+	 */
+	void copyPluginResource(Path pluginPath, Path resourcesTargetPath) throws IOException, ReportPortalException;
 
 	/**
 	 * Remove old plugin file, if it wasn't replaced by the new one during the plugin uploading

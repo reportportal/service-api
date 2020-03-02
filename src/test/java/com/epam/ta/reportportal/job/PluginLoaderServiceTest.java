@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -64,7 +64,8 @@ class PluginLoaderServiceTest {
 		when(jiraPluginDescriptor.getVersion()).thenReturn("v1");
 		when(rallyPlugin.getDescriptor()).thenReturn(rallyPluginDescriptor);
 		when(rallyPluginDescriptor.getVersion()).thenReturn("another version");
-		List<PluginInfo> notLoadedPluginsInfo = pluginLoaderService.getNotLoadedPluginsInfo(getIntegrationTypes());
+		when(integrationTypeRepository.findAll()).thenReturn(getIntegrationTypes());
+		List<PluginInfo> notLoadedPluginsInfo = pluginLoaderService.getNotLoadedPluginsInfo();
 
 		Assertions.assertFalse(notLoadedPluginsInfo.isEmpty());
 		Assertions.assertEquals(1, notLoadedPluginsInfo.size());
@@ -119,19 +120,21 @@ class PluginLoaderServiceTest {
 		jira.setName("jira");
 		IntegrationTypeDetails jiraDetails = new IntegrationTypeDetails();
 		Map<String, Object> jiraParams = Maps.newHashMap();
-		jiraParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f1");
-		jiraParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname1");
-		jiraParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v1");
-		jiraParams.put(IntegrationDetailsProperties.COMMANDS.getAttribute(), "");
+		jiraParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f1");
+		jiraParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname1");
+		jiraParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v1");
+		jiraParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
 		jiraDetails.setDetails(jiraParams);
+		jira.setEnabled(true);
 		jira.setDetails(jiraDetails);
 
 		IntegrationType rally = new IntegrationType();
+		rally.setEnabled(true);
 		Map<String, Object> rallyParams = Maps.newHashMap();
-		rallyParams.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "f2");
-		rallyParams.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), "fname2");
-		rallyParams.put(IntegrationDetailsProperties.VERSION.getAttribute(), "v2");
-		rallyParams.put(IntegrationDetailsProperties.COMMANDS.getAttribute(), "");
+		rallyParams.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "f2");
+		rallyParams.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), "fname2");
+		rallyParams.put(IntegrationTypeProperties.VERSION.getAttribute(), "v2");
+		rallyParams.put(IntegrationTypeProperties.COMMANDS.getAttribute(), "");
 		IntegrationTypeDetails rallyDetails = new IntegrationTypeDetails();
 		rallyDetails.setDetails(rallyParams);
 		rally.setName("rally");

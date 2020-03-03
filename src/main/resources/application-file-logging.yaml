@@ -1,0 +1,5 @@
+logging:
+  pattern:
+    file: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %level %logger - %msg%n'
+  file:
+    name: /var/${spring.application.name}.log

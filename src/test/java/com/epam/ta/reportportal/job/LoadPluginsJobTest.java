@@ -80,7 +80,7 @@ class LoadPluginsJobTest {
 
 		when(dataStore.load(any(String.class))).thenReturn(new FileInputStream(tempFile));
 		when(pluginBox.loadPlugin(any(String.class), any(IntegrationTypeDetails.class))).thenReturn(true);
-		when(pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes)).thenReturn(pluginInfos);
+		when(pluginLoaderService.getNotLoadedPluginsInfo()).thenReturn(pluginInfos);
 		when(pluginBox.getPluginById(any(String.class))).thenReturn(java.util.Optional.ofNullable(rallyPlugin));
 		when(rallyPlugin.getPluginId()).thenReturn("rally");
 		when(integrationTypeRepository.findByName(any(String.class))).thenReturn(java.util.Optional.ofNullable(rally));

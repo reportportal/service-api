@@ -101,6 +101,8 @@ rp:
   plugins:
     rootDir: /plugins
     path: ${rp.plugins.rootDir}/resolved
+    resources:
+      path: ${rp.plugins.rootDir}/resources
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:

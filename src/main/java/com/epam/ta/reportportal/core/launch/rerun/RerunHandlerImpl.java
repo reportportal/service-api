@@ -105,11 +105,7 @@ public class RerunHandlerImpl implements RerunHandler {
 	public Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch) {
 		Optional<TestItem> itemOptional = testItemRepository.findByNameAndLaunchWithoutParents(request.getName(), launch.getId());
 
-		if (!itemOptional.isPresent()) {
-			return Optional.empty();
-		}
-
-		if (!isParametersEqual(request.getParameters(), itemOptional.get().getParameters())) {
+		if (itemOptional.isEmpty() || isParametersNotEqual(request.getParameters(), itemOptional.get().getParameters())) {
 			return Optional.empty();
 		}
 
@@ -124,11 +120,7 @@ public class RerunHandlerImpl implements RerunHandler {
 				parent.getPath()
 		);
 
-		if (!itemOptional.isPresent()) {
-			return Optional.empty();
-		}
-
-		if (!isParametersEqual(request.getParameters(), itemOptional.get().getParameters())) {
+		if (itemOptional.isEmpty() || isParametersNotEqual(request.getParameters(), itemOptional.get().getParameters())) {
 			return Optional.empty();
 		}
 
@@ -136,20 +128,21 @@ public class RerunHandlerImpl implements RerunHandler {
 		return Optional.of(new ItemCreatedRS(item.getUuid(), item.getUniqueId()));
 	}
 
-	private boolean isParametersEqual(List<ParameterResource> fromRequest, Set<Parameter> stored) {
+	private boolean isParametersNotEqual(List<ParameterResource> fromRequest, Set<Parameter> stored) {
 		Set<Parameter> requestParameters = ofNullable(fromRequest).map(it -> it.stream().map(TO_MODEL).collect(Collectors.toSet()))
 				.orElse(Collections.emptySet());
-		return stored.equals(requestParameters);
+		return !stored.equals(requestParameters);
 	}
 
 	private TestItem handleRerun(StartTestItemRQ request, Launch launch, TestItem testItem, TestItem parent) {
 		TestItem item;
 		item = testItem;
-		item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		item.setDescription(request.getDescription());
 		if (item.getType().sameLevel(STEP)) {
 			eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
 			item = makeRetry(request, launch, parent);
+		} else {
+			item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		}
 		ofNullable(request.getUuid()).ifPresent(item::setUuid);
 		return item;

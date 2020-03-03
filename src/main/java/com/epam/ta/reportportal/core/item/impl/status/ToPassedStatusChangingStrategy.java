@@ -75,7 +75,7 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 			);
 		});
 
-		changeParentsStatuses(testItem, launch, user);
+		changeParentsStatuses(testItem, launch, false, user);
 	}
 
 	@Override

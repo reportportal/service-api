@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -187,9 +187,9 @@ class UpdatePluginHandlerTest {
 	private Map<String, Object> getCorrectJiraIntegrationDetailsParams() {
 
 		Map<String, Object> params = new HashMap<>();
-		params.put(IntegrationDetailsProperties.FILE_ID.getAttribute(), "file-id");
-		params.put(IntegrationDetailsProperties.FILE_NAME.getAttribute(), FILE_NAME);
-		params.put(IntegrationDetailsProperties.VERSION.getAttribute(), "1.0.0");
+		params.put(IntegrationTypeProperties.FILE_ID.getAttribute(), "file-id");
+		params.put(IntegrationTypeProperties.FILE_NAME.getAttribute(), FILE_NAME);
+		params.put(IntegrationTypeProperties.VERSION.getAttribute(), "1.0.0");
 		return params;
 	}
 

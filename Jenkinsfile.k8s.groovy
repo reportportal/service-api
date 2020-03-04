@@ -1,4 +1,5 @@
 #!groovy
+@Library('commons') _
 
 //String podTemplateConcat = "${serviceName}-${buildNumber}-${uuid}"
 def label = "worker-${UUID.randomUUID().toString()}"
@@ -32,7 +33,6 @@ podTemplate(
                 hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
-
     node("${label}") {
 
         def sealightsTokenPath = "/etc/.sealights-token/token"
@@ -84,21 +84,19 @@ podTemplate(
             }
         }
 
-        def utils = load "${ciDir}/jenkins/scripts/util.groovy"
-        def helm = load "${ciDir}/jenkins/scripts/helm.groovy"
-        def docker = load "${ciDir}/jenkins/scripts/docker.groovy"
-
-        docker.init()
+        dockerUtil.init()
         helm.init()
-        utils.scheduleRepoPoll()
+        util.scheduleRepoPoll()
 
-        def snapshotVersion = utils.readProperty("app/gradle.properties", "version")
+        sast('reportportal_services_sast', 'rp/carrier/config.yaml', 'service-index', false)
+
+        def snapshotVersion = util.readProperty("app/gradle.properties", "version")
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
         def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
 
-        def sealightsToken = utils.execStdout("cat $sealightsTokenPath")
+        def sealightsToken = util.execStdout("cat $sealightsTokenPath")
         def sealightsSession = "";
         stage ('Init Sealights') {
             if(enableSealights) {
@@ -106,7 +104,7 @@ podTemplate(
                     container('jre') {
                         echo "Generating Sealights build session ID"
                         sh "java -jar sl-build-scanner.jar -config -tokenfile $sealightsTokenPath -appname service-api -branchname $branchToBuild -buildname $srvVersion -pi '*com.epam.ta.reportportal.*'"
-                        sealightsSession = utils.execStdout("cat buildSessionId.txt")
+                        sealightsSession = util.execStdout("cat buildSessionId.txt")
                     }
                 }
             } else {
@@ -121,14 +119,13 @@ podTemplate(
                     sh "docker push $tag"
                 }
             }
-
-
         }
 
         def jvmArgs = params.get('JVM_ARGS')
         if(jvmArgs == null || jvmArgs.trim().isEmpty()){
             jvmArgs = '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
         }
+
         if(enableSealights){
             jvmArgs = jvmArgs + ' -javaagent:./plugins/sl-test-listener.jar -Dsl.tokenFile=sealights-token.txt -Dsl.buildSessionIdFile=sealights-session.txt -Dsl.filesStorage=/tmp'
         }
@@ -160,5 +157,7 @@ podTemplate(
                 junit "build/test-results/${testPhase}/*.xml"
             }
         }
+
+        dast('reportportal_dast', 'rp/carrier/config.yaml', 'rpportal_dev_dast', false)
     }
 }

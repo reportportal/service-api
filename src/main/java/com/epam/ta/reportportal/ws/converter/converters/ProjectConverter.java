@@ -58,6 +58,7 @@ public final class ProjectConverter {
 		projectResource.setProjectName(project.getName());
 		projectResource.setEntryType(project.getProjectType().name());
 		projectResource.setCreationDate(project.getCreationDate());
+		projectResource.setAllocatedStorage(project.getAllocatedStorage());
 		projectResource.setUsers(project.getUsers().stream().map(user -> {
 			ProjectResource.ProjectUser projectUser = new ProjectResource.ProjectUser();
 			projectUser.setLogin(user.getUser().getLogin());
@@ -68,7 +69,8 @@ public final class ProjectConverter {
 		Map<String, List<IssueSubTypeResource>> subTypes = project.getProjectIssueTypes()
 				.stream()
 				.map(ProjectIssueType::getIssueType)
-				.collect(Collectors.groupingBy(it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
+				.collect(Collectors.groupingBy(
+						it -> it.getIssueGroup().getTestItemIssueGroup().getValue(),
 						Collectors.mapping(TO_SUBTYPE_RESOURCE, Collectors.toList())
 				));
 
@@ -76,7 +78,8 @@ public final class ProjectConverter {
 
 		Map<String, String> attributes = ProjectUtils.getConfigParameters(project.getProjectAttributes());
 
-		attributes.put(INDEXING_RUN,
+		attributes.put(
+				INDEXING_RUN,
 				String.valueOf(ofNullable(indexerStatusCache.getIndexingStatus().getIfPresent(project.getId())).orElse(false))
 		);
 

@@ -28,7 +28,7 @@ project.ext {
             'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/10_attachment_size.up.sql'                                   : 'V010__attachment_size.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/11_password_encoding.up.sql'                                 : 'V011__password_encoding.sql',
             'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/12_remove_ticket_duplicates.up.sql'                          : 'V012__remove_ticket_duplicates.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/common-allocated-storage/migrations/13_add_allocated_storage_per_project.up.sql': 'V013__add_allocated_storage_per_project.sql',
+            'https://raw.githubusercontent.com/reportportal/migrations/develop/migrations/13_add_allocated_storage_per_project.up.sql': 'V013__add_allocated_storage_per_project.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

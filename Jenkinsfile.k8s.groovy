@@ -41,7 +41,6 @@ podTemplate(
         def sealightsAgentArchive = sealightsAgentUrl.substring(sealightsAgentUrl.lastIndexOf('/') + 1)
 
         def k8sDir = "kubernetes"
-        def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
         def serviceName = "service-api"
@@ -58,10 +57,6 @@ podTemplate(
                     git branch: "master", url: 'https://github.com/reportportal/kubernetes.git'
 
                 }
-                dir(ciDir) {
-                    git credentialsId: 'epm-gitlab-key', branch: "master", url: 'git@git.epam.com:epmc-tst/reportportal-ci.git'
-                }
-
             }
         }, 'Checkout Service': {
             stage('Checkout Service') {

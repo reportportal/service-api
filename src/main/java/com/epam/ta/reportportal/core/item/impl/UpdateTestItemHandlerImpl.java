@@ -70,6 +70,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -77,6 +78,8 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
@@ -95,6 +98,7 @@ import static java.util.stream.Collectors.toSet;
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
+	private static final String MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY = "manually";
 
 	private final ProjectRepository projectRepository;
 
@@ -234,7 +238,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
-			checkInitialStatusAttribute(testItem);
+			checkInitialStatusAttribute(testItem, rq);
 			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(providedStatus.get());
 
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
@@ -297,19 +301,24 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return new OperationCompletionRS(message);
 	};
 
-	private void checkInitialStatusAttribute(TestItem testItem) {
-		Optional<ItemAttribute> statusAttribute = testItem.getAttributes()
-				.stream()
-				.filter(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey()) && attribute.isSystem())
-				.findAny();
-		if (statusAttribute.isEmpty()) {
+	private void checkInitialStatusAttribute(TestItem item, UpdateTestItemRQ request) {
+		Runnable addInitialStatusAttribute = () -> {
 			ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
-					testItem.getItemResults().getStatus().getExecutionCounterField(),
+					item.getItemResults().getStatus().getExecutionCounterField(),
 					true
 			);
-			initialStatusAttribute.setTestItem(testItem);
-			testItem.getAttributes().add(initialStatusAttribute);
-		}
+			initialStatusAttribute.setTestItem(item);
+			item.getAttributes().add(initialStatusAttribute);
+		};
+
+		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
+				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
+		).filter(it -> it.getValue()
+				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
+
+		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
+				addInitialStatusAttribute
+		);
 	}
 
 	private void linkIssues(List<TestItem> items, List<Ticket> existedTickets, Set<Ticket> ticketsFromRq, List<String> errors) {
@@ -481,7 +490,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(item.getItemResults().getStatus(),
+		expect(
+				item.getItemResults().getStatus(),
 				not(equalTo(StatusEnum.PASSED)),
 				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
 						StatusEnum.PASSED.name()

@@ -16,7 +16,7 @@ podTemplate(
                         resourceRequestMemory: '1024Mi',
                         resourceLimitMemory: '2048Mi'),
                 containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.8.8', command: 'cat', ttyEnabled: true),
-                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.0.2', command: 'cat', ttyEnabled: true),
+                containerTemplate(name: 'helm', image: 'lachlanevenson/k8s-helm:v3.1.1', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'httpie', image: 'blacktop/httpie', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'jre', image: 'openjdk:8-jre-alpine', command: 'cat', ttyEnabled: true),
                 containerTemplate(name: 'jdk', image: 'openjdk:8-jdk-alpine', command: 'cat', ttyEnabled: true,
@@ -41,7 +41,6 @@ podTemplate(
         def sealightsAgentArchive = sealightsAgentUrl.substring(sealightsAgentUrl.lastIndexOf('/') + 1)
 
         def k8sDir = "kubernetes"
-        def ciDir = "reportportal-ci"
         def appDir = "app"
         def testDir = "tests"
         def serviceName = "service-api"
@@ -58,10 +57,6 @@ podTemplate(
                     git branch: "master", url: 'https://github.com/reportportal/kubernetes.git'
 
                 }
-                dir(ciDir) {
-                    git credentialsId: 'epm-gitlab-key', branch: "master", url: 'git@git.epam.com:epmc-tst/reportportal-ci.git'
-                }
-
             }
         }, 'Checkout Service': {
             stage('Checkout Service') {

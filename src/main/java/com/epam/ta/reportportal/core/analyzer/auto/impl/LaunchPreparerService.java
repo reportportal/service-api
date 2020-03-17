@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
@@ -29,10 +30,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -50,7 +54,7 @@ public class LaunchPreparerService {
 
 	public Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems, AnalyzerConfig analyzerConfig) {
 		if (LAUNCH_CAN_BE_INDEXED.test(launch)) {
-			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(testItems);
+			List<IndexTestItem> rqTestItems = prepareItemsForIndexing(launch.getId(), testItems);
 			if (!CollectionUtils.isEmpty(rqTestItems)) {
 				return Optional.of(createIndexLaunch(launch.getProjectId(), launch.getId(), launch.getName(), analyzerConfig, rqTestItems));
 			}
@@ -73,19 +77,22 @@ public class LaunchPreparerService {
 	 * Creates {@link IndexTestItem} from suitable {@link TestItem}
 	 * for indexing with logs greater than {@link LogLevel#ERROR}
 	 *
+	 * @param launchId  {@link TestItem#getLaunchId()}
 	 * @param testItems Test item for preparing
 	 * @return Prepared list of {@link IndexTestItem} for indexing
 	 */
-	private List<IndexTestItem> prepareItemsForIndexing(List<TestItem> testItems) {
-		return testItems.stream()
-				.filter(ITEM_CAN_BE_INDEXED)
-				.map(it -> AnalyzerUtils.fromTestItem(it,
-						logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(it.getLaunchId(),
-								Collections.singletonList(it.getItemId()),
-								LogLevel.ERROR.toInt()
-						)
-				))
+	private List<IndexTestItem> prepareItemsForIndexing(Long launchId, List<TestItem> testItems) {
+		List<TestItem> itemsForIndexing = testItems.stream().filter(ITEM_CAN_BE_INDEXED).collect(toList());
+
+		Map<Long, List<Log>> logsMapping = logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
+				itemsForIndexing.stream().map(TestItem::getItemId).collect(toList()),
+				LogLevel.ERROR.toInt()
+		).stream().collect(groupingBy(l -> l.getTestItem().getItemId()));
+
+		return itemsForIndexing.stream()
+				.map(it -> AnalyzerUtils.fromTestItem(it, ofNullable(logsMapping.get(it.getItemId())).orElseGet(Collections::emptyList)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(toList());
+
 	}
 }

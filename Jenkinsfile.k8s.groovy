@@ -17,10 +17,13 @@ def setupJob(branch = 'develop', pollScm = "H/10 * * * *") {
     ])
 }
 
-def String readFile(String fName) {
-    echo "Reading file ${fName}"
-    result = sh(script: "cat $fName", returnStdout: true)
-    return propValue.trim()
+def String readSecretsDirectory(String dirName) {
+    echo "Reading directory ${dirName}"
+    String fileNames = sh(script: "ls -1 $dirName", returnStdout: true)
+    String [] fileList = fileNames.split('\\n')
+    return fileList.collect {
+        it + '='+ sh(script: "cat $dirName/$it", returnStdout: true).trim()
+    }
 }
 
 
@@ -61,8 +64,7 @@ podTemplate(
 
         // Set pipeline parameters and triggers
         setupJob('v5.1-stable')
-        def testSecrets = readFile('/etc/.test-secrets').replace(': ','=').split('\n')
-
+        def testSecrets = readSecretsDirectory('/etc/.test-secrets')
 
         def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"

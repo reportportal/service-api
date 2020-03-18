@@ -52,7 +52,7 @@ podTemplate(
     node("${label}") {
 
         // Set pipeline parameters and triggers
-        setupJob(branch: 'v5.1-stable')
+        setupJob('v5.1-stable')
 
         def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"

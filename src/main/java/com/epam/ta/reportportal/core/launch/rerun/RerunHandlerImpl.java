@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
+import com.epam.ta.reportportal.core.item.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -41,10 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;
@@ -62,15 +60,17 @@ public class RerunHandlerImpl implements RerunHandler {
 	private final TestItemRepository testItemRepository;
 	private final LaunchRepository launchRepository;
 	private final UniqueIdGenerator uniqueIdGenerator;
+	private final TestCaseHashGenerator testCaseHashGenerator;
 	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
-			MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
+			TestCaseHashGenerator testCaseHashGenerator, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
+		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
@@ -167,6 +167,9 @@ public class RerunHandlerImpl implements RerunHandler {
 		item.setPath(path);
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
+		}
+		if (Objects.isNull(item.getTestCaseId())) {
+			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
 		}
 	}
 

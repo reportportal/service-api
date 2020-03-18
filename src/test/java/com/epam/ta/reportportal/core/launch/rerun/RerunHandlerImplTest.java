@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.launch.rerun;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
+import com.epam.ta.reportportal.core.item.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -64,6 +65,9 @@ class RerunHandlerImplTest {
 
 	@Mock
 	private UniqueIdGenerator uniqueIdGenerator;
+
+	@Mock
+	private TestCaseHashGenerator testCaseHashGenerator;
 
 	@Mock
 	private MessageBus messageBus;

@@ -168,7 +168,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
 		}
-		if (Objects.isNull(item.getTestCaseId())) {
+		if (item.getTestCaseHash().equals(0) && Objects.isNull(item.getTestCaseId())) {
 			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
 		}
 	}

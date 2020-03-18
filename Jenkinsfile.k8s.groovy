@@ -62,6 +62,7 @@ podTemplate(
         // Set pipeline parameters and triggers
         setupJob('v5.1-stable')
         def testSecrets = readFile('/etc/.test-secrets').replace(': ','=').split('\n')
+        println(testSecrets)
 
 
         def sealightsTokenPath = "/etc/.sealights-token/token"

@@ -1,6 +1,22 @@
 #!groovy
 @Library('commons') _
 
+
+def setupJob(branch = 'develop', pollScm = "H/10 * * * *") {
+    def buildParams = [
+            string(name: 'COMMIT_HASH', defaultValue: branch, description: 'Commit Hash or branch name'),
+            booleanParam(name: 'ENABLE_SEALIGHTS', defaultValue: false, description: 'Enable Sealights plugin'),
+            string(name: 'JVM_ARGS', defaultValue: '-Xms2G -Xmx3g -DLOG_FILE=app.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp',
+                    description: 'JVM arguments which will be bypassed to command line. Do not put sealights arguments here.')
+    ]
+    properties([
+            pipelineTriggers([
+                    pollSCM(pollScm)
+            ]),
+            parameters(buildParams)
+    ])
+}
+
 //String podTemplateConcat = "${serviceName}-${buildNumber}-${uuid}"
 def label = "worker-${UUID.randomUUID().toString()}"
 println("label")
@@ -35,6 +51,9 @@ podTemplate(
 ) {
     node("${label}") {
 
+        // Set pipeline parameters and triggers
+        setupJob('v5.1-stable')
+
         def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
         def sealightsAgentUrl = "https://agents.sealights.co/sealights-java/sealights-java-latest.zip"
@@ -45,8 +64,7 @@ podTemplate(
         def testDir = "tests"
         def serviceName = "service-api"
         def sealightsDir = 'sealights'
-
-        def branchToBuild = params.get('COMMIT_HASH', 'develop')
+        def branchToBuild = params.get('COMMIT_HASH')
 
         parallel 'Checkout Infra': {
             stage('Checkout Infra') {
@@ -81,7 +99,6 @@ podTemplate(
 
         dockerUtil.init()
         helm.init()
-        util.scheduleRepoPoll()
 
         sast('reportportal_services_sast', 'rp/carrier/config.yaml', 'service-index', false)
 
@@ -89,7 +106,7 @@ podTemplate(
         def buildVersion = "BUILD-${env.BUILD_NUMBER}"
         def srvVersion = "${snapshotVersion}-${buildVersion}"
         def tag = "$srvRepo:$srvVersion"
-        def enableSealights = params.get('ENABLE_SEALIGHTS') != null && params.get('ENABLE_SEALIGHTS')
+        def enableSealights = params.get('ENABLE_SEALIGHTS')
 
         def sealightsToken = util.execStdout("cat $sealightsTokenPath")
         def sealightsSession = "";

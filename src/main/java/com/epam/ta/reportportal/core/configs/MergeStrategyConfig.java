@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.configs;
 
-import com.epam.ta.reportportal.core.item.impl.TestItemUniqueIdGenerator;
+import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.*;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;

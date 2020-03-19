@@ -20,8 +20,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
-import com.epam.ta.reportportal.core.item.TestCaseHashGenerator;
-import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
+import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
+import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -168,7 +168,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
 		}
-		if (item.getTestCaseHash().equals(0) && Objects.isNull(item.getTestCaseId())) {
+		if (Objects.isNull(item.getTestCaseId())) {
 			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
 		}
 	}

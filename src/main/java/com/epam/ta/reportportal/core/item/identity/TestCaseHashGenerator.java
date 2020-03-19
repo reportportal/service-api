@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.item;
+package com.epam.ta.reportportal.core.item.identity;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 

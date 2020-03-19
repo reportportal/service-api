@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.item.impl;
+package com.epam.ta.reportportal.core.item.identity;
 
-import com.epam.ta.reportportal.core.item.TestCaseHashGenerator;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,8 +31,11 @@ import java.util.List;
 @Service
 public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 
-	@Autowired
-	private TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
+
+	public TestCaseHashGeneratorImpl(TestItemRepository testItemRepository) {
+		this.testItemRepository = testItemRepository;
+	}
 
 	@Override
 	public Integer generate(TestItem item, Long projectId) {

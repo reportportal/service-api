@@ -31,6 +31,8 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -47,6 +49,7 @@ import static java.time.Duration.ofDays;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@Profile("!unittest")
 public class CleanLaunchesJob implements Job {
 
 	public static final int DEFAULT_THREAD_COUNT = 5;

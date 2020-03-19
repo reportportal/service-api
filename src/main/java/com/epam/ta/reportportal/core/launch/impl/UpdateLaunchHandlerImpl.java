@@ -104,12 +104,18 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
+
+		LaunchModeEnum previousMode = launch.getMode();
+
 		launch = new LaunchBuilder(launch).addMode(rq.getMode())
 				.addDescription(rq.getDescription())
 				.overwriteAttributes(rq.getAttributes())
 				.get();
 		launchRepository.save(launch);
-		reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
+
+		if (!previousMode.equals(launch.getMode())) {
+			reindexLogs(launch, AnalyzerUtils.getAnalyzerConfig(project), project.getId());
+		}
 		return new OperationCompletionRS("Launch with ID = '" + launch.getId() + "' successfully updated.");
 	}
 

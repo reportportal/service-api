@@ -71,8 +71,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 						}
 				))
 				.mapToLong(it -> {
-					if (Objects.nonNull(it) && it.getItems() != null) {
-						return it.getItems().size();
+					if (Objects.nonNull(it)) {
+						return it.getTook();
 					}
 					return 0;
 				})

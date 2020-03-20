@@ -477,8 +477,10 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 		return ofNullable(pluginManager.loadPlugin(Paths.get(pluginsDir, newPluginFileName))).map(newLoadedPluginId -> {
 			startUpPlugin(newLoadedPluginId);
 
-			IntegrationTypeBuilder integrationTypeBuilder = integrationTypeRepository.findByName(newLoadedPluginId)
-					.map(IntegrationTypeBuilder::new)
+			Optional<IntegrationType> oldIntegrationType = integrationTypeRepository.findByName(newPluginId);
+			oldIntegrationType.ifPresent(it -> deletePreviousPluginFile(it, fileId));
+
+			IntegrationTypeBuilder integrationTypeBuilder = oldIntegrationType.map(IntegrationTypeBuilder::new)
 					.orElseGet(IntegrationTypeBuilder::new);
 			integrationTypeBuilder.setName(newLoadedPluginId).setIntegrationGroup(IntegrationGroupEnum.OTHER);
 
@@ -578,6 +580,21 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 			throw new ReportPortalException(ErrorType.PLUGIN_REMOVE_ERROR,
 					Suppliers.formattedSupplier("Unable to delete the old plugin file with id = '{}'", previousPlugin.getPluginId()).get()
 			);
+		}
+	}
+
+	private void deletePreviousPluginFile(IntegrationType oldIntegrationType, String newFileId) {
+		try {
+			ofNullable(oldIntegrationType.getDetails()).flatMap(details -> ofNullable(details.getDetails()))
+					.flatMap(IntegrationTypeProperties.FILE_ID::getValue)
+					.map(String::valueOf)
+					.ifPresent(oldFileId -> {
+						if (!oldFileId.equals(newFileId)) {
+							pluginLoader.deleteFromDataStore(oldFileId);
+						}
+					});
+		} catch (Exception ex) {
+			LOGGER.error("Error during removing old plugin file from the Data store: {}", ex.getMessage());
 		}
 	}
 

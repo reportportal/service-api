@@ -17,6 +17,16 @@ def setupJob(branch = 'develop', pollScm = "H/10 * * * *") {
     ])
 }
 
+def String readSecretsDirectory(String dirName) {
+    echo "Reading directory ${dirName}"
+    String fileNames = sh(script: "ls -1 $dirName", returnStdout: true)
+    String [] fileList = fileNames.split('\\n')
+    return fileList.collect {
+        it + '='+ sh(script: "cat $dirName/$it", returnStdout: true).trim()
+    }
+}
+
+
 //String podTemplateConcat = "${serviceName}-${buildNumber}-${uuid}"
 def label = "worker-${UUID.randomUUID().toString()}"
 println("label")
@@ -46,6 +56,7 @@ podTemplate(
                 hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
                 secretVolume(mountPath: '/etc/.dockercreds', secretName: 'docker-creds'),
                 secretVolume(mountPath: '/etc/.sealights-token', secretName: 'sealights-token'),
+                secretVolume(mountPath: '/etc/.test-secrets', secretName: 'test-secrets'),
                 hostPathVolume(mountPath: '/root/.m2/repository', hostPath: '/tmp/jenkins/.m2/repository')
         ]
 ) {
@@ -53,6 +64,7 @@ podTemplate(
 
         // Set pipeline parameters and triggers
         setupJob('v5.1-stable')
+        def testSecrets = readSecretsDirectory('/etc/.test-secrets')
 
         def sealightsTokenPath = "/etc/.sealights-token/token"
         def srvRepo = "quay.io/reportportal/service-api"
@@ -154,13 +166,15 @@ podTemplate(
         def sealightsTokenFile = "sl-token.txt"
         def testPhase = "smoke"
         try {
-            stage('Smoke tests') {
-                dir("${testDir}") {
-                    container('jdk') {
-                        echo "Running RP integration tests on env: ${testEnv}"
-                        writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
-                        sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
-                        sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+            withEnv(testSecrets) {
+                stage('Smoke tests') {
+                    dir("${testDir}") {
+                        container('jdk') {
+                            echo "Running RP integration tests on env: ${testEnv}"
+                            writeFile(file: sealightsTokenFile, text: sealightsToken, encoding: "UTF-8")
+                            sh "echo 'rp.attributes=v5:${testEnv};' >> ${serviceName}/src/test/resources/reportportal.properties"
+                            sh "./gradlew :${serviceName}:${testPhase} -Denv=${testEnv} -Psl.tokenFile=${sealightsTokenFile} -Psl.buildSessionId=${sealightsSession}"
+                        }
                     }
                 }
             }

@@ -84,23 +84,18 @@ public class PluginLoaderImpl implements PluginLoader {
 	@Override
 	public IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo) {
 
-		IntegrationTypeDetails pluginDetails = integrationTypeRepository.findByName(pluginInfo.getId())
+		integrationTypeRepository.findByName(pluginInfo.getId())
 				.flatMap(it -> ofNullable(it.getDetails()))
-				.map(typeDetails -> {
-					IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails())
-							.map(String::valueOf)
-							.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
-									.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-											Suppliers.formattedSupplier(
-													"Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
-													pluginInfo.getId(),
-													pluginInfo.getVersion()
-											)
-									));
-					return typeDetails;
-				})
-				.orElseGet(IntegrationTypeBuilder::createIntegrationTypeDetails);
+				.flatMap(typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails()).map(String::valueOf))
+				.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
+						.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
+								Suppliers.formattedSupplier("Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
+										pluginInfo.getId(),
+										pluginInfo.getVersion()
+								)
+						));
 
+		IntegrationTypeDetails pluginDetails = IntegrationTypeBuilder.createIntegrationTypeDetails();
 		IntegrationTypeProperties.VERSION.setValue(pluginDetails, pluginInfo.getVersion());
 		return pluginDetails;
 	}

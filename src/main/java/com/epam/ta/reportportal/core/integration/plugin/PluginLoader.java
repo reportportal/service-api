@@ -100,14 +100,6 @@ public interface PluginLoader {
 	void copyPluginResource(Path pluginPath, Path resourcesTargetPath) throws IOException, ReportPortalException;
 
 	/**
-	 * Remove old plugin file, if it wasn't replaced by the new one during the plugin uploading
-	 *
-	 * @param previousPlugin    {@link PluginWrapper} with info about the previous plugin
-	 * @param newPluginFileName New plugin file name
-	 */
-	void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName) throws IOException;
-
-	/**
 	 * Remove the plugin file from the temporary directory and file name from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
 	 *
 	 * @param pluginFileDirectory Path to the temporary directory with the plugin file

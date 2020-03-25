@@ -20,7 +20,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
-import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
+import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
+import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -41,10 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;
@@ -62,15 +60,17 @@ public class RerunHandlerImpl implements RerunHandler {
 	private final TestItemRepository testItemRepository;
 	private final LaunchRepository launchRepository;
 	private final UniqueIdGenerator uniqueIdGenerator;
+	private final TestCaseHashGenerator testCaseHashGenerator;
 	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
-			MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
+			TestCaseHashGenerator testCaseHashGenerator, MessageBus messageBus, ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
+		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
@@ -105,11 +105,7 @@ public class RerunHandlerImpl implements RerunHandler {
 	public Optional<ItemCreatedRS> handleRootItem(StartTestItemRQ request, Launch launch) {
 		Optional<TestItem> itemOptional = testItemRepository.findByNameAndLaunchWithoutParents(request.getName(), launch.getId());
 
-		if (!itemOptional.isPresent()) {
-			return Optional.empty();
-		}
-
-		if (!isParametersEqual(request.getParameters(), itemOptional.get().getParameters())) {
+		if (itemOptional.isEmpty() || isParametersNotEqual(request.getParameters(), itemOptional.get().getParameters())) {
 			return Optional.empty();
 		}
 
@@ -124,11 +120,7 @@ public class RerunHandlerImpl implements RerunHandler {
 				parent.getPath()
 		);
 
-		if (!itemOptional.isPresent()) {
-			return Optional.empty();
-		}
-
-		if (!isParametersEqual(request.getParameters(), itemOptional.get().getParameters())) {
+		if (itemOptional.isEmpty() || isParametersNotEqual(request.getParameters(), itemOptional.get().getParameters())) {
 			return Optional.empty();
 		}
 
@@ -136,20 +128,21 @@ public class RerunHandlerImpl implements RerunHandler {
 		return Optional.of(new ItemCreatedRS(item.getUuid(), item.getUniqueId()));
 	}
 
-	private boolean isParametersEqual(List<ParameterResource> fromRequest, Set<Parameter> stored) {
+	private boolean isParametersNotEqual(List<ParameterResource> fromRequest, Set<Parameter> stored) {
 		Set<Parameter> requestParameters = ofNullable(fromRequest).map(it -> it.stream().map(TO_MODEL).collect(Collectors.toSet()))
 				.orElse(Collections.emptySet());
-		return stored.equals(requestParameters);
+		return !stored.equals(requestParameters);
 	}
 
 	private TestItem handleRerun(StartTestItemRQ request, Launch launch, TestItem testItem, TestItem parent) {
 		TestItem item;
 		item = testItem;
-		item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		item.setDescription(request.getDescription());
 		if (item.getType().sameLevel(STEP)) {
 			eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
 			item = makeRetry(request, launch, parent);
+		} else {
+			item.getItemResults().setStatus(StatusEnum.IN_PROGRESS);
 		}
 		ofNullable(request.getUuid()).ifPresent(item::setUuid);
 		return item;
@@ -174,6 +167,9 @@ public class RerunHandlerImpl implements RerunHandler {
 		item.setPath(path);
 		if (null == item.getUniqueId()) {
 			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
+		}
+		if (Objects.isNull(item.getTestCaseId())) {
+			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
 		}
 	}
 

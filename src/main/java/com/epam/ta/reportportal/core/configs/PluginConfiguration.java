@@ -25,6 +25,7 @@ import org.pf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,20 +48,28 @@ public class PluginConfiguration {
 	@Autowired
 	private IntegrationTypeRepository integrationTypeRepository;
 
+	@Autowired
+	private ApplicationEventPublisher applicationEventPublisher;
+
 	@Value("${rp.plugins.path}")
 	private String pluginsPath;
 
 	@Value("${rp.plugins.temp.path}")
 	private String pluginsTempPath;
 
+	@Value("${rp.plugins.resources.path}")
+	private String pluginsResourcesPath;
+
 	@Bean
 	public Pf4jPluginBox pf4jPluginBox() throws IOException {
 		Pf4jPluginManager pluginManager = new Pf4jPluginManager(pluginsPath,
 				pluginsTempPath,
+				pluginsResourcesPath,
 				pluginLoader,
 				integrationTypeRepository,
 				pluginManager(),
-				context
+				context,
+				applicationEventPublisher
 		);
 		pluginManager.startUp();
 		return pluginManager;
@@ -77,7 +86,7 @@ public class PluginConfiguration {
 
 			@Override
 			protected ExtensionFactory createExtensionFactory() {
-				return new ReportPortalExtensionFactory(this, context);
+				return new ReportPortalExtensionFactory(pluginsResourcesPath, this, context);
 			}
 
 			@Override

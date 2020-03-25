@@ -290,6 +290,32 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void finishTestItemWithLinkedTickets() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setBtsProject("project");
+		ticket.setTicketId("ticket1");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+	@Test
 	void linkExternalIssues() throws Exception {
 		LinkExternalIssueRQ rq = new LinkExternalIssueRQ();
 		rq.setTestItemIds(Collections.singletonList(3L));
@@ -391,7 +417,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -446,7 +473,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		updatedItem = testItemRepository.findById(11L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(TestItemIssueGroup.PRODUCT_BUG,
+		assertEquals(
+				TestItemIssueGroup.PRODUCT_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -490,7 +518,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(TestItemIssueGroup.AUTOMATION_BUG,
+		assertEquals(
+				TestItemIssueGroup.AUTOMATION_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -514,7 +543,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -582,7 +612,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
@@ -606,7 +637,8 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(
+				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());

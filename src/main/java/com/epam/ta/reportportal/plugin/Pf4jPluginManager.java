@@ -617,7 +617,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	/**
 	 * Load and start up the previous plugin
 	 *
-	 * @param previousPlugin {@link PluginWrapper} with mandatory data for plugin loading: {@link PluginWrapper#getPluginPath()}
+	 * @param previousPlugin   {@link PluginWrapper} with mandatory data for plugin loading: {@link PluginWrapper#getPluginPath()}
+	 * @param newPluginDetails {@link IntegrationTypeDetails} of the plugin which uploading ended up with an error
 	 * @return {@link PluginState}
 	 */
 	private PluginState loadPreviousPlugin(PluginWrapper previousPlugin, IntegrationTypeDetails newPluginDetails) {

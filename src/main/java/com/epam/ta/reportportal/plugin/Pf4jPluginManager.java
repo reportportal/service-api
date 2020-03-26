@@ -128,8 +128,36 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	}
 
 	@Override
+	public <T> Optional<T> getInstance(String name, Class<T> extension) {
+		return pluginManager.getExtensions(extension, name).stream().findFirst();
+	}
+
+	@Override
 	public <T> Optional<T> getInstance(Class<T> extension) {
 		return pluginManager.getExtensions(extension).stream().findFirst();
+	}
+
+	@Override
+	public void startUp() {
+		// load and start all enabled plugins of application
+		integrationTypeRepository.findAll()
+				.stream()
+				.filter(IntegrationType::isEnabled)
+				.forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(integrationTypeDetails -> {
+					try {
+						loadPlugin(integrationType.getName(), integrationTypeDetails);
+					} catch (Exception ex) {
+						LOGGER.error("Unable to load plugin '{}'", integrationType.getName());
+					}
+				}));
+
+	}
+
+	@Override
+	public void shutDown() {
+		// stop and unload all plugins
+		pluginManager.stopPlugins();
+		pluginManager.getPlugins().forEach(p -> pluginManager.unloadPlugin(p.getPluginId()));
 	}
 
 	@Override
@@ -194,16 +222,10 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 		}
 	}
 
+	@Override
 	public boolean unloadPlugin(IntegrationType integrationType) {
 		destroyDependency(integrationType.getName());
 		return pluginManager.unloadPlugin(integrationType.getName());
-	}
-
-	private void destroyDependency(String name) {
-		AbstractAutowireCapableBeanFactory beanFactory = (AbstractAutowireCapableBeanFactory) this.autowireCapableBeanFactory;
-		if (beanFactory.containsSingleton(name)) {
-			beanFactory.destroySingleton(name);
-		}
 	}
 
 	@Override
@@ -281,34 +303,6 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	}
 
 	@Override
-	public <T> Optional<T> getInstance(String name, Class<T> extension) {
-		return pluginManager.getExtensions(extension, name).stream().findFirst();
-	}
-
-	@Override
-	public void startUp() {
-		// load and start all enabled plugins of application
-		integrationTypeRepository.findAll()
-				.stream()
-				.filter(IntegrationType::isEnabled)
-				.forEach(integrationType -> ofNullable(integrationType.getDetails()).ifPresent(integrationTypeDetails -> {
-					try {
-						loadPlugin(integrationType.getName(), integrationTypeDetails);
-					} catch (Exception ex) {
-						LOGGER.error("Unable to load plugin '{}'", integrationType.getName());
-					}
-				}));
-
-	}
-
-	@Override
-	public void shutDown() {
-		// stop and unload all plugins
-		pluginManager.stopPlugins();
-		pluginManager.getPlugins().forEach(p -> pluginManager.unloadPlugin(p.getPluginId()));
-	}
-
-	@Override
 	public IntegrationType uploadPlugin(final String uploadedPluginName, final InputStream fileStream) {
 		PluginInfo newPluginInfo = resolvePluginInfo(uploadedPluginName, fileStream);
 		IntegrationTypeDetails pluginDetails = pluginLoader.resolvePluginDetails(newPluginInfo);
@@ -336,32 +330,6 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 					Suppliers.formattedSupplier("Failed to load new plugin from file = '{}'", uploadedPluginName).get()
 			);
 		});
-	}
-
-	/**
-	 * Validates the new plugin in the temporary plugins' directory, uploads it to the root plugins' directory and to the {@link DataStore}
-	 *
-	 * @param newPluginInfo      Resolved {@link PluginInfo} of the new plugin
-	 * @param uploadedPluginName Original plugin file name
-	 * @param pluginDetails      {@link IntegrationTypeDetails} with the info about the new plugin
-	 * @return updated {@link IntegrationTypeDetails}
-	 */
-	private IntegrationTypeDetails copyPlugin(PluginInfo newPluginInfo, IntegrationTypeDetails pluginDetails, String uploadedPluginName) {
-		String newPluginId = newPluginInfo.getId();
-		startUpPlugin(newPluginId);
-		validateNewPluginExtensionClasses(newPluginId, uploadedPluginName);
-		pluginManager.unloadPlugin(newPluginId);
-
-		final String newPluginFileName = generatePluginFileName(newPluginInfo, uploadedPluginName);
-		IntegrationTypeProperties.FILE_NAME.setValue(pluginDetails, newPluginFileName);
-
-		final String fileId = savePlugin(uploadedPluginName, newPluginFileName);
-		IntegrationTypeProperties.FILE_ID.setValue(pluginDetails, fileId);
-
-		copyPluginToRootDirectory(newPluginId, fileId, newPluginFileName);
-		removeUploadingPlugin(uploadedPluginName);
-
-		return pluginDetails;
 	}
 
 	/**
@@ -456,22 +424,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 		uploadingPlugins.put(fileName, path);
 	}
 
-	/**
-	 * Remove plugin file name from the uploading plugins holder
-	 *
-	 * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
-	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
-	 */
-	private void removeUploadingPlugin(String fileName) {
-		uploadingPlugins.invalidate(fileName);
-	}
-
 	private boolean validatePluginMetaInfo(PluginInfo newPluginInfo) {
 		return ofNullable(newPluginInfo.getVersion()).map(StringUtils::isNotBlank).orElse(Boolean.FALSE);
-	}
-
-	private String generatePluginFileName(PluginInfo pluginInfo, final String originalFileName) {
-		return pluginInfo.getId() + "-" + pluginInfo.getVersion() + "." + FilenameUtils.getExtension(originalFileName);
 	}
 
 	private void unloadPreviousPlugin(PluginWrapper pluginWrapper) {
@@ -481,6 +435,115 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 					Suppliers.formattedSupplier("Failed to stop old plugin with id = '{}'", pluginWrapper.getPluginId()).get()
 			);
 		}
+	}
+
+	private void destroyDependency(String name) {
+		AbstractAutowireCapableBeanFactory beanFactory = (AbstractAutowireCapableBeanFactory) this.autowireCapableBeanFactory;
+		if (beanFactory.containsSingleton(name)) {
+			beanFactory.destroySingleton(name);
+		}
+	}
+
+	/**
+	 * Validates the new plugin in the temporary plugins' directory, uploads it to the root plugins' directory and to the {@link DataStore}
+	 *
+	 * @param newPluginInfo      Resolved {@link PluginInfo} of the new plugin
+	 * @param uploadedPluginName Original plugin file name
+	 * @param pluginDetails      {@link IntegrationTypeDetails} with the info about the new plugin
+	 * @return updated {@link IntegrationTypeDetails}
+	 */
+	private IntegrationTypeDetails copyPlugin(PluginInfo newPluginInfo, IntegrationTypeDetails pluginDetails, String uploadedPluginName) {
+		String newPluginId = newPluginInfo.getId();
+		startUpPlugin(newPluginId);
+		validateNewPluginExtensionClasses(newPluginId, uploadedPluginName);
+		pluginManager.unloadPlugin(newPluginId);
+
+		final String newPluginFileName = generatePluginFileName(newPluginInfo, uploadedPluginName);
+		IntegrationTypeProperties.FILE_NAME.setValue(pluginDetails, newPluginFileName);
+
+		final String fileId = savePlugin(uploadedPluginName, newPluginFileName);
+		IntegrationTypeProperties.FILE_ID.setValue(pluginDetails, fileId);
+
+		copyPluginToRootDirectory(newPluginId, fileId, newPluginFileName);
+		removeUploadingPlugin(uploadedPluginName);
+
+		return pluginDetails;
+	}
+
+	/**
+	 * Validates plugin's extension class/classes and reloads the previous plugin if it is present and the validation failed
+	 *
+	 * @param newPluginId       Id of the new plugin
+	 * @param newPluginFileName New plugin file name
+	 * @see PluginLoader#validatePluginExtensionClasses(PluginWrapper))
+	 */
+	private void validateNewPluginExtensionClasses(String newPluginId, String newPluginFileName) {
+		PluginWrapper newPlugin = getPluginById(newPluginId).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+				Suppliers.formattedSupplier("Plugin with id = '{}' has not been found.", newPluginId).get()
+		));
+		if (!pluginLoader.validatePluginExtensionClasses(newPlugin)) {
+			pluginManager.unloadPlugin(newPluginId);
+			deleteTempPlugin(newPluginFileName);
+
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+					Suppliers.formattedSupplier("New plugin with id = '{}' doesn't have mandatory extension classes.", newPluginId).get()
+			);
+
+		}
+	}
+
+	private void deleteTempPlugin(String tempPluginFileName) {
+		try {
+			pluginLoader.deleteTempPlugin(pluginsTempDir, tempPluginFileName);
+		} catch (IOException e) {
+			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
+			LOGGER.error("Error during temp plugin file removing: '{}'", e.getMessage());
+		} finally {
+			removeUploadingPlugin(tempPluginFileName);
+		}
+	}
+
+	private String generatePluginFileName(PluginInfo pluginInfo, final String originalFileName) {
+		return pluginInfo.getId() + "-" + pluginInfo.getVersion() + "." + FilenameUtils.getExtension(originalFileName);
+	}
+
+	/**
+	 * Saves plugin file to the instance of the configured {@link DataStore}
+	 *
+	 * @param uploadedPluginName Original plugin file name
+	 * @param newPluginFileName  New plugin file name
+	 * @return File id
+	 */
+	private String savePlugin(final String uploadedPluginName, final String newPluginFileName) {
+		try (InputStream fileStream = FileUtils.openInputStream(FileUtils.getFile(pluginsTempDir, uploadedPluginName))) {
+			return pluginLoader.saveToDataStore(newPluginFileName, fileStream);
+		} catch (Exception e) {
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+					Suppliers.formattedSupplier("Unable to upload new plugin file = '{}' to the data store", uploadedPluginName).get()
+			);
+		}
+	}
+
+	private void copyPluginToRootDirectory(final String newPluginId, final String fileId, final String newPluginFileName) {
+		try {
+			pluginLoader.copyFromDataStore(fileId, Paths.get(pluginsDir, newPluginFileName), Paths.get(resourcesDir, newPluginId));
+		} catch (IOException e) {
+			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
+					Suppliers.formattedSupplier("Unable to copy new plugin file = '{}' from the data store to the root directory",
+							newPluginFileName
+					).get()
+			);
+		}
+	}
+
+	/**
+	 * Remove plugin file name from the uploading plugins holder
+	 *
+	 * @param fileName Name of the plugin file to remove from the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
+	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
+	 */
+	private void removeUploadingPlugin(String fileName) {
+		uploadingPlugins.invalidate(fileName);
 	}
 
 	/**
@@ -529,76 +592,6 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
 	}
 
-	/**
-	 * Validates plugin's extension class/classes and reloads the previous plugin if it is present and the validation failed
-	 *
-	 * @param newPluginId       Id of the new plugin
-	 * @param newPluginFileName New plugin file name
-	 * @see PluginLoader#validatePluginExtensionClasses(PluginWrapper))
-	 */
-	private void validateNewPluginExtensionClasses(String newPluginId, String newPluginFileName) {
-		PluginWrapper newPlugin = getPluginById(newPluginId).orElseThrow(() -> new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-				Suppliers.formattedSupplier("Plugin with id = '{}' has not been found.", newPluginId).get()
-		));
-		if (!pluginLoader.validatePluginExtensionClasses(newPlugin)) {
-			pluginManager.unloadPlugin(newPluginId);
-			deleteTempPlugin(newPluginFileName);
-
-			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("New plugin with id = '{}' doesn't have mandatory extension classes.", newPluginId).get()
-			);
-
-		}
-	}
-
-	private void deleteTempPlugin(String tempPluginFileName) {
-		try {
-			pluginLoader.deleteTempPlugin(pluginsTempDir, tempPluginFileName);
-		} catch (IOException e) {
-			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
-			LOGGER.error("Error during temp plugin file removing: '{}'", e.getMessage());
-		} finally {
-			removeUploadingPlugin(tempPluginFileName);
-		}
-	}
-
-	/**
-	 * Saves plugin file to the instance of the configured {@link DataStore}
-	 *
-	 * @param uploadedPluginName Original plugin file name
-	 * @param newPluginFileName  New plugin file name
-	 * @return File id
-	 */
-	private String savePlugin(final String uploadedPluginName, final String newPluginFileName) {
-		try (InputStream fileStream = FileUtils.openInputStream(FileUtils.getFile(pluginsTempDir, uploadedPluginName))) {
-			return pluginLoader.saveToDataStore(newPluginFileName, fileStream);
-		} catch (Exception e) {
-			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("Unable to upload new plugin file = '{}' to the data store", uploadedPluginName).get()
-			);
-		}
-	}
-
-	private void copyPluginToRootDirectory(final String newPluginId, final String fileId, final String newPluginFileName) {
-		try {
-			pluginLoader.copyFromDataStore(fileId, Paths.get(pluginsDir, newPluginFileName), Paths.get(resourcesDir, newPluginId));
-		} catch (IOException e) {
-			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("Unable to copy new plugin file = '{}' from the data store to the root directory",
-							newPluginFileName
-					).get()
-			);
-		}
-	}
-
-	private void deletePreviousPlugin(PluginWrapper previousPlugin) {
-		try {
-			Files.deleteIfExists(previousPlugin.getPluginPath());
-		} catch (IOException e) {
-			LOGGER.error("Unable to delete the old plugin file with id = '{}'", previousPlugin.getPluginId());
-		}
-	}
-
 	private void deletePreviousPluginFile(IntegrationType oldIntegrationType, String newFileId) {
 		try {
 			ofNullable(oldIntegrationType.getDetails()).flatMap(details -> ofNullable(details.getDetails()))
@@ -611,6 +604,14 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 					});
 		} catch (Exception ex) {
 			LOGGER.error("Error during removing old plugin file from the Data store: {}", ex.getMessage());
+		}
+	}
+
+	private void deletePreviousPlugin(PluginWrapper previousPlugin) {
+		try {
+			Files.deleteIfExists(previousPlugin.getPluginPath());
+		} catch (IOException e) {
+			LOGGER.error("Unable to delete the old plugin file with id = '{}'", previousPlugin.getPluginId());
 		}
 	}
 

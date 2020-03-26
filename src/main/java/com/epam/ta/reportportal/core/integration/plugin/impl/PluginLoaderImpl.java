@@ -169,13 +169,6 @@ public class PluginLoaderImpl implements PluginLoader {
 	}
 
 	@Override
-	public void deletePreviousPlugin(PluginWrapper previousPlugin, String newPluginFileName) throws IOException {
-		if (!previousPlugin.getPluginPath().equals(Paths.get(pluginsRootPath, newPluginFileName))) {
-			Files.deleteIfExists(previousPlugin.getPluginPath());
-		}
-	}
-
-	@Override
 	public void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) throws IOException {
 		Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
 	}

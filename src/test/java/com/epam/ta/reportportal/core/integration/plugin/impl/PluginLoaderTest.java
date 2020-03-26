@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -104,14 +103,6 @@ class PluginLoaderTest {
 		boolean isValid = pluginLoader.validatePluginExtensionClasses(pluginWrapper);
 
 		assertFalse(isValid);
-	}
-
-	@Test
-	void shouldDeletePluginWhenPathsEqual() throws IOException {
-
-		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(PLUGIN_ROOT_PATH, FILE_NAME));
-
-		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
 	}
 
 	@Test

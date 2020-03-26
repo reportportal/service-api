@@ -52,7 +52,7 @@ public class CreatePluginHandlerTest {
 
 	private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginBox, applicationEventPublisher);
+	private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginBox);
 
 	@Test
 	void shouldUploadPluginWhenValid() throws IOException {

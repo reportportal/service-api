@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
-import com.epam.reportportal.extension.event.PluginLoadedEvent;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
@@ -26,7 +25,6 @@ import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,12 +39,9 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 	private final Pf4jPluginBox pluginBox;
 
-	private final ApplicationEventPublisher applicationEventPublisher;
-
 	@Autowired
-	public CreatePluginHandlerImpl(Pf4jPluginBox pluginBox, ApplicationEventPublisher applicationEventPublisher) {
+	public CreatePluginHandlerImpl(Pf4jPluginBox pluginBox) {
 		this.pluginBox = pluginBox;
-		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -59,7 +54,6 @@ public class CreatePluginHandlerImpl implements CreatePluginHandler {
 
 		try (InputStream inputStream = pluginFile.getInputStream()) {
 			IntegrationType integrationType = pluginBox.uploadPlugin(newPluginFileName, inputStream);
-			applicationEventPublisher.publishEvent(new PluginLoadedEvent(integrationType.getName()));
 			return new EntryCreatedRS(integrationType.getId());
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, "Error during file stream retrieving");

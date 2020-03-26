@@ -22,17 +22,21 @@ import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -48,6 +52,7 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
 
 	@Override
 	public void linkExternalTickets(String submitter, List<IssueEntity> issueEntities, List<Issue.ExternalSystemIssue> tickets) {
+		tickets.forEach(this::validateTicket);
 		List<Ticket> existedTickets = collectExistedTickets(tickets);
 		Set<Ticket> ticketsFromRq = collectTickets(tickets, submitter);
 		linkTickets(issueEntities, existedTickets, ticketsFromRq);
@@ -65,12 +70,24 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
 
 	@Override
 	public void updateLinking(String submitter, IssueEntity issueEntity, Set<Issue.ExternalSystemIssue> externalTickets) {
-		ofNullable(externalTickets).ifPresent(issues -> {
-			Set<Ticket> tickets = collectTickets(issues, submitter);
-			issueEntity.getTickets().removeIf(it -> !tickets.contains(it));
-			issueEntity.getTickets().addAll(tickets);
-			tickets.stream().filter(it -> CollectionUtils.isEmpty(it.getIssues())).forEach(it -> it.getIssues().add(issueEntity));
+		ofNullable(externalTickets).ifPresent(tickets -> {
+			tickets.forEach(this::validateTicket);
+			Set<Ticket> existedTickets = collectTickets(tickets, submitter);
+			issueEntity.getTickets().removeIf(it -> !existedTickets.contains(it));
+			issueEntity.getTickets().addAll(existedTickets);
+			existedTickets.stream().filter(it -> CollectionUtils.isEmpty(it.getIssues())).forEach(it -> it.getIssues().add(issueEntity));
 		});
+	}
+
+	private void validateTicket(Issue.ExternalSystemIssue ticket) {
+		expect(StringUtils.isEmpty(ticket.getTicketId()), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"Ticket id should not be empty"
+		);
+		expect(StringUtils.isEmpty(ticket.getBtsUrl()), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, "Bts url should not be empty");
+		expect(StringUtils.isEmpty(ticket.getUrl()), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR, "Ticket url should not be empty");
+		expect(StringUtils.isEmpty(ticket.getBtsProject()), equalTo(false)).verify(ErrorType.BAD_REQUEST_ERROR,
+				"Bts project should not be empty"
+		);
 	}
 
 	/**

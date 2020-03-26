@@ -290,6 +290,129 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void finishTestItemWithLinkedTicketsBadTicketId() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setBtsProject("project");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadBtsUrl() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsProject("project");
+		ticket.setTicketId("ticket1");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadBtsProject() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setTicketId("ticket1");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadUrl() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setBtsProject("project");
+		ticket.setTicketId("ticket1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void finishTestItemWithEmptyLinkedTickets() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet());
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+
+	@Test
 	void finishTestItemWithLinkedTickets() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
 		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");

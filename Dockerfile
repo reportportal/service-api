@@ -9,7 +9,7 @@ ENV APP_DOWNLOAD_URL=https://dl.bintray.com/epam/reportportal/com/epam/reportpor
 
 RUN apk add --no-cache ca-certificates font-noto && \
     # Create start.sh script
-    echo '#!/bin/sh \n exec java ${JAVA_OPTS} -jar ${APP_FILE}' > /start.sh && \
+    echo $'#!/bin/sh \n exec java ${JAVA_OPTS} -jar ${APP_FILE}' > /start.sh && \
     chmod +x /start.sh && \
     # Download application
     wget -O /${APP_FILE} ${APP_DOWNLOAD_URL}

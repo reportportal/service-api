@@ -50,8 +50,7 @@ LABEL description="ReportPortal API Service: Development Version"
 RUN apt-get update && \
     apt-get install fonts-noto-core -y
 
-RUN echo '#!/bin/sh \n\
-exec java ${JAVA_OPTS} -jar ${JAVA_APP}' > /start.sh && chmod +x /start.sh
+RUN echo $'#!/bin/sh \n exec java ${JAVA_OPTS} -jar ${APP_FILE}' > /start.sh && chmod +x /start.sh
 
 # Set default JAVA_OPTS and JAVA_APP
 ENV JAVA_OPTS="-DLOG_FILE=app.log -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"

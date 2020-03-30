@@ -13,9 +13,9 @@ COPY --chown=rp-builder gradle/ ./gradle/
 COPY --chown=rp-builder gradlew*  ./
 RUN ./gradlew wrapper
 
-ARG buildNumber
-ARG sealightsSession
-ARG sealightsToken
+ARG buildNumber=0.0.1-SNAPSHOT
+ARG sealightsSession=
+ARG sealightsToken=
 
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
@@ -47,14 +47,15 @@ LABEL maintainer="Andrei Varabyeu <andrei_varabyeu@epam.com>"
 LABEL version=${version}
 LABEL description="ReportPortal API Service: Development Version"
 
-ENV JAVA_OPTS="-DLOG_FILE=app.log -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
-ENV JAVA_APP=/app/app.jar
-
 RUN apt-get update && \
     apt-get install fonts-noto-core -y
 
-RUN sh -c "echo $'#!/bin/sh \n\
-exec java \$JAVA_OPTS -jar \$JAVA_APP' > /start.sh && chmod +x /start.sh"
+RUN echo '#!/bin/sh \n exec java ${JAVA_OPTS} -jar ${APP_FILE}' > /start.sh && \
+    chmod +x /start.sh
+
+# Set default JAVA_OPTS and APP_FILE
+ENV JAVA_OPTS="-DLOG_FILE=app.log -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -Djava.security.egd=file:/dev/./urandom -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+ENV APP_FILE=/app/app.jar
 
 VOLUME /tmp
 
@@ -62,9 +63,9 @@ RUN mkdir plugins app
 COPY --from=builder /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
 COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 
-COPY --from=builder /home/rp-builder/build/libs/app.jar /app/
+COPY --from=builder /home/rp-builder/build/libs/app.jar $APP_FILE
 
-RUN sh -c "touch $JAVA_APP"
+RUN sh -c "touch $APP_FILE"
 
 EXPOSE 8080
 ENTRYPOINT /start.sh

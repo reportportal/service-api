@@ -34,12 +34,12 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
-import com.google.common.base.Charsets;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,11 +48,11 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
-import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.HASH_FUNCTION;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
@@ -72,9 +72,12 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final UserBinaryDataService userBinaryDataService;
 
+	private final PasswordEncoder passwordEncoder;
+
 	@Autowired
-	public EditUserHandlerImpl(UserRepository userRepository, ProjectRepository projectRepository,
+	public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProjectRepository projectRepository,
 			UserBinaryDataService userBinaryDataService) {
+		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.userBinaryDataService = userBinaryDataService;
@@ -150,26 +153,27 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	}
 
 	@Override
-	public OperationCompletionRS changePassword(ReportPortalUser loggedInUser, ChangePasswordRQ changePasswordRQ) {
+	public OperationCompletionRS changePassword(ReportPortalUser loggedInUser, ChangePasswordRQ request) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
 		expect(user.getUserType(), equalTo(INTERNAL)).verify(FORBIDDEN_OPERATION, "Impossible to change password for external users.");
-
-		expect(user.getPassword(), equalTo(HASH_FUNCTION.hashString(changePasswordRQ.getOldPassword(), Charsets.UTF_8).toString())).verify(FORBIDDEN_OPERATION,
+		expect(passwordEncoder.matches(request.getOldPassword(), user.getPassword()), Predicate.isEqual(true)).verify(FORBIDDEN_OPERATION,
 				"Old password not match with stored."
 		);
-		user.setPassword(HASH_FUNCTION.hashString(changePasswordRQ.getNewPassword(), Charsets.UTF_8).toString());
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		userRepository.save(user);
 		return new OperationCompletionRS("Password has been changed successfully");
 	}
 
 	private void validatePhoto(MultipartFile file) throws IOException {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
+		//TODO investigate stream closing requirement
 		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
 		String subtype = mediaType.getSubtype();
 		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
 				"Image format should be " + ImageFormat.getValues()
 		);
+		//TODO investigate stream closing requirement
 		BufferedImage read = ImageIO.read(file.getInputStream());
 		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED,
 				"Image size should be 300x500px or less"

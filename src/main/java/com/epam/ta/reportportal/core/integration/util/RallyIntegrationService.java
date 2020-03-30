@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,9 +40,13 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
 @Service
 public class RallyIntegrationService extends AbstractBtsIntegrationService {
 
+	private BasicTextEncryptor basicTextEncryptor;
+
 	@Autowired
-	public RallyIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox) {
+	public RallyIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
+			BasicTextEncryptor basicTextEncryptor) {
 		super(integrationRepository, pluginBox);
+		this.basicTextEncryptor = basicTextEncryptor;
 	}
 
 	@Override
@@ -55,12 +60,9 @@ public class RallyIntegrationService extends AbstractBtsIntegrationService {
 					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
 
 			if (AuthType.OAUTH.equals(authType)) {
-				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(),
-						BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
-								.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-										"AccessKey value cannot be NULL"
-								))
-				);
+				final String encryptedAccessKey = basicTextEncryptor.encrypt(BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
+						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "AccessKey value cannot be NULL")));
+				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), encryptedAccessKey);
 			} else {
 				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						"Unsupported auth type for Rally integration - " + authType.name()

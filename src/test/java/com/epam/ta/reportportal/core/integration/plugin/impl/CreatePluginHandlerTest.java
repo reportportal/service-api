@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -29,8 +30,7 @@ import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -50,6 +50,8 @@ public class CreatePluginHandlerTest {
 
 	private final InputStream inputStream = mock(InputStream.class);
 
+	private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
+
 	private final CreatePluginHandler createPluginHandler = new CreatePluginHandlerImpl(pluginBox);
 
 	@Test
@@ -62,7 +64,9 @@ public class CreatePluginHandlerTest {
 		when(pluginInfo.getId()).thenReturn(PLUGIN_ID);
 		when(pluginInfo.getVersion()).thenReturn(PLUGIN_VERSION);
 
+		doNothing().when(applicationEventPublisher).publishEvent(any());
 		when(pluginBox.uploadPlugin(FILE_NAME, inputStream)).thenReturn(IntegrationTestUtil.getJiraIntegrationType());
+
 
 		EntryCreatedRS entryCreatedRS = createPluginHandler.uploadPlugin(multipartFile);
 

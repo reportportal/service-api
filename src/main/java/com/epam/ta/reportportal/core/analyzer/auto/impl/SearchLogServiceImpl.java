@@ -108,6 +108,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 		searchRq.setFilteredLaunchIds(searchCollectorFactory.getCollector(searchMode).collect(request.getFilterId(), launch));
 
+		//TODO fix query - select messages from `Nested Step` descendants too
 		List<String> logMessages = logRepository.findMessagesByItemIdAndLevelGte(item.getItemId(), LogLevel.ERROR_INT);
 		if (CollectionUtils.isEmpty(logMessages)) {
 			return Optional.empty();
@@ -155,7 +156,13 @@ public class SearchLogServiceImpl implements SearchLogService {
 				.collect(toSet()));
 		response.setDuration(log.getTestItem().getItemResults().getDuration());
 		response.setStatus(log.getTestItem().getItemResults().getStatus().name());
-		response.setIssue(IssueConverter.TO_MODEL.apply(log.getTestItem().getItemResults().getIssue()));
+
+		TestItem itemWithStats = log.getTestItem();
+		while (!itemWithStats.isHasStats()) {
+			itemWithStats = itemWithStats.getParent();
+		}
+
+		response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));
 		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
 	}

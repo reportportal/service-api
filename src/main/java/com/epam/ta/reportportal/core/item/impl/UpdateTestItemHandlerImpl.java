@@ -23,12 +23,13 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
+import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
+import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
@@ -46,7 +47,6 @@ import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter;
-import com.epam.ta.reportportal.ws.converter.converters.TicketConverter;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -65,10 +65,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -76,14 +74,14 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
+import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link UpdateTestItemHandler}
@@ -94,6 +92,7 @@ import static java.util.stream.Collectors.toSet;
 public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
+	private static final String MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY = "manually";
 
 	private final ProjectRepository projectRepository;
 
@@ -103,7 +102,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final LogRepository logRepository;
 
-	private final TicketRepository ticketRepository;
+	private final ExternalTicketHandler externalTicketHandler;
 
 	private final IssueTypeHandler issueTypeHandler;
 
@@ -117,14 +116,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	@Autowired
 	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, LogRepository logRepository, TicketRepository ticketRepository,
+			TestItemRepository testItemRepository, LogRepository logRepository, ExternalTicketHandler externalTicketHandler,
 			IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
-		this.ticketRepository = ticketRepository;
+		this.externalTicketHandler = externalTicketHandler;
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
@@ -169,12 +168,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 						.addAutoAnalyzedFlag(issue.getAutoAnalyzed())
 						.get();
 
-				ofNullable(issueDefinition.getIssue().getExternalSystemIssues()).ifPresent(issues -> {
-					Set<Ticket> tickets = collectTickets(issues, user.getUsername());
-					issueEntity.getTickets().removeIf(it -> !tickets.contains(it));
-					issueEntity.getTickets().addAll(tickets);
-					tickets.stream().filter(it -> CollectionUtils.isEmpty(it.getIssues())).forEach(it -> it.getIssues().add(issueEntity));
-				});
+				externalTicketHandler.updateLinking(user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());
 
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				issueEntityRepository.save(issueEntity);
@@ -228,19 +222,27 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		validate(projectDetails, user, testItem);
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
-		if (providedStatus.isPresent()) {
+		if (providedStatus.isPresent() && !providedStatus.get().equals(testItem.getItemResults().getStatus())) {
 			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
 					INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
-			checkInitialStatusAttribute(testItem);
-			StatusEnum actualStatus = testItem.getItemResults().getStatus();
-			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(actualStatus);
+			checkInitialStatusAttribute(testItem, rq);
+			StatusChangingStrategy strategy = statusChangingStrategyMapping.get(providedStatus.get());
 
 			expect(strategy, notNull()).verify(INCORRECT_REQUEST,
-					formattedSupplier("Actual status: '{}' cannot be changed to '{}'.", actualStatus, providedStatus.get())
+					formattedSupplier("Actual status: '{}' cannot be changed to '{}'.",
+							testItem.getItemResults().getStatus(),
+							providedStatus.get()
+					)
 			);
-			strategy.changeStatus(testItem, providedStatus.get(), user, projectDetails.getProjectId());
+			TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId());
+			strategy.changeStatus(testItem, providedStatus.get(), user);
+			messageBus.publishActivity(new TestItemStatusChangedEvent(before,
+					TO_ACTIVITY_RESOURCE.apply(testItem, projectDetails.getProjectId()),
+					user.getUserId(),
+					user.getUsername()
+			));
 		}
 		testItem = new TestItemBuilder(testItem).overwriteAttributes(rq.getAttributes()).addDescription(rq.getDescription()).get();
 		testItemRepository.save(testItem);
@@ -254,21 +256,31 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<String> errors = new ArrayList<>();
 
 		List<TestItem> testItems = testItemRepository.findAllById(request.getTestItemIds());
+
+		testItems.forEach(testItem -> {
+			try {
+				verifyTestItem(testItem, testItem.getItemId());
+			} catch (Exception e) {
+				errors.add(e.getMessage());
+			}
+		});
+		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
+
 		List<TestItemActivityResource> before = testItems.stream()
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
 				.collect(Collectors.toList());
 
-		if (request.getClass().equals(LinkExternalIssueRQ.class)) {
+		if (LinkExternalIssueRQ.class.equals(request.getClass())) {
 			LinkExternalIssueRQ linkRequest = (LinkExternalIssueRQ) request;
-			List<Ticket> existedTickets = collectExistedTickets(linkRequest.getIssues());
-			Set<Ticket> ticketsFromRq = collectTickets(linkRequest.getIssues(), user.getUsername());
-			linkIssues(testItems, existedTickets, ticketsFromRq, errors);
+			externalTicketHandler.linkExternalTickets(user.getUsername(),
+					testItems.stream().map(it -> it.getItemResults().getIssue()).collect(Collectors.toList()),
+					linkRequest.getIssues()
+			);
 		}
 
-		if (request.getClass().equals(UnlinkExternalIssueRQ.class)) {
-			unlinkIssues(testItems, (UnlinkExternalIssueRQ) request, errors);
+		if (UnlinkExternalIssueRQ.class.equals(request.getClass())) {
+			externalTicketHandler.unlinkExternalTickets(testItems, (UnlinkExternalIssueRQ) request);
 		}
-		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 		testItemRepository.saveAll(testItems);
 		List<TestItemActivityResource> after = testItems.stream()
 				.map(it -> TO_ACTIVITY_RESOURCE.apply(it, projectDetails.getProjectId()))
@@ -288,47 +300,24 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		return new OperationCompletionRS(message);
 	};
 
-	private void checkInitialStatusAttribute(TestItem testItem) {
-		Optional<ItemAttribute> statusAttribute = testItem.getAttributes()
-				.stream()
-				.filter(attribute -> INITIAL_STATUS_ATTRIBUTE_KEY.equalsIgnoreCase(attribute.getKey()) && attribute.isSystem())
-				.findAny();
-		if (statusAttribute.isEmpty()) {
+	private void checkInitialStatusAttribute(TestItem item, UpdateTestItemRQ request) {
+		Runnable addInitialStatusAttribute = () -> {
 			ItemAttribute initialStatusAttribute = new ItemAttribute(INITIAL_STATUS_ATTRIBUTE_KEY,
-					testItem.getItemResults().getStatus().getExecutionCounterField(),
+					item.getItemResults().getStatus().getExecutionCounterField(),
 					true
 			);
-			initialStatusAttribute.setTestItem(testItem);
-			testItem.getAttributes().add(initialStatusAttribute);
-		}
-	}
+			initialStatusAttribute.setTestItem(item);
+			item.getAttributes().add(initialStatusAttribute);
+		};
 
-	private void linkIssues(List<TestItem> items, List<Ticket> existedTickets, Set<Ticket> ticketsFromRq, List<String> errors) {
-		items.forEach(testItem -> {
-			try {
-				verifyTestItem(testItem, testItem.getItemId());
-				IssueEntity issue = testItem.getItemResults().getIssue();
-				issue.getTickets().addAll(existedTickets);
-				issue.getTickets().addAll(ticketsFromRq);
-				issue.setAutoAnalyzed(false);
-			} catch (Exception e) {
-				errors.add(e.getMessage());
-			}
-		});
-	}
+		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
+				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
+		).filter(it -> it.getValue()
+				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
 
-	private void unlinkIssues(List<TestItem> items, UnlinkExternalIssueRQ request, List<String> errors) {
-		items.forEach(testItem -> {
-			try {
-				verifyTestItem(testItem, testItem.getItemId());
-				IssueEntity issue = testItem.getItemResults().getIssue();
-				if (issue.getTickets().removeIf(it -> request.getTicketIds().contains(it.getTicketId()))) {
-					issue.setAutoAnalyzed(false);
-				}
-			} catch (BusinessRuleViolationException e) {
-				errors.add(e.getMessage());
-			}
-		});
+		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
+				addInitialStatusAttribute
+		);
 	}
 
 	@Override
@@ -388,54 +377,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 
 		return new OperationCompletionRS("Attributes successfully updated");
-	}
-
-	/**
-	 * Finds tickets that are existed in db and removes them from request.
-	 *
-	 * @param externalIssues {@link com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
-	 * @return List of existed tickets in db.
-	 */
-	private List<Ticket> collectExistedTickets(Collection<Issue.ExternalSystemIssue> externalIssues) {
-		if (CollectionUtils.isEmpty(externalIssues)) {
-			return Collections.emptyList();
-		}
-		List<Ticket> existedTickets = ticketRepository.findByTicketIdIn(externalIssues.stream()
-				.map(Issue.ExternalSystemIssue::getTicketId)
-				.collect(toList()));
-		List<String> existedTicketsIds = existedTickets.stream().map(Ticket::getTicketId).collect(toList());
-		externalIssues.removeIf(it -> existedTicketsIds.contains(it.getTicketId()));
-		return existedTickets;
-	}
-
-	/**
-	 * TODO document this
-	 *
-	 * @param externalIssues {@link com.epam.ta.reportportal.ws.model.issue.Issue.ExternalSystemIssue}
-	 * @param username       {@link com.epam.ta.reportportal.entity.user.User#login}
-	 * @return {@link Set} of the {@link Ticket}
-	 */
-	private Set<Ticket> collectTickets(Collection<Issue.ExternalSystemIssue> externalIssues, String username) {
-		if (CollectionUtils.isEmpty(externalIssues)) {
-			return Collections.emptySet();
-		}
-		return externalIssues.stream().map(it -> {
-			Ticket ticket;
-			Optional<Ticket> ticketOptional = ticketRepository.findByTicketId(it.getTicketId());
-			if (ticketOptional.isPresent()) {
-				ticket = ticketOptional.get();
-				ticket.setUrl(it.getUrl());
-				ticket.setBtsProject(it.getBtsProject());
-				ticket.setBtsUrl(it.getBtsUrl());
-			} else {
-				ticket = TicketConverter.TO_TICKET.apply(it);
-			}
-			ticket.setSubmitter(username);
-			ticket.setSubmitDate(ofNullable(it.getSubmitDate()).map(millis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(millis),
-					ZoneOffset.UTC
-			)).orElse(LocalDateTime.now()));
-			return ticket;
-		}).collect(toSet());
 	}
 
 	/**

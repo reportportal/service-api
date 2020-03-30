@@ -16,11 +16,12 @@
 
 package com.epam.ta.reportportal.job.service.impl;
 
+import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.job.service.PluginLoaderService;
 import com.google.common.collect.Lists;
@@ -40,7 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.core.integration.util.property.IntegrationDetailsProperties.*;
+import static com.epam.reportportal.extension.common.IntegrationTypeProperties.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -60,25 +61,27 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 	}
 
 	@Override
-	public List<PluginInfo> getNotLoadedPluginsInfo(List<IntegrationType> integrationTypes) {
+	public List<PluginInfo> getNotLoadedPluginsInfo() {
 
 		LOGGER.debug("Searching for not loaded plugins...");
 
 		List<PluginInfo> notLoadedPlugins = Lists.newArrayList();
 
-		integrationTypes.stream()
+		integrationTypeRepository.findAll()
+				.stream()
+				.filter(IntegrationType::isEnabled)
 				.filter(it -> it.getDetails() != null && it.getDetails().getDetails() != null)
 				.filter(this::isMandatoryFieldsExist)
 				.forEach(it -> {
 
-					Map<IntegrationDetailsProperties, Object> pluginProperties = retrievePluginProperties(it);
+					Map<IntegrationTypeProperties, Object> pluginProperties = retrievePluginProperties(it);
 
 					Optional<PluginWrapper> pluginWrapper = pluginBox.getPluginById(it.getName());
-					if (!pluginWrapper.isPresent() || !String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION))
+					if (pluginWrapper.isEmpty() || !String.valueOf(pluginProperties.get(VERSION))
 							.equalsIgnoreCase(pluginWrapper.get().getDescriptor().getVersion())) {
 
 						PluginInfo pluginInfo = new PluginInfo(it.getName(),
-								String.valueOf(pluginProperties.get(IntegrationDetailsProperties.VERSION)),
+								String.valueOf(pluginProperties.get(VERSION)),
 								String.valueOf(pluginProperties.get(FILE_ID)),
 								String.valueOf(pluginProperties.get(FILE_NAME)),
 								it.isEnabled()
@@ -108,18 +111,18 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 
 	}
 
-	private Map<IntegrationDetailsProperties, Object> retrievePluginProperties(IntegrationType integrationType) {
+	private Map<IntegrationTypeProperties, Object> retrievePluginProperties(IntegrationType integrationType) {
 
 		Map<String, Object> details = integrationType.getDetails().getDetails();
-		Map<IntegrationDetailsProperties, Object> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationDetailsProperties.values().length);
-		Arrays.stream(IntegrationDetailsProperties.values())
+		Map<IntegrationTypeProperties, Object> pluginProperties = Maps.newHashMapWithExpectedSize(IntegrationTypeProperties.values().length);
+		Arrays.stream(IntegrationTypeProperties.values())
 				.forEach(property -> property.getValue(details).ifPresent(value -> pluginProperties.put(property, value)));
 		return pluginProperties;
 	}
 
 	private boolean isIntegrationTypeAvailableForRemoving(IntegrationType integrationType) {
-		/* hack: while email isn't a plugin - it shouldn't be proceeded as a plugin */
-		if ("email".equalsIgnoreCase(integrationType.getName()) || "ldap".equalsIgnoreCase(integrationType.getName())) {
+		/* hack: while email, ad, ldap, saml aren't  plugins - it shouldn't be proceeded as a plugin */
+		if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
 			return false;
 		} else {
 			return pluginBox.getPluginById(integrationType.getName()).map(p -> {
@@ -135,7 +138,6 @@ public class PluginLoaderServiceImpl implements PluginLoaderService {
 					return false;
 				}
 			}).orElse(true);
-
 		}
 	}
 }

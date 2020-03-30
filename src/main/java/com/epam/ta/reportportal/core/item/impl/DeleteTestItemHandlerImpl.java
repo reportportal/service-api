@@ -134,7 +134,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.filter(it -> itemsToDelete.contains(it.getItemId()))
 				.map(TestItem::getParent)
 				.filter(Objects::nonNull)
-				.forEach(it -> it.setHasChildren(false));
+				.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
 				logRepository.findIdsByTestItemIdsAndLogLevelGte(cascadeDeletedItems, LogLevel.ERROR.toInt())

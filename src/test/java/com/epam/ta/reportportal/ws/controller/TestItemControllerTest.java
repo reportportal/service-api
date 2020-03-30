@@ -218,7 +218,8 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getItemHistoryPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -286,6 +287,155 @@ class TestItemControllerTest extends BaseMvcTest {
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadTicketId() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setBtsProject("project");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadBtsUrl() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsProject("project");
+		ticket.setTicketId("ticket1");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadBtsProject() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setTicketId("ticket1");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+
+	@Test
+	void finishTestItemWithLinkedTicketsBadUrl() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setBtsProject("project");
+		ticket.setTicketId("ticket1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void finishTestItemWithEmptyLinkedTickets() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet());
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+	}
+
+
+	@Test
+	void finishTestItemWithLinkedTickets() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid("334d153c-8f9c-4dff-8627-47dd003bee0f");
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+
+		Issue.ExternalSystemIssue ticket = new Issue.ExternalSystemIssue();
+		ticket.setBtsUrl("jira.com");
+		ticket.setBtsProject("project");
+		ticket.setTicketId("ticket1");
+		ticket.setUrl("https://example.com/NEWTICKET1");
+
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		issue.setIgnoreAnalyzer(false);
+		issue.setExternalSystemIssues(Sets.newHashSet(ticket));
+
+		rq.setIssue(issue);
+
+		mockMvc.perform(put(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-843ab695c96a").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -400,6 +550,60 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
 
 		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-passed.sql")
+	@Test
+	void changeStatusFromPassedToSkippedWithoutIssue() throws Exception {
+		UpdateTestItemRQ request = new UpdateTestItemRQ();
+		request.setStatus("skipped");
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/9/update").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isOk());
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(9L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
+		assertNull(updatedItem.get().getItemResults().getIssue());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+
+		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
+		assertEquals(StatusEnum.FAILED, launch.getStatus());
+
+		verify(messageBus, times(2)).publishActivity(ArgumentMatchers.any());
+	}
+
+	@Sql("/db/test-item/item-change-status-from-passed.sql")
+	@Test
+	void finishTestItemWithFinishedParent() throws Exception {
+		FinishTestItemRQ rq = new FinishTestItemRQ();
+		rq.setLaunchUuid(UUID.randomUUID().toString());
+		rq.setEndTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		rq.setStatus("FAILED");
+		Issue issue = new Issue();
+		issue.setIssueType("pb001");
+		rq.setIssue(issue);
+
+		Optional<TestItem> updatedItem = testItemRepository.findById(11L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.IN_PROGRESS, updatedItem.get().getItemResults().getStatus());
+
+		mockMvc.perform(put(SUPERADMIN_PROJECT_BASE_URL + "/item/uuid_s_2_9").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
+
+		updatedItem = testItemRepository.findById(11L);
+		assertTrue(updatedItem.isPresent());
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
+		assertEquals(
+				TestItemIssueGroup.PRODUCT_BUG,
+				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
+		);
+		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+
+		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
+		assertEquals(StatusEnum.FAILED, launch.getStatus());
 	}
 
 	@Sql("/db/test-item/item-change-status-from-failed.sql")

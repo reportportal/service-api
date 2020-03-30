@@ -31,8 +31,6 @@ server:
     context-path: "/"
 
 logging:
-  pattern:
-    file: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %level %logger - %msg%n'
   level:
     org.hibernate: info
     org.hibernate.stat: info
@@ -40,8 +38,6 @@ logging:
     org.springframework.web.bind: fatal
     com.epam.ta.reportportal.ws.controller: debug
     com.epam.ta.reportportal.ws.rabbit: debug
-  file:
-    name: /var/${spring.application.name}.log
 
 
 springfox:
@@ -105,6 +101,8 @@ rp:
   plugins:
     rootDir: /plugins
     path: ${rp.plugins.rootDir}/resolved
+    resources:
+      path: ${rp.plugins.rootDir}/resources
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:

@@ -21,7 +21,9 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -78,6 +80,18 @@ public class ItemInfoUtils {
 
 	public static boolean containsAttribute(Set<ItemAttribute> attributes, ItemAttributeResource resource) {
 		return attributes.stream().noneMatch(attr -> ITEM_ATTRIBUTE_EQUIVALENCE.test(attr, resource));
+	}
+
+	public static Optional<ItemAttribute> extractAttribute(Collection<ItemAttribute> collection, String key) {
+		return CollectionUtils.isEmpty(collection) ?
+				Optional.empty() :
+				collection.stream().filter(it -> key.equalsIgnoreCase(it.getKey())).findAny();
+	}
+
+	public static Optional<ItemAttributeResource> extractAttributeResource(Collection<ItemAttributeResource> collection, String key) {
+		return CollectionUtils.isEmpty(collection) ?
+				Optional.empty() :
+				collection.stream().filter(it -> key.equalsIgnoreCase(it.getKey())).findAny();
 	}
 
 }

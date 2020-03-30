@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -66,13 +67,13 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 		 *  should be replaced as a separate tables for both 'email' or 'ldap' or remove them
 		 *  and rewrite as a plugin
 		 */
-		if ("email".equalsIgnoreCase(integrationType.getName()) || "ldap".equalsIgnoreCase(integrationType.getName())) {
-			return new OperationCompletionRS(Suppliers.formattedSupplier(
-					"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+		if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
+			return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 					integrationType.getName(),
 					isEnabled
 			).get());
 		}
+
 
 		if (isEnabled) {
 			loadPlugin(integrationType);
@@ -80,20 +81,18 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 			unloadPlugin(integrationType);
 		}
 
-		return new OperationCompletionRS(Suppliers.formattedSupplier(
-				"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+		return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 				integrationType.getName(),
 				isEnabled
 		).get());
 	}
 
 	private void loadPlugin(IntegrationType integrationType) {
-		if (!pluginBox.getPluginById(integrationType.getName()).isPresent()) {
+		if (pluginBox.getPluginById(integrationType.getName()).isEmpty()) {
 			boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
-			BusinessRule.expect(isLoaded, BooleanUtils::isTrue)
-					.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-							Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
-					);
+			BusinessRule.expect(isLoaded, BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+					Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
+			);
 		}
 	}
 

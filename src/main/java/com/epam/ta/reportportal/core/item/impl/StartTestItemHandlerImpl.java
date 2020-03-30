@@ -21,7 +21,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
-import com.epam.ta.reportportal.core.item.UniqueIdGenerator;
+import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
+import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -42,6 +43,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -67,7 +69,9 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private final LaunchRepository launchRepository;
 
-	private final UniqueIdGenerator identifierGenerator;
+	private final UniqueIdGenerator uniqueIdGenerator;
+
+	private final TestCaseHashGenerator testCaseHashGenerator;
 
 	private final RerunHandler rerunHandler;
 
@@ -75,10 +79,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			UniqueIdGenerator identifierGenerator, RerunHandler rerunHandler, ApplicationEventPublisher eventPublisher) {
+			UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator, RerunHandler rerunHandler,
+			ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
-		this.identifierGenerator = identifierGenerator;
+		this.uniqueIdGenerator = uniqueIdGenerator;
+		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.rerunHandler = rerunHandler;
 		this.eventPublisher = eventPublisher;
 	}
@@ -159,10 +165,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(identifierGenerator.generate(item, launch));
+			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
 		}
-		if (null == item.getTestCaseId()) {
-			item.setTestCaseHash(item.getUniqueId().hashCode());
+		if (Objects.isNull(item.getTestCaseId())) {
+			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
 		}
 	}
 
@@ -216,7 +222,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

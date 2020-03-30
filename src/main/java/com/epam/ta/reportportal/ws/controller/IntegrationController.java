@@ -219,7 +219,7 @@ public class IntegrationController {
 		return deleteIntegrationHandler.deleteProjectIntegrationsByType(type, normalizeId(projectName), user);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	@PutMapping(value = "{projectName}/{integrationId}/{command}", consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)

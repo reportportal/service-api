@@ -4,17 +4,21 @@ rp:
   db:
     host: localhost
   plugins:
-    rootDir: plugins
+    rootDir: /Users/pavel_bortnik/ReportPortal5/data/storage/
   datasource:
-    maximumPoolSize: 5
+    maximumPoolSize: 12
   binarystore:
-    path: /Users/pavel_bortnik/ReportPortal5/data/storage
-    type: filesystem
+#    path: /Users/pavel_bortnik/ReportPortal5/data/storage
+    type: minio
+    minio:
+      endpoint: http://localhost:9000
+      accessKey: minio
+      secretKey: minio123
 
-logging:
-#  name:
-#    file: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
-  level:
-    org:
-      hibernate:
-        SQL: info
+#logging:
+##  name:
+##    file: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
+#  level:
+#    org:
+#      hibernate:
+#        SQL: info

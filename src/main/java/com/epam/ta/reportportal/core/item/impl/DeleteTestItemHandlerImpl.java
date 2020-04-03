@@ -114,7 +114,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		List<TestItem> items = testItemRepository.findAllById(ids);
 		Set<Long> itemIds = items.stream().map(TestItem::getItemId).collect(Collectors.toSet());
 
-		List<Launch> launches = launchRepository.findAllById(itemIds);
+		List<Launch> launches = launchRepository.findAllById(items.stream()
+				.map(TestItem::getLaunchId)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet()));
 		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
 

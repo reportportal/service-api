@@ -205,11 +205,9 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	private FilterCondition getParentPathCondition(TestItem parent) {
-		return FilterCondition.builder()
-				.withCondition(Condition.UNDER)
-				.withSearchCriteria(CRITERIA_PATH)
-				.withValue(parent.getPath())
-				.build();
+		String pathValue = ofNullable(parent.getRetryOf()).flatMap(retryParentId -> ofNullable(parent.getParent()).map(retryParent ->
+				retryParent.getPath() + "." + parent.getItemId())).orElse(parent.getPath());
+		return FilterCondition.builder().withCondition(Condition.UNDER).withSearchCriteria(CRITERIA_PATH).withValue(pathValue).build();
 	}
 
 	/**

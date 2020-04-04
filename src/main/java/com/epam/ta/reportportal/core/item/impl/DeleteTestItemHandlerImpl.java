@@ -137,18 +137,18 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.filter(Objects::nonNull)
 				.collect(toList());
 
-		testItemRepository.deleteAllByItemIdIn(idsToDelete);
-
-		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
-
-		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
-
 		launchItemMap.forEach((launchId, testItemIds) -> logIndexer.cleanIndex(projectDetails.getProjectId(),
 				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
 						testItemIds.stream().map(TestItem::getItemId).filter(idsToDelete::contains).collect(toList()),
 						LogLevel.ERROR.toInt()
 				)
 		));
+
+		testItemRepository.deleteAllByItemIdIn(idsToDelete);
+
+		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
+
+		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
 		idsToDelete.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it)));
 

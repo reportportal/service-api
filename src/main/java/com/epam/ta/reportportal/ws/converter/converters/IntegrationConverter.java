@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.ws.converter.converters;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
+import com.epam.ta.reportportal.core.integration.util.property.AuthProperties;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
@@ -51,6 +52,7 @@ public final class IntegrationConverter {
 				.filter(entry -> !EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()))
 				.filter(entry -> !SauceLabsProperties.ACCESS_TOKEN.getName().equalsIgnoreCase(entry.getKey()))
 				.filter(entry -> !BtsProperties.OAUTH_ACCESS_KEY.getName().equalsIgnoreCase(entry.getKey()))
+				.filter(entry -> !AuthProperties.MANAGER_PASSWORD.getName().equalsIgnoreCase(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))).orElseGet(Collections::emptyMap)));
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());

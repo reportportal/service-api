@@ -54,6 +54,7 @@ import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_STATS;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
@@ -99,6 +100,7 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 								.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
 								.build())
 						.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build())
+						.withCondition(FilterCondition.builder().eq(CRITERIA_HAS_STATS, String.valueOf(Boolean.TRUE)).build())
 						.build()
 		);
 

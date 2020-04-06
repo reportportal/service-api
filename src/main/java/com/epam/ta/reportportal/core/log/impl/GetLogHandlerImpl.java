@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
@@ -52,6 +53,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
@@ -136,12 +138,12 @@ public class GetLogHandlerImpl implements GetLogHandler {
 				.collect(Collectors.toSet())).stream().collect(toMap(Log::getId, l -> l))).orElseGet(Collections::emptyMap);
 
 		queryable.getFilterConditions().add(getLaunchCondition(launch.getId()));
-		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()),
+		queryable.getFilterConditions().add(getParentPathCondition(parentItem));
+		Map<Long, NestedStep> nestedStepMap = ofNullable(result.get(LogRepositoryConstants.ITEM)).map(testItems -> testItemRepository.findAllNestedStepsByIds(
+				testItems.stream().map(NestedItem::getId).collect(Collectors.toSet()),
 				queryable,
 				excludePassedLogs
-		)
-				.stream()
-				.collect(toMap(NestedStep::getId, i -> i))).orElseGet(Collections::emptyMap);
+		).stream().collect(toMap(NestedStep::getId, i -> i))).orElseGet(Collections::emptyMap);
 
 		List<Object> resources = Lists.newArrayListWithExpectedSize(content.size());
 		content.forEach(nestedItem -> {
@@ -200,6 +202,12 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	private FilterCondition getLaunchCondition(Long launchId) {
 		return FilterCondition.builder().eq(CRITERIA_ITEM_LAUNCH_ID, String.valueOf(launchId)).build();
+	}
+
+	private FilterCondition getParentPathCondition(TestItem parent) {
+		String pathValue = ofNullable(parent.getRetryOf()).flatMap(retryParentId -> ofNullable(parent.getParent()).map(retryParent ->
+				retryParent.getPath() + "." + parent.getItemId())).orElse(parent.getPath());
+		return FilterCondition.builder().withCondition(Condition.UNDER).withSearchCriteria(CRITERIA_PATH).withValue(pathValue).build();
 	}
 
 	/**

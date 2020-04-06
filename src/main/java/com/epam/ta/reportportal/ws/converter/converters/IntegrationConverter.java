@@ -53,6 +53,7 @@ public final class IntegrationConverter {
 				.filter(entry -> !SauceLabsProperties.ACCESS_TOKEN.getName().equalsIgnoreCase(entry.getKey()))
 				.filter(entry -> !BtsProperties.OAUTH_ACCESS_KEY.getName().equalsIgnoreCase(entry.getKey()))
 				.filter(entry -> !AuthProperties.MANAGER_PASSWORD.getName().equalsIgnoreCase(entry.getKey()))
+				.filter(entry -> null != entry.getValue())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))).orElseGet(Collections::emptyMap)));
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());

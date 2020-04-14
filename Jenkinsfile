@@ -27,12 +27,14 @@ node {
             sh "docker-compose -p reportportal -f $COMPOSE_FILE_RP up -d --force-recreate api"
 
             stage('Push to ECR') {
-                sh 'docker tag reportportal-dev/service-api $AWS_URI/service-api'
-                def image = env.AWS_URI + '/service-api'
-                def url = 'https://' + env.AWS_URI
-                def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
-                docker.withRegistry(url, credentials) {
-                    docker.image(image).push('SNAPSHOT-${BUILD_NUMBER}')
+                withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}"]) {
+                    sh 'docker tag reportportal-dev/service-api ${AWS_URI}/service-api'
+                    def image = env.AWS_URI + '/service-api'
+                    def url = 'https://' + env.AWS_URI
+                    def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
+                    docker.withRegistry(url, credentials) {
+                        docker.image(image).push('SNAPSHOT-${BUILD_NUMBER}')
+                    }
                 }
             }
         }

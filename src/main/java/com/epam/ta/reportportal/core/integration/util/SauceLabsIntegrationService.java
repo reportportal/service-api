@@ -79,7 +79,7 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 	@Override
 	public void encryptParams(Integration integration) {
 		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.decrypt(it)));
+				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
 	}
 
 	@Override

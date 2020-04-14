@@ -41,4 +41,6 @@ public interface IntegrationService {
 	Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
 
 	void decryptParams(Integration integration);
+
+	void encryptParams(Integration integration);
 }

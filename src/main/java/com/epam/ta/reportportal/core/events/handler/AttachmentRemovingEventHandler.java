@@ -52,6 +52,6 @@ public class AttachmentRemovingEventHandler {
 	@TransactionalEventListener
 	public void onApplicationEvent(DeleteTestItemAttachmentsEvent event) {
 
-		attachmentEventPublisher.publishDeleteItemAttachmentsEvent(event.getId());
+		attachmentEventPublisher.publishDeleteItemAttachmentsEvent(event);
 	}
 }

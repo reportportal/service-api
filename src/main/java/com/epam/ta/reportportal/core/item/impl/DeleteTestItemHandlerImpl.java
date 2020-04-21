@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -51,6 +52,7 @@ import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSup
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
@@ -91,6 +93,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validate(item, launch, user, projectDetails);
 		Optional<TestItem> parent = ofNullable(item.getParent());
 
+		Set<Long> removedDescendants = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
+
 		testItemRepository.deleteById(item.getItemId());
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
@@ -103,7 +107,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 						LogLevel.ERROR.toInt()
 				)
 		);
-		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
+		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedDescendants));
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
 	}
@@ -144,13 +148,21 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				)
 		));
 
+		Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
+				.stream()
+				.map(TestItem::getPath)
+				.collect(toList())
+				.stream()
+				.flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
+				.collect(toSet());
+
 		testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
 		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
 
 		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
-		idsToDelete.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it)));
+		idsToDelete.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedItems)));
 
 		return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
 	}
@@ -161,8 +173,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	};
 
 	/**
-	 * Validate {@link ReportPortalUser} credentials, {@link com.epam.ta.reportportal.entity.item.TestItemResults#status},
-	 * {@link Launch#status} and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
+	 * Validate {@link ReportPortalUser} credentials, {@link TestItemResults#getStatus()},
+	 * {@link Launch#getStatus()} and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
 	 * @param testItem       {@link TestItem}
 	 * @param user           {@link ReportPortalUser}

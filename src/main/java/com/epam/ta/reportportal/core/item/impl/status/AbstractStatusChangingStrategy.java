@@ -137,7 +137,11 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 		}
 
 		if (launch.getStatus() != IN_PROGRESS) {
-			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED);
+			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+					StatusEnum.PASSED.name(),
+					INFORMATION.name(),
+					WARNING.name()
+			) ? FAILED : PASSED);
 		}
 
 		return updatedParents;

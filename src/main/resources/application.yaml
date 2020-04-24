@@ -50,6 +50,8 @@ springfox:
 #### Custom ReportPortal Properties ######
 ##########################################
 rp:
+  attachments:
+    recalculate: false
   environment:
     variable:
       flushing:

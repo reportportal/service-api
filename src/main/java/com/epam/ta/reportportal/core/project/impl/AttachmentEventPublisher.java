@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.attachment.DeleteAttachmentEvent;
+import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.job.PageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,10 +65,10 @@ public class AttachmentEventPublisher {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-	public void publishDeleteItemAttachmentsEvent(Long itemId) {
+	public void publishDeleteItemAttachmentsEvent(DeleteTestItemAttachmentsEvent event) {
 		PageUtil.iterateOverPages(
 				ATTACHMENTS_BATCH_SIZE,
-				pageable -> attachmentRepository.findIdsByTestItemId(itemId, pageable),
+				pageable -> attachmentRepository.findIdsByTestItemId(event.getItemIds(), pageable),
 				this::publishDeleteAttachmentEvent
 		);
 	}

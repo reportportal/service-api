@@ -101,7 +101,6 @@ public class AttachmentSizeConfig {
 	@Bean
 	public ItemWriter<Attachment> writer() {
 		return items -> items.forEach(item -> {
-			System.out.println(item.getId() + " : " + item.getFileSize());
 			jdbcTemplate.update("UPDATE attachment SET file_size = ? WHERE id = ?", item.getFileSize(), item.getId());
 		});
 	}

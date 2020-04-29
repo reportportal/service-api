@@ -91,7 +91,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsNotInStatus(itemId, StatusEnum.PASSED.name(), INFORMATION.name(), WARNING.name()) ?
+		return testItemRepository.hasDescendantsNotInStatus(itemId, StatusEnum.PASSED.name(), INFO.name(), WARN.name()) ?
 				FAILED :
 				PASSED;
 	}
@@ -116,8 +116,8 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 			if (!launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
 				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
 						StatusEnum.PASSED.name(),
-						INFORMATION.name(),
-						WARNING.name()
+						INFO.name(),
+						WARN.name()
 				) ? FAILED : PASSED;
 				launch.setStatus(launchStatus);
 			}

@@ -110,8 +110,8 @@ public class DemoDataLaunchService {
 		StatusEnum fromStatisticsStatus = PASSED;
 		if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
 				StatusEnum.PASSED.name(),
-				StatusEnum.INFORMATION.name(),
-				StatusEnum.WARNING.name()
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
 		)) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}

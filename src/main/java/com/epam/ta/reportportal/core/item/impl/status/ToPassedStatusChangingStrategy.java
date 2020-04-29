@@ -83,8 +83,8 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 		return testItemRepository.hasDescendantsNotInStatusExcludingById(parentItem.getItemId(),
 				childItem.getItemId(),
 				StatusEnum.PASSED.name(),
-				StatusEnum.INFORMATION.name(),
-				StatusEnum.WARNING.name()
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
 		) ? StatusEnum.FAILED : StatusEnum.PASSED;
 	}
 

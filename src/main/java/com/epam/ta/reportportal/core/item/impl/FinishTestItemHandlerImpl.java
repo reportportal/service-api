@@ -285,8 +285,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	private StatusEnum resolveStatus(Long itemId) {
 		return testItemRepository.hasDescendantsNotInStatus(itemId,
 				StatusEnum.PASSED.name(),
-				StatusEnum.INFORMATION.name(),
-				StatusEnum.WARNING.name()
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
 		) ? FAILED : PASSED;
 	}
 

@@ -92,14 +92,14 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 			);
 			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
 					StatusEnum.PASSED.name(),
-					StatusEnum.INFORMATION.name(),
-					StatusEnum.WARNING.name()
+					StatusEnum.INFO.name(),
+					StatusEnum.WARN.name()
 			) ? FAILED : PASSED);
 		} else {
 			launch.setStatus(status.orElseGet(() -> launchRepository.hasRootItemsWithStatusNotEqual(id,
 					StatusEnum.PASSED.name(),
-					StatusEnum.INFORMATION.name(),
-					StatusEnum.WARNING.name()
+					StatusEnum.INFO.name(),
+					StatusEnum.WARN.name()
 			) ? FAILED : PASSED));
 		}
 

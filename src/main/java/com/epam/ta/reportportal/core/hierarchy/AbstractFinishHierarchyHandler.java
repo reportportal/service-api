@@ -127,8 +127,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		retrieveItemIds(entity, StatusEnum.IN_PROGRESS, true).forEach(itemId -> testItemRepository.findById(itemId).ifPresent(testItem -> {
 			boolean isFailed = testItemRepository.hasDescendantsNotInStatus(itemId,
 					StatusEnum.PASSED.name(),
-					StatusEnum.INFORMATION.name(),
-					StatusEnum.WARNING.name()
+					StatusEnum.INFO.name(),
+					StatusEnum.WARN.name()
 			);
 			finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
 		}));

@@ -31,6 +31,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -70,18 +72,15 @@ public class IntegrationSecretsMigrationHandler {
 	}
 
 	@EventListener
-	public void migrate(ApplicationReadyEvent event) {
-		try {
-			final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
-			dataStore.load(migrationFilePath);
-
+	public void migrate(ApplicationReadyEvent event) throws IOException {
+		final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
+		try (InputStream load = dataStore.load(migrationFilePath)) {
 			ExecutorService executor = Executors.newFixedThreadPool(4);
 			executor.execute(jiraEmailSecretMigrationService::migrate);
 			executor.execute(rallySecretMigrationService::migrate);
 			executor.execute(saucelabsSecretMigrationService::migrate);
 			executor.execute(ldapSecretMigrationService::migrate);
 			executor.shutdown();
-
 			dataStore.delete(migrationFilePath);
 		} catch (ReportPortalException ex) {
 			LOGGER.info("Secrets migration is not needed");

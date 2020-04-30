@@ -35,8 +35,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
@@ -92,7 +91,9 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsNotInStatus(itemId, StatusEnum.PASSED.name(), INFO.name(), WARN.name()) ?
+				FAILED :
+				PASSED;
 	}
 
 	private void changeStatus(TestItem parent, StatusEnum resolvedStatus, ReportPortalUser user) {
@@ -113,9 +114,11 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	public void changeLaunchStatus(Launch launch) {
 		if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
 			if (!launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ?
-						FAILED :
-						PASSED;
+				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+						StatusEnum.PASSED.name(),
+						INFO.name(),
+						WARN.name()
+				) ? FAILED : PASSED;
 				launch.setStatus(launchStatus);
 			}
 		}

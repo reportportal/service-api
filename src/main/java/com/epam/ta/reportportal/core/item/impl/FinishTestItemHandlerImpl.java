@@ -137,6 +137,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItemResults testItemResults = processItemResults(user, projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
+				.addTestCaseId(finishExecutionRQ.getTestCaseId())
 				.addAttributes(finishExecutionRQ.getAttributes())
 				.addTestItemResults(testItemResults)
 				.get();

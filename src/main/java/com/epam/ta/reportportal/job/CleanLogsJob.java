@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
@@ -36,9 +35,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
@@ -65,14 +64,10 @@ public class CleanLogsJob implements Job {
 
 	private final LogCleanerService logCleaner;
 
-	private final SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties;
-
 	@Autowired
-	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner,
-			SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties) {
+	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner) {
 		this.projectRepository = projectRepository;
 		this.logCleaner = logCleaner;
-		this.cleanLogsJobProperties = cleanLogsJobProperties;
 	}
 
 	@Override
@@ -84,9 +79,9 @@ public class CleanLogsJob implements Job {
 
 		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
 				pageable
-		), projects -> projects.forEach(project -> {
+		), projects -> CompletableFuture.allOf(projects.stream().map(project -> {
 			AtomicLong removedLogsCount = new AtomicLong(0);
-			executor.submit(() -> {
+			return CompletableFuture.runAsync(() -> {
 				try {
 					LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
 					proceedLogsRemoving(project, removedLogsCount);
@@ -98,19 +93,10 @@ public class CleanLogsJob implements Job {
 						project.getId(),
 						removedLogsCount.get()
 				);
-			});
-		}));
+			}, executor);
+		}).toArray(CompletableFuture[]::new)).join());
 
-		try {
-			executor.shutdown();
-			if (!executor.awaitTermination(cleanLogsJobProperties.getTimeout(), TimeUnit.SECONDS)) {
-				executor.shutdownNow();
-			}
-		} catch (InterruptedException e) {
-			LOGGER.debug("Waiting for tasks execution has been failed", e);
-		} finally {
-			executor.shutdownNow();
-		}
+		executor.shutdown();
 
 	}
 

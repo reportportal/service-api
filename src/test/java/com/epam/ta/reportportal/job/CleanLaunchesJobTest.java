@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -48,9 +47,6 @@ class CleanLaunchesJobTest {
 	@Mock
 	private LaunchCleanerService launchCleanerService;
 
-	@Mock
-	private SchedulerConfiguration.CleanLaunchesJobProperties cleanLaunchesJobProperties;
-
 	@InjectMocks
 	private CleanLaunchesJob cleanLaunchesJob;
 
@@ -68,7 +64,6 @@ class CleanLaunchesJobTest {
 		project.setName(name);
 
 		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
-		when(cleanLaunchesJobProperties.getTimeout()).thenReturn(100);
 
 		cleanLaunchesJob.execute(null);
 
@@ -89,7 +84,6 @@ class CleanLaunchesJobTest {
 		project.setName(name);
 
 		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
-		when(cleanLaunchesJobProperties.getTimeout()).thenReturn(100);
 
 		cleanLaunchesJob.execute(null);
 	}

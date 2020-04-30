@@ -197,10 +197,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param hasChildren  Does item contain children
 	 */
 	private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-				testItem.getItemId()
-		));
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+				formattedSupplier(
+						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+						testItem.getItemId()
+				)
+		);
 	}
 
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
@@ -282,7 +284,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsNotInStatus(itemId,
+				StatusEnum.PASSED.name(),
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
+		) ? FAILED : PASSED;
 	}
 
 	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {

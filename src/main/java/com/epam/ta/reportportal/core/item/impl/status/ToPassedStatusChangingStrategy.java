@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -63,19 +64,21 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);
-		ofNullable(testItem.getItemResults().getIssue()).ifPresent(issue -> {
-			issue.setTestItemResults(null);
-			issueEntityRepository.delete(issue);
-			testItem.getItemResults().setIssue(null);
-			logIndexer.cleanIndex(project.getId(),
-					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							Collections.singletonList(testItem.getItemId()),
-							LogLevel.ERROR.toInt()
-					)
-			);
-		});
+		if (Objects.isNull(testItem.getRetryOf())) {
+			ofNullable(testItem.getItemResults().getIssue()).ifPresent(issue -> {
+				issue.setTestItemResults(null);
+				issueEntityRepository.delete(issue);
+				testItem.getItemResults().setIssue(null);
+				logIndexer.cleanIndex(project.getId(),
+						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+								Collections.singletonList(testItem.getItemId()),
+								LogLevel.ERROR.toInt()
+						)
+				);
+			});
 
-		changeParentsStatuses(testItem, launch, false, user);
+			changeParentsStatuses(testItem, launch, false, user);
+		}
 	}
 
 	@Override

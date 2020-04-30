@@ -80,9 +80,12 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 
 	@Override
 	protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
-		return testItemRepository.hasStatusNotEqualsWithoutStepItem(parentItem.getItemId(), childItem.getItemId(), StatusEnum.PASSED) ?
-				StatusEnum.FAILED :
-				StatusEnum.PASSED;
+		return testItemRepository.hasDescendantsNotInStatusExcludingById(parentItem.getItemId(),
+				childItem.getItemId(),
+				StatusEnum.PASSED.name(),
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
+		) ? StatusEnum.FAILED : StatusEnum.PASSED;
 	}
 
 }

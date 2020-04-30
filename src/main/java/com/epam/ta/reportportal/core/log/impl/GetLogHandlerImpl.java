@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
@@ -220,7 +221,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	 */
 	private boolean isLogsExclusionRequired(TestItem parent, boolean excludePassedLogs) {
 		if (excludePassedLogs) {
-			return StatusEnum.PASSED == parent.getItemResults().getStatus();
+			return Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive).anyMatch(s -> s == parent.getItemResults().getStatus());
 		}
 		return false;
 	}

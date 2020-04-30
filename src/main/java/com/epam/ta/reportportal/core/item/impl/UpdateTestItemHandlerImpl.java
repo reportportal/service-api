@@ -70,6 +70,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -312,8 +313,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
 				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
-		).filter(it -> it.getValue()
-				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
+		).filter(it -> it.getValue().equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
 
 		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
 				addInitialStatusAttribute
@@ -412,11 +412,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(
-				item.getItemResults().getStatus(),
-				not(equalTo(StatusEnum.PASSED)),
+		expect(item.getItemResults().getStatus(),
+				not(status -> Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive).anyMatch(s -> s == status)),
 				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
-						StatusEnum.PASSED.name()
+						item.getItemResults().getStatus()
 				)
 		).verify();
 

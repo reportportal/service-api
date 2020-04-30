@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import org.apache.commons.collections.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -105,6 +106,14 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder addStatus(StatusEnum statusEnum) {
 		testItem.getItemResults().setStatus(statusEnum);
+		return this;
+	}
+
+	public TestItemBuilder addTestCaseId(@Nullable String testCaseId) {
+		ofNullable(testCaseId).map(caseId -> new TestCaseIdEntry(testCaseId, testCaseId.hashCode())).ifPresent(entry -> {
+			testItem.setTestCaseId(entry.getId());
+			testItem.setTestCaseHash(entry.getHash());
+		});
 		return this;
 	}
 

@@ -52,6 +52,8 @@ public class ItemStatusChangingStrategyConfig {
 	@Bean
 	public Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping() {
 		return ImmutableMap.<StatusEnum, StatusChangingStrategy>builder().put(StatusEnum.PASSED, toPassedStatusChangingStrategy)
+				.put(StatusEnum.INFO, toPassedStatusChangingStrategy)
+				.put(StatusEnum.WARN, toPassedStatusChangingStrategy)
 				.put(StatusEnum.FAILED, toFailedStatusChangingStrategy)
 				.put(StatusEnum.SKIPPED, toSkippedStatusChangingStrategy)
 				.build();

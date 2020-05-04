@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -63,19 +64,21 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);
-		if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
-			addToInvestigateIssue(testItem, project.getId());
-		}
+		if (Objects.isNull(testItem.getRetryOf())) {
+			if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
+				addToInvestigateIssue(testItem, project.getId());
+			}
 
-		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
-		itemsToReindex.add(testItem.getItemId());
-		logIndexer.cleanIndex(project.getId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-						itemsToReindex,
-						LogLevel.ERROR.toInt()
-				)
-		);
-		logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
+			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+			itemsToReindex.add(testItem.getItemId());
+			logIndexer.cleanIndex(project.getId(),
+					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							itemsToReindex,
+							LogLevel.ERROR.toInt()
+					)
+			);
+			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
+		}
 	}
 
 	@Override

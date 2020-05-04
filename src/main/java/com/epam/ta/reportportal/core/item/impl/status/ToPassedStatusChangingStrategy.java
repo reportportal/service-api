@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -57,10 +59,14 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 
 	@Override
 	protected void updateStatus(Project project, Launch launch, TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
-		BusinessRule.expect(providedStatus, statusIn(StatusEnum.PASSED))
+		BusinessRule.expect(providedStatus, statusIn(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN))
 				.verify(INCORRECT_REQUEST,
-						Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus, StatusEnum.PASSED)
-								.get()
+						Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' are allowed",
+								providedStatus,
+								Stream.of(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN)
+										.map(StatusEnum::name)
+										.collect(Collectors.joining(", "))
+						).get()
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);

@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -32,6 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -47,42 +51,60 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 	private final TestItemRepository testItemRepository;
 
 	@Autowired
-	protected ToPassedStatusChangingStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, LogIndexer logIndexer, TestItemRepository testItemRepository) {
-		super(projectRepository, launchRepository, issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer);
+	protected ToPassedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
+			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer,
+			TestItemRepository testItemRepository) {
+		super(testItemService,
+				projectRepository,
+				launchRepository,
+				issueTypeHandler,
+				messageBus,
+				issueEntityRepository,
+				logRepository,
+				logIndexer
+		);
 		this.testItemRepository = testItemRepository;
 	}
 
 	@Override
 	protected void updateStatus(Project project, Launch launch, TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
-		BusinessRule.expect(providedStatus, statusIn(StatusEnum.PASSED))
+		BusinessRule.expect(providedStatus, statusIn(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN))
 				.verify(INCORRECT_REQUEST,
-						Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus, StatusEnum.PASSED)
-								.get()
+						Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' are allowed",
+								providedStatus,
+								Stream.of(StatusEnum.PASSED, StatusEnum.INFO, StatusEnum.WARN)
+										.map(StatusEnum::name)
+										.collect(Collectors.joining(", "))
+						).get()
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);
-		ofNullable(testItem.getItemResults().getIssue()).ifPresent(issue -> {
-			issue.setTestItemResults(null);
-			issueEntityRepository.delete(issue);
-			testItem.getItemResults().setIssue(null);
-			logIndexer.cleanIndex(project.getId(),
-					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							Collections.singletonList(testItem.getItemId()),
-							LogLevel.ERROR.toInt()
-					)
-			);
-		});
+		if (Objects.isNull(testItem.getRetryOf())) {
+			ofNullable(testItem.getItemResults().getIssue()).ifPresent(issue -> {
+				issue.setTestItemResults(null);
+				issueEntityRepository.delete(issue);
+				testItem.getItemResults().setIssue(null);
+				logIndexer.cleanIndex(project.getId(),
+						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+								Collections.singletonList(testItem.getItemId()),
+								LogLevel.ERROR.toInt()
+						)
+				);
+			});
 
-		changeParentsStatuses(testItem, launch, false, user);
+			changeParentsStatuses(testItem, launch, false, user);
+		}
 	}
 
 	@Override
 	protected StatusEnum evaluateParentItemStatus(TestItem parentItem, TestItem childItem) {
-		return testItemRepository.hasStatusNotEqualsWithoutStepItem(parentItem.getItemId(), childItem.getItemId(), StatusEnum.PASSED) ?
-				StatusEnum.FAILED :
-				StatusEnum.PASSED;
+		return testItemRepository.hasDescendantsNotInStatusExcludingById(parentItem.getItemId(),
+				childItem.getItemId(),
+				StatusEnum.PASSED.name(),
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
+		) ? StatusEnum.FAILED : StatusEnum.PASSED;
 	}
 
 }

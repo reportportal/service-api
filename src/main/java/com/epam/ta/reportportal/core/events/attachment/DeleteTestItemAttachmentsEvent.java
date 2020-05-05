@@ -16,18 +16,20 @@
 
 package com.epam.ta.reportportal.core.events.attachment;
 
+import java.util.Set;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class DeleteTestItemAttachmentsEvent {
 
-	private final Long id;
+	private final Set<Long> itemIds;
 
-	public DeleteTestItemAttachmentsEvent(Long id) {
-		this.id = id;
+	public DeleteTestItemAttachmentsEvent(Set<Long> itemIds) {
+		this.itemIds = itemIds;
 	}
 
-	public Long getId() {
-		return id;
+	public Set<Long> getItemIds() {
+		return itemIds;
 	}
 }

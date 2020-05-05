@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
@@ -70,6 +71,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.Predicates.*;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -94,9 +96,9 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	public static final String INITIAL_STATUS_ATTRIBUTE_KEY = "initialStatus";
 	private static final String MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY = "manually";
 
-	private final ProjectRepository projectRepository;
+	private final TestItemService testItemService;
 
-	private final LaunchRepository launchRepository;
+	private final ProjectRepository projectRepository;
 
 	private final TestItemRepository testItemRepository;
 
@@ -115,12 +117,12 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(ProjectRepository projectRepository, LaunchRepository launchRepository,
+	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository, LaunchRepository launchRepository,
 			TestItemRepository testItemRepository, LogRepository logRepository, ExternalTicketHandler externalTicketHandler,
 			IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+		this.testItemService = testItemService;
 		this.projectRepository = projectRepository;
-		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.externalTicketHandler = externalTicketHandler;
@@ -312,8 +314,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
 				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
-		).filter(it -> it.getValue()
-				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
+		).filter(it -> it.getValue().equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
 
 		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
 				addInitialStatusAttribute
@@ -387,8 +388,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	 * @param testItem       Test Item
 	 */
 	private void validate(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, TestItem testItem) {
-		Launch launch = launchRepository.findById(testItem.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, testItem.getLaunchId()));
+		Launch launch = testItemService.getEffectiveLaunch(testItem);
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(ACCESS_DENIED,
 					"Launch is not under the specified project."
@@ -412,11 +412,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				formattedSupplier("Test item results were not found for test item with id = '{}", item.getItemId())
 		).verify();
 
-		expect(
-				item.getItemResults().getStatus(),
-				not(equalTo(StatusEnum.PASSED)),
+		expect(item.getItemResults().getStatus(),
+				not(status -> Stream.of(StatusEnum.values()).filter(StatusEnum::isPositive).anyMatch(s -> s == status)),
 				formattedSupplier("Issue status update cannot be applied on {} test items, cause it is not allowed.",
-						StatusEnum.PASSED.name()
+						item.getItemResults().getStatus()
 				)
 		).verify();
 

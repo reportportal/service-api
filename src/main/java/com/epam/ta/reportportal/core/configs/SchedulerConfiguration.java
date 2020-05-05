@@ -38,8 +38,7 @@ import java.util.Properties;
 
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
-@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
-		SchedulerConfiguration.CleanLaunchesJobProperties.class })
+@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class })
 public class SchedulerConfiguration {
 
 	@Autowired
@@ -202,34 +201,6 @@ public class SchedulerConfiguration {
 			return quartz;
 		}
 
-	}
-
-	@ConfigurationProperties("com.ta.reportportal.job.clean.logs")
-	public static class CleanLogsJobProperties {
-
-		private Integer timeout;
-
-		public Integer getTimeout() {
-			return timeout;
-		}
-
-		public void setTimeout(Integer timeout) {
-			this.timeout = timeout;
-		}
-	}
-
-	@ConfigurationProperties("com.ta.reportportal.job.clean.launches")
-	public static class CleanLaunchesJobProperties {
-
-		private Integer timeout;
-
-		public Integer getTimeout() {
-			return timeout;
-		}
-
-		public void setTimeout(Integer timeout) {
-			this.timeout = timeout;
-		}
 	}
 
 }

@@ -67,6 +67,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
 				basicIntegrationService
 		);
+
 		integrationService.decryptParams(integration);
 
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
@@ -74,9 +75,14 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 						Suppliers.formattedSupplier("Plugin for '{}' isn't installed", integration.getType().getName()).get()
 				));
 
-		return ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> it.executeCommand(integration, executionParams))
+		Object response = ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> it.executeCommand(integration, executionParams))
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Command '{}' is not found in plugin {}.", command, integration.getType().getName()).get()
+						Suppliers.formattedSupplier("Command '{}' is not found in plugin {}.", command, integration.getType().getName())
+								.get()
 				));
+
+		integrationService.encryptParams(integration);
+
+		return response;
 	}
 }

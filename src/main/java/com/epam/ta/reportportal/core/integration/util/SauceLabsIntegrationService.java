@@ -72,9 +72,14 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 	public boolean checkConnection(Integration integration) {
 		decryptParams(integration);
 		boolean connection = super.checkConnection(integration);
+		encryptParams(integration);
+		return connection;
+	}
+
+	@Override
+	public void encryptParams(Integration integration) {
 		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
 				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
-		return connection;
 	}
 
 	@Override

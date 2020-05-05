@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -45,7 +46,8 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.TO_INVESTIGATE;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -53,6 +55,8 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public abstract class AbstractStatusChangingStrategy implements StatusChangingStrategy {
+
+	private final TestItemService testItemService;
 
 	private final ProjectRepository projectRepository;
 	private final LaunchRepository launchRepository;
@@ -63,9 +67,10 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 	protected final LogRepository logRepository;
 	protected final LogIndexer logIndexer;
 
-	protected AbstractStatusChangingStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, LogIndexer logIndexer) {
+	protected AbstractStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
+			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
+		this.testItemService = testItemService;
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
 		this.issueTypeHandler = issueTypeHandler;
@@ -93,8 +98,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 			return;
 		}
 
-		Launch launch = launchRepository.findById(testItem.getLaunchId())
-				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, testItem.getLaunchId()));
+		Launch launch = testItemService.getEffectiveLaunch(testItem);
 		Project project = projectRepository.findById(launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, launch.getProjectId()));
 
@@ -137,7 +141,11 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 		}
 
 		if (launch.getStatus() != IN_PROGRESS) {
-			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED);
+			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+					StatusEnum.PASSED.name(),
+					INFO.name(),
+					WARN.name()
+			) ? FAILED : PASSED);
 		}
 
 		return updatedParents;

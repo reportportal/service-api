@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
@@ -48,6 +49,7 @@ import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -137,6 +139,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItemResults testItemResults = processItemResults(user, projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
+				.addTestCaseId(finishExecutionRQ.getTestCaseId())
 				.addAttributes(finishExecutionRQ.getAttributes())
 				.addTestItemResults(testItemResults)
 				.get();
@@ -166,6 +169,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (hasChildren) {
 			testItemResults = processParentItemResult(testItem, finishTestItemRQ, launch, user, projectDetails);
 		} else {
+			if (BooleanUtils.toBoolean(finishTestItemRQ.isRetry())) {
+				handleRetries(launch, testItem);
+			}
 			testItemResults = processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));
@@ -196,10 +202,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param hasChildren  Does item contain children
 	 */
 	private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
-				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-				testItem.getItemId()
-		));
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
+				formattedSupplier(
+						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+						testItem.getItemId()
+				)
+		);
 	}
 
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
@@ -254,8 +262,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				issueEntityRepository.save(issue);
 				testItemResults.setIssue(issue);
 			});
-			changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
-			changeStatusHandler.changeLaunchStatus(launch);
+			if (Objects.isNull(testItem.getRetryOf())) {
+				changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
+				changeStatusHandler.changeLaunchStatus(launch);
+			}
 		} else {
 			updateFinishedItem(testItemResults,
 					actualStatus.orElse(INTERRUPTED),
@@ -273,6 +283,20 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItemResults;
 	}
 
+	/**
+	 * Handles retry items
+	 *
+	 * @param launch {@link Launch}
+	 * @param item   {@link TestItem}
+	 */
+	private void handleRetries(Launch launch, TestItem item) {
+		testItemRepository.handleRetries(item.getItemId());
+		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
+		if (!launch.isHasRetries()) {
+			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
+		}
+	}
+
 	private void finishDescendants(TestItem testItem, StatusEnum status, Date endTime, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
@@ -281,7 +305,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsNotInStatus(itemId,
+				StatusEnum.PASSED.name(),
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
+		) ? FAILED : PASSED;
 	}
 
 	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {

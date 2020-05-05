@@ -56,9 +56,9 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:bc77028a'
+        compile 'com.github.reportportal:commons-dao:0f7079e'
         compile 'com.github.reportportal:commons-rules:331c402'
-        compile 'com.github.reportportal:commons-model:2777f0c'
+        compile 'com.github.reportportal:commons-model:b0bc3f7'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:4623190'
@@ -70,6 +70,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-freemarker'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-amqp'
+    compile('org.springframework.boot:spring-boot-starter-batch')
     // Optional for spring-boot-starter-amqp
     compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 

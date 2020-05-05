@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -32,6 +32,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.issue.DefineIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
@@ -50,7 +51,6 @@ import static com.epam.ta.reportportal.core.item.impl.UpdateTestItemHandlerImpl.
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -71,7 +71,7 @@ class UpdateTestItemHandlerImplTest {
 	private ProjectRepository projectRepository;
 
 	@Mock
-	private LaunchRepository launchRepository;
+	private TestItemService testItemService;
 
 	@Mock
 	private MessageBus messageBus;
@@ -96,12 +96,12 @@ class UpdateTestItemHandlerImplTest {
 		TestItem testItem = new TestItem();
 		testItem.setLaunchId(2L);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(testItem));
-		when(launchRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+		when(testItemService.getEffectiveLaunch(testItem)).thenThrow(new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.updateTestItem(extractProjectDetails(rpUser, "test_project"), 1L, new UpdateTestItemRQ(), rpUser)
 		);
-		assertEquals("Launch '2' not found. Did you use correct Launch ID?", exception.getMessage());
+		assertEquals("Launch '' not found. Did you use correct Launch ID?", exception.getMessage());
 	}
 
 	@Test
@@ -117,7 +117,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setUserId(2L);
 		launch.setProjectId(1L);
 		item.setLaunchId(launch.getId());
-		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -138,7 +138,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setUserId(user.getId());
 		launch.setProjectId(2L);
 		item.setLaunchId(launch.getId());
-		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 		when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -179,7 +179,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setId(2L);
 		item.setLaunchId(launch.getId());
 
-		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -207,7 +207,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setId(2L);
 		item.setLaunchId(launch.getId());
 
-		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 		doNothing().when(messageBus).publishActivity(any());
 		when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
@@ -240,7 +240,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setId(2L);
 		item.setLaunchId(launch.getId());
 
-		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 		doNothing().when(messageBus).publishActivity(any());
 		when(statusChangingStrategyMapping.get(StatusEnum.PASSED)).thenReturn(statusChangingStrategy);
@@ -273,7 +273,7 @@ class UpdateTestItemHandlerImplTest {
 		launch.setId(2L);
 		item.setLaunchId(launch.getId());
 
-		when(launchRepository.findById(anyLong())).thenReturn(Optional.of(launch));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 		when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
 		OperationCompletionRS response = handler.updateTestItem(extractProjectDetails(user, "test_project"), itemId, rq, user);

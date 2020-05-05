@@ -78,8 +78,9 @@ public class DemoDataLaunchService {
 				rq.setStartTime(Date.from(lastLaunchTime.plusSeconds(3).atZone(ZoneId.systemDefault()).toInstant()));
 			}
 			rq.setUuid(UUID.randomUUID().toString());
-			Set<ItemAttributesRQ> attributes = Sets.newHashSet(
-					new ItemAttributesRQ("platform", platformValues[new Random().nextInt(platformValues.length)]),
+			Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
+							platformValues[new Random().nextInt(platformValues.length)]
+					),
 					new ItemAttributesRQ(null, "demo"),
 					new ItemAttributesRQ("build", "3." + now.getDayOfMonth() + "." + now.getHour() + "." + i)
 			);
@@ -107,7 +108,11 @@ public class DemoDataLaunchService {
 		launch = new LaunchBuilder(launch).addEndTime(new Date()).get();
 
 		StatusEnum fromStatisticsStatus = PASSED;
-		if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED)) {
+		if (launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+				StatusEnum.PASSED.name(),
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
+		)) {
 			fromStatisticsStatus = StatusEnum.FAILED;
 		}
 		launch.setStatus(fromStatisticsStatus);

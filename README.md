@@ -9,5 +9,6 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-api.svg?maxAge=159200)](https://hub.docker.com/r/reportportal/service-api/)
 
 
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Freportportal%2Fservice-api.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Freportportal%2Fservice-api?ref=badge_large)
+## Copyright Notice
+Licensed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+license (see the LICENSE file).

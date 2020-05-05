@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -54,10 +56,19 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 	private final ItemAttributeRepository itemAttributeRepository;
 
 	@Autowired
-	protected ToSkippedStatusChangingStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, LogIndexer logIndexer, ItemAttributeRepository itemAttributeRepository) {
-		super(projectRepository, launchRepository, issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer);
+	protected ToSkippedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
+			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer,
+			ItemAttributeRepository itemAttributeRepository) {
+		super(testItemService,
+				projectRepository,
+				launchRepository,
+				issueTypeHandler,
+				messageBus,
+				issueEntityRepository,
+				logRepository,
+				logIndexer
+		);
 		this.itemAttributeRepository = itemAttributeRepository;
 	}
 
@@ -70,39 +81,42 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);
-		Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunchId(),
-				SKIPPED_ISSUE_KEY,
-				true
-		);
 
-		boolean issueRequired = skippedIssueAttribute.isPresent() && BooleanUtils.toBoolean(skippedIssueAttribute.get().getValue());
+		if (Objects.isNull(testItem.getRetryOf())) {
+			Optional<ItemAttribute> skippedIssueAttribute = itemAttributeRepository.findByLaunchIdAndKeyAndSystem(testItem.getLaunchId(),
+					SKIPPED_ISSUE_KEY,
+					true
+			);
 
-		if (issueRequired) {
-			if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
-				addToInvestigateIssue(testItem, project.getId());
+			boolean issueRequired = skippedIssueAttribute.isPresent() && BooleanUtils.toBoolean(skippedIssueAttribute.get().getValue());
+
+			if (issueRequired) {
+				if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
+					addToInvestigateIssue(testItem, project.getId());
+				}
+			} else {
+				ofNullable(testItem.getItemResults().getIssue()).map(issue -> {
+					issue.setTestItemResults(null);
+					testItem.getItemResults().setIssue(null);
+					return issue.getIssueId();
+				}).ifPresent(issueEntityRepository::deleteById);
 			}
-		} else {
-			ofNullable(testItem.getItemResults().getIssue()).map(issue -> {
-				issue.setTestItemResults(null);
-				testItem.getItemResults().setIssue(null);
-				return issue.getIssueId();
-			}).ifPresent(issueEntityRepository::deleteById);
+
+			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+			itemsToReindex.add(testItem.getItemId());
+			logIndexer.cleanIndex(project.getId(),
+					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							itemsToReindex,
+							LogLevel.ERROR.toInt()
+					)
+			);
+
+			if (!issueRequired) {
+				itemsToReindex.remove(itemsToReindex.size() - 1);
+			}
+
+			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
 		}
-
-		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
-		itemsToReindex.add(testItem.getItemId());
-		logIndexer.cleanIndex(project.getId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-						itemsToReindex,
-						LogLevel.ERROR.toInt()
-				)
-		);
-
-		if (!issueRequired) {
-			itemsToReindex.remove(itemsToReindex.size() - 1);
-		}
-
-		logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
 	}
 
 	@Override

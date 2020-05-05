@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
@@ -48,10 +50,18 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
 public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrategy {
 
 	@Autowired
-	public ToFailedStatusChangingStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, LogIndexer logIndexer) {
-		super(projectRepository, launchRepository, issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer);
+	public ToFailedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
+			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
+		super(testItemService,
+				projectRepository,
+				launchRepository,
+				issueTypeHandler,
+				messageBus,
+				issueEntityRepository,
+				logRepository,
+				logIndexer
+		);
 	}
 
 	@Override
@@ -63,19 +73,21 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 				);
 
 		testItem.getItemResults().setStatus(providedStatus);
-		if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
-			addToInvestigateIssue(testItem, project.getId());
-		}
+		if (Objects.isNull(testItem.getRetryOf())) {
+			if (testItem.getItemResults().getIssue() == null && testItem.isHasStats()) {
+				addToInvestigateIssue(testItem, project.getId());
+			}
 
-		List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
-		itemsToReindex.add(testItem.getItemId());
-		logIndexer.cleanIndex(project.getId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-						itemsToReindex,
-						LogLevel.ERROR.toInt()
-				)
-		);
-		logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
+			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
+			itemsToReindex.add(testItem.getItemId());
+			logIndexer.cleanIndex(project.getId(),
+					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+							itemsToReindex,
+							LogLevel.ERROR.toInt()
+					)
+			);
+			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
+		}
 	}
 
 	@Override

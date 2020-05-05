@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -50,10 +51,19 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 	private final TestItemRepository testItemRepository;
 
 	@Autowired
-	protected ToPassedStatusChangingStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, IssueEntityRepository issueEntityRepository,
-			LogRepository logRepository, LogIndexer logIndexer, TestItemRepository testItemRepository) {
-		super(projectRepository, launchRepository, issueTypeHandler, messageBus, issueEntityRepository, logRepository, logIndexer);
+	protected ToPassedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
+			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
+			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer,
+			TestItemRepository testItemRepository) {
+		super(testItemService,
+				projectRepository,
+				launchRepository,
+				issueTypeHandler,
+				messageBus,
+				issueEntityRepository,
+				logRepository,
+				logIndexer
+		);
 		this.testItemRepository = testItemRepository;
 	}
 

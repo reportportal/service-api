@@ -15,7 +15,10 @@ RUN apt-get update && \
     # Download application
     wget -O /${APP_FILE} ${APP_DOWNLOAD_URL} && \
     # Remove APT cache
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    # Grant group write permission for plugins dir
+    mkdir /plugins && \
+    chmod g+w /plugins
 
 # Set default JAVA_OPTS
 ENV JAVA_OPTS="-Xmx1g -Djava.security.egd=file:/dev/./urandom"

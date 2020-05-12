@@ -136,7 +136,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItem testItem = testItemRepository.findByUuid(testItemId)
 				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
 
-		TestItemResults testItemResults = processItemResults(user, projectDetails, testItem, finishExecutionRQ, testItem.isHasChildren());
+		Launch launch = retrieveLaunch(testItem);
+
+		TestItemResults testItemResults = processItemResults(user,
+				projectDetails,
+				launch,
+				testItem,
+				finishExecutionRQ,
+				testItem.isHasChildren()
+		);
 
 		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTestCaseId(finishExecutionRQ.getTestCaseId())
@@ -145,6 +153,11 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				.get();
 
 		testItemRepository.save(testItem);
+
+		if (!testItem.isHasChildren() && BooleanUtils.toBoolean(finishExecutionRQ.isRetry())) {
+			handleRetries(launch, testItem);
+		}
+
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
 	}
 
@@ -157,10 +170,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param finishTestItemRQ {@link FinishTestItemRQ}
 	 * @return TestItemResults {@link TestItemResults}
 	 */
-	private TestItemResults processItemResults(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, TestItem testItem,
-			FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
-
-		Launch launch = retrieveLaunch(testItem);
+	private TestItemResults processItemResults(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch,
+			TestItem testItem, FinishTestItemRQ finishTestItemRQ, boolean hasChildren) {
 
 		validateRoles(user, projectDetails, launch);
 		verifyTestItem(testItem, fromValue(finishTestItemRQ.getStatus()), testItem.isHasChildren());
@@ -169,9 +180,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		if (hasChildren) {
 			testItemResults = processParentItemResult(testItem, finishTestItemRQ, launch, user, projectDetails);
 		} else {
-			if (BooleanUtils.toBoolean(finishTestItemRQ.isRetry())) {
-				handleRetries(launch, testItem);
-			}
 			testItemResults = processChildItemResult(testItem, finishTestItemRQ, user, projectDetails, launch);
 		}
 		testItemResults.setEndTime(TO_LOCAL_DATE_TIME.apply(finishTestItemRQ.getEndTime()));

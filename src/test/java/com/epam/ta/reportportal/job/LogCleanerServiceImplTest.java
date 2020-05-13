@@ -107,7 +107,7 @@ class LogCleanerServiceImplTest {
 				any(),
 				any()
 		);
-		verify(attachmentCleanerService, times(1)).removeOutdatedLaunchesAttachments(eq(Collections.singletonList(testItemId)),
+		verify(attachmentCleanerService, times(1)).removeOutdatedLaunchesAttachments(eq(Collections.singletonList(launchId)),
 				any(),
 				any(),
 				any()

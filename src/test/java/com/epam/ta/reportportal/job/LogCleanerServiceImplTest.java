@@ -98,10 +98,16 @@ class LogCleanerServiceImplTest {
 		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
 		when(logRepository.deleteByPeriodAndTestItemIds(eq(period), any())).thenReturn(deletedLogsCount);
+		when(logRepository.deleteByPeriodAndLaunchIds(eq(period), any())).thenReturn(deletedLogsCount);
 		logCleanerService.removeOutdatedLogs(project, period, removedLogsCount);
 
-		assertEquals(deletedLogsCount, removedLogsCount.get());
+		assertEquals(deletedLogsCount * 2, removedLogsCount.get());
 		verify(attachmentCleanerService, times(1)).removeOutdatedItemsAttachments(eq(Collections.singletonList(testItemId)),
+				any(),
+				any(),
+				any()
+		);
+		verify(attachmentCleanerService, times(1)).removeOutdatedLaunchesAttachments(eq(Collections.singletonList(testItemId)),
 				any(),
 				any(),
 				any()

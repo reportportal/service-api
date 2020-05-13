@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -61,6 +63,13 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 	}
 
 	@Override
+	public void removeOutdatedLaunchesAttachments(Collection<Long> launchIds, LocalDateTime before, AtomicLong attachmentsCount,
+			AtomicLong thumbnailsCount) {
+		List<Attachment> launchAttachments = attachmentRepository.findByLaunchIdsModifiedBefore(launchIds, before);
+		removeAttachments(launchAttachments, attachmentsCount, thumbnailsCount);
+	}
+
+	@Override
 	@Transactional
 	public void removeProjectAttachments(Project project, LocalDateTime before, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
 		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), before)) {
@@ -72,6 +81,7 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 					//do nothing
 					LOGGER.error("Error during cleaning project attachments", e);
 				}
+				removeOutdatedLaunchesAttachments(Collections.singletonList(id), before, attachmentsCount, thumbnailsCount);
 			});
 		} catch (Exception e) {
 			//do nothing
@@ -99,6 +109,8 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 				//do nothing, because error that has occurred during the removing of current attachment shouldn't affect others
 			}
 		});
-		attachmentRepository.deleteAllByIds(attachmentIds);
+		if(CollectionUtils.isNotEmpty(attachmentIds)) {
+			attachmentRepository.deleteAllByIds(attachmentIds);
+		}
 	}
 }

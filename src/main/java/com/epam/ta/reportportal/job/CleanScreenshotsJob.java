@@ -17,12 +17,11 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.enums.KeepScreenshotsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -36,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static java.time.Duration.ofDays;
+import static java.time.Duration.ofSeconds;
 
 /**
  * Clear screenshots from GridFS in accordance with projects settings
@@ -87,9 +86,7 @@ public class CleanScreenshotsJob implements Job {
 
 	private void proceedScreenShotsCleaning(Project project, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_SCREENSHOTS)
-				.map(it -> ofDays(KeepScreenshotsDelay.findByName(it)
-						.orElseThrow(() -> new ReportPortalException("Incorrect keep screenshots delay period: " + it))
-						.getDays()))
+				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
 				.map(it -> LocalDateTime.now(ZoneOffset.UTC).minus(it))
 				.ifPresent(it -> attachmentCleanerService.removeProjectAttachments(project, it, attachmentsCount, thumbnailsCount));

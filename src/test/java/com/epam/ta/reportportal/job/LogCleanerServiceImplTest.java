@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
@@ -75,7 +74,7 @@ class LogCleanerServiceImplTest {
 
 		Project project = new Project();
 		project.setId(1L);
-		Duration period = ofDays(KeepLogsDelay.SIX_MONTHS.getDays());
+		Duration period = ofDays(180);
 		AtomicLong removedLogsCount = new AtomicLong();
 
 		long launchId = 1L;

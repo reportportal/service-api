@@ -36,6 +36,7 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,8 +45,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.filesystem.distributed.minio.MinioDataStore.BUCKET_PREFIX;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -85,6 +84,9 @@ public class FlushingDataJob implements Job {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Value("${datastore.minio.bucketPrefix}")
+	private String bucketPrefix;
 
 	@Override
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
@@ -154,9 +156,9 @@ public class FlushingDataJob implements Job {
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		try {
-			minioClient.deleteBucketLifeCycle(BUCKET_PREFIX + project.getId());
+			minioClient.deleteBucketLifeCycle(bucketPrefix + project.getId());
 		} catch (Exception e) {
-			LOGGER.warn("Cannot delete attachments bucket " + BUCKET_PREFIX + project.getId());
+			LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
 		}
 		logIndexer.deleteIndex(project.getId());
 		projectRepository.flush();

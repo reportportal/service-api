@@ -16,5 +16,13 @@ public interface AttachmentCleanerService {
 
 	void removeOutdatedLaunchesAttachments(Collection<Long> launchIds, AtomicLong attachmentsCount, AtomicLong thumbnailsCount);
 
+	/**
+	 * @param launchIds
+	 * @param before
+	 * @param attachmentsCount
+	 * @param thumbnailsCount
+	 */
+	void removeOutdatedLaunchesAttachments(Collection<Long> launchIds, LocalDateTime before, AtomicLong attachmentsCount, AtomicLong thumbnailsCount);
+
 	void removeProjectAttachments(Project project, LocalDateTime before, AtomicLong attachmentsCount, AtomicLong thumbnailsCount);
 }

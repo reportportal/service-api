@@ -122,12 +122,17 @@ class AttachmentCleanerServiceImplTest {
 		when(attachmentRepository.findByItemIdsModifiedBefore(Collections.singletonList(33L), before)).thenReturn(Collections.singletonList(
 				testAttachment("five", null)));
 
+		when(attachmentRepository.findByLaunchIdsModifiedBefore(Collections.singletonList(1L), before)).thenReturn(Collections.singletonList(
+				testAttachment("firstLaunch", "two")));
+		when(attachmentRepository.findByLaunchIdsModifiedBefore(Collections.singletonList(2L), before)).thenReturn(Collections.singletonList(
+				testAttachment("secondLaunch", null)));
+
 		attachmentCleanerService.removeProjectAttachments(project, before, attachmentCount, thumbnailCount);
 
-		assertEquals(3L, attachmentCount.get());
-		assertEquals(2L, thumbnailCount.get());
-		verify(dataStoreService, times(5)).delete(anyString());
-		verify(attachmentRepository, times(3)).deleteAllByIds(anyCollection());
+		assertEquals(5L, attachmentCount.get());
+		assertEquals(3L, thumbnailCount.get());
+		verify(dataStoreService, times(8)).delete(anyString());
+		verify(attachmentRepository, times(5)).deleteAllByIds(anyCollection());
 	}
 
 	private static Attachment testAttachment(String fileId, String thumbnailId) {

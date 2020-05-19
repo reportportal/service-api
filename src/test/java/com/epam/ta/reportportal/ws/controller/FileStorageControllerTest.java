@@ -118,7 +118,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 	@Test
 	void getUserPhotoByLoginNegative() throws Exception {
 		mockMvc.perform(get("/v1/data/superadmin_personal/userphoto?id=superadmin").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isBadRequest());
+				.andExpect(status().isOk());
 	}
 
 	@Test

@@ -22,14 +22,17 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.job.service.LaunchCleanerService;
 import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobExecutionException;
 import org.springframework.data.domain.PageImpl;
 
+import java.time.Duration;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -58,7 +61,9 @@ class CleanLaunchesJobTest {
 		final Attribute attribute = new Attribute();
 		attribute.setName("job.keepLaunches");
 		projectAttribute.setAttribute(attribute);
-		projectAttribute.setValue("1 month");
+
+		//1 month in seconds
+		projectAttribute.setValue(String.valueOf(3600 * 24 * 30));
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 
 		project.setName(name);
@@ -67,7 +72,12 @@ class CleanLaunchesJobTest {
 
 		cleanLaunchesJob.execute(null);
 
-		verify(launchCleanerService, times(1)).cleanOutdatedLaunches(any(), any(), any(), any(), any());
+		ArgumentCaptor<Duration> durationArgumentCaptor = ArgumentCaptor.forClass(Duration.class);
+		verify(launchCleanerService, times(1)).cleanOutdatedLaunches(any(), durationArgumentCaptor.capture(), any(), any(), any());
+
+		Duration value = durationArgumentCaptor.getValue();
+
+		Assertions.assertEquals(3600 * 24 * 30, value.getSeconds());
 	}
 
 	@Test
@@ -86,5 +96,7 @@ class CleanLaunchesJobTest {
 		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanLaunchesJob.execute(null);
+
+		verify(launchCleanerService, times(0)).cleanOutdatedLaunches(any(), any(), any(), any(), any());
 	}
 }

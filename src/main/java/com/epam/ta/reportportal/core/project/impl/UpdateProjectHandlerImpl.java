@@ -32,7 +32,8 @@ import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
-import com.epam.ta.reportportal.entity.enums.*;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -120,8 +121,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
 			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
-			IndexerStatusCache indexerStatusCache, AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
-			ProjectConverter projectConverter) {
+			IndexerStatusCache indexerStatusCache, AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
+			ShareableObjectsHandler aclHandler, ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
@@ -390,14 +391,14 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	}
 
 	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
-		ofNullable(configuration).ifPresent(config -> ofNullable(config.getProjectAttributes()).ifPresent(attributes -> {
+		ofNullable(configuration).flatMap(config -> ofNullable(config.getProjectAttributes())).ifPresent(attributes -> {
 			verifyProjectAttributes(attributes);
 			attributes.forEach((attribute, value) -> project.getProjectAttributes()
 					.stream()
 					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
 					.findFirst()
 					.ifPresent(attr -> attr.setValue(value)));
-		}));
+		});
 	}
 
 	private void verifyProjectAttributes(Map<String, String> attributes) {
@@ -407,20 +408,20 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.collect(toSet());
 		expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
 
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(keepLogs -> expect(keepLogs,
-				KeepLogsDelay::isPresent
-		).verify(ErrorType.BAD_REQUEST_ERROR, keepLogs));
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute())).ifPresent(keepLaunches -> expect(keepLaunches,
-				KeepLaunchDelay::isPresent
-		).verify(BAD_REQUEST_ERROR, keepLaunches));
-		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(interruptedJob -> expect(interruptedJob,
-				InterruptionJobDelay::isPresent
-		).verify(ErrorType.BAD_REQUEST_ERROR, interruptedJob));
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(keepScreenshots -> expect(keepScreenshots,
-				KeepScreenshotsDelay::isPresent
-		).verify(ErrorType.BAD_REQUEST_ERROR, keepScreenshots));
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(this::validateDelay);
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute())).ifPresent(this::validateDelay);
+		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(this::validateDelay);
+		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(this::validateDelay);
 		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
+	}
+
+	private void validateDelay(String value) {
+		try {
+			Long.parseLong(value);
+		} catch (NumberFormatException exc) {
+			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
+		}
 	}
 
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {

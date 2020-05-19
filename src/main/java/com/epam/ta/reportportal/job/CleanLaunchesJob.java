@@ -17,13 +17,12 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.service.LaunchCleanerService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -41,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static java.time.Duration.ofDays;
+import static java.time.Duration.ofSeconds;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -107,9 +106,7 @@ public class CleanLaunchesJob implements Job {
 	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunches, AtomicLong removedAttachments,
 			AtomicLong removedThumbnails) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LAUNCHES)
-				.map(it -> ofDays(KeepLaunchDelay.findByName(it)
-						.orElseThrow(() -> new ReportPortalException("Incorrect keep launch delay period: " + it))
-						.getDays()))
+				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
 				.ifPresent(it -> launchCleaner.cleanOutdatedLaunches(project, it, removedLaunches, removedAttachments, removedThumbnails));
 	}

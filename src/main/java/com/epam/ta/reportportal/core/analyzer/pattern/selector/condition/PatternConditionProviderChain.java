@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.Ma
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.impl.ToInvestigatePatternConditionProvider;
 import com.epam.ta.reportportal.dao.IssueGroupRepository;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
+import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.google.common.collect.Sets;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -44,10 +46,11 @@ public class PatternConditionProviderChain {
 
 	@Autowired
 	public PatternConditionProviderChain(IssueGroupRepository issueGroupRepository) {
+		Supplier<IssueGroup> issueGroupSupplier = () -> issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE);
 		this.patternConditionProviders = Sets.newHashSet(new AutoAnalyzedPatternConditionProvider(AnalyzeItemsMode.AUTO_ANALYZED),
-				new ManualPatternConditionProvider(AnalyzeItemsMode.MANUALLY_ANALYZED),
+				new ManualPatternConditionProvider(AnalyzeItemsMode.MANUALLY_ANALYZED, issueGroupSupplier),
 				new ToInvestigatePatternConditionProvider(AnalyzeItemsMode.TO_INVESTIGATE,
-						() -> issueGroupRepository.findByTestItemIssueGroup(TestItemIssueGroup.TO_INVESTIGATE)
+						issueGroupSupplier
 				)
 		);
 	}

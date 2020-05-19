@@ -189,6 +189,8 @@ class SecurityConfiguration {
 							"/**/user/password/restore**",
 							"/documentation.html",
 							"/health",
+							"/metrics",
+							"/prometheus",
 							"/info"
 					)
 					.permitAll()

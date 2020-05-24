@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.ws.controller;
+package com.epam.ta.reportportal.core.configs;
 
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;

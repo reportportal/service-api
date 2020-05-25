@@ -11,6 +11,7 @@ spring:
       org.quartz.jobStore.clusterCheckinInterval: "180000"
       org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
       org.quartz.scheduler.instanceName: reportportal
+      org.quartz.scheduler.classLoadHelper.class: com.epam.ta.reportportal.core.configs.ReportPortalClassLoadHelper
 
   jpa:
     properties:

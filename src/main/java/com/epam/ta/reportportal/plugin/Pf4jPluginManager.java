@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.plugin;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.ExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
-import com.epam.reportportal.extension.event.PluginLoadedEvent;
+import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
@@ -72,6 +72,9 @@ import static java.util.Optional.ofNullable;
 public class Pf4jPluginManager implements Pf4jPluginBox {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(Pf4jPluginManager.class);
+
+	public static final String LOAD_KEY = "load";
+	public static final String UNLOAD_KEY = "unload";
 
 	private static final long MAXIMUM_UPLOADED_PLUGINS = 50;
 	private static final long PLUGIN_LIVE_TIME = 2;
@@ -202,7 +205,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 					Optional<org.pf4j.ExtensionPoint> extensionPoint = this.getInstance(pluginId, org.pf4j.ExtensionPoint.class);
 					extensionPoint.ifPresent(extension -> LOGGER.info(Suppliers.formattedSupplier("Plugin - '{}' initialized.", pluginId)
 							.get()));
-					applicationEventPublisher.publishEvent(new PluginLoadedEvent(pluginId));
+					applicationEventPublisher.publishEvent(new PluginEvent(pluginId, LOAD_KEY));
 					return true;
 				} else {
 					return false;
@@ -224,6 +227,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 
 	@Override
 	public boolean unloadPlugin(IntegrationType integrationType) {
+		applicationEventPublisher.publishEvent(new PluginEvent(integrationType.getName(), UNLOAD_KEY));
 		destroyDependency(integrationType.getName());
 		return pluginManager.unloadPlugin(integrationType.getName());
 	}
@@ -237,6 +241,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	public boolean deletePlugin(PluginWrapper pluginWrapper) {
 		return integrationTypeRepository.findByName(pluginWrapper.getPluginId()).map(this::deletePlugin).orElseGet(() -> {
 			deletePluginResources(Paths.get(resourcesDir, pluginWrapper.getPluginId()).toString());
+			applicationEventPublisher.publishEvent(new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
 			return pluginManager.deletePlugin(pluginWrapper.getPluginId());
 		});
 	}
@@ -244,6 +249,8 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	private boolean deletePlugin(IntegrationType integrationType) {
 		Optional<Map<String, Object>> pluginData = ofNullable(integrationType.getDetails()).map(IntegrationTypeDetails::getDetails);
 		pluginData.ifPresent(this::deletePluginResources);
+
+		applicationEventPublisher.publishEvent(new PluginEvent(integrationType.getName(), UNLOAD_KEY));
 
 		boolean pluginRemoved = ofNullable(pluginManager.getPlugin(integrationType.getName())).map(pluginWrapper -> {
 			destroyDependency(pluginWrapper.getPluginId());
@@ -314,7 +321,7 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 			IntegrationTypeDetails newPluginDetails = copyPlugin(newPluginInfo, pluginDetails, uploadedPluginName);
 			try {
 				IntegrationType newIntegrationType = startUpPlugin(newPluginDetails);
-				applicationEventPublisher.publishEvent(new PluginLoadedEvent(newIntegrationType.getName()));
+				applicationEventPublisher.publishEvent(new PluginEvent(newIntegrationType.getName(), LOAD_KEY));
 				previousPlugin.ifPresent(this::deletePreviousPlugin);
 				deleteTempPlugin(uploadedPluginName);
 				return newIntegrationType;

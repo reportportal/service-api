@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.epam.ta.reportportal.job.service.impl.LaunchCleanerServiceImpl;
@@ -62,7 +61,7 @@ class LaunchCleanerServiceImplTest {
 	void runTest() {
 		Project project = new Project();
 		project.setId(1L);
-		Duration period = ofDays(KeepLaunchDelay.SIX_MONTHS.getDays());
+		Duration period = ofDays(180);
 		AtomicLong launchesRemoved = new AtomicLong();
 		AtomicLong attachmentsRemoved = new AtomicLong();
 		AtomicLong thumbnailsRemoved = new AtomicLong();

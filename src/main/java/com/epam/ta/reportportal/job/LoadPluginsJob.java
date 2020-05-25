@@ -37,11 +37,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -74,14 +73,10 @@ public class LoadPluginsJob {
 
 	@Scheduled(fixedDelayString = "${com.ta.reportportal.job.load.plugins.cron}")
 	public void execute() {
+		List<PluginInfo> notLoadedPlugins = pluginLoaderService.getNotLoadedPluginsInfo();
 
-		List<IntegrationType> integrationTypes = integrationTypeRepository.findAll();
-
-		List<PluginInfo> notLoadedPlugins = pluginLoaderService.getNotLoadedPluginsInfo(integrationTypes);
-
-		notLoadedPlugins.forEach(pluginInfo -> ofNullable(dataStore.load(pluginInfo.getFileId())).ifPresent(inputStream -> {
-			try {
-
+		notLoadedPlugins.forEach(pluginInfo -> {
+			try (InputStream inputStream = dataStore.load(pluginInfo.getFileId())) {
 				LOGGER.debug("Plugin loading has started...");
 
 				if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
@@ -90,11 +85,11 @@ public class LoadPluginsJob {
 				}
 
 				if (pluginInfo.isEnabled()) {
-
 					IntegrationType integrationType = integrationTypeRepository.findByName(pluginInfo.getId())
 							.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginInfo.getId()));
 
 					boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
+
 					if (isLoaded) {
 						LOGGER.debug(Suppliers.formattedSupplier("Plugin - '{}' has been successfully started.", integrationType.getName())
 								.get());
@@ -107,7 +102,7 @@ public class LoadPluginsJob {
 				LOGGER.error("Error has occurred during plugin copying from the Data store", ex);
 				//do nothing
 			}
-		}));
+		});
 
 	}
 

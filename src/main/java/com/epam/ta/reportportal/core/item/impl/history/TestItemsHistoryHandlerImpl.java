@@ -17,24 +17,30 @@
 package com.epam.ta.reportportal.core.item.impl.history;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProviderFactory;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.item.PathName;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
-import com.epam.ta.reportportal.ws.converter.TestItemResourceAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
+import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.model.TestItemHistoryElement;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
-import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.google.common.collect.Lists;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +53,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_STATS;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
@@ -65,15 +73,15 @@ import static java.util.stream.Collectors.*;
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 	private final TestItemRepository testItemRepository;
-	private final TestItemResourceAssembler itemResourceAssembler;
 	private final HistoryProviderFactory historyProviderFactory;
+	private final List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders;
 
 	@Autowired
-	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, TestItemResourceAssembler itemResourceAssembler,
-			HistoryProviderFactory historyProviderFactory) {
+	public TestItemsHistoryHandlerImpl(TestItemRepository testItemRepository, HistoryProviderFactory historyProviderFactory,
+			List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders) {
 		this.testItemRepository = testItemRepository;
-		this.itemResourceAssembler = itemResourceAssembler;
 		this.historyProviderFactory = historyProviderFactory;
+		this.resourceUpdaterProviders = resourceUpdaterProviders;
 	}
 
 	@Override
@@ -83,14 +91,24 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		validateHistoryDepth(historyRequestParams.getHistoryDepth());
 
 		validateProjectRole(projectDetails, user);
-		filter.getFilterConditions()
-				.add(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
+
+		CompositeFilter itemHistoryFilter = new CompositeFilter(Operator.AND,
+				filter,
+				Filter.builder()
+						.withTarget(filter.getTarget().getClazz())
+						.withCondition(FilterCondition.builder()
+								.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
+								.build())
+						.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_MODE, LaunchModeEnum.DEFAULT.name()).build())
+						.withCondition(FilterCondition.builder().eq(CRITERIA_HAS_STATS, String.valueOf(Boolean.TRUE)).build())
+						.build()
+		);
 
 		Page<TestItemHistory> testItemHistoryPage = historyProviderFactory.getProvider(historyRequestParams)
 				.orElseThrow(() -> new ReportPortalException(UNABLE_LOAD_TEST_ITEM_HISTORY,
 						"Unable to find suitable history baseline provider"
 				))
-				.provide(filter, pageable, historyRequestParams, projectDetails, user);
+				.provide(itemHistoryFilter, pageable, historyRequestParams, projectDetails, user);
 
 		return buildHistoryElements(testItemHistoryPage, projectDetails.getProjectId(), pageable);
 
@@ -120,13 +138,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				.flatMap(history -> history.getItemIds().stream())
 				.collect(toList()));
 
-		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(testItems.stream()
-				.map(TestItem::getItemId)
-				.collect(toList()), projectId);
+		List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectId, testItems);
 
-		Map<Integer, Map<Long, TestItemResource>> itemsMapping = testItems.stream()
-				.map(item -> itemResourceAssembler.toResource(item, pathNamesMapping.get(item.getItemId())))
-				.collect(groupingBy(TestItemResource::getTestCaseHash, toMap(TestItemResource::getItemId, res -> res)));
+		Map<Integer, Map<Long, TestItemResource>> itemsMapping = testItems.stream().map(item -> {
+			TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+			resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+			return testItemResource;
+		}).collect(groupingBy(TestItemResource::getTestCaseHash, toMap(TestItemResource::getItemId, res -> res)));
 
 		List<TestItemHistoryElement> testItemHistoryElements = testItemHistoryPage.getContent()
 				.stream()
@@ -147,6 +165,13 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				pageable,
 				testItemHistoryPage::getTotalElements
 		));
+
+	}
+
+	private List<ResourceUpdater<TestItemResource>> getResourceUpdaters(Long projectId, List<TestItem> testItems) {
+		return resourceUpdaterProviders.stream()
+				.map(retriever -> retriever.retrieve(TestItemUpdaterContent.of(projectId, testItems)))
+				.collect(toList());
 
 	}
 }

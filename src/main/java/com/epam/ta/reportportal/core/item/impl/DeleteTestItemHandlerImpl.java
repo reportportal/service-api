@@ -26,13 +26,16 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -48,6 +51,8 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Default implementation of {@link DeleteTestItemHandler}
@@ -88,6 +93,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validate(item, launch, user, projectDetails);
 		Optional<TestItem> parent = ofNullable(item.getParent());
 
+		Set<Long> removedDescendants = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
+
 		testItemRepository.deleteById(item.getItemId());
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
@@ -100,7 +107,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 						LogLevel.ERROR.toInt()
 				)
 		);
-		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(item.getItemId()));
+		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedDescendants));
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
 	}
@@ -109,39 +116,55 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		List<TestItem> items = testItemRepository.findAllById(ids);
-		List<Launch> launches = launchRepository.findAllById(items.stream().map(TestItem::getLaunchId).collect(Collectors.toSet()));
+		Set<Long> itemIds = items.stream().map(TestItem::getItemId).collect(Collectors.toSet());
 
+		List<Launch> launches = launchRepository.findAllById(items.stream()
+				.map(TestItem::getLaunchId)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet()));
 		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
 
-		List<Long> itemsToDelete = new ArrayList<>(items.size());
-		List<Long> cascadeDeletedItems = new ArrayList<>(items.size());
+		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(itemIds, projectDetails.getProjectId());
 
-		Map<Integer, List<TestItem>> groupedByLevel = items.stream()
-				.collect(Collectors.groupingBy(it -> it.getType().getLevel(), TreeMap::new, Collectors.toList()));
+		Set<Long> idsToDelete = Sets.newHashSet(descendantsMapping.keySet());
 
-		groupedByLevel.forEach((key, value) -> value.stream()
-				.filter(item -> !cascadeDeletedItems.contains(item.getItemId()))
-				.forEach(item -> {
-					itemsToDelete.add(item.getItemId());
-					cascadeDeletedItems.addAll(testItemRepository.selectAllDescendantsIds(item.getPath()));
-				}));
+		descendantsMapping.forEach((key, value) -> value.getItemPaths().forEach(ip -> {
+			if (idsToDelete.contains(ip.getId())) {
+				idsToDelete.remove(key);
+			}
+		}));
 
-		testItemRepository.deleteAllByItemIdIn(itemsToDelete);
-
-		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
-		items.stream()
-				.filter(it -> itemsToDelete.contains(it.getItemId()))
+		List<TestItem> parentsToUpdate = items.stream()
+				.filter(it -> idsToDelete.contains(it.getItemId()))
 				.map(TestItem::getParent)
 				.filter(Objects::nonNull)
-				.forEach(it -> it.setHasChildren(false));
+				.collect(toList());
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findIdsByTestItemIdsAndLogLevelGte(cascadeDeletedItems, LogLevel.ERROR.toInt())
-		);
-		items.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(it.getItemId())));
+		launchItemMap.forEach((launchId, testItemIds) -> logIndexer.cleanIndex(projectDetails.getProjectId(),
+				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
+						testItemIds.stream().map(TestItem::getItemId).filter(idsToDelete::contains).collect(toList()),
+						LogLevel.ERROR.toInt()
+				)
+		));
 
-		return cascadeDeletedItems.stream().map(COMPOSE_DELETE_RESPONSE).collect(Collectors.toList());
+		Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
+				.stream()
+				.map(TestItem::getPath)
+				.collect(toList())
+				.stream()
+				.flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
+				.collect(toSet());
+
+		testItemRepository.deleteAllByItemIdIn(idsToDelete);
+
+		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
+
+		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
+
+		idsToDelete.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedItems)));
+
+		return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
 	}
 
 	private static final Function<Long, OperationCompletionRS> COMPOSE_DELETE_RESPONSE = it -> {
@@ -150,8 +173,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	};
 
 	/**
-	 * Validate {@link ReportPortalUser} credentials, {@link com.epam.ta.reportportal.entity.item.TestItemResults#status},
-	 * {@link Launch#status} and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
+	 * Validate {@link ReportPortalUser} credentials, {@link TestItemResults#getStatus()},
+	 * {@link Launch#getStatus()} and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
 	 *
 	 * @param testItem       {@link TestItem}
 	 * @param user           {@link ReportPortalUser}

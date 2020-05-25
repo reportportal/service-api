@@ -9,12 +9,18 @@ rp:
     maximumPoolSize: 5
   binarystore:
     type: filesystem
+    minio:
+      endpoint: http://localhost:9000
+      accessKey: minio
+      secretKey: minio123
     path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
 logging:
   level:
-    org:
-      hibernate:
-        SQL: debug
+    org.hibernate.SQL: debug
+    com.epam.ta.reportportal.core:
+      integration:
+        migration: debug
+      analyzer: debug
   file:
     name: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
 server:

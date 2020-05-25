@@ -21,15 +21,21 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClie
 import com.epam.ta.reportportal.ws.model.analyzer.CleanIndexRq;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_INDEX;
+import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -37,9 +43,11 @@ import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUt
 @Service
 public class IndexerServiceClientImpl implements IndexerServiceClient {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(IndexerServiceClient.class);
 	private static final String INDEX_ROUTE = "index";
 	private static final String DELETE_ROUTE = "delete";
 	private static final String CLEAN_ROUTE = "clean";
+	private static final Integer DELETE_INDEX_SUCCESS_CODE = 1;
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
@@ -63,8 +71,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 						}
 				))
 				.mapToLong(it -> {
-					if (Objects.nonNull(it) && it.getItems() != null) {
-						return it.getItems().size();
+					if (Objects.nonNull(it)) {
+						return it.getTook();
 					}
 					return 0;
 				})
@@ -72,15 +80,40 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void cleanIndex(Long index, List<Long> ids) {
-		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), CLEAN_ROUTE, new CleanIndexRq(index, ids)));
-
+	public Long cleanIndex(Long index, List<Long> ids) {
+		Map<Integer, Long> priorityToCleanedLogsCountMapping = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt,
+						exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+								CLEAN_ROUTE,
+								new CleanIndexRq(index, ids),
+								new ParameterizedTypeReference<Long>() {
+								}
+						)
+				));
+		return priorityToCleanedLogsCountMapping.entrySet()
+				.stream()
+				.min(Map.Entry.comparingByKey())
+				.orElseGet(() -> new AbstractMap.SimpleEntry<Integer, Long>(0, 0L))
+				.getValue();
 	}
 
 	@Override
 	public void deleteIndex(Long index) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DELETE_ROUTE, index));
+				.stream()
+				.map(exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+						DELETE_ROUTE,
+						index,
+						new ParameterizedTypeReference<Integer>() {
+						}
+				))
+				.forEach(it -> {
+					if (DELETE_INDEX_SUCCESS_CODE.equals(it)) {
+						LOGGER.info("Successfully deleted index '{}'", index);
+					} else {
+						LOGGER.error("Error deleting index '{}'", index);
+					}
+				});
 	}
 }

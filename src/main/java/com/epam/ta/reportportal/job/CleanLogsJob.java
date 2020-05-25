@@ -16,15 +16,13 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.service.LogCleanerService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -32,17 +30,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static java.time.Duration.ofDays;
+import static java.time.Duration.ofSeconds;
 
 /**
  * Clean logs job in accordance with project settings
@@ -51,6 +50,7 @@ import static java.time.Duration.ofDays;
  * @author Pavel Borntik
  */
 @Service
+@Profile("!unittest")
 public class CleanLogsJob implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
@@ -63,14 +63,10 @@ public class CleanLogsJob implements Job {
 
 	private final LogCleanerService logCleaner;
 
-	private final SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties;
-
 	@Autowired
-	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner,
-			SchedulerConfiguration.CleanLogsJobProperties cleanLogsJobProperties) {
+	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner) {
 		this.projectRepository = projectRepository;
 		this.logCleaner = logCleaner;
-		this.cleanLogsJobProperties = cleanLogsJobProperties;
 	}
 
 	@Override
@@ -82,9 +78,9 @@ public class CleanLogsJob implements Job {
 
 		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
 				pageable
-		), projects -> projects.forEach(project -> {
+		), projects -> CompletableFuture.allOf(projects.stream().map(project -> {
 			AtomicLong removedLogsCount = new AtomicLong(0);
-			executor.submit(() -> {
+			return CompletableFuture.runAsync(() -> {
 				try {
 					LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
 					proceedLogsRemoving(project, removedLogsCount);
@@ -96,27 +92,16 @@ public class CleanLogsJob implements Job {
 						project.getId(),
 						removedLogsCount.get()
 				);
-			});
-		}));
+			}, executor);
+		}).toArray(CompletableFuture[]::new)).join());
 
-		try {
-			executor.shutdown();
-			if (!executor.awaitTermination(cleanLogsJobProperties.getTimeout(), TimeUnit.SECONDS)) {
-				executor.shutdownNow();
-			}
-		} catch (InterruptedException e) {
-			LOGGER.debug("Waiting for tasks execution has been failed", e);
-		} finally {
-			executor.shutdownNow();
-		}
+		executor.shutdown();
 
 	}
 
 	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LOGS)
-				.map(it -> ofDays(KeepLogsDelay.findByName(it)
-						.orElseThrow(() -> new ReportPortalException("Incorrect keep logs delay period: " + it))
-						.getDays()))
+				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
 				.ifPresent(it -> logCleaner.removeOutdatedLogs(project, it, removedLogsCount));
 	}

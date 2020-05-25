@@ -236,8 +236,7 @@
 * EPMRPP-35289 - WS: GET item controller returns items that do not belong to specified project, but all available items
 * EPMRPP-35291 - WS: Unclassified error on get latest launches. Improve latest query performance
 
-## 5.x.x
-##### Released: XXX XX, 2019
+## 5.0.0
 
 ### Bugfixes
 
@@ -256,3 +255,11 @@
 * EPMRPP-35338 - Add number of run to launch name on widgets for the particular launch.
 * EPMRPP-42004 - Step level. Unclassified error on bulk post/link issue
 * EPMRPP-42337 - 'Issue' parameter should not be available for items without issue type or items have status Passed.
+
+
+## 5.3.0
+##### Released: XXX
+
+### Bugfixes
+
+* reportportal/reportportal#773 - Service-API errors when user does not have a photo

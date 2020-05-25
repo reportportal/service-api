@@ -32,8 +32,10 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.*;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
@@ -47,14 +49,17 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	private final IssueEntityRepository issueEntityRepository;
 	private final MessageBus messageBus;
 	private final LaunchRepository launchRepository;
+	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
 	public ChangeStatusHandlerImpl(TestItemRepository testItemRepository, IssueEntityRepository issueEntityRepository,
-			MessageBus messageBus, LaunchRepository launchRepository) {
+			MessageBus messageBus, LaunchRepository launchRepository,
+			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.testItemRepository = testItemRepository;
 		this.issueEntityRepository = issueEntityRepository;
 		this.messageBus = messageBus;
 		this.launchRepository = launchRepository;
+		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
 
 	@Override
@@ -67,7 +72,7 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 				StatusEnum resolvedStatus = resolveStatus(parent.getItemId());
 				if (parent.getItemResults().getStatus() != resolvedStatus) {
 					TestItemActivityResource before = TO_ACTIVITY_RESOURCE.apply(parent, projectId);
-					parent.getItemResults().setStatus(resolvedStatus);
+					changeStatus(parent, resolvedStatus, user);
 					messageBus.publishActivity(new TestItemStatusChangedEvent(before,
 							TO_ACTIVITY_RESOURCE.apply(parent, projectId),
 							user.getUserId(),
@@ -75,18 +80,9 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 					));
 					changeParentStatus(parent.getItemId(), projectId, user);
 				}
+
 			}
 		});
-	}
-
-	@Override
-	public void changeLaunchStatus(Launch launch) {
-		if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
-			if (!launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(), StatusEnum.PASSED) ? FAILED : PASSED;
-				launch.setStatus(launchStatus);
-			}
-		}
 	}
 
 	private boolean isParentStatusUpdateRequired(TestItem parent) {
@@ -95,6 +91,36 @@ public class ChangeStatusHandlerImpl implements ChangeStatusHandler {
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsWithStatusNotEqual(itemId, StatusEnum.PASSED) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsNotInStatus(itemId, StatusEnum.PASSED.name(), INFO.name(), WARN.name()) ?
+				FAILED :
+				PASSED;
+	}
+
+	private void changeStatus(TestItem parent, StatusEnum resolvedStatus, ReportPortalUser user) {
+		if (parent.isHasChildren() || !parent.isHasStats()) {
+			parent.getItemResults().setStatus(resolvedStatus);
+		} else {
+			Optional<StatusChangingStrategy> statusChangingStrategy = ofNullable(statusChangingStrategyMapping.get(resolvedStatus));
+			if (statusChangingStrategy.isPresent()) {
+				statusChangingStrategy.get().changeStatus(parent, resolvedStatus, user);
+			} else {
+				parent.getItemResults().setStatus(resolvedStatus);
+			}
+		}
+
+	}
+
+	@Override
+	public void changeLaunchStatus(Launch launch) {
+		if (launch.getStatus() != StatusEnum.IN_PROGRESS) {
+			if (!launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
+				StatusEnum launchStatus = launchRepository.hasRootItemsWithStatusNotEqual(launch.getId(),
+						StatusEnum.PASSED.name(),
+						INFO.name(),
+						WARN.name()
+				) ? FAILED : PASSED;
+				launch.setStatus(launchStatus);
+			}
+		}
 	}
 }

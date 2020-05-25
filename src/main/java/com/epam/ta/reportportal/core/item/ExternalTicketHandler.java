@@ -17,30 +17,22 @@
 package com.epam.ta.reportportal.core.item;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
+import com.epam.ta.reportportal.ws.model.issue.Issue;
+import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
+
+import java.util.List;
+import java.util.Set;
 
 /**
- * Unique id generator for designate test item's originality
- *
- * @author Pavel_Bortnik
- * @since V3.2
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public interface UniqueIdGenerator {
+public interface ExternalTicketHandler {
 
-	/**
-	 * Generates the unique identifier for test item
-	 *
-	 * @param testItem source for id
-	 * @return unique id
-	 */
-	String generate(TestItem testItem, Launch launch);
+	void linkExternalTickets(String submitter, List<IssueEntity> issueEntities, List<Issue.ExternalSystemIssue> tickets);
 
-	/**
-	 * Validate if string has been generated automatically
-	 *
-	 * @param encoded encoded
-	 * @return true if it has been generated automatically
-	 */
-	boolean validate(String encoded);
+	void unlinkExternalTickets(List<TestItem> items, UnlinkExternalIssueRQ request);
+
+	void updateLinking(String submitter, IssueEntity newEntity, Set<Issue.ExternalSystemIssue> externalTickets);
 
 }

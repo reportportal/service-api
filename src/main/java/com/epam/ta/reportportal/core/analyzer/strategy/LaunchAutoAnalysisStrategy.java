@@ -31,6 +31,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,8 @@ import static java.util.stream.Collectors.toList;
  */
 @Service
 public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLaunchAnalysisStrategy.class);
 
 	private final AnalyzerServiceAsync analyzerServiceAsync;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
@@ -98,10 +102,10 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 	 * @see AnalyzeItemsCollector
 	 */
 	private List<Long> collectItemsByModes(Long launchId, List<String> analyzeItemsMode, Project project, ReportPortalUser user) {
-		return analyzeItemsMode.stream()
-				.map(AnalyzeItemsMode::fromString)
-				.flatMap(it -> analyzeCollectorFactory.getCollector(it).collectItems(project.getId(), launchId, user).stream())
-				.distinct()
-				.collect(toList());
+		return analyzeItemsMode.stream().map(AnalyzeItemsMode::fromString).flatMap(it -> {
+			List<Long> itemIds = analyzeCollectorFactory.getCollector(it).collectItems(project.getId(), launchId, user);
+			LOGGER.debug("Item itemIds collected by '{}' mode: {}", it, itemIds);
+			return itemIds.stream();
+		}).distinct().collect(toList());
 	}
 }

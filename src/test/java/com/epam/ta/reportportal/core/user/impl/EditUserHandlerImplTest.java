@@ -31,6 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -50,6 +51,9 @@ class EditUserHandlerImplTest {
 
 	@Mock
 	private ProjectRepository projectRepository;
+
+	@Mock
+	private PasswordEncoder passwordEncoder;
 
 	@InjectMocks
 	private EditUserHandlerImpl handler;
@@ -126,6 +130,7 @@ class EditUserHandlerImplTest {
 
 		final ChangePasswordRQ changePasswordRQ = new ChangePasswordRQ();
 		changePasswordRQ.setOldPassword("wrongPass");
+
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.changePassword(getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L), changePasswordRQ)
 		);

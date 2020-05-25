@@ -98,7 +98,7 @@
                             </tr>
                             </tbody>
                         </table>
-                        <p style="font-size: 14px; color: #777777;">P.S. If you didn’t request this email, you may safety ignore it.</p>
+                        <p style="font-size: 14px; color: #777777;">P.S. If you didn’t request this email, you can just ignore it.</p>
                     </td>
                 </tr>
                 </tbody>

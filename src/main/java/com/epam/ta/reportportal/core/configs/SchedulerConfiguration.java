@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import com.epam.ta.reportportal.job.*;
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.quartz.*;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -38,8 +40,7 @@ import java.util.Properties;
 
 @Configuration
 @Conditional(Conditions.NotTestCondition.class)
-@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class, SchedulerConfiguration.CleanLogsJobProperties.class,
-		SchedulerConfiguration.CleanLaunchesJobProperties.class })
+@EnableConfigurationProperties({ SchedulerConfiguration.QuartzProperties.class })
 public class SchedulerConfiguration {
 
 	@Autowired
@@ -57,12 +58,24 @@ public class SchedulerConfiguration {
 	@Autowired
 	private PlatformTransactionManager transactionManager;
 
+	@Autowired
+	private ReportPortalResourceLoader resourceLoader;
+
 	@Bean
 	@Primary
 	public SchedulerFactoryBean schedulerFactoryBean() {
-		SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
+		SchedulerFactoryBean scheduler = new SchedulerFactoryBean() {
+			@Override
+			public void setResourceLoader(ResourceLoader resourceLoader) {
+				if (this.resourceLoader == null) {
+					super.setResourceLoader(resourceLoader);
+				}
+			}
+		};
 		scheduler.setApplicationContextSchedulerContextKey("applicationContext");
 
+		scheduler.setOverwriteExistingJobs(true);
+		scheduler.setResourceLoader(resourceLoader);
 		scheduler.setQuartzProperties(quartzProperties.getQuartz());
 		scheduler.setDataSource(dataSource);
 		scheduler.setTransactionManager(transactionManager);
@@ -202,34 +215,6 @@ public class SchedulerConfiguration {
 			return quartz;
 		}
 
-	}
-
-	@ConfigurationProperties("com.ta.reportportal.job.clean.logs")
-	public static class CleanLogsJobProperties {
-
-		private Integer timeout;
-
-		public Integer getTimeout() {
-			return timeout;
-		}
-
-		public void setTimeout(Integer timeout) {
-			this.timeout = timeout;
-		}
-	}
-
-	@ConfigurationProperties("com.ta.reportportal.job.clean.launches")
-	public static class CleanLaunchesJobProperties {
-
-		private Integer timeout;
-
-		public Integer getTimeout() {
-			return timeout;
-		}
-
-		public void setTimeout(Integer timeout) {
-			this.timeout = timeout;
-		}
 	}
 
 }

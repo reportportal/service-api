@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Service
-@Transactional
 public class LogIndexerService implements LogIndexer {
 	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
@@ -68,6 +67,7 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -87,6 +87,7 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -113,6 +114,7 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(projectId);
@@ -129,6 +131,7 @@ public class LogIndexerService implements LogIndexer {
 		}
 	}
 
+	@Override
 	public CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -149,10 +152,10 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	public void cleanIndex(Long index, List<Long> ids) {
-		if (!CollectionUtils.isEmpty(ids)) {
-			CompletableFuture.runAsync(() -> indexerServiceClient.cleanIndex(index, ids));
-		}
+	public CompletableFuture<Long> cleanIndex(Long index, List<Long> ids) {
+		return CollectionUtils.isEmpty(ids) ?
+				CompletableFuture.completedFuture(0L) :
+				CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
 	}
 
 	/**

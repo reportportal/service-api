@@ -1,6 +1,9 @@
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
+def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/'
+def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
+
 project.ext {
     limits = [
             'instruction': 70,
@@ -12,16 +15,27 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
+    scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
     testScriptsSrc = [
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/0_extensions.up.sql'               : 'V001__extensions.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/1_initialize_schema.up.sql'        : 'V002__initialize_schema.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/3_default_data.up.sql'             : 'V003__default_data.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/4_size_limitations.up.sql'         : 'V004__size_limitations.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/5_test_case_id_type.up.sql'        : 'V005__test_case_id_type.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/6_retries_handling.up.sql'         : 'V006__retries_handling.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/7_auth_integration.up.sql'         : 'V007__auth_integration.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/8_sender_case_enabled_field.up.sql': 'V008__sender_case_enabled_field.sql',
-            'https://raw.githubusercontent.com/reportportal/migrations/5.1.0-RC/migrations/9_analyzer_params.up.sql'          : 'V009__analyzer_params.sql'
+            (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
+            (migrationsUrl + '/migrations/1_initialize_schema.up.sql')                 : 'V002__initialize_schema.sql',
+            (migrationsUrl + '/migrations/3_default_data.up.sql')                      : 'V003__default_data.sql',
+            (migrationsUrl + '/migrations/4_size_limitations.up.sql')                  : 'V004__size_limitations.sql',
+            (migrationsUrl + '/migrations/5_test_case_id_type.up.sql')                 : 'V005__test_case_id_type.sql',
+            (migrationsUrl + '/migrations/6_retries_handling.up.sql')                  : 'V006__retries_handling.sql',
+            (migrationsUrl + '/migrations/7_auth_integration.up.sql')                  : 'V007__auth_integration.sql',
+            (migrationsUrl + '/migrations/8_sender_case_enabled_field.up.sql')         : 'V008__sender_case_enabled_field.sql',
+            (migrationsUrl + '/migrations/9_analyzer_params.up.sql')                   : 'V009__analyzer_params.sql',
+            (migrationsUrl + '/migrations/10_attachment_size.up.sql')                  : 'V010__attachment_size.sql',
+            (migrationsUrl + '/migrations/11_password_encoding.up.sql')                : 'V011__password_encoding.sql',
+            (migrationsUrl + '/migrations/12_remove_ticket_duplicates.up.sql')         : 'V012__remove_ticket_duplicates.sql',
+            (migrationsUrl + '/migrations/13_add_allocated_storage_per_project.up.sql'): 'V013__add_allocated_storage_per_project.sql',
+            (migrationsUrl + '/migrations/14_test_case_id_size_increase.up.sql')       : 'V014__test_case_id_size_increase.sql',
+            (migrationsUrl + '/migrations/15_statistics_decreasing.up.sql')            : 'V015__statistics_decreasing.sql',
+            (migrationsUrl + '/migrations/16_remove_unused_indexes.up.sql')            : 'V016__remove_unused_indexes.sql',
+            (migrationsUrl + '/migrations/17_status_enum_extension.up.sql')            : 'V017__status_enum_extension.sql',
+            (migrationsUrl + '/migrations/18_job_attributes.up.sql')                   : 'V018__job_attributes.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

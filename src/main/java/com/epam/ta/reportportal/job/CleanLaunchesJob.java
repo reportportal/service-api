@@ -16,37 +16,37 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.core.configs.SchedulerConfiguration;
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.enums.KeepLaunchDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.service.LaunchCleanerService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static java.time.Duration.ofDays;
+import static java.time.Duration.ofSeconds;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
+@Profile("!unittest")
 public class CleanLaunchesJob implements Job {
 
 	public static final int DEFAULT_THREAD_COUNT = 5;
@@ -55,17 +55,13 @@ public class CleanLaunchesJob implements Job {
 
 	private final ProjectRepository projectRepository;
 
-	private final SchedulerConfiguration.CleanLaunchesJobProperties cleanLaunchesJobProperties;
-
 	private final LaunchCleanerService launchCleaner;
 
 	@Value("5")
 	private Integer threadsCount;
 
-	public CleanLaunchesJob(ProjectRepository projectRepository,
-			SchedulerConfiguration.CleanLaunchesJobProperties cleanLaunchesJobProperties, LaunchCleanerService launchCleaner) {
+	public CleanLaunchesJob(ProjectRepository projectRepository, LaunchCleanerService launchCleaner) {
 		this.projectRepository = projectRepository;
-		this.cleanLaunchesJobProperties = cleanLaunchesJobProperties;
 		this.launchCleaner = launchCleaner;
 	}
 
@@ -80,13 +76,11 @@ public class CleanLaunchesJob implements Job {
 
 				pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LAUNCHES),
 						pageable
-				),
-				projects -> projects.forEach(project -> {
+				), projects -> CompletableFuture.allOf(projects.stream().map(project -> {
 					AtomicLong removedLaunchesCount = new AtomicLong(0);
 					AtomicLong removedAttachmentsCount = new AtomicLong(0);
 					AtomicLong removedThumbnailsCount = new AtomicLong(0);
-					executor.submit(() -> {
-
+					return CompletableFuture.runAsync(() -> {
 						try {
 							proceedLaunchesCleaning(project, removedLaunchesCount, removedAttachmentsCount, removedThumbnailsCount);
 						} catch (Exception e) {
@@ -103,29 +97,16 @@ public class CleanLaunchesJob implements Job {
 							);
 						}
 
-					});
+					}, executor);
+				}).toArray(CompletableFuture[]::new)).join());
 
-				})
-		);
-
-		try {
-			executor.shutdown();
-			if (!executor.awaitTermination(cleanLaunchesJobProperties.getTimeout(), TimeUnit.SECONDS)) {
-				executor.shutdownNow();
-			}
-		} catch (InterruptedException e) {
-			LOGGER.debug("Waiting for launch removing tasks execution has been failed", e);
-		} finally {
-			executor.shutdownNow();
-		}
+		executor.shutdown();
 	}
 
 	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunches, AtomicLong removedAttachments,
 			AtomicLong removedThumbnails) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LAUNCHES)
-				.map(it -> ofDays(KeepLaunchDelay.findByName(it)
-						.orElseThrow(() -> new ReportPortalException("Incorrect keep launch delay period: " + it))
-						.getDays()))
+				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
 				.ifPresent(it -> launchCleaner.cleanOutdatedLaunches(project, it, removedLaunches, removedAttachments, removedThumbnails));
 	}

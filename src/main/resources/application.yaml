@@ -11,6 +11,7 @@ spring:
       org.quartz.jobStore.clusterCheckinInterval: "180000"
       org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
       org.quartz.scheduler.instanceName: reportportal
+      org.quartz.scheduler.classLoadHelper.class: com.epam.ta.reportportal.core.configs.ReportPortalClassLoadHelper
 
   jpa:
     properties:
@@ -31,8 +32,6 @@ server:
     context-path: "/"
 
 logging:
-  pattern:
-    file: '[%date{"yyyy-MM-dd HH:mm:ss,SSS"}] [%thread] %level %logger - %msg%n'
   level:
     org.hibernate: info
     org.hibernate.stat: info
@@ -40,8 +39,6 @@ logging:
     org.springframework.web.bind: fatal
     com.epam.ta.reportportal.ws.controller: debug
     com.epam.ta.reportportal.ws.rabbit: debug
-  file:
-    name: /var/${spring.application.name}.log
 
 
 springfox:
@@ -54,6 +51,8 @@ springfox:
 #### Custom ReportPortal Properties ######
 ##########################################
 rp:
+  attachments:
+    recalculate: false
   environment:
     variable:
       flushing:
@@ -107,6 +106,8 @@ rp:
   plugins:
     rootDir: /plugins
     path: ${rp.plugins.rootDir}/resolved
+    resources:
+      path: ${rp.plugins.rootDir}/resources
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:
@@ -115,6 +116,8 @@ rp:
       endpoint: http://play.min.io
       accessKey: Q3AM3UQ867SPQQA43P2F
       secretKey: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
+      bucketPrefix: prj-
+      defaultBucketName: rp-bucket
     # could be one of [seaweed, filesystem, minio]
     type: filesystem
     thumbnail:

@@ -20,13 +20,11 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.filesystem.DataStore;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.pf4j.*;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -108,15 +106,7 @@ class PluginLoaderTest {
 	}
 
 	@Test
-	void shouldDeletePluginWhenPathsEqual() throws IOException {
-
-		when(pluginWrapper.getPluginPath()).thenReturn(Paths.get(PLUGIN_ROOT_PATH, FILE_NAME));
-
-		pluginLoader.deletePreviousPlugin(pluginWrapper, FILE_NAME);
-	}
-
-	@Test
 	void retrieveIntegrationTypeTest() {
-		pluginLoader.retrieveIntegrationType(pluginInfo);
+		pluginLoader.resolvePluginDetails(pluginInfo);
 	}
 }

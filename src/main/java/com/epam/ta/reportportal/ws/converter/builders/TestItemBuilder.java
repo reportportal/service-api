@@ -31,12 +31,10 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import org.apache.commons.collections.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -63,10 +61,13 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setStartTime(EntityUtils.TO_LOCAL_DATE_TIME.apply(rq.getStartTime()));
 		testItem.setName(rq.getName().trim());
 		testItem.setUniqueId(rq.getUniqueId());
-		testItem.setTestCaseId(rq.getTestCaseId());
-		testItem.setTestCaseHash(ofNullable(rq.getTestCaseHash()).orElse(0));
 		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 		testItem.setHasStats(rq.isHasStats());
+
+		TestCaseIdEntry testCaseIdEntry = processTestCaseId(rq.getTestCaseId(), rq.getCodeRef(), rq.getParameters());
+		testItem.setTestCaseId(testCaseIdEntry.getId());
+		testItem.setTestCaseHash(testCaseIdEntry.getHash());
+
 		testItem.setCodeRef(rq.getCodeRef());
 
 		TestItemResults testItemResults = new TestItemResults();
@@ -105,6 +106,14 @@ public class TestItemBuilder implements Supplier<TestItem> {
 
 	public TestItemBuilder addStatus(StatusEnum statusEnum) {
 		testItem.getItemResults().setStatus(statusEnum);
+		return this;
+	}
+
+	public TestItemBuilder addTestCaseId(@Nullable String testCaseId) {
+		ofNullable(testCaseId).map(caseId -> new TestCaseIdEntry(testCaseId, testCaseId.hashCode())).ifPresent(entry -> {
+			testItem.setTestCaseId(entry.getId());
+			testItem.setTestCaseHash(entry.getHash());
+		});
 		return this;
 	}
 
@@ -159,6 +168,24 @@ public class TestItemBuilder implements Supplier<TestItem> {
 			}).collect(Collectors.toSet()));
 		}
 		return this;
+	}
+
+	private TestCaseIdEntry processTestCaseId(String testCaseId, String codeRef, List<ParameterResource> params) {
+		if (Objects.nonNull(testCaseId)) {
+			return new TestCaseIdEntry(testCaseId, testCaseId.hashCode());
+		} else {
+			if (Objects.nonNull(codeRef)) {
+				String id = compose(codeRef, params);
+				return new TestCaseIdEntry(id, id.hashCode());
+			}
+		}
+		return TestCaseIdEntry.empty();
+	}
+
+	private static String compose(String codeRef, List<ParameterResource> parameters) {
+		return CollectionUtils.isEmpty(parameters) ?
+				codeRef :
+				codeRef + "[" + parameters.stream().map(ParameterResource::getValue).collect(Collectors.joining(",")) + "]";
 	}
 
 	@Override

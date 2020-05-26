@@ -36,7 +36,6 @@ import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.sql.DataSource;
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableAutoConfiguration
@@ -52,9 +51,9 @@ public class ACLContext {
 
 	@Bean
 	public CaffeineCache coffeinCache() {
-		return new CaffeineCache("aclCache",
-				Caffeine.newBuilder().expireAfterAccess(1L, TimeUnit.HOURS).maximumSize(5000).initialCapacity(2000).build()
-		);
+		// empty cache for avoiding the situation when user
+		// is removed from db but still exists in cache in another api
+		return new CaffeineCache("aclCache", Caffeine.newBuilder().maximumSize(0).build());
 	}
 
 	@Bean

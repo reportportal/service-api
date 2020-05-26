@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.impl.history.provider.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
@@ -29,7 +30,6 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -61,7 +61,7 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 
 	@Override
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 		return historyRequestParams.getFilterParams().map(filterParams -> {
 			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
 					getShareableEntityHandler.getPermitted(filterParams.getFilterId(), projectDetails),
@@ -73,7 +73,8 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 					projectDetails,
 					user,
 					filterParams,
-					historyRequestParams
+					historyRequestParams,
+					usingHash
 			);
 
 		}).orElseGet(() -> Page.empty(pageable));
@@ -81,7 +82,7 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 
 	private Page<TestItemHistory> getItemsWithLaunchesFiltering(Pair<Queryable, Pageable> launchQueryablePair,
 			Pair<Queryable, Pageable> testItemQueryablePair, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			HistoryRequestParams.FilterParams filterParams, HistoryRequestParams historyRequestParams) {
+			HistoryRequestParams.FilterParams filterParams, HistoryRequestParams historyRequestParams, boolean usingHash) {
 		return historyRequestParams.getHistoryType()
 				.filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
 				.map(type -> historyRequestParams.getLaunchId().map(launchId -> {
@@ -96,7 +97,8 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 							testItemQueryablePair.getRight(),
 							projectDetails.getProjectId(),
 							launch.getName(),
-							historyRequestParams.getHistoryDepth()
+							historyRequestParams.getHistoryDepth(),
+							usingHash
 					);
 				}).orElseGet(() -> Page.empty(testItemQueryablePair.getRight())))
 				.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filterParams.isLatest(),
@@ -105,7 +107,8 @@ public class FilterBaselineHistoryProvider implements HistoryProvider {
 						launchQueryablePair.getRight(),
 						testItemQueryablePair.getRight(),
 						projectDetails.getProjectId(),
-						historyRequestParams.getHistoryDepth()
+						historyRequestParams.getHistoryDepth(),
+						usingHash
 				));
 	}
 }

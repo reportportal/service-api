@@ -17,11 +17,14 @@
 package com.epam.ta.reportportal.info;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.boot.actuate.info.MapInfoContributor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.info.Info;
+import org.springframework.boot.actuate.info.InfoContributor;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * Collects provided environment variables with rp prefix.
@@ -29,18 +32,35 @@ import java.util.stream.Collectors;
  * @author Pavel Bortnik
  */
 @Component
-public class EnvironmentVariablesInfoContributor extends MapInfoContributor {
+public class EnvironmentVariablesInfoContributor implements InfoContributor {
 
-	private static final String RP_ENV_PREFIX = "RP_ENVIRONMENT_VARIABLE_";
+	private static final String RP_ENV_PREFIX = "rp.environment.";
 
-	public EnvironmentVariablesInfoContributor() {
-		super(ImmutableMap.<String, Object>builder().put(
-				"environment",
-				System.getenv()
-						.entrySet()
-						.stream()
-						.filter(it -> it.getKey().startsWith(RP_ENV_PREFIX))
-						.collect(Collectors.toMap(e -> e.getKey().replaceFirst(RP_ENV_PREFIX, "").toLowerCase(), Map.Entry::getValue))
-		).build());
+	@Autowired
+	private ConfigurableEnvironment environment;
+
+	@Override
+	public void contribute(Info.Builder builder) {
+		builder.withDetails(ImmutableMap.<String, Object>builder().put("environment", resolveProperties()).build());
 	}
+
+	private Map<String, Object> resolveProperties() {
+
+		List<MapPropertySource> propertySources = new ArrayList<>();
+
+		environment.getPropertySources().forEach(it -> {
+			if (it instanceof MapPropertySource) {
+				propertySources.add((MapPropertySource) it);
+			}
+		});
+
+		return propertySources.stream()
+				.map(propertySource -> propertySource.getSource().keySet())
+				.flatMap(Collection::stream)
+				.filter(it -> it.startsWith(RP_ENV_PREFIX))
+				.distinct()
+				.collect(HashMap::new, (m, it) -> m.put(it, environment.getProperty(it)), HashMap::putAll);
+
+	}
+
 }

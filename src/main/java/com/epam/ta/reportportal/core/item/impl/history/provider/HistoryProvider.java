@@ -39,5 +39,5 @@ public interface HistoryProvider {
 	 * @return {@link Page} with {@link TestItemHistory} content
 	 */
 	Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash);
 }

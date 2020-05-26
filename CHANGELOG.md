@@ -263,3 +263,4 @@
 ### Bugfixes
 
 * reportportal/reportportal#773 - Service-API errors when user does not have a photo
+* EPMRPP-50276 - Auto-test issue/ When delete user - ACL cache should be cleaned up

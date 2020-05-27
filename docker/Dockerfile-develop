@@ -17,13 +17,6 @@ ARG buildNumber=0.0.1-SNAPSHOT
 ARG sealightsSession=
 ARG sealightsToken=
 
-RUN mkdir -p /home/rp-builder/plugins && \
-    curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
-    unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
-    mkdir -p /home/rp-builder/sealights && \
-    sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \
-    sh -c "echo '${sealightsSession}' > /home/rp-builder/sealights/sealights-session.txt"
-
 ### Copy gradle build files to resolve and cache dependencies
 COPY --chown=rp-builder *.gradle gradle.properties ./
 RUN ./gradlew resolveDependencies -P sealightsToken=${sealightsToken} --stacktrace
@@ -34,7 +27,12 @@ COPY --chown=rp-builder .git/ .git/
 
 RUN ./gradlew build -x jacocoTestReport -P gcp -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
-FROM drill4j/java-agent:0.5.0 as drill
+RUN mkdir -p /home/rp-builder/plugins && \
+    curl -o /home/rp-builder/plugins/sealights.zip https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+    unzip /home/rp-builder/plugins/sealights.zip -d /home/rp-builder/plugins && \
+    mkdir -p /home/rp-builder/sealights && \
+    sh -c "echo '${sealightsToken}' > /home/rp-builder/sealights/sealights-token.txt" && \
+    sh -c "echo '${sealightsSession}' > /home/rp-builder/sealights/sealights-session.txt"
 
 FROM openjdk:11-jre-slim
 
@@ -62,7 +60,6 @@ ENV APP_FILE=/app/app.jar
 VOLUME /tmp
 
 RUN mkdir plugins app
-COPY --from=drill /java-agent/ /home/rp-builder/drill/
 COPY --from=builder /home/rp-builder/plugins/sl-test-listener.jar ./plugins/
 COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 

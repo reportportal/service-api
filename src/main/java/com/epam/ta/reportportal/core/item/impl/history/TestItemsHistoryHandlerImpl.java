@@ -74,7 +74,7 @@ import static java.util.stream.Collectors.*;
 @Service
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
-	@Value("${rp.environment.history.old}")
+	@Value("${rp.environment.variable.history.old}")
 	private boolean oldHistory;
 
 	private final TestItemRepository testItemRepository;

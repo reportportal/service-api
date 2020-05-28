@@ -52,7 +52,7 @@ public class LaunchBaselineHistoryProvider implements HistoryProvider {
 
 	@Override
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 		return historyRequestParams.getLaunchId().map(launchId -> {
 			Launch launch = launchRepository.findById(launchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
@@ -64,12 +64,14 @@ public class LaunchBaselineHistoryProvider implements HistoryProvider {
 							pageable,
 							projectDetails.getProjectId(),
 							launch.getName(),
-							historyRequestParams.getHistoryDepth()
+							historyRequestParams.getHistoryDepth(),
+							usingHash
 					))
 					.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
 							pageable,
 							projectDetails.getProjectId(),
-							historyRequestParams.getHistoryDepth()
+							historyRequestParams.getHistoryDepth(),
+							usingHash
 					));
 		}).orElseGet(() -> Page.empty(pageable));
 	}

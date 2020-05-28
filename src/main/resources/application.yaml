@@ -61,6 +61,8 @@ rp:
         attach: P3D
         logs: P7D
         launches: P7D
+    history:
+      old: false
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api

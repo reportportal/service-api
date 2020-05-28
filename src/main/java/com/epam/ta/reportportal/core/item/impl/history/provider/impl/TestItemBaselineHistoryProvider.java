@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
+import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -27,7 +28,6 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,17 +55,17 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
 
 	@Override
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 
 		return historyRequestParams.getParentId()
-				.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user))
+				.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user, usingHash))
 				.orElseGet(() -> historyRequestParams.getItemId()
-						.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user))
+						.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user, usingHash))
 						.orElseGet(() -> Page.empty(pageable)));
 	}
 
 	private Page<TestItemHistory> loadHistory(Queryable filter, Pageable pageable, Long itemId, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 		TestItem testItem = testItemRepository.findById(itemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemId));
 		Launch launch = testItemService.getEffectiveLaunch(testItem);
@@ -77,12 +77,14 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
 						pageable,
 						projectDetails.getProjectId(),
 						launch.getName(),
-						historyRequestParams.getHistoryDepth()
+						historyRequestParams.getHistoryDepth(),
+						usingHash
 				))
 				.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
 						pageable,
 						projectDetails.getProjectId(),
-						historyRequestParams.getHistoryDepth()
+						historyRequestParams.getHistoryDepth(),
+						usingHash
 				));
 
 	}

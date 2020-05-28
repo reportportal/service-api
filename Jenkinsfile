@@ -28,7 +28,8 @@ node {
 
             stage('Push to registries') {
                 withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}", "LOCAL_REGISTRY=${LOCAL_REGISTRY}"]) {
-                    sh 'docker tag reportportal-dev/service-api ${AWS_URI}/service-api ${LOCAL_REGISTRY}/service-api'
+                    sh 'docker tag reportportal-dev/service-api ${AWS_URI}/service-api'
+                    sh 'docker tag reportportal-dev/service-api ${LOCAL_REGISTRY}/service-api'
                     sh 'docker push ${LOCAL_REGISTRY}/service-api'
                     def image = env.AWS_URI + '/service-api'
                     def url = 'https://' + env.AWS_URI

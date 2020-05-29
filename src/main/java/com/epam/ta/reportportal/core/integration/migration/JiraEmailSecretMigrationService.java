@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -49,6 +50,7 @@ public class JiraEmailSecretMigrationService extends AbstractSecretMigrationServ
 
 		integrationRepository.findAllByTypeIn(JIRA_INTEGRATION_TYPE_NAME, EMAIL_INTEGRATION_TYPE_NAME)
 				.forEach(it -> extractParams(it).flatMap(BtsProperties.PASSWORD::getParam)
+						.filter(pass -> !StringUtils.isEmpty(pass))
 						.ifPresent(pass -> BtsProperties.PASSWORD.setParam(it.getParams(),
 								encryptor.encrypt(staticSaltEncryptor.decrypt(pass))
 						)));

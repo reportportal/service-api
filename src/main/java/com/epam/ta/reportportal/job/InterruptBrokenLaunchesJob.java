@@ -78,7 +78,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 		), projects -> projects.forEach(project -> {
 			ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.INTERRUPT_JOB_TIME).ifPresent(it -> {
 				Duration maxDuration = ofSeconds(NumberUtils.toLong(it, 0L));
-				try (Stream<Long> ids = launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
+				try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(project.getId(),
 						StatusEnum.IN_PROGRESS,
 						LocalDateTime.now(ZoneOffset.UTC).minus(maxDuration)
 				)) {

@@ -61,6 +61,8 @@ ENV APP_FILE=/app/app.jar
 VOLUME /tmp
 
 RUN mkdir plugins app
+WORKDIR /app
+
 COPY --from=builder /home/rp-builder/sealights/sl-test-listener.jar ./sealights/
 COPY --from=builder /home/rp-builder/sealights/sealights-token.txt /home/rp-builder/sealights/sealights-session.txt ./
 COPY --from=drill /java-agent/ ./drill/

@@ -57,7 +57,7 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 
 	@Override
 	public Page<TestItemHistory> provide(Queryable filter, Pageable pageable, HistoryRequestParams historyRequestParams,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 
 		return historyRequestParams.getFilterParams().map(filterParams -> {
 			Pair<Queryable, Pageable> launchQueryablePair = DefaultLaunchFilterProvider.createDefaultLaunchQueryablePair(projectDetails,
@@ -75,7 +75,8 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 					pageable,
 					projectDetails.getProjectId(),
 					launchIds,
-					historyRequestParams.getHistoryDepth()
+					historyRequestParams.getHistoryDepth(),
+					usingHash
 			);
 
 		}).orElseGet(() -> Page.empty(pageable));

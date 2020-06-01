@@ -42,6 +42,7 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.google.common.collect.Lists;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -50,6 +51,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
@@ -71,6 +73,9 @@ import static java.util.stream.Collectors.*;
  */
 @Service
 public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
+
+	@Value("${rp.environment.variable.history.old}")
+	private boolean oldHistory;
 
 	private final TestItemRepository testItemRepository;
 	private final HistoryProviderFactory historyProviderFactory;
@@ -108,9 +113,15 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				.orElseThrow(() -> new ReportPortalException(UNABLE_LOAD_TEST_ITEM_HISTORY,
 						"Unable to find suitable history baseline provider"
 				))
-				.provide(itemHistoryFilter, pageable, historyRequestParams, projectDetails, user);
+				.provide(itemHistoryFilter, pageable, historyRequestParams, projectDetails, user, !oldHistory);
 
-		return buildHistoryElements(testItemHistoryPage, projectDetails.getProjectId(), pageable);
+		return buildHistoryElements(oldHistory ?
+						TestItemResource::getUniqueId :
+						testItemResource -> String.valueOf(testItemResource.getTestCaseHash()),
+				testItemHistoryPage,
+				projectDetails.getProjectId(),
+				pageable
+		);
 
 	}
 
@@ -130,8 +141,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		}
 	}
 
-	private Iterable<TestItemHistoryElement> buildHistoryElements(Page<TestItemHistory> testItemHistoryPage, Long projectId,
-			Pageable pageable) {
+	private Iterable<TestItemHistoryElement> buildHistoryElements(Function<TestItemResource, String> groupingFunction,
+			Page<TestItemHistory> testItemHistoryPage, Long projectId, Pageable pageable) {
 
 		List<TestItem> testItems = testItemRepository.findAllById(testItemHistoryPage.getContent()
 				.stream()
@@ -140,17 +151,17 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectId, testItems);
 
-		Map<Integer, Map<Long, TestItemResource>> itemsMapping = testItems.stream().map(item -> {
+		Map<String, Map<Long, TestItemResource>> itemsMapping = testItems.stream().map(item -> {
 			TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
 			resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
 			return testItemResource;
-		}).collect(groupingBy(TestItemResource::getTestCaseHash, toMap(TestItemResource::getItemId, res -> res)));
+		}).collect(groupingBy(groupingFunction, toMap(TestItemResource::getItemId, res -> res)));
 
 		List<TestItemHistoryElement> testItemHistoryElements = testItemHistoryPage.getContent()
 				.stream()
-				.map(history -> ofNullable(itemsMapping.get(history.getTestCaseHash())).map(mapping -> {
+				.map(history -> ofNullable(itemsMapping.get(history.getGroupingField())).map(mapping -> {
 					TestItemHistoryElement historyResource = new TestItemHistoryElement();
-					historyResource.setTestCaseHash(history.getTestCaseHash());
+					historyResource.setGroupingField(history.getGroupingField());
 					List<TestItemResource> resources = Lists.newArrayList();
 					ofNullable(history.getItemIds()).ifPresent(itemIds -> itemIds.forEach(itemId -> ofNullable(mapping.get(itemId)).ifPresent(
 							resources::add)));

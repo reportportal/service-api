@@ -67,7 +67,7 @@ class LaunchCleanerServiceImplTest {
 		AtomicLong thumbnailsRemoved = new AtomicLong();
 		ArrayList<Long> launchIds = Lists.newArrayList(1L, 2L, 3L);
 
-		when(launchRepository.findIdsByProjectIdModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(launchIds);
+		when(launchRepository.findIdsByProjectIdAndStartTimeBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(launchIds);
 
 		launchCleanerService.cleanOutdatedLaunches(project, period, launchesRemoved, attachmentsRemoved, thumbnailsRemoved);
 

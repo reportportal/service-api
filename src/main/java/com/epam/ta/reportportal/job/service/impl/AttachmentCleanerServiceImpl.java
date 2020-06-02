@@ -52,7 +52,7 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 	@Override
 	public void removeOutdatedItemsAttachments(Collection<Long> itemIds, LocalDateTime before, AtomicLong attachmentsCount,
 			AtomicLong thumbnailsCount) {
-		List<Attachment> attachments = attachmentRepository.findByItemIdsModifiedBefore(itemIds, before);
+		List<Attachment> attachments = attachmentRepository.findByItemIdsAndLogTimeBefore(itemIds, before);
 		removeAttachments(attachments, attachmentsCount, thumbnailsCount);
 	}
 
@@ -65,17 +65,17 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 	@Override
 	public void removeOutdatedLaunchesAttachments(Collection<Long> launchIds, LocalDateTime before, AtomicLong attachmentsCount,
 			AtomicLong thumbnailsCount) {
-		List<Attachment> launchAttachments = attachmentRepository.findByLaunchIdsModifiedBefore(launchIds, before);
+		List<Attachment> launchAttachments = attachmentRepository.findByLaunchIdsAndLogTimeBefore(launchIds, before);
 		removeAttachments(launchAttachments, attachmentsCount, thumbnailsCount);
 	}
 
 	@Override
 	@Transactional
 	public void removeProjectAttachments(Project project, LocalDateTime before, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
-		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), before)) {
+		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), before)) {
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					List<Attachment> attachments = attachmentRepository.findByItemIdsModifiedBefore(ids.collect(toList()), before);
+					List<Attachment> attachments = attachmentRepository.findByItemIdsAndLogTimeBefore(ids.collect(toList()), before);
 					removeAttachments(attachments, attachmentsCount, thumbnailsCount);
 				} catch (Exception e) {
 					//do nothing

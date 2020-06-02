@@ -41,4 +41,13 @@ node {
             }
         }
     }
+    stage('Cleanup') {
+        docker.withServer("$DOCKER_HOST") {
+            withEnv(["AWS_URI=${AWS_URI}", "LOCAL_REGISTRY=${LOCAL_REGISTRY}"]) {
+                sh 'docker rmi ${AWS_URI}/service-api:latest'
+                sh 'docker rmi ${AWS_URI}/service-api:SNAPSHOT-${BUILD_NUMBER}'
+                sh 'docker rmi ${LOCAL_REGISTRY}/service-api'
+            }
+        }
+    }
 }

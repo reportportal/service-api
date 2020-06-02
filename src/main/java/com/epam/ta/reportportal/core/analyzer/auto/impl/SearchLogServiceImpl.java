@@ -139,9 +139,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 				value.getLogs().add(TO_LOG_ENTRY.apply(log));
 				return value;
 			});
-			if (!foundLogsMap.containsKey(itemId)) {
-				foundLogsMap.put(itemId, composeResponse(testItemMapping, itemId, log));
-			}
+			foundLogsMap.computeIfAbsent(itemId, key -> composeResponse(testItemMapping, itemId, log));
 		}));
 		return foundLogsMap.values();
 	}

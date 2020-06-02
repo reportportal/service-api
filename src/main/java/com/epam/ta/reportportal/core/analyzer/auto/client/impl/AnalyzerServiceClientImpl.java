@@ -86,7 +86,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
 				SEARCH_ROUTE,
 				rq,
-				new ParameterizedTypeReference<>() {
+				new ParameterizedTypeReference<List<SearchRs>>() {
 				}
 		);
 	}

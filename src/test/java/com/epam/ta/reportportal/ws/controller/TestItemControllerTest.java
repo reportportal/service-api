@@ -217,9 +217,23 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	void getItemHistoryPositive() throws Exception {
+	void getItemHistoryByParentIdPositive() throws Exception {
 		mockMvc.perform(get(
 				DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getItemHistoryByLaunchIdPositive() throws Exception {
+		mockMvc.perform(get(
+				SUPERADMIN_PROJECT_BASE_URL + "/item/history?filter.eq.launchId=1&historyDepth=3").with(token(oAuthHelper.getSuperadminToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getItemHistoryByFilterIdPositive() throws Exception {
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/history?filterId=1&launchesLimit=10&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 

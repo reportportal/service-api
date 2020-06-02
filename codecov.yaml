@@ -5,3 +5,4 @@ ignore:
   - "**/configs/**"
   - "**/demodata/**"
   - "**/exception/**"
+  - "**/job/FlushingDataJob**"

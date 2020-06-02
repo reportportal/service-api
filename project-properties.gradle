@@ -43,6 +43,7 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
+                    '**/job/FlushingDataJob**'
     ]
 }
 

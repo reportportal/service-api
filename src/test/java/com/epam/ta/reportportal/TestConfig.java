@@ -19,6 +19,7 @@ package com.epam.ta.reportportal;
 import com.epam.ta.reportportal.auth.basic.DatabaseUserDetailsService;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.RabbitMqManagementClientTemplate;
+import com.epam.ta.reportportal.core.events.handler.IntegrationSecretsMigrationHandler;
 import com.epam.ta.reportportal.util.ApplicationContextAwareFactoryBeanTest;
 import com.epam.ta.reportportal.util.ResourceCopierBeanTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,9 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 @ComponentScan(value = { "com.epam.ta.reportportal" }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.epam.ta.reportportal.ws.rabbit.*"),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.epam.ta.reportportal.job.*" }),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = { "com.epam.ta.reportportal.core.integration.migration.*" }),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ResourceCopierBeanTest.TestConfig.class),
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = IntegrationSecretsMigrationHandler.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ApplicationContextAwareFactoryBeanTest.TestConfig.class) })
 public class TestConfig {
 

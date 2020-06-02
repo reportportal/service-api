@@ -74,7 +74,7 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 
-		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), endDate)) {
+		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), endDate)) {
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
 					List<Long> itemIds = ids.collect(toList());

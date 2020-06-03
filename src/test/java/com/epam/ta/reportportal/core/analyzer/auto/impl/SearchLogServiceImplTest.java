@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
+import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.collect.Lists;
@@ -56,6 +57,7 @@ class SearchLogServiceImplTest {
 	private final Project project = mock(Project.class);
 	private final Launch launch = mock(Launch.class);
 	private final TestItem testItem = mock(TestItem.class);
+	private final TestItem testItemOfFoundLog = mock(TestItem.class);
 	private final TestItemResults testItemResults = mock(TestItemResults.class);
 	private final UserFilter userFilter = mock(UserFilter.class);
 
@@ -90,10 +92,16 @@ class SearchLogServiceImplTest {
 
 		when(projectRepository.findById(projectDetails.getProjectId())).thenReturn(Optional.of(project));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+		when(testItemRepository.findAllById(any())).thenReturn(Lists.newArrayList(testItemOfFoundLog));
 		when(testItem.getLaunchId()).thenReturn(1L);
+		when(testItemOfFoundLog.getItemId()).thenReturn(2L);
+		when(testItemOfFoundLog.getLaunchId()).thenReturn(1L);
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 		when(testItem.getItemResults()).thenReturn(testItemResults);
 		when(testItem.isHasStats()).thenReturn(true);
+		when(testItemOfFoundLog.getItemResults()).thenReturn(testItemResults);
+		when(testItemOfFoundLog.isHasStats()).thenReturn(true);
+
 		when(testItemResults.getStatus()).thenReturn(StatusEnum.FAILED);
 
 		IssueType issueType = new IssueType();
@@ -109,8 +117,12 @@ class SearchLogServiceImplTest {
 
 		when(logRepository.findMessagesByItemIdAndLevelGte(testItem.getItemId(), LogLevel.ERROR_INT)).thenReturn(Lists.newArrayList(
 				"message"));
-		when(analyzerServiceClient.searchLogs(any(SearchRq.class))).thenReturn(Lists.newArrayList(1L));
+		SearchRs searchRs = new SearchRs();
+		searchRs.setLogId(1L);
+		searchRs.setTestItemId(2L);
+		when(analyzerServiceClient.searchLogs(any(SearchRq.class))).thenReturn(Lists.newArrayList(searchRs));
 		Log log = new Log();
+		log.setId(1L);
 		log.setTestItem(testItem);
 		log.setLogMessage("message");
 		log.setLogLevel(40000);

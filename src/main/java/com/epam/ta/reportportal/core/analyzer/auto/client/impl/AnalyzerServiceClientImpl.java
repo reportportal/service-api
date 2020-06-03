@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
+import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	}
 
 	@Override
-	public List<Long> searchLogs(SearchRq rq) {
+	public List<SearchRs> searchLogs(SearchRq rq) {
 		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SEARCH)
@@ -75,7 +76,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 		return search(rq, analyzerExchanges);
 	}
 
-	private List<Long> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {
+	private List<SearchRs> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {
 		if (CollectionUtils.isEmpty(analyzerExchanges)) {
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 					"There are no analyzer services with search logs support deployed."
@@ -85,7 +86,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
 				SEARCH_ROUTE,
 				rq,
-				new ParameterizedTypeReference<List<Long>>() {
+				new ParameterizedTypeReference<List<SearchRs>>() {
 				}
 		);
 	}

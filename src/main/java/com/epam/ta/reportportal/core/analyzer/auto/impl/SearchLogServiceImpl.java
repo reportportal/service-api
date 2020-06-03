@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
+import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
 import com.google.common.collect.Lists;
@@ -51,6 +52,7 @@ import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -123,41 +125,51 @@ public class SearchLogServiceImpl implements SearchLogService {
 	}
 
 	private Collection<SearchLogRs> processRequest(SearchRq request) {
-		List<Log> foundLogs = logRepository.findAllById(analyzerServiceClient.searchLogs(request));
+		List<SearchRs> searchRs = analyzerServiceClient.searchLogs(request);
+		Map<Long, Long> logIdMapping = searchRs.stream()
+				.collect(HashMap::new, (m, rs) -> m.put(rs.getLogId(), rs.getTestItemId()), Map::putAll);
+		Map<Long, TestItem> testItemMapping = testItemRepository.findAllById(logIdMapping.values())
+				.stream()
+				.collect(toMap(TestItem::getItemId, item -> item));
+		List<Log> foundLogs = logRepository.findAllById(logIdMapping.keySet());
 		Map<Long, SearchLogRs> foundLogsMap = Maps.newHashMap();
 
-		foundLogs.forEach(log -> {
-			foundLogsMap.computeIfPresent(log.getTestItem().getItemId(), (key, value) -> {
+		foundLogs.forEach(log -> ofNullable(logIdMapping.get(log.getId())).ifPresent(itemId -> {
+			foundLogsMap.computeIfPresent(itemId, (key, value) -> {
 				value.getLogs().add(TO_LOG_ENTRY.apply(log));
 				return value;
 			});
-			Long launchId = ofNullable(log.getTestItem()
-					.getLaunchId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
-			Launch launch = launchRepository.findById(launchId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-			Map<Long, String> pathNames = testItemRepository.selectPathNames(log.getTestItem().getPath());
-			foundLogsMap.putIfAbsent(log.getTestItem().getItemId(), composeResponse(launch, log, pathNames));
-		});
+			foundLogsMap.computeIfAbsent(itemId, key -> composeResponse(testItemMapping, itemId, log));
+		}));
 		return foundLogsMap.values();
 	}
 
-	private SearchLogRs composeResponse(Launch launch, Log log, Map<Long, String> pathNames) {
+	private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long itemId, Log log) {
+		TestItem testItem = ofNullable(testItemMapping.get(itemId)).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
+				itemId
+		));
+		Long launchId = ofNullable(testItem.getLaunchId()).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND,
+				testItem.getLaunchId()
+		));
+		Launch launch = launchRepository.findById(launchId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
+		Map<Long, String> pathNames = testItemRepository.selectPathNames(testItem.getPath());
+
 		SearchLogRs response = new SearchLogRs();
 		response.setLaunchId(launch.getId());
 		response.setLaunchName(launch.getName() + " #" + launch.getNumber());
-		response.setItemId(log.getTestItem().getItemId());
-		response.setItemName(log.getTestItem().getName());
-		response.setPath(log.getTestItem().getPath());
+		response.setItemId(testItem.getItemId());
+		response.setItemName(testItem.getName());
+		response.setPath(testItem.getPath());
 		response.setPathNames(pathNames);
-		response.setPatternTemplates(log.getTestItem()
-				.getPatternTemplateTestItems()
+		response.setPatternTemplates(testItem.getPatternTemplateTestItems()
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
 				.collect(toSet()));
-		response.setDuration(log.getTestItem().getItemResults().getDuration());
-		response.setStatus(log.getTestItem().getItemResults().getStatus().name());
+		response.setDuration(testItem.getItemResults().getDuration());
+		response.setStatus(testItem.getItemResults().getStatus().name());
 
-		TestItem itemWithStats = log.getTestItem();
+		TestItem itemWithStats = testItem;
 		while (!itemWithStats.isHasStats()) {
 			itemWithStats = itemWithStats.getParent();
 		}

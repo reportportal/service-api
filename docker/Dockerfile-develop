@@ -33,7 +33,7 @@ COPY --chown=rp-builder .git/ .git/
 
 RUN ./gradlew build -x jacocoTestReport -P gcp -P buildNumber=${buildNumber} -P sealightsToken=${sealightsToken} -P sealightsSession=${sealightsSession} --full-stacktrace
 
-FROM drill4j/java-agent:0.6.9 as drill
+FROM drill4j/java-agent:0.6.0-9 as drill
 
 FROM openjdk:11-jre-slim
 

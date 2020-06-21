@@ -217,6 +217,13 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getAccumulatedStatisticsByFilter() throws Exception {
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/statistics?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	void getItemHistoryByParentIdPositive() throws Exception {
 		mockMvc.perform(get(
 				DEFAULT_PROJECT_BASE_URL + "/item/history?filter.eq.parentId=1&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))

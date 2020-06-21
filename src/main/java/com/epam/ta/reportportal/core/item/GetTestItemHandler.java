@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
 import org.springframework.data.domain.Pageable;
 
 import javax.annotation.Nullable;
@@ -57,6 +58,16 @@ public interface GetTestItemHandler {
 	 */
 	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
+
+	/**
+	 * Gets accumulated statistics of items by filter
+	 *
+	 * @param filter         {@link Filter}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @return Accumulated statistics
+	 */
+	StatisticsResource getStatisticsByFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser reportPortalUser, Long launchId);
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch

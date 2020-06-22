@@ -56,8 +56,11 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.commons.querygen.Condition.UNDR;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAULT_FILTER_PREFIX;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -163,9 +166,11 @@ public class LogController {
 	@RequestMapping(method = RequestMethod.GET)
 	@ApiOperation("Get logs by filter")
 	@Transactional(readOnly = true)
-	public Iterable<LogResource> getLogs(@PathVariable String projectName, @FilterFor(Log.class) Filter filter,
+	public Iterable<LogResource> getLogs(@PathVariable String projectName,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false) String underPath,
+			@FilterFor(Log.class) Filter filter,
 			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLogs(extractProjectDetails(user, projectName), filter, pageable);
+		return getLogHandler.getLogs(underPath, extractProjectDetails(user, projectName), filter, pageable);
 	}
 
 	@GetMapping(value = "/{logId}/page")

@@ -88,7 +88,7 @@ public class CleanLogsJob implements Job {
 				} catch (Exception e) {
 					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
-				LOGGER.debug("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+				LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
 						project.getId(),
 						removedLogsCount.get()
 				);

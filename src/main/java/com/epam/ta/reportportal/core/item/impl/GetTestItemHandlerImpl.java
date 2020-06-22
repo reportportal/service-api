@@ -37,6 +37,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
@@ -151,7 +152,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	@Override
 	public StatisticsResource getStatisticsByFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser reportPortalUser, Long launchId) {
-		return new StatisticsResource();
+		launchAccessValidator.validate(launchId, projectDetails, reportPortalUser);
+		return StatisticsConverter.TO_RESOURCE.apply(testItemRepository.accumulateStatisticsByFilter(filter));
 	}
 
 	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {

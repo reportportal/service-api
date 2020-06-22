@@ -260,7 +260,9 @@
 ## 5.3.0
 ##### Released: XXX
 
-### Bugfixes
+### New Features
+* EPMRPP-52161 - Parent line recalculation (Topliner)
 
+### Bugfixes
 * reportportal/reportportal#773 - Service-API errors when user does not have a photo
 * EPMRPP-50276 - Auto-test issue/ When delete user - ACL cache should be cleaned up

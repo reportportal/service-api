@@ -13,20 +13,26 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.widget.SortEntry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
+import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -37,6 +43,10 @@ public class HealthCheckTableReadyContentResolver extends AbstractHealthCheckTab
 	public static final String VIEW_NAME = "viewName";
 	public static final String SORT = "sort";
 	public static final String CUSTOM_COLUMN = "customColumn";
+
+	public static final String TOTAL = "total";
+	public static final String STATISTICS = "statistics";
+	public static final String PASSING_RATE = "passingRate";
 
 	private final WidgetContentRepository widgetContentRepository;
 	private final ObjectMapper objectMapper;
@@ -51,7 +61,24 @@ public class HealthCheckTableReadyContentResolver extends AbstractHealthCheckTab
 	protected Map<String, Object> getContent(Widget widget, List<String> attributeKeys, List<String> attributeValues) {
 		HealthCheckTableGetParams getParams = getParams(widget.getWidgetOptions(), attributeKeys, attributeValues);
 		List<HealthCheckTableContent> content = widgetContentRepository.componentHealthCheckTable(getParams);
-		return CollectionUtils.isNotEmpty(content) ? Collections.singletonMap(RESULT, content) : emptyMap();
+
+		if (CollectionUtils.isEmpty(content)) {
+			return emptyMap();
+		}
+
+		Map<String, Integer> totalStatistics = content.stream()
+				.map(HealthCheckTableContent::getStatistics)
+				.map(Map::entrySet)
+				.flatMap(Collection::stream)
+				.collect(groupingBy(Map.Entry::getKey, Collectors.summingInt(Map.Entry::getValue)));
+
+		return ImmutableMap.<String, Object>builder().put(RESULT, content)
+				.put(TOTAL,
+						ImmutableMap.<String, Object>builder().put(STATISTICS, totalStatistics)
+								.put(PASSING_RATE, calculatePassingRate(totalStatistics))
+								.build()
+				)
+				.build();
 	}
 
 	private HealthCheckTableGetParams getParams(WidgetOptions widgetOptions, List<String> attributeKeys, List<String> attributeValues) {
@@ -92,6 +119,11 @@ public class HealthCheckTableReadyContentResolver extends AbstractHealthCheckTab
 			String attributeValue = attributeValues.get(index);
 			return LevelEntry.of(attributeKey, attributeValue);
 		}).collect(Collectors.toList());
+	}
+
+	private double calculatePassingRate(Map<String, Integer> totalStatistics) {
+		double passingRate = 100.0 * totalStatistics.getOrDefault(EXECUTIONS_PASSED, 0) / totalStatistics.getOrDefault(EXECUTIONS_TOTAL, 1);
+		return new BigDecimal(passingRate).setScale(2, RoundingMode.HALF_UP).doubleValue();
 	}
 
 }

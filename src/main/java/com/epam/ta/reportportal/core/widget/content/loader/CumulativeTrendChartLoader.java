@@ -62,7 +62,7 @@ public class CumulativeTrendChartLoader implements MultilevelLoadContentStrategy
 	private WidgetContentRepository widgetContentRepository;
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+	public Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			String[] attributes, Map<String, String> params, int limit) {
 
 		validateFilterSortMapping(filterSortMapping);

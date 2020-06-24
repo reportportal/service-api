@@ -100,6 +100,21 @@ public class WidgetBuilder implements Supplier<Widget> {
 		return this;
 	}
 
+	public WidgetBuilder addOption(String key, Object value) {
+		WidgetOptions widgetOptions = ofNullable(widget.getWidgetOptions()).orElseGet(() -> {
+			WidgetOptions opts = new WidgetOptions();
+			widget.setWidgetOptions(opts);
+			return opts;
+		});
+		Map<String, Object> options = ofNullable(widgetOptions.getOptions()).orElseGet(() -> {
+			LinkedHashMap<String, Object> opts = new LinkedHashMap<>();
+			widgetOptions.setOptions(opts);
+			return opts;
+		});
+		options.put(key, value);
+		return this;
+	}
+
 	@Override
 	public Widget get() {
 		return widget;

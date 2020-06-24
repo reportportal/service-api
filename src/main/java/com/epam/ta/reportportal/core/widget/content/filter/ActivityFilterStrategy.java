@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
@@ -37,9 +36,9 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 public class ActivityFilterStrategy extends AbstractStatisticsFilterStrategy {
 
 	@Override
-	public Map<Filter, Sort> buildFilter(ReportPortalUser.ProjectDetails projectDetails, Widget widget) {
+	public Map<Filter, Sort> buildFilter(Widget widget) {
 
-		return super.buildFilter(projectDetails, widget);
+		return super.buildFilter(widget);
 	}
 
 	@Override

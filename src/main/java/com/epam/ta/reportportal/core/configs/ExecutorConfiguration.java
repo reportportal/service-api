@@ -100,4 +100,16 @@ public class ExecutorConfiguration {
 		return threadPoolTaskExecutor;
 	}
 
+	@Bean(name = "healthCheckTableExecutor")
+	public TaskExecutor healthCheckTableExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(3);
+		executor.setMaxPoolSize(5);
+		executor.setQueueCapacity(100);
+		executor.setAllowCoreThreadTimeOut(true);
+		executor.setThreadNamePrefix("hc-table-generate-task");
+		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+		return executor;
+	}
+
 }

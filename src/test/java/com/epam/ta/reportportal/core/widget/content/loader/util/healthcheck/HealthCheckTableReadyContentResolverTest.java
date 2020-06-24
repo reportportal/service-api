@@ -37,6 +37,7 @@ public class HealthCheckTableReadyContentResolverTest {
 
 		WidgetRQ widgetRQ = new WidgetRQ();
 		widgetRQ.setName("name");
+
 		widgetRQ.setWidgetType("componentHealthCheckTable");
 		ContentParameters contentParameters = new ContentParameters();
 		contentParameters.setContentFields(new ArrayList<>());

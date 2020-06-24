@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.widget.content.filter;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.entity.filter.FilterSort;
@@ -40,8 +39,8 @@ import static java.util.Optional.ofNullable;
 public abstract class AbstractStatisticsFilterStrategy implements BuildFilterStrategy {
 
 	@Override
-	public Map<Filter, Sort> buildFilter(ReportPortalUser.ProjectDetails projectDetails, Widget widget) {
-		return buildFilterSortMap(widget, projectDetails.getProjectId());
+	public Map<Filter, Sort> buildFilter(Widget widget) {
+		return buildFilterSortMap(widget, widget.getProject().getId());
 	}
 
 	protected Map<Filter, Sort> buildFilterSortMap(Widget widget, Long projectId) {

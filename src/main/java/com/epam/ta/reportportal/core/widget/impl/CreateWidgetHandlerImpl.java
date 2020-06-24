@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.content.updater.WidgetUpdater;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -65,22 +66,24 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private final UpdateUserFilterHandler updateUserFilterHandler;
 
+	private final List<WidgetUpdater> widgetUpdaters;
+
 	@Autowired
 	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
-			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler) {
+			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler, List<WidgetUpdater> widgetUpdaters) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.aclHandler = aclHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
+		this.widgetUpdaters = widgetUpdaters;
 	}
 
 	@Override
 	public EntryCreatedRS createWidget(WidgetRQ createWidgetRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<UserFilter> userFilter = getUserFilters(createWidgetRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 
-		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(
-				createWidgetRQ.getName(),
+		BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(createWidgetRQ.getName(),
 				user.getUsername(),
 				projectDetails.getProjectId()
 		), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createWidgetRQ.getName());
@@ -90,6 +93,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 				.addFilters(userFilter)
 				.addOwner(user.getUsername())
 				.get();
+		widgetUpdaters.forEach(updater -> updater.update(widget));
 		widgetRepository.save(widget);
 		aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createWidgetRQ.getShare()));
 		if (widget.isShared()) {

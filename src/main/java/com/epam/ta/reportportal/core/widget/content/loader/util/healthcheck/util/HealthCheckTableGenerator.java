@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.HealthCheckTableReadyContentResolver.VIEW_NAME;
 import static com.epam.ta.reportportal.core.widget.content.updater.ComponentHealthCheckTableUpdater.STATE;
@@ -27,6 +31,8 @@ public class HealthCheckTableGenerator {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckTableGenerator.class);
 
+	private static final String LAST_REFRESH = "lastRefresh";
+
 	private final WidgetContentRepository widgetContentRepository;
 	private final WidgetRepository widgetRepository;
 
@@ -36,26 +42,21 @@ public class HealthCheckTableGenerator {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void generate(HealthCheckTableInitParams initParams, Widget widget, Filter launchesFilter, Sort launchesSort) {
-		boolean generated;
+	public void generate(boolean refresh, HealthCheckTableInitParams initParams, Widget widget, Filter launchesFilter, Sort launchesSort) {
 		try {
-			widgetContentRepository.generateComponentHealthCheckTable(initParams,
+			widgetContentRepository.generateComponentHealthCheckTable(refresh,
+					initParams,
 					launchesFilter,
 					launchesSort,
 					widget.getItemsCount(),
 					WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widget.getWidgetOptions())
 			);
-			generated = true;
-		} catch (Exception exc) {
-			LOGGER.error("Error during view creation: " + exc.getMessage());
-			generated = false;
-		}
-
-		if (generated) {
 			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.READY.getValue())
 					.addOption(VIEW_NAME, initParams.getViewName())
+					.addOption(LAST_REFRESH, Date.from(LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant()))
 					.get());
-		} else {
+		} catch (Exception exc) {
+			LOGGER.error("Error during view creation: " + exc.getMessage());
 			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.FAILED.getValue()).get());
 		}
 

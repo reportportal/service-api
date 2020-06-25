@@ -23,10 +23,7 @@ import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrateg
 import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
-import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.HealthCheckTableContentResolver;
-import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.HealthCheckTableCreatedContentResolver;
-import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.HealthCheckTableEmptyContentResolver;
-import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.HealthCheckTableReadyContentResolver;
+import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.*;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
@@ -175,11 +172,22 @@ public class WidgetConfig implements ApplicationContextAware {
 	@Bean("healthCheckTableContentResolverMapping")
 	public Map<WidgetState, HealthCheckTableContentResolver> healthCheckTableContentResolverMapping() {
 		return ImmutableMap.<WidgetState, HealthCheckTableContentResolver>builder().put(WidgetState.CREATED,
-				applicationContext.getBean(HealthCheckTableCreatedContentResolver.class)
+				(HealthCheckTableCreatedContentResolver) applicationContext.getBean("healthCheckTableCreatedContentResolver")
 		)
 				.put(WidgetState.READY, applicationContext.getBean(HealthCheckTableReadyContentResolver.class))
 				.put(WidgetState.RENDERING, applicationContext.getBean(HealthCheckTableEmptyContentResolver.class))
 				.put(WidgetState.FAILED, applicationContext.getBean(HealthCheckTableEmptyContentResolver.class))
+				.build();
+	}
+
+	@Bean("healthCheckTableContentRefreshMapping")
+	public Map<WidgetState, HealthCheckTableContentResolver> healthCheckTableContentRefreshMapping() {
+		return ImmutableMap.<WidgetState, HealthCheckTableContentResolver>builder().put(WidgetState.READY,
+				(HealthCheckTableRefreshContentResolver) applicationContext.getBean("healthCheckTableRefreshContentResolver")
+		)
+				.put(WidgetState.FAILED,
+						(HealthCheckTableRefreshContentResolver) applicationContext.getBean("healthCheckTableRefreshContentResolver")
+				)
 				.build();
 	}
 

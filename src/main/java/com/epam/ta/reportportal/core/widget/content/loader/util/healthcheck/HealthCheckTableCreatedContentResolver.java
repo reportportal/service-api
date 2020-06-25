@@ -33,7 +33,7 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service
+@Service(value = "healthCheckTableCreatedContentResolver")
 public class HealthCheckTableCreatedContentResolver extends AbstractHealthCheckTableContentResolver {
 
 	public static final String CUSTOM_COLUMN = "customColumn";
@@ -41,24 +41,24 @@ public class HealthCheckTableCreatedContentResolver extends AbstractHealthCheckT
 	private static final String VIEW_PREFIX = "hct";
 	private static final String NAME_SEPARATOR = "_";
 
+	protected final TaskExecutor healthCheckTableExecutor;
+	protected final HealthCheckTableGenerator healthCheckTableGenerator;
 	private final Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
-	private final TaskExecutor healthCheckTableExecutor;
 	private final WidgetRepository widgetRepository;
-	private final HealthCheckTableGenerator healthCheckTableGenerator;
 
-	public HealthCheckTableCreatedContentResolver(
+	public HealthCheckTableCreatedContentResolver(@Qualifier("healthCheckTableExecutor") TaskExecutor healthCheckTableExecutor,
+			HealthCheckTableGenerator healthCheckTableGenerator,
 			@Qualifier("buildFilterStrategy") Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping,
-			@Qualifier("healthCheckTableExecutor") TaskExecutor healthCheckTableExecutor, WidgetRepository widgetRepository,
-			HealthCheckTableGenerator healthCheckTableGenerator) {
-		this.buildFilterStrategyMapping = buildFilterStrategyMapping;
+			WidgetRepository widgetRepository) {
 		this.healthCheckTableExecutor = healthCheckTableExecutor;
-		this.widgetRepository = widgetRepository;
 		this.healthCheckTableGenerator = healthCheckTableGenerator;
+		this.buildFilterStrategyMapping = buildFilterStrategyMapping;
+		this.widgetRepository = widgetRepository;
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	protected Map<String, Object> getContent(Widget widget, List<String> attributeKeys, List<String> attributeValues) {
+	public Map<String, Object> getContent(Widget widget, List<String> attributeKeys, List<String> attributeValues) {
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -71,15 +71,19 @@ public class HealthCheckTableCreatedContentResolver extends AbstractHealthCheckT
 
 		widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.RENDERING.getValue()).get());
 
-		CompletableFuture.runAsync(() -> healthCheckTableGenerator.generate(getInitParams(widget, attributeKeys),
+		generateContent(widget, attributeKeys, launchesFilter, launchesSort);
+		return emptyMap();
+	}
+
+	protected void generateContent(Widget widget, List<String> attributeKeys, Filter launchesFilter, Sort launchesSort) {
+		CompletableFuture.runAsync(() -> healthCheckTableGenerator.generate(false, getInitParams(widget, attributeKeys),
 				widget,
 				launchesFilter,
 				launchesSort
 		), healthCheckTableExecutor);
-		return emptyMap();
 	}
 
-	private HealthCheckTableInitParams getInitParams(Widget widget, List<String> attributeKeys) {
+	protected HealthCheckTableInitParams getInitParams(Widget widget, List<String> attributeKeys) {
 
 		String viewName = generateViewName(widget);
 

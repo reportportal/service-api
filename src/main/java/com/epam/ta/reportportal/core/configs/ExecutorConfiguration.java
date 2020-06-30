@@ -49,12 +49,12 @@ public class ExecutorConfiguration {
 		return scheduler;
 	}
 
-	@Bean(name = "saveLogsTaskExecutor")
-	public TaskExecutor saveLogsTaskExecutor() {
+	@Bean(name = "saveBinaryDataTaskExecutor")
+	public TaskExecutor saveBinaryDataTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(20);
 		executor.setMaxPoolSize(100);
-		executor.setQueueCapacity(600);
+		executor.setQueueCapacity(5000);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadNamePrefix("logs-task-exec");
 		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());

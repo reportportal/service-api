@@ -77,7 +77,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	private Provider<SaveLogBinaryDataTask> saveLogBinaryDataTask;
 
 	@Autowired
-	@Qualifier("saveLogsTaskExecutor")
+	@Qualifier("saveBinaryDataTaskExecutor")
 	private TaskExecutor taskExecutor;
 
 	@Override

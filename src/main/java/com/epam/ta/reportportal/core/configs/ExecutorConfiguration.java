@@ -49,8 +49,8 @@ public class ExecutorConfiguration {
 		return scheduler;
 	}
 
-	@Bean(name = "saveBinaryDataTaskExecutor")
-	public TaskExecutor saveBinaryDataTaskExecutor() {
+	@Bean(name = "saveLogsTaskExecutor")
+	public TaskExecutor saveLogsTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(20);
 		executor.setMaxPoolSize(100);

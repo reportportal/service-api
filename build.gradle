@@ -19,6 +19,7 @@ plugins {
     id 'org.springframework.boot' version '2.2.5.RELEASE'
     id 'java'
     id "org.owasp.dependencycheck" version "5.3.1"
+    id "org.sonarqube" version "2.7"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator

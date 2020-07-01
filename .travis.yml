@@ -1,5 +1,5 @@
 language: java
-dist: trusty
+dist: xenial
 
 before_install:
   - sudo apt-get install -y fonts-noto
@@ -10,7 +10,7 @@ env:
     - GRADLE_OPTS="-Xms128m -Xmx1g"
 
 jdk:
-  - oraclejdk11
+  - openjdk11
 
 notifications:
   slack: reportportal-dev:fl6xWHVQp1jvsMmCJxYW9YKP

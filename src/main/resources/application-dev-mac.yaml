@@ -12,13 +12,5 @@ rp:
     type: minio
     minio:
       endpoint: http://localhost:9000
-      accessKey: minio
-      secretKey: minio123
-
-#logging:
-##  name:
-##    file: ${java.io.tmpdir}${file.separator}reportportal${file.separator}logs${file.separator}${spring.application.name}.log
-#  level:
-#    org:
-#      hibernate:
-#        SQL: info
+      accessKey:
+      secretKey:

@@ -11,8 +11,8 @@ rp:
     type: filesystem
     minio:
       endpoint: http://localhost:9000
-      accessKey: minio
-      secretKey: minio123
+      accessKey:
+      secretKey:
     path: ${java.io.tmpdir}${file.separator}reportportal${file.separator}datastore
 logging:
   level:

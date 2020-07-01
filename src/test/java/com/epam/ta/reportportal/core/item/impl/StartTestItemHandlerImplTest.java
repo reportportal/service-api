@@ -64,7 +64,7 @@ class StartTestItemHandlerImplTest {
 	void startRootItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(launchRepository.findByUuidForUpdate("1")).thenReturn(Optional.empty());
+		when(launchRepository.findByUuid("1")).thenReturn(Optional.empty());
 		final StartTestItemRQ rq = new StartTestItemRQ();
 		rq.setLaunchUuid("1");
 

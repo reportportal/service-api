@@ -20,6 +20,7 @@ plugins {
     id 'java'
     id "org.owasp.dependencycheck" version "5.3.1"
     id "org.sonarqube" version "2.7"
+    id "jacoco"
 }
 
 import org.owasp.dependencycheck.reporting.ReportGenerator
@@ -126,9 +127,21 @@ test {
     }
 }
 
+sonarqube {
+    properties {
+        property "sonar.dependencyCheck.htmlReportPath", "${project.reportsDir}/dependency-check-report.html"
+        property "sonar.dependencyCheck.xmlReportPath", "${project.reportsDir}/dependency-check-report.xml"
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
+
 addDockerfileToGit.dependsOn createDockerfile
 beforeReleaseBuild.dependsOn addDockerfileToGit
 bintrayUpload.mustRunAfter build
 afterReleaseBuild.dependsOn bintrayUpload
 checkCommitNeeded.dependsOn removeScripts
-build.dependsOn jacocoTestReport

@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.events.activity.DashboardUpdatedEvent;
 import com.epam.ta.reportportal.core.events.activity.WidgetDeletedEvent;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -45,6 +46,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
@@ -58,6 +60,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final DashboardRepository dashboardRepository;
 	private final UpdateWidgetHandler updateWidgetHandler;
+	private final List<WidgetContentRemover> widgetContentRemovers;
 	private final WidgetRepository widgetRepository;
 	private final MessageBus messageBus;
 	private final GetShareableEntityHandler<Dashboard> getShareableDashboardHandler;
@@ -66,11 +69,12 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
 	@Autowired
 	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository, UpdateWidgetHandler updateWidgetHandler,
-			MessageBus messageBus, GetShareableEntityHandler<Dashboard> getShareableDashboardHandler,
-			GetShareableEntityHandler<Widget> getShareableWidgetHandler, ShareableObjectsHandler aclHandler,
-			DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
+			List<WidgetContentRemover> widgetContentRemovers, MessageBus messageBus,
+			GetShareableEntityHandler<Dashboard> getShareableDashboardHandler, GetShareableEntityHandler<Widget> getShareableWidgetHandler,
+			ShareableObjectsHandler aclHandler, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
 		this.dashboardRepository = dashboardRepository;
 		this.updateWidgetHandler = updateWidgetHandler;
+		this.widgetContentRemovers = widgetContentRemovers;
 		this.messageBus = messageBus;
 		this.getShareableDashboardHandler = getShareableDashboardHandler;
 		this.getShareableWidgetHandler = getShareableWidgetHandler;
@@ -89,8 +93,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 			BusinessRule.expect(dashboardRepository.existsByNameAndOwnerAndProjectId(rq.getName(),
 					user.getUsername(),
 					projectDetails.getProjectId()
-			), BooleanUtils::isFalse)
-					.verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
+			), BooleanUtils::isFalse).verify(ErrorType.RESOURCE_ALREADY_EXISTS, rq.getName());
 		}
 
 		dashboard = new DashboardBuilder(dashboard).addUpdateRq(rq).get();
@@ -120,11 +123,12 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 				.stream()
 				.map(dw -> dw.getId().getWidgetId())
 				.anyMatch(widgetId -> widgetId.equals(rq.getAddWidget().getWidgetId())), BooleanUtils::isFalse)
-				.verify(ErrorType.DASHBOARD_UPDATE_ERROR, Suppliers.formattedSupplier(
-						"Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
-						rq.getAddWidget().getWidgetId(),
-						dashboard.getId()
-				));
+				.verify(ErrorType.DASHBOARD_UPDATE_ERROR,
+						Suppliers.formattedSupplier("Widget with ID = '{}' is already added to the dashboard with ID = '{}'",
+								rq.getAddWidget().getWidgetId(),
+								dashboard.getId()
+						)
+				);
 		Widget widget = getShareableWidgetHandler.getPermitted(rq.getAddWidget().getWidgetId(), projectDetails);
 		boolean isCreatedOnDashboard = CollectionUtils.isEmpty(widget.getDashboardWidgets());
 		DashboardWidget dashboardWidget = WidgetConverter.toDashboardWidget(rq.getAddWidget(), dashboard, widget, isCreatedOnDashboard);
@@ -173,6 +177,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	 * @return OperationCompletionRS
 	 */
 	private OperationCompletionRS deleteWidget(Widget widget) {
+		widgetContentRemovers.forEach(remover -> remover.removeContent(widget));
 		dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
 		widgetRepository.delete(widget);
 		aclHandler.deleteAclForObject(widget);

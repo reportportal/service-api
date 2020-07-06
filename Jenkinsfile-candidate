@@ -20,13 +20,13 @@ node {
     }
     stage('Push to ECR') {
         docker.withServer("$DOCKER_HOST") {
-            withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}"]) {
+            withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}", "VERSION=${VERSION}"]) {
                 def image = env.AWS_URI + '/service-api'
                 def url = 'https://' + env.AWS_URI
                 def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
                 sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST -P dockerTag=$AWS_URI/service-api"
                 docker.withRegistry(url, credentials) {
-                    docker.image(image).push('RC-${BUILD_NUMBER}')
+                    docker.image(image).push('${VERSION}-RC-${BUILD_NUMBER}')
                 }
             }
         }

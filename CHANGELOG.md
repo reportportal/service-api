@@ -267,3 +267,6 @@
 * reportportal/reportportal#773 - Service-API errors when user does not have a photo
 * EPMRPP-50276 - Auto-test issue/ When delete user - ACL cache should be cleaned up
 * EPMRPP-49121 - Validation message should appear in case global integration of email server is not setup
+* EPMRPP-52660 - Add launches filtering by items with issues inside
+* reportportal/reportportal#995 - Timezone unsynced between "LAUNCHES" and "DASHBOARD"
+

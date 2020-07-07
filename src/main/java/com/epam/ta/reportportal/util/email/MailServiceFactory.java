@@ -183,9 +183,7 @@ public class MailServiceFactory {
 				.stream()
 				.filter(Integration::isEnabled)
 				.findFirst()
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Enabled email integration has not been found."
-				));
+				.orElseThrow(() -> emailConfigurationFail(null));
 
 		EmailService emailService = getEmailService(integration).orElseThrow(() -> emailConfigurationFail(null));
 

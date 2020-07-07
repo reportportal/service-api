@@ -26,7 +26,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
-import com.epam.ta.reportportal.core.widget.content.updater.WidgetUpdater;
+import com.epam.ta.reportportal.core.widget.content.updater.WidgetPostProcessor;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -66,17 +66,18 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private final UpdateUserFilterHandler updateUserFilterHandler;
 
-	private final List<WidgetUpdater> widgetUpdaters;
+	private final List<WidgetPostProcessor> widgetPostProcessors;
 
 	@Autowired
 	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
-			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler, List<WidgetUpdater> widgetUpdaters) {
+			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler,
+			List<WidgetPostProcessor> widgetPostProcessors) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.aclHandler = aclHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
-		this.widgetUpdaters = widgetUpdaters;
+		this.widgetPostProcessors = widgetPostProcessors;
 	}
 
 	@Override
@@ -93,7 +94,9 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 				.addFilters(userFilter)
 				.addOwner(user.getUsername())
 				.get();
-		widgetUpdaters.forEach(updater -> updater.update(widget));
+		widgetPostProcessors.stream()
+				.filter(widgetPostProcessor -> widgetPostProcessor.supports(widget))
+				.forEach(widgetPostProcessor -> widgetPostProcessor.postProcess(widget));
 		widgetRepository.save(widget);
 		aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createWidgetRQ.getShare()));
 		if (widget.isShared()) {

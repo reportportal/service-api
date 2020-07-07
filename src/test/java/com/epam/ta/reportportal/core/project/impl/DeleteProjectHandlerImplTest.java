@@ -21,6 +21,8 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
+import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
@@ -37,7 +39,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,6 +71,15 @@ class DeleteProjectHandlerImplTest {
 
 	@Mock
 	private MessageBus messageBus;
+
+	@Mock
+	private IssueTypeRepository issueTypeRepository;
+
+	@Mock
+	private ProjectContentRemover projectContentRemover;
+
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;
@@ -164,6 +177,24 @@ class DeleteProjectHandlerImplTest {
 		verify(messageBus, times(1)).publishActivity(any(ProjectIndexEvent.class));
 
 		assertEquals(response.getResultMessage(), "Project index with name = '" + projectName + "' is successfully deleted.");
+
+	}
+
+	@Test
+	void deleteProjectTest() {
+		String projectName = "test_project";
+		Long projectId = 1L;
+		Project project = getProjectWithAnalyzerAttributes(projectId, false);
+		project.setName(projectName);
+		when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
+		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+
+		OperationCompletionRS response = handler.deleteProject(1L);
+
+		verify(projectContentRemover, times(1)).removeContent(project);
+		verify(logIndexer, times(1)).deleteIndex(projectId);
+
+		assertEquals(response.getResultMessage(), "Project with id = '" + project.getId() + "' has been successfully deleted.");
 
 	}
 

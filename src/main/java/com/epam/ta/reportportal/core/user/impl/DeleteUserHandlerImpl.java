@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
+import com.epam.ta.reportportal.core.user.content.remover.UserContentRemover;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
@@ -56,13 +57,16 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ShareableObjectsHandler shareableObjectsHandler;
 
+	private final UserContentRemover userContentRemover;
+
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore) {
+			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, UserContentRemover userContentRemover) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.shareableObjectsHandler = shareableObjectsHandler;
 		this.dataStore = dataStore;
+		this.userContentRemover = userContentRemover;
 	}
 
 	@Override
@@ -85,6 +89,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		});
 
 		dataStore.deleteUserPhoto(user);
+		userContentRemover.removeContent(user);
 		userRepository.delete(user);
 		if (CollectionUtils.isNotEmpty(projectIdsToDelete)) {
 			deleteProjectHandler.deleteProjects(new DeleteBulkRQ(projectIdsToDelete));

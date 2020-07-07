@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.dashboard.DeleteDashboardHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.DashboardDeletedEvent;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
+import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.dao.DashboardRepository;
 import com.epam.ta.reportportal.dao.DashboardWidgetRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
@@ -50,17 +51,19 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final WidgetRepository widgetRepository;
 	private final ShareableObjectsHandler aclHandler;
+	private final List<WidgetContentRemover> widgetContentRemovers;
 	private final MessageBus messageBus;
 
 	@Autowired
 	public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
 			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
-			ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+			ShareableObjectsHandler aclHandler, List<WidgetContentRemover> widgetContentRemovers, MessageBus messageBus) {
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
 		this.aclHandler = aclHandler;
+		this.widgetContentRemovers = widgetContentRemovers;
 		this.messageBus = messageBus;
 	}
 
@@ -73,6 +76,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 				.filter(DashboardWidget::isCreatedOn)
 				.map(DashboardWidget::getWidget)
 				.peek(aclHandler::deleteAclForObject)
+				.peek(widget -> widgetContentRemovers.forEach(remover -> remover.removeContent(widget)))
 				.collect(Collectors.toList());
 		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 

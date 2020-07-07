@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
+import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -70,10 +71,13 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final IssueTypeRepository issueTypeRepository;
 
+	private final ProjectContentRemover projectContentRemover;
+
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
 			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher, IssueTypeRepository issueTypeRepository) {
+			ApplicationEventPublisher eventPublisher, IssueTypeRepository issueTypeRepository,
+			ProjectContentRemover projectContentRemover) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
@@ -82,6 +86,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 		this.issueTypeRepository = issueTypeRepository;
+		this.projectContentRemover = projectContentRemover;
 	}
 
 	@Override
@@ -153,6 +158,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 				.map(ProjectIssueType::getIssueType)
 				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
 				.collect(Collectors.toSet());
+		projectContentRemover.removeContent(project);
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(project.getId());

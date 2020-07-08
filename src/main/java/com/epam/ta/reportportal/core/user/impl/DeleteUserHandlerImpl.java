@@ -34,7 +34,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -74,7 +73,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		User user = userRepository.findById(userId).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, userId));
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
-		ArrayList<Long> projectIdsToDelete = Lists.newArrayList();
+		List<Long> projectIdsToDelete = Lists.newArrayList();
 		user.getProjects().forEach(userProject -> {
 			Long projectId = userProject.getId().getProjectId();
 			if (ProjectUtils.isPersonalForUser(userProject.getProject().getProjectType(),

@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -81,7 +80,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 
 		List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
-		userProjects.stream().sorted(Comparator.comparing(Project::getId)).forEach(project -> {
+		userProjects.forEach(project -> {
 			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
 				deleteProjectHandler.deleteProject(project.getId());
 			} else {

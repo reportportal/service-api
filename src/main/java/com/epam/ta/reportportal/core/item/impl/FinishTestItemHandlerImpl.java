@@ -21,10 +21,10 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
-import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
@@ -50,6 +50,7 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -104,6 +105,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final ChangeStatusHandler changeStatusHandler;
 
+	private final RetriesHandler retriesHandler;
+
 	private final ApplicationEventPublisher eventPublisher;
 
 	private final MessageBus messageBus;
@@ -115,7 +118,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
 			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher,
-			LaunchRepository launchRepository, MessageBus messageBus, ExternalTicketHandler externalTicketHandler) {
+			LaunchRepository launchRepository, RetriesHandler retriesHandler, MessageBus messageBus,
+			ExternalTicketHandler externalTicketHandler) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -126,6 +130,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.launchRepository = launchRepository;
 		this.changeStatusHandler = changeStatusHandler;
 		this.eventPublisher = eventPublisher;
+		this.retriesHandler = retriesHandler;
 		this.messageBus = messageBus;
 		this.externalTicketHandler = externalTicketHandler;
 	}
@@ -154,8 +159,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		testItemRepository.save(testItem);
 
-		if (!testItem.isHasChildren() && BooleanUtils.toBoolean(finishExecutionRQ.isRetry())) {
-			handleRetries(launch, testItem);
+		boolean handleRetries = !testItem.isHasChildren() && (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(
+				finishExecutionRQ.getRetryOf()));
+		if (handleRetries) {
+			retriesHandler.handleRetries(launch, testItem, finishExecutionRQ.getRetryOf());
 		}
 
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
@@ -291,20 +298,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		return testItemResults;
 	}
 
-	/**
-	 * Handles retry items
-	 *
-	 * @param launch {@link Launch}
-	 * @param item   {@link TestItem}
-	 */
-	private void handleRetries(Launch launch, TestItem item) {
-		testItemRepository.handleRetries(item.getItemId());
-		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
-		if (!launch.isHasRetries()) {
-			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
-		}
-	}
-
 	private void finishDescendants(TestItem testItem, StatusEnum status, Date endTime, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
@@ -375,7 +368,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			updateItemIssue(testItemResults, issue);
 			if (ITEM_CAN_BE_INDEXED.test(testItem)) {
 				eventPublisher.publishEvent(new ItemFinishedEvent(testItem.getItemId(), testItem.getLaunchId(), projectId));
-
 			}
 		});
 	}

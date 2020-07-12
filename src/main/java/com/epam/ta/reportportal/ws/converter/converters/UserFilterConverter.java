@@ -70,7 +70,14 @@ public final class UserFilterConverter {
 		UserFilterCondition condition = new UserFilterCondition();
 		ofNullable(filterCondition.getCondition()).ifPresent(c -> condition.setCondition(c.getMarker()));
 		condition.setFilteringField(filterCondition.getSearchCriteria());
-		condition.setValue(filterCondition.getValue());
+
+        if (filterCondition.isNegative()) {
+            condition.setValue("!".concat(filterCondition.getValue()));
+        } else {
+            condition.setValue(filterCondition.getValue());
+        }
+
+        condition.setValue(filterCondition.getValue());
 		return condition;
 	};
 

@@ -77,7 +77,6 @@ public final class UserFilterConverter {
             condition.setValue(filterCondition.getValue());
         }
 
-        condition.setValue(filterCondition.getValue());
 		return condition;
 	};
 

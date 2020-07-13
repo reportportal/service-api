@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl.history.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
 import com.epam.ta.reportportal.core.item.impl.history.provider.HistoryProvider;
@@ -27,12 +27,9 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.jooq.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PARENT_ID;
 
 /**
  * Required for retrieving {@link TestItemHistory} content using {@link Launch#getId()} as baseline for {@link TestItemHistory} selection.
@@ -61,38 +58,22 @@ public class LaunchBaselineHistoryProvider implements HistoryProvider {
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 			launchAccessValidator.validate(launch.getId(), projectDetails, user);
 
-			Queryable itemsFilter = getParentItemFilter(filter);
 			return historyRequestParams.getHistoryType()
 					.filter(HistoryRequestParams.HistoryTypeEnum.LINE::equals)
-					.map(type -> testItemRepository.loadItemsHistoryPage(itemsFilter,
+					.map(type -> testItemRepository.loadItemsHistoryPage(filter,
 							pageable,
 							projectDetails.getProjectId(),
 							launch.getName(),
 							historyRequestParams.getHistoryDepth(),
 							usingHash
 					))
-					.orElseGet(() -> testItemRepository.loadItemsHistoryPage(itemsFilter,
+					.orElseGet(() -> testItemRepository.loadItemsHistoryPage(filter,
 							pageable,
 							projectDetails.getProjectId(),
 							historyRequestParams.getHistoryDepth(),
 							usingHash
 					));
 		}).orElseGet(() -> Page.empty(pageable));
-	}
-
-	private Queryable getParentItemFilter(Queryable filter) {
-		return new CompositeFilter(Operator.AND,
-				filter,
-				Filter.builder()
-						.withTarget(filter.getTarget().getClazz())
-						.withCondition(FilterCondition.builder()
-								.withCondition(Condition.EXISTS)
-								.withNegative(true)
-								.withSearchCriteria(CRITERIA_PARENT_ID)
-								.withValue("1")
-								.build())
-						.build()
-		);
 	}
 
 }

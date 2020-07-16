@@ -27,15 +27,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -171,7 +169,7 @@ class UserFilterControllerTest extends BaseMvcTest {
 		order.setSortingColumnName("startTime");
 
 		request.setOrders(Lists.newArrayList(order));
-		request.setDescription(IntStream.range(0, 256).mapToObj(Objects::toString).collect(Collectors.joining()));
+		request.setDescription(StringUtils.leftPad("", 1501, "a"));
 		request.setConditions(Sets.newHashSet(new UserFilterCondition("name", "cnt", "test")));
 
 		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/filter").with(token(oAuthHelper.getDefaultToken()))

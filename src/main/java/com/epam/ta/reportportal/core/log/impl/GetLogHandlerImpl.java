@@ -207,6 +207,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
 		return FilterCondition.builder().eq(CRITERIA_ITEM_LAUNCH_ID, String.valueOf(launchId)).build();
 	}
 
+	/**
+	 * Updates 'filterable' with {@link TestItem#getLaunchId()} condition if {@link TestItem#getRetryOf()} is NULL
+	 * otherwise updates 'filterable' with 'launchId' of the 'retry' parent
+	 *
+	 * @param filterable {@link Filter} with {@link FilterTarget#getClazz()} of {@link Log}
+	 * @param path       {@link TestItem#getPath()} under which {@link Log} entities should be searched
+	 */
 	private void updateFilter(Filter filterable, String path) {
 		TestItem testItem = testItemRepository.findByPath(path)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, path));
@@ -230,6 +237,13 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	}
 
+	/**
+	 * Updates 'path' condition of the {@link TestItem} whose {@link Log} entities should be searched.
+	 * Required when there are 'Nested Steps' under the {@link TestItem} that is a 'retry'
+	 *
+	 * @param testItem   {@link TestItem} containing logs
+	 * @param filterable {@link Filter} with {@link FilterTarget#getClazz()} of {@link Log}
+	 */
 	private void updatePathCondition(TestItem testItem, Filter filterable) {
 		List<ConvertibleCondition> resultConditions = filterable.getFilterConditions()
 				.stream()

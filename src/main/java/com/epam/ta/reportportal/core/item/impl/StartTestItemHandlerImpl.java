@@ -91,7 +91,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
-		Launch launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
+		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(user, projectDetails, rq, launch);
 

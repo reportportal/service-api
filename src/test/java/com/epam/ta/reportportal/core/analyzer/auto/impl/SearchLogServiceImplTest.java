@@ -97,6 +97,8 @@ class SearchLogServiceImplTest {
 		when(testItemOfFoundLog.getItemId()).thenReturn(2L);
 		when(testItemOfFoundLog.getLaunchId()).thenReturn(1L);
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
+		when(launch.getId()).thenReturn(1L);
+		when(testItem.getPath()).thenReturn("1");
 		when(testItem.getItemResults()).thenReturn(testItemResults);
 		when(testItem.isHasStats()).thenReturn(true);
 		when(testItemOfFoundLog.getItemResults()).thenReturn(testItemResults);
@@ -115,8 +117,11 @@ class SearchLogServiceImplTest {
 		when(userFilter.getTargetClass()).thenReturn(ObjectType.Launch);
 		when(userFilter.getFilterCondition()).thenReturn(Collections.emptySet());
 
-		when(logRepository.findMessagesByItemIdAndLevelGte(testItem.getItemId(), LogLevel.ERROR_INT)).thenReturn(Lists.newArrayList(
-				"message"));
+		when(logRepository.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
+				testItem.getItemId(),
+				testItem.getPath(),
+				LogLevel.ERROR_INT
+		)).thenReturn(Lists.newArrayList("message"));
 		SearchRs searchRs = new SearchRs();
 		searchRs.setLogId(1L);
 		searchRs.setTestItemId(2L);

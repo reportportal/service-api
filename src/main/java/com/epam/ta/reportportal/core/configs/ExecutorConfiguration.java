@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTask;
 import com.epam.ta.reportportal.core.log.impl.SaveLogBinaryDataTaskAsync;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,11 +51,13 @@ public class ExecutorConfiguration {
 	}
 
 	@Bean(name = "saveLogsTaskExecutor")
-	public TaskExecutor saveLogsTaskExecutor() {
+	public TaskExecutor saveLogsTaskExecutor(@Value("${rp.environment.variable.executor.pool.save-logs.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.save-logs.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.save-logs.queue}") Integer queueCapacity) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(20);
-		executor.setMaxPoolSize(100);
-		executor.setQueueCapacity(5000);
+		executor.setCorePoolSize(corePoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
+		executor.setQueueCapacity(queueCapacity);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadNamePrefix("logs-task-exec");
 		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
@@ -78,22 +81,26 @@ public class ExecutorConfiguration {
 	}
 
 	@Bean(name = "autoAnalyzeTaskExecutor")
-	public TaskExecutor autoAnalyzeTaskExecutor() {
+	public TaskExecutor autoAnalyzeTaskExecutor(@Value("${rp.environment.variable.executor.pool.auto-analyze.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.auto-analyze.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.auto-analyze.queue}") Integer queueCapacity) {
 		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(10);
-		threadPoolTaskExecutor.setMaxPoolSize(30);
-		threadPoolTaskExecutor.setQueueCapacity(200);
+		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
 		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
 		threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
 		return threadPoolTaskExecutor;
 	}
 
 	@Bean(name = "demoDataTaskExecutor")
-	public TaskExecutor demoDataTaskExecutor() {
+	public TaskExecutor demoDataTaskExecutor(@Value("${rp.environment.variable.executor.pool.demo-data.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.demo-data.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.demo-data.queue}") Integer queueCapacity) {
 		ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-		threadPoolTaskExecutor.setCorePoolSize(10);
-		threadPoolTaskExecutor.setMaxPoolSize(20);
-		threadPoolTaskExecutor.setQueueCapacity(50);
+		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
 		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
 		threadPoolTaskExecutor.setAwaitTerminationSeconds(60);
 		threadPoolTaskExecutor.setThreadNamePrefix("demo-data-exec");
@@ -101,11 +108,14 @@ public class ExecutorConfiguration {
 	}
 
 	@Bean(name = "healthCheckTableExecutor")
-	public TaskExecutor healthCheckTableExecutor() {
+	public TaskExecutor healthCheckTableExecutor(
+			@Value("${rp.environment.variable.executor.pool.health-check-table.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.health-check-table.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.health-check-table.queue}") Integer queueCapacity) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(3);
-		executor.setMaxPoolSize(5);
-		executor.setQueueCapacity(100);
+		executor.setCorePoolSize(corePoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
+		executor.setQueueCapacity(queueCapacity);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadNamePrefix("hc-table-generate-task");
 		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());

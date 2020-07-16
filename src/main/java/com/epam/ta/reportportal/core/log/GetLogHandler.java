@@ -39,7 +39,7 @@ public interface GetLogHandler {
 	 * @param pageable   - pageable definition
 	 * @return Iterable<LogResource>
 	 */
-	Iterable<LogResource> getLogs(ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
+	Iterable<LogResource> getLogs(String path, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
 
 	/**
 	 * Returns log by UUID

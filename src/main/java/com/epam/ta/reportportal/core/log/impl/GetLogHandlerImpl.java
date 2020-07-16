@@ -17,10 +17,7 @@
 package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -40,10 +37,12 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -55,6 +54,7 @@ import java.util.stream.Stream;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.LogCriteriaConstant.CRITERIA_ITEM_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_RETRY_PARENT_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
@@ -89,7 +89,9 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	@Override
-	public Iterable<LogResource> getLogs(ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable) {
+	public Iterable<LogResource> getLogs(@Nullable String path, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
+			Pageable pageable) {
+		ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
 		Page<Log> logPage = logRepository.findByFilter(filterable, pageable);
 		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logPage);
 	}
@@ -203,6 +205,65 @@ public class GetLogHandlerImpl implements GetLogHandler {
 
 	private FilterCondition getLaunchCondition(Long launchId) {
 		return FilterCondition.builder().eq(CRITERIA_ITEM_LAUNCH_ID, String.valueOf(launchId)).build();
+	}
+
+	/**
+	 * Updates 'filterable' with {@link TestItem#getLaunchId()} condition if {@link TestItem#getRetryOf()} is NULL
+	 * otherwise updates 'filterable' with 'launchId' of the 'retry' parent
+	 *
+	 * @param filterable {@link Filter} with {@link FilterTarget#getClazz()} of {@link Log}
+	 * @param path       {@link TestItem#getPath()} under which {@link Log} entities should be searched
+	 */
+	private void updateFilter(Filter filterable, String path) {
+		TestItem testItem = testItemRepository.findByPath(path)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, path));
+
+		updatePathCondition(testItem, filterable);
+
+		Launch launch = testItemService.getEffectiveLaunch(testItem);
+
+		FilterCondition.ConditionBuilder itemLaunchIdConditionBuilder = FilterCondition.builder()
+				.eq(CRITERIA_ITEM_LAUNCH_ID, String.valueOf(launch.getId()));
+
+		ConvertibleCondition launchIdCondition = ofNullable(testItem.getRetryOf()).map(retryOf -> (ConvertibleCondition) new CompositeFilterCondition(
+				Lists.newArrayList(itemLaunchIdConditionBuilder.withOperator(Operator.OR).build(),
+						FilterCondition.builder()
+								.eq(CRITERIA_RETRY_PARENT_LAUNCH_ID, String.valueOf(launch.getId()))
+								.withOperator(Operator.OR)
+								.build()
+				))).orElseGet(itemLaunchIdConditionBuilder::build);
+
+		filterable.getFilterConditions().add(launchIdCondition);
+
+	}
+
+	/**
+	 * Updates 'path' condition of the {@link TestItem} whose {@link Log} entities should be searched.
+	 * Required when there are 'Nested Steps' under the {@link TestItem} that is a 'retry'
+	 *
+	 * @param testItem   {@link TestItem} containing logs
+	 * @param filterable {@link Filter} with {@link FilterTarget#getClazz()} of {@link Log}
+	 */
+	private void updatePathCondition(TestItem testItem, Filter filterable) {
+		List<ConvertibleCondition> resultConditions = filterable.getFilterConditions()
+				.stream()
+				.flatMap(c -> c.getAllConditions().stream())
+				.filter(c -> BooleanUtils.isFalse(CRITERIA_PATH.equals(c.getSearchCriteria()) && Condition.UNDER.equals(c.getCondition())))
+				.collect(Collectors.toList());
+		filterable.getFilterConditions().clear();
+
+		FilterCondition parentPathCondition = getParentPathCondition(testItem);
+		resultConditions.add(ofNullable(testItem.getRetryOf()).map(retryParent -> (ConvertibleCondition) new CompositeFilterCondition(Lists.newArrayList(
+				parentPathCondition,
+				FilterCondition.builder()
+						.withOperator(Operator.OR)
+						.withCondition(Condition.UNDER)
+						.withSearchCriteria(CRITERIA_PATH)
+						.withValue(String.valueOf(testItem.getPath()))
+						.build()
+		))).orElse(parentPathCondition));
+
+		filterable.getFilterConditions().addAll(resultConditions);
 	}
 
 	private FilterCondition getParentPathCondition(TestItem parent) {

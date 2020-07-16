@@ -114,7 +114,11 @@ public class SearchLogServiceImpl implements SearchLogService {
 		searchRq.setFilteredLaunchIds(searchCollectorFactory.getCollector(searchMode).collect(request.getFilterId(), launch));
 
 		//TODO fix query - select messages from `Nested Step` descendants too
-		List<String> logMessages = logRepository.findMessagesByItemIdAndLevelGte(item.getItemId(), LogLevel.ERROR_INT);
+		List<String> logMessages = logRepository.findMessagesByLaunchIdAndItemIdAndPathAndLevelGte(launch.getId(),
+				item.getItemId(),
+				item.getPath(),
+				LogLevel.ERROR_INT
+		);
 		if (CollectionUtils.isEmpty(logMessages)) {
 			return Optional.empty();
 		}

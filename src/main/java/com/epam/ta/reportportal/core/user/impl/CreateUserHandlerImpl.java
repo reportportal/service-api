@@ -221,12 +221,12 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 			bid = bidOptional.get();
 		}
 
-		emailExecutorService.execute(() -> emailServiceFactory.getDefaultEmailService(false)
+		emailServiceFactory.getDefaultEmailService(true)
 				.sendRestorePasswordEmail("Password recovery",
 						new String[] { email },
 						baseUrl + "#login?reset=" + bid.getUuid(),
 						user.getLogin()
-				));
+				);
 
 		return new OperationCompletionRS("Email has been sent");
 	}

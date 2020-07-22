@@ -56,12 +56,12 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:5ccd088'
+        compile 'com.github.reportportal:commons-dao:5c2f933'
         compile 'com.github.reportportal:commons-rules:331c402'
-        compile 'com.github.reportportal:commons-model:a7cc014'
+        compile 'com.github.reportportal:commons-model:beef6e0'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:4623190'
+        compile 'com.github.reportportal:plugin-api:9281cb1'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'
@@ -76,6 +76,7 @@ dependencies {
 
     compile 'com.sun.mail:javax.mail:1.6.2'
     compile 'net.sf.jasperreports:jasperreports:6.12.2'
+    compile 'com.lowagie:itext:2.1.7.js7'
     // JasperReport's export to XLS uses Apache POI
     compile 'org.apache.poi:poi:4.1.1'
     compile 'io.springfox:springfox-swagger2'

@@ -32,6 +32,10 @@ project.ext {
             (migrationsUrl + '/migrations/12_remove_ticket_duplicates.up.sql')         : 'V012__remove_ticket_duplicates.sql',
             (migrationsUrl + '/migrations/13_add_allocated_storage_per_project.up.sql'): 'V013__add_allocated_storage_per_project.sql',
             (migrationsUrl + '/migrations/14_test_case_id_size_increase.up.sql')       : 'V014__test_case_id_size_increase.sql',
+            (migrationsUrl + '/migrations/15_statistics_decreasing.up.sql')            : 'V015__statistics_decreasing.sql',
+            (migrationsUrl + '/migrations/16_remove_unused_indexes.up.sql')            : 'V016__remove_unused_indexes.sql',
+            (migrationsUrl + '/migrations/17_status_enum_extension.up.sql')            : 'V017__status_enum_extension.sql',
+            (migrationsUrl + '/migrations/18_job_attributes.up.sql')                   : 'V018__job_attributes.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',
@@ -39,6 +43,7 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
+                    '**/job/FlushingDataJob**'
     ]
 }
 

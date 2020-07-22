@@ -37,12 +37,14 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.converter.converters.StatisticsConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
-import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdater;
+import com.epam.ta.reportportal.ws.converter.utils.ResourceUpdaterProvider;
 import com.epam.ta.reportportal.ws.converter.utils.item.content.TestItemUpdaterContent;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -89,7 +91,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Autowired
 	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchAccessValidator launchAccessValidator,
-			ItemAttributeRepository itemAttributeRepository, List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders,
+			ItemAttributeRepository itemAttributeRepository,
+			List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders,
 			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
 		this.testItemRepository = testItemRepository;
 		this.launchAccessValidator = launchAccessValidator;
@@ -146,6 +149,13 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		}).apply(testItemPage);
 	}
 
+	@Override
+	public StatisticsResource getStatisticsByFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser reportPortalUser, Long launchId) {
+		launchAccessValidator.validate(launchId, projectDetails, reportPortalUser);
+		return StatisticsConverter.TO_RESOURCE.apply(testItemRepository.accumulateStatisticsByFilter(filter));
+	}
+
 	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
@@ -176,10 +186,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public List<String> getTicketIds(Long launchId, String term) {
-		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true))
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
-				);
+		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
+		);
 		return ticketRepository.findByTerm(launchId, term);
 	}
 

@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -62,26 +63,60 @@ class InterruptBrokenLaunchesJobTest {
 	private InterruptBrokenLaunchesJob interruptBrokenLaunchesJob;
 
 	@Test
-	void name() {
+	void noInProgressItemsTest() {
 		String name = "name";
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
 		attribute.setName("job.interruptJobTime");
 		projectAttribute.setAttribute(attribute);
-		projectAttribute.setValue("1 day");
+
+		//1 day in seconds
+		projectAttribute.setValue(String.valueOf(3600 * 24));
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 		project.setName(name);
 
 		long launchId = 1L;
 
 		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
-		when(launchRepository.streamIdsWithStatusModifiedBefore(any(), any(), any())).thenReturn(Stream.of(launchId));
+		when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(Stream.of(launchId));
 		when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(false);
 		when(launchRepository.findById(launchId)).thenReturn(Optional.of(new Launch()));
 
 		interruptBrokenLaunchesJob.execute(null);
 
+		verify(launchRepository, times(1)).findById(launchId);
+		verify(launchRepository, times(1)).save(any());
+
+	}
+
+	@Test
+	void interruptLaunchWithInProgressItemsTest() {
+		String name = "name";
+		Project project = new Project();
+		final ProjectAttribute projectAttribute = new ProjectAttribute();
+		final Attribute attribute = new Attribute();
+		attribute.setName("job.interruptJobTime");
+		projectAttribute.setAttribute(attribute);
+
+		//1 day in seconds
+		projectAttribute.setValue(String.valueOf(3600 * 24));
+		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
+		project.setName(name);
+
+		long launchId = 1L;
+
+		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(Stream.of(launchId));
+		when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(true);
+		when(testItemRepository.hasItemsInStatusAddedLately(launchId, Duration.ofSeconds(3600 * 24),StatusEnum.IN_PROGRESS)).thenReturn(false);
+		when(testItemRepository.hasLogs(launchId, Duration.ofSeconds(3600 * 24), StatusEnum.IN_PROGRESS)).thenReturn(true);
+		when(logRepository.hasLogsAddedLately(Duration.ofSeconds(3600 * 24), launchId, StatusEnum.IN_PROGRESS)).thenReturn(false);
+		when(launchRepository.findById(launchId)).thenReturn(Optional.of(new Launch()));
+
+		interruptBrokenLaunchesJob.execute(null);
+
+		verify(testItemRepository, times(1)).interruptInProgressItems(launchId);
 		verify(launchRepository, times(1)).findById(launchId);
 		verify(launchRepository, times(1)).save(any());
 

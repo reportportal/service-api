@@ -15,6 +15,7 @@
  */
 package com.epam.ta.reportportal.core.configs;
 
+import com.epam.reportportal.extension.classloader.ReportPortalResourceLoader;
 import com.epam.ta.reportportal.job.*;
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.quartz.*;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -56,12 +58,24 @@ public class SchedulerConfiguration {
 	@Autowired
 	private PlatformTransactionManager transactionManager;
 
+	@Autowired
+	private ReportPortalResourceLoader resourceLoader;
+
 	@Bean
 	@Primary
 	public SchedulerFactoryBean schedulerFactoryBean() {
-		SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
+		SchedulerFactoryBean scheduler = new SchedulerFactoryBean() {
+			@Override
+			public void setResourceLoader(ResourceLoader resourceLoader) {
+				if (this.resourceLoader == null) {
+					super.setResourceLoader(resourceLoader);
+				}
+			}
+		};
 		scheduler.setApplicationContextSchedulerContextKey("applicationContext");
 
+		scheduler.setOverwriteExistingJobs(true);
+		scheduler.setResourceLoader(resourceLoader);
 		scheduler.setQuartzProperties(quartzProperties.getQuartz());
 		scheduler.setDataSource(dataSource);
 		scheduler.setTransactionManager(transactionManager);

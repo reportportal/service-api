@@ -20,11 +20,10 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.InterruptionJobDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -40,7 +39,7 @@ import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static java.time.Duration.ofHours;
+import static java.time.Duration.ofSeconds;
 
 /**
  * Finds jobs witn duration more than defined and finishes them with interrupted
@@ -78,10 +77,8 @@ public class InterruptBrokenLaunchesJob implements Job {
 				pageable
 		), projects -> projects.forEach(project -> {
 			ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.INTERRUPT_JOB_TIME).ifPresent(it -> {
-				Duration maxDuration = ofHours(InterruptionJobDelay.findByName(it)
-						.orElseThrow(() -> new ReportPortalException("Incorrect launch interruption delay period: " + it))
-						.getPeriod());
-				try (Stream<Long> ids = launchRepository.streamIdsWithStatusModifiedBefore(project.getId(),
+				Duration maxDuration = ofSeconds(NumberUtils.toLong(it, 0L));
+				try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(project.getId(),
 						StatusEnum.IN_PROGRESS,
 						LocalDateTime.now(ZoneOffset.UTC).minus(maxDuration)
 				)) {

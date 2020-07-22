@@ -17,13 +17,12 @@
 package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.job.service.LogCleanerService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -42,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static java.time.Duration.ofDays;
+import static java.time.Duration.ofSeconds;
 
 /**
  * Clean logs job in accordance with project settings
@@ -89,7 +88,7 @@ public class CleanLogsJob implements Job {
 				} catch (Exception e) {
 					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
 				}
-				LOGGER.debug("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+				LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
 						project.getId(),
 						removedLogsCount.get()
 				);
@@ -102,9 +101,7 @@ public class CleanLogsJob implements Job {
 
 	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LOGS)
-				.map(it -> ofDays(KeepLogsDelay.findByName(it)
-						.orElseThrow(() -> new ReportPortalException("Incorrect keep logs delay period: " + it))
-						.getDays()))
+				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
 				.ifPresent(it -> logCleaner.removeOutdatedLogs(project, it, removedLogsCount));
 	}

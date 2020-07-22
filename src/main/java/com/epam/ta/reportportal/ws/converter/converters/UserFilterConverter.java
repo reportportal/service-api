@@ -68,9 +68,16 @@ public final class UserFilterConverter {
 
 	private static final Function<FilterCondition, UserFilterCondition> TO_FILTER_CONDITION = filterCondition -> {
 		UserFilterCondition condition = new UserFilterCondition();
-		ofNullable(filterCondition.getCondition()).ifPresent(c -> condition.setCondition(c.getMarker()));
+		ofNullable(filterCondition.getCondition()).ifPresent(c -> {
+			if (filterCondition.isNegative()) {
+				condition.setCondition("!".concat(c.getMarker()));
+			} else {
+				condition.setCondition(c.getMarker());
+			}
+		});
 		condition.setFilteringField(filterCondition.getSearchCriteria());
 		condition.setValue(filterCondition.getValue());
+
 		return condition;
 	};
 

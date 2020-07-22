@@ -34,8 +34,7 @@ public class EnvironmentVariablesInfoContributor extends MapInfoContributor {
 	private static final String RP_ENV_PREFIX = "RP_ENVIRONMENT_VARIABLE_";
 
 	public EnvironmentVariablesInfoContributor() {
-		super(ImmutableMap.<String, Object>builder().put(
-				"environment",
+		super(ImmutableMap.<String, Object>builder().put("environment",
 				System.getenv()
 						.entrySet()
 						.stream()

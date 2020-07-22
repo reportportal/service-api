@@ -71,7 +71,7 @@ class AttachmentCleanerServiceImplTest {
 		String thumbnailId = "thumbnailId";
 		Attachment attachment = testAttachment(fileId, thumbnailId);
 
-		when(attachmentRepository.findByItemIdsModifiedBefore(itemIds, before)).thenReturn(Collections.singletonList(attachment));
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(itemIds, before)).thenReturn(Collections.singletonList(attachment));
 
 		attachmentCleanerService.removeOutdatedItemsAttachments(itemIds, before, attachmentCount, thumbnailCount);
 
@@ -111,23 +111,28 @@ class AttachmentCleanerServiceImplTest {
 		AtomicLong attachmentCount = new AtomicLong();
 		AtomicLong thumbnailCount = new AtomicLong();
 
-		when(launchRepository.streamIdsModifiedBefore(project.getId(), before)).thenReturn(Stream.of(1L, 2L, 3L));
+		when(launchRepository.streamIdsByStartTimeBefore(project.getId(), before)).thenReturn(Stream.of(1L, 2L, 3L));
 		when(testItemRepository.streamTestItemIdsByLaunchId(1L)).thenReturn(Stream.of(11L));
 		when(testItemRepository.streamTestItemIdsByLaunchId(2L)).thenReturn(Stream.of(22L));
 		when(testItemRepository.streamTestItemIdsByLaunchId(3L)).thenReturn(Stream.of(33L));
-		when(attachmentRepository.findByItemIdsModifiedBefore(Collections.singletonList(11L), before)).thenReturn(Collections.singletonList(
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(11L), before)).thenReturn(Collections.singletonList(
 				testAttachment("one", "two")));
-		when(attachmentRepository.findByItemIdsModifiedBefore(Collections.singletonList(22L), before)).thenReturn(Collections.singletonList(
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(22L), before)).thenReturn(Collections.singletonList(
 				testAttachment("three", "four")));
-		when(attachmentRepository.findByItemIdsModifiedBefore(Collections.singletonList(33L), before)).thenReturn(Collections.singletonList(
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(33L), before)).thenReturn(Collections.singletonList(
 				testAttachment("five", null)));
+
+		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(1L), before)).thenReturn(Collections.singletonList(
+				testAttachment("firstLaunch", "two")));
+		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(2L), before)).thenReturn(Collections.singletonList(
+				testAttachment("secondLaunch", null)));
 
 		attachmentCleanerService.removeProjectAttachments(project, before, attachmentCount, thumbnailCount);
 
-		assertEquals(3L, attachmentCount.get());
-		assertEquals(2L, thumbnailCount.get());
-		verify(dataStoreService, times(5)).delete(anyString());
-		verify(attachmentRepository, times(3)).deleteAllByIds(anyCollection());
+		assertEquals(5L, attachmentCount.get());
+		assertEquals(3L, thumbnailCount.get());
+		verify(dataStoreService, times(8)).delete(anyString());
+		verify(attachmentRepository, times(5)).deleteAllByIds(anyCollection());
 	}
 
 	private static Attachment testAttachment(String fileId, String thumbnailId) {

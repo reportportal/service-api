@@ -16,7 +16,7 @@ node {
         sh './gradlew test --full-stacktrace'
     }
     stage('Build') {
-        sh './gradlew build'
+        sh './gradlew build -x test'
     }
     stage('Push to ECR') {
         docker.withServer("$DOCKER_HOST") {

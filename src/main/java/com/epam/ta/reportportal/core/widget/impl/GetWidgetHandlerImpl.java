@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.MaterializedLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -54,6 +55,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Pavel Bortnik
@@ -66,6 +68,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
 	private Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy;
+
+	private Map<WidgetType, MaterializedLoadContentStrategy> materializedLoadContentStrategy;
 
 	private Set<WidgetType> unfilteredWidgetTypes;
 
@@ -97,6 +101,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Autowired
+	@Qualifier("materializedContentLoader")
+	public void setMaterializedLoadContentStrategy(Map<WidgetType, MaterializedLoadContentStrategy> materializedLoadContentStrategy) {
+		this.materializedLoadContentStrategy = materializedLoadContentStrategy;
+	}
+
+	@Autowired
 	@Qualifier("unfilteredWidgetTypes")
 	public void setUnfilteredWidgetTypes(Set<WidgetType> unfilteredWidgetTypes) {
 		this.unfilteredWidgetTypes = unfilteredWidgetTypes;
@@ -120,11 +130,12 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
 			content = Collections.emptyMap();
 		} else {
-			content = loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
-					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
-					widget.getWidgetOptions(),
-					widget.getItemsCount()
-			);
+			content = loadContentStrategy.get(widgetType)
+					.loadContent(Lists.newArrayList(widget.getContentFields()),
+							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+							widget.getWidgetOptions(),
+							widget.getItemsCount()
+					);
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -150,13 +161,20 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
 			content = Collections.emptyMap();
 		} else {
-			content = multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
-					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
+
+			content = ofNullable(multilevelLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(Lists.newArrayList(
+					widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
 					widget.getWidgetOptions(),
 					attributes,
 					params,
 					widget.getItemsCount()
-			);
+			))
+					.orElseGet(() -> ofNullable(materializedLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(widget,
+							attributes,
+							params
+					)).orElseGet(Collections::emptyMap));
+
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -188,19 +206,21 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 				.get();
 
 		if (widgetType.isSupportMultilevelStructure()) {
-			return multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
-					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
-					widget.getWidgetOptions(),
-					null,
-					null,
-					widget.getItemsCount()
-			);
+			return multilevelLoadContentStrategy.get(widgetType)
+					.loadContent(Lists.newArrayList(widget.getContentFields()),
+							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+							widget.getWidgetOptions(),
+							null,
+							null,
+							widget.getItemsCount()
+					);
 		} else {
-			return loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
-					buildFilterStrategyMapping.get(widgetType).buildFilter(projectDetails, widget),
-					widget.getWidgetOptions(),
-					widget.getItemsCount()
-			);
+			return loadContentStrategy.get(widgetType)
+					.loadContent(Lists.newArrayList(widget.getContentFields()),
+							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+							widget.getWidgetOptions(),
+							widget.getItemsCount()
+					);
 		}
 	}
 

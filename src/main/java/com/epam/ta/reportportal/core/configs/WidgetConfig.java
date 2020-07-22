@@ -17,13 +17,15 @@ package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.project.impl.ProjectInfoWidgetDataConverter;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.ComponentHealthCheckContentLoader;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.MaterializedLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
+import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.*;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
+import com.epam.ta.reportportal.entity.widget.WidgetState;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -89,6 +91,13 @@ public class WidgetConfig implements ApplicationContextAware {
 				.build();
 	}
 
+	@Bean("materializedContentLoader")
+	public Map<WidgetType, MaterializedLoadContentStrategy> materializedContentLoader() {
+		return ImmutableMap.<WidgetType, MaterializedLoadContentStrategy>builder().put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
+				applicationContext.getBean(ComponentHealthCheckTableContentLoader.class)
+		).build();
+	}
+
 	@Bean("buildFilterStrategy")
 	public Map<WidgetType, BuildFilterStrategy> buildFilterStrategy() {
 		return ImmutableMap.<WidgetType, BuildFilterStrategy>builder().put(WidgetType.OLD_LINE_CHART,
@@ -127,6 +136,9 @@ public class WidgetConfig implements ApplicationContextAware {
 				.put(WidgetType.COMPONENT_HEALTH_CHECK,
 						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 				)
+				.put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
+						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
+				)
 				.build();
 	}
 
@@ -154,6 +166,28 @@ public class WidgetConfig implements ApplicationContextAware {
 				.add(WidgetType.PASSING_RATE_PER_LAUNCH)
 				.add(WidgetType.MOST_TIME_CONSUMING)
 				.add(WidgetType.FLAKY_TEST_CASES)
+				.build();
+	}
+
+	@Bean("healthCheckTableContentResolverMapping")
+	public Map<WidgetState, HealthCheckTableContentResolver> healthCheckTableContentResolverMapping() {
+		return ImmutableMap.<WidgetState, HealthCheckTableContentResolver>builder().put(WidgetState.CREATED,
+				(HealthCheckTableCreatedContentResolver) applicationContext.getBean("healthCheckTableCreatedContentResolver")
+		)
+				.put(WidgetState.READY, applicationContext.getBean(HealthCheckTableReadyContentResolver.class))
+				.put(WidgetState.RENDERING, applicationContext.getBean(HealthCheckTableEmptyContentResolver.class))
+				.put(WidgetState.FAILED, applicationContext.getBean(HealthCheckTableEmptyContentResolver.class))
+				.build();
+	}
+
+	@Bean("healthCheckTableContentRefreshMapping")
+	public Map<WidgetState, HealthCheckTableContentResolver> healthCheckTableContentRefreshMapping() {
+		return ImmutableMap.<WidgetState, HealthCheckTableContentResolver>builder().put(WidgetState.READY,
+				(HealthCheckTableRefreshContentResolver) applicationContext.getBean("healthCheckTableRefreshContentResolver")
+		)
+				.put(WidgetState.FAILED,
+						(HealthCheckTableRefreshContentResolver) applicationContext.getBean("healthCheckTableRefreshContentResolver")
+				)
 				.build();
 	}
 

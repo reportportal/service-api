@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.job;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.enums.KeepLogsDelay;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
@@ -75,7 +74,7 @@ class LogCleanerServiceImplTest {
 
 		Project project = new Project();
 		project.setId(1L);
-		Duration period = ofDays(KeepLogsDelay.SIX_MONTHS.getDays());
+		Duration period = ofDays(180);
 		AtomicLong removedLogsCount = new AtomicLong();
 
 		long launchId = 1L;
@@ -95,13 +94,19 @@ class LogCleanerServiceImplTest {
 
 		int deletedLogsCount = 2;
 
-		when(launchRepository.streamIdsModifiedBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
+		when(launchRepository.streamIdsByStartTimeBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
 		when(logRepository.deleteByPeriodAndTestItemIds(eq(period), any())).thenReturn(deletedLogsCount);
+		when(logRepository.deleteByPeriodAndLaunchIds(eq(period), any())).thenReturn(deletedLogsCount);
 		logCleanerService.removeOutdatedLogs(project, period, removedLogsCount);
 
-		assertEquals(deletedLogsCount, removedLogsCount.get());
+		assertEquals(deletedLogsCount * 2, removedLogsCount.get());
 		verify(attachmentCleanerService, times(1)).removeOutdatedItemsAttachments(eq(Collections.singletonList(testItemId)),
+				any(),
+				any(),
+				any()
+		);
+		verify(attachmentCleanerService, times(1)).removeOutdatedLaunchesAttachments(eq(Collections.singletonList(launchId)),
 				any(),
 				any(),
 				any()

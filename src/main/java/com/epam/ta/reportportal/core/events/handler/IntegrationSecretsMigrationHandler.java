@@ -27,19 +27,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @Component
+@Profile("!unittest")
 public class IntegrationSecretsMigrationHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationSecretsMigrationHandler.class);
@@ -75,12 +75,10 @@ public class IntegrationSecretsMigrationHandler {
 	public void migrate(ApplicationReadyEvent event) throws IOException {
 		final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
 		try (InputStream load = dataStore.load(migrationFilePath)) {
-			ExecutorService executor = Executors.newFixedThreadPool(4);
-			executor.execute(jiraEmailSecretMigrationService::migrate);
-			executor.execute(rallySecretMigrationService::migrate);
-			executor.execute(saucelabsSecretMigrationService::migrate);
-			executor.execute(ldapSecretMigrationService::migrate);
-			executor.shutdown();
+			jiraEmailSecretMigrationService.migrate();
+			rallySecretMigrationService.migrate();
+			saucelabsSecretMigrationService.migrate();
+			ldapSecretMigrationService.migrate();
 			dataStore.delete(migrationFilePath);
 		} catch (ReportPortalException ex) {
 			LOGGER.info("Secrets migration is not needed");

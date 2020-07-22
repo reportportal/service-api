@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -73,7 +74,7 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 
-		try (Stream<Long> launchIds = launchRepository.streamIdsModifiedBefore(project.getId(), endDate)) {
+		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), endDate)) {
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
 					List<Long> itemIds = ids.collect(toList());
@@ -84,14 +85,21 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 				} catch (Exception e) {
 					LOGGER.error("Error during cleaning outdated logs", e);
 				}
+				attachmentCleanerService.removeOutdatedLaunchesAttachments(Collections.singletonList(id),
+						endDate,
+						attachmentsCount,
+						thumbnailsCount
+				);
+				long count = logRepository.deleteByPeriodAndLaunchIds(period, Collections.singletonList(id));
+				removedLogsCount.addAndGet(count);
+				logsCount.addAndGet(count);
 			});
 		} catch (Exception e) {
 			LOGGER.error("Error during cleaning outdated logs", e);
 		}
 
 		if (logsCount.get() > 0 || attachmentsCount.get() > 0 || attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
-			LOGGER.info(
-					"Removed {} logs for project {} with {} attachments and {} thumbnails",
+			LOGGER.info("Removed {} logs for project {} with {} attachments and {} thumbnails",
 					logsCount.get(),
 					project.getId(),
 					attachmentsCount.get(),

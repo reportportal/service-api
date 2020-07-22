@@ -27,12 +27,14 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
+import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
@@ -99,7 +101,8 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 		expect(item.getItemResults().getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(ErrorType.TEST_ITEM_IS_NOT_FINISHED);
 
-		return composeRequest(request, project, item, launch).map(this::processRequest).orElse(Collections.emptyList());
+		return composeRequest(request, project, item, launch).map(searchRq -> processRequest(project.getId(), searchRq))
+				.orElse(Collections.emptyList());
 	}
 
 	private Optional<SearchRq> composeRequest(SearchLogRq request, Project project, TestItem item, Launch launch) {
@@ -128,7 +131,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 		return Optional.of(searchRq);
 	}
 
-	private Collection<SearchLogRs> processRequest(SearchRq request) {
+	private Collection<SearchLogRs> processRequest(Long projectId, SearchRq request) {
 		List<SearchRs> searchRs = analyzerServiceClient.searchLogs(request);
 		Map<Long, Long> logIdMapping = searchRs.stream()
 				.collect(HashMap::new, (m, rs) -> m.put(rs.getLogId(), rs.getTestItemId()), Map::putAll);
@@ -143,12 +146,12 @@ public class SearchLogServiceImpl implements SearchLogService {
 				value.getLogs().add(TO_LOG_ENTRY.apply(log));
 				return value;
 			});
-			foundLogsMap.computeIfAbsent(itemId, key -> composeResponse(testItemMapping, itemId, log));
+			foundLogsMap.computeIfAbsent(itemId, key -> composeResponse(testItemMapping, projectId, itemId, log));
 		}));
 		return foundLogsMap.values();
 	}
 
-	private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long itemId, Log log) {
+	private SearchLogRs composeResponse(Map<Long, TestItem> testItemMapping, Long projectId, Long itemId, Log log) {
 		TestItem testItem = ofNullable(testItemMapping.get(itemId)).orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND,
 				itemId
 		));
@@ -157,15 +160,18 @@ public class SearchLogServiceImpl implements SearchLogService {
 		));
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		Map<Long, String> pathNames = testItemRepository.selectPathNames(testItem.getPath());
+		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(Collections.singletonList(testItem.getItemId()),
+				projectId
+		);
 
 		SearchLogRs response = new SearchLogRs();
 		response.setLaunchId(launch.getId());
-		response.setLaunchName(launch.getName() + " #" + launch.getNumber());
+		ofNullable(pathNameMapping.get(testItem.getItemId())).ifPresent(pathName -> {
+			response.setPathNames(TestItemConverter.PATH_NAME_TO_RESOURCE.apply(pathName));
+		});
 		response.setItemId(testItem.getItemId());
 		response.setItemName(testItem.getName());
 		response.setPath(testItem.getPath());
-		response.setPathNames(pathNames);
 		response.setPatternTemplates(testItem.getPatternTemplateTestItems()
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())

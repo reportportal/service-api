@@ -56,7 +56,7 @@ public class LaunchCleanerServiceImpl implements LaunchCleanerService {
 	public void cleanOutdatedLaunches(Project project, Duration period, AtomicLong launchesRemoved, AtomicLong attachmentsRemoved,
 			AtomicLong thumbnailsRemoved) {
 		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-		List<Long> launchIds = launchRepository.findIdsByProjectIdModifiedBefore(project.getId(),
+		List<Long> launchIds = launchRepository.findIdsByProjectIdAndStartTimeBefore(project.getId(),
 				LocalDateTime.now(ZoneOffset.UTC).minus(period)
 		);
 		attachmentCleanerService.removeOutdatedLaunchesAttachments(launchIds, attachmentsRemoved, thumbnailsRemoved);

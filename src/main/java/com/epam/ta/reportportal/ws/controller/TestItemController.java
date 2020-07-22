@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.issue.Issue;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
+import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
@@ -168,6 +169,20 @@ public class TestItemController {
 				filterId,
 				isLatest,
 				launchesLimit
+		);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/statistics")
+	@ResponseStatus(OK)
+	@ApiOperation("Find accumulated statistics of items by specified filter")
+	public StatisticsResource getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
+			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter) {
+		return getTestItemHandler.getStatisticsByFilter(new CompositeFilter(Operator.AND, filter, predefinedFilter),
+				extractProjectDetails(user, projectName),
+				user,
+				launchId
 		);
 	}
 

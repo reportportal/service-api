@@ -11,6 +11,7 @@ spring:
       org.quartz.jobStore.clusterCheckinInterval: "180000"
       org.quartz.scheduler.instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
       org.quartz.scheduler.instanceName: reportportal
+      org.quartz.scheduler.classLoadHelper.class: com.epam.ta.reportportal.core.configs.ReportPortalClassLoadHelper
 
   jpa:
     properties:
@@ -62,6 +63,25 @@ rp:
         launches: P7D
       history:
         old: false
+      executor:
+        pool:
+          save-logs:
+            core: 20
+            max: 100
+            queue: 5000
+          auto-analyze:
+            core: 10
+            max: 30
+            queue: 200
+          demo-data:
+            core: 10
+            max: 20
+            queue: 50
+          health-check-table:
+            core: 3
+            max: 5
+            queue: 100
+
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}
     api-address: http://${rp.amqp.apiuser}:${rp.amqp.apipass}@${rp.amqp.host}:${rp.amqp.apiport}/api

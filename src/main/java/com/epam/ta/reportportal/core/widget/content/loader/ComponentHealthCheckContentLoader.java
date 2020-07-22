@@ -64,7 +64,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 	}
 
 	@Override
-	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+	public Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			String[] attributes, Map<String, String> params, int limit) {
 
 		validateWidgetOptions(widgetOptions);

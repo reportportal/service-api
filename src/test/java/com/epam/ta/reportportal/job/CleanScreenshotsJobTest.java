@@ -22,13 +22,17 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
 import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -50,14 +54,16 @@ class CleanScreenshotsJobTest {
 	private CleanScreenshotsJob cleanScreenshotsJob;
 
 	@Test
-	void runTest() {
+	void runTest() throws InterruptedException {
 		String name = "name";
 		Project project = new Project();
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
 		attribute.setName("job.keepScreenshots");
 		projectAttribute.setAttribute(attribute);
-		projectAttribute.setValue("2 weeks");
+
+		//2 weeks in seconds
+		projectAttribute.setValue(String.valueOf(3600 * 24 * 14));
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 		project.setName(name);
 
@@ -65,7 +71,13 @@ class CleanScreenshotsJobTest {
 
 		cleanScreenshotsJob.execute(null);
 
-		verify(attachmentCleanerService, times(1)).removeProjectAttachments(any(), any(), any(), any());
+		ArgumentCaptor<LocalDateTime> dateTimeArgumentCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+		verify(attachmentCleanerService, times(1)).removeProjectAttachments(any(), dateTimeArgumentCaptor.capture(), any(), any());
+
+		LocalDateTime value = dateTimeArgumentCaptor.getValue();
+		Assertions.assertTrue(
+				LocalDateTime.now(ZoneOffset.UTC).minusSeconds(value.toEpochSecond(ZoneOffset.UTC)).toEpochSecond(ZoneOffset.UTC)
+						>= 3600 * 24 * 14);
 	}
 
 	@Test
@@ -83,5 +95,7 @@ class CleanScreenshotsJobTest {
 		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanScreenshotsJob.execute(null);
+
+		verify(attachmentCleanerService, times(0)).removeProjectAttachments(any(), any(), any(), any());
 	}
 }

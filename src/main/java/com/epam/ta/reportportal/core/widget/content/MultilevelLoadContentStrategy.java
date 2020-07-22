@@ -28,6 +28,6 @@ import java.util.Map;
  */
 public interface MultilevelLoadContentStrategy {
 
-	Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
+	Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions,
 			String[] attributes, Map<String, String> params, int limit);
 }

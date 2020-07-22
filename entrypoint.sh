@@ -13,4 +13,4 @@ if [ ! -z $RP_BINARYSTORE_MINIO_SECRETKEY_FILE ]; then
 fi
 
 
-exec java ${JAVA_OPTS} -jar service-api-5.2.2-exec.jar
+exec java ${JAVA_OPTS} -jar service-api-5.2.3-exec.jar

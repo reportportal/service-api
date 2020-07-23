@@ -123,7 +123,7 @@ rp:
   analytics:
     enableByDefault: true
   plugins:
-    rootDir: /plugins
+    rootDir: /tmp/plugins
     path: ${rp.plugins.rootDir}/resolved
     resources:
       path: ${rp.plugins.rootDir}/resources

@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
@@ -81,7 +82,7 @@ public class FileStorageController {
 	 * (non-Javadoc)
 	 */
 	@Transactional(readOnly = true)
-	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@PreAuthorize(NOT_CUSTOMER)
 	@GetMapping(value = "/{projectName}/userphoto")
 	@ApiOperation("Get user's photo")
 	public void getUserPhoto(@PathVariable String projectName, @RequestParam(value = "id") String username,

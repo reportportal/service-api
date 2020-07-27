@@ -19,10 +19,10 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
+import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -35,10 +35,10 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,23 +75,23 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private final RerunHandler rerunHandler;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private final RetriesHandler retriesHandler;
 
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
 			UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator, RerunHandler rerunHandler,
-			ApplicationEventPublisher eventPublisher) {
+			RetriesHandler retriesHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
 		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.rerunHandler = rerunHandler;
-		this.eventPublisher = eventPublisher;
+		this.retriesHandler = retriesHandler;
 	}
 
 	@Override
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
-		Launch launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
+		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		validate(user, projectDetails, rq, launch);
 
@@ -113,7 +113,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Override
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
-		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry());
+		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
 
 		Launch launch;
 		if (isRetry) {
@@ -148,7 +148,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			parentItem.setHasChildren(true);
 		}
 		if (isRetry) {
-			handleRetries(launch, item);
+			retriesHandler.handleRetries(launch, item, rq.getRetryOf());
 		}
 
 		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
@@ -169,20 +169,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 		if (Objects.isNull(item.getTestCaseId())) {
 			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
-		}
-	}
-
-	/**
-	 * Handles retry items
-	 *
-	 * @param launch {@link Launch}
-	 * @param item   {@link TestItem}
-	 */
-	private void handleRetries(Launch launch, TestItem item) {
-		testItemRepository.handleRetries(item.getItemId());
-		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), item.getItemId()));
-		if (!launch.isHasRetries()) {
-			launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		}
 	}
 
@@ -222,8 +208,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					)
-							.get()
+					).get()
 			);
 		}
 

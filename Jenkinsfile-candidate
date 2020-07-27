@@ -1,0 +1,34 @@
+#!groovy
+node {
+
+    load "$JENKINS_HOME/jobvars.env"
+
+    env.JAVA_HOME = "${tool 'openjdk-11'}"
+    env.PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
+
+    stage('Checkout') {
+        checkout scm
+    }
+    stage('Assemble') {
+        sh "./gradlew clean assemble -P buildNumber=${env.BUILD_NUMBER}"
+    }
+    stage('Test') {
+        sh './gradlew test --full-stacktrace'
+    }
+    stage('Build') {
+        sh './gradlew build -x test'
+    }
+    stage('Push to ECR') {
+        docker.withServer("$DOCKER_HOST") {
+            withEnv(["AWS_URI=${AWS_URI}", "AWS_REGION=${AWS_REGION}", "VERSION=${VERSION}"]) {
+                def image = env.AWS_URI + '/service-api'
+                def url = 'https://' + env.AWS_URI
+                def credentials = 'ecr:' + env.AWS_REGION + ':aws_credentials'
+                sh "./gradlew buildDocker -P dockerServerUrl=$DOCKER_HOST -P dockerTag=$AWS_URI/service-api"
+                docker.withRegistry(url, credentials) {
+                    docker.image(image).push('${VERSION}-RC-${BUILD_NUMBER}')
+                }
+            }
+        }
+    }
+}

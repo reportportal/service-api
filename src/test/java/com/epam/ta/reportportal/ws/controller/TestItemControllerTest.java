@@ -187,6 +187,18 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getTestItemRetryPositive() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/7").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getTestItemRetryStringPositive() throws Exception {
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-retry").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
 	void getTestItemUuidPositive() throws Exception {
 		mockMvc.perform(get(
 				DEFAULT_PROJECT_BASE_URL + "/item/uuid/0f7ca5bc-cfae-4cc1-9682-e59c2860131e").with(token(oAuthHelper.getDefaultToken())))

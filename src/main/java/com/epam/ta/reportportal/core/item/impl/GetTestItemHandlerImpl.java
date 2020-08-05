@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
@@ -33,6 +34,7 @@ import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -79,6 +81,8 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
+	private final TestItemService testItemService;
+
 	private final LaunchAccessValidator launchAccessValidator;
 
 	private final ItemAttributeRepository itemAttributeRepository;
@@ -90,11 +94,12 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
 	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchAccessValidator launchAccessValidator,
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemService testItemService, LaunchAccessValidator launchAccessValidator,
 			ItemAttributeRepository itemAttributeRepository,
 			List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders,
 			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
 		this.testItemRepository = testItemRepository;
+		this.testItemService = testItemService;
 		this.launchAccessValidator = launchAccessValidator;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.resourceUpdaterProviders = resourceUpdaterProviders;
@@ -112,7 +117,9 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 			testItem = testItemRepository.findByUuid(testItemId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 		}
-		launchAccessValidator.validate(testItem.getLaunchId(), projectDetails, user);
+
+		Launch launch = testItemService.getEffectiveLaunch(testItem);
+		launchAccessValidator.validate(launch.getId(), projectDetails, user);
 
 		List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),
 				Collections.singletonList(testItem)

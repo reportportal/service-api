@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
@@ -85,6 +86,7 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
+		validateContentFields(updateRQ.getContentParameters().getContentFields());
 		Widget widget = getShareableEntityHandler.getAdministrated(widgetId, projectDetails);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
@@ -156,5 +158,10 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 					Suppliers.formattedSupplier("Error during parsing new widget options of widget with id = ", widget.getId())
 			);
 		}
+	}
+
+	private void validateContentFields(List<String> contentFields) {
+		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
 	}
 }

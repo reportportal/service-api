@@ -107,6 +107,10 @@ class WidgetControllerTest extends BaseMvcTest {
 		rq.setName("name");
 		rq.setWidgetType("oldLineChart");
 		rq.setShare(false);
+	    var contextParams =	new ContentParameters();
+	    contextParams.setItemsCount(1);
+		contextParams.setContentFields(Collections.singletonList("test"));
+		rq.setContentParameters(contextParams);
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/widget/100").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isNotFound());

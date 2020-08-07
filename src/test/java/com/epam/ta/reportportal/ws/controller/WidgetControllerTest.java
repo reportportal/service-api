@@ -61,7 +61,7 @@ class WidgetControllerTest extends BaseMvcTest {
 		rq.setDescription("description");
 		rq.setWidgetType("oldLineChart");
 		ContentParameters contentParameters = new ContentParameters();
-		contentParameters.setContentFields(Arrays.asList("number", "name", "user", "statistics$defects$automation_bug$AB002"));
+		contentParameters.setContentFields(Collections.singletonList("statistics$executions$passed"));
 		contentParameters.setItemsCount(50);
 		rq.setFilterIds(Collections.singletonList(3L));
 		rq.setContentParameters(contentParameters);

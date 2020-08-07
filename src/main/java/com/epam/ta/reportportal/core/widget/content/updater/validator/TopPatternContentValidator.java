@@ -17,10 +17,8 @@
 package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.core.widget.util.ContentFieldMatcherUtil;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -30,20 +28,18 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.COMBINED_CONTENT_FIELDS_REGEX;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class CumulativeTrendChartValidator implements MultilevelValidatorStrategy {
-
+public class TopPatternContentValidator implements MultilevelValidatorStrategy {
 
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
+	public void validate (List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			String[] attributes, Map<String, String> params, int limit) {
+
 		validateFilterSortMapping(filterSortMapping);
-		validateContentFields(contentFields);
 	}
 
 	/**
@@ -55,21 +51,5 @@ public class CumulativeTrendChartValidator implements MultilevelValidatorStrateg
 		expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
 				"Filter-Sort mapping should not be empty"
 		);
-	}
-
-	/**
-	 * Validate provided content fields.
-	 * The value of content field should not be empty
-	 * All content fields should match the pattern {@link com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants#COMBINED_CONTENT_FIELDS_REGEX}
-	 *
-	 * @param contentFields List of provided content.
-	 */
-	private void validateContentFields(List<String> contentFields) {
-		expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-				"Content fields should not be empty"
-		);
-		expect(ContentFieldMatcherUtil.match(COMBINED_CONTENT_FIELDS_REGEX, contentFields),
-				equalTo(true)
-		).verify(ErrorType.BAD_REQUEST_ERROR, "Bad content fields format");
 	}
 }

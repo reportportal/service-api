@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.widget.content.updater.validator;
 
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
+import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrategy;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -22,6 +23,8 @@ public class WidgetContentFieldsValidator implements WidgetValidator {
 
 	private Map<WidgetType, LoadContentStrategy> loadContentStrategy;
 
+	private Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy;
+
 	@Autowired
 	@Qualifier("buildFilterStrategy")
 	public void setBuildFilterStrategy(Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping) {
@@ -34,19 +37,33 @@ public class WidgetContentFieldsValidator implements WidgetValidator {
 		this.loadContentStrategy = loadContentStrategy;
 	}
 
+	@Autowired
+	@Qualifier("multilevelContentLoader")
+	public void setMultilevelLoadContentStrategy(Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy) {
+		this.multilevelLoadContentStrategy = multilevelLoadContentStrategy;
+	}
+
 	@Override
 	public void validate(Widget widget) {
-				WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
-						.orElseThrow(() -> new ReportPortalException(
-								ErrorType.INCORRECT_REQUEST,
-								formattedSupplier("Unsupported widget type '{}'", widget.getWidgetType())
-						));
+		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
+						formattedSupplier("Unsupported widget type '{}'", widget.getWidgetType())
+				));
 
-				loadContentStrategy.get(widgetType).loadContent(
-						Lists.newArrayList(widget.getContentFields()),
-						buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
-						widget.getWidgetOptions(),
-						widget.getItemsCount()
-				);
+		if (widgetType.isSupportMultilevelStructure()) {
+			multilevelLoadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+					widget.getWidgetOptions(),
+					null,
+					null,
+					widget.getItemsCount()
+			);
+		} else {
+			loadContentStrategy.get(widgetType).loadContent(Lists.newArrayList(widget.getContentFields()),
+					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+					widget.getWidgetOptions(),
+					widget.getItemsCount()
+			);
+		}
 	}
 }

@@ -41,9 +41,11 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.EntityUtils.TO_LOCAL_DATE_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.IN_PROGRESS;
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.FROM_RESOURCE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -93,7 +95,12 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.max(Comparator.comparing(Launch::getEndTime))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
 				.getEndTime()));
-		expect(endTime, time -> !time.before(startTime)).verify(ErrorType.FINISH_TIME_EARLIER_THAN_START_TIME);
+		expect(endTime, time -> !time.before(startTime)).verify(
+				FINISH_TIME_EARLIER_THAN_START_TIME,
+				TO_LOCAL_DATE_TIME.apply(endTime),
+				startTime,
+				projectId
+		);
 
 		StartLaunchRQ startRQ = new StartLaunchRQ();
 		startRQ.setMode(ofNullable(mergeLaunchesRQ.getMode()).orElse(Mode.DEFAULT));

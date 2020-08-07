@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetValidator;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -51,7 +52,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.ws.converter.converters.WidgetConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
@@ -69,11 +69,13 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	private final ObjectMapper objectMapper;
 	private final GetShareableEntityHandler<Widget> getShareableEntityHandler;
 	private final ShareableObjectsHandler aclHandler;
+	private final WidgetValidator widgetContentFieldsValidator;
 
 	@Autowired
 	public UpdateWidgetHandlerImpl(UpdateUserFilterHandler updateUserFilterHandler, WidgetRepository widgetRepository,
 			UserFilterRepository filterRepository, MessageBus messageBus, ObjectMapper objectMapper,
-			GetShareableEntityHandler<Widget> getShareableEntityHandler, ShareableObjectsHandler aclHandler) {
+			GetShareableEntityHandler<Widget> getShareableEntityHandler, ShareableObjectsHandler aclHandler,
+			WidgetValidator widgetContentFieldsValidator) {
 		this.updateUserFilterHandler = updateUserFilterHandler;
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
@@ -81,13 +83,15 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		this.objectMapper = objectMapper;
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.aclHandler = aclHandler;
+		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
 	}
 
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
-		validateContentFields(updateRQ.getContentParameters().getContentFields());
 		Widget widget = getShareableEntityHandler.getAdministrated(widgetId, projectDetails);
+
+		widgetContentFieldsValidator.validate(widget);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
@@ -158,10 +162,5 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 					Suppliers.formattedSupplier("Error during parsing new widget options of widget with id = ", widget.getId())
 			);
 		}
-	}
-
-	private void validateContentFields(List<String> contentFields) {
-		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
 	}
 }

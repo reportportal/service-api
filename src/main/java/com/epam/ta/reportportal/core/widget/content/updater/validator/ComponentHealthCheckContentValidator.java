@@ -61,7 +61,7 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
 		BusinessRule.expect(attributeKeys, cf -> cf.size() <= MAX_LEVEL_NUMBER)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
 		attributeKeys.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not null"));
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not blank"));
 	}
 
 	private void validateWidgetOptions(WidgetOptions widgetOptions) {

@@ -47,7 +47,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.PersistenceException;
-import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.UserRoleHierarchy.ROLE_REGISTERED;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
@@ -101,10 +100,8 @@ public class SaveDefaultProjectService {
 
 		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(userRole).get();
 
-		Set<ProjectUser> projectUsers = defaultProject.getUsers();
 		ProjectUser assignedProjectUser = new ProjectUser().withProjectRole(projectRole).withUser(user).withProject(defaultProject);
-		projectUsers.add(assignedProjectUser);
-		defaultProject.setUsers(projectUsers);
+		user.getProjects().add(assignedProjectUser);
 
 		CreateUserRS response = new CreateUserRS();
 		try {

@@ -39,11 +39,8 @@ import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConst
 public class LaunchesComparisonContentValidator implements WidgetValidatorStrategy {
 
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
-
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
 		validateFilterSortMapping(filterSortMapping);
-
 		validateContentFields(contentFields);
 	}
 

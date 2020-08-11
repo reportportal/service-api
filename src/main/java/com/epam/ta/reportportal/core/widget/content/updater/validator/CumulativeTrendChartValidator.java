@@ -38,10 +38,9 @@ import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConst
 @Service
 public class CumulativeTrendChartValidator implements MultilevelValidatorStrategy {
 
-
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String[] attributes, Map<String, String> params, int limit) {
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, String[] attributes,
+			Map<String, String> params, int limit) {
 		validateFilterSortMapping(filterSortMapping);
 		validateContentFields(contentFields);
 	}

@@ -65,6 +65,7 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
 	}
 
 	private void validateWidgetOptions(WidgetOptions widgetOptions) {
+		BusinessRule.expect(widgetOptions, Objects::nonNull).verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Widgets options not provided");
 		WidgetOptionUtil.getIntegerByKey(MIN_PASSING_RATE, widgetOptions)
 				.map(value -> {
 					BusinessRule.expect(value, v -> v >= 0 && v <= 100)

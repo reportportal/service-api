@@ -37,11 +37,8 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 public class LaunchesTableContentValidator implements WidgetValidatorStrategy {
 
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
-
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
 		validateFilterSortMapping(filterSortMapping);
-
 		validateContentFields(contentFields);
 	}
 

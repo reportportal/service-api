@@ -39,8 +39,7 @@ import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoade
 public class PassingRatePerLaunchContentValidator implements WidgetValidatorStrategy {
 
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
 		validateFilterSortMapping(filterSortMapping);
 		validateWidgetOptions(widgetOptions);
 	}

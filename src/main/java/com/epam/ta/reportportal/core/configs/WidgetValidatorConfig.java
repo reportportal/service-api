@@ -42,6 +42,7 @@ public class WidgetValidatorConfig {
 				.put(WidgetType.TOP_TEST_CASES, applicationContext.getBean(TopTestCasesContentValidator.class))
 				.put(WidgetType.PASSING_RATE_PER_LAUNCH, applicationContext.getBean(PassingRatePerLaunchContentValidator.class))
 				.put(WidgetType.MOST_TIME_CONSUMING, applicationContext.getBean(MostTimeConsumingContentValidator.class))
+				.put(WidgetType.PRODUCT_STATUS, applicationContext.getBean(ProductStatusContentValidator.class))
 				.build();
 	}
 
@@ -52,6 +53,7 @@ public class WidgetValidatorConfig {
 		)
 				.put(WidgetType.TOP_PATTERN_TEMPLATES, applicationContext.getBean(TopPatternContentValidator.class))
 				.put(WidgetType.COMPONENT_HEALTH_CHECK, applicationContext.getBean(ComponentHealthCheckContentValidator.class))
+				.put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE, applicationContext.getBean(ComponentHealthCheckContentValidator.class))
 				.build();
 	}
 }

@@ -15,7 +15,7 @@ import java.util.Map;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 
 @Component("widgetContentFieldsValidator")
-public class WidgetContentFieldsValidator implements WidgetValidator{
+public class WidgetContentFieldsValidator implements WidgetValidator {
 
 	private Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 
@@ -41,6 +41,7 @@ public class WidgetContentFieldsValidator implements WidgetValidator{
 		this.multilevelValidatorLoader = multilevelValidatorLoader;
 	}
 
+	@Override
 	public void validate(Widget widget) {
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_REQUEST,
@@ -48,19 +49,21 @@ public class WidgetContentFieldsValidator implements WidgetValidator{
 				));
 
 		if (widgetType.isSupportMultilevelStructure()) {
-			multilevelValidatorLoader.get(widgetType).validate(Lists.newArrayList(widget.getContentFields()),
-					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
-					widget.getWidgetOptions(),
-					null,
-					null,
-					widget.getItemsCount()
-			);
+			multilevelValidatorLoader.get(widgetType)
+					.validate(Lists.newArrayList(widget.getContentFields()),
+							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+							widget.getWidgetOptions(),
+							null,
+							null,
+							widget.getItemsCount()
+					);
 		} else {
-			widgetValidatorLoader.get(widgetType).validate(Lists.newArrayList(widget.getContentFields()),
-					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
-					widget.getWidgetOptions(),
-					widget.getItemsCount()
-			);
+			widgetValidatorLoader.get(widgetType)
+					.validate(Lists.newArrayList(widget.getContentFields()),
+							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
+							widget.getWidgetOptions(),
+							widget.getItemsCount()
+					);
 		}
 	}
 }

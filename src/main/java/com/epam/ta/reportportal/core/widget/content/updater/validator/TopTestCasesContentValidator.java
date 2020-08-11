@@ -39,9 +39,8 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 public class TopTestCasesContentValidator implements WidgetValidatorStrategy {
 
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			int limit) {
-		 validateContentFields(contentFields);
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
+		validateContentFields(contentFields);
 	}
 
 	/**
@@ -50,11 +49,10 @@ public class TopTestCasesContentValidator implements WidgetValidatorStrategy {
 	 *
 	 * @param contentFields List of provided content.
 	 */
-	private String validateContentFields(List<String> contentFields) {
+	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
 		BusinessRule.expect(contentFields.size(), Predicate.isEqual(1))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Only one content field could be specified.");
-		return contentFields.get(0);
 	}
 }

@@ -40,9 +40,7 @@ public class BugTrendChartContentValidator implements WidgetValidatorStrategy {
 
 	@Override
 	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, int limit) {
-
 		validateFilterSortMapping(filterSortMapping);
-
 		validateContentFields(contentFields);
 	}
 

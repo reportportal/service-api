@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.widget.content.loader;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
@@ -36,7 +35,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
 import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters.HAS_METHOD_OR_CLASS;
@@ -77,9 +74,6 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
-		validateFilterSortMapping(filterSortMap);
-		validateWidgetOptions(widgetOptions);
-
 		Filter filter = GROUP_FILTERS.apply(filterSortMap.keySet());
 
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
@@ -97,26 +91,6 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, new LatestLaunchContent(latestLaunch))
 						.put(RESULT, content)
 						.build();
-	}
-
-	/**
-	 * Mapping should not be empty
-	 *
-	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
-	 */
-	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
-		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
-	}
-
-	/**
-	 * Validate provided widget options. For current widget launch name should be specified.
-	 *
-	 * @param widgetOptions Map of stored widget options.
-	 */
-	private void validateWidgetOptions(WidgetOptions widgetOptions) {
-		BusinessRule.expect(WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions), StringUtils::isNotBlank)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, LAUNCH_NAME_FIELD + " should be specified for widget.");
 	}
 
 	private Filter updateFilter(Filter filter, Long launchId, WidgetOptions widgetOptions, List<String> contentFields) {

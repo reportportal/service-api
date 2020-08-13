@@ -17,14 +17,11 @@
 package com.epam.ta.reportportal.core.widget.content.loader;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.LaunchesDurationContent;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -32,7 +29,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.LATEST_OPTION;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
@@ -53,8 +49,6 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
 
-		validateFilterSortMapping(filterSortMapping);
-
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
@@ -64,16 +58,6 @@ public class LaunchesDurationContentLoader implements LoadContentStrategy {
 		List<LaunchesDurationContent> result = widgetContentRepository.launchesDurationStatistics(filter, sort, latestMode, limit);
 
 		return result.isEmpty() ? emptyMap() : singletonMap(RESULT, result);
-	}
-
-	/**
-	 * Mapping should not be empty
-	 *
-	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
-	 */
-	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
-		BusinessRule.expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true))
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Filter-Sort mapping should not be empty");
 	}
 
 }

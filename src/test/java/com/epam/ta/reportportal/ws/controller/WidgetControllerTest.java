@@ -61,7 +61,7 @@ class WidgetControllerTest extends BaseMvcTest {
 		rq.setDescription("description");
 		rq.setWidgetType("oldLineChart");
 		ContentParameters contentParameters = new ContentParameters();
-		contentParameters.setContentFields(Arrays.asList("number", "name", "user", "statistics$defects$automation_bug$AB002"));
+		contentParameters.setContentFields(Collections.singletonList("statistics$executions$passed"));
 		contentParameters.setItemsCount(50);
 		rq.setFilterIds(Collections.singletonList(3L));
 		rq.setContentParameters(contentParameters);
@@ -107,6 +107,10 @@ class WidgetControllerTest extends BaseMvcTest {
 		rq.setName("name");
 		rq.setWidgetType("oldLineChart");
 		rq.setShare(false);
+	    var contextParams =	new ContentParameters();
+	    contextParams.setItemsCount(1);
+		contextParams.setContentFields(Collections.singletonList("test"));
+		rq.setContentParameters(contextParams);
 		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/widget/100").with(token(oAuthHelper.getDefaultToken()))
 				.content(objectMapper.writeValueAsBytes(rq))
 				.contentType(APPLICATION_JSON)).andExpect(status().isNotFound());

@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -39,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_ACTION;
 import static com.epam.ta.reportportal.commons.querygen.constant.ActivityCriteriaConstant.CRITERIA_CREATION_DATE;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -68,7 +66,6 @@ public class ActivityContentLoader implements LoadContentStrategy {
 	@Override
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			int limit) {
-		validateFilterSortMapping(filterSortMapping);
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 
@@ -85,17 +82,6 @@ public class ActivityContentLoader implements LoadContentStrategy {
 		List<ActivityResource> activityContents = widgetContentRepository.activityStatistics(filter, sort, limit);
 
 		return activityContents.isEmpty() ? emptyMap() : singletonMap(RESULT, activityContents);
-	}
-
-	/**
-	 * Mapping should not be empty
-	 *
-	 * @param filterSortMapping Map of ${@link Filter} for query building as key and ${@link Sort} as value for each filter
-	 */
-	private void validateFilterSortMapping(Map<Filter, Sort> filterSortMapping) {
-		expect(MapUtils.isNotEmpty(filterSortMapping), equalTo(true)).verify(ErrorType.BAD_REQUEST_ERROR,
-				"Filter-Sort mapping should not be empty"
-		);
 	}
 
 	/**

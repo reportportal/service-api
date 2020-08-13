@@ -42,8 +42,8 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
 	public static final Integer MAX_LEVEL_NUMBER = 10;
 
 	@Override
-	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String[] attributes, Map<String, String> params, int limit) {
+	public void validate(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions, String[] attributes,
+			Map<String, String> params, int limit) {
 
 		validateWidgetOptions(widgetOptions);
 
@@ -66,17 +66,14 @@ public class ComponentHealthCheckContentValidator implements MultilevelValidator
 
 	private void validateWidgetOptions(WidgetOptions widgetOptions) {
 		BusinessRule.expect(widgetOptions, Objects::nonNull).verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Widgets options not provided");
-		WidgetOptionUtil.getIntegerByKey(MIN_PASSING_RATE, widgetOptions)
-				.map(value -> {
-					BusinessRule.expect(value, v -> v >= 0 && v <= 100)
-							.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-									"Minimum passing rate value should be greater or equal to 0 and less or equal to 100"
-							);
-					return value;
-				})
+		Integer passingRate = WidgetOptionUtil.getIntegerByKey(MIN_PASSING_RATE, widgetOptions)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
 						"Minimum passing rate option was not specified"
 				));
+		BusinessRule.expect(passingRate, v -> v >= 0 && v <= 100)
+				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
+						"Minimum passing rate value should be greater or equal to 0 and less or equal to 100"
+				);
 	}
 
 	private void validateAttributeValues(List<String> attributeValues) {

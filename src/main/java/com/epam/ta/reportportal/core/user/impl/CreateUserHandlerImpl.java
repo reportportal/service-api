@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -131,8 +132,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
 
-		userRepository.findById(loggedInUser.getUserId())
-				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, loggedInUser.getUsername()));
+		expect(userRepository.existsById(loggedInUser.getUserId()), BooleanUtils::isTrue).verify(USER_NOT_FOUND,
+				loggedInUser.getUsername()
+		);
 
 		Integration integration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
 				IntegrationGroupEnum.NOTIFICATION

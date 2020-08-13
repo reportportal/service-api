@@ -201,8 +201,8 @@ public class MvcConfig implements WebMvcConfigurer {
 
 	@ConfigurationProperties("rp.upload")
 	public static class MultipartConfig {
-		long maxUploadSize = 128 * 1024 * 1024;
-		long maxFileSize = 128 * 1024 * 1024;
+		long maxUploadSize = 128L * 1024L * 1024L;
+		long maxFileSize = 128L * 1024L * 1024L;
 
 		public void setMaxUploadSize(String maxUploadSize) {
 			this.maxUploadSize = parseSize(maxUploadSize);

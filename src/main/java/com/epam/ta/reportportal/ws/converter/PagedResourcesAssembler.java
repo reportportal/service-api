@@ -37,7 +37,7 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 
 	public static <T> Function<Page<T>, com.epam.ta.reportportal.ws.model.Page<T>> pageConverter() {
 		return page -> new com.epam.ta.reportportal.ws.model.Page<>(page.getContent(),
-				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(page.getSize(), page.getNumber() + 1, page.getTotalElements(),
+				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(page.getSize(), page.getNumber() + 1L, page.getTotalElements(),
 						page.getTotalPages()
 				)
 		);
@@ -67,7 +67,7 @@ public abstract class PagedResourcesAssembler<T, R> extends ResourceAssembler<T,
 		Preconditions.checkNotNull(content, "Content should be null");
 
 		return new com.epam.ta.reportportal.ws.model.Page<>(toResources(content),
-				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(), content.getNumber() + 1,
+				new com.epam.ta.reportportal.ws.model.Page.PageMetadata(content.getSize(), content.getNumber() + 1L,
 						content.getTotalElements(), content.getTotalPages()
 				)
 		);

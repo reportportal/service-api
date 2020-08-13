@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
@@ -32,7 +33,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -97,7 +97,8 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 					String criteria = tokens[2];
 					BusinessRule.expect(parameter.getValue()[0], StringUtils::isNotBlank)
 							.verify(ErrorType.BAD_REQUEST_ERROR,
-									Suppliers.formattedSupplier("Filter criteria - '{}' value should be not empty", parameter.getKey()).get()
+									Suppliers.formattedSupplier("Filter criteria - '{}' value should be not empty", parameter.getKey())
+											.get()
 							);
 					return new FilterCondition(condition, isNegative, parameter.getValue()[0], criteria);
 
@@ -112,9 +113,9 @@ public class FilterCriteriaResolver implements HandlerMethodArgumentResolver {
 	}
 
 	private Condition getCondition(String marker) {
-		Optional<Condition> condition = Condition.findByMarker(marker);
-		BusinessRule.expect(condition, Predicates.isPresent())
-				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS, "Unable to find condition with marker '" + marker + "'");
-		return condition.get();
+		return Condition.findByMarker(marker)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_FILTER_PARAMETERS,
+						"Unable to find condition with marker '" + marker + "'"
+				));
 	}
 }

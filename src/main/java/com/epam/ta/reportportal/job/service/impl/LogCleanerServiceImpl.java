@@ -68,6 +68,9 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	@Transactional
 	public void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount) {
 		LocalDateTime endDate = LocalDateTime.now(ZoneOffset.UTC).minus(period);
+
+		LOGGER.info("CLEAN_LOGS: Project: {} Date-time baseline: {}", project.getId(), endDate);
+
 		AtomicLong logsCount = new AtomicLong(0);
 		AtomicLong attachmentsCount = new AtomicLong(0);
 		AtomicLong thumbnailsCount = new AtomicLong(0);
@@ -75,13 +78,18 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
 
 		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), endDate)) {
+
+			LOGGER.info("CLEAN_LOGS: Project: {}. Launch stream opened", project.getId());
+
 			launchIds.forEach(id -> {
 				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
 					List<Long> itemIds = ids.collect(toList());
+					LOGGER.info("CLEAN_LOGS: Project: {}. Items found: {} for Launch: {}", project.getId(), itemIds.size(), id);
 					attachmentCleanerService.removeOutdatedItemsAttachments(itemIds, endDate, attachmentsCount, thumbnailsCount);
 					long count = logRepository.deleteByPeriodAndTestItemIds(period, itemIds);
 					removedLogsCount.addAndGet(count);
 					logsCount.addAndGet(count);
+					LOGGER.info("CLEAN_LOGS: Project: {}. Item logs removed: {} for Launch: {}", project.getId(), count, id);
 				} catch (Exception e) {
 					LOGGER.error("Error during cleaning outdated logs", e);
 				}

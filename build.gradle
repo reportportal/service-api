@@ -56,7 +56,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:36662051'
+        compile 'com.github.reportportal:commons-dao:3bbbf2f'
         compile 'com.github.reportportal:commons-rules:331c402'
         compile 'com.github.reportportal:commons-model:bd8cbe80'
         compile 'com.github.reportportal:commons:7480d61'
@@ -71,6 +71,20 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-amqp'
     compile('org.springframework.boot:spring-boot-starter-batch')
+
+    //https://nvd.nist.gov/vuln/detail/CVE-2020-11996 AND https://nvd.nist.gov/vuln/detail/CVE-2020-9484
+    //AND https://nvd.nist.gov/vuln/detail/CVE-2020-13934 AND https://nvd.nist.gov/vuln/detail/CVE-2020-13935
+    //AND https://nvd.nist.gov/vuln/detail/CVE-2020-8022
+    compile 'org.apache.tomcat.embed:tomcat-embed-core:9.0.37'
+    compile 'org.apache.tomcat.embed:tomcat-embed-el:9.0.37'
+    compile 'org.apache.tomcat.embed:tomcat-embed-websocket:9.0.37'
+    //
+
+    //https://nvd.nist.gov/vuln/detail/CVE-2020-5411
+    compile('org.springframework.batch:spring-batch-core:4.2.3.RELEASE')
+    compile('org.springframework.batch:spring-batch-infrastructure:4.2.3.RELEASE')
+
+
     // Optional for spring-boot-starter-amqp
     compile "com.rabbitmq:http-client:2.1.0.RELEASE"
 
@@ -82,6 +96,12 @@ dependencies {
     compile 'io.springfox:springfox-swagger2'
 
     ///// Security
+    //https://nvd.nist.gov/vuln/detail/CVE-2020-5407
+    compile 'org.springframework.security:spring-security-core:5.2.4.RELEASE'
+    compile 'org.springframework.security:spring-security-config:5.2.4.RELEASE'
+    compile 'org.springframework.security:spring-security-web:5.2.4.RELEASE'
+    //
+
     compile 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
     compile 'org.springframework.security:spring-security-jwt:1.0.11.RELEASE'
     compile 'org.springframework.security:spring-security-acl'

@@ -107,6 +107,7 @@ public class MailServiceFactory {
 					.orElse(false)) {
 				javaMailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 				javaMailProperties.put("mail.smtp.socketFactory.fallback", "false");
+				javaMailProperties.put("mail.smtp.ssl.checkserveridentity", true);
 			}
 
 			EmailService service = new EmailService(javaMailProperties);

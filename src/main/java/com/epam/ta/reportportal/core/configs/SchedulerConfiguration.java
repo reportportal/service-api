@@ -61,8 +61,8 @@ public class SchedulerConfiguration {
 	@Autowired
 	private ReportPortalResourceLoader resourceLoader;
 
-	@Value("${com.ta.reportportal.job.startDelay}")
-	private String startDelay;
+	@Value("${com.ta.reportportal.job.delay}")
+	private String delay;
 
 	@Bean
 	@Primary
@@ -184,7 +184,7 @@ public class SchedulerConfiguration {
 	public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
 		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setStartDelay(Duration.parse(startDelay).toMillis());
+		factoryBean.setStartDelay(Duration.parse(delay).toMillis());
 		factoryBean.setRepeatInterval(pollFrequencyMs);
 		factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
 		// in case of misfire, ignore all missed triggers and continue :

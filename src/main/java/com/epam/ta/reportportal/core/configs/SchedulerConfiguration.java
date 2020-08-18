@@ -61,7 +61,7 @@ public class SchedulerConfiguration {
 	@Autowired
 	private ReportPortalResourceLoader resourceLoader;
 
-	@Value("${rp.environment.variable.job.startDelay}")
+	@Value("${com.ta.reportportal.job.startDelay}")
 	private String startDelay;
 
 	@Bean

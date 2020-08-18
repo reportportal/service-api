@@ -55,6 +55,8 @@ rp:
     recalculate: false
   environment:
     variable:
+      job:
+        startDelay: 0
       flushing:
         time: PT24H
       clean:

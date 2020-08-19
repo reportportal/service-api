@@ -62,7 +62,7 @@ rp:
       clean:
         attach: P3D
         logs: P7D
-        launches: P7D
+        launches: P14D
       history:
         old: false
       executor:

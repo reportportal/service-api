@@ -38,7 +38,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -72,11 +71,8 @@ public class CleanLaunchesJob implements Job {
 				new ThreadFactoryBuilder().setNameFormat("clean-launches-job-thread-%d").build()
 		);
 
-		iterateOverPages(
-
-				pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LAUNCHES),
-						pageable
-				), projects -> CompletableFuture.allOf(projects.stream().map(project -> {
+		iterateOverPages(projectRepository::findAllIdsAndProjectAttributes,
+				projects -> CompletableFuture.allOf(projects.stream().map(project -> {
 					AtomicLong removedLaunchesCount = new AtomicLong(0);
 					AtomicLong removedAttachmentsCount = new AtomicLong(0);
 					AtomicLong removedThumbnailsCount = new AtomicLong(0);
@@ -98,7 +94,8 @@ public class CleanLaunchesJob implements Job {
 						}
 
 					}, executor);
-				}).toArray(CompletableFuture[]::new)).join());
+				}).toArray(CompletableFuture[]::new)).join()
+		);
 
 		executor.shutdown();
 	}

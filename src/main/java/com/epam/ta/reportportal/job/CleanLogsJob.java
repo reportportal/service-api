@@ -39,7 +39,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -76,24 +75,24 @@ public class CleanLogsJob implements Job {
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LOGS),
-				pageable
-		), projects -> CompletableFuture.allOf(projects.stream().map(project -> {
-			AtomicLong removedLogsCount = new AtomicLong(0);
-			return CompletableFuture.runAsync(() -> {
-				try {
-					LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
-					proceedLogsRemoving(project, removedLogsCount);
+		iterateOverPages(projectRepository::findAllIdsAndProjectAttributes,
+				projects -> CompletableFuture.allOf(projects.stream().map(project -> {
+					AtomicLong removedLogsCount = new AtomicLong(0);
+					return CompletableFuture.runAsync(() -> {
+						try {
+							LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
+							proceedLogsRemoving(project, removedLogsCount);
 
-				} catch (Exception e) {
-					LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
-				}
-				LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
-						project.getId(),
-						removedLogsCount.get()
-				);
-			}, executor);
-		}).toArray(CompletableFuture[]::new)).join());
+						} catch (Exception e) {
+							LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
+						}
+						LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
+								project.getId(),
+								removedLogsCount.get()
+						);
+					}, executor);
+				}).toArray(CompletableFuture[]::new)).join()
+		);
 
 		executor.shutdown();
 

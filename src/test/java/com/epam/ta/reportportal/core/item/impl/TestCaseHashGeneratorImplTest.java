@@ -53,7 +53,7 @@ class TestCaseHashGeneratorImplTest {
 		pathNames.put(1L, "suite");
 		pathNames.put(2L, "test");
 
-		when(testItemRepository.selectPathNames(item.getPath())).thenReturn(pathNames);
+		when(testItemRepository.selectPathNames(1L, item.getPath())).thenReturn(pathNames);
 
 		Integer first = testCaseHashGenerator.generate(item, 100L);
 		Integer second = testCaseHashGenerator.generate(item, 100L);
@@ -73,6 +73,7 @@ class TestCaseHashGeneratorImplTest {
 		parameters.add(parameter);
 		item.setParameters(parameters);
 		item.setPath("1.2.3");
+		item.setLaunchId(1L);
 		return item;
 	}
 }

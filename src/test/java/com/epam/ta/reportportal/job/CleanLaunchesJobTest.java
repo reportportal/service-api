@@ -68,7 +68,7 @@ class CleanLaunchesJobTest {
 
 		project.setName(name);
 
-		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanLaunchesJob.execute(null);
 
@@ -93,7 +93,7 @@ class CleanLaunchesJobTest {
 
 		project.setName(name);
 
-		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 
 		cleanLaunchesJob.execute(null);
 

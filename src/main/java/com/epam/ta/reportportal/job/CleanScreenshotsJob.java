@@ -33,7 +33,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -60,9 +59,7 @@ public class CleanScreenshotsJob implements Job {
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
-				pageable
-		), projects -> projects.forEach(project -> {
+		iterateOverPages(projectRepository::findAllIdsAndProjectAttributes, projects -> projects.forEach(project -> {
 			AtomicLong attachmentsCount = new AtomicLong(0);
 			AtomicLong thumbnailsCount = new AtomicLong(0);
 

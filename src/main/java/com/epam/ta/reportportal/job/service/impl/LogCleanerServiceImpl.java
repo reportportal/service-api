@@ -24,6 +24,8 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.LogCleanerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,11 +33,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -44,6 +45,8 @@ import static java.util.stream.Collectors.toList;
 public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogCleanerServiceImpl.class);
+
+	private final Integer itemPageSize;
 
 	private final LogRepository logRepository;
 
@@ -55,8 +58,11 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 	private final AttachmentCleanerServiceImpl attachmentCleanerService;
 
-	public LogCleanerServiceImpl(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ActivityRepository activityRepository, AttachmentCleanerServiceImpl attachmentCleanerService) {
+	@Autowired
+	public LogCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize, LogRepository logRepository,
+			LaunchRepository launchRepository, TestItemRepository testItemRepository, ActivityRepository activityRepository,
+			AttachmentCleanerServiceImpl attachmentCleanerService) {
+		this.itemPageSize = itemPageSize;
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
@@ -76,15 +82,12 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 
 		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), endDate)) {
 			launchIds.forEach(id -> {
-				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					List<Long> itemIds = ids.collect(toList());
-					attachmentCleanerService.removeOutdatedItemsAttachments(itemIds, endDate, attachmentsCount, thumbnailsCount);
-					long count = logRepository.deleteByPeriodAndTestItemIds(period, itemIds);
+				iterateOverContent(itemPageSize, pageable -> testItemRepository.findTestItemIdsByLaunchId(id, pageable), ids -> {
+					attachmentCleanerService.removeOutdatedItemsAttachments(ids, endDate, attachmentsCount, thumbnailsCount);
+					long count = logRepository.deleteByPeriodAndTestItemIds(period, ids);
 					removedLogsCount.addAndGet(count);
 					logsCount.addAndGet(count);
-				} catch (Exception e) {
-					LOGGER.error("Error during cleaning outdated logs", e);
-				}
+				});
 				attachmentCleanerService.removeOutdatedLaunchesAttachments(Collections.singletonList(id),
 						endDate,
 						attachmentsCount,

@@ -56,6 +56,7 @@ class TestItemUniqueIdGeneratorTest {
 	@Test
 	void generateTest() {
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setProjectId(1L);
 		launch.setName("launchName");
 
@@ -75,8 +76,9 @@ class TestItemUniqueIdGeneratorTest {
 		param1.setKey("key2");
 		param1.setValue("val2");
 		testItem.setParameters(Sets.newHashSet(param1, param2));
+		testItem.setLaunchId(1L);
 
-		when(testItemRepository.selectPathNames(testItem.getPath())).thenReturn(pathNamesMap);
+		when(testItemRepository.selectPathNames(1L, testItem.getPath())).thenReturn(pathNamesMap);
 		String generated = uniqueIdGenerator.generate(testItem, launch);
 
 		assertNotNull(generated);

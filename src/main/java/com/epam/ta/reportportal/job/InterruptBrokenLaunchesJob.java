@@ -37,7 +37,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -73,9 +72,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 	@Transactional
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Interrupt broken launches job has been started");
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
-				pageable
-		), projects -> projects.forEach(project -> {
+		iterateOverPages(projectRepository::findAllIdsAndProjectAttributes, projects -> projects.forEach(project -> {
 			ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.INTERRUPT_JOB_TIME).ifPresent(it -> {
 				Duration maxDuration = ofSeconds(NumberUtils.toLong(it, 0L));
 				try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(project.getId(),

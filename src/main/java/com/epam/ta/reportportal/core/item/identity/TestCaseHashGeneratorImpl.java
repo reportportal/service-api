@@ -46,7 +46,11 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 		List<CharSequence> elements = Lists.newArrayList();
 
 		elements.add(projectId.toString());
-		testItemRepository.selectPathNames(item.getPath()).values().stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+		testItemRepository.selectPathNames(item.getLaunchId(), item.getPath())
+				.values()
+				.stream()
+				.filter(StringUtils::isNotEmpty)
+				.forEach(elements::add);
 		elements.add(item.getName());
 		item.getParameters()
 				.stream()

@@ -65,4 +65,25 @@ public class PageUtil {
 		}
 	}
 
+	/**
+	 * Iterates over all pages found
+	 *
+	 * @param pageSize page size
+	 * @param getFunc  Get {@link List} content function
+	 * @param consumer Page processor
+	 * @param <T>      Type of {@link List} entity
+	 */
+	public static <T> void iterateOverContent(int pageSize, Function<Pageable, List<T>> getFunc, Consumer<List<T>> consumer) {
+		//first page
+		Pageable pageRequest = PageRequest.of(0, pageSize);
+		List<T> content = getFunc.apply(pageRequest);
+		consumer.accept(content);
+
+		while (content.size() >= pageSize) {
+			pageRequest = pageRequest.next();
+			content = getFunc.apply(pageRequest);
+			consumer.accept(content);
+		}
+	}
+
 }

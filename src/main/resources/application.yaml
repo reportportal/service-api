@@ -61,6 +61,8 @@ rp:
         attach: P3D
         logs: P7D
         launches: P7D
+        items:
+          size: 500
       history:
         old: false
       executor:

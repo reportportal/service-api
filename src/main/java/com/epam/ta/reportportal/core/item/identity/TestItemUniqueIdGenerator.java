@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.item.identity;
 
-import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -67,7 +66,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = new ArrayList<>(testItemRepository.selectPathNames(testItem.getPath()).values());
+		List<String> pathNames = new ArrayList<>(testItemRepository.selectPathNames(launch.getId(), testItem.getPath()).values());
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);

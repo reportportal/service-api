@@ -46,11 +46,7 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 
 	@Override
 	public boolean validateIntegration(Integration integration) {
-		BtsConstants.URL.getParam(integration.getParams(), String.class)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
-		BtsConstants.PROJECT.getParam(integration.getParams(), String.class)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
-		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
+		validateCommonBtsParams(integration);
 		expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(), integration.getType().getId()),
 				equalTo(Boolean.FALSE)
 		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
@@ -59,11 +55,7 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 
 	@Override
 	public boolean validateIntegration(Integration integration, Project project) {
-		BtsConstants.URL.getParam(integration.getParams(), String.class)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
-		BtsConstants.PROJECT.getParam(integration.getParams(), String.class)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."));
-		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
+		validateCommonBtsParams(integration);
 		expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
 				integration.getType().getId(),
 				project.getId()
@@ -71,13 +63,23 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 		return true;
 	}
 
+	private void validateCommonBtsParams(Integration integration) {
+		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
+		expect(BtsConstants.URL.getParam(integration.getParams(), String.class),
+				Optional::isPresent
+		).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.");
+		expect(BtsConstants.PROJECT.getParam(integration.getParams(), String.class),
+				Optional::isPresent
+		).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified.");
+	}
+
 	@Override
 	public boolean checkConnection(Integration integration) {
-		Optional<BtsExtension> extension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
-		expect(extension, Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName())
-		);
-		expect(extension.get().testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BtsExtension extension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName()).get()
+				));
+		expect(extension.testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Connection refused."
 		);
 		return true;

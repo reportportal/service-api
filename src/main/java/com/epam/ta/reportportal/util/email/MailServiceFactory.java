@@ -134,7 +134,7 @@ public class MailServiceFactory {
 	 * @return Built email service
 	 */
 	public Optional<EmailService> getDefaultEmailService() {
-		return ofNullable(getDefaultEmailService(true));
+		return ofNullable(getDefaultEmailService(true)); // NOSONAR
 	}
 
 	/**

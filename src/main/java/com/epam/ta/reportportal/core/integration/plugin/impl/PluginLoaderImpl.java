@@ -140,11 +140,12 @@ public class PluginLoaderImpl implements PluginLoader {
 		if (Objects.nonNull(resourcesTargetPath.getParent())) {
 			Files.createDirectories(resourcesTargetPath.getParent());
 		}
-		JarFile jar = new JarFile(pluginPath.toFile());
-		if (!Files.isDirectory(resourcesTargetPath)) {
-			Files.createDirectories(resourcesTargetPath);
+		try (JarFile jar = new JarFile(pluginPath.toFile())) {
+			if (!Files.isDirectory(resourcesTargetPath)) {
+				Files.createDirectories(resourcesTargetPath);
+			}
+			copyJarResourcesRecursively(resourcesTargetPath, jar);
 		}
-		copyJarResourcesRecursively(resourcesTargetPath, jar);
 	}
 
 	private void copyJarResourcesRecursively(Path destination, JarFile jarFile) {

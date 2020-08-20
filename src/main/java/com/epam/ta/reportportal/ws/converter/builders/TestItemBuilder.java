@@ -17,13 +17,13 @@
 package com.epam.ta.reportportal.ws.converter.builders;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.ParameterResource;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
@@ -93,9 +93,9 @@ public class TestItemBuilder implements Supplier<TestItem> {
 	}
 
 	public TestItemBuilder addType(String typeValue) {
-		Optional<TestItemTypeEnum> type = TestItemTypeEnum.fromValue(typeValue);
-		BusinessRule.expect(type, Optional::isPresent).verify(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue);
-		testItem.setType(type.get());
+		TestItemTypeEnum type = TestItemTypeEnum.fromValue(typeValue)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNSUPPORTED_TEST_ITEM_TYPE, typeValue));
+		testItem.setType(type);
 		return this;
 	}
 

@@ -144,7 +144,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
-		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
+		ofNullable(updateProjectRQ.getUserRoles()).ifPresent(roles -> updateProjectUserRoles(roles, project, user));
 		projectRepository.save(project);
 		ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
 
@@ -358,7 +358,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser user) {
 
-		if (null != userRoles && !user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+		if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
 			expect(userRoles.get(user.getUsername()), isNull()).verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
 		}
 

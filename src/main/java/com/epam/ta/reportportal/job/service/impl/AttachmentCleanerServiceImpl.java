@@ -46,7 +46,7 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 	private final DataStoreService dataStoreService;
 
 	@Autowired
-	public AttachmentCleanerServiceImpl(@Value("${rp.environment.variable.clean.items-size}") Integer itemPageSize, AttachmentRepository attachmentRepository,
+	public AttachmentCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize, AttachmentRepository attachmentRepository,
 			LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			@Qualifier("attachmentDataStoreService") DataStoreService dataStoreService) {
 		this.itemPageSize = itemPageSize;

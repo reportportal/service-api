@@ -59,7 +59,7 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	private final AttachmentCleanerServiceImpl attachmentCleanerService;
 
 	@Autowired
-	public LogCleanerServiceImpl(@Value("${rp.environment.variable.clean.items-size}") Integer itemPageSize, LogRepository logRepository,
+	public LogCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize, LogRepository logRepository,
 			LaunchRepository launchRepository, TestItemRepository testItemRepository, ActivityRepository activityRepository,
 			AttachmentCleanerServiceImpl attachmentCleanerService) {
 		this.itemPageSize = itemPageSize;

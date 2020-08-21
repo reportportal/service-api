@@ -164,11 +164,20 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
-		if (null == item.getUniqueId()) {
-			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
-		}
-		if (Objects.isNull(item.getTestCaseId())) {
-			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
+		if (launch.getName().equals("performance_launch")) {
+			if (null == item.getUniqueId()) {
+				item.setUniqueId(uniqueIdGenerator.generate(item, launch, true));
+			}
+			if (Objects.isNull(item.getTestCaseId())) {
+				item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId(), true));
+			}
+		} else {
+			if (null == item.getUniqueId()) {
+				item.setUniqueId(uniqueIdGenerator.generate(item, launch, false));
+			}
+			if (Objects.isNull(item.getTestCaseId())) {
+				item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId(), false));
+			}
 		}
 	}
 

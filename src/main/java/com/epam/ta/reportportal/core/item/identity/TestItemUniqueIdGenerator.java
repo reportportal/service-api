@@ -26,10 +26,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,8 +50,8 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	}
 
 	@Override
-	public String generate(TestItem testItem, Launch launch) {
-		String forEncoding = prepareForEncoding(testItem, launch);
+	public String generate(TestItem testItem, Launch launch, boolean useDb) {
+		String forEncoding = prepareForEncoding(testItem, launch, useDb);
 		return TRAIT + DigestUtils.md5Hex(forEncoding);
 	}
 
@@ -63,10 +60,10 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		return !Strings.isNullOrEmpty(encoded) && encoded.startsWith(TRAIT);
 	}
 
-	private String prepareForEncoding(TestItem testItem, Launch launch) {
+	private String prepareForEncoding(TestItem testItem, Launch launch, boolean useDb) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = new ArrayList<>(testItemRepository.selectPathNames(testItem.getItemId(), projectId).values());
+		List<String> pathNames = getPathNames(testItem, projectId, useDb);
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
@@ -81,5 +78,17 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 					.collect(Collectors.joining(",")));
 		}
 		return joiner.toString();
+	}
+
+	private List<String> getPathNames(TestItem testItem, Long projectId, boolean useDb) {
+		if (useDb) {
+			return new ArrayList<>(testItemRepository.selectPathNames(testItem.getItemId(), projectId).values());
+		}
+		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
+		return testItemRepository.findAllById(parentIds)
+				.stream()
+				.sorted(Comparator.comparingLong(TestItem::getItemId))
+				.map(TestItem::getName)
+				.collect(Collectors.toList());
 	}
 }

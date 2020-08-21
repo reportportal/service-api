@@ -56,8 +56,8 @@ class TestCaseHashGeneratorImplTest {
 
 		when(testItemRepository.selectPathNames(3L, 100L)).thenReturn(pathNames);
 
-		Integer first = testCaseHashGenerator.generate(item, 100L);
-		Integer second = testCaseHashGenerator.generate(item, 100L);
+		Integer first = testCaseHashGenerator.generate(item, 100L, true);
+		Integer second = testCaseHashGenerator.generate(item, 100L, true);
 
 		assertNotNull(first);
 		assertNotNull(second);

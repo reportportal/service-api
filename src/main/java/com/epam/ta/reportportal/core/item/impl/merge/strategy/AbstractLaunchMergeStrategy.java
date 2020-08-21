@@ -164,7 +164,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 			return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
 				testItem.setLaunchId(newLaunch.getId());
 				if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
-					testItem.setUniqueId(identifierGenerator.generate(testItem, newLaunch));
+					testItem.setUniqueId(identifierGenerator.generate(testItem, newLaunch, true));
 				}
 				if (testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
 					// Add launch reference description for top level items

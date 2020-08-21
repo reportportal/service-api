@@ -80,7 +80,7 @@ class TestItemUniqueIdGeneratorTest {
 		testItem.setLaunchId(1L);
 
 		when(testItemRepository.selectPathNames(3L, 1L)).thenReturn(pathNamesMap);
-		String generated = uniqueIdGenerator.generate(testItem, launch);
+		String generated = uniqueIdGenerator.generate(testItem, launch, true);
 
 		assertNotNull(generated);
 		assertTrue(generated.startsWith("auto:"));

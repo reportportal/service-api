@@ -33,7 +33,7 @@ public interface UniqueIdGenerator {
 	 * @param testItem source for id
 	 * @return unique id
 	 */
-	String generate(TestItem testItem, Launch launch);
+	String generate(TestItem testItem, Launch launch, boolean useDb);
 
 	/**
 	 * Validate if string has been generated automatically

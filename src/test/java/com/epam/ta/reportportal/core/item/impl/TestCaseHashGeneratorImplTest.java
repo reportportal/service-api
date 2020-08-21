@@ -48,12 +48,13 @@ class TestCaseHashGeneratorImplTest {
 	@Test
 	void sameHashesForSameObjectsTest() {
 		TestItem item = getItem();
+		item.setItemId(3L);
 
 		HashMap<Long, String> pathNames = new HashMap<>();
 		pathNames.put(1L, "suite");
 		pathNames.put(2L, "test");
 
-		when(testItemRepository.selectPathNames(1L, item.getPath())).thenReturn(pathNames);
+		when(testItemRepository.selectPathNames(3L, 100L)).thenReturn(pathNames);
 
 		Integer first = testCaseHashGenerator.generate(item, 100L);
 		Integer second = testCaseHashGenerator.generate(item, 100L);

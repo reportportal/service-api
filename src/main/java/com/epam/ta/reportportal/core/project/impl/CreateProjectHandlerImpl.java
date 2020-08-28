@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
@@ -36,6 +37,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -51,6 +53,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 @Service
 public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
+	private static final String CREATE_KEY = "create";
 	private static final String RESERVED_PROJECT_NAME = "project";
 
 	private final ProjectRepository projectRepository;
@@ -61,13 +64,17 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 	private final IssueTypeRepository issueTypeRepository;
 
+	private final ApplicationEventPublisher applicationEventPublisher;
+
 	@Autowired
 	public CreateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository) {
+			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
+			ApplicationEventPublisher applicationEventPublisher) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.attributeRepository = attributeRepository;
 		this.issueTypeRepository = issueTypeRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -112,6 +119,9 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		Set<ProjectUser> projectUsers = Sets.newHashSet(projectUser);
 		project.setUsers(projectUsers);
 		projectRepository.save(project);
+
+		applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
+
 		return new EntryCreatedRS(project.getId());
 	}
 }

@@ -23,7 +23,6 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,15 +40,15 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 	}
 
 	@Override
-	public Integer generate(TestItem item, Long projectId, boolean useDb) {
-		return prepare(item, projectId, useDb).hashCode();
+	public Integer generate(TestItem item, Long projectId) {
+		return prepare(item, projectId).hashCode();
 	}
 
-	private String prepare(TestItem item, Long projectId, boolean useDb) {
+	private String prepare(TestItem item, Long projectId) {
 		List<CharSequence> elements = Lists.newArrayList();
 
 		elements.add(projectId.toString());
-		getPathNames(item, projectId, useDb).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+		getPathNames(item).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
 		elements.add(item.getName());
 		item.getParameters()
 				.stream()
@@ -59,10 +58,7 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 		return String.join(";", elements);
 	}
 
-	private List<String> getPathNames(TestItem testItem, Long projectId, boolean useDb) {
-		if (useDb) {
-			return new ArrayList<>(testItemRepository.selectPathNames(testItem.getItemId(), projectId).values());
-		}
+	private List<String> getPathNames(TestItem testItem) {
 		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
 		return testItemRepository.findAllById(parentIds)
 				.stream()

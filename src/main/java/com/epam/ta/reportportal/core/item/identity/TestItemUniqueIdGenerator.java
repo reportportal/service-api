@@ -50,8 +50,8 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	}
 
 	@Override
-	public String generate(TestItem testItem, Launch launch, boolean useDb) {
-		String forEncoding = prepareForEncoding(testItem, launch, useDb);
+	public String generate(TestItem testItem, Launch launch) {
+		String forEncoding = prepareForEncoding(testItem, launch);
 		return TRAIT + DigestUtils.md5Hex(forEncoding);
 	}
 
@@ -60,10 +60,10 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		return !Strings.isNullOrEmpty(encoded) && encoded.startsWith(TRAIT);
 	}
 
-	private String prepareForEncoding(TestItem testItem, Launch launch, boolean useDb) {
+	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = getPathNames(testItem, projectId, useDb);
+		List<String> pathNames = getPathNames(testItem);
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
@@ -80,10 +80,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		return joiner.toString();
 	}
 
-	private List<String> getPathNames(TestItem testItem, Long projectId, boolean useDb) {
-		if (useDb) {
-			return new ArrayList<>(testItemRepository.selectPathNames(testItem.getItemId(), projectId).values());
-		}
+	private List<String> getPathNames(TestItem testItem) {
 		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
 		return testItemRepository.findAllById(parentIds)
 				.stream()

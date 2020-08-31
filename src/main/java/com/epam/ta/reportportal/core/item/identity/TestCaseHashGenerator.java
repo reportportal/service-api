@@ -23,5 +23,5 @@ import com.epam.ta.reportportal.entity.item.TestItem;
  */
 public interface TestCaseHashGenerator {
 
-	Integer generate(TestItem item, Long projectId, boolean useDb);
+	Integer generate(TestItem item, Long projectId);
 }

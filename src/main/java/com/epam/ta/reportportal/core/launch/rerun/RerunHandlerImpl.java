@@ -166,10 +166,10 @@ public class RerunHandlerImpl implements RerunHandler {
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(uniqueIdGenerator.generate(item, launch, true));
+			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
 		}
 		if (Objects.isNull(item.getTestCaseId())) {
-			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId(), true));
+			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
 		}
 	}
 

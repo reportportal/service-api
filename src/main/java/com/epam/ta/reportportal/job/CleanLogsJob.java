@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -107,12 +106,10 @@ public class CleanLogsJob implements Job {
 	}
 
 	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
-		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LOGS).map(it -> {
-			long seconds = NumberUtils.toLong(it, 0L);
-			Duration duration = ofSeconds(seconds);
-			LOGGER.info("CLEAN_LOGS: Project: {} Seconds: {} Duration: {}", project.getId(), seconds, duration);
-			return duration;
-		}).filter(it -> !it.isZero()).ifPresent(it -> logCleaner.removeOutdatedLogs(project, it, removedLogsCount));
+		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LOGS)
+				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
+				.filter(it -> !it.isZero())
+				.ifPresent(it -> logCleaner.removeOutdatedLogs(project, it, removedLogsCount));
 	}
 
 }

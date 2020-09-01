@@ -55,12 +55,14 @@ rp:
     recalculate: false
   environment:
     variable:
+      job:
+        delay: P1D
       flushing:
         time: PT24H
       clean:
         attach: P3D
         logs: P7D
-        launches: P7D
+        launches: P14D
       history:
         old: false
       executor:

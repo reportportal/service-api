@@ -20,14 +20,18 @@ import com.epam.ta.reportportal.core.item.identity.TestCaseHashGeneratorImpl;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -50,14 +54,21 @@ class TestCaseHashGeneratorImplTest {
 		TestItem item = getItem();
 		item.setItemId(3L);
 
-		HashMap<Long, String> pathNames = new HashMap<>();
+		Map<Long, String> pathNames = new LinkedHashMap<>();
 		pathNames.put(1L, "suite");
 		pathNames.put(2L, "test");
 
-		when(testItemRepository.selectPathNames(3L, 100L)).thenReturn(pathNames);
+		List<TestItem> parents = pathNames.entrySet().stream().map(entry -> {
+			TestItem parent = new TestItem();
+			parent.setItemId(entry.getKey());
+			parent.setName(entry.getValue());
+			return parent;
+		}).collect(Collectors.toList());
 
-		Integer first = testCaseHashGenerator.generate(item, 100L, true);
-		Integer second = testCaseHashGenerator.generate(item, 100L, true);
+		when(testItemRepository.findAllById(Lists.newArrayList(1L, 2L))).thenReturn(parents);
+
+		Integer first = testCaseHashGenerator.generate(item, 100L);
+		Integer second = testCaseHashGenerator.generate(item, 100L);
 
 		assertNotNull(first);
 		assertNotNull(second);

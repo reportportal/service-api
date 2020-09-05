@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.item.identity;
 
-import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -27,10 +26,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -67,7 +63,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	private String prepareForEncoding(TestItem testItem, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = new ArrayList<>(testItemRepository.selectPathNames(testItem.getPath()).values());
+		List<String> pathNames = getPathNames(testItem);
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
@@ -82,5 +78,14 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 					.collect(Collectors.joining(",")));
 		}
 		return joiner.toString();
+	}
+
+	private List<String> getPathNames(TestItem testItem) {
+		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
+		return testItemRepository.findAllById(parentIds)
+				.stream()
+				.sorted(Comparator.comparingLong(TestItem::getItemId))
+				.map(TestItem::getName)
+				.collect(Collectors.toList());
 	}
 }

@@ -174,14 +174,14 @@ public class SchedulerConfiguration {
 	@Bean
 	@Profile("demo")
 	@Named("flushingDataJob")
-	public static JobDetailFactoryBean flushingDataJob() {
+	public JobDetailFactoryBean flushingDataJob() {
 		return createJobDetail(FlushingDataJob.class);
 	}
 
-	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
+	public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
 		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setStartDelay(0L);
+		factoryBean.setStartDelay(pollFrequencyMs);
 		factoryBean.setRepeatInterval(pollFrequencyMs);
 		factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
 		// in case of misfire, ignore all missed triggers and continue :

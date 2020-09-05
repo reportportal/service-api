@@ -29,6 +29,7 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.stream.Stream;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -73,56 +74,58 @@ public class InterruptBrokenLaunchesJob implements Job {
 	@Transactional
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Interrupt broken launches job has been started");
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.INTERRUPT_JOB_TIME),
-				pageable
-		), projects -> projects.forEach(project -> {
-			ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.INTERRUPT_JOB_TIME).ifPresent(it -> {
-				Duration maxDuration = ofSeconds(NumberUtils.toLong(it, 0L));
-				try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(project.getId(),
-						StatusEnum.IN_PROGRESS,
-						LocalDateTime.now(ZoneOffset.UTC).minus(maxDuration)
-				)) {
-					ids.forEach(launchId -> {
-						if (!testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
-							/*
-							 * There are no test items for this launch. Just INTERRUPT
-							 * this launch
-							 */
-							interruptLaunch(launchId);
-						} else {
-							/*
-							 * Well, there are some test items started for specified
-							 * launch
-							 */
-							if (!testItemRepository.hasItemsInStatusAddedLately(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
-								/*
-								 * If there are logs, we have to check whether them
-								 * expired
-								 */
-								if (testItemRepository.hasLogs(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+		iterateOverPages(
+				Sort.by(Sort.Order.asc(CRITERIA_ID)),
+				projectRepository::findAllIdsAndProjectAttributes,
+				projects -> projects.forEach(project -> {
+					ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.INTERRUPT_JOB_TIME).ifPresent(it -> {
+						Duration maxDuration = ofSeconds(NumberUtils.toLong(it, 0L));
+						try (Stream<Long> ids = launchRepository.streamIdsWithStatusAndStartTimeBefore(project.getId(),
+								StatusEnum.IN_PROGRESS,
+								LocalDateTime.now(ZoneOffset.UTC).minus(maxDuration)
+						)) {
+							ids.forEach(launchId -> {
+								if (!testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)) {
 									/*
-									 * If there are logs which are still valid
-									 * (probably automation project keep writing
-									 * something)
+									 * There are no test items for this launch. Just INTERRUPT
+									 * this launch
 									 */
-									if (!logRepository.hasLogsAddedLately(maxDuration, launchId, StatusEnum.IN_PROGRESS)) {
-										interruptItems(launchId);
-									}
+									interruptLaunch(launchId);
 								} else {
 									/*
-									 * If not just INTERRUPT all found items and launch
+									 * Well, there are some test items started for specified
+									 * launch
 									 */
-									interruptItems(launchId);
+									if (!testItemRepository.hasItemsInStatusAddedLately(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+										/*
+										 * If there are logs, we have to check whether them
+										 * expired
+										 */
+										if (testItemRepository.hasLogs(launchId, maxDuration, StatusEnum.IN_PROGRESS)) {
+											/*
+											 * If there are logs which are still valid
+											 * (probably automation project keep writing
+											 * something)
+											 */
+											if (!logRepository.hasLogsAddedLately(maxDuration, launchId, StatusEnum.IN_PROGRESS)) {
+												interruptItems(launchId);
+											}
+										} else {
+											/*
+											 * If not just INTERRUPT all found items and launch
+											 */
+											interruptItems(launchId);
+										}
+									}
 								}
-							}
+							});
+						} catch (Exception ex) {
+							LOGGER.error("Interrupting broken launches has been failed", ex);
+							//do nothing
 						}
 					});
-				} catch (Exception ex) {
-					LOGGER.error("Interrupting broken launches has been failed", ex);
-					//do nothing
-				}
-			});
-		}));
+				})
+		);
 	}
 
 	private void interruptLaunch(Long launchId) {

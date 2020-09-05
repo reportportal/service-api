@@ -27,13 +27,14 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -60,28 +61,30 @@ public class CleanScreenshotsJob implements Job {
 	public void execute(JobExecutionContext context) {
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_SCREENSHOTS),
-				pageable
-		), projects -> projects.forEach(project -> {
-			AtomicLong attachmentsCount = new AtomicLong(0);
-			AtomicLong thumbnailsCount = new AtomicLong(0);
+		iterateOverPages(
+				Sort.by(Sort.Order.asc(CRITERIA_ID)),
+				projectRepository::findAllIdsAndProjectAttributes,
+				projects -> projects.forEach(project -> {
+					AtomicLong attachmentsCount = new AtomicLong(0);
+					AtomicLong thumbnailsCount = new AtomicLong(0);
 
-			try {
-				LOGGER.debug("Cleaning outdated screenshots for project {} has been started", project.getId());
-				proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
-			} catch (Exception e) {
-				LOGGER.error("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
-			}
-			if (attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
-				LOGGER.info(
-						"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
-						project.getId(),
-						attachmentsCount.get(),
-						thumbnailsCount.get()
-				);
-			}
-		}));
-
+					try {
+						LOGGER.debug("Cleaning outdated screenshots for project {} has been started", project.getId());
+						proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
+					} catch (Exception e) {
+						LOGGER.error("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
+					}
+					if (attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
+						LOGGER.info(
+								"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
+								project.getId(),
+								attachmentsCount.get(),
+								thumbnailsCount.get()
+						);
+					}
+				})
+		);
+		LOGGER.info("Cleaning outdated screenshots has been finished");
 	}
 
 	private void proceedScreenShotsCleaning(Project project, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {

@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -39,6 +40,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -75,7 +77,8 @@ public class CleanLogsJob implements Job {
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
-		iterateOverPages(projectRepository::findAllIdsAndProjectAttributes,
+		iterateOverPages(Sort.by(Sort.Order.asc(CRITERIA_ID)),
+				projectRepository::findAllIdsAndProjectAttributes,
 				projects -> CompletableFuture.allOf(projects.stream().map(project -> {
 					AtomicLong removedLogsCount = new AtomicLong(0);
 					return CompletableFuture.runAsync(() -> {

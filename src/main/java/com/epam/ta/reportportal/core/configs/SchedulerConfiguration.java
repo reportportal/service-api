@@ -174,11 +174,11 @@ public class SchedulerConfiguration {
 	@Bean
 	@Profile("demo")
 	@Named("flushingDataJob")
-	public static JobDetailFactoryBean flushingDataJob() {
+	public JobDetailFactoryBean flushingDataJob() {
 		return createJobDetail(FlushingDataJob.class);
 	}
 
-	public static SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
+	public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
 		factoryBean.setJobDetail(jobDetail);
 		factoryBean.setStartDelay(pollFrequencyMs);

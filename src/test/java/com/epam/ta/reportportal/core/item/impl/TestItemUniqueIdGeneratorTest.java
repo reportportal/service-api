@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -56,10 +61,12 @@ class TestItemUniqueIdGeneratorTest {
 	@Test
 	void generateTest() {
 		Launch launch = new Launch();
+		launch.setId(1L);
 		launch.setProjectId(1L);
 		launch.setName("launchName");
 
 		TestItem testItem = new TestItem();
+		testItem.setItemId(3L);
 		testItem.setName("itemName");
 		testItem.setPath("1.2.3");
 
@@ -75,8 +82,20 @@ class TestItemUniqueIdGeneratorTest {
 		param1.setKey("key2");
 		param1.setValue("val2");
 		testItem.setParameters(Sets.newHashSet(param1, param2));
+		testItem.setLaunchId(1L);
 
-		when(testItemRepository.selectPathNames(testItem.getPath())).thenReturn(pathNamesMap);
+		Map<Long, String> pathNames = new LinkedHashMap<>();
+		pathNames.put(1L, "suite");
+		pathNames.put(2L, "test");
+
+		List<TestItem> parents = pathNames.entrySet().stream().map(entry -> {
+			TestItem parent = new TestItem();
+			parent.setItemId(entry.getKey());
+			parent.setName(entry.getValue());
+			return parent;
+		}).collect(Collectors.toList());
+
+		when(testItemRepository.findAllById(Lists.newArrayList(1L, 2L))).thenReturn(parents);
 		String generated = uniqueIdGenerator.generate(testItem, launch);
 
 		assertNotNull(generated);

@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.job;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -41,8 +42,8 @@ public class PageUtil {
 	 * @param consumer Page processor
 	 * @param <T>      Type of page entity
 	 */
-	public static <T> void iterateOverPages(Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
-		iterateOverPages(DEFAULT_PAGE_SIZE, getFunc, consumer);
+	public static <T> void iterateOverPages(Sort sort, Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
+		iterateOverPages(DEFAULT_PAGE_SIZE, sort, getFunc, consumer);
 	}
 
 	/**
@@ -53,15 +54,36 @@ public class PageUtil {
 	 * @param consumer Page processor
 	 * @param <T>      Type of page entity
 	 */
-	public static <T> void iterateOverPages(int pageSize, Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
+	public static <T> void iterateOverPages(int pageSize, Sort sort, Function<Pageable, Page<T>> getFunc, Consumer<List<T>> consumer) {
 		//first page
-		Page<T> pageData = getFunc.apply(PageRequest.of(0, pageSize));
+		Page<T> pageData = getFunc.apply(PageRequest.of(0, pageSize, sort));
 		List<T> content = pageData.getContent();
 		consumer.accept(content);
 
 		while (!pageData.isLast()) {
 			pageData = getFunc.apply(pageData.nextPageable());
 			consumer.accept(pageData.getContent());
+		}
+	}
+
+	/**
+	 * Iterates over all pages found
+	 *
+	 * @param pageSize page size
+	 * @param getFunc  Get {@link List} content function
+	 * @param consumer Page processor
+	 * @param <T>      Type of {@link List} entity
+	 */
+	public static <T> void iterateOverContent(int pageSize, Function<Pageable, List<T>> getFunc, Consumer<List<T>> consumer) {
+		//first page
+		Pageable pageRequest = PageRequest.of(0, pageSize);
+		List<T> content = getFunc.apply(pageRequest);
+		consumer.accept(content);
+
+		while (content.size() >= pageSize) {
+			pageRequest = pageRequest.next();
+			content = getFunc.apply(pageRequest);
+			consumer.accept(content);
 		}
 	}
 

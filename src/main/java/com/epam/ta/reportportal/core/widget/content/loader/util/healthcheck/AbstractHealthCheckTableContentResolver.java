@@ -8,6 +8,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -26,6 +28,7 @@ public abstract class AbstractHealthCheckTableContentResolver implements HealthC
 	protected abstract Map<String, Object> getContent(Widget widget, List<String> attributeKeys, List<String> attributeValues);
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public Map<String, Object> loadContent(Widget widget, String[] attributes, Map<String, String> params) {
 
 		WidgetOptions widgetOptions = widget.getWidgetOptions();

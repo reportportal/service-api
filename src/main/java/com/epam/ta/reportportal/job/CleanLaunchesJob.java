@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -38,7 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.epam.ta.reportportal.job.JobUtil.buildProjectAttributesFilter;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -73,10 +74,8 @@ public class CleanLaunchesJob implements Job {
 		);
 
 		iterateOverPages(
-
-				pageable -> projectRepository.findAllIdsAndProjectAttributes(buildProjectAttributesFilter(ProjectAttributeEnum.KEEP_LAUNCHES),
-						pageable
-				), projects -> CompletableFuture.allOf(projects.stream().map(project -> {
+				Sort.by(Sort.Order.asc(CRITERIA_ID)), projectRepository::findAllIdsAndProjectAttributes,
+				projects -> CompletableFuture.allOf(projects.stream().map(project -> {
 					AtomicLong removedLaunchesCount = new AtomicLong(0);
 					AtomicLong removedAttachmentsCount = new AtomicLong(0);
 					AtomicLong removedThumbnailsCount = new AtomicLong(0);
@@ -98,9 +97,11 @@ public class CleanLaunchesJob implements Job {
 						}
 
 					}, executor);
-				}).toArray(CompletableFuture[]::new)).join());
+				}).toArray(CompletableFuture[]::new)).join()
+		);
 
 		executor.shutdown();
+		LOGGER.info("Cleaning outdated launches has been finished");
 	}
 
 	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunches, AtomicLong removedAttachments,

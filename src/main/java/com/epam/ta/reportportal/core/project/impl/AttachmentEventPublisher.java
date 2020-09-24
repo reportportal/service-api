@@ -22,11 +22,14 @@ import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachments
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.job.PageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -50,6 +53,7 @@ public class AttachmentEventPublisher {
 	public void publishDeleteProjectAttachmentsEvent(Long projectId) {
 		PageUtil.iterateOverPages(
 				ATTACHMENTS_BATCH_SIZE,
+				Sort.by(Sort.Order.asc(CRITERIA_ID)),
 				pageable -> attachmentRepository.findIdsByProjectId(projectId, pageable),
 				this::publishDeleteAttachmentEvent
 		);
@@ -59,6 +63,7 @@ public class AttachmentEventPublisher {
 	public void publishDeleteLaunchAttachmentsEvent(Long launchId) {
 		PageUtil.iterateOverPages(
 				ATTACHMENTS_BATCH_SIZE,
+				Sort.by(Sort.Order.asc(CRITERIA_ID)),
 				pageable -> attachmentRepository.findIdsByLaunchId(launchId, pageable),
 				this::publishDeleteAttachmentEvent
 		);
@@ -68,6 +73,7 @@ public class AttachmentEventPublisher {
 	public void publishDeleteItemAttachmentsEvent(DeleteTestItemAttachmentsEvent event) {
 		PageUtil.iterateOverPages(
 				ATTACHMENTS_BATCH_SIZE,
+				Sort.by(Sort.Order.asc(CRITERIA_ID)),
 				pageable -> attachmentRepository.findIdsByTestItemId(event.getItemIds(), pageable),
 				this::publishDeleteAttachmentEvent
 		);

@@ -23,11 +23,11 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
 import com.epam.ta.reportportal.job.service.impl.LogCleanerServiceImpl;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -45,29 +45,21 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class LogCleanerServiceImplTest {
 
-	@Mock
-	private LogRepository logRepository;
+	private LogRepository logRepository = mock(LogRepository.class);
+	private LaunchRepository launchRepository = mock(LaunchRepository.class);
+	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
+	private DataStoreService dataStoreService = mock(DataStoreService.class);
+	private ActivityRepository activityRepository = mock(ActivityRepository.class);
+	private AttachmentRepository attachmentRepository = mock(AttachmentRepository.class);
+	private AttachmentCleanerServiceImpl attachmentCleanerService = mock(AttachmentCleanerServiceImpl.class);
 
-	@Mock
-	private LaunchRepository launchRepository;
-
-	@Mock
-	private TestItemRepository testItemRepository;
-
-	@Mock
-	private DataStoreService dataStoreService;
-
-	@Mock
-	private ActivityRepository activityRepository;
-
-	@Mock
-	private AttachmentRepository attachmentRepository;
-
-	@Mock
-	private AttachmentCleanerServiceImpl attachmentCleanerService;
-
-	@InjectMocks
-	private LogCleanerServiceImpl logCleanerService;
+	private final LogCleanerServiceImpl logCleanerService = new LogCleanerServiceImpl(500,
+			logRepository,
+			launchRepository,
+			testItemRepository,
+			activityRepository,
+			attachmentCleanerService
+	);
 
 	@Test
 	void removeOutdatedLogs() {
@@ -95,7 +87,7 @@ class LogCleanerServiceImplTest {
 		int deletedLogsCount = 2;
 
 		when(launchRepository.streamIdsByStartTimeBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
-		when(testItemRepository.streamTestItemIdsByLaunchId(launchId)).thenReturn(Stream.of(testItemId));
+		when(testItemRepository.findTestItemIdsByLaunchId(eq(launchId), any(Pageable.class))).thenReturn(Lists.newArrayList(testItemId));
 		when(logRepository.deleteByPeriodAndTestItemIds(eq(period), any())).thenReturn(deletedLogsCount);
 		when(logRepository.deleteByPeriodAndLaunchIds(eq(period), any())).thenReturn(deletedLogsCount);
 		logCleanerService.removeOutdatedLogs(project, period, removedLogsCount);

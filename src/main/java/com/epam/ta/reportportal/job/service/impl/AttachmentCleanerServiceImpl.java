@@ -10,7 +10,9 @@ import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +24,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -33,6 +35,8 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentCleanerServiceImpl.class);
 
+	private final Integer itemPageSize;
+
 	private final AttachmentRepository attachmentRepository;
 
 	private final LaunchRepository launchRepository;
@@ -41,8 +45,11 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 
 	private final DataStoreService dataStoreService;
 
-	public AttachmentCleanerServiceImpl(AttachmentRepository attachmentRepository, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, @Qualifier("attachmentDataStoreService") DataStoreService dataStoreService) {
+	@Autowired
+	public AttachmentCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize, AttachmentRepository attachmentRepository,
+			LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			@Qualifier("attachmentDataStoreService") DataStoreService dataStoreService) {
+		this.itemPageSize = itemPageSize;
 		this.attachmentRepository = attachmentRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
@@ -74,13 +81,10 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 	public void removeProjectAttachments(Project project, LocalDateTime before, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
 		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), before)) {
 			launchIds.forEach(id -> {
-				try (Stream<Long> ids = testItemRepository.streamTestItemIdsByLaunchId(id)) {
-					List<Attachment> attachments = attachmentRepository.findByItemIdsAndLogTimeBefore(ids.collect(toList()), before);
+				iterateOverContent(itemPageSize, pageable -> testItemRepository.findTestItemIdsByLaunchId(id, pageable), ids -> {
+					List<Attachment> attachments = attachmentRepository.findByItemIdsAndLogTimeBefore(ids, before);
 					removeAttachments(attachments, attachmentsCount, thumbnailsCount);
-				} catch (Exception e) {
-					//do nothing
-					LOGGER.error("Error during cleaning project attachments", e);
-				}
+				});
 				removeOutdatedLaunchesAttachments(Collections.singletonList(id), before, attachmentsCount, thumbnailsCount);
 			});
 		} catch (Exception e) {
@@ -109,7 +113,7 @@ public class AttachmentCleanerServiceImpl implements AttachmentCleanerService {
 				//do nothing, because error that has occurred during the removing of current attachment shouldn't affect others
 			}
 		});
-		if(CollectionUtils.isNotEmpty(attachmentIds)) {
+		if (CollectionUtils.isNotEmpty(attachmentIds)) {
 			attachmentRepository.deleteAllByIds(attachmentIds);
 		}
 	}

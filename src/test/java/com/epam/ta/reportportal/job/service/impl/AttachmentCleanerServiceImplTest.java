@@ -25,9 +25,8 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -45,20 +44,17 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AttachmentCleanerServiceImplTest {
 
-	@Mock
-	private AttachmentRepository attachmentRepository;
+	private AttachmentRepository attachmentRepository = mock(AttachmentRepository.class);
+	private LaunchRepository launchRepository = mock(LaunchRepository.class);
+	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
+	private DataStoreService dataStoreService = mock(DataStoreService.class);
 
-	@Mock
-	private LaunchRepository launchRepository;
-
-	@Mock
-	private TestItemRepository testItemRepository;
-
-	@Mock
-	private DataStoreService dataStoreService;
-
-	@InjectMocks
-	private AttachmentCleanerServiceImpl attachmentCleanerService;
+	private final AttachmentCleanerServiceImpl attachmentCleanerService = new AttachmentCleanerServiceImpl(500,
+			attachmentRepository,
+			launchRepository,
+			testItemRepository,
+			dataStoreService
+	);
 
 	@Test
 	void removeOutdatedItemsAttachmentsPositiveTest() {
@@ -112,20 +108,25 @@ class AttachmentCleanerServiceImplTest {
 		AtomicLong thumbnailCount = new AtomicLong();
 
 		when(launchRepository.streamIdsByStartTimeBefore(project.getId(), before)).thenReturn(Stream.of(1L, 2L, 3L));
-		when(testItemRepository.streamTestItemIdsByLaunchId(1L)).thenReturn(Stream.of(11L));
-		when(testItemRepository.streamTestItemIdsByLaunchId(2L)).thenReturn(Stream.of(22L));
-		when(testItemRepository.streamTestItemIdsByLaunchId(3L)).thenReturn(Stream.of(33L));
-		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(11L), before)).thenReturn(Collections.singletonList(
-				testAttachment("one", "two")));
-		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(22L), before)).thenReturn(Collections.singletonList(
-				testAttachment("three", "four")));
-		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(33L), before)).thenReturn(Collections.singletonList(
-				testAttachment("five", null)));
+		when(testItemRepository.findTestItemIdsByLaunchId(eq(1L), any(Pageable.class))).thenReturn(Lists.newArrayList(11L));
+		when(testItemRepository.findTestItemIdsByLaunchId(eq(2L), any(Pageable.class))).thenReturn(Lists.newArrayList(22L));
+		when(testItemRepository.findTestItemIdsByLaunchId(eq(3L), any(Pageable.class))).thenReturn(Lists.newArrayList(33L));
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(11L),
+				before
+		)).thenReturn(Collections.singletonList(testAttachment("one", "two")));
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(22L),
+				before
+		)).thenReturn(Collections.singletonList(testAttachment("three", "four")));
+		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(33L),
+				before
+		)).thenReturn(Collections.singletonList(testAttachment("five", null)));
 
-		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(1L), before)).thenReturn(Collections.singletonList(
-				testAttachment("firstLaunch", "two")));
-		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(2L), before)).thenReturn(Collections.singletonList(
-				testAttachment("secondLaunch", null)));
+		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(1L),
+				before
+		)).thenReturn(Collections.singletonList(testAttachment("firstLaunch", "two")));
+		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(2L),
+				before
+		)).thenReturn(Collections.singletonList(testAttachment("secondLaunch", null)));
 
 		attachmentCleanerService.removeProjectAttachments(project, before, attachmentCount, thumbnailCount);
 

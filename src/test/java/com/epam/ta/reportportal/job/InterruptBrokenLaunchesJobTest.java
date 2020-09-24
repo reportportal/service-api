@@ -78,7 +78,7 @@ class InterruptBrokenLaunchesJobTest {
 
 		long launchId = 1L;
 
-		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 		when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(Stream.of(launchId));
 		when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(false);
 		when(launchRepository.findById(launchId)).thenReturn(Optional.of(new Launch()));
@@ -106,7 +106,7 @@ class InterruptBrokenLaunchesJobTest {
 
 		long launchId = 1L;
 
-		when(projectRepository.findAllIdsAndProjectAttributes(any(), any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
 		when(launchRepository.streamIdsWithStatusAndStartTimeBefore(any(), any(), any())).thenReturn(Stream.of(launchId));
 		when(testItemRepository.hasItemsInStatusByLaunch(launchId, StatusEnum.IN_PROGRESS)).thenReturn(true);
 		when(testItemRepository.hasItemsInStatusAddedLately(launchId, Duration.ofSeconds(3600 * 24),StatusEnum.IN_PROGRESS)).thenReturn(false);

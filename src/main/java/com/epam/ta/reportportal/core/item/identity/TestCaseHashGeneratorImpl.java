@@ -23,7 +23,9 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -46,7 +48,7 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 		List<CharSequence> elements = Lists.newArrayList();
 
 		elements.add(projectId.toString());
-		testItemRepository.selectPathNames(item.getPath()).values().stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+		getPathNames(item).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
 		elements.add(item.getName());
 		item.getParameters()
 				.stream()
@@ -54,5 +56,14 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 				.forEach(elements::add);
 
 		return String.join(";", elements);
+	}
+
+	private List<String> getPathNames(TestItem testItem) {
+		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
+		return testItemRepository.findAllById(parentIds)
+				.stream()
+				.sorted(Comparator.comparingLong(TestItem::getItemId))
+				.map(TestItem::getName)
+				.collect(Collectors.toList());
 	}
 }

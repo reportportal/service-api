@@ -33,7 +33,6 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
-import com.epam.ta.reportportal.entity.user.UserType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
@@ -46,7 +45,6 @@ import com.google.common.base.Preconditions;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import org.apache.commons.collections.CollectionUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -106,12 +104,6 @@ public class GetUserHandlerImpl implements GetUserHandler {
 	public UserResource getUser(ReportPortalUser loggedInUser) {
 		User user = userRepository.findByLogin(loggedInUser.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, loggedInUser.getUsername()));
-
-		if (user.getUserType() != UserType.UPSA && CollectionUtils.isEmpty(user.getProjects())) {
-			Project personalProject = projectRepository.save(personalProjectService.generatePersonalProject(user));
-			personalProject.getUsers().stream().findFirst().ifPresent(projectUser -> user.getProjects().add(projectUser));
-		}
-
 		return UserConverter.TO_RESOURCE.apply(user);
 	}
 

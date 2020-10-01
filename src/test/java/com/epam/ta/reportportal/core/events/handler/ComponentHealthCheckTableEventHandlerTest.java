@@ -36,18 +36,20 @@ class ComponentHealthCheckTableEventHandlerTest {
 	).build();
 	private ThreadPoolTaskExecutor healthCheckTableExecutor = new ThreadPoolTaskExecutor();
 
-	{
-		healthCheckTableExecutor.setWaitForTasksToCompleteOnShutdown(true);
-	}
-
 	private final HealthCheckTableGenerator healthCheckTableGenerator = mock(HealthCheckTableGenerator.class);
 
-	private final ComponentHealthCheckTableEventHandler componentHealthCheckTableEventHandler = new ComponentHealthCheckTableEventHandler(
-			widgetRepository,
-			buildFilterStrategyMapping,
-			healthCheckTableExecutor,
-			healthCheckTableGenerator
-	);
+	private final ComponentHealthCheckTableEventHandler componentHealthCheckTableEventHandler;
+
+	{
+		healthCheckTableExecutor.setWaitForTasksToCompleteOnShutdown(true);
+		healthCheckTableExecutor.setAwaitTerminationSeconds(2);
+		componentHealthCheckTableEventHandler = new ComponentHealthCheckTableEventHandler(widgetRepository,
+				buildFilterStrategyMapping,
+				healthCheckTableExecutor,
+				healthCheckTableGenerator
+		);
+
+	}
 
 	@BeforeEach
 	public void init() {

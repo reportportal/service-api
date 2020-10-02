@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -41,9 +40,10 @@ public class HealthCheckTableGenerator {
 		this.widgetRepository = widgetRepository;
 	}
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional
 	public void generate(boolean refresh, HealthCheckTableInitParams initParams, Widget widget, Filter launchesFilter, Sort launchesSort) {
 		try {
+			LOGGER.debug("Health check table widget {} generation started", widget.getId());
 			widgetContentRepository.generateComponentHealthCheckTable(refresh,
 					initParams,
 					launchesFilter,
@@ -51,13 +51,22 @@ public class HealthCheckTableGenerator {
 					widget.getItemsCount(),
 					WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widget.getWidgetOptions())
 			);
+			LOGGER.debug("Health check table widget {} generation finished", widget.getId());
 			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.READY.getValue())
 					.addOption(VIEW_NAME, initParams.getViewName())
 					.addOption(LAST_REFRESH, Date.from(LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant()))
 					.get());
+			LOGGER.debug("Health check table widget {} state updated to: {}",
+					widget.getId(),
+					WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
+			);
 		} catch (Exception exc) {
 			LOGGER.error("Error during view creation: " + exc.getMessage());
 			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.FAILED.getValue()).get());
+			LOGGER.error("Generation failed. Health check table widget {} state updated to: {}",
+					widget.getId(),
+					WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
+			);
 		}
 
 	}

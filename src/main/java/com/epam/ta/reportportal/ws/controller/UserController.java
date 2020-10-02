@@ -168,7 +168,7 @@ public class UserController {
 		return getUserHandler.getUser(EntityUtils.normalizeId(login), currentUser);
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	@GetMapping(value = { "", "/" })
 	@ApiOperation("Return information about current logged-in user")
 	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {

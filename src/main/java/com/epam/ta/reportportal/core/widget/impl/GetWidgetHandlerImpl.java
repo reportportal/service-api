@@ -45,10 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
@@ -127,15 +124,15 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		Map<String, ?> content;
 
-		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
-			content = Collections.emptyMap();
-		} else {
+		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
 			content = loadContentStrategy.get(widgetType)
 					.loadContent(Lists.newArrayList(widget.getContentFields()),
 							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
 							widget.getWidgetOptions(),
 							widget.getItemsCount()
 					);
+		} else {
+			content = Collections.emptyMap();
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -158,10 +155,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		);
 		Map<String, ?> content;
 
-		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
-			content = Collections.emptyMap();
-		} else {
-
+		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
 			content = ofNullable(multilevelLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(Lists.newArrayList(
 					widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
@@ -175,11 +169,26 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 							params
 					)).orElseGet(Collections::emptyMap));
 
+		} else {
+			content = Collections.emptyMap();
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
 		resource.setContent(content);
 		return resource;
+	}
+
+	private Boolean isFilteredContentLoadAllowed(Collection<UserFilter> userFilters, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+
+		if (CollectionUtils.isEmpty(userFilters)) {
+			return false;
+		}
+
+		Long[] ids = userFilters.stream().map(UserFilter::getId).toArray(Long[]::new);
+		List<UserFilter> permittedFilters = getPermittedFilters(ids, projectDetails, user);
+		return userFilters.size() == permittedFilters.size();
+
 	}
 
 	@Override
@@ -193,7 +202,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		List<UserFilter> userFilter = null;
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
-			userFilter = getUserFilterHandler.getFiltersById(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
+			userFilter = getPermittedFilters(previewRQ.getFilterIds().toArray(Long[]::new), projectDetails, user);
 		}
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(userFilter)) {
@@ -222,6 +231,10 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 							widget.getItemsCount()
 					);
 		}
+	}
+
+	List<UserFilter> getPermittedFilters(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		return getUserFilterHandler.getFiltersById(ids, projectDetails, user);
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.widget.content.TopPatternTemplatesContent
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +48,7 @@ public class TopPatternContentLoader implements MultilevelLoadContentStrategy {
 
 	@Override
 	public Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String[] attributes, Map<String, String> params, int limit) {
+			String[] attributes, MultiValueMap<String, String> params, int limit) {
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
@@ -55,7 +56,7 @@ public class TopPatternContentLoader implements MultilevelLoadContentStrategy {
 		List<TopPatternTemplatesContent> content = widgetContentRepository.patternTemplate(filter,
 				sort,
 				WidgetOptionUtil.getValueByKey(ATTRIBUTE_KEY, widgetOptions),
-				params.get(PATTERN_TEMPLATE_NAME),
+				params.getFirst(PATTERN_TEMPLATE_NAME),
 				WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions),
 				limit,
 				TOP_PATTERN_TEMPLATES_ATTRIBUTES_COUNT

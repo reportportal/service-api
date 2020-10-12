@@ -32,6 +32,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 
 	@Override
 	public Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String[] attributes, Map<String, String> params, int limit) {
+			String[] attributes, MultiValueMap<String, String> params, int limit) {
 
 		List<String> attributeKeys = WidgetOptionUtil.getListByKey(ATTRIBUTE_KEYS, widgetOptions);
 		List<String> attributeValues = ofNullable(attributes).map(Arrays::asList).orElseGet(Collections::emptyList);

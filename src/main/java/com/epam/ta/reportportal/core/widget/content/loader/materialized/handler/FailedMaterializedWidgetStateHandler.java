@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.widget.content.loader.materialized;
+package com.epam.ta.reportportal.core.widget.content.loader.materialized.handler;
 
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -14,10 +14,10 @@ import java.util.Map;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service(value = "failedMaterializedContentLoader")
-public class FailedMaterializedContentLoader extends CreatedMaterializedContentLoader {
+public class FailedMaterializedWidgetStateHandler extends CreatedMaterializedWidgetStateHandler {
 
 	@Autowired
-	public FailedMaterializedContentLoader(WidgetRepository widgetRepository, ApplicationEventPublisher eventPublisher) {
+	public FailedMaterializedWidgetStateHandler(WidgetRepository widgetRepository, ApplicationEventPublisher eventPublisher) {
 		super(widgetRepository, eventPublisher);
 	}
 

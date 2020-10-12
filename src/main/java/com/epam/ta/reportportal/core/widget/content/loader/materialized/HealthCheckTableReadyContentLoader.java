@@ -1,7 +1,6 @@
-package com.epam.ta.reportportal.core.widget.content.loader.materialized.healthcheck;
+package com.epam.ta.reportportal.core.widget.content.loader.materialized;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedContentLoader;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
@@ -33,6 +32,7 @@ import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 import static java.util.Collections.emptyMap;
@@ -43,7 +43,7 @@ import static java.util.stream.Collectors.groupingBy;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service(value = "healthCheckTableReadyContentLoader")
-public class HealthCheckTableReadyContentLoader implements MaterializedContentLoader {
+public class HealthCheckTableReadyContentLoader implements MaterializedWidgetContentLoader {
 
 	public static final String SORT = "sort";
 	public static final String CUSTOM_COLUMN = "customColumn";

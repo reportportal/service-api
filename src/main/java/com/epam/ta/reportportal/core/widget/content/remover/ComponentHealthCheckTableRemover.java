@@ -11,7 +11,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.stereotype.Component;
 
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedContentLoader.VIEW_NAME;
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.core.widget.content.updater.ComponentHealthCheckTableUpdater.STATE;
 import static java.util.Optional.ofNullable;
 

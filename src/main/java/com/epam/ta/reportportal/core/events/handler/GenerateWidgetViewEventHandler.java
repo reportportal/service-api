@@ -3,7 +3,7 @@ package com.epam.ta.reportportal.core.events.handler;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.HealthCheckTableGenerator;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
@@ -23,9 +23,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedContentLoader.REFRESH;
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.REFRESH;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_SORTS;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -39,16 +40,17 @@ public class GenerateWidgetViewEventHandler {
 	private final WidgetRepository widgetRepository;
 	private final Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
 	private final TaskExecutor widgetViewExecutor;
-	private final HealthCheckTableGenerator healthCheckTableGenerator;
+	private final Map<WidgetType, ViewGenerator> viewGeneratorMapping;
 
 	@Autowired
 	public GenerateWidgetViewEventHandler(WidgetRepository widgetRepository,
 			@Qualifier("buildFilterStrategy") Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping,
-			@Qualifier("widgetViewExecutor") TaskExecutor widgetViewExecutor, HealthCheckTableGenerator healthCheckTableGenerator) {
+			@Qualifier("widgetViewExecutor") TaskExecutor widgetViewExecutor,
+			@Qualifier("viewGeneratorMapping") Map<WidgetType, ViewGenerator> viewGeneratorMapping) {
 		this.widgetRepository = widgetRepository;
 		this.buildFilterStrategyMapping = buildFilterStrategyMapping;
 		this.widgetViewExecutor = widgetViewExecutor;
-		this.healthCheckTableGenerator = healthCheckTableGenerator;
+		this.viewGeneratorMapping = viewGeneratorMapping;
 	}
 
 	@Async
@@ -65,13 +67,15 @@ public class GenerateWidgetViewEventHandler {
 			Filter launchesFilter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 			Sort launchesSort = GROUP_SORTS.apply(filterSortMapping.values());
 
-			widgetViewExecutor.execute(() -> healthCheckTableGenerator.generate(BooleanUtils.toBoolean(event.getParams().getFirst(REFRESH)),
+			ofNullable(viewGeneratorMapping.get(widgetType)).ifPresent(viewGenerator -> widgetViewExecutor.execute(() -> viewGenerator.generate(
+					BooleanUtils.toBoolean(event.getParams().getFirst(REFRESH)),
 					generateViewName(widget),
 					widget,
 					launchesFilter,
 					launchesSort,
 					event.getParams()
-			));
+			)));
+
 		});
 	}
 

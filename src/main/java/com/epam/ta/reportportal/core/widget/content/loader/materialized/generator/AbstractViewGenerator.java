@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedContentLoader.VIEW_NAME;
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.core.widget.content.updater.ComponentHealthCheckTableUpdater.STATE;
 
 /**
@@ -41,9 +41,6 @@ public abstract class AbstractViewGenerator implements ViewGenerator {
 	public void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter, Sort launchesSort,
 			MultiValueMap<String, String> params) {
 		try {
-
-			Thread.sleep(10000L);
-
 			LOGGER.debug("Widget {} - {}. Generation started", widget.getWidgetType(), widget.getId());
 			generateView(refresh, viewName, widget, launchesFilter, launchesSort, params);
 			LOGGER.debug("Widget {} - {}. Generation finished", widget.getWidgetType(), widget.getId());

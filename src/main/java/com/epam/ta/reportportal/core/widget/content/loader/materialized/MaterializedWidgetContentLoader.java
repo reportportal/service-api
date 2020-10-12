@@ -8,11 +8,9 @@ import java.util.Map;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface MaterializedContentLoader {
+public interface MaterializedWidgetContentLoader {
 
-	String REFRESH = "refresh";
 	String ATTRIBUTES = "attributes";
-	String VIEW_NAME = "viewName";
 
 	Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params);
 }

@@ -1,6 +1,6 @@
 package com.epam.ta.reportportal.core.widget.content;
 
-import com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedContentLoader;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
@@ -24,10 +24,10 @@ import static java.util.Optional.ofNullable;
 @Service
 public class MaterializedLoadContentStrategyImpl implements MaterializedLoadContentStrategy {
 
-	private final Map<WidgetState, MaterializedContentLoader> materializedContentLoaderMapping;
+	private final Map<WidgetState, MaterializedWidgetStateHandler> materializedContentLoaderMapping;
 
 	@Autowired
-	public MaterializedLoadContentStrategyImpl(@Qualifier("materializedContentLoaderMapping") Map<WidgetState, MaterializedContentLoader> materializedContentLoaderMapping) {
+	public MaterializedLoadContentStrategyImpl(@Qualifier("materializedContentLoaderMapping") Map<WidgetState, MaterializedWidgetStateHandler> materializedContentLoaderMapping) {
 		this.materializedContentLoaderMapping = materializedContentLoaderMapping;
 	}
 

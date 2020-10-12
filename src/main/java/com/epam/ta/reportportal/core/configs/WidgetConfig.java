@@ -22,7 +22,10 @@ import com.epam.ta.reportportal.core.widget.content.MultilevelLoadContentStrateg
 import com.epam.ta.reportportal.core.widget.content.filter.*;
 import com.epam.ta.reportportal.core.widget.content.loader.*;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.*;
-import com.epam.ta.reportportal.core.widget.content.loader.materialized.healthcheck.HealthCheckTableReadyContentLoader;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.HealthCheckTableGenerator;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.*;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.HealthCheckTableReadyContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
@@ -163,20 +166,27 @@ public class WidgetConfig implements ApplicationContextAware {
 	}
 
 	@Bean("materializedContentLoaderMapping")
-	public Map<WidgetState, MaterializedContentLoader> materializedContentLoaderMapping() {
-		return ImmutableMap.<WidgetState, MaterializedContentLoader>builder().put(WidgetState.CREATED,
-				(CreatedMaterializedContentLoader) applicationContext.getBean("createdMaterializedContentLoader")
+	public Map<WidgetState, MaterializedWidgetStateHandler> materializedContentLoaderMapping() {
+		return ImmutableMap.<WidgetState, MaterializedWidgetStateHandler>builder().put(WidgetState.CREATED,
+				(CreatedMaterializedWidgetStateHandler) applicationContext.getBean("createdMaterializedContentLoader")
 		)
-				.put(WidgetState.READY, applicationContext.getBean(ReadyMaterializedContentLoaderDelegate.class))
-				.put(WidgetState.RENDERING, applicationContext.getBean(EmptyMaterializedContentLoader.class))
-				.put(WidgetState.FAILED, applicationContext.getBean(FailedMaterializedContentLoader.class))
+				.put(WidgetState.READY, applicationContext.getBean(ReadyMaterializedWidgetStateHandlerDelegate.class))
+				.put(WidgetState.RENDERING, applicationContext.getBean(EmptyMaterializedWidgetStateHandler.class))
+				.put(WidgetState.FAILED, applicationContext.getBean(FailedMaterializedWidgetStateHandler.class))
 				.build();
 	}
 
-	@Bean("readyMaterializedContentLoaderMapping")
-	public Map<WidgetType, MaterializedContentLoader> readyMaterializedContentLoaderMapping() {
-		return ImmutableMap.<WidgetType, MaterializedContentLoader>builder().put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
+	@Bean("materializedWidgetContentLoaderMapping")
+	public Map<WidgetType, MaterializedWidgetContentLoader> materializedWidgetContentLoaderMapping() {
+		return ImmutableMap.<WidgetType, MaterializedWidgetContentLoader>builder().put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
 				(HealthCheckTableReadyContentLoader) applicationContext.getBean("healthCheckTableReadyContentLoader")
+		).build();
+	}
+
+	@Bean("viewGeneratorMapping")
+	public Map<WidgetType, ViewGenerator> viewGeneratorMapping() {
+		return ImmutableMap.<WidgetType, ViewGenerator>builder().put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
+				applicationContext.getBean(HealthCheckTableGenerator.class)
 		).build();
 	}
 

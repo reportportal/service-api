@@ -1,5 +1,6 @@
-package com.epam.ta.reportportal.core.widget.content.loader.materialized;
+package com.epam.ta.reportportal.core.widget.content.loader.materialized.handler;
 
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedWidgetContentLoader;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -19,17 +20,17 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service(value = "readyMaterializedContentLoader")
-public class ReadyMaterializedContentLoaderDelegate implements MaterializedContentLoader {
+public class ReadyMaterializedWidgetStateHandlerDelegate implements MaterializedWidgetStateHandler {
 
-	private final MaterializedContentLoader refreshContentLoaderDelegate;
-	private final Map<WidgetType, MaterializedContentLoader> readyMaterializedContentLoaderMapping;
+	private final MaterializedWidgetStateHandler refreshContentLoaderDelegate;
+	private final Map<WidgetType, MaterializedWidgetContentLoader> materializedWidgetContentLoaderMapping;
 
-	public ReadyMaterializedContentLoaderDelegate(
-			@Qualifier("createdMaterializedContentLoader") MaterializedContentLoader refreshContentLoaderDelegate,
-			@Qualifier("readyMaterializedContentLoaderMapping")
-					Map<WidgetType, MaterializedContentLoader> readyMaterializedContentLoaderMapping) {
+	public ReadyMaterializedWidgetStateHandlerDelegate(
+			@Qualifier("createdMaterializedContentLoader") MaterializedWidgetStateHandler refreshContentLoaderDelegate,
+			@Qualifier("materializedWidgetContentLoaderMapping")
+					Map<WidgetType, MaterializedWidgetContentLoader> materializedWidgetContentLoaderMapping) {
 		this.refreshContentLoaderDelegate = refreshContentLoaderDelegate;
-		this.readyMaterializedContentLoaderMapping = readyMaterializedContentLoaderMapping;
+		this.materializedWidgetContentLoaderMapping = materializedWidgetContentLoaderMapping;
 	}
 
 	@Override
@@ -44,7 +45,7 @@ public class ReadyMaterializedContentLoaderDelegate implements MaterializedConte
 						formattedSupplier("Unsupported widget type '{}'", widget.getWidgetType())
 				));
 
-		return ofNullable(readyMaterializedContentLoaderMapping.get(widgetType)).map(loader -> loader.loadContent(widget, params))
+		return ofNullable(materializedWidgetContentLoaderMapping.get(widgetType)).map(loader -> loader.loadContent(widget, params))
 				.orElseGet(Collections::emptyMap);
 	}
 }

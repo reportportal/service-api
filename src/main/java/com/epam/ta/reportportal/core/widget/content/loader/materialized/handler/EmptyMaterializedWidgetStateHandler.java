@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.widget.content.loader.materialized;
+package com.epam.ta.reportportal.core.widget.content.loader.materialized.handler;
 
 import com.epam.ta.reportportal.entity.widget.Widget;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import java.util.Map;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service(value = "emptyMaterializedContentLoader")
-public class EmptyMaterializedContentLoader implements MaterializedContentLoader {
+public class EmptyMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
 
 	@Override
 	public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {

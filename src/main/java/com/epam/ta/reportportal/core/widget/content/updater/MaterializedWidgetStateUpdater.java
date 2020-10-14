@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component
-public class ComponentHealthCheckTableUpdater implements WidgetUpdater {
+public class MaterializedWidgetStateUpdater implements WidgetUpdater {
 
 	public static final String STATE = "state";
 

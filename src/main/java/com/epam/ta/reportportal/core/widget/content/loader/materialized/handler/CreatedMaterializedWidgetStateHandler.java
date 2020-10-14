@@ -12,13 +12,13 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.widget.content.updater.ComponentHealthCheckTableUpdater.STATE;
+import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
 import static java.util.Collections.emptyMap;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service(value = "createdMaterializedContentLoader")
+@Service
 public class CreatedMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
 
 	private final WidgetRepository widgetRepository;
@@ -31,7 +31,7 @@ public class CreatedMaterializedWidgetStateHandler implements MaterializedWidget
 	}
 
 	@Override
-	public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
+	public Map<String, Object> handleWidgetState(Widget widget, MultiValueMap<String, String> params) {
 		widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.RENDERING.getValue()).get());
 		eventPublisher.publishEvent(new GenerateWidgetViewEvent(widget.getId(), params));
 		return emptyMap();

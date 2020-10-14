@@ -15,7 +15,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.widget.content.updater.ComponentHealthCheckTableUpdater.STATE;
+import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -24,11 +24,11 @@ import static java.util.Optional.ofNullable;
 @Service
 public class MaterializedLoadContentStrategyImpl implements MaterializedLoadContentStrategy {
 
-	private final Map<WidgetState, MaterializedWidgetStateHandler> materializedContentLoaderMapping;
+	private final Map<WidgetState, MaterializedWidgetStateHandler> widgetStateHandlerMapping;
 
 	@Autowired
-	public MaterializedLoadContentStrategyImpl(@Qualifier("materializedContentLoaderMapping") Map<WidgetState, MaterializedWidgetStateHandler> materializedContentLoaderMapping) {
-		this.materializedContentLoaderMapping = materializedContentLoaderMapping;
+	public MaterializedLoadContentStrategyImpl(@Qualifier("widgetStateHandlerMapping") Map<WidgetState, MaterializedWidgetStateHandler> widgetStateHandlerMapping) {
+		this.widgetStateHandlerMapping = widgetStateHandlerMapping;
 	}
 
 	@Override
@@ -40,6 +40,6 @@ public class MaterializedLoadContentStrategyImpl implements MaterializedLoadCont
 		)).flatMap(WidgetState::findByName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Widget state not provided"));
 
-		return materializedContentLoaderMapping.get(widgetState).loadContent(widget, params);
+		return widgetStateHandlerMapping.get(widgetState).handleWidgetState(widget, params);
 	}
 }

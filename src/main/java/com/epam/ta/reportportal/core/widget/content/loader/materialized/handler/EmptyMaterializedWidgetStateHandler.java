@@ -10,11 +10,11 @@ import java.util.Map;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service(value = "emptyMaterializedContentLoader")
+@Service
 public class EmptyMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
 
 	@Override
-	public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
+	public Map<String, Object> handleWidgetState(Widget widget, MultiValueMap<String, String> params) {
 		return Collections.emptyMap();
 	}
 }

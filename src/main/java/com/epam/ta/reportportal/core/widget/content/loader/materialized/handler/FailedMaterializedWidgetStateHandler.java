@@ -1,9 +1,8 @@
 package com.epam.ta.reportportal.core.widget.content.loader.materialized.handler;
 
-import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
@@ -13,17 +12,20 @@ import java.util.Map;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service(value = "failedMaterializedContentLoader")
-public class FailedMaterializedWidgetStateHandler extends CreatedMaterializedWidgetStateHandler {
+@Service
+public class FailedMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
+
+	private MaterializedWidgetStateHandler refreshWidgetStateHandler;
 
 	@Autowired
-	public FailedMaterializedWidgetStateHandler(WidgetRepository widgetRepository, ApplicationEventPublisher eventPublisher) {
-		super(widgetRepository, eventPublisher);
+	public FailedMaterializedWidgetStateHandler(
+			@Qualifier("createdMaterializedWidgetStateHandler") MaterializedWidgetStateHandler refreshWidgetStateHandler) {
+		this.refreshWidgetStateHandler = refreshWidgetStateHandler;
 	}
 
 	@Override
-	public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
+	public Map<String, Object> handleWidgetState(Widget widget, MultiValueMap<String, String> params) {
 		params.put(REFRESH, Collections.singletonList(Boolean.TRUE.toString()));
-		return super.loadContent(widget, params);
+		return refreshWidgetStateHandler.handleWidgetState(widget, params);
 	}
 }

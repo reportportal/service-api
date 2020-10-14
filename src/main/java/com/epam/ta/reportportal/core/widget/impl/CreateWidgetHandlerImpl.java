@@ -104,6 +104,7 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 		widgetPostProcessors.stream()
 				.filter(widgetPostProcessor -> widgetPostProcessor.supports(widget))
 				.forEach(widgetPostProcessor -> widgetPostProcessor.postProcess(widget));
+
 		widgetRepository.save(widget);
 		aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createWidgetRQ.getShare()));
 		if (widget.isShared()) {

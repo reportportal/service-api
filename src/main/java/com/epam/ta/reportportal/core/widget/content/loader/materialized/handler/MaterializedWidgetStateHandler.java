@@ -13,5 +13,5 @@ public interface MaterializedWidgetStateHandler {
 	String REFRESH = "refresh";
 	String VIEW_NAME = "viewName";
 
-	Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params);
+	Map<String, Object> handleWidgetState(Widget widget, MultiValueMap<String, String> params);
 }

@@ -19,25 +19,25 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service(value = "readyMaterializedContentLoader")
-public class ReadyMaterializedWidgetStateHandlerDelegate implements MaterializedWidgetStateHandler {
+@Service
+public class ReadyMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
 
-	private final MaterializedWidgetStateHandler refreshContentLoaderDelegate;
+	private final MaterializedWidgetStateHandler refreshWidgetStateHandler;
 	private final Map<WidgetType, MaterializedWidgetContentLoader> materializedWidgetContentLoaderMapping;
 
-	public ReadyMaterializedWidgetStateHandlerDelegate(
-			@Qualifier("createdMaterializedContentLoader") MaterializedWidgetStateHandler refreshContentLoaderDelegate,
+	public ReadyMaterializedWidgetStateHandler(
+			@Qualifier("createdMaterializedWidgetStateHandler") MaterializedWidgetStateHandler refreshWidgetStateHandler,
 			@Qualifier("materializedWidgetContentLoaderMapping")
 					Map<WidgetType, MaterializedWidgetContentLoader> materializedWidgetContentLoaderMapping) {
-		this.refreshContentLoaderDelegate = refreshContentLoaderDelegate;
+		this.refreshWidgetStateHandler = refreshWidgetStateHandler;
 		this.materializedWidgetContentLoaderMapping = materializedWidgetContentLoaderMapping;
 	}
 
 	@Override
-	public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
+	public Map<String, Object> handleWidgetState(Widget widget, MultiValueMap<String, String> params) {
 
 		if (BooleanUtils.toBoolean(params.getFirst(REFRESH))) {
-			return refreshContentLoaderDelegate.loadContent(widget, params);
+			return refreshWidgetStateHandler.handleWidgetState(widget, params);
 		}
 
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())

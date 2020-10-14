@@ -34,7 +34,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public class GenerateWidgetViewEventHandler {
 
-	private static final String VIEW_PREFIX = "hct";
+	private static final String VIEW_PREFIX = "widget";
 	private static final String NAME_SEPARATOR = "_";
 
 	private final WidgetRepository widgetRepository;

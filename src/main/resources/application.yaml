@@ -81,7 +81,7 @@ rp:
             core: 10
             max: 20
             queue: 50
-          health-check-table:
+          widget-view:
             core: 3
             max: 5
             queue: 100

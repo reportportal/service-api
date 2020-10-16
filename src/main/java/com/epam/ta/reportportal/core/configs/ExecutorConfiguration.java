@@ -107,17 +107,17 @@ public class ExecutorConfiguration {
 		return threadPoolTaskExecutor;
 	}
 
-	@Bean(name = "healthCheckTableExecutor")
+	@Bean(name = "widgetViewExecutor")
 	public TaskExecutor healthCheckTableExecutor(
-			@Value("${rp.environment.variable.executor.pool.health-check-table.core}") Integer corePoolSize,
-			@Value("${rp.environment.variable.executor.pool.health-check-table.max}") Integer maxPoolSize,
-			@Value("${rp.environment.variable.executor.pool.health-check-table.queue}") Integer queueCapacity) {
+			@Value("${rp.environment.variable.executor.pool.widget-view.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.widget-view.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.widget-view.queue}") Integer queueCapacity) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(corePoolSize);
 		executor.setMaxPoolSize(maxPoolSize);
 		executor.setQueueCapacity(queueCapacity);
 		executor.setAllowCoreThreadTimeOut(true);
-		executor.setThreadNamePrefix("hc-table-generate-task");
+		executor.setThreadNamePrefix("generate-widget-view-task");
 		executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
 		return executor;
 	}

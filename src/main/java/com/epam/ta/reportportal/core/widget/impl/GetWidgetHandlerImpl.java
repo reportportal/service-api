@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -66,7 +67,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	private Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy;
 
-	private Map<WidgetType, MaterializedLoadContentStrategy> materializedLoadContentStrategy;
+	private MaterializedLoadContentStrategy materializedLoadContentStrategy;
 
 	private Set<WidgetType> unfilteredWidgetTypes;
 
@@ -98,8 +99,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Autowired
-	@Qualifier("materializedContentLoader")
-	public void setMaterializedLoadContentStrategy(Map<WidgetType, MaterializedLoadContentStrategy> materializedLoadContentStrategy) {
+	public void setMaterializedLoadContentStrategy(MaterializedLoadContentStrategy materializedLoadContentStrategy) {
 		this.materializedLoadContentStrategy = materializedLoadContentStrategy;
 	}
 
@@ -141,7 +141,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	public WidgetResource getWidget(Long widgetId, String[] attributes, Map<String, String> params,
+	public WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
 
@@ -163,11 +163,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 					attributes,
 					params,
 					widget.getItemsCount()
-			))
-					.orElseGet(() -> ofNullable(materializedLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(widget,
-							attributes,
-							params
-					)).orElseGet(Collections::emptyMap));
+			)).orElseGet(() -> materializedLoadContentStrategy.loadContent(widget, params));
 
 		} else {
 			content = Collections.emptyMap();

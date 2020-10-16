@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck;
+package com.epam.ta.reportportal.core.widget.content.loader.materialized;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
@@ -15,19 +15,24 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTE_KEYS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.RESULT;
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_PASSED;
 import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.EXECUTIONS_TOTAL;
 import static java.util.Collections.emptyMap;
@@ -37,10 +42,9 @@ import static java.util.stream.Collectors.groupingBy;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service
-public class HealthCheckTableReadyContentResolver extends AbstractHealthCheckTableContentResolver {
+@Service(value = "healthCheckTableReadyContentLoader")
+public class HealthCheckTableReadyContentLoader implements MaterializedWidgetContentLoader {
 
-	public static final String VIEW_NAME = "viewName";
 	public static final String SORT = "sort";
 	public static final String CUSTOM_COLUMN = "customColumn";
 
@@ -52,14 +56,18 @@ public class HealthCheckTableReadyContentResolver extends AbstractHealthCheckTab
 	private final ObjectMapper objectMapper;
 
 	@Autowired
-	public HealthCheckTableReadyContentResolver(WidgetContentRepository widgetContentRepository, ObjectMapper objectMapper) {
+	public HealthCheckTableReadyContentLoader(WidgetContentRepository widgetContentRepository, ObjectMapper objectMapper) {
 		this.widgetContentRepository = widgetContentRepository;
 		this.objectMapper = objectMapper;
 	}
 
 	@Override
-	protected Map<String, Object> getContent(Widget widget, List<String> attributeKeys, List<String> attributeValues) {
-		HealthCheckTableGetParams getParams = getParams(widget.getWidgetOptions(), attributeKeys, attributeValues);
+	public Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params) {
+		HealthCheckTableGetParams getParams = getParams(widget.getWidgetOptions(),
+				ofNullable(params.get(ATTRIBUTES)).map(attributes -> attributes.stream()
+						.filter(StringUtils::isNotBlank)
+						.collect(Collectors.toList())).orElseGet(Collections::emptyList)
+		);
 		List<HealthCheckTableContent> content = widgetContentRepository.componentHealthCheckTable(getParams);
 
 		if (CollectionUtils.isEmpty(content)) {
@@ -81,7 +89,8 @@ public class HealthCheckTableReadyContentResolver extends AbstractHealthCheckTab
 				.build();
 	}
 
-	private HealthCheckTableGetParams getParams(WidgetOptions widgetOptions, List<String> attributeKeys, List<String> attributeValues) {
+	private HealthCheckTableGetParams getParams(WidgetOptions widgetOptions, List<String> attributeValues) {
+		List<String> attributeKeys = WidgetOptionUtil.getListByKey(ATTRIBUTE_KEYS, widgetOptions);
 		int currentLevel = attributeValues.size();
 		BusinessRule.expect(attributeKeys, keys -> keys.size() > currentLevel)
 				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Incorrect level definition");

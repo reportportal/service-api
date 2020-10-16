@@ -14,9 +14,12 @@ public class CumulativeTrendChartPostProcessor implements WidgetPostProcessor {
 
 	private final WidgetValidator cumulativeTrendChartValidator;
 
+	private final WidgetUpdater materializedWidgetStateUpdater;
+
 	@Autowired
-	public CumulativeTrendChartPostProcessor(WidgetValidator cumulativeTrendChartValidator) {
+	public CumulativeTrendChartPostProcessor(WidgetValidator cumulativeTrendChartValidator, WidgetUpdater materializedWidgetStateUpdater) {
 		this.cumulativeTrendChartValidator = cumulativeTrendChartValidator;
+		this.materializedWidgetStateUpdater = materializedWidgetStateUpdater;
 	}
 
 	@Override
@@ -28,6 +31,7 @@ public class CumulativeTrendChartPostProcessor implements WidgetPostProcessor {
 	public void postProcess(Widget widget) {
 		if (supports(widget)) {
 			cumulativeTrendChartValidator.validate(widget);
+			materializedWidgetStateUpdater.update(widget);
 		}
 	}
 }

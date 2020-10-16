@@ -2,24 +2,28 @@ package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.core.events.widget.GenerateComponentHealthCheckTableEvent;
+import com.epam.ta.reportportal.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.util.healthcheck.util.HealthCheckTableGenerator;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.HealthCheckTableGenerator;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
-import com.epam.ta.reportportal.entity.widget.content.healthcheck.HealthCheckTableInitParams;
 import com.epam.ta.reportportal.ws.converter.builders.WidgetBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.REFRESH;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
@@ -37,16 +41,21 @@ class ComponentHealthCheckTableEventHandlerTest {
 	private ThreadPoolTaskExecutor healthCheckTableExecutor = new ThreadPoolTaskExecutor();
 
 	private final HealthCheckTableGenerator healthCheckTableGenerator = mock(HealthCheckTableGenerator.class);
+	private final Map<WidgetType, ViewGenerator> viewGeneratorMapping = new HashMap<>() {
+		{
+			put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE, healthCheckTableGenerator);
+		}
+	};
 
-	private final ComponentHealthCheckTableEventHandler componentHealthCheckTableEventHandler;
+	private final GenerateWidgetViewEventHandler generateWidgetViewEventHandler;
 
 	{
 		healthCheckTableExecutor.setWaitForTasksToCompleteOnShutdown(true);
 		healthCheckTableExecutor.setAwaitTerminationSeconds(2);
-		componentHealthCheckTableEventHandler = new ComponentHealthCheckTableEventHandler(widgetRepository,
+		generateWidgetViewEventHandler = new GenerateWidgetViewEventHandler(widgetRepository,
 				buildFilterStrategyMapping,
 				healthCheckTableExecutor,
-				healthCheckTableGenerator
+				viewGeneratorMapping
 		);
 
 	}
@@ -68,17 +77,21 @@ class ComponentHealthCheckTableEventHandlerTest {
 
 		when(buildFilterStrategy.buildFilter(widget)).thenReturn(filterSortMap);
 
-		GenerateComponentHealthCheckTableEvent event = new GenerateComponentHealthCheckTableEvent(1L, false);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.put(REFRESH, Collections.singletonList(Boolean.FALSE.toString()));
 
-		componentHealthCheckTableEventHandler.onApplicationEvent(event);
+		GenerateWidgetViewEvent event = new GenerateWidgetViewEvent(1L, params);
+
+		generateWidgetViewEventHandler.onApplicationEvent(event);
 
 		healthCheckTableExecutor.shutdown();
 
 		verify(healthCheckTableGenerator, times(1)).generate(anyBoolean(),
-				any(HealthCheckTableInitParams.class),
+				anyString(),
 				any(Widget.class),
 				any(Filter.class),
-				any(Sort.class)
+				any(Sort.class),
+				any(MultiValueMap.class)
 		);
 
 	}

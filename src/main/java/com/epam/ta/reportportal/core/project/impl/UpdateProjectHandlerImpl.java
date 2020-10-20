@@ -20,6 +20,7 @@ import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
@@ -426,7 +427,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void validateDelay(String value) {
 		try {
-			Long.parseLong(value);
+			BusinessRule.expect(Long.parseLong(value), delay -> delay > 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
 		} catch (NumberFormatException exc) {
 			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
 		}

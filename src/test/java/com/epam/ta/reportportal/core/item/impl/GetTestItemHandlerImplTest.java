@@ -280,7 +280,7 @@ class GetTestItemHandlerImplTest {
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals(
-				"Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0 and less or equal to 600'",
+				"Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
 				exception.getMessage()
 		);
 	}

@@ -85,6 +85,7 @@ public class WidgetController {
 		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "multilevel/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get multilevel widget by ID")

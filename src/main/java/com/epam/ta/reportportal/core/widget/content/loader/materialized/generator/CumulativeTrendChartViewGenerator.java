@@ -48,6 +48,6 @@ public class CumulativeTrendChartViewGenerator extends AbstractViewGenerator {
 	protected void generateView(boolean refresh, String viewName, Widget widget, Filter launchesFilter, Sort launchesSort,
 			MultiValueMap<String, String> params) {
 		List<String> attributes = WidgetOptionUtil.getListByKey(ATTRIBUTES, widget.getWidgetOptions());
-		widgetContentRepository.generateCumulativeTrendChartView(refresh, viewName, launchesFilter, attributes, widget.getItemsCount());
+		widgetContentRepository.generateCumulativeTrendChartView(refresh, viewName, launchesFilter, launchesSort, attributes, widget.getItemsCount());
 	}
 }

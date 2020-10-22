@@ -114,6 +114,7 @@ public final class TestItemConverter {
 		NestedStepResource resource = new NestedStepResource();
 		resource.setId(item.getId());
 		resource.setName(item.getName());
+		resource.setUuid(item.getUuid());
 		resource.setStartTime(EntityUtils.TO_DATE.apply(item.getStartTime()));
 		resource.setEndTime(EntityUtils.TO_DATE.apply(item.getEndTime()));
 		resource.setStatus(item.getStatus() != null ? item.getStatus().toString() : null);

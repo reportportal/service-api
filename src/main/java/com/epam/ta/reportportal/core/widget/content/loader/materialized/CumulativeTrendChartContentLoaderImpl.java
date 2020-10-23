@@ -56,14 +56,18 @@ public class CumulativeTrendChartContentLoaderImpl implements MaterializedWidget
 				.filter(StringUtils::isNotBlank)
 				.collect(Collectors.toList())).orElseGet(Collections::emptyList);
 		if (providedAttributes.isEmpty()) {
-			content = widgetContentRepository.cumulativeTrendChart((String) widget.getWidgetOptions().getOptions().get(VIEW_NAME),
+			content = widgetContentRepository.cumulativeTrendChart(
+					(String) widget.getWidgetOptions().getOptions().get(VIEW_NAME),
 					storedAttributes.get(0),
+					storedAttributes.size() > 1 ? storedAttributes.get(1) : null,
 					null
 			);
 		} else {
 			verifyProvidedAttributes(storedAttributes, providedAttributes);
-			content = widgetContentRepository.cumulativeTrendChart((String) widget.getWidgetOptions().getOptions().get(VIEW_NAME),
+			content = widgetContentRepository.cumulativeTrendChart(
+					(String) widget.getWidgetOptions().getOptions().get(VIEW_NAME),
 					storedAttributes.get(1),
+					null,
 					providedAttributes.get(0)
 			);
 		}

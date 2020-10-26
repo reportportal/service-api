@@ -117,7 +117,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		request.setLogin(normalizeAndValidateLogin(request.getLogin()));
 		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
-		request.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
@@ -195,7 +194,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		createUserRQFull.setDefaultProject(bid.getDefaultProject().getName());
 		createUserRQFull.setAccountRole(UserRole.USER.name());
 		createUserRQFull.setProjectRole(bid.getRole());
-		createUserRQFull.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId(), login);

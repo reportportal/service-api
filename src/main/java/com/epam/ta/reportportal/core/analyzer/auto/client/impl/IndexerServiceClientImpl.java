@@ -45,6 +45,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndexerServiceClient.class);
 	private static final String INDEX_ROUTE = "index";
+	private static final String NAMESPACE_FINDER_ROUTE = "namespace_finder";
 	private static final String DELETE_ROUTE = "delete";
 	private static final String CLEAN_ROUTE = "clean";
 	private static final Integer DELETE_INDEX_SUCCESS_CODE = 1;
@@ -61,22 +62,25 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
 	@Override
 	public Long index(List<IndexLaunch> rq) {
-		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.stream()
-				.filter(DOES_SUPPORT_INDEX)
-				.map(exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-						INDEX_ROUTE,
-						rq,
-						new ParameterizedTypeReference<IndexRs>() {
-						}
-				))
-				.mapToLong(it -> {
-					if (Objects.nonNull(it)) {
-						return it.getTook();
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo().stream().filter(DOES_SUPPORT_INDEX).map(exchange -> {
+			rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+					NAMESPACE_FINDER_ROUTE,
+					rq,
+					new ParameterizedTypeReference<IndexRs>() {
 					}
-					return 0;
-				})
-				.sum();
+			);
+			return rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+					INDEX_ROUTE,
+					rq,
+					new ParameterizedTypeReference<IndexRs>() {
+					}
+			);
+		}).mapToLong(it -> {
+			if (Objects.nonNull(it)) {
+				return it.getTook();
+			}
+			return 0;
+		}).sum();
 	}
 
 	@Override

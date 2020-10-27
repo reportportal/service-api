@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl.history.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
@@ -28,10 +28,17 @@ import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
 
 /**
  * * Required for retrieving {@link TestItemHistory} content.
@@ -58,10 +65,54 @@ public class TestItemBaselineHistoryProvider implements HistoryProvider {
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, boolean usingHash) {
 
 		return historyRequestParams.getParentId()
-				.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user, usingHash))
+				.map(parentId -> loadHistory(resolveFilter(filter, parentId),
+						pageable,
+						parentId,
+						historyRequestParams,
+						projectDetails,
+						user,
+						usingHash
+				))
 				.orElseGet(() -> historyRequestParams.getItemId()
 						.map(itemId -> loadHistory(filter, pageable, itemId, historyRequestParams, projectDetails, user, usingHash))
 						.orElseGet(() -> Page.empty(pageable)));
+	}
+
+	/**
+	 * Replace {@link Condition#EQUALS} for parent item by {@link Condition#UNDER}
+	 * if descendants with {@link TestItem#isHasChildren()} == 'false' should be selected
+	 *
+	 * @param filter   {@link Queryable}
+	 * @param parentId Id of the parent {@link TestItem} which descendants' history should be built
+	 * @return Updated {@link Queryable}
+	 */
+	private Queryable resolveFilter(Queryable filter, Long parentId) {
+		return filter.getFilterConditions()
+				.stream()
+				.flatMap(c -> c.getAllConditions().stream())
+				.filter(c -> CRITERIA_HAS_CHILDREN.equalsIgnoreCase(c.getSearchCriteria()) && !BooleanUtils.toBoolean(c.getValue()))
+				.findFirst()
+				.map(notHasChildren -> updateParentFilter(filter, parentId))
+				.orElse(filter);
+	}
+
+	private Queryable updateParentFilter(Queryable parentFilter, Long parentId) {
+		TestItem parent = testItemRepository.findById(parentId)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
+		List<ConvertibleCondition> resultConditions = parentFilter.getFilterConditions()
+				.stream()
+				.filter(c -> c.getAllConditions()
+						.stream()
+						.noneMatch(fc -> CRITERIA_PARENT_ID.equalsIgnoreCase(fc.getSearchCriteria())
+								&& Condition.EQUALS.equals(fc.getCondition())))
+				.collect(Collectors.toList());
+		resultConditions.add(FilterCondition.builder()
+				.withOperator(Operator.AND)
+				.withCondition(Condition.UNDER)
+				.withSearchCriteria(CRITERIA_PATH)
+				.withValue(String.valueOf(parent.getPath()))
+				.build());
+		return new Filter(parentFilter.getTarget().getClazz(), resultConditions);
 	}
 
 	private Page<TestItemHistory> loadHistory(Queryable filter, Pageable pageable, Long itemId, HistoryRequestParams historyRequestParams,

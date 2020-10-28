@@ -10,7 +10,5 @@ import java.util.Map;
  */
 public interface MaterializedWidgetContentLoader {
 
-	String ATTRIBUTES = "attributes";
-
 	Map<String, Object> loadContent(Widget widget, MultiValueMap<String, String> params);
 }

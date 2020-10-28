@@ -130,7 +130,10 @@ public class FlushingDataJob implements Job {
 		request.setLogin("default");
 		request.setPassword(passwordEncoder.encode("1q2w3e"));
 		request.setEmail("defaultemail@domain.com");
-		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(UserRole.USER).get();
+		User user = new UserBuilder().addCreateUserFullRQ(request)
+				.addUserRole(UserRole.USER)
+				.addPassword(passwordEncoder.encode(request.getPassword()))
+				.get();
 		projectRepository.save(personalProjectService.generatePersonalProject(user));
 		userRepository.save(user);
 		LOGGER.info("Default user has been successfully created.");

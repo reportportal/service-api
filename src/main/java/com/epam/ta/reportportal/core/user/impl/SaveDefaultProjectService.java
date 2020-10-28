@@ -43,6 +43,7 @@ import org.springframework.security.acls.model.Acl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,16 +74,19 @@ public class SaveDefaultProjectService {
 
 	private final ThreadPoolTaskExecutor emailExecutorService;
 
+	private final PasswordEncoder passwordEncoder;
+
 	@Autowired
 	public SaveDefaultProjectService(ProjectRepository projectRepository, UserRepository userRepository,
 			PersonalProjectService personalProjectService, MailServiceFactory emailServiceFactory, ShareableObjectsHandler aclHandler,
-			ThreadPoolTaskExecutor emailExecutorService) {
+			ThreadPoolTaskExecutor emailExecutorService, PasswordEncoder passwordEncoder) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.personalProjectService = personalProjectService;
 		this.emailServiceFactory = emailServiceFactory;
 		this.aclHandler = aclHandler;
 		this.emailExecutorService = emailExecutorService;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Transactional
@@ -98,7 +102,10 @@ public class SaveDefaultProjectService {
 				request.getProjectRole()
 		));
 
-		User user = new UserBuilder().addCreateUserFullRQ(request).addUserRole(userRole).get();
+		User user = new UserBuilder().addCreateUserFullRQ(request)
+				.addUserRole(userRole)
+				.addPassword(passwordEncoder.encode(request.getPassword()))
+				.get();
 
 		ProjectUser assignedProjectUser = new ProjectUser().withProjectRole(projectRole).withUser(user).withProject(defaultProject);
 		user.getProjects().add(assignedProjectUser);

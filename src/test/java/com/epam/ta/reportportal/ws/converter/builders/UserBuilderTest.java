@@ -41,7 +41,7 @@ class UserBuilderTest {
 		request.setPassword("password");
 		final UserRole role = UserRole.USER;
 
-		final User user = new UserBuilder().addCreateUserRQ(request).addUserRole(role).get();
+		final User user = new UserBuilder().addCreateUserRQ(request).addUserRole(role).addPassword(request.getPassword()).get();
 
 		assertEquals(login, user.getLogin());
 		assertEquals(email, user.getEmail());

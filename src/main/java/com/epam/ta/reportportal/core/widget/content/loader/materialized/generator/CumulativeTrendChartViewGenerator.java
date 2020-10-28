@@ -28,7 +28,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 
-import static com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedWidgetContentLoader.ATTRIBUTES;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>

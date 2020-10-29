@@ -272,11 +272,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		if (testItemResults.getStatus() == IN_PROGRESS) {
 			testItemResults.setStatus(actualStatus.orElse(INTERRUPTED));
-			resolvedIssue.ifPresent(issue -> {
-				issue.setTestItemResults(testItemResults);
-				issueEntityRepository.save(issue);
-				testItemResults.setIssue(issue);
-			});
+			resolvedIssue.ifPresent(issue -> updateItemIssue(testItemResults, issue));
 			if (Objects.isNull(testItem.getRetryOf())) {
 				changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
 				changeStatusHandler.changeLaunchStatus(launch);
@@ -388,9 +384,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {
-		ofNullable(testItemResults.getIssue()).ifPresent(entity -> {
-			entity.setTestItemResults(null);
-			issueEntityRepository.delete(entity);
+		issueEntityRepository.findById(testItemResults.getItemId()).ifPresent(issueEntity -> {
+			issueEntity.setTestItemResults(null);
+			issueEntityRepository.delete(issueEntity);
 			testItemResults.setIssue(null);
 		});
 		resolvedIssue.setTestItemResults(testItemResults);

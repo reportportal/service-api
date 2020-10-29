@@ -53,6 +53,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -156,6 +157,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		Map<String, ?> content;
 
 		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
+			params.put(ATTRIBUTES, Lists.newArrayList(attributes));
 			content = ofNullable(multilevelLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(Lists.newArrayList(
 					widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),

@@ -65,7 +65,7 @@ public class ComparingBaselineHistoryProvider implements HistoryProvider {
 					filterParams.getLaunchesLimit()
 			);
 
-			List<Long> launchIds = launchRepository.findByFilter(launchQueryablePair.getLeft(), launchQueryablePair.getRight())
+			List<Long> launchIds = launchRepository.findAllLatestByFilter(launchQueryablePair.getLeft(), launchQueryablePair.getRight())
 					.getContent()
 					.stream()
 					.map(Launch::getId)

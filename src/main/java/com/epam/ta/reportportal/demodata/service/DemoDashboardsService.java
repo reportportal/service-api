@@ -114,10 +114,10 @@ class DemoDashboardsService {
 
 	private List<Widget> createWidgets(ReportPortalUser user, Long projectId, UserFilter filter) {
 		try {
-			TypeReference<List<WidgetRQ>> type = new TypeReference<List<WidgetRQ>>() {
+			TypeReference<List<WidgetRQ>> type = new TypeReference<>() {
 			};
 
-			List<Widget> widgets = ((List<WidgetRQ>) objectMapper.readValue(resource.getURL(), type)).stream().map(it -> {
+			List<Widget> widgets = objectMapper.readValue(resource.getURL(), type).stream().map(it -> {
 				final WidgetBuilder widgetBuilder = new WidgetBuilder().addWidgetRq(it).addProject(projectId).addOwner(user.getUsername());
 				final WidgetType widgetType = WidgetType.findByName(it.getWidgetType())
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_TO_CREATE_WIDGET,

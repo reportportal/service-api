@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Initial {@see JRDataSource} provider class for RP Jasper Reports
+ * Initial {@link net.sf.jasperreports.engine.JRDataSource} provider class for RP Jasper Reports
  *
  * @author Andrei_Ramanchuk
  */

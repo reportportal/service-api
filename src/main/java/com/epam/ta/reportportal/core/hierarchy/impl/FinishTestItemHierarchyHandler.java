@@ -25,10 +25,11 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.function.Function;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static java.util.Optional.ofNullable;
@@ -52,12 +53,18 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 	}
 
 	@Override
-	protected Stream<Long> retrieveItemIds(TestItem testItem, StatusEnum status, boolean hasChildren) {
+	protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren, TestItem testItem, StatusEnum status) {
 		return hasChildren ?
-				testItemRepository.streamIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(),
-						StatusEnum.IN_PROGRESS
-				).map(BigInteger::longValue) :
-				testItemRepository.streamIdsByNotHasChildrenAndParentPathAndStatus(testItem.getPath(), status).map(BigInteger::longValue);
+				pageable -> testItemRepository.findIdsByHasChildrenAndParentPathAndStatusOrderedByPathLevel(testItem.getPath(),
+						StatusEnum.IN_PROGRESS,
+						pageable.getPageSize(),
+						pageable.getOffset()
+				) :
+				pageable -> testItemRepository.findIdsByNotHasChildrenAndParentPathAndStatus(testItem.getPath(),
+						status,
+						pageable.getPageSize(),
+						pageable.getOffset()
+				);
 	}
 
 }

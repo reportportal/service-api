@@ -243,7 +243,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
-			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
+			finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
 			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
@@ -292,13 +292,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 						&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 
 		return testItemResults;
-	}
-
-	private void finishDescendants(TestItem testItem, StatusEnum status, Date endTime, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
-		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
-			finishHierarchyHandler.finishDescendants(testItem, status, endTime, user, projectDetails);
-		}
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {

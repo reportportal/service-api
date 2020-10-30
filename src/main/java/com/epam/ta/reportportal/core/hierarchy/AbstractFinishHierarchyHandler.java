@@ -55,7 +55,7 @@ import static java.util.Optional.ofNullable;
  */
 public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarchyHandler<T> {
 
-	public static int ITEM_PAGE_SIZE = 50;
+	public static final int ITEM_PAGE_SIZE = 50;
 
 	public static final String ATTRIBUTE_KEY_STATUS = "status";
 	public static final String ATTRIBUTE_VALUE_INTERRUPTED = "interrupted";
@@ -106,16 +106,17 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST, "Unable to update current status to - " + IN_PROGRESS);
 
 		LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(endDate);
-		boolean isIssueRequired = isIssueRequired(status, entity);
 
-		updateDescendantsWithoutChildren(entity, projectDetails.getProjectId(), status, endTime, isIssueRequired, user);
+		updateDescendantsWithoutChildren(entity, projectDetails.getProjectId(), status, endTime, user);
 		updateDescendantsWithChildren(entity, endTime);
 	}
 
 	private void updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status, LocalDateTime endTime,
-			boolean isIssueRequired, ReportPortalUser user) {
-		getIssueType(isIssueRequired, projectId, TO_INVESTIGATE.getLocator()).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(
-				ITEM_PAGE_SIZE,
+			ReportPortalUser user) {
+		getIssueType(isIssueRequired(status, entity),
+				projectId,
+				TO_INVESTIGATE.getLocator()
+		).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
 				getItemIdsFunction(false, entity, IN_PROGRESS),
 				getItemIdsWithoutChildrenHandler(issueType, status, endTime, projectId, user)
 				),
@@ -129,9 +130,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	private Consumer<List<Long>> getItemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status, LocalDateTime endTime,
 			Long projectId, ReportPortalUser user) {
 		return itemIds -> {
-			Map<Long, TestItem> itemMapping = testItemRepository.findAllById(itemIds)
-					.stream()
-					.collect(Collectors.toMap(TestItem::getItemId, i -> i));
+			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				finishItem(testItem, status, endTime);
 				attachIssue(testItem, issueType);
@@ -143,9 +142,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	private Consumer<List<Long>> getItemIdsWithoutChildrenHandler(StatusEnum status, LocalDateTime endTime, Long projectId,
 			ReportPortalUser user) {
 		return itemIds -> {
-			Map<Long, TestItem> itemMapping = testItemRepository.findAllById(itemIds)
-					.stream()
-					.collect(Collectors.toMap(TestItem::getItemId, i -> i));
+			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				finishItem(testItem, status, endTime);
 				changeStatusHandler.changeParentStatus(itemId, projectId, user);
@@ -178,9 +175,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 
 	private Consumer<List<Long>> getItemIdsWithChildrenHandler(LocalDateTime endTime) {
 		return itemIds -> {
-			Map<Long, TestItem> itemMapping = testItemRepository.findAllById(itemIds)
-					.stream()
-					.collect(Collectors.toMap(TestItem::getItemId, i -> i));
+			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				boolean isFailed = testItemRepository.hasDescendantsNotInStatus(testItem.getItemId(),
 						StatusEnum.PASSED.name(),
@@ -190,6 +185,10 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 				finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
 			}));
 		};
+	}
+
+	private Map<Long, TestItem> getItemMapping(List<Long> itemIds) {
+		return testItemRepository.findAllById(itemIds).stream().collect(Collectors.toMap(TestItem::getItemId, i -> i));
 	}
 
 	private void finishItem(TestItem testItem, StatusEnum status, LocalDateTime endTime) {

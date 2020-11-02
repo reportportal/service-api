@@ -203,9 +203,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private Optional<Launch> getLaunch(TestItem testItem) {
-		return ofNullable(testItem.getLaunchId()).map(launchRepository::findByIdForUpdate)
+		return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
 				.orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunchId)
-						.map(launchRepository::findByIdForUpdate)
+						.map(launchRepository::findById)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 	}
 

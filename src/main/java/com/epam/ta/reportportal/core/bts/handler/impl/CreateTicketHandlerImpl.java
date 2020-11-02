@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TicketPostedEvent;
@@ -27,6 +28,7 @@ import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -35,7 +37,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.notNull;
@@ -85,13 +86,14 @@ public class CreateTicketHandlerImpl implements CreateTicketHandler {
 				"There aren't any submitted BTS fields!"
 		);
 
-		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
-		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
-				"BugTracking plugin for {} isn't installed",
-				BtsConstants.PROJECT.getParam(integration.getParams())
-		);
+		BtsExtension btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("BugTracking plugin for {} isn't installed",
+								BtsConstants.PROJECT.getParam(integration.getParams())
+						).get()
+				));
 
-		Ticket ticket = btsExtension.get().submitTicket(postTicketRQ, integration);
+		Ticket ticket = btsExtension.submitTicket(postTicketRQ, integration);
 
 		before.forEach(it -> messageBus.publishActivity(new TicketPostedEvent(ticket, user.getUserId(), user.getUsername(), it)));
 		return ticket;

@@ -68,6 +68,13 @@ class FileStorageControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	@Sql("/db/user/user-customer.sql")
+	public void testUserPhotoAccessDeniedForCustomer() throws Exception {
+		mockMvc.perform(get("/v1/data/default_personal/userphoto?id=default").with(token(oAuthHelper.getCustomerToken())))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
 	void uploadLargeUserPhoto() throws Exception {
 		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/photo")
 				.file(new MockMultipartFile("file", new ClassPathResource("image/large_image.png").getInputStream()))

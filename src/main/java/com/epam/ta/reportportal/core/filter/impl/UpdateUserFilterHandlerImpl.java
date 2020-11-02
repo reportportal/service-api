@@ -129,9 +129,6 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 		if (before.isShared() != updated.isShared()) {
 			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
-			if (!updated.isShared()) {
-				widgetRepository.deleteRelationByFilterIdAndNotOwner(updated.getId(), updated.getOwner());
-			}
 		}
 
 		messageBus.publishActivity(new FilterUpdatedEvent(before,

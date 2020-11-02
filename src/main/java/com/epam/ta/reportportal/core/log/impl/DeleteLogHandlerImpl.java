@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.log.impl;
 
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
@@ -32,6 +33,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -77,8 +79,8 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	@Override
 	public OperationCompletionRS deleteLog(Long logId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
+				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
 		Log log = validate(logId, user, projectDetails);
 		try {

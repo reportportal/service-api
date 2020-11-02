@@ -36,7 +36,6 @@ import org.springframework.data.domain.Sort;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_STATUS;
-import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConstants.LAUNCHES_COUNT;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -82,8 +81,8 @@ public class DefaultLaunchFilterProvider {
 
 	private static Pageable createLaunchPageable(UserFilter launchFilter, int launchesLimit) {
 
-		BusinessRule.expect(launchesLimit, limit -> limit > 0 && limit <= LAUNCHES_COUNT)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Launches limit should be greater than 0 and less or equal to 600");
+		BusinessRule.expect(launchesLimit, limit -> limit > 0)
+				.verify(ErrorType.BAD_REQUEST_ERROR, "Launches limit should be greater than 0");
 
 		Sort sort = ofNullable(launchFilter.getFilterSorts()).map(sorts -> Sort.by(sorts.stream()
 				.map(s -> Sort.Order.by(s.getField()).with(s.getDirection()))

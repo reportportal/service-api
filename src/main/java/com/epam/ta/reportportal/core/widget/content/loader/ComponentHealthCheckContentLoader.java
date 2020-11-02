@@ -26,16 +26,18 @@ import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.healthcheck.ComponentHealthCheckContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
@@ -65,16 +67,10 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 
 	@Override
 	public Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
-			String[] attributes, Map<String, String> params, int limit) {
-
-		validateWidgetOptions(widgetOptions);
+			String[] attributes, MultiValueMap<String, String> params, int limit) {
 
 		List<String> attributeKeys = WidgetOptionUtil.getListByKey(ATTRIBUTE_KEYS, widgetOptions);
-		validateAttributeKeys(attributeKeys);
-
 		List<String> attributeValues = ofNullable(attributes).map(Arrays::asList).orElseGet(Collections::emptyList);
-
-		validateAttributeValues(attributeValues);
 
 		int currentLevel = attributeValues.size();
 		BusinessRule.expect(attributeKeys, keys -> keys.size() > currentLevel)
@@ -101,34 +97,6 @@ public class ComponentHealthCheckContentLoader implements MultilevelLoadContentS
 		);
 
 		return CollectionUtils.isNotEmpty(content) ? Collections.singletonMap(RESULT, content) : emptyMap();
-	}
-
-	private void validateAttributeKeys(List<String> attributeKeys) {
-		BusinessRule.expect(attributeKeys, CollectionUtils::isNotEmpty)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "No keys were specified");
-		BusinessRule.expect(attributeKeys, cf -> cf.size() <= MAX_LEVEL_NUMBER)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Keys number is incorrect. Maximum keys count = " + MAX_LEVEL_NUMBER);
-		attributeKeys.forEach(cf -> BusinessRule.expect(cf, StringUtils::isNotBlank)
-				.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT, "Current level key should be not null"));
-	}
-
-	private void validateWidgetOptions(WidgetOptions widgetOptions) {
-		WidgetOptionUtil.getIntegerByKey(MIN_PASSING_RATE, widgetOptions)
-				.map(value -> {
-					BusinessRule.expect(value, v -> v >= 0 && v <= 100)
-							.verify(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-									"Minimum passing rate value should be greater or equal to 0 and less or equal to 100"
-							);
-					return value;
-				})
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_LOAD_WIDGET_CONTENT,
-						"Minimum passing rate option was not specified"
-				));
-	}
-
-	private void validateAttributeValues(List<String> attributeValues) {
-		attributeValues.forEach(value -> BusinessRule.expect(value, Objects::nonNull)
-				.verify(ErrorType.BAD_REQUEST_ERROR, "Attribute value should be not null"));
 	}
 
 	private ConvertibleCondition getTestItemCondition(List<String> attributeKeys, List<String> attributeValues) {

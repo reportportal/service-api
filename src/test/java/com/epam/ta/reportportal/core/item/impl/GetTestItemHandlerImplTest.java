@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
+import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -61,6 +62,9 @@ class GetTestItemHandlerImplTest {
 	private LaunchAccessValidator launchAccessValidator;
 
 	@Mock
+	private TestItemService testItemService;
+
+	@Mock
 	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
 	@InjectMocks
@@ -86,9 +90,10 @@ class GetTestItemHandlerImplTest {
 		launch.setId(1L);
 		item.setLaunchId(launch.getId());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 
 		doThrow(new ReportPortalException("Launch '1' not found. Did you use correct Launch ID?")).when(launchAccessValidator)
-				.validate(item.getLaunchId(), extractProjectDetails(rpUser, "test_project"), rpUser);
+				.validate(launch.getId(), extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -106,10 +111,11 @@ class GetTestItemHandlerImplTest {
 		launch.setProjectId(2L);
 		item.setLaunchId(launch.getId());
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
 
 		doThrow(new ReportPortalException(
 				"Forbidden operation. Specified launch with id '1' not referenced to specified project with id '1'")).when(
-				launchAccessValidator).validate(item.getLaunchId(), extractProjectDetails(rpUser, "test_project"), rpUser);
+				launchAccessValidator).validate(launch.getId(), extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.getTestItem("1", extractProjectDetails(rpUser, "test_project"), rpUser)
@@ -182,7 +188,8 @@ class GetTestItemHandlerImplTest {
 		item.setLaunchId(launch.getId());
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator).validate(item.getLaunchId(), extractProjectDetails(operator, "test_project"), operator);
+		when(testItemService.getEffectiveLaunch(item)).thenReturn(launch);
+		doThrow(new ReportPortalException("You do not have enough permissions.")).when(launchAccessValidator).validate(launch.getId(), extractProjectDetails(operator, "test_project"), operator);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.getTestItem("1", extractProjectDetails(operator, "test_project"), operator)
@@ -273,7 +280,7 @@ class GetTestItemHandlerImplTest {
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, executable);
 		assertEquals(
-				"Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0 and less or equal to 600'",
+				"Error in handled Request. Please, check specified parameters: 'Launches limit should be greater than 0'",
 				exception.getMessage()
 		);
 	}

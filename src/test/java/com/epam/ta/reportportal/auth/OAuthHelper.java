@@ -44,6 +44,8 @@ public class OAuthHelper {
 
 	private String superadminToken;
 
+	private String customerToken;
+
 	public String getDefaultToken() {
 		return defaultToken == null ? defaultToken = createAccessToken("default", "1q2w3e", UserRole.USER).getValue() : defaultToken;
 	}
@@ -52,6 +54,12 @@ public class OAuthHelper {
 		return superadminToken == null ?
 				superadminToken = createAccessToken("superadmin", "erebus", UserRole.ADMINISTRATOR).getValue() :
 				superadminToken;
+	}
+
+	public String getCustomerToken() {
+		return customerToken == null ?
+				customerToken = createAccessToken("default_customer", "erebus", UserRole.USER).getValue() :
+				customerToken;
 	}
 
 	private OAuth2AccessToken createAccessToken(String username, String password, UserRole... roles) {

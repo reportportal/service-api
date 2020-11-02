@@ -48,14 +48,15 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 @Service
 public class DemoDataLaunchService {
 
-	private final LaunchRepository launchRepository;
+	private final static Object startLaunchSync = new Object();
 
-	private final TestItemRepository testItemRepository;
+	private static LocalDateTime lastLaunchTime = LocalDateTime.now();
 
-	private final static LocalDateTime lastLaunchTime = LocalDateTime.now();
-
-	private String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
+	private final String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
 			"windows 10", "windows 7", "windows server", "debian", "alpine" };
+
+	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
 
 	@Autowired
 	public DemoDataLaunchService(LaunchRepository launchRepository, TestItemRepository testItemRepository) {
@@ -65,7 +66,8 @@ public class DemoDataLaunchService {
 
 	@Transactional
 	public Launch startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
-		synchronized (lastLaunchTime) {
+		//TODO refactor global synchronization to allow non-blocking demo generation on the separate projects
+		synchronized (startLaunchSync) {
 
 			StartLaunchRQ rq = new StartLaunchRQ();
 			rq.setMode(Mode.DEFAULT);
@@ -90,7 +92,7 @@ public class DemoDataLaunchService {
 			launchRepository.refresh(launch);
 
 			if (launch.getStartTime().isAfter(lastLaunchTime)) {
-				lastLaunchTime.with(launch.getStartTime());
+				lastLaunchTime = lastLaunchTime.with(launch.getStartTime());
 			}
 
 			return launch;

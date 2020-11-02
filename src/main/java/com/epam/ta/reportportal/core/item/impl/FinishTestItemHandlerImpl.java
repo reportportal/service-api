@@ -243,7 +243,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
-			finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
+			finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
 			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
@@ -272,11 +272,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		if (testItemResults.getStatus() == IN_PROGRESS) {
 			testItemResults.setStatus(actualStatus.orElse(INTERRUPTED));
-			resolvedIssue.ifPresent(issue -> {
-				issue.setTestItemResults(testItemResults);
-				issueEntityRepository.save(issue);
-				testItemResults.setIssue(issue);
-			});
+			resolvedIssue.ifPresent(issue -> updateItemIssue(testItemResults, issue));
 			if (Objects.isNull(testItem.getRetryOf())) {
 				changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
 				changeStatusHandler.changeLaunchStatus(launch);
@@ -296,13 +292,6 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 						&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 
 		return testItemResults;
-	}
-
-	private void finishDescendants(TestItem testItem, StatusEnum status, Date endTime, ReportPortalUser user,
-			ReportPortalUser.ProjectDetails projectDetails) {
-		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
-			finishHierarchyHandler.finishDescendants(testItem, status, endTime, user, projectDetails);
-		}
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
@@ -388,9 +377,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private void updateItemIssue(TestItemResults testItemResults, IssueEntity resolvedIssue) {
-		ofNullable(testItemResults.getIssue()).ifPresent(entity -> {
-			entity.setTestItemResults(null);
-			issueEntityRepository.delete(entity);
+		issueEntityRepository.findById(testItemResults.getItemId()).ifPresent(issueEntity -> {
+			issueEntity.setTestItemResults(null);
+			issueEntityRepository.delete(issueEntity);
 			testItemResults.setIssue(null);
 		});
 		resolvedIssue.setTestItemResults(testItemResults);

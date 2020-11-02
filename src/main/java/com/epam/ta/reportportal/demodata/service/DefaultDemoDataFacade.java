@@ -112,7 +112,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private void generateSuites(Map<String, Map<String, List<String>>> suitesStructure, int i, String launchId, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
-		suitesStructure.entrySet().stream().limit(i + 1).forEach(suites -> {
+		suitesStructure.entrySet().stream().limit(i + 1L).forEach(suites -> {
 			DemoItemMetadata metadata = new DemoItemMetadata().withLaunch(launchId)
 					.withName(suites.getKey())
 					.withType(SUITE)

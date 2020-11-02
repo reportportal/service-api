@@ -26,10 +26,11 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.function.Function;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 
@@ -52,11 +53,18 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
 	}
 
 	@Override
-	protected Stream<Long> retrieveItemIds(Launch launch, StatusEnum status, boolean hasChildren) {
+	protected Function<Pageable, List<Long>> getItemIdsFunction(boolean hasChildren, Launch launch, StatusEnum status) {
 		return hasChildren ?
-				testItemRepository.streamIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(), status)
-						.map(BigInteger::longValue) :
-				testItemRepository.streamIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(), status).map(BigInteger::longValue);
+				pageable -> testItemRepository.findIdsByHasChildrenAndLaunchIdAndStatusOrderedByPathLevel(launch.getId(),
+						status,
+						pageable.getPageSize(),
+						pageable.getOffset()
+				) :
+				pageable -> testItemRepository.findIdsByNotHasChildrenAndLaunchIdAndStatus(launch.getId(),
+						status,
+						pageable.getPageSize(),
+						pageable.getOffset()
+				);
 	}
 
 }

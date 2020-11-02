@@ -48,7 +48,7 @@ class DemoDataController {
 
 	@PostMapping
 	@ApiOperation(value = "generate")
-	DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,
+	public DemoDataRs generate(@PathVariable String projectName, @Validated @RequestBody DemoDataRq demoDataRq,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return demoDataService.generate(demoDataRq, projectExtractor.extractProjectDetailsAdmin(user, projectName), user);
 	}

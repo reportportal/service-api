@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 public class ComponentHealthCheckTablePostProcessor implements WidgetPostProcessor {
 
 	private final WidgetValidator componentHealthCheckTableValidator;
-	private final WidgetUpdater componentHealthCheckUpdater;
+	private final WidgetUpdater materializedWidgetStateUpdater;
 
 	@Autowired
 	public ComponentHealthCheckTablePostProcessor(WidgetValidator componentHealthCheckTableValidator,
-			WidgetUpdater componentHealthCheckUpdater) {
+			WidgetUpdater materializedWidgetStateUpdater) {
 		this.componentHealthCheckTableValidator = componentHealthCheckTableValidator;
-		this.componentHealthCheckUpdater = componentHealthCheckUpdater;
+		this.materializedWidgetStateUpdater = materializedWidgetStateUpdater;
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class ComponentHealthCheckTablePostProcessor implements WidgetPostProcess
 	public void postProcess(Widget widget) {
 		if (supports(widget)) {
 			componentHealthCheckTableValidator.validate(widget);
-			componentHealthCheckUpdater.update(widget);
+			materializedWidgetStateUpdater.update(widget);
 		}
 	}
 }

@@ -49,13 +49,18 @@ public class UserBuilder implements Supplier<User> {
 
 	public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
 		if (request != null) {
-			fillUser(request.getLogin(), request.getPassword(), request.getEmail(), request.getFullName());
+			fillUser(request.getLogin(), request.getEmail(), request.getFullName());
 		}
 		return this;
 	}
 
 	public UserBuilder addCreateUserFullRQ(CreateUserRQFull request) {
-		ofNullable(request).ifPresent(it -> fillUser(it.getLogin(), it.getPassword(), it.getEmail(), it.getFullName()));
+		ofNullable(request).ifPresent(it -> fillUser(it.getLogin(), it.getEmail(), it.getFullName()));
+		return this;
+	}
+
+	public UserBuilder addPassword(String password) {
+		user.setPassword(password);
 		return this;
 	}
 
@@ -71,9 +76,8 @@ public class UserBuilder implements Supplier<User> {
 		return user;
 	}
 
-	private void fillUser(String login, String password, String email, String fullName) {
+	private void fillUser(String login, String email, String fullName) {
 		user.setLogin(EntityUtils.normalizeId(login));
-		user.setPassword(password);
 		user.setEmail(EntityUtils.normalizeId(email.trim()));
 		user.setFullName(fullName);
 		user.setUserType(UserType.INTERNAL);

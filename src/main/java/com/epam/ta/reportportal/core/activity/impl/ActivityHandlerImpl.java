@@ -17,6 +17,7 @@ package com.epam.ta.reportportal.core.activity.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.activity.ActivityHandler;
 import com.epam.ta.reportportal.dao.ActivityRepository;
@@ -32,6 +33,7 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.ActivityConverter;
 import com.epam.ta.reportportal.ws.model.ActivityResource;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -73,8 +75,9 @@ public class ActivityHandlerImpl implements ActivityHandler {
 	@Override
 	public Iterable<ActivityResource> getActivitiesHistory(ReportPortalUser.ProjectDetails projectDetails, Filter filter,
 			Queryable predefinedFilter, Pageable pageable) {
-		projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+
+		BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
+				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
 
 		FilterCondition projectCondition = FilterCondition.builder()
 				.eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId()))
@@ -121,13 +124,13 @@ public class ActivityHandlerImpl implements ActivityHandler {
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_OBJECT_ID, String.valueOf(itemId)).build())
 				.withCondition(FilterCondition.builder()
 						.withSearchCriteria(CRITERIA_ENTITY)
-						.withCondition(Condition.IN).withValue(Stream.of(ITEM, ITEM_ISSUE, TICKET)
+						.withCondition(Condition.IN)
+						.withValue(Stream.of(ITEM, ITEM_ISSUE, TICKET)
 								.map(Activity.ActivityEntityType::getValue)
 								.collect(Collectors.joining(",")))
 						.build());
 
-		Page<Activity> page = activityRepository.findByFilter(
-				new CompositeFilter(Operator.OR, filter, patternActivityFilter),
+		Page<Activity> page = activityRepository.findByFilter(new CompositeFilter(Operator.OR, filter, patternActivityFilter),
 				PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByCreationDateDesc)
 		);
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE).apply(page);
@@ -135,8 +138,8 @@ public class ActivityHandlerImpl implements ActivityHandler {
 
 	@Override
 	public Iterable<ActivityResource> getItemActivities(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
-		projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		BusinessRule.expect(projectRepository.existsById(projectDetails.getProjectId()), BooleanUtils::isTrue)
+				.verify(PROJECT_NOT_FOUND, projectDetails.getProjectId());
 		filter.withCondition(FilterCondition.builder().eq(CRITERIA_PROJECT_ID, String.valueOf(projectDetails.getProjectId())).build());
 		return PagedResourcesAssembler.pageConverter(ActivityConverter.TO_RESOURCE)
 				.apply(activityRepository.findByFilter(filter, pageable));

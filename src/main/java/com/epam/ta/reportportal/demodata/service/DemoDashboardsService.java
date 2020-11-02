@@ -114,10 +114,10 @@ class DemoDashboardsService {
 
 	private List<Widget> createWidgets(ReportPortalUser user, Long projectId, UserFilter filter) {
 		try {
-			TypeReference<List<WidgetRQ>> type = new TypeReference<List<WidgetRQ>>() {
+			TypeReference<List<WidgetRQ>> type = new TypeReference<>() {
 			};
 
-			List<Widget> widgets = ((List<WidgetRQ>) objectMapper.readValue(resource.getURL(), type)).stream().map(it -> {
+			List<Widget> widgets = objectMapper.readValue(resource.getURL(), type).stream().map(it -> {
 				final WidgetBuilder widgetBuilder = new WidgetBuilder().addWidgetRq(it).addProject(projectId).addOwner(user.getUsername());
 				final WidgetType widgetType = WidgetType.findByName(it.getWidgetType())
 						.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_TO_CREATE_WIDGET,
@@ -196,7 +196,6 @@ class DemoDashboardsService {
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(9), 0, 24, 7, 5));
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(10), 7, 24, 5, 5));
 		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(11), 0, 29, 12, 4));
-		dashboard.addWidget(createDashboardWidget(user.getUsername(), dashboard, widgets.get(12), 0, 31, 12, 4));
 
 		aclHandler.initAcl(dashboard, user.getUsername(), project.getId(), SHARED);
 		return dashboard;

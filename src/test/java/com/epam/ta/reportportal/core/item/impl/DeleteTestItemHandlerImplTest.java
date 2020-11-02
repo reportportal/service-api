@@ -191,7 +191,7 @@ class DeleteTestItemHandlerImplTest {
 		when(logIndexer.cleanIndex(any(), any())).thenReturn(CompletableFuture.completedFuture(0L));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
 		when(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
-				Collections.singletonList(item.getItemId()),
+				testItemRepository.selectAllDescendantsIds(item.getPath()),
 				LogLevel.ERROR.toInt()
 		)).thenReturn(Collections.emptyList());
 		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);

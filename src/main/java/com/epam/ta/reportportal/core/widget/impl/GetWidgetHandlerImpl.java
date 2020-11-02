@@ -44,17 +44,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_OWNER;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.ATTRIBUTES;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -69,7 +68,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 	private Map<WidgetType, MultilevelLoadContentStrategy> multilevelLoadContentStrategy;
 
-	private Map<WidgetType, MaterializedLoadContentStrategy> materializedLoadContentStrategy;
+	private MaterializedLoadContentStrategy materializedLoadContentStrategy;
 
 	private Set<WidgetType> unfilteredWidgetTypes;
 
@@ -101,8 +100,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Autowired
-	@Qualifier("materializedContentLoader")
-	public void setMaterializedLoadContentStrategy(Map<WidgetType, MaterializedLoadContentStrategy> materializedLoadContentStrategy) {
+	public void setMaterializedLoadContentStrategy(MaterializedLoadContentStrategy materializedLoadContentStrategy) {
 		this.materializedLoadContentStrategy = materializedLoadContentStrategy;
 	}
 
@@ -127,15 +125,15 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		Map<String, ?> content;
 
-		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
-			content = Collections.emptyMap();
-		} else {
+		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
 			content = loadContentStrategy.get(widgetType)
 					.loadContent(Lists.newArrayList(widget.getContentFields()),
 							buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
 							widget.getWidgetOptions(),
 							widget.getItemsCount()
 					);
+		} else {
+			content = Collections.emptyMap();
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
@@ -144,7 +142,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 	}
 
 	@Override
-	public WidgetResource getWidget(Long widgetId, String[] attributes, Map<String, String> params,
+	public WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params,
 			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		Widget widget = getShareableEntityHandler.getPermitted(widgetId, projectDetails);
 
@@ -158,10 +156,8 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 		);
 		Map<String, ?> content;
 
-		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(widget.getFilters())) {
-			content = Collections.emptyMap();
-		} else {
-
+		if (unfilteredWidgetTypes.contains(widgetType) || isFilteredContentLoadAllowed(widget.getFilters(), projectDetails, user)) {
+			params.put(ATTRIBUTES, Lists.newArrayList(attributes));
 			content = ofNullable(multilevelLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(Lists.newArrayList(
 					widget.getContentFields()),
 					buildFilterStrategyMapping.get(widgetType).buildFilter(widget),
@@ -169,17 +165,28 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 					attributes,
 					params,
 					widget.getItemsCount()
-			))
-					.orElseGet(() -> ofNullable(materializedLoadContentStrategy.get(widgetType)).map(strategy -> strategy.loadContent(widget,
-							attributes,
-							params
-					)).orElseGet(Collections::emptyMap));
+			)).orElseGet(() -> materializedLoadContentStrategy.loadContent(widget, params));
 
+		} else {
+			content = Collections.emptyMap();
 		}
 
 		WidgetResource resource = WidgetConverter.TO_WIDGET_RESOURCE.apply(widget);
 		resource.setContent(content);
 		return resource;
+	}
+
+	private Boolean isFilteredContentLoadAllowed(Collection<UserFilter> userFilters, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user) {
+
+		if (CollectionUtils.isEmpty(userFilters)) {
+			return false;
+		}
+
+		Long[] ids = userFilters.stream().map(UserFilter::getId).toArray(Long[]::new);
+		List<UserFilter> permittedFilters = getPermittedFilters(ids, projectDetails, user);
+		return userFilters.size() == permittedFilters.size();
+
 	}
 
 	@Override
@@ -193,7 +200,7 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 
 		List<UserFilter> userFilter = null;
 		if (CollectionUtils.isNotEmpty(previewRQ.getFilterIds())) {
-			userFilter = getUserFilterHandler.getFiltersById(previewRQ.getFilterIds().toArray(new Long[0]), projectDetails, user);
+			userFilter = getPermittedFilters(previewRQ.getFilterIds().toArray(Long[]::new), projectDetails, user);
 		}
 
 		if (!unfilteredWidgetTypes.contains(widgetType) && CollectionUtils.isEmpty(userFilter)) {
@@ -222,6 +229,10 @@ public class GetWidgetHandlerImpl implements GetWidgetHandler {
 							widget.getItemsCount()
 					);
 		}
+	}
+
+	List<UserFilter> getPermittedFilters(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		return getUserFilterHandler.getFiltersById(ids, projectDetails, user);
 	}
 
 	@Override

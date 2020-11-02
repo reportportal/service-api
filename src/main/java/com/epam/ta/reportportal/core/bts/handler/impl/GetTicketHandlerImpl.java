@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.bts.handler.impl;
 
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -30,9 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 
 /**
@@ -86,12 +85,10 @@ public class GetTicketHandlerImpl implements GetTicketHandler {
 	}
 
 	private BtsExtension getBtsExtension(Integration integration) {
-		Optional<BtsExtension> btsExtension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class);
-		expect(btsExtension, Optional::isPresent).verify(BAD_REQUEST_ERROR,
-				"BugTracking plugin for {} isn't installed",
-				integration.getType().getName()
-		);
-		return btsExtension.get();
+		return pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						Suppliers.formattedSupplier("BugTracking plugin for {} isn't installed", integration.getType().getName()).get()
+				));
 	}
 
 }

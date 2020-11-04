@@ -34,6 +34,7 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
  * @author Andrei_Ramanchuk
  */
 @Service
+@Transactional
 public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final UserBinaryDataService dataStore;
@@ -79,6 +81,8 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 
+		userContentRemover.removeContent(user);
+
 		List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
 		userProjects.forEach(project -> {
 			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
@@ -90,7 +94,6 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		});
 
 		dataStore.deleteUserPhoto(user);
-		userContentRemover.removeContent(user);
 		userRepository.delete(user);
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}

@@ -26,9 +26,12 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.LatestLaunchContent;
 import com.epam.ta.reportportal.entity.widget.content.MostTimeConsumingTestCasesContent;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -38,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,6 +52,7 @@ import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters.
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
 import static com.epam.ta.reportportal.core.widget.util.WidgetFilterUtil.GROUP_FILTERS;
 import static com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum.STEP;
+import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -75,20 +78,19 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 		Filter filter = GROUP_FILTERS.apply(filterSortMap.keySet());
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
 
-		return launchRepository.findLatestByFilter(filter.withCondition(FilterCondition.builder().eq(CRITERIA_NAME, launchName).build())).
-				map(launch -> {
-					final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(
-							buildItemFilter(launch.getId(), widgetOptions, contentFields),
-							MOST_TIME_CONSUMING_CASES_COUNT
-					);
+		Launch launch = launchRepository.findLatestByFilter(filter.withCondition(FilterCondition.builder()
+				.eq(CRITERIA_NAME, launchName)
+				.build())).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
-					return content.isEmpty() ?
-							Collections.<String, Object>emptyMap() :
-							ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, new LatestLaunchContent(launch))
-									.put(RESULT, content)
-									.build();
-				}).orElseGet(Collections::emptyMap);
+		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(buildItemFilter(
+				launch.getId(),
+				widgetOptions,
+				contentFields
+		), MOST_TIME_CONSUMING_CASES_COUNT);
 
+		return content.isEmpty() ?
+				emptyMap() :
+				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, new LatestLaunchContent(launch)).put(RESULT, content).build();
 	}
 
 	private Filter buildItemFilter(Long launchId, WidgetOptions widgetOptions, List<String> contentFields) {

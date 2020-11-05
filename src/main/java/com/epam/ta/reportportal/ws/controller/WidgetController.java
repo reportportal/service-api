@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -91,7 +92,7 @@ public class WidgetController {
 	@ApiOperation("Get multilevel widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@RequestParam(required = false, name = "attributes") String[] attributes, @RequestParam MultiValueMap<String, String> params, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, attributes, params, extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

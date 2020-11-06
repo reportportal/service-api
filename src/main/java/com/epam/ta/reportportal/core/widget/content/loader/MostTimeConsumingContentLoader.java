@@ -20,12 +20,12 @@ import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.widget.content.LoadContentStrategy;
-import com.epam.ta.reportportal.core.widget.content.loader.util.FilterUtils;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.LatestLaunchContent;
@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.*;
 import static com.epam.ta.reportportal.core.filter.predefined.PredefinedFilters.HAS_METHOD_OR_CLASS;
 import static com.epam.ta.reportportal.core.widget.content.constant.ContentLoaderConstants.*;
@@ -75,26 +76,28 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 	public Map<String, ?> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMap, WidgetOptions widgetOptions, int limit) {
 
 		Filter filter = GROUP_FILTERS.apply(filterSortMap.keySet());
-
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
-		Launch latestLaunch = launchRepository.findLatestByFilter(FilterUtils.buildLatestLaunchFilter(filter, launchName))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
-		filter = updateFilter(filter, latestLaunch.getId(), widgetOptions, contentFields);
+		Launch launch = launchRepository.findLatestByFilter(filter.withCondition(FilterCondition.builder()
+				.eq(CRITERIA_NAME, launchName)
+				.build())).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
-		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(filter,
-				MOST_TIME_CONSUMING_CASES_COUNT
-		);
+		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(buildItemFilter(
+				launch.getId(),
+				widgetOptions,
+				contentFields
+		), MOST_TIME_CONSUMING_CASES_COUNT);
 
 		return content.isEmpty() ?
 				emptyMap() :
-				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, new LatestLaunchContent(latestLaunch))
-						.put(RESULT, content)
-						.build();
+				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, new LatestLaunchContent(launch)).put(RESULT, content).build();
 	}
 
-	private Filter updateFilter(Filter filter, Long launchId, WidgetOptions widgetOptions, List<String> contentFields) {
-		filter = filter.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build());
+	private Filter buildItemFilter(Long launchId, WidgetOptions widgetOptions, List<String> contentFields) {
+		Filter filter = Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build())
+				.build();
 		filter = updateFilterWithStatuses(filter, contentFields);
 		filter = updateFilterWithTestItemTypes(filter,
 				ofNullable(widgetOptions.getOptions().get(INCLUDE_METHODS)).map(v -> BooleanUtils.toBoolean(String.valueOf(v)))

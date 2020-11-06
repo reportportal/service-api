@@ -31,6 +31,5 @@ public class UserContentRemoverImpl implements UserContentRemover {
 				Collections.singletonList(WidgetType.COMPONENT_HEALTH_CHECK_TABLE.getType())
 		);
 		widgets.forEach(w -> widgetContentRemovers.forEach(remover -> remover.removeContent(w)));
-		widgetRepository.deleteAll(widgets);
 	}
 }

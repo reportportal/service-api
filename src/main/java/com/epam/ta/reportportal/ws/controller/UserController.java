@@ -132,7 +132,6 @@ public class UserController {
 		return getUserHandler.getBidInformation(uuid);
 	}
 
-	@Transactional
 	@DeleteMapping(value = "/{id}")
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
@@ -141,7 +140,6 @@ public class UserController {
 		return deleteUserHandler.deleteUser(userId, currentUser);
 	}
 
-	@Transactional
 	@DeleteMapping
 	@PreAuthorize(ADMIN_ONLY)
 	@ResponseStatus(OK)

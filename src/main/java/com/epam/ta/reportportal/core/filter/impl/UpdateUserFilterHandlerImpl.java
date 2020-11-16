@@ -41,7 +41,6 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.UserFilterActivityResource;
 import com.epam.ta.reportportal.ws.model.filter.BulkUpdateFilterRQ;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -147,15 +146,12 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	@Override
 	public void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared) {
-		List<UserFilter> filtersToSave = Lists.newArrayListWithCapacity(filters.size());
 		filters.forEach(filter -> {
 			if (filter.isShared() != isShared) {
 				filter.setShared(isShared);
 				aclHandler.updateAcl(filter, projectId, filter.isShared());
-				filtersToSave.add(filter);
 			}
 		});
-		userFilterRepository.saveAll(filtersToSave);
 	}
 
 	/**

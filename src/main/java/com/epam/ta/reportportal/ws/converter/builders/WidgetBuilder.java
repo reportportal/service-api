@@ -91,7 +91,7 @@ public class WidgetBuilder implements Supplier<Widget> {
 	}
 
 	public WidgetBuilder addFilters(Iterable<UserFilter> userFilters) {
-		ofNullable(userFilters).ifPresent(it -> widget.setFilters(Sets.newHashSet(it)));
+		ofNullable(userFilters).ifPresent(it -> widget.setFilters(Sets.newLinkedHashSet(it)));
 		return this;
 	}
 

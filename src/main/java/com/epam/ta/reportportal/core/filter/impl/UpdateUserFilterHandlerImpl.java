@@ -147,15 +147,14 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	@Override
 	public void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared) {
-		List<UserFilter> filtersToSave = Lists.newLinkedList();
+		List<Long> filtersToUpdate = Lists.newLinkedList();
 		filters.forEach(filter -> {
 			if (filter.isShared() != isShared) {
-				filter.setShared(isShared);
 				aclHandler.updateAcl(filter, projectId, filter.isShared());
-				filtersToSave.add(filter);
+				filtersToUpdate.add(filter.getId());
 			}
 		});
-		userFilterRepository.saveAll(filtersToSave);
+		userFilterRepository.updateSharingFlag(filtersToUpdate, isShared);
 	}
 
 	/**

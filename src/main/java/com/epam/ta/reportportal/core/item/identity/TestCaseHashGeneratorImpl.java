@@ -40,15 +40,15 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 	}
 
 	@Override
-	public Integer generate(TestItem item, Long projectId) {
-		return prepare(item, projectId).hashCode();
+	public Integer generate(TestItem item, List<Long> parentIds, Long projectId) {
+		return prepare(item, parentIds, projectId).hashCode();
 	}
 
-	private String prepare(TestItem item, Long projectId) {
+	private String prepare(TestItem item, List<Long> parentIds, Long projectId) {
 		List<CharSequence> elements = Lists.newArrayList();
 
 		elements.add(projectId.toString());
-		getPathNames(item).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
+		getPathNames(parentIds).stream().filter(StringUtils::isNotEmpty).forEach(elements::add);
 		elements.add(item.getName());
 		item.getParameters()
 				.stream()
@@ -58,8 +58,7 @@ public class TestCaseHashGeneratorImpl implements TestCaseHashGenerator {
 		return String.join(";", elements);
 	}
 
-	private List<String> getPathNames(TestItem testItem) {
-		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
+	private List<String> getPathNames(List<Long> parentIds) {
 		return testItemRepository.findAllById(parentIds)
 				.stream()
 				.sorted(Comparator.comparingLong(TestItem::getItemId))

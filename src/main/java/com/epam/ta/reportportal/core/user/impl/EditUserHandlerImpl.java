@@ -171,21 +171,21 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private void validatePhoto(MultipartFile file) throws IOException {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
-		try (final TikaInputStream tikaInputStream = TikaInputStream.get(file.getBytes())) {
+		try (final InputStream inputStream = file.getInputStream();
+				final TikaInputStream tikaInputStream = TikaInputStream.get(inputStream)) {
 			MediaType mediaType = new AutoDetectParser().getDetector().detect(tikaInputStream, new Metadata());
 			expect(ImageFormat.fromValue(mediaType.getSubtype()), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
 					"Image format should be " + ImageFormat.getValues()
 			);
-			try (final InputStream inputStream = file.getInputStream()) {
-				Dimension dimension = getImageDimension(mediaType, inputStream).orElseThrow(() -> new ReportPortalException(
-						BINARY_DATA_CANNOT_BE_SAVED,
-						"Unable to resolve image size"
-				));
-				expect((dimension.getHeight() <= MAX_PHOTO_HEIGHT) && (dimension.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
-						BINARY_DATA_CANNOT_BE_SAVED,
-						"Image size should be 300x500px or less"
-				);
-			}
+
+			Dimension dimension = getImageDimension(mediaType, inputStream).orElseThrow(() -> new ReportPortalException(
+					BINARY_DATA_CANNOT_BE_SAVED,
+					"Unable to resolve image size"
+			));
+			expect((dimension.getHeight() <= MAX_PHOTO_HEIGHT) && (dimension.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
+					BINARY_DATA_CANNOT_BE_SAVED,
+					"Image size should be 300x500px or less"
+			);
 		}
 	}
 

@@ -34,7 +34,10 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.user.ChangePasswordRQ;
 import com.epam.ta.reportportal.ws.model.user.EditUserRQ;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.AutoDetectParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -57,7 +60,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
-import static java.util.Optional.ofNullable;
 
 /**
  * Edit user handler
@@ -169,22 +171,22 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private void validatePhoto(MultipartFile file) throws IOException {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
-		MediaType mediaType = ofNullable(file.getContentType()).flatMap(string -> ofNullable(MediaType.parse(string)))
-				.orElseThrow(() -> new ReportPortalException(BINARY_DATA_CANNOT_BE_SAVED, "Unable to resolve content type"));
-		expect(ImageFormat.fromValue(mediaType.getSubtype()), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
-				"Image format should be " + ImageFormat.getValues()
-		);
-		try (InputStream inputStream = file.getInputStream()) {
-			Dimension dimension = getImageDimension(mediaType, inputStream).orElseThrow(() -> new ReportPortalException(
-					BINARY_DATA_CANNOT_BE_SAVED,
-					"Unable to resolve image size"
-			));
-			expect((dimension.getHeight() <= MAX_PHOTO_HEIGHT) && (dimension.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
-					BINARY_DATA_CANNOT_BE_SAVED,
-					"Image size should be 300x500px or less"
+		try (final TikaInputStream tikaInputStream = TikaInputStream.get(file.getBytes())) {
+			MediaType mediaType = new AutoDetectParser().getDetector().detect(tikaInputStream, new Metadata());
+			expect(ImageFormat.fromValue(mediaType.getSubtype()), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
+					"Image format should be " + ImageFormat.getValues()
 			);
+			try (final InputStream inputStream = file.getInputStream()) {
+				Dimension dimension = getImageDimension(mediaType, inputStream).orElseThrow(() -> new ReportPortalException(
+						BINARY_DATA_CANNOT_BE_SAVED,
+						"Unable to resolve image size"
+				));
+				expect((dimension.getHeight() <= MAX_PHOTO_HEIGHT) && (dimension.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
+						BINARY_DATA_CANNOT_BE_SAVED,
+						"Image size should be 300x500px or less"
+				);
+			}
 		}
-
 	}
 
 	private Optional<Dimension> getImageDimension(MediaType mediaType, InputStream inputStream) {

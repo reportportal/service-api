@@ -16,11 +16,11 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGeneratorImpl;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -53,6 +53,7 @@ class TestCaseHashGeneratorImplTest {
 	void sameHashesForSameObjectsTest() {
 		TestItem item = getItem();
 		item.setItemId(3L);
+		item.setPath("1.2.3");
 
 		Map<Long, String> pathNames = new LinkedHashMap<>();
 		pathNames.put(1L, "suite");
@@ -65,10 +66,12 @@ class TestCaseHashGeneratorImplTest {
 			return parent;
 		}).collect(Collectors.toList());
 
-		when(testItemRepository.findAllById(Lists.newArrayList(1L, 2L))).thenReturn(parents);
+		final List<Long> parentIds = IdentityUtil.getParentIds(item);
 
-		Integer first = testCaseHashGenerator.generate(item, 100L);
-		Integer second = testCaseHashGenerator.generate(item, 100L);
+		when(testItemRepository.findAllById(parentIds)).thenReturn(parents);
+
+		Integer first = testCaseHashGenerator.generate(item, parentIds, 100L);
+		Integer second = testCaseHashGenerator.generate(item, parentIds, 100L);
 
 		assertNotNull(first);
 		assertNotNull(second);

@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.core.item.identity;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
 
+import java.util.List;
+
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 public interface TestCaseHashGenerator {
 
-	Integer generate(TestItem item, Long projectId);
+	Integer generate(TestItem item, List<Long> parentIds, Long projectId);
 }

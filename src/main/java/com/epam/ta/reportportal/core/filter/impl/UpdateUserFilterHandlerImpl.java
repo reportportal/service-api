@@ -150,7 +150,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 		List<Long> filtersToUpdate = Lists.newLinkedList();
 		filters.forEach(filter -> {
 			if (filter.isShared() != isShared) {
-				aclHandler.updateAcl(filter, projectId, filter.isShared());
+				aclHandler.updateAcl(filter, projectId, isShared);
 				filtersToUpdate.add(filter.getId());
 			}
 		});

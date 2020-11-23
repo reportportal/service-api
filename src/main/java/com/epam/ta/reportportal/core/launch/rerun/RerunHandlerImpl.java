@@ -141,7 +141,7 @@ public class RerunHandlerImpl implements RerunHandler {
 				.addAttributes(request.getAttributes())
 				.addParent(parent)
 				.get();
-		if (Objects.isNull(newItem.getTestCaseHash())) {
+		if (Objects.isNull(newItem.getTestCaseId())) {
 			newItem.setTestCaseHash(testCaseHashGenerator.generate(newItem, IdentityUtil.getItemTreeIds(parent), launch.getProjectId()));
 		}
 		return testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(newItem.getTestCaseHash(),

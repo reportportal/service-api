@@ -92,11 +92,9 @@ public class Swagger2Configuration {
 	@Autowired
 	private ServletContext servletContext;
 
-	@Autowired
 	@Value("${spring.application.name}")
-	private String eurekaName;
+	private String applicationName;
 
-	@Autowired
 	@Value("${info.build.version}")
 	private String buildVersion;
 
@@ -132,7 +130,12 @@ public class Swagger2Configuration {
 
 	@Bean
 	public PathProvider rpPathProvider() {
-		return new RelativePathProvider(servletContext);
+		return new RelativePathProvider(servletContext) {
+			@Override
+			public String getApplicationBasePath() {
+				return "/" + applicationName + super.getApplicationBasePath();
+			}
+		};
 	}
 
 	@Bean

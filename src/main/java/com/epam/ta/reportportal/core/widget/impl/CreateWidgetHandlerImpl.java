@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.core.events.activity.WidgetCreatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.content.updater.WidgetPostProcessor;
+import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetValidator;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -68,16 +69,19 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 
 	private final List<WidgetPostProcessor> widgetPostProcessors;
 
+	private final WidgetValidator widgetContentFieldsValidator;
+
 	@Autowired
 	public CreateWidgetHandlerImpl(WidgetRepository widgetRepository, UserFilterRepository filterRepository, MessageBus messageBus,
 			ShareableObjectsHandler aclHandler, UpdateUserFilterHandler updateUserFilterHandler,
-			List<WidgetPostProcessor> widgetPostProcessors) {
+			List<WidgetPostProcessor> widgetPostProcessors, WidgetValidator widgetContentFieldsValidator) {
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
 		this.messageBus = messageBus;
 		this.aclHandler = aclHandler;
 		this.updateUserFilterHandler = updateUserFilterHandler;
 		this.widgetPostProcessors = widgetPostProcessors;
+		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
 	}
 
 	@Override
@@ -94,9 +98,13 @@ public class CreateWidgetHandlerImpl implements CreateWidgetHandler {
 				.addFilters(userFilter)
 				.addOwner(user.getUsername())
 				.get();
+
+		widgetContentFieldsValidator.validate(widget);
+
 		widgetPostProcessors.stream()
 				.filter(widgetPostProcessor -> widgetPostProcessor.supports(widget))
 				.forEach(widgetPostProcessor -> widgetPostProcessor.postProcess(widget));
+
 		widgetRepository.save(widget);
 		aclHandler.initAcl(widget, user.getUsername(), projectDetails.getProjectId(), BooleanUtils.isTrue(createWidgetRQ.getShare()));
 		if (widget.isShared()) {

@@ -43,6 +43,7 @@ import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.YesNoRS;
 import com.epam.ta.reportportal.ws.model.activity.UserActivityResource;
 import com.epam.ta.reportportal.ws.model.user.*;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -116,7 +117,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 
 		request.setLogin(normalizeAndValidateLogin(request.getLogin()));
 		request.setEmail(normalizeAndValidateEmail(request.getEmail()));
-		request.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(request, basicUrl);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), creator.getUserId(), creator.getUsername());
@@ -131,8 +131,9 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		Project defaultProject = projectRepository.findByName(EntityUtils.normalizeId(request.getDefaultProject()))
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, request.getDefaultProject()));
 
-		userRepository.findById(loggedInUser.getUserId())
-				.orElseThrow(() -> new ReportPortalException(USER_NOT_FOUND, loggedInUser.getUsername()));
+		expect(userRepository.existsById(loggedInUser.getUserId()), BooleanUtils::isTrue).verify(USER_NOT_FOUND,
+				loggedInUser.getUsername()
+		);
 
 		Integration integration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(defaultProject.getId(),
 				IntegrationGroupEnum.NOTIFICATION
@@ -193,7 +194,6 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 		createUserRQFull.setDefaultProject(bid.getDefaultProject().getName());
 		createUserRQFull.setAccountRole(UserRole.USER.name());
 		createUserRQFull.setProjectRole(bid.getRole());
-		createUserRQFull.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		Pair<UserActivityResource, CreateUserRS> pair = saveDefaultProjectService.saveDefaultProject(createUserRQFull, null);
 		UserCreatedEvent userCreatedEvent = new UserCreatedEvent(pair.getKey(), pair.getKey().getId(), login);

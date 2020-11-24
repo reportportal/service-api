@@ -57,47 +57,10 @@ public class BugTrackingSystemController {
 		this.getTicketHandler = getTicketHandler;
 	}
 
-	//	@Transactional
-	//	@PutMapping(value = "/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Update global bug tracking system integration form fields")
-	//	@PreAuthorize(ADMIN_ONLY)
-	//	public OperationCompletionRS updateGlobalBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
-	//			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return updateBugTrackingSystemHandler.updateGlobalBugTrackingSystem(updateRequest, integrationId);
-	//	}
-	//
-	//	@Transactional
-	//	@PutMapping(value = "/{projectName}/{integrationId}", consumes = { APPLICATION_JSON_VALUE })
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Update project bug tracking system integration form fields")
-	//	@PreAuthorize(PROJECT_MANAGER)
-	//	public OperationCompletionRS updateProjectBtsIntegration(@Validated @RequestBody UpdateBugTrackingSystemRQ updateRequest,
-	//			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return updateBugTrackingSystemHandler.updateProjectBugTrackingSystem(updateRequest,
-	//				integrationId,
-	//				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
-	//				user
-	//		);
-	//	}
-	//
-	//	@Transactional(readOnly = true)
-	//	@PutMapping(value = "/{projectName}/{integrationId}/connect", consumes = { APPLICATION_JSON_VALUE })
-	//	@ResponseStatus(HttpStatus.OK)
-	//	@ApiOperation("Check connection to the integration instance")
-	//	@PreAuthorize(PROJECT_MANAGER)
-	//	public OperationCompletionRS checkConnection(@PathVariable String projectName, @PathVariable Long integrationId,
-	//			@RequestBody @Validated BtsConnectionTestRQ connectionTestRQ, @AuthenticationPrincipal ReportPortalUser user) {
-	//		return updateBugTrackingSystemHandler.testIntegrationConnection(connectionTestRQ,
-	//				integrationId,
-	//				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
-	//		);
-	//	}
-
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{projectName}/{integrationId}/fields-set")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get list of fields required for posting ticket")
+	@ApiOperation("Get list of fields required for posting ticket in concrete integration")
 	@PreAuthorize(PROJECT_MANAGER)
 	public List<PostFormField> getSetOfIntegrationSystemFields(@RequestParam(value = "issueType") String issuetype,
 			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
@@ -130,7 +93,7 @@ public class BugTrackingSystemController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = "/{integrationId}/issue_types")
 	@ResponseStatus(HttpStatus.OK)
-	@ApiOperation("Get list of fields required for posting ticket")
+	@ApiOperation("Get list of existed issue types in bts")
 	@PreAuthorize(ADMIN_ONLY)
 	public List<String> getAllowableIssueTypes(@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
 		return getTicketHandler.getAllowableIssueTypes(integrationId);

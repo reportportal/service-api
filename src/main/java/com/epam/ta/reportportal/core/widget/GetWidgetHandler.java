@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
 import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import org.springframework.data.domain.Pageable;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public interface GetWidgetHandler {
 	 * @param user           User
 	 * @return WidgetResource
 	 */
-	WidgetResource getWidget(Long widgetId, String[] attributes, Map<String, String> params, ReportPortalUser.ProjectDetails projectDetails,
+	WidgetResource getWidget(Long widgetId, String[] attributes, MultiValueMap<String, String> params, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**

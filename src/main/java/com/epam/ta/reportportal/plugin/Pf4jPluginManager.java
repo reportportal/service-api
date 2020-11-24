@@ -240,8 +240,9 @@ public class Pf4jPluginManager implements Pf4jPluginBox {
 	@Override
 	public boolean deletePlugin(PluginWrapper pluginWrapper) {
 		return integrationTypeRepository.findByName(pluginWrapper.getPluginId()).map(this::deletePlugin).orElseGet(() -> {
-			deletePluginResources(Paths.get(resourcesDir, pluginWrapper.getPluginId()).toString());
 			applicationEventPublisher.publishEvent(new PluginEvent(pluginWrapper.getPluginId(), UNLOAD_KEY));
+			deletePluginResources(Paths.get(resourcesDir, pluginWrapper.getPluginId()).toString());
+			destroyDependency(pluginWrapper.getPluginId());
 			return pluginManager.deletePlugin(pluginWrapper.getPluginId());
 		});
 	}

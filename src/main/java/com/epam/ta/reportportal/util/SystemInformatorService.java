@@ -56,7 +56,7 @@ public class SystemInformatorService {
 	 * Get formatted string of server CPU usage in percent
 	 */
 	private float getFormattedCPU() {
-		return Double.valueOf(oper.getSystemCpuLoad() * 100).floatValue();
+		return (float) (oper.getSystemCpuLoad() * 100);
 	}
 
 	/**

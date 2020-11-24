@@ -120,11 +120,11 @@ public class DemoDataTestItemService {
 
 	private Issue issueType() {
 		int ISSUE_PROBABILITY = 25;
-		if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
+		if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) { // NOSONAR
 			return ContentUtils.getProductBug();
-		} else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
+		} else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) { // NOSONAR
 			return ContentUtils.getAutomationBug();
-		} else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) {
+		} else if (ContentUtils.getWithProbability(ISSUE_PROBABILITY)) { // NOSONAR
 			return ContentUtils.getSystemIssue();
 		} else {
 			return ContentUtils.getInvestigate();

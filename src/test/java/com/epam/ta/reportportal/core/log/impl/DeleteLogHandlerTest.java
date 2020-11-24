@@ -27,7 +27,6 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.user.User;
@@ -78,7 +77,7 @@ class DeleteLogHandlerTest {
 		long projectId = 1L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+		when(projectRepository.existsById(projectId)).thenReturn(false);
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.deleteLog(1L, extractProjectDetails(user, "test_project"), user)
@@ -92,7 +91,7 @@ class DeleteLogHandlerTest {
 		long logId = 2L;
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, projectId);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.existsById(projectId)).thenReturn(true);
 		when(logRepository.findById(logId)).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -123,7 +122,7 @@ class DeleteLogHandlerTest {
 		log.setTestItem(testItem);
 
 		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.existsById(projectId)).thenReturn(true);
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -160,7 +159,7 @@ class DeleteLogHandlerTest {
 		log.setAttachment(attachment);
 
 		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.existsById(projectId)).thenReturn(true);
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 
 		handler.deleteLog(logId, extractProjectDetails(user, "test_project"), user);
@@ -198,7 +197,7 @@ class DeleteLogHandlerTest {
 		attachment.setThumbnailId(attachmentThumbnailPath);
 		log.setAttachment(attachment);
 		when(testItemService.getEffectiveLaunch(any(TestItem.class))).thenReturn(launch);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(new Project()));
+		when(projectRepository.existsById(projectId)).thenReturn(true);
 		when(logRepository.findById(logId)).thenReturn(Optional.of(log));
 		doThrow(IllegalArgumentException.class).when(logRepository).delete(log);
 

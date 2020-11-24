@@ -121,7 +121,7 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 							launch
 					);
 				} catch (Exception e) {
-					LOGGER.error("Unable to send email. Error: \n{}", e);
+					LOGGER.error("Unable to send email.", e);
 				}
 			}
 		});

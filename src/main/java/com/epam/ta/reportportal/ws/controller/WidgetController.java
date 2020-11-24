@@ -30,11 +30,13 @@ import com.epam.ta.reportportal.ws.model.widget.WidgetResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,12 +86,13 @@ public class WidgetController {
 		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
 	}
 
+	@Transactional(readOnly = true)
 	@GetMapping(value = "multilevel/{widgetId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Get multilevel widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
-			@RequestParam(required = false, name = "attributes") String[] attributes, @RequestParam Map<String, String> params, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, attributes, params, extractProjectDetails(user, projectName), user);
+			@RequestParam(required = false, name = "attributes") String[] attributes, @RequestParam MultiValueMap<String, String> params, @AuthenticationPrincipal ReportPortalUser user) {
+		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

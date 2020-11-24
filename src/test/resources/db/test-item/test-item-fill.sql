@@ -62,10 +62,17 @@ values ('testKey', 'testValue', 5, null, false);
 
 insert into test_item_results(result_id, status) values (5, 'IN_PROGRESS');
 
+
+-- Retry item
+insert into test_item(test_case_hash, item_id, uuid, name, type, start_time, description, last_modified, path, unique_id, has_children, has_retries, parent_id, retry_of, launch_id)
+values (7, 7, '3ab067e5-537b-45ff-9605-retry', 'retry item', 'STEP', now(), 'desc', now(), '6.7', '757b376f-dfa0-40db-9373-retry', false, false, 6, 6, null);
+
+insert into test_item_results(result_id, status) values (7, 'FAILED');
+
 INSERT INTO public.shareable_entity (id, shared, owner, project_id) VALUES (1, FALSE, 'default', 2);
 INSERT INTO public.filter (id, name, target, description) VALUES (1, 'Admin Filter', 'Launch', NULL);
 INSERT INTO public.filter_sort (id, filter_id, field, direction) VALUES (1, 1, 'name', 'ASC');
 INSERT INTO public.filter_condition (id, filter_id, condition, value, search_criteria, negative) VALUES (1, 1, 'CONTAINS', 'test', 'name', FALSE);
 
 alter sequence launch_id_seq restart with 4;
-alter sequence test_item_item_id_seq restart with 7;
+alter sequence test_item_item_id_seq restart with 8;

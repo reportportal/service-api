@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.core.events.activity.WidgetUpdatedEvent;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
+import com.epam.ta.reportportal.core.widget.content.updater.validator.WidgetValidator;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -68,11 +69,13 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 	private final ObjectMapper objectMapper;
 	private final GetShareableEntityHandler<Widget> getShareableEntityHandler;
 	private final ShareableObjectsHandler aclHandler;
+	private final WidgetValidator widgetContentFieldsValidator;
 
 	@Autowired
 	public UpdateWidgetHandlerImpl(UpdateUserFilterHandler updateUserFilterHandler, WidgetRepository widgetRepository,
 			UserFilterRepository filterRepository, MessageBus messageBus, ObjectMapper objectMapper,
-			GetShareableEntityHandler<Widget> getShareableEntityHandler, ShareableObjectsHandler aclHandler) {
+			GetShareableEntityHandler<Widget> getShareableEntityHandler, ShareableObjectsHandler aclHandler,
+			WidgetValidator widgetContentFieldsValidator) {
 		this.updateUserFilterHandler = updateUserFilterHandler;
 		this.widgetRepository = widgetRepository;
 		this.filterRepository = filterRepository;
@@ -80,12 +83,15 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		this.objectMapper = objectMapper;
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.aclHandler = aclHandler;
+		this.widgetContentFieldsValidator = widgetContentFieldsValidator;
 	}
 
 	@Override
 	public OperationCompletionRS updateWidget(Long widgetId, WidgetRQ updateRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		Widget widget = getShareableEntityHandler.getAdministrated(widgetId, projectDetails);
+
+		widgetContentFieldsValidator.validate(widget);
 
 		if (!widget.getName().equals(updateRQ.getName())) {
 			BusinessRule.expect(widgetRepository.existsByNameAndOwnerAndProjectId(updateRQ.getName(),
@@ -100,10 +106,10 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 		String widgetOptionsBefore = parseWidgetOptions(widget);
 
+		updateSharing(widget, projectDetails.getProjectId(), updateRQ.getShare());
+
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
-
-		updateSharing(widget, projectDetails.getProjectId(), updateRQ.getShare());
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(widget),

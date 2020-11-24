@@ -129,9 +129,6 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 		if (before.isShared() != updated.isShared()) {
 			aclHandler.updateAcl(updated, projectDetails.getProjectId(), updated.isShared());
-			if (!updated.isShared()) {
-				widgetRepository.deleteRelationByFilterIdAndNotOwner(updated.getId(), updated.getOwner());
-			}
 		}
 
 		messageBus.publishActivity(new FilterUpdatedEvent(before,
@@ -150,15 +147,14 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	@Override
 	public void updateSharing(Collection<UserFilter> filters, Long projectId, boolean isShared) {
-		List<UserFilter> filtersToSave = Lists.newArrayListWithCapacity(filters.size());
+		List<Long> filtersToUpdate = Lists.newLinkedList();
 		filters.forEach(filter -> {
 			if (filter.isShared() != isShared) {
-				filter.setShared(isShared);
-				aclHandler.updateAcl(filter, projectId, filter.isShared());
-				filtersToSave.add(filter);
+				aclHandler.updateAcl(filter, projectId, isShared);
+				filtersToUpdate.add(filter.getId());
 			}
 		});
-		userFilterRepository.saveAll(filtersToSave);
+		userFilterRepository.updateSharingFlag(filtersToUpdate, isShared);
 	}
 
 	/**

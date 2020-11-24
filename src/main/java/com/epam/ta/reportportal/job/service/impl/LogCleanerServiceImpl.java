@@ -101,7 +101,7 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 			LOGGER.error("Error during cleaning outdated logs", e);
 		}
 
-		if (logsCount.get() > 0 || attachmentsCount.get() > 0 || attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
+		if (logsCount.get() > 0 || attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
 			LOGGER.info("Removed {} logs for project {} with {} attachments and {} thumbnails",
 					logsCount.get(),
 					project.getId(),

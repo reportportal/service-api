@@ -16,9 +16,11 @@
 
 package com.epam.ta.reportportal.core.project.impl;
 
+import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
@@ -64,6 +66,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 
@@ -91,6 +94,8 @@ import static java.util.stream.Collectors.toSet;
 @Service
 public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
+	private static final String UPDATE_EVENT = "update";
+
 	private final ProjectRepository projectRepository;
 
 	private final UserRepository userRepository;
@@ -100,6 +105,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectUserRepository projectUserRepository;
 
 	private final MessageBus messageBus;
+
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	private final MailServiceFactory mailServiceFactory;
 
@@ -120,7 +127,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	@Autowired
 	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
-			MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
+			ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
 			IndexerStatusCache indexerStatusCache, AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
 			ShareableObjectsHandler aclHandler, ProjectConverter projectConverter) {
 		this.projectRepository = projectRepository;
@@ -128,6 +135,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		this.preferenceRepository = preferenceRepository;
 		this.messageBus = messageBus;
 		this.projectUserRepository = projectUserRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 		this.mailServiceFactory = mailServiceFactory;
 		this.launchRepository = launchRepository;
 		this.analyzerStatusCache = analyzerStatusCache;
@@ -144,10 +152,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		ProjectAttributesActivityResource before = TO_ACTIVITY_RESOURCE.apply(project);
 		updateProjectConfiguration(updateProjectRQ.getConfiguration(), project);
-		updateProjectUserRoles(updateProjectRQ.getUserRoles(), project, user);
+		ofNullable(updateProjectRQ.getUserRoles()).ifPresent(roles -> updateProjectUserRoles(roles, project, user));
 		projectRepository.save(project);
 		ProjectAttributesActivityResource after = TO_ACTIVITY_RESOURCE.apply(project);
 
+		applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), UPDATE_EVENT));
 		messageBus.publishActivity(new ProjectUpdatedEvent(before, after, user.getUserId(), user.getUsername()));
 		messageBus.publishActivity(new ProjectAnalyzerConfigEvent(before, after, user.getUserId(), user.getUsername()));
 
@@ -358,7 +367,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void updateProjectUserRoles(Map<String, String> userRoles, Project project, ReportPortalUser user) {
 
-		if (null != userRoles && !user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
+		if (!user.getUserRole().equals(UserRole.ADMINISTRATOR)) {
 			expect(userRoles.get(user.getUsername()), isNull()).verify(ErrorType.UNABLE_TO_UPDATE_YOURSELF_ROLE, user.getUsername());
 		}
 
@@ -418,7 +427,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void validateDelay(String value) {
 		try {
-			Long.parseLong(value);
+			BusinessRule.expect(Long.parseLong(value), delay -> delay >= 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
 		} catch (NumberFormatException exc) {
 			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
 		}

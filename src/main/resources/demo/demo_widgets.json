@@ -212,29 +212,5 @@
         "includeMethods": false
       }
     }
-  },
-  {
-    "name": "CUMULATIVE TREND CHART",
-    "widgetType": "cumulative",
-    "share": true,
-    "contentParameters": {
-      "itemsCount": "15",
-      "contentFields": [
-        "statistics$executions$failed",
-        "statistics$executions$skipped",
-        "statistics$executions$passed",
-        "statistics$defects$product_bug$total",
-        "statistics$defects$automation_bug$total",
-        "statistics$defects$system_issue$total",
-        "statistics$defects$no_defect$total",
-        "statistics$defects$to_investigate$total"
-      ],
-      "widgetOptions": {
-        "attributes": [
-          "platform",
-          "build"
-        ]
-      }
-    }
   }
 ]

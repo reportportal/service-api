@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.core.item.impl;
 
+import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.Parameter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,8 +95,10 @@ class TestItemUniqueIdGeneratorTest {
 			return parent;
 		}).collect(Collectors.toList());
 
-		when(testItemRepository.findAllById(Lists.newArrayList(1L, 2L))).thenReturn(parents);
-		String generated = uniqueIdGenerator.generate(testItem, launch);
+		final List<Long> parentIds = IdentityUtil.getParentIds(testItem);
+
+		when(testItemRepository.findAllById(parentIds)).thenReturn(parents);
+		String generated = uniqueIdGenerator.generate(testItem, parentIds, launch);
 
 		assertNotNull(generated);
 		assertTrue(generated.startsWith("auto:"));

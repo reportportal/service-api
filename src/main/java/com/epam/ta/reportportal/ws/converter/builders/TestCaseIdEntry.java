@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-class TestCaseIdEntry {
+public class TestCaseIdEntry {
 
 	private String id;
 

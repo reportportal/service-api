@@ -26,7 +26,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -50,8 +53,8 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 	}
 
 	@Override
-	public String generate(TestItem testItem, Launch launch) {
-		String forEncoding = prepareForEncoding(testItem, launch);
+	public String generate(TestItem testItem, List<Long> parentIds, Launch launch) {
+		String forEncoding = prepareForEncoding(testItem, parentIds, launch);
 		return TRAIT + DigestUtils.md5Hex(forEncoding);
 	}
 
@@ -60,10 +63,10 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		return !Strings.isNullOrEmpty(encoded) && encoded.startsWith(TRAIT);
 	}
 
-	private String prepareForEncoding(TestItem testItem, Launch launch) {
+	private String prepareForEncoding(TestItem testItem, List<Long> parentIds, Launch launch) {
 		Long projectId = launch.getProjectId();
 		String launchName = launch.getName();
-		List<String> pathNames = getPathNames(testItem);
+		List<String> pathNames = getPathNames(parentIds);
 		String itemName = testItem.getName();
 		StringJoiner joiner = new StringJoiner(";");
 		joiner.add(projectId.toString()).add(launchName);
@@ -80,8 +83,7 @@ public class TestItemUniqueIdGenerator implements UniqueIdGenerator {
 		return joiner.toString();
 	}
 
-	private List<String> getPathNames(TestItem testItem) {
-		List<Long> parentIds = IdentityUtil.getParentIds(testItem);
+	private List<String> getPathNames(List<Long> parentIds) {
 		return testItemRepository.findAllById(parentIds)
 				.stream()
 				.sorted(Comparator.comparingLong(TestItem::getItemId))

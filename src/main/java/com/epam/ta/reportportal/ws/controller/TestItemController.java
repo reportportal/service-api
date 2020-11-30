@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
@@ -72,6 +73,7 @@ public class TestItemController {
 
 	public static final String HISTORY_TYPE_PARAM = "type";
 	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
+	public static final String PROVIDER_TYPE_PARAM = "providerType";
 	public static final String IS_LATEST_LAUNCHES_REQUEST_PARAM = "isLatest";
 	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
 	private static final String HISTORY_DEPTH_PARAM = "historyDepth";
@@ -169,6 +171,24 @@ public class TestItemController {
 				filterId,
 				isLatest,
 				launchesLimit
+		);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/v2")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test items by specified filter")
+	public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam (value = PROVIDER_TYPE_PARAM) String providerBaseType,
+			@RequestParam Map<String, String> providerParams,
+			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
+			@SortFor(TestItem.class) Pageable pageable) {
+		return getTestItemHandler.getTestItemsWithProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
+				pageable,
+				extractProjectDetails(user, projectName),
+				user,
+				providerBaseType,
+				providerParams
 		);
 	}
 

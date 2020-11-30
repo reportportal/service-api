@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * GET operations for {@link TestItem}
@@ -59,6 +60,19 @@ public interface GetTestItemHandler {
 	 */
 	Iterable<TestItemResource> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
+
+	/**
+	 * Gets {@link TestItem} instances
+	 *
+	 * @param filter         {@link Filter}
+	 * @param pageable       {@link Pageable}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
+	 * @return {@link Iterable} of the {@link TestItemResource}
+	 */
+	Iterable<TestItemResource> getTestItemsWithProvider(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, String providerType, Map<String, String> providerParams);
+
 
 	/**
 	 * Gets accumulated statistics of items by filter

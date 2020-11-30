@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.GetTestItemHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
+import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
+import com.epam.ta.reportportal.core.item.impl.provider.DataProviderType;
 import com.epam.ta.reportportal.core.item.utils.DefaultLaunchFilterProvider;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
@@ -54,10 +56,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -94,8 +93,11 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 
 	@Autowired
-	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemService testItemService, LaunchAccessValidator launchAccessValidator,
-			ItemAttributeRepository itemAttributeRepository,
+	private Map<DataProviderType, DataProviderHandler> testItemDataProviders;
+
+	@Autowired
+	public GetTestItemHandlerImpl(TestItemRepository testItemRepository, TestItemService testItemService,
+			LaunchAccessValidator launchAccessValidator, ItemAttributeRepository itemAttributeRepository,
 			List<ResourceUpdaterProvider<TestItemUpdaterContent, TestItemResource>> resourceUpdaterProviders,
 			TicketRepository ticketRepository, GetShareableEntityHandler<UserFilter> getShareableEntityHandler1) {
 		this.testItemRepository = testItemRepository;
@@ -143,6 +145,31 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 			launchAccessValidator.validate(id, projectDetails, user);
 			return testItemRepository.findByFilter(filter, pageable);
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Neither launch nor filter id specified.")));
+
+		return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
+			List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),
+					testItemPage.getContent()
+			);
+			return items.stream().map(item -> {
+				TestItemResource testItemResource = TestItemConverter.TO_RESOURCE.apply(item);
+				resourceUpdaters.forEach(updater -> updater.updateResource(testItemResource));
+				return testItemResource;
+			}).collect(toList());
+		}).apply(testItemPage);
+	}
+
+	@Override
+	public Iterable<TestItemResource> getTestItemsWithProvider(Queryable filter, Pageable pageable,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String providerType,
+			Map<String, String> providerParams) {
+		DataProviderType dataProviderType = DataProviderType.findByName(providerType).orElseThrow(() -> new ReportPortalException(
+				ErrorType.BAD_REQUEST_ERROR,
+				"Test item data provider base is not specified. Allowed data provider {}",
+				DataProviderType.values()
+		));
+
+		Page<TestItem> testItemPage = testItemDataProviders.get(dataProviderType)
+				.getTestItems(filter, pageable, projectDetails, user, providerType, providerParams);
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
 			List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),

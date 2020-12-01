@@ -52,7 +52,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, String providerType, Map<String, String> providerParams) {
+			ReportPortalUser user, Map<String, String> providerParams) {
 		String compositeAttribute = providerParams.get(CRITERIA_COMPOSITE_ATTRIBUTE);
 		BusinessRule.expect(compositeAttribute, it -> !StringUtils.isEmpty(it))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Level attributes must be provided for widget based items provider");

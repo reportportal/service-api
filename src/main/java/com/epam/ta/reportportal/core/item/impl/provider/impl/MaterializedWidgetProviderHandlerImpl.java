@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -57,9 +58,9 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, String providerType, Map<String, String> providerParams) {
+			ReportPortalUser user, Map<String, String> providerParams) {
 		Long widgetId = Optional.ofNullable(providerParams.get(WIDGET_ID_PARAM))
-				.map(Long::parseLong)
+				.map(ControllerUtils::safeParseLong)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						"Widget id must be provided for widget based items provider"
 				));
@@ -69,7 +70,7 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		providerParams.put(VIEW_NAME, widget.getWidgetOptions().getOptions().get(VIEW_NAME).toString());
 		return testItemWidgetDataProviders.get(widgetType)
-				.getTestItems(filter, pageable, projectDetails, user, providerType, providerParams);
+				.getTestItems(filter, pageable, projectDetails, user, providerParams);
 	}
 
 	private void validateState(WidgetOptions widgetOptions) {

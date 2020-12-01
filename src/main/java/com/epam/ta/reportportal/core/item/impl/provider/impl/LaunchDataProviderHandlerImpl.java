@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -48,8 +49,8 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, String providerType, Map<String, String> providerParams) {
-		Long launchId = Optional.ofNullable(providerParams.get(LAUNCH_ID_PARAM)).map(Long::parseLong)
+			ReportPortalUser user, Map<String, String> providerParams) {
+		Long launchId = Optional.ofNullable(providerParams.get(LAUNCH_ID_PARAM)).map(ControllerUtils::safeParseLong)
 				.orElseThrow(() -> new ReportPortalException(
 						ErrorType.BAD_REQUEST_ERROR,
 						"Launch id must be provided for launch based items provider"

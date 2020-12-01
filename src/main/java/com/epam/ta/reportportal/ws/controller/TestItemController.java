@@ -73,7 +73,6 @@ public class TestItemController {
 
 	public static final String HISTORY_TYPE_PARAM = "type";
 	public static final String FILTER_ID_REQUEST_PARAM = "filterId";
-	public static final String PROVIDER_TYPE_PARAM = "providerType";
 	public static final String IS_LATEST_LAUNCHES_REQUEST_PARAM = "isLatest";
 	public static final String LAUNCHES_LIMIT_REQUEST_PARAM = "launchesLimit";
 	private static final String HISTORY_DEPTH_PARAM = "historyDepth";
@@ -179,7 +178,6 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam (value = PROVIDER_TYPE_PARAM) String providerBaseType,
 			@RequestParam Map<String, String> providerParams,
 			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
 			@SortFor(TestItem.class) Pageable pageable) {
@@ -187,7 +185,6 @@ public class TestItemController {
 				pageable,
 				extractProjectDetails(user, projectName),
 				user,
-				providerBaseType,
 				providerParams
 		);
 	}

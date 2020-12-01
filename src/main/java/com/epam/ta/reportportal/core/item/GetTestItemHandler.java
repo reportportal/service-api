@@ -71,7 +71,7 @@ public interface GetTestItemHandler {
 	 * @return {@link Iterable} of the {@link TestItemResource}
 	 */
 	Iterable<TestItemResource> getTestItemsWithProvider(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, String providerType, Map<String, String> providerParams);
+			ReportPortalUser user, Map<String, String> providerParams);
 
 
 	/**

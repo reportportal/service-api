@@ -78,6 +78,8 @@ import static java.util.stream.Collectors.toList;
 @Service
 class GetTestItemHandlerImpl implements GetTestItemHandler {
 
+	public static final String PROVIDER_TYPE_PARAM = "providerType";
+
 	private final TestItemRepository testItemRepository;
 
 	private final TestItemService testItemService;
@@ -160,16 +162,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 
 	@Override
 	public Iterable<TestItemResource> getTestItemsWithProvider(Queryable filter, Pageable pageable,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, String providerType,
-			Map<String, String> providerParams) {
-		DataProviderType dataProviderType = DataProviderType.findByName(providerType).orElseThrow(() -> new ReportPortalException(
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Map<String, String> providerParams) {
+		DataProviderType dataProviderType = DataProviderType.findByName(providerParams.get(PROVIDER_TYPE_PARAM)).orElseThrow(() -> new ReportPortalException(
 				ErrorType.BAD_REQUEST_ERROR,
 				"Test item data provider base is not specified. Allowed data provider {}",
 				DataProviderType.values()
 		));
 
 		Page<TestItem> testItemPage = testItemDataProviders.get(dataProviderType)
-				.getTestItems(filter, pageable, projectDetails, user, providerType, providerParams);
+				.getTestItems(filter, pageable, projectDetails, user, providerParams);
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
 			List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),

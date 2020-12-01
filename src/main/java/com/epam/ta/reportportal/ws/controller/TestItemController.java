@@ -179,7 +179,8 @@ public class TestItemController {
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestParam Map<String, String> providerParams,
-			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
+			@FilterFor(TestItem.class) Filter filter,
+			@FilterFor(TestItem.class) Queryable predefinedFilter,
 			@SortFor(TestItem.class) Pageable pageable) {
 		return getTestItemHandler.getTestItemsWithProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,

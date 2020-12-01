@@ -63,6 +63,13 @@ public class ControllerUtils {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "The provided parameter must be a number");
 		}
 	}
+	public static Integer safeParseInt(String value) {
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "The provided parameter must be a number");
+		}
+	}
 
 	public static void validateSaveRQ(Validator validator, SaveLogRQ saveLogRQ) {
 		Set<ConstraintViolation<SaveLogRQ>> constraintViolations = validator.validate(saveLogRQ);

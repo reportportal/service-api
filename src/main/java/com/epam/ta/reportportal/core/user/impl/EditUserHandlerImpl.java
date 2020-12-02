@@ -43,9 +43,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -56,6 +61,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
 import static com.epam.ta.reportportal.entity.user.UserType.INTERNAL;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.*;
+import static java.util.Optional.ofNullable;
 
 /**
  * Edit user handler
@@ -74,13 +80,19 @@ public class EditUserHandlerImpl implements EditUserHandler {
 
 	private final PasswordEncoder passwordEncoder;
 
+	private final MimetypesFileTypeMap mimetypesFileTypeMap;
+
+	private final AutoDetectParser autoDetectParser;
+
 	@Autowired
 	public EditUserHandlerImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProjectRepository projectRepository,
-			UserBinaryDataService userBinaryDataService) {
+			UserBinaryDataService userBinaryDataService, MimetypesFileTypeMap mimetypesFileTypeMap, AutoDetectParser autoDetectParser) {
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.projectRepository = projectRepository;
 		this.userBinaryDataService = userBinaryDataService;
+		this.mimetypesFileTypeMap = mimetypesFileTypeMap;
+		this.autoDetectParser = autoDetectParser;
 	}
 
 	@Override
@@ -135,12 +147,8 @@ public class EditUserHandlerImpl implements EditUserHandler {
 	@Override
 	public OperationCompletionRS uploadPhoto(String username, MultipartFile file) {
 		User user = userRepository.findByLogin(username).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, username));
-		try {
-			validatePhoto(file);
-			userBinaryDataService.saveUserPhoto(user, file);
-		} catch (IOException e) {
-			fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
-		}
+		validatePhoto(file);
+		userBinaryDataService.saveUserPhoto(user, file);
 		return new OperationCompletionRS("Profile photo has been uploaded successfully");
 	}
 
@@ -165,18 +173,55 @@ public class EditUserHandlerImpl implements EditUserHandler {
 		return new OperationCompletionRS("Password has been changed successfully");
 	}
 
-	private void validatePhoto(MultipartFile file) throws IOException {
+	private void validatePhoto(MultipartFile file) {
 		expect(file.getSize() < MAX_PHOTO_SIZE, equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED, "Image size should be less than 1 mb");
-		//TODO investigate stream closing requirement
-		MediaType mediaType = new AutoDetectParser().getDetector().detect(TikaInputStream.get(file.getBytes()), new Metadata());
-		String subtype = mediaType.getSubtype();
-		expect(ImageFormat.fromValue(subtype), Optional::isPresent).verify(BINARY_DATA_CANNOT_BE_SAVED,
-				"Image format should be " + ImageFormat.getValues()
-		);
-		//TODO investigate stream closing requirement
-		BufferedImage read = ImageIO.read(file.getInputStream());
-		expect((read.getHeight() <= MAX_PHOTO_HEIGHT) && (read.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(BINARY_DATA_CANNOT_BE_SAVED,
-				"Image size should be 300x500px or less"
-		);
+
+		final MediaType mediaType = resolveMediaType(file);
+		try (final InputStream inputStream = file.getInputStream()) {
+			Dimension dimension = getImageDimension(mediaType, inputStream).orElseThrow(() -> new ReportPortalException(
+					BINARY_DATA_CANNOT_BE_SAVED,
+					"Unable to resolve image size"
+			));
+			expect((dimension.getHeight() <= MAX_PHOTO_HEIGHT) && (dimension.getWidth() <= MAX_PHOTO_WIDTH), equalTo(true)).verify(
+					BINARY_DATA_CANNOT_BE_SAVED,
+					"Image size should be 300x500px or less"
+			);
+		} catch (IOException e) {
+			fail().withError(BINARY_DATA_CANNOT_BE_SAVED);
+		}
+	}
+
+	private MediaType resolveMediaType(MultipartFile file) {
+		return ofNullable(file.getContentType()).flatMap(string -> ofNullable(MediaType.parse(string)).filter(mediaType -> ImageFormat.fromValue(
+				mediaType.getSubtype()).isPresent()))
+						.orElseGet(() -> {
+							try (final TikaInputStream tikaInputStream = TikaInputStream.get(file.getInputStream())) {
+								MediaType mediaType = autoDetectParser.getDetector().detect(tikaInputStream, new Metadata());
+								expect(ImageFormat.fromValue(mediaType.getSubtype()), Optional::isPresent).verify(
+										BINARY_DATA_CANNOT_BE_SAVED,
+										"Image format should be " + ImageFormat.getValues()
+								);
+								return mediaType;
+							} catch (IOException e) {
+								throw new ReportPortalException(BINARY_DATA_CANNOT_BE_SAVED);
+							}
+						});
+	}
+
+	private Optional<Dimension> getImageDimension(MediaType mediaType, InputStream inputStream) {
+		for (Iterator<ImageReader> iterator = ImageIO.getImageReadersByMIMEType(String.valueOf(mediaType)); iterator.hasNext(); ) {
+			ImageReader reader = iterator.next();
+			try (ImageInputStream stream = ImageIO.createImageInputStream(inputStream)) {
+				reader.setInput(stream);
+				int width = reader.getWidth(reader.getMinIndex());
+				int height = reader.getHeight(reader.getMinIndex());
+				return Optional.of(new Dimension(width, height));
+			} catch (IOException e) {
+				//Try next ImageReader
+			} finally {
+				reader.dispose();
+			}
+		}
+		return Optional.empty();
 	}
 }

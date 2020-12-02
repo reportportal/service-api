@@ -427,7 +427,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void validateDelay(String value) {
 		try {
-			BusinessRule.expect(Long.parseLong(value), delay -> delay > 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
+			BusinessRule.expect(Long.parseLong(value), delay -> delay >= 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
 		} catch (NumberFormatException exc) {
 			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
 		}

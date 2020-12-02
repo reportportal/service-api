@@ -106,10 +106,10 @@ public class UpdateWidgetHandlerImpl implements UpdateWidgetHandler {
 		List<UserFilter> userFilter = getUserFilters(updateRQ.getFilterIds(), projectDetails.getProjectId(), user.getUsername());
 		String widgetOptionsBefore = parseWidgetOptions(widget);
 
+		updateSharing(widget, projectDetails.getProjectId(), updateRQ.getShare());
+
 		widget = new WidgetBuilder(widget).addWidgetRq(updateRQ).addFilters(userFilter).get();
 		widgetRepository.save(widget);
-
-		updateSharing(widget, projectDetails.getProjectId(), updateRQ.getShare());
 
 		messageBus.publishActivity(new WidgetUpdatedEvent(before,
 				TO_ACTIVITY_RESOURCE.apply(widget),

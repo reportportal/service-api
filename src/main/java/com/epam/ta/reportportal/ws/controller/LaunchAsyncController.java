@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.composeBaseUrl;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -88,7 +88,7 @@ public class LaunchAsyncController {
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,
-				composeBaseUrl(request.getScheme(), request.getHeader("host"))
+				composeBaseUrl(request)
 		);
 	}
 

@@ -95,6 +95,7 @@ class LaunchAsyncControllerTest {
         ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.class);
         ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
+        when(httpServletRequest.getRequestURI()).thenReturn("http://localhost:8080");
         launchAsyncController.finishLaunch("test_project", launchId, finishExecutionRQ, user, httpServletRequest);
         verify(finishLaunchHandler).finishLaunch(
                 launchIdArgumentCaptor.capture(),

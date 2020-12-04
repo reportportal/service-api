@@ -51,6 +51,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
@@ -61,7 +62,6 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
  */
 @Service
 @Primary
-@Transactional
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
@@ -91,6 +91,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
+	@Transactional
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
@@ -103,8 +104,27 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
+		//		final TestItem testItem = testItemRepository.findByUuid("b8ee221c-69b6-461d-bee4-51da634ddc7b").orElseThrow();
+		//
+		//		System.out.println(testItem.isHasChildren());
+		//		System.out.println(testItem.isHasStats());
+		//
+		//		testItem.setHasChildren(false);
+		//
+		//		final TestItem testItem1 = testItemRepository.findByUuid("b8ee221c-69b6-461d-bee4-51da634ddc7b").orElseThrow();
+		//
+		//		System.out.println(testItem1.isHasChildren());
+		//		System.out.println(testItem1.isHasStats());
+
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 		testItemRepository.save(item);
+		//		try {
+		//			Thread.sleep(10000L);
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
+		//		final TestItem testItem12 = testItemRepository.findByUuidForUpdate("b8ee221c-69b6-461d-bee4-51da634ddc7b").orElseThrow();
+		//		System.out.println(testItem12.getName());
 		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
 		LOGGER.debug("Created new root TestItem {}", item.getUuid());
@@ -112,21 +132,22 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
+	@Transactional
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
 		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry()) || StringUtils.isNotBlank(rq.getRetryOf());
 
-		Launch launch;
-		if (isRetry) {
-			launch = launchRepository.findByUuidForUpdate(rq.getLaunchUuid())
-					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
-		} else {
-			launch = launchRepository.findByUuid(rq.getLaunchUuid())
-					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
-		}
+		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
+				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 
-		TestItem parentItem = testItemRepository.findByUuid(parentId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		final TestItem parentItem = testItemRepository.findByUuidForUpdate(parentId).orElseThrow();
+//		try {
+//			parentItem = CompletableFuture.supplyAsync(() -> {
+//				return testItemRepository.findByUuid(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+//			}).get();
+//		} catch (InterruptedException | ExecutionException e) {
+//			throw new RuntimeException();
+//		}
 
 		validate(rq, parentItem);
 
@@ -137,22 +158,82 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
-				.addAttributes(rq.getAttributes())
-				.addLaunchId(launch.getId())
-				.addParent(parentItem)
-				.get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 
-		testItemRepository.save(item);
-		generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+		if (isRetry) {
+
+			//			Supplier<Optional<TestItem>> supplier = ofNullable(rq.getRetryOf()).map(retryOf -> (Supplier<Optional<TestItem>>) () -> testItemRepository
+			//					.findByUuid(retryOf))
+			//					.orElseGet(() -> () -> testItemRepository.findLatestByUniqueIdAndLaunchIdAndParentIdAndItemIdNotEqual(item.getUniqueId(),
+			//							launch.getId(),
+			//							parentItem.getItemId(),
+			//							item.getItemId()
+			//					));
+
+			ofNullable(rq.getRetryOf()).ifPresentOrElse(retryOf -> {
+				item.setParent(parentItem);
+				testItemRepository.save(item);
+				generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+				retriesHandler.handleRetries(launch, item, retryOf);
+			}, () -> {
+				if (Objects.isNull(item.getTestCaseHash())) {
+					item.setTestCaseHash(testCaseHashGenerator.generate(item,
+							IdentityUtil.getItemTreeIds(parentItem),
+							launch.getProjectId()
+					));
+				}
+				testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(item.getTestCaseHash(),
+						launch.getId(),
+						parentItem.getItemId()
+				).ifPresentOrElse(latest -> {
+							item.setParent(parentItem);
+							testItemRepository.save(item);
+							generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+							retriesHandler.handleRetries(launch, item, latest.getUuid());
+						},
+						() -> testItemRepository.findByUuidForUpdate(parentItem.getUuid())
+								.ifPresent(parent -> testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(item.getTestCaseHash(),
+										launch.getId(),
+										parentItem.getItemId()
+								).ifPresentOrElse(latest -> {
+									item.setParent(parent);
+									testItemRepository.save(item);
+									generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+									retriesHandler.handleRetries(launch, item, latest.getUuid());
+								}, () -> {
+									item.setParent(parent);
+									testItemRepository.save(item);
+									generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+								}))
+				);
+			});
+
+		} else {
+			item.setParent(parentItem);
+			testItemRepository.save(item);
+			generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+		}
+
+		//		TestItem ppp = testItemRepository.findByUuidForUpdate("b8ee221c-69b6-461d-bee4-51da634ddc7b")
+		//				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		//		ppp.setHasChildren(true);
+		//
+		//		System.out.println("HELLO: " + ppp.getName());
+		//
+		//		try {
+		//			Thread.sleep(15000L);
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
+		//
+		//		System.out.println("ready");
+
+		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
+
 		if (rq.isHasStats() && !parentItem.isHasChildren()) {
 			parentItem.setHasChildren(true);
 		}
-		if (isRetry) {
-			retriesHandler.handleRetries(launch, item, rq.getRetryOf());
-		}
 
-		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
 		return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
 	}
 

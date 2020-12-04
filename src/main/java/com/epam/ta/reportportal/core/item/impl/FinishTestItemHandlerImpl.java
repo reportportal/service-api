@@ -161,9 +161,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		boolean handleRetries = !testItem.isHasChildren() && (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(
 				finishExecutionRQ.getRetryOf()));
-		if (handleRetries) {
-			retriesHandler.handleRetries(launch, testItem, finishExecutionRQ.getRetryOf());
-		}
+		//		if (handleRetries) {
+		//			retriesHandler.handleRetries(launch, testItem, finishExecutionRQ.getRetryOf());
+		//		}
 
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
 	}
@@ -203,9 +203,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private Optional<Launch> getLaunch(TestItem testItem) {
-		return ofNullable(testItem.getLaunchId()).map(launchRepository::findByIdForUpdate)
+		return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
 				.orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunchId)
-						.map(launchRepository::findByIdForUpdate)
+						.map(launchRepository::findById)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 	}
 
@@ -243,7 +243,12 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
 		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
-			finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
+			finishHierarchyHandler.finishDescendants(testItem,
+					actualStatus.orElse(INTERRUPTED),
+					finishTestItemRQ.getEndTime(),
+					user,
+					projectDetails
+			);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
 			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));

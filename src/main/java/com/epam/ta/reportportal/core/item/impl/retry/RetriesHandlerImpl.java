@@ -34,8 +34,7 @@ public class RetriesHandlerImpl implements RetriesHandler {
 
 	@Override
 	public void handleRetries(Launch launch, TestItem newRetryParent, @Nullable String previousParent) {
-		ofNullable(previousParent).flatMap(testItemRepository::findByUuid)
-				.ifPresentOrElse(prev -> handleRetries(launch, prev, newRetryParent), () -> handleRetries(launch, newRetryParent));
+		ofNullable(previousParent).flatMap(testItemRepository::findByUuid).ifPresent(prev -> handleRetries(launch, prev, newRetryParent));
 		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), newRetryParent.getItemId()));
 	}
 
@@ -66,8 +65,7 @@ public class RetriesHandlerImpl implements RetriesHandler {
 	 * @param item   {@link TestItem}
 	 */
 	private void handleRetries(Launch launch, TestItem item) {
-		testItemRepository.handleRetries(item.getItemId());
-		updateLaunchRetriesState(launch);
+		throw new RuntimeException("PIZDEC");
 	}
 
 	private void updateLaunchRetriesState(Launch launch) {

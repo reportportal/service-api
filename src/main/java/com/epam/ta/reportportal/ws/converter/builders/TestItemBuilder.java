@@ -87,8 +87,8 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder addParent(TestItem parent) {
-		testItem.setParent(parent);
+	public TestItemBuilder addParentId(Long parentId) {
+		testItem.setParentId(parentId);
 		return this;
 	}
 

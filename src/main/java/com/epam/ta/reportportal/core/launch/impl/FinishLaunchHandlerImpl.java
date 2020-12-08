@@ -84,6 +84,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 		Long id = launch.getId();
 		if (launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
+			System.out.println("FINISH DESCENDANTS");
 			finishHierarchyHandler.finishDescendants(launch,
 					status.orElse(StatusEnum.INTERRUPTED),
 					finishLaunchRQ.getEndTime(),

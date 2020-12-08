@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl.status;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
 /**
@@ -24,7 +25,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
  */
 public interface ChangeStatusHandler {
 
-	void changeParentStatus(Long childId, Long projectId, ReportPortalUser user);
+	void changeParentStatus(TestItem childItem, Long projectId, ReportPortalUser user);
 
 	void changeLaunchStatus(Launch launch);
 }

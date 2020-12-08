@@ -8,33 +8,28 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service
-public class RetriesHandlerImpl implements RetriesHandler {
+public abstract class AbstractRetriesHandler implements RetriesHandler {
 
+	protected final TestItemRepository testItemRepository;
 	private final LaunchRepository launchRepository;
-	private final TestItemRepository testItemRepository;
 	private final ApplicationEventPublisher eventPublisher;
 
-	public RetriesHandlerImpl(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+	public AbstractRetriesHandler(TestItemRepository testItemRepository, LaunchRepository launchRepository,
 			ApplicationEventPublisher eventPublisher) {
-		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
+		this.launchRepository = launchRepository;
 		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
-	public void handleRetries(Launch launch, TestItem newRetryParent, @Nullable String previousParent) {
-		ofNullable(previousParent).flatMap(testItemRepository::findByUuid).ifPresent(prev -> handleRetries(launch, prev, newRetryParent));
+	public void handleRetries(Launch launch, TestItem newRetryParent, Long previousParent) {
+		handleRetries(launch, previousParent, newRetryParent);
 		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), newRetryParent.getItemId()));
 	}
 
@@ -42,30 +37,20 @@ public class RetriesHandlerImpl implements RetriesHandler {
 	 * Handles retry items with new explicitly provided parent
 	 *
 	 * @param launch         {@link Launch}
-	 * @param retryParent    {@link TestItem}
+	 * @param retryParent    {@link TestItem#getItemId()}
 	 * @param newRetryParent {@link TestItem}
 	 */
-	private void handleRetries(Launch launch, TestItem retryParent, TestItem newRetryParent) {
+	private void handleRetries(Launch launch, Long retryParent, TestItem newRetryParent) {
 		validateNewParent(retryParent, newRetryParent);
-		testItemRepository.handleRetry(retryParent.getItemId(), newRetryParent.getItemId());
+		testItemRepository.handleRetry(retryParent, newRetryParent.getItemId());
 		updateLaunchRetriesState(launch);
 	}
 
-	private void validateNewParent(TestItem prevRetryParent, TestItem newRetryParent) {
-		BusinessRule.expect(newRetryParent, i -> !i.getUuid().equals(prevRetryParent.getUuid()))
+	private void validateNewParent(Long prevRetryParent, TestItem newRetryParent) {
+		BusinessRule.expect(newRetryParent, i -> !i.getItemId().equals(prevRetryParent))
 				.verify(ErrorType.RETRIES_HANDLER_ERROR, "Previous and new parent 'uuid' should not be equal");
 		BusinessRule.expect(newRetryParent, i -> Objects.isNull(i.getRetryOf()))
 				.verify(ErrorType.RETRIES_HANDLER_ERROR, "Parent item should not be a retry");
-	}
-
-	/**
-	 * Handles retry items
-	 *
-	 * @param launch {@link Launch}
-	 * @param item   {@link TestItem}
-	 */
-	private void handleRetries(Launch launch, TestItem item) {
-		throw new RuntimeException("PIZDEC");
 	}
 
 	private void updateLaunchRetriesState(Launch launch) {

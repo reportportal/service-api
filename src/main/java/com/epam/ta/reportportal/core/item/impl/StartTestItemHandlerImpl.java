@@ -29,10 +29,10 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import org.apache.commons.lang3.BooleanUtils;
@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +82,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
 			UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator, RerunHandler rerunHandler,
-			RetriesHandler retriesHandler) {
+			@Qualifier("uniqueIdRetriesHandler") RetriesHandler retriesHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
@@ -104,27 +105,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-		//		final TestItem testItem = testItemRepository.findByUuid("b8ee221c-69b6-461d-bee4-51da634ddc7b").orElseThrow();
-		//
-		//		System.out.println(testItem.isHasChildren());
-		//		System.out.println(testItem.isHasStats());
-		//
-		//		testItem.setHasChildren(false);
-		//
-		//		final TestItem testItem1 = testItemRepository.findByUuid("b8ee221c-69b6-461d-bee4-51da634ddc7b").orElseThrow();
-		//
-		//		System.out.println(testItem1.isHasChildren());
-		//		System.out.println(testItem1.isHasStats());
-
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 		testItemRepository.save(item);
-		//		try {
-		//			Thread.sleep(10000L);
-		//		} catch (InterruptedException e) {
-		//			e.printStackTrace();
-		//		}
-		//		final TestItem testItem12 = testItemRepository.findByUuidForUpdate("b8ee221c-69b6-461d-bee4-51da634ddc7b").orElseThrow();
-		//		System.out.println(testItem12.getName());
 		generateUniqueId(launch, item, String.valueOf(item.getItemId()));
 
 		LOGGER.debug("Created new root TestItem {}", item.getUuid());
@@ -140,14 +122,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 
-		final TestItem parentItem = testItemRepository.findByUuidForUpdate(parentId).orElseThrow();
-//		try {
-//			parentItem = CompletableFuture.supplyAsync(() -> {
-//				return testItemRepository.findByUuid(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-//			}).get();
-//		} catch (InterruptedException | ExecutionException e) {
-//			throw new RuntimeException();
-//		}
+		final TestItem parentItem = testItemRepository.findByUuid(parentId).orElseThrow();
 
 		validate(rq, parentItem);
 
@@ -161,72 +136,17 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 
 		if (isRetry) {
-
-			//			Supplier<Optional<TestItem>> supplier = ofNullable(rq.getRetryOf()).map(retryOf -> (Supplier<Optional<TestItem>>) () -> testItemRepository
-			//					.findByUuid(retryOf))
-			//					.orElseGet(() -> () -> testItemRepository.findLatestByUniqueIdAndLaunchIdAndParentIdAndItemIdNotEqual(item.getUniqueId(),
-			//							launch.getId(),
-			//							parentItem.getItemId(),
-			//							item.getItemId()
-			//					));
-
-			ofNullable(rq.getRetryOf()).ifPresentOrElse(retryOf -> {
-				item.setParent(parentItem);
-				testItemRepository.save(item);
-				generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
-				retriesHandler.handleRetries(launch, item, retryOf);
-			}, () -> {
-				if (Objects.isNull(item.getTestCaseHash())) {
-					item.setTestCaseHash(testCaseHashGenerator.generate(item,
-							IdentityUtil.getItemTreeIds(parentItem),
-							launch.getProjectId()
-					));
-				}
-				testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(item.getTestCaseHash(),
-						launch.getId(),
-						parentItem.getItemId()
-				).ifPresentOrElse(latest -> {
-							item.setParent(parentItem);
-							testItemRepository.save(item);
-							generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
-							retriesHandler.handleRetries(launch, item, latest.getUuid());
-						},
-						() -> testItemRepository.findByUuidForUpdate(parentItem.getUuid())
-								.ifPresent(parent -> testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(item.getTestCaseHash(),
-										launch.getId(),
-										parentItem.getItemId()
-								).ifPresentOrElse(latest -> {
-									item.setParent(parent);
-									testItemRepository.save(item);
-									generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
-									retriesHandler.handleRetries(launch, item, latest.getUuid());
-								}, () -> {
-									item.setParent(parent);
-									testItemRepository.save(item);
-									generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
-								}))
-				);
-			});
+			ofNullable(rq.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate).ifPresentOrElse(retryParentId -> {
+				saveChildItem(launch, item, parentItem);
+				retriesHandler.handleRetries(launch, item, retryParentId);
+			}, () -> retriesHandler.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
+				saveChildItem(launch, item, parentItem);
+				retriesHandler.handleRetries(launch, item, previousRetryId);
+			}, () -> saveChildItem(launch, item, parentItem)));
 
 		} else {
-			item.setParent(parentItem);
-			testItemRepository.save(item);
-			generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
+			saveChildItem(launch, item, parentItem);
 		}
-
-		//		TestItem ppp = testItemRepository.findByUuidForUpdate("b8ee221c-69b6-461d-bee4-51da634ddc7b")
-		//				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
-		//		ppp.setHasChildren(true);
-		//
-		//		System.out.println("HELLO: " + ppp.getName());
-		//
-		//		try {
-		//			Thread.sleep(15000L);
-		//		} catch (InterruptedException e) {
-		//			e.printStackTrace();
-		//		}
-		//
-		//		System.out.println("ready");
 
 		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
 
@@ -235,6 +155,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		}
 
 		return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
+	}
+
+	private TestItem saveChildItem(Launch launch, TestItem childItem, TestItem parentItem) {
+		childItem.setParentId(parentItem.getItemId());
+		testItemRepository.save(childItem);
+		generateUniqueId(launch, childItem, parentItem.getPath() + "." + childItem.getItemId());
+		return childItem;
 	}
 
 	/**
@@ -256,10 +183,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	/**
 	 * Validate {@link ReportPortalUser} credentials, {@link Launch#getStatus()}
-	 * and {@link Launch} affiliation to the {@link com.epam.ta.reportportal.entity.project.Project}
+	 * and {@link Launch} affiliation to the {@link Project}
 	 *
 	 * @param user           {@link ReportPortalUser}
-	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
 	 * @param rq             {@link StartTestItemRQ}
 	 * @param launch         {@link Launch}
 	 */
@@ -287,7 +214,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private void validate(StartTestItemRQ rq, TestItem parent) {
 
 		if (!parent.isHasStats()) {
-			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
+			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
 					).get()

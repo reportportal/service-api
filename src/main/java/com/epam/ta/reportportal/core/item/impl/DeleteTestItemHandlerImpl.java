@@ -91,14 +91,15 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, item.getLaunchId()));
 
 		validate(item, launch, user, projectDetails);
-		Optional<TestItem> parent = ofNullable(item.getParent());
+		Optional<Long> parentId = ofNullable(item.getParentId());
 
 		Set<Long> removedDescendants = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
 
 		testItemRepository.deleteById(item.getItemId());
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
-		parent.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
+		parentId.flatMap(testItemRepository::findById)
+				.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
 		//TODO if item is under another project and action is performed by an admin, wrong request will be sent to the ES query
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
@@ -135,11 +136,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 			}
 		}));
 
-		List<TestItem> parentsToUpdate = items.stream()
+		List<TestItem> parentsToUpdate = testItemRepository.findAllById(items.stream()
 				.filter(it -> idsToDelete.contains(it.getItemId()))
-				.map(TestItem::getParent)
+				.map(TestItem::getParentId)
 				.filter(Objects::nonNull)
-				.collect(toList());
+				.collect(toList()));
 
 		launchItemMap.forEach((launchId, testItemIds) -> logIndexer.cleanIndex(projectDetails.getProjectId(),
 				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,

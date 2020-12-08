@@ -40,11 +40,11 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -69,7 +69,7 @@ public class RerunHandlerImpl implements RerunHandler {
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
 			TestCaseHashGenerator testCaseHashGenerator, MessageBus messageBus, ApplicationEventPublisher eventPublisher,
-			RetriesHandler retriesHandler) {
+			@Qualifier("testCaseHashRetriesHandler") RetriesHandler retriesHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
@@ -117,7 +117,8 @@ public class RerunHandlerImpl implements RerunHandler {
 	}
 
 	private Optional<ItemCreatedRS> updateRootItem(Integer testCaseHash, StartTestItemRQ request, Launch launch) {
-		return testItemRepository.findLatestByTestCaseHashAndLaunchIdWithoutParents(testCaseHash, launch.getId())
+		return testItemRepository.findLatestIdByTestCaseHashAndLaunchIdWithoutParents(testCaseHash, launch.getId())
+				.flatMap(testItemRepository::findById)
 				.map(foundItem -> updateRootItem(request, foundItem));
 	}
 
@@ -139,15 +140,11 @@ public class RerunHandlerImpl implements RerunHandler {
 		TestItem newItem = new TestItemBuilder().addLaunchId(launch.getId())
 				.addStartItemRequest(request)
 				.addAttributes(request.getAttributes())
-				.addParent(parent)
+				.addParentId(parent.getItemId())
 				.get();
-		if (Objects.isNull(newItem.getTestCaseId())) {
-			newItem.setTestCaseHash(testCaseHashGenerator.generate(newItem, IdentityUtil.getItemTreeIds(parent), launch.getProjectId()));
-		}
-		return testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(newItem.getTestCaseHash(),
-				launch.getId(),
-				parent.getItemId()
-		)
+
+		return retriesHandler.findPreviousRetry(launch, newItem, parent)
+				.flatMap(testItemRepository::findById)
 				.map(foundItem -> foundItem.isHasChildren() ?
 						updateRootItem(request, foundItem) :
 						handleRetry(launch, newItem, foundItem, parent));
@@ -159,7 +156,7 @@ public class RerunHandlerImpl implements RerunHandler {
 		testItemRepository.save(newItem);
 		newItem.setPath(parentItem.getPath() + "." + newItem.getItemId());
 		generateUniqueId(launch, newItem);
-		retriesHandler.handleRetries(launch, newItem, foundItem.getUuid());
+		retriesHandler.handleRetries(launch, newItem, foundItem.getItemId());
 		return new ItemCreatedRS(newItem.getUuid(), newItem.getUniqueId());
 	}
 

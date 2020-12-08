@@ -181,7 +181,9 @@ public class SearchLogServiceImpl implements SearchLogService {
 
 		TestItem itemWithStats = testItem;
 		while (!itemWithStats.isHasStats()) {
-			itemWithStats = itemWithStats.getParent();
+			final Long parentId = itemWithStats.getParentId();
+			itemWithStats = testItemRepository.findById(parentId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentId));
 		}
 
 		response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));

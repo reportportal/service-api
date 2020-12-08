@@ -63,6 +63,7 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
  */
 @Service
 @Primary
+@Transactional
 class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartTestItemHandlerImpl.class);
@@ -92,7 +93,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
-	@Transactional
 	public ItemCreatedRS startRootItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq) {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
@@ -114,7 +114,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	}
 
 	@Override
-	@Transactional
 	public ItemCreatedRS startChildItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, StartTestItemRQ rq,
 			String parentId) {
 		boolean isRetry = BooleanUtils.toBoolean(rq.isRetry()) || StringUtils.isNotBlank(rq.getRetryOf());

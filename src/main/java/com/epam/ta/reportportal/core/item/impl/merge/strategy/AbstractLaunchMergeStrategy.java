@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -95,8 +96,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				.max(Comparator.comparing(Launch::getEndTime))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Invalid launches"))
 				.getEndTime()));
-		expect(endTime, time -> !time.before(startTime)).verify(
-				FINISH_TIME_EARLIER_THAN_START_TIME,
+		expect(endTime, time -> !time.before(startTime)).verify(FINISH_TIME_EARLIER_THAN_START_TIME,
 				TO_LOCAL_DATE_TIME.apply(endTime),
 				startTime,
 				projectId
@@ -171,16 +171,14 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 			return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
 				testItem.setLaunchId(newLaunch.getId());
 				if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
-					testItem.setUniqueId(identifierGenerator.generate(testItem, newLaunch));
+					testItem.setUniqueId(identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem), newLaunch));
 				}
 				if (testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
 					// Add launch reference description for top level items
-					Supplier<String> newDescription = Suppliers.formattedSupplier(((null != testItem.getDescription()) ? testItem.getDescription() : "") + (extendDescription ?
+					Supplier<String> newDescription = Suppliers.formattedSupplier(
+							((null != testItem.getDescription()) ? testItem.getDescription() : "") + (extendDescription ?
 									"\r\n@launch '{} #{}'" :
-									""),
-							launch.getName(),
-							launch.getNumber()
-					);
+									""), launch.getName(), launch.getNumber());
 					testItem.setDescription(newDescription.get());
 				}
 			});

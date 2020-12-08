@@ -54,7 +54,7 @@ class FileStorageControllerTest extends BaseMvcTest {
 	@Test
 	void userPhoto() throws Exception {
 		final MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart("/v1/data/photo")
-				.file(new MockMultipartFile("file", new ClassPathResource("image/image.png").getInputStream()))
+				.file(new MockMultipartFile("file", "file", "image/png", new ClassPathResource("image/image.png").getInputStream()))
 				.contentType(MediaType.MULTIPART_FORM_DATA);
 
 		mockMvc.perform(requestBuilder.with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());

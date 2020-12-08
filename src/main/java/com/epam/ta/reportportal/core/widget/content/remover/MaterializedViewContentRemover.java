@@ -9,6 +9,7 @@ import com.epam.ta.reportportal.entity.widget.WidgetState;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Lists;
 import org.springframework.stereotype.Component;
 
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
@@ -19,11 +20,11 @@ import static java.util.Optional.ofNullable;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Component
-public class ComponentHealthCheckTableRemover implements WidgetContentRemover {
+public class MaterializedViewContentRemover implements WidgetContentRemover {
 
 	private final WidgetContentRepository widgetContentRepository;
 
-	public ComponentHealthCheckTableRemover(WidgetContentRepository widgetContentRepository) {
+	public MaterializedViewContentRemover(WidgetContentRepository widgetContentRepository) {
 		this.widgetContentRepository = widgetContentRepository;
 	}
 
@@ -39,7 +40,8 @@ public class ComponentHealthCheckTableRemover implements WidgetContentRemover {
 
 	@Override
 	public boolean supports(Widget widget) {
-		return WidgetType.COMPONENT_HEALTH_CHECK_TABLE.getType().equalsIgnoreCase(widget.getWidgetType());
+		return Lists.newArrayList(WidgetType.COMPONENT_HEALTH_CHECK_TABLE.getType(), WidgetType.CUMULATIVE.getType())
+				.contains(widget.getWidgetType());
 	}
 
 	private void validateState(WidgetOptions widgetOptions) {

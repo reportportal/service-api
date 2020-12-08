@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.ItemAttribute;
+import com.epam.ta.reportportal.entity.bts.Ticket;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.TestItemResource;
@@ -77,6 +78,15 @@ public interface GetTestItemHandler {
 	 * @return {@link List} of {@link com.epam.ta.reportportal.entity.bts.Ticket#ticketId}
 	 */
 	List<String> getTicketIds(Long launchId, String term);
+
+	/**
+	 * Get tickets that contains a term as a part inside for specified project
+	 *
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param term     part of {@link Ticket#getTicketId()} to search
+	 * @return {@link List} of {@link Ticket#getTicketId()}
+	 */
+	List<String> getTicketIds(ReportPortalUser.ProjectDetails projectDetails, String term);
 
 	/**
 	 * Get specified attribute keys of all test items and launches for project with provided id

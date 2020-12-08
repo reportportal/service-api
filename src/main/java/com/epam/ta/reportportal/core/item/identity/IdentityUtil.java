@@ -17,10 +17,29 @@ public class IdentityUtil {
 		//static only
 	}
 
+	/**
+	 * Parse {@link TestItem#getPath()} and get all ids excluding id of the provided {@link TestItem}
+	 *
+	 * @param testItem {@link TestItem}
+	 * @return {@link List} with ids parsed from {@link TestItem#getPath()}
+	 */
 	public static List<Long> getParentIds(TestItem testItem) {
-		String path = testItem.getPath();
+		return getIds(testItem.getPath(), false);
+	}
+
+	/**
+	 * * Parse {@link TestItem#getPath()} and get all ids including id of the provided {@link TestItem}
+	 *
+	 * @param testItem {@link TestItem}
+	 * @return {@link List} with ids parsed from {@link TestItem#getPath()}
+	 */
+	public static List<Long> getItemTreeIds(TestItem testItem) {
+		return getIds(testItem.getPath(), true);
+	}
+
+	private static List<Long> getIds(String path, boolean includeLast) {
 		String[] ids = path.split("\\.");
-		return Stream.of(ids).limit(ids.length - 1).map(id -> {
+		return Stream.of(ids).limit(includeLast ? ids.length : ids.length - 1).map(id -> {
 			try {
 				return Long.parseLong(id);
 			} catch (NumberFormatException e) {

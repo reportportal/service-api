@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.item.identity;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
+import java.util.List;
+
 /**
  * Unique id generator for designate test item's originality
  *
@@ -30,10 +32,11 @@ public interface UniqueIdGenerator {
 	/**
 	 * Generates the unique identifier for test item
 	 *
-	 * @param testItem source for id
+	 * @param testItem  source for id
+	 * @param parentIds all {@link TestItem} ancestors' ids
 	 * @return unique id
 	 */
-	String generate(TestItem testItem, Launch launch);
+	String generate(TestItem testItem, List<Long> parentIds, Launch launch);
 
 	/**
 	 * Validate if string has been generated automatically

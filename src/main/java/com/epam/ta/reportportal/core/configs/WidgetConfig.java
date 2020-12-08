@@ -126,7 +126,7 @@ public class WidgetConfig implements ApplicationContextAware {
 						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 				)
 				.put(WidgetType.FLAKY_TEST_CASES, (GeneralLaunchFilterStrategy) applicationContext.getBean("launchHistoryFilterStrategy"))
-				.put(WidgetType.MOST_TIME_CONSUMING, (TestItemFilterStrategy) applicationContext.getBean("testItemFilterStrategy"))
+				.put(WidgetType.MOST_TIME_CONSUMING, (GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy"))
 				.put(WidgetType.TOP_PATTERN_TEMPLATES,
 						(GeneralLaunchFilterStrategy) applicationContext.getBean("generalLaunchFilterStrategy")
 				)

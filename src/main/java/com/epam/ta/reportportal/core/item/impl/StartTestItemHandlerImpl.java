@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
+import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
@@ -164,11 +165,11 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
-		if (null == item.getUniqueId()) {
-			item.setUniqueId(uniqueIdGenerator.generate(item, launch));
+		if (Objects.isNull(item.getUniqueId())) {
+			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch));
 		}
 		if (Objects.isNull(item.getTestCaseId())) {
-			item.setTestCaseHash(testCaseHashGenerator.generate(item, launch.getProjectId()));
+			item.setTestCaseHash(testCaseHashGenerator.generate(item, IdentityUtil.getParentIds(item), launch.getProjectId()));
 		}
 	}
 

@@ -64,7 +64,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		testItem.setUuid(Optional.ofNullable(rq.getUuid()).orElse(UUID.randomUUID().toString()));
 		testItem.setHasStats(rq.isHasStats());
 
-		TestCaseIdEntry testCaseIdEntry = processTestCaseId(rq.getTestCaseId(), rq.getCodeRef(), rq.getParameters());
+		TestCaseIdEntry testCaseIdEntry = processTestCaseId(rq);
 		testItem.setTestCaseId(testCaseIdEntry.getId());
 		testItem.setTestCaseHash(testCaseIdEntry.getHash());
 
@@ -126,7 +126,7 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	public TestItemBuilder overwriteAttributes(Set<ItemAttributeResource> attributes) {
+	public TestItemBuilder overwriteAttributes(Set<? extends ItemAttributeResource> attributes) {
 		if (attributes != null) {
 			final Set<ItemAttribute> overwrittenAttributes = testItem.getAttributes()
 					.stream()
@@ -170,12 +170,14 @@ public class TestItemBuilder implements Supplier<TestItem> {
 		return this;
 	}
 
-	private TestCaseIdEntry processTestCaseId(String testCaseId, String codeRef, List<ParameterResource> params) {
+	public static TestCaseIdEntry processTestCaseId(StartTestItemRQ startTestItemRQ) {
+		final String testCaseId = startTestItemRQ.getTestCaseId();
 		if (Objects.nonNull(testCaseId)) {
 			return new TestCaseIdEntry(testCaseId, testCaseId.hashCode());
 		} else {
+			final String codeRef = startTestItemRQ.getCodeRef();
 			if (Objects.nonNull(codeRef)) {
-				String id = compose(codeRef, params);
+				String id = compose(codeRef, startTestItemRQ.getParameters());
 				return new TestCaseIdEntry(id, id.hashCode());
 			}
 		}

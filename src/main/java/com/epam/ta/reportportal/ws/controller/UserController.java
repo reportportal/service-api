@@ -42,23 +42,22 @@ import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -93,12 +92,7 @@ public class UserController {
 	@ApiOperation(value = "Create specified user", notes = "Allowable only for users with administrator role")
 	public CreateUserRS createUserByAdmin(@RequestBody @Validated CreateUserRQFull rq,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-		String basicURL = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-				.replacePath(null)
-				.replaceQuery(null)
-				.build()
-				.toUriString();
-		return createUserMessageHandler.createUserByAdmin(rq, currentUser, basicURL);
+		return createUserMessageHandler.createUserByAdmin(rq, currentUser, composeBaseUrl(request));
 	}
 
 	@Transactional
@@ -108,15 +102,7 @@ public class UserController {
 	@ApiOperation("Register invitation for user who will be created")
 	public CreateUserBidRS createUserBid(@RequestBody @Validated CreateUserRQ createUserRQ,
 			@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request) {
-		/*
-		 * Use Uri components since they are aware of x-forwarded-host headers
-		 */
-		URI rqUrl = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-				.replacePath(null)
-				.replaceQuery(null)
-				.build()
-				.toUri();
-		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, rqUrl.toASCIIString());
+		return createUserMessageHandler.createUserBid(createUserRQ, currentUser, composeBaseUrl(request));
 	}
 
 	@PostMapping(value = "/registration")
@@ -132,7 +118,6 @@ public class UserController {
 		return getUserHandler.getBidInformation(uuid);
 	}
 
-	@Transactional
 	@DeleteMapping(value = "/{id}")
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete specified user", notes = "Allowable only for users with administrator role")
@@ -141,7 +126,6 @@ public class UserController {
 		return deleteUserHandler.deleteUser(userId, currentUser);
 	}
 
-	@Transactional
 	@DeleteMapping
 	@PreAuthorize(ADMIN_ONLY)
 	@ResponseStatus(OK)
@@ -198,15 +182,7 @@ public class UserController {
 	@ResponseStatus(OK)
 	@ApiOperation("Create a restore password request")
 	public OperationCompletionRS restorePassword(@RequestBody @Validated RestorePasswordRQ rq, HttpServletRequest request) {
-		/*
-		 * Use Uri components since they are aware of x-forwarded-host headers
-		 */
-		String baseUrl = UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
-				.replacePath(null)
-				.replaceQuery(null)
-				.build()
-				.toUriString();
-		return createUserMessageHandler.createRestorePasswordBid(rq, baseUrl);
+		return createUserMessageHandler.createRestorePasswordBid(rq, composeBaseUrl(request));
 	}
 
 	@Transactional

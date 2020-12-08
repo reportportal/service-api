@@ -196,7 +196,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 		BusinessRule.expect(term.length() > 2, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 3 symbols", term)
 		);
-		return ticketRepository.findByTerm(launchId, term);
+		return ticketRepository.findByLaunchIdAndTerm(launchId, term);
+	}
+
+	@Override
+	public List<String> getTicketIds(ReportPortalUser.ProjectDetails projectDetails, String term) {
+		BusinessRule.expect(term.length() > 0, Predicates.equalTo(true)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbols", term)
+		);
+		return ticketRepository.findByProjectIdAndTerm(projectDetails.getProjectId(), term);
 	}
 
 	@Override

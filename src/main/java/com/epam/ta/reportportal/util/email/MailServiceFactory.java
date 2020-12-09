@@ -113,6 +113,7 @@ public class MailServiceFactory {
 			EmailService service = new EmailService(javaMailProperties);
 			service.setTemplateEngine(templateEngine);
 
+			EmailSettingsEnum.RP_HOST.getAttribute(config).ifPresent(service::setRpHost);
 			EmailSettingsEnum.HOST.getAttribute(config).ifPresent(service::setHost);
 			service.setPort(ofNullable(config.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> NumberUtils.toInt(String.valueOf(p), 25))
 					.orElse(25));

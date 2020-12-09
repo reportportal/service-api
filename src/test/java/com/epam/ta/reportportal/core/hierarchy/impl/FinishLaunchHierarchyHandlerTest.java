@@ -89,7 +89,7 @@ class FinishLaunchHierarchyHandlerTest {
 				rpUser.getProjectDetails().get(TEST_PROJECT_NAME)
 		);
 
-		verify(changeStatusHandler, times(2)).changeParentStatus(anyLong(), any(), any());
+		verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());
 		verify(issueEntityRepository, times(0)).save(any());
 	}
 
@@ -131,7 +131,7 @@ class FinishLaunchHierarchyHandlerTest {
 				rpUser.getProjectDetails().get(TEST_PROJECT_NAME)
 		);
 
-		verify(changeStatusHandler, times(2)).changeParentStatus(anyLong(), any(), any());
+		verify(changeStatusHandler, times(2)).changeParentStatus(any(TestItem.class), any(), any());
 		verify(issueEntityRepository, times(2)).save(any());
 
 	}
@@ -172,7 +172,7 @@ class FinishLaunchHierarchyHandlerTest {
 		child.setType(TestItemTypeEnum.TEST);
 		child.setLaunchId(launch.getId());
 		child.setPath("1.2");
-		child.setParent(parent);
+		child.setParentId(parent.getItemId());
 		child.setHasStats(true);
 		child.setHasChildren(true);
 		TestItemResults childResults = new TestItemResults();

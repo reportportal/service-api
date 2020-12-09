@@ -25,11 +25,9 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -83,26 +81,18 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
 
 		Long id = launch.getId();
-		if (launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-			System.out.println("FINISH DESCENDANTS");
-			finishHierarchyHandler.finishDescendants(launch,
-					status.orElse(StatusEnum.INTERRUPTED),
-					finishLaunchRQ.getEndTime(),
-					user,
-					projectDetails
-			);
-			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
-					StatusEnum.PASSED.name(),
-					StatusEnum.INFO.name(),
-					StatusEnum.WARN.name()
-			) ? FAILED : PASSED);
-		} else {
-			launch.setStatus(status.orElseGet(() -> launchRepository.hasRootItemsWithStatusNotEqual(id,
-					StatusEnum.PASSED.name(),
-					StatusEnum.INFO.name(),
-					StatusEnum.WARN.name()
-			) ? FAILED : PASSED));
-		}
+
+		finishHierarchyHandler.finishDescendants(launch,
+				status.orElse(StatusEnum.INTERRUPTED),
+				finishLaunchRQ.getEndTime(),
+				user,
+				projectDetails
+		);
+		launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
+				StatusEnum.PASSED.name(),
+				StatusEnum.INFO.name(),
+				StatusEnum.WARN.name()
+		) ? FAILED : PASSED);
 
 		launch = new LaunchBuilder(launch).addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
 				.addAttributes(finishLaunchRQ.getAttributes())

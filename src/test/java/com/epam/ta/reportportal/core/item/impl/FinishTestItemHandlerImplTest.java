@@ -103,6 +103,10 @@ class FinishTestItemHandlerImplTest {
 	void finishTestItemUnderNotExistedLaunch() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 		TestItem item = new TestItem();
+		TestItemResults results = new TestItemResults();
+		results.setStatus(StatusEnum.IN_PROGRESS);
+		item.setItemResults(results);
+		item.setItemId(1L);
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
 
 		final ReportPortalException exception = assertThrows(
@@ -126,8 +130,12 @@ class FinishTestItemHandlerImplTest {
 		item.setItemId(1L);
 		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
-		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+		TestItemResults results = new TestItemResults();
+		results.setStatus(StatusEnum.IN_PROGRESS);
+		item.setItemResults(results);
+		item.setItemId(1L);
+		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
 
 		final ReportPortalException exception = assertThrows(
@@ -151,8 +159,8 @@ class FinishTestItemHandlerImplTest {
 		launch.setProjectId(1L);
 		item.setLaunchId(launch.getId());
 		item.setHasChildren(false);
-		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 
 		final ReportPortalException exception = assertThrows(
 				ReportPortalException.class,
@@ -181,8 +189,10 @@ class FinishTestItemHandlerImplTest {
 		item.setType(TestItemTypeEnum.STEP);
 		item.setHasStats(true);
 		item.setHasChildren(false);
-		when(launchRepository.findByIdForUpdate(any())).thenReturn(Optional.of(launch));
+		when(launchRepository.findById(any())).thenReturn(Optional.of(launch));
 		when(repository.findByUuid("1")).thenReturn(Optional.of(item));
+		when(repository.findIdByUuidForUpdate(any())).thenReturn(Optional.of(item.getItemId()));
+		when(repository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
 		IssueType issueType = new IssueType();
 		issueType.setLocator("123");

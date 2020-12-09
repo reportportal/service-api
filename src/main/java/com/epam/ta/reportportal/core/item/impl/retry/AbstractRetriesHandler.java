@@ -48,7 +48,7 @@ public abstract class AbstractRetriesHandler implements RetriesHandler {
 
 	private void validateNewParent(Long prevRetryParent, TestItem newRetryParent) {
 		BusinessRule.expect(newRetryParent, i -> !i.getItemId().equals(prevRetryParent))
-				.verify(ErrorType.RETRIES_HANDLER_ERROR, "Previous and new parent 'uuid' should not be equal");
+				.verify(ErrorType.RETRIES_HANDLER_ERROR, "Previous and new parent 'id' should not be equal");
 		BusinessRule.expect(newRetryParent, i -> Objects.isNull(i.getRetryOf()))
 				.verify(ErrorType.RETRIES_HANDLER_ERROR, "Parent item should not be a retry");
 	}

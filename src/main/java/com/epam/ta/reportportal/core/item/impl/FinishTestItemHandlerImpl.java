@@ -74,7 +74,6 @@ import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGE
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -139,7 +138,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
 		final TestItem testItem = testItemRepository.findByUuid(testItemId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
+				.filter(it -> it.isHasChildren() || (!it.isHasChildren() && it.getItemResults().getStatus() == IN_PROGRESS))
+				.orElseGet(() -> testItemRepository.findIdByUuidForUpdate(testItemId)
+						.flatMap(testItemRepository::findById)
+						.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId)));
 
 		final Launch launch = retrieveLaunch(testItem);
 
@@ -160,7 +162,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		testItemRepository.save(itemForUpdate);
 
 		if (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(finishExecutionRQ.getRetryOf())) {
-			of(testItem).filter(it -> !it.isHasChildren() && !it.isHasRetries() && Objects.isNull(it.getRetryOf()))
+			Optional.of(testItem)
+					.filter(it -> !it.isHasChildren() && !it.isHasRetries() && Objects.isNull(it.getRetryOf()))
 					.map(TestItem::getParentId)
 					.flatMap(testItemRepository::findById)
 					.ifPresent(parentItem -> ofNullable(finishExecutionRQ.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate)

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -31,6 +33,15 @@ public class UniqueIdRetriesHandler extends AbstractRetriesHandler {
 		if (Objects.isNull(newItem.getUniqueId())) {
 			newItem.setUniqueId(uniqueIdGenerator.generate(newItem, IdentityUtil.getItemTreeIds(parentItem), launch));
 		}
-		return testItemRepository.findLatestIdByUniqueIdAndLaunchIdAndParentId(newItem.getUniqueId(), launch.getId(), parentItem.getItemId());
+		return ofNullable(newItem.getItemId()).map(itemId -> testItemRepository.findLatestIdByUniqueIdAndLaunchIdAndParentIdAndItemIdNotEqual(
+				newItem.getUniqueId(),
+				launch.getId(),
+				parentItem.getItemId(),
+				itemId
+		))
+				.orElseGet(() -> testItemRepository.findLatestIdByUniqueIdAndLaunchIdAndParentId(newItem.getUniqueId(),
+						launch.getId(),
+						parentItem.getItemId()
+				));
 	}
 }

@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
@@ -52,7 +54,20 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> providerParams) {
+			ReportPortalUser user, Map<String, String> params) {
+		updateFilter(filter, params);
+		return testItemRepository.findByFilter(filter, pageable);
+
+	}
+
+	@Override
+	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			Map<String, String> params) {
+		updateFilter(filter, params);
+		return testItemRepository.accumulateStatisticsByFilter(filter);
+	}
+
+	public void updateFilter(Queryable filter, Map<String, String> providerParams) {
 		String compositeAttribute = providerParams.get(CRITERIA_COMPOSITE_ATTRIBUTE);
 		BusinessRule.expect(compositeAttribute, it -> !StringUtils.isEmpty(it))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Level attributes must be provided for widget based items provider");
@@ -60,7 +75,5 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 				compositeAttribute
 		);
 		filter.getFilterConditions().add(FilterCondition.builder().in(LAUNCH_ID, redirectLaunchIds).build());
-		return testItemRepository.findByFilter(filter, pageable);
-
 	}
 }

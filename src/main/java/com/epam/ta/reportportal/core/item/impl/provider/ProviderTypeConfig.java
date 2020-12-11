@@ -48,6 +48,7 @@ public class ProviderTypeConfig {
 				applicationContext.getBean(MaterializedWidgetProviderHandlerImpl.class)
 		)
 				.put(DataProviderType.LAUNCH_BASED, applicationContext.getBean(LaunchDataProviderHandlerImpl.class))
+				.put(DataProviderType.FILTER_BASED, applicationContext.getBean(FilterDataProviderImpl.class))
 				.build();
 	}
 

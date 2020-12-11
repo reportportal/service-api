@@ -178,15 +178,13 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find test items by specified filter")
 	public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@RequestParam Map<String, String> providerParams,
-			@FilterFor(TestItem.class) Filter filter,
-			@FilterFor(TestItem.class) Queryable predefinedFilter,
-			@SortFor(TestItem.class) Pageable pageable) {
-		return getTestItemHandler.getTestItemsWithProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
+			@RequestParam Map<String, String> params, @FilterFor(TestItem.class) Filter filter,
+			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable) {
+		return getTestItemHandler.getTestItemsByProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				pageable,
 				extractProjectDetails(user, projectName),
 				user,
-				providerParams
+				params
 		);
 	}
 
@@ -195,12 +193,12 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Find accumulated statistics of items by specified filter")
 	public StatisticsResource getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
-			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter) {
-		return getTestItemHandler.getStatisticsByFilter(new CompositeFilter(Operator.AND, filter, predefinedFilter),
+			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
+			@RequestParam Map<String, String> params) {
+		return getTestItemHandler.getStatisticsByProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				extractProjectDetails(user, projectName),
 				user,
-				launchId
+				params
 		);
 	}
 

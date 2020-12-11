@@ -161,16 +161,16 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public Iterable<TestItemResource> getTestItemsWithProvider(Queryable filter, Pageable pageable,
-			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Map<String, String> providerParams) {
-		DataProviderType dataProviderType = DataProviderType.findByName(providerParams.get(PROVIDER_TYPE_PARAM)).orElseThrow(() -> new ReportPortalException(
-				ErrorType.BAD_REQUEST_ERROR,
-				"Test item data provider base is not specified. Allowed data provider {}",
-				DataProviderType.values()
-		));
+	public Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable,
+			ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, Map<String, String> params) {
+		DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+						"Test item data provider base is not specified. Allowed data provider {}",
+						DataProviderType.values()
+				));
 
 		Page<TestItem> testItemPage = testItemDataProviders.get(dataProviderType)
-				.getTestItems(filter, pageable, projectDetails, user, providerParams);
+				.getTestItems(filter, pageable, projectDetails, user, params);
 
 		return PagedResourcesAssembler.<TestItem, TestItemResource>pageMultiConverter(items -> {
 			List<ResourceUpdater<TestItemResource>> resourceUpdaters = getResourceUpdaters(projectDetails.getProjectId(),
@@ -185,10 +185,15 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
-	public StatisticsResource getStatisticsByFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser reportPortalUser, Long launchId) {
-		launchAccessValidator.validate(launchId, projectDetails, reportPortalUser);
-		return StatisticsConverter.TO_RESOURCE.apply(testItemRepository.accumulateStatisticsByFilter(filter));
+	public StatisticsResource getStatisticsByProvider(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser reportPortalUser, Map<String, String> params) {
+		DataProviderType dataProviderType = DataProviderType.findByName(params.get(PROVIDER_TYPE_PARAM))
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+						"Test item data provider base is not specified. Allowed data provider {}",
+						DataProviderType.values()
+				));
+		return StatisticsConverter.TO_RESOURCE.apply(testItemDataProviders.get(dataProviderType)
+				.accumulateStatistics(filter, projectDetails, reportPortalUser, params));
 	}
 
 	protected void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {

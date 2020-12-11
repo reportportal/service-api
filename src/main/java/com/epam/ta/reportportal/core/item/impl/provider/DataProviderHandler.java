@@ -19,10 +19,12 @@ package com.epam.ta.reportportal.core.item.impl.provider;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -30,6 +32,9 @@ import java.util.Map;
 public interface DataProviderHandler {
 
 	Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
-			Map<String, String> providerParams);
+			Map<String, String> params);
+
+	Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			Map<String, String> params);
 
 }

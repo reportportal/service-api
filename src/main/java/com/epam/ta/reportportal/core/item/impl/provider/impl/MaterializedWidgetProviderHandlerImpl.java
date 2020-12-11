@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
 import com.epam.ta.reportportal.core.widget.util.WidgetOptionUtil;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
 import static com.epam.ta.reportportal.core.widget.content.updater.MaterializedWidgetStateUpdater.STATE;
@@ -59,6 +61,18 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Map<String, String> providerParams) {
+		WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
+		return testItemWidgetDataProviders.get(widgetType).getTestItems(filter, pageable, projectDetails, user, providerParams);
+	}
+
+	@Override
+	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			Map<String, String> providerParams) {
+		WidgetType widgetType = updateProviderParams(projectDetails, providerParams);
+		return testItemWidgetDataProviders.get(widgetType).accumulateStatistics(filter, projectDetails, user, providerParams);
+	}
+
+	private WidgetType updateProviderParams(ReportPortalUser.ProjectDetails projectDetails, Map<String, String> providerParams) {
 		Long widgetId = Optional.ofNullable(providerParams.get(WIDGET_ID_PARAM))
 				.map(ControllerUtils::safeParseLong)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
@@ -69,8 +83,7 @@ public class MaterializedWidgetProviderHandlerImpl implements DataProviderHandle
 		WidgetType widgetType = WidgetType.findByName(widget.getWidgetType())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		providerParams.put(VIEW_NAME, widget.getWidgetOptions().getOptions().get(VIEW_NAME).toString());
-		return testItemWidgetDataProviders.get(widgetType)
-				.getTestItems(filter, pageable, projectDetails, user, providerParams);
+		return widgetType;
 	}
 
 	private void validateState(WidgetOptions widgetOptions) {

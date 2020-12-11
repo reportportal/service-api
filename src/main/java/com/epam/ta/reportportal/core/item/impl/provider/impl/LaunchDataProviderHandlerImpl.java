@@ -17,11 +17,13 @@
 package com.epam.ta.reportportal.core.item.impl.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -32,6 +34,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
+import static com.epam.ta.reportportal.dao.constant.TestItemRepositoryConstants.LAUNCH_ID;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -49,13 +54,26 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> providerParams) {
-		Long launchId = Optional.ofNullable(providerParams.get(LAUNCH_ID_PARAM)).map(ControllerUtils::safeParseLong)
-				.orElseThrow(() -> new ReportPortalException(
-						ErrorType.BAD_REQUEST_ERROR,
+			ReportPortalUser user, Map<String, String> params) {
+		updateFilter(filter, projectDetails, user, params);
+		return testItemRepository.findByFilter(filter, pageable);
+	}
+
+	@Override
+	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			Map<String, String> params) {
+		updateFilter(filter, projectDetails, user, params);
+		return testItemRepository.accumulateStatisticsByFilter(filter);
+	}
+
+	private void updateFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			Map<String, String> params) {
+		Long launchId = Optional.ofNullable(params.get(LAUNCH_ID_PARAM))
+				.map(ControllerUtils::safeParseLong)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						"Launch id must be provided for launch based items provider"
 				));
 		launchAccessValidator.validate(launchId, projectDetails, user);
-		return testItemRepository.findByFilter(filter, pageable);
+		filter.getFilterConditions().add(FilterCondition.builder().eq(LAUNCH_ID, String.valueOf(launchId)).build());
 	}
 }

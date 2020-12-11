@@ -212,6 +212,25 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getTestItemsLaunchProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+
+	@Test
+	void getTestItemsFilterProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getTestItemsWidgetProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=widget").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void getTestItemBySpecifiedIds() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/items?ids=1,2,3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
@@ -231,7 +250,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void getAccumulatedStatisticsByFilter() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/statistics?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_PROJECT_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 

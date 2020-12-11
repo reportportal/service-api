@@ -151,7 +151,7 @@ class RerunHandlerImplTest {
 		request.setTestCaseId(testCaseId);
 		Launch launch = getLaunch("uuid");
 
-		when(testItemRepository.findLatestByTestCaseHashAndLaunchIdWithoutParents(testCaseId.hashCode(), launch.getId())).thenReturn(
+		when(testItemRepository.findLatestIdByTestCaseHashAndLaunchIdWithoutParents(testCaseId.hashCode(), launch.getId())).thenReturn(
 				Optional.empty());
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
@@ -170,8 +170,10 @@ class RerunHandlerImplTest {
 		request.setTestCaseId(testCaseId);
 		Launch launch = getLaunch("uuid");
 
-		when(testItemRepository.findLatestByTestCaseHashAndLaunchIdWithoutParents(testCaseId.hashCode(), launch.getId())).thenReturn(
-				Optional.of(getItem(itemName, launch)));
+		final TestItem item = getItem(itemName, launch);
+		when(testItemRepository.findLatestIdByTestCaseHashAndLaunchIdWithoutParents(testCaseId.hashCode(), launch.getId())).thenReturn(
+				Optional.of(item.getItemId()));
+		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
 
@@ -192,10 +194,7 @@ class RerunHandlerImplTest {
 		parent.setItemId(2L);
 		parent.setPath("1.2");
 
-		when(testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(testCaseId.hashCode(),
-				launch.getId(),
-				parent.getItemId()
-		)).thenReturn(Optional.empty());
+		when(retriesHandler.findPreviousRetry(eq(launch), any(), eq(parent))).thenReturn(Optional.empty());
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, parent);
 
@@ -216,10 +215,9 @@ class RerunHandlerImplTest {
 		parent.setItemId(2L);
 		parent.setPath("1.2");
 
-		when(testItemRepository.findLatestByTestCaseHashAndLaunchIdAndParentId(testCaseId.hashCode(),
-				launch.getId(),
-				parent.getItemId()
-		)).thenReturn(Optional.of(getItem(itemName, launch)));
+		final TestItem item = getItem(itemName, launch);
+		when(retriesHandler.findPreviousRetry(eq(launch), any(), eq(parent))).thenReturn(Optional.of(item.getItemId()));
+		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, parent);
 

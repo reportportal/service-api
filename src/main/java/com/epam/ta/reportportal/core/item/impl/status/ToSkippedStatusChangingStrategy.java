@@ -57,12 +57,13 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 
 	@Autowired
 	protected ToSkippedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer,
+			LaunchRepository launchRepository, TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
+			MessageBus messageBus, IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer,
 			ItemAttributeRepository itemAttributeRepository) {
 		super(testItemService,
 				projectRepository,
 				launchRepository,
+				testItemRepository,
 				issueTypeHandler,
 				messageBus,
 				issueEntityRepository,

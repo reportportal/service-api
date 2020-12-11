@@ -179,7 +179,7 @@ class DeleteTestItemHandlerImplTest {
 		parent.setItemId(parentId);
 		String path = "1.2.3";
 		parent.setPath(path);
-		item.setParent(parent);
+		item.setParentId(parent.getItemId());
 
 		Launch launch = new Launch();
 		launch.setStatus(StatusEnum.PASSED);
@@ -194,7 +194,8 @@ class DeleteTestItemHandlerImplTest {
 				testItemRepository.selectAllDescendantsIds(item.getPath()),
 				LogLevel.ERROR.toInt()
 		)).thenReturn(Collections.emptyList());
-		when(testItemRepository.hasChildren(parentId, path)).thenReturn(false);
+		when(testItemRepository.findById(parentId)).thenReturn(Optional.of(parent));
+		when(testItemRepository.hasChildren(parent.getItemId(), parent.getPath())).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
 		doNothing().when(eventPublisher).publishEvent(any(DeleteTestItemAttachmentsEvent.class));
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);

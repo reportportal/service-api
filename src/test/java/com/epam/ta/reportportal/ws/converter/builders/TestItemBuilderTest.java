@@ -55,13 +55,13 @@ class TestItemBuilderTest {
 		parameterResource.setValue("value");
 		final String description = "description";
 		final String typeValue = "step";
-		final TestItem parent = new TestItem();
+
 		final TestItem testItem = new TestItemBuilder().addDescription(description)
 				.addType(typeValue)
 				.addLaunchId(launch.getId())
 				.addParameters(Collections.singletonList(parameterResource))
 				.addAttributes(Sets.newHashSet(new ItemAttributesRQ("key", "value")))
-				.addParent(parent)
+				.addParentId(1L)
 				.get();
 
 		assertThat(testItem.getLaunchId()).isEqualToComparingFieldByField(launch.getId());
@@ -72,7 +72,7 @@ class TestItemBuilderTest {
 		param.setValue("value");
 		assertTrue(testItem.getParameters().contains(param));
 		assertThat(testItem.getAttributes()).containsExactly(new ItemAttribute("key", "value", false));
-		assertNotNull(testItem.getParent());
+		assertNotNull(testItem.getParentId());
 	}
 
 	@Test

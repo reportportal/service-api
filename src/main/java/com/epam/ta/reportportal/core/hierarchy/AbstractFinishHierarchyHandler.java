@@ -134,7 +134,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				finishItem(testItem, status, endTime);
 				attachIssue(testItem, issueType);
-				changeStatusHandler.changeParentStatus(itemId, projectId, user);
+				changeStatusHandler.changeParentStatus(testItem, projectId, user);
 			}));
 		};
 	}
@@ -145,7 +145,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				finishItem(testItem, status, endTime);
-				changeStatusHandler.changeParentStatus(itemId, projectId, user);
+				changeStatusHandler.changeParentStatus(testItem, projectId, user);
 			}));
 		};
 	}

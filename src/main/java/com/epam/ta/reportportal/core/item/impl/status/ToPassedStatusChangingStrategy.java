@@ -48,8 +48,6 @@ import static java.util.Optional.ofNullable;
 @Service
 public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrategy {
 
-	private final TestItemRepository testItemRepository;
-
 	@Autowired
 	protected ToPassedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
 			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
@@ -58,13 +56,13 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 		super(testItemService,
 				projectRepository,
 				launchRepository,
+				testItemRepository,
 				issueTypeHandler,
 				messageBus,
 				issueEntityRepository,
 				logRepository,
 				logIndexer
 		);
-		this.testItemRepository = testItemRepository;
 	}
 
 	@Override

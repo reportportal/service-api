@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
@@ -173,16 +174,31 @@ public class TestItemController {
 	}
 
 	@Transactional(readOnly = true)
+	@GetMapping("/v2")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test items by specified filter")
+	public Iterable<TestItemResource> getTestItemsV2(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam Map<String, String> params, @FilterFor(TestItem.class) Filter filter,
+			@FilterFor(TestItem.class) Queryable predefinedFilter, @SortFor(TestItem.class) Pageable pageable) {
+		return getTestItemHandler.getTestItemsByProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
+				pageable,
+				extractProjectDetails(user, projectName),
+				user,
+				params
+		);
+	}
+
+	@Transactional(readOnly = true)
 	@GetMapping("/statistics")
 	@ResponseStatus(OK)
 	@ApiOperation("Find accumulated statistics of items by specified filter")
 	public StatisticsResource getTestItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
-			@Nullable @RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_LAUNCH_ID, required = false) Long launchId,
-			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter) {
-		return getTestItemHandler.getStatisticsByFilter(new CompositeFilter(Operator.AND, filter, predefinedFilter),
+			@FilterFor(TestItem.class) Filter filter, @FilterFor(TestItem.class) Queryable predefinedFilter,
+			@RequestParam Map<String, String> params) {
+		return getTestItemHandler.getStatisticsByProvider(new CompositeFilter(Operator.AND, filter, predefinedFilter),
 				extractProjectDetails(user, projectName),
 				user,
-				launchId
+				params
 		);
 	}
 

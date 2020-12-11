@@ -212,6 +212,25 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getTestItemsLaunchProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+
+	@Test
+	void getTestItemsFilterProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getTestItemsWidgetProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=widget").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void getTestItemBySpecifiedIds() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/items?ids=1,2,3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
@@ -231,7 +250,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void getAccumulatedStatisticsByFilter() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/statistics?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_PROJECT_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -552,7 +571,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -577,7 +596,7 @@ class TestItemControllerTest extends BaseMvcTest {
 				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -599,7 +618,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
 		assertNull(updatedItem.get().getItemResults().getIssue());
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -633,7 +652,7 @@ class TestItemControllerTest extends BaseMvcTest {
 				TestItemIssueGroup.PRODUCT_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -653,7 +672,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
 		assertNull(updatedItem.get().getItemResults().getIssue());
-		assertEquals(StatusEnum.PASSED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.PASSED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -678,7 +697,7 @@ class TestItemControllerTest extends BaseMvcTest {
 				TestItemIssueGroup.AUTOMATION_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -703,7 +722,7 @@ class TestItemControllerTest extends BaseMvcTest {
 				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -725,7 +744,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
 		assertNull(updatedItem.get().getItemResults().getIssue());
-		assertEquals(StatusEnum.PASSED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.PASSED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -747,7 +766,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.PASSED, updatedItem.get().getItemResults().getStatus());
 		assertNull(updatedItem.get().getItemResults().getIssue());
-		assertEquals(StatusEnum.PASSED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.PASSED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.PASSED, launch.getStatus());
@@ -772,7 +791,7 @@ class TestItemControllerTest extends BaseMvcTest {
 				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());
@@ -797,7 +816,7 @@ class TestItemControllerTest extends BaseMvcTest {
 				TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
-		assertEquals(StatusEnum.FAILED, updatedItem.get().getParent().getItemResults().getStatus());
+		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
 
 		Launch launch = launchRepository.findById(updatedItem.get().getLaunchId()).get();
 		assertEquals(StatusEnum.FAILED, launch.getStatus());

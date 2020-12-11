@@ -132,9 +132,7 @@ class StartTestItemHandlerImplTest {
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-			handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1");
-		});
+		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1"));
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 

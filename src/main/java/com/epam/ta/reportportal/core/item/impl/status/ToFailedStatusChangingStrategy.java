@@ -24,10 +24,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.IssueEntityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -51,11 +48,12 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 
 	@Autowired
 	public ToFailedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
+			LaunchRepository launchRepository, TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
+			MessageBus messageBus, IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
 		super(testItemService,
 				projectRepository,
 				launchRepository,
+				testItemRepository,
 				issueTypeHandler,
 				messageBus,
 				issueEntityRepository,

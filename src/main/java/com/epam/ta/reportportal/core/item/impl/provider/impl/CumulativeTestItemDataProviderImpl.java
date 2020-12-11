@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.dao.WidgetContentRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,6 +75,8 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 		List<Long> redirectLaunchIds = widgetContentRepository.getCumulativeLevelRedirectLaunchIds(providerParams.get(VIEW_NAME),
 				compositeAttribute
 		);
-		filter.getFilterConditions().add(FilterCondition.builder().in(LAUNCH_ID, redirectLaunchIds).build());
+		if (CollectionUtils.isNotEmpty(redirectLaunchIds)) {
+			filter.getFilterConditions().add(FilterCondition.builder().in(LAUNCH_ID, redirectLaunchIds).build());
+		}
 	}
 }

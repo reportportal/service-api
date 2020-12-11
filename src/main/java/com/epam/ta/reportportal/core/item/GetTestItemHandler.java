@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * GET operations for {@link TestItem}
@@ -61,14 +62,27 @@ public interface GetTestItemHandler {
 			ReportPortalUser user, @Nullable Long launchId, @Nullable Long filterId, boolean isLatest, int launchesLimit);
 
 	/**
-	 * Gets accumulated statistics of items by filter
+	 * Gets {@link TestItem} instances
+	 *
+	 * @param filter         {@link Filter}
+	 * @param pageable       {@link Pageable}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
+	 * @return {@link Iterable} of the {@link TestItemResource}
+	 */
+	Iterable<TestItemResource> getTestItemsByProvider(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, Map<String, String> params);
+
+	/**
+	 * Gets accumulated statistics of items by data provider
 	 *
 	 * @param filter         {@link Filter}
 	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @return Accumulated statistics
 	 */
-	StatisticsResource getStatisticsByFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser reportPortalUser, Long launchId);
+	StatisticsResource getStatisticsByProvider(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user, Map<String, String> providerParams);
+
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch

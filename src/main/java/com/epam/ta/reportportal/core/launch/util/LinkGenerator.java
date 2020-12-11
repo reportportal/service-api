@@ -17,16 +17,20 @@
 package com.epam.ta.reportportal.core.launch.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public final class LaunchLinkGenerator {
+public final class LinkGenerator {
 
 	private static final String UI_PREFIX = "/ui/#";
 	private static final String LAUNCHES = "/launches/all/";
 
-	private LaunchLinkGenerator() {
+	private LinkGenerator() {
 		//static only
 	}
 
@@ -34,7 +38,15 @@ public final class LaunchLinkGenerator {
 		return StringUtils.isEmpty(baseUrl) ? null : baseUrl + UI_PREFIX + projectName + LAUNCHES + id;
 	}
 
-	public static String composeBaseUrl(String scheme, String host) {
-		return String.format("%s://%s", scheme, host);
+	public static String composeBaseUrl(HttpServletRequest request) {
+		/*
+		 * Use Uri components since they are aware of x-forwarded-host headers
+		 */
+		return UriComponentsBuilder.fromHttpRequest(new ServletServerHttpRequest(request))
+				.replacePath(null)
+				.replaceQuery(null)
+				.build()
+				.toUri()
+				.toASCIIString();
 	}
 }

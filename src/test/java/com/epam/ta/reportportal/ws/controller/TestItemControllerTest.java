@@ -212,6 +212,12 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getTestItemsBadProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=bad").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void getTestItemsLaunchProvider() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());

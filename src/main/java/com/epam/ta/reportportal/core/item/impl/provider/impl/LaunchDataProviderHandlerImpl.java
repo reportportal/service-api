@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.epam.ta.reportportal.dao.constant.TestItemRepositoryConstants.LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -74,6 +74,6 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 						"Launch id must be provided for launch based items provider"
 				));
 		launchAccessValidator.validate(launchId, projectDetails, user);
-		filter.getFilterConditions().add(FilterCondition.builder().eq(LAUNCH_ID, String.valueOf(launchId)).build());
+		filter.getFilterConditions().add(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build());
 	}
 }

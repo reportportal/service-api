@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
-import static com.epam.ta.reportportal.dao.constant.TestItemRepositoryConstants.LAUNCH_ID;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -76,7 +76,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 				compositeAttribute
 		);
 		if (CollectionUtils.isNotEmpty(redirectLaunchIds)) {
-			filter.getFilterConditions().add(FilterCondition.builder().in(LAUNCH_ID, redirectLaunchIds).build());
+			filter.getFilterConditions().add(FilterCondition.builder().in(CRITERIA_LAUNCH_ID, redirectLaunchIds).build());
 		}
 	}
 }

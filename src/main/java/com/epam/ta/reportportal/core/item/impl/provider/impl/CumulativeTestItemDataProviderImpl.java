@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.item.impl.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -27,6 +29,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,7 +59,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Map<String, String> params) {
-		updateFilter(filter, params);
+		filter = updateFilter(filter, params);
 		return testItemRepository.findByFilter(filter, pageable);
 
 	}
@@ -64,11 +67,11 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 	@Override
 	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			Map<String, String> params) {
-		updateFilter(filter, params);
+		filter = updateFilter(filter, params);
 		return testItemRepository.accumulateStatisticsByFilter(filter);
 	}
 
-	public void updateFilter(Queryable filter, Map<String, String> providerParams) {
+	public Queryable updateFilter(Queryable filter, Map<String, String> providerParams) {
 		String compositeAttribute = providerParams.get(CRITERIA_COMPOSITE_ATTRIBUTE);
 		BusinessRule.expect(compositeAttribute, it -> !StringUtils.isEmpty(it))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Level attributes must be provided for widget based items provider");
@@ -76,7 +79,12 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 				compositeAttribute
 		);
 		if (CollectionUtils.isNotEmpty(redirectLaunchIds)) {
-			filter.getFilterConditions().add(FilterCondition.builder().in(CRITERIA_LAUNCH_ID, redirectLaunchIds).build());
+			Queryable launchesBasedFilter = Filter.builder()
+					.withTarget(TestItem.class)
+					.withCondition(FilterCondition.builder().in(CRITERIA_LAUNCH_ID, redirectLaunchIds).build())
+					.build();
+			return new CompositeFilter(Operator.AND, filter, launchesBasedFilter);
 		}
+		return filter;
 	}
 }

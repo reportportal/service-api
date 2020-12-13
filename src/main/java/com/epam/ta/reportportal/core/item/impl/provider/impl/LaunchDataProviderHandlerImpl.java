@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.item.impl.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
+import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
@@ -27,6 +29,7 @@ import com.epam.ta.reportportal.entity.statistics.Statistics;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ControllerUtils;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,18 +58,18 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user, Map<String, String> params) {
-		updateFilter(filter, projectDetails, user, params);
+		filter = updateFilter(filter, projectDetails, user, params);
 		return testItemRepository.findByFilter(filter, pageable);
 	}
 
 	@Override
 	public Set<Statistics> accumulateStatistics(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			Map<String, String> params) {
-		updateFilter(filter, projectDetails, user, params);
+		filter = updateFilter(filter, projectDetails, user, params);
 		return testItemRepository.accumulateStatisticsByFilter(filter);
 	}
 
-	private void updateFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+	private Queryable updateFilter(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			Map<String, String> params) {
 		Long launchId = Optional.ofNullable(params.get(LAUNCH_ID_PARAM))
 				.map(ControllerUtils::safeParseLong)
@@ -74,6 +77,10 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 						"Launch id must be provided for launch based items provider"
 				));
 		launchAccessValidator.validate(launchId, projectDetails, user);
-		filter.getFilterConditions().add(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build());
+		Queryable launchBasedFilter = Filter.builder()
+				.withTarget(TestItem.class)
+				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build())
+				.build();
+		return new CompositeFilter(Operator.AND, filter, launchBasedFilter);
 	}
 }

@@ -18,7 +18,9 @@ package com.epam.ta.reportportal.core.item.impl.merge.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
@@ -30,9 +32,9 @@ import java.util.List;
  */
 public class DeepLaunchMergeStrategy extends AbstractLaunchMergeStrategy {
 
-	public DeepLaunchMergeStrategy(TestItemRepository testItemRepository, TestItemUniqueIdGenerator identifierGenerator,
-			LaunchRepository launchRepository) {
-		super(testItemRepository, identifierGenerator, launchRepository);
+	public DeepLaunchMergeStrategy(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
+			AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
+		super(launchRepository, testItemRepository, logRepository, attachmentRepository, identifierGenerator);
 	}
 
 	@Override

@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.ta.reportportal.ws.model.Page;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import org.springframework.data.domain.Pageable;
 
@@ -154,5 +153,5 @@ public interface GetLaunchHandler {
 	 * @param pageable       Page details
 	 * @return Response Data
 	 */
-	Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
+	Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable);
 }

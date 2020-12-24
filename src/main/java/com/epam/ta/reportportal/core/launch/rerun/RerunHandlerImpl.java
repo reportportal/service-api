@@ -17,8 +17,6 @@
 package com.epam.ta.reportportal.core.launch.rerun;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
 import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
@@ -37,7 +35,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,7 +46,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.ItemAttributeConverter.TO_LAUNCH_ATTRIBUTE;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -62,25 +58,23 @@ public class RerunHandlerImpl implements RerunHandler {
 	private final LaunchRepository launchRepository;
 	private final UniqueIdGenerator uniqueIdGenerator;
 	private final TestCaseHashGenerator testCaseHashGenerator;
-	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 	private final RetriesHandler retriesHandler;
 
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
-			TestCaseHashGenerator testCaseHashGenerator, MessageBus messageBus, ApplicationEventPublisher eventPublisher,
+			TestCaseHashGenerator testCaseHashGenerator, ApplicationEventPublisher eventPublisher,
 			@Qualifier("testCaseHashRetriesHandler") RetriesHandler retriesHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
 		this.testCaseHashGenerator = testCaseHashGenerator;
-		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 		this.retriesHandler = retriesHandler;
 	}
 
 	@Override
-	public StartLaunchRS handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
+	public Launch handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user) {
 		Optional<Launch> launchOptional = StringUtils.isEmpty(request.getRerunOf()) ?
 				launchRepository.findLatestByNameAndProjectId(request.getName(), projectId) :
 				launchRepository.findByUuid(request.getRerunOf());
@@ -96,13 +90,7 @@ public class RerunHandlerImpl implements RerunHandler {
 				.collect(Collectors.toSet())).ifPresent(launch::setAttributes);
 		ofNullable(request.getUuid()).ifPresent(launch::setUuid);
 		launch.setRerun(true);
-
-		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
-
-		StartLaunchRS response = new StartLaunchRS();
-		response.setId(launch.getUuid());
-		response.setNumber(launch.getNumber());
-		return response;
+		return launch;
 	}
 
 	@Override

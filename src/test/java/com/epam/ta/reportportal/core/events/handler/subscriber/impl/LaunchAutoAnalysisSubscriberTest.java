@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Map;
 import java.util.Optional;
@@ -50,25 +51,15 @@ class LaunchAutoAnalysisSubscriberTest {
 	private final AnalyzeCollectorFactory analyzeCollectorFactory = mock(AnalyzeCollectorFactory.class);
 	private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
 	private final LogIndexer logIndexer = mock(LogIndexer.class);
+	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
 	private CompletableFuture<Long> indexed = mock(CompletableFuture.class);
 	private CompletableFuture<Void> analyzed = mock(CompletableFuture.class);
 
 	private final LaunchAutoAnalysisSubscriber autoAnalysisSubscriber = new LaunchAutoAnalysisSubscriber(analyzerServiceAsync,
 			analyzeCollectorFactory,
-			logIndexer
+			logIndexer, eventPublisher
 	);
-
-	//	AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-	//		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
-	//		List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
-	//				.collectItems(project.getId(), launch.getId(), null);
-	//		logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
-	//		analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
-	//		CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
-	//	} else {
-	//		logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
-	//	}
 
 	@Test
 	void shouldAnalyzeWhenEnabled() {
@@ -98,6 +89,7 @@ class LaunchAutoAnalysisSubscriberTest {
 
 		verify(logIndexer, times(1)).indexLaunchLogs(any(), any(), any());
 		verify(analyzerServiceAsync, times(1)).analyze(any(), any(), any());
+		verify(eventPublisher, times(1)).publishEvent(any());
 
 	}
 

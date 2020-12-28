@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
-import com.epam.reportportal.extension.event.LaunchEvent;
+import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
@@ -71,7 +71,7 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 		} else {
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
 		}
-		eventPublisher.publishEvent(new LaunchEvent(launch.getId(), AUTO_ANALYSIS_FINISHED_KEY));
+		eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId()));
 	}
 
 	@Override

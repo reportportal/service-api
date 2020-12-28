@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.reportportal.extension.event.LaunchEvent;
+import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
@@ -90,7 +90,7 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
 					return launch;
 				});
 
-		eventPublisher.publishEvent(new LaunchEvent(savedLaunch.getId(), START_KEY));
+		eventPublisher.publishEvent(new StartLaunchEvent(savedLaunch.getId()));
 		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(savedLaunch), user.getUserId(), user.getUsername()));
 
 		StartLaunchRS response = new StartLaunchRS();

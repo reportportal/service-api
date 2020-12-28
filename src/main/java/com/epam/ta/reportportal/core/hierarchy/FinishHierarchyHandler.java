@@ -26,6 +26,14 @@ import java.util.Date;
  */
 public interface FinishHierarchyHandler<T> {
 
-	void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user,
+	/**
+	 * @param parentEntity   Parent entity which descendants should be finished
+	 * @param status         {@link StatusEnum} that should be assigned to descendants
+	 * @param endDate        {@link java.time.LocalDateTime} finish date for descendants
+	 * @param user           {@link ReportPortalUser}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @return finished descendants count
+	 */
+	int finishDescendants(T parentEntity, StatusEnum status, Date endDate, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails);
 }

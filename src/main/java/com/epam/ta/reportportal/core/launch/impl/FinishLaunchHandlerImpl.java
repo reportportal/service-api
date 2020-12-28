@@ -37,9 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
@@ -82,17 +82,25 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 		Long id = launch.getId();
 
-		finishHierarchyHandler.finishDescendants(launch,
+		final int finishedCount = finishHierarchyHandler.finishDescendants(launch,
 				status.orElse(StatusEnum.INTERRUPTED),
 				finishLaunchRQ.getEndTime(),
 				user,
 				projectDetails
 		);
-		launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
-				StatusEnum.PASSED.name(),
-				StatusEnum.INFO.name(),
-				StatusEnum.WARN.name()
-		) ? FAILED : PASSED);
+		if (finishedCount > 0) {
+			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
+					StatusEnum.PASSED.name(),
+					StatusEnum.INFO.name(),
+					StatusEnum.WARN.name()
+			) ? FAILED : PASSED);
+		} else {
+			launch.setStatus(status.orElseGet(() -> launchRepository.hasRootItemsWithStatusNotEqual(id,
+					StatusEnum.PASSED.name(),
+					StatusEnum.INFO.name(),
+					StatusEnum.WARN.name()
+			) ? FAILED : PASSED));
+		}
 
 		launch = new LaunchBuilder(launch).addDescription(buildDescription(launch.getDescription(), finishLaunchRQ.getDescription()))
 				.addAttributes(finishLaunchRQ.getAttributes())

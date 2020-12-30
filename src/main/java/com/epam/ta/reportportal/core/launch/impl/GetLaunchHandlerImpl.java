@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
-import com.epam.reportportal.extension.event.LaunchResourceCollectionEvent;
+import com.epam.reportportal.extension.event.GetLaunchResourceCollectionEvent;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.*;
@@ -85,8 +85,6 @@ import static java.util.Optional.ofNullable;
 @Service
 public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
-	public static final String GET_KEY = "get";
-
 	private final LaunchRepository launchRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;
@@ -138,7 +136,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 	private LaunchResource getLaunchResource(Launch launch) {
 		final LaunchResource launchResource = launchConverter.TO_RESOURCE.apply(launch);
-		applicationEventPublisher.publishEvent(new LaunchResourceCollectionEvent(GET_KEY, Collections.singletonList(launchResource)));
+		applicationEventPublisher.publishEvent(new GetLaunchResourceCollectionEvent(Collections.singletonList(launchResource)));
 		return launchResource;
 	}
 
@@ -194,7 +192,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {
 		final com.epam.ta.reportportal.ws.model.Page<LaunchResource> launchResourcePage = PagedResourcesAssembler.pageConverter(
 				launchConverter.TO_RESOURCE).apply(launches);
-		applicationEventPublisher.publishEvent(new LaunchResourceCollectionEvent(GET_KEY, launchResourcePage.getContent()));
+		applicationEventPublisher.publishEvent(new GetLaunchResourceCollectionEvent(launchResourcePage.getContent()));
 		return launchResourcePage;
 	}
 

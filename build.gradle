@@ -70,7 +70,7 @@ dependencies {
         compile 'com.github.reportportal:commons-model:34257a7'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:42dc946'
+        compile 'com.github.reportportal:plugin-api:f217e6f9'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

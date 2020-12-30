@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchStartedEvent;
@@ -30,9 +31,12 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 
@@ -48,14 +52,16 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
 
 	private final UserRepository userRepository;
 	private final LaunchRepository launchRepository;
+	private final ApplicationEventPublisher eventPublisher;
 	private final MessageBus messageBus;
 	private final RerunHandler rerunHandler;
 
 	@Autowired
-	public StartLaunchHandlerImpl(UserRepository userRepository, LaunchRepository launchRepository, MessageBus messageBus,
-			RerunHandler rerunHandler) {
+	public StartLaunchHandlerImpl(UserRepository userRepository, LaunchRepository launchRepository,
+			ApplicationEventPublisher eventPublisher, MessageBus messageBus, RerunHandler rerunHandler) {
 		this.userRepository = userRepository;
 		this.launchRepository = launchRepository;
+		this.eventPublisher = eventPublisher;
 		this.messageBus = messageBus;
 		this.rerunHandler = rerunHandler;
 	}
@@ -68,22 +74,26 @@ class StartLaunchHandlerImpl implements StartLaunchHandler {
 		Long userId = userRepository.findIdByLoginForUpdate(user.getUsername())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
-		if (request.isRerun()) {
-			return rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user);
-		}
+		final Launch savedLaunch = Optional.of(request.isRerun())
+				.filter(Boolean::booleanValue)
+				.map(rerun -> rerunHandler.handleLaunch(request, projectDetails.getProjectId(), user))
+				.orElseGet(() -> {
+					Launch launch = new LaunchBuilder().addStartRQ(request)
+							.addAttributes(request.getAttributes())
+							.addProject(projectDetails.getProjectId())
+							.addUserId(userId)
+							.get();
+					launchRepository.save(launch);
+					launchRepository.refresh(launch);
+					return launch;
+				});
 
-		Launch launch = new LaunchBuilder().addStartRQ(request)
-				.addAttributes(request.getAttributes())
-				.addProject(projectDetails.getProjectId())
-				.addUserId(userId)
-				.get();
-		launchRepository.save(launch);
-		launchRepository.refresh(launch);
-		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
+		eventPublisher.publishEvent(new StartLaunchEvent(savedLaunch.getId()));
+		messageBus.publishActivity(new LaunchStartedEvent(TO_ACTIVITY_RESOURCE.apply(savedLaunch), user.getUserId(), user.getUsername()));
 
 		StartLaunchRS response = new StartLaunchRS();
-		response.setId(launch.getUuid());
-		response.setNumber(launch.getNumber());
+		response.setId(savedLaunch.getUuid());
+		response.setNumber(savedLaunch.getNumber());
 		return response;
 	}
 }

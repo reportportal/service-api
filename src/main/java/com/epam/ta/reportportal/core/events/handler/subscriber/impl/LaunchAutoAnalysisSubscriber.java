@@ -41,8 +41,6 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscriber {
 
-	public static final String AUTO_ANALYSIS_FINISHED_KEY = "autoAnalysisFinished";
-
 	private final AnalyzerServiceAsync analyzerServiceAsync;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 	private final LogIndexer logIndexer;

@@ -85,8 +85,6 @@ import static java.util.Optional.ofNullable;
 @Service
 public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
-	public static final String GET_KEY = "get";
-
 	private final LaunchRepository launchRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;

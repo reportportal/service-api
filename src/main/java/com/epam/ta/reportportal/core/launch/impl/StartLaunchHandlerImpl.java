@@ -50,8 +50,6 @@ import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.T
 @Transactional
 class StartLaunchHandlerImpl implements StartLaunchHandler {
 
-	public static final String START_KEY = "start";
-
 	private final UserRepository userRepository;
 	private final LaunchRepository launchRepository;
 	private final ApplicationEventPublisher eventPublisher;

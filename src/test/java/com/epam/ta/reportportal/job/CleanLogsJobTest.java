@@ -16,23 +16,26 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.job.service.LogCleanerService;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobExecutionException;
 import org.springframework.data.domain.PageImpl;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -44,14 +47,19 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CleanLogsJobTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+	private final LogCleanerService logCleanerService = mock(LogCleanerService.class);
 
-	@Mock
-	private LogCleanerService logCleanerService;
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private final ActivityRepository activityRepository = mock(ActivityRepository.class);
+	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
 
-	@InjectMocks
-	private CleanLogsJob cleanLogsJob;
+	private final CleanLogsJob cleanLogsJob = new CleanLogsJob(5,
+			100,
+			logCleanerService,
+			projectRepository,
+			activityRepository,
+			launchRepository
+	);
 
 	@Test
 	void executeTest() throws JobExecutionException {
@@ -61,23 +69,30 @@ class CleanLogsJobTest {
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
 		attribute.setName("job.keepLogs");
+		final Duration duration = Duration.ofSeconds(3600 * 24 * 30);
+		final LocalDateTime toCompare = java.time.LocalDateTime.now(ZoneOffset.UTC).minus(duration);
 		projectAttribute.setAttribute(attribute);
 		//1 month in seconds
-		projectAttribute.setValue(String.valueOf(3600 * 24 * 30));
+		projectAttribute.setValue(String.valueOf(duration.getSeconds()));
 		project.setProjectAttributes(Sets.newHashSet(projectAttribute));
 
 		project.setName(name);
 
 		when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(launchRepository.findIdsByProjectIdAndStartTimeBefore(eq(project.getId()),
+				any(),
+				anyInt(),
+				anyLong()
+		)).thenReturn(Lists.newArrayList(1L));
 
 		cleanLogsJob.execute(null);
 
-		ArgumentCaptor<Duration> durationArgumentCaptor = ArgumentCaptor.forClass(Duration.class);
-		verify(logCleanerService, times(1)).removeOutdatedLogs(any(), durationArgumentCaptor.capture(), any());
+		ArgumentCaptor<LocalDateTime> dateTimeArgumentCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+		verify(logCleanerService, times(1)).removeOutdatedLogs(any(), dateTimeArgumentCaptor.capture(), any(), any());
 
-		Duration value = durationArgumentCaptor.getValue();
+		LocalDateTime value = dateTimeArgumentCaptor.getValue();
 
-		Assertions.assertEquals(3600 * 24 * 30, value.getSeconds());
+		Assertions.assertTrue(value.compareTo(toCompare) >= 0);
 	}
 
 	@Test
@@ -97,6 +112,6 @@ class CleanLogsJobTest {
 
 		cleanLogsJob.execute(null);
 
-		verify(logCleanerService, times(0)).removeOutdatedLogs(any(), any(), any());
+		verify(logCleanerService, times(0)).removeOutdatedLogs(any(), any(), any(), any());
 	}
 }

@@ -16,14 +16,10 @@
 
 package com.epam.ta.reportportal.job.service.impl;
 
-import com.epam.ta.reportportal.dao.ActivityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.epam.ta.reportportal.job.service.LogCleanerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,10 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 
@@ -44,70 +38,42 @@ import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 @Service
 public class LogCleanerServiceImpl implements LogCleanerService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LogCleanerServiceImpl.class);
-
 	private final Integer itemPageSize;
 
-	private final LogRepository logRepository;
-
-	private final LaunchRepository launchRepository;
+	private final AttachmentCleanerService attachmentCleanerService;
 
 	private final TestItemRepository testItemRepository;
-
-	private final ActivityRepository activityRepository;
-
-	private final AttachmentCleanerServiceImpl attachmentCleanerService;
+	private final LogRepository logRepository;
 
 	@Autowired
-	public LogCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize, LogRepository logRepository,
-			LaunchRepository launchRepository, TestItemRepository testItemRepository, ActivityRepository activityRepository,
-			AttachmentCleanerServiceImpl attachmentCleanerService) {
+	public LogCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize,
+			AttachmentCleanerService attachmentCleanerService, TestItemRepository testItemRepository, LogRepository logRepository) {
 		this.itemPageSize = itemPageSize;
-		this.logRepository = logRepository;
-		this.launchRepository = launchRepository;
-		this.testItemRepository = testItemRepository;
-		this.activityRepository = activityRepository;
 		this.attachmentCleanerService = attachmentCleanerService;
+		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
 	}
 
 	@Override
 	@Transactional
-	public void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount) {
-		LocalDateTime endDate = LocalDateTime.now(ZoneOffset.UTC).minus(period);
-		AtomicLong logsCount = new AtomicLong(0);
-		AtomicLong attachmentsCount = new AtomicLong(0);
-		AtomicLong thumbnailsCount = new AtomicLong(0);
+	public long removeOutdatedLogs(Long launchId, LocalDateTime startTimeBound, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
+		final Duration period = Duration.between(LocalDateTime.now(), startTimeBound);
+		final AtomicLong logsCount = new AtomicLong(0);
 
-		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+		iterateOverContent(itemPageSize, pageable -> testItemRepository.findTestItemIdsByLaunchId(launchId, pageable), itemIds -> {
+			attachmentCleanerService.removeOutdatedItemsAttachments(itemIds, startTimeBound, attachmentsCount, thumbnailsCount);
+			long removedCount = logRepository.deleteByPeriodAndTestItemIds(period, itemIds);
+			logsCount.addAndGet(removedCount);
+		});
 
-		try (Stream<Long> launchIds = launchRepository.streamIdsByStartTimeBefore(project.getId(), endDate)) {
-			launchIds.forEach(id -> {
-				iterateOverContent(itemPageSize, pageable -> testItemRepository.findTestItemIdsByLaunchId(id, pageable), ids -> {
-					attachmentCleanerService.removeOutdatedItemsAttachments(ids, endDate, attachmentsCount, thumbnailsCount);
-					long count = logRepository.deleteByPeriodAndTestItemIds(period, ids);
-					removedLogsCount.addAndGet(count);
-					logsCount.addAndGet(count);
-				});
-				attachmentCleanerService.removeOutdatedLaunchesAttachments(Collections.singletonList(id),
-						endDate,
-						attachmentsCount,
-						thumbnailsCount
-				);
-				long count = logRepository.deleteByPeriodAndLaunchIds(period, Collections.singletonList(id));
-				removedLogsCount.addAndGet(count);
-				logsCount.addAndGet(count);
-			});
-		} catch (Exception e) {
-			LOGGER.error("Error during cleaning outdated logs", e);
-		}
+		attachmentCleanerService.removeOutdatedLaunchesAttachments(Collections.singletonList(launchId),
+				startTimeBound,
+				attachmentsCount,
+				thumbnailsCount
+		);
 
-		if (logsCount.get() > 0 || attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
-			LOGGER.info("Removed {} logs for project {} with {} attachments and {} thumbnails",
-					logsCount.get(),
-					project.getId(),
-					attachmentsCount.get(),
-					thumbnailsCount.get()
-			);
-		}
+		long removedCount = logRepository.deleteByPeriodAndLaunchIds(period, Collections.singletonList(launchId));
+		logsCount.addAndGet(removedCount);
+		return logsCount.get();
 	}
 }

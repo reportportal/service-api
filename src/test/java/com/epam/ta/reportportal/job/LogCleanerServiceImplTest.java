@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.job;
 
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
+import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.epam.ta.reportportal.job.service.impl.LogCleanerServiceImpl;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
@@ -31,12 +31,11 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
 
 import static java.time.Duration.ofDays;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -46,19 +45,13 @@ import static org.mockito.Mockito.*;
 class LogCleanerServiceImplTest {
 
 	private LogRepository logRepository = mock(LogRepository.class);
-	private LaunchRepository launchRepository = mock(LaunchRepository.class);
 	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
-	private DataStoreService dataStoreService = mock(DataStoreService.class);
-	private ActivityRepository activityRepository = mock(ActivityRepository.class);
-	private AttachmentRepository attachmentRepository = mock(AttachmentRepository.class);
-	private AttachmentCleanerServiceImpl attachmentCleanerService = mock(AttachmentCleanerServiceImpl.class);
+	private AttachmentCleanerService attachmentCleanerService = mock(AttachmentCleanerService.class);
 
 	private final LogCleanerServiceImpl logCleanerService = new LogCleanerServiceImpl(500,
-			logRepository,
-			launchRepository,
+			attachmentCleanerService,
 			testItemRepository,
-			activityRepository,
-			attachmentCleanerService
+			logRepository
 	);
 
 	@Test
@@ -67,7 +60,8 @@ class LogCleanerServiceImplTest {
 		Project project = new Project();
 		project.setId(1L);
 		Duration period = ofDays(180);
-		AtomicLong removedLogsCount = new AtomicLong();
+		AtomicLong attachments = new AtomicLong(0);
+		AtomicLong thumbnails = new AtomicLong(0);
 
 		long launchId = 1L;
 		long testItemId = 2L;
@@ -86,13 +80,11 @@ class LogCleanerServiceImplTest {
 
 		int deletedLogsCount = 2;
 
-		when(launchRepository.streamIdsByStartTimeBefore(eq(project.getId()), any(LocalDateTime.class))).thenReturn(Stream.of(launchId));
 		when(testItemRepository.findTestItemIdsByLaunchId(eq(launchId), any(Pageable.class))).thenReturn(Lists.newArrayList(testItemId));
 		when(logRepository.deleteByPeriodAndTestItemIds(eq(period), any())).thenReturn(deletedLogsCount);
 		when(logRepository.deleteByPeriodAndLaunchIds(eq(period), any())).thenReturn(deletedLogsCount);
-		logCleanerService.removeOutdatedLogs(project, period, removedLogsCount);
+		logCleanerService.removeOutdatedLogs(launchId, LocalDateTime.now(ZoneOffset.UTC).minus(period), attachments, thumbnails);
 
-		assertEquals(deletedLogsCount * 2, removedLogsCount.get());
 		verify(attachmentCleanerService, times(1)).removeOutdatedItemsAttachments(eq(Collections.singletonList(testItemId)),
 				any(),
 				any(),
@@ -103,6 +95,5 @@ class LogCleanerServiceImplTest {
 				any(),
 				any()
 		);
-		verify(activityRepository, times(1)).deleteModifiedLaterAgo(project.getId(), period);
 	}
 }

@@ -16,23 +16,21 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.job.service.LaunchCleanerService;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobExecutionException;
 import org.springframework.data.domain.PageImpl;
 
-import java.time.Duration;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -44,19 +42,25 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CleanLaunchesJobTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+	private final LaunchCleanerService launchCleanerService = mock(LaunchCleanerService.class);
 
-	@Mock
-	private LaunchCleanerService launchCleanerService;
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private final ActivityRepository activityRepository = mock(ActivityRepository.class);
+	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
 
-	@InjectMocks
-	private CleanLaunchesJob cleanLaunchesJob;
+	private final CleanLaunchesJob cleanLaunchesJob = new CleanLaunchesJob(5,
+			100,
+			launchCleanerService,
+			projectRepository,
+			activityRepository,
+			launchRepository
+	);
 
 	@Test
 	void executeTest() throws JobExecutionException {
 		String name = "name";
 		Project project = new Project();
+		project.setId(123L);
 		final ProjectAttribute projectAttribute = new ProjectAttribute();
 		final Attribute attribute = new Attribute();
 		attribute.setName("job.keepLaunches");
@@ -69,15 +73,11 @@ class CleanLaunchesJobTest {
 		project.setName(name);
 
 		when(projectRepository.findAllIdsAndProjectAttributes(any())).thenReturn(new PageImpl<>(Collections.singletonList(project)));
+		when(launchRepository.findIdsByProjectIdAndStartTimeBefore(eq(project.getId()), any(), anyInt())).thenReturn(Lists.newArrayList(1L));
 
 		cleanLaunchesJob.execute(null);
 
-		ArgumentCaptor<Duration> durationArgumentCaptor = ArgumentCaptor.forClass(Duration.class);
-		verify(launchCleanerService, times(1)).cleanOutdatedLaunches(any(), durationArgumentCaptor.capture(), any(), any(), any());
-
-		Duration value = durationArgumentCaptor.getValue();
-
-		Assertions.assertEquals(3600 * 24 * 30, value.getSeconds());
+		verify(launchCleanerService, times(1)).cleanLaunch(any(), any(), any());
 	}
 
 	@Test
@@ -97,6 +97,6 @@ class CleanLaunchesJobTest {
 
 		cleanLaunchesJob.execute(null);
 
-		verify(launchCleanerService, times(0)).cleanOutdatedLaunches(any(), any(), any(), any(), any());
+		verify(launchCleanerService, times(0)).cleanLaunch(any(), any(), any());
 	}
 }

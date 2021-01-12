@@ -17,10 +17,7 @@
 package com.epam.ta.reportportal.core.item.impl.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -43,6 +40,7 @@ import java.util.Set;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
 import static com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.MaterializedWidgetStateHandler.VIEW_NAME;
+import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAULT_FILTER_PREFIX;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -72,7 +70,7 @@ public class CumulativeTestItemDataProviderImpl implements DataProviderHandler {
 	}
 
 	public Queryable updateFilter(Queryable filter, Map<String, String> providerParams) {
-		String compositeAttribute = providerParams.get(CRITERIA_COMPOSITE_ATTRIBUTE);
+		String compositeAttribute = providerParams.get(DEFAULT_FILTER_PREFIX + Condition.HAS_FILTER + CRITERIA_COMPOSITE_ATTRIBUTE);
 		BusinessRule.expect(compositeAttribute, it -> !StringUtils.isEmpty(it))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Level attributes must be provided for widget based items provider");
 		List<Long> redirectLaunchIds = widgetContentRepository.getCumulativeLevelRedirectLaunchIds(providerParams.get(VIEW_NAME),

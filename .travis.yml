@@ -3,7 +3,7 @@ dist: xenial
 
 before_install:
   - sudo apt-get install -y fonts-noto
-  - ./gradlew assemble --info
+  - ./gradlew build --no-build-cache --info
 script: ./gradlew assemble --info
 
 env:
@@ -21,8 +21,6 @@ before_cache:
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -44,7 +45,11 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	@Override
 	@Transactional
 	public long removeOutdatedLogs(Long launchId, LocalDateTime startTimeBound, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
-		attachmentCleanerService.removeLaunchAttachments(launchId, attachmentsCount, thumbnailsCount);
+		attachmentCleanerService.removeOutdatedLaunchesAttachments(Collections.singletonList(launchId),
+				startTimeBound,
+				attachmentsCount,
+				thumbnailsCount
+		);
 		return logRepository.deleteUnderLaunchByLogTimeBefore(launchId, startTimeBound);
 	}
 }

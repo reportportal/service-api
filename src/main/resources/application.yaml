@@ -69,8 +69,6 @@ rp:
           period: P3D
           size: 50
           pool: 5
-        items:
-          size: 500
       history:
         old: false
       executor:

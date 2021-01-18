@@ -34,7 +34,7 @@ apply from: "$scriptsUrl/jacoco.gradle"
 project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from: 'sealights.gradle') : println('No sealights session')
 
 repositories {
-    mavenCentral()
+    mavenCentral { url "https://repo1.maven.org/maven2/" }
     mavenLocal()
     releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
@@ -65,7 +65,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:1693f7bd'
+        compile 'com.github.reportportal:commons-dao:9dac42f'
         compile 'com.github.reportportal:commons-rules:331c402'
         compile 'com.github.reportportal:commons-model:2662a59b'
         compile 'com.github.reportportal:commons:7480d61'

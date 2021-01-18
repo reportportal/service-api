@@ -45,6 +45,6 @@ public class LogCleanerServiceImpl implements LogCleanerService {
 	@Transactional
 	public long removeOutdatedLogs(Long launchId, LocalDateTime startTimeBound, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
 		attachmentCleanerService.removeLaunchAttachments(launchId, attachmentsCount, thumbnailsCount);
-		return logRepository.deleteLogsUnderLaunchByLogTimeBefore(launchId, startTimeBound);
+		return logRepository.deleteUnderLaunchByLogTimeBefore(launchId, startTimeBound);
 	}
 }

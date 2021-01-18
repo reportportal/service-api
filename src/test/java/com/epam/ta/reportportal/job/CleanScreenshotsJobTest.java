@@ -20,14 +20,12 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
-import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
+import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 
@@ -44,14 +42,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CleanScreenshotsJobTest {
 
-	@Mock
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private final AttachmentCleanerService attachmentCleanerService = mock(AttachmentCleanerService.class);
 
-	@Mock
-	private AttachmentCleanerServiceImpl attachmentCleanerService;
-
-	@InjectMocks
-	private CleanScreenshotsJob cleanScreenshotsJob;
+	private final CleanScreenshotsJob cleanScreenshotsJob = new CleanScreenshotsJob(5, attachmentCleanerService, projectRepository);
 
 	@Test
 	void runTest() throws InterruptedException {

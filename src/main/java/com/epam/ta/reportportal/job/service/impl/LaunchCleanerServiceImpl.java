@@ -16,19 +16,13 @@
 
 package com.epam.ta.reportportal.job.service.impl;
 
-import com.epam.ta.reportportal.dao.ActivityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.epam.ta.reportportal.job.service.LaunchCleanerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -37,30 +31,19 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class LaunchCleanerServiceImpl implements LaunchCleanerService {
 
+	private final AttachmentCleanerService attachmentCleanerService;
 	private final LaunchRepository launchRepository;
 
-	private final ActivityRepository activityRepository;
-
-	private final AttachmentCleanerService attachmentCleanerService;
-
 	@Autowired
-	public LaunchCleanerServiceImpl(LaunchRepository launchRepository, ActivityRepository activityRepository,
-			AttachmentCleanerService attachmentCleanerService) {
-		this.launchRepository = launchRepository;
-		this.activityRepository = activityRepository;
+	public LaunchCleanerServiceImpl(AttachmentCleanerService attachmentCleanerService, LaunchRepository launchRepository) {
 		this.attachmentCleanerService = attachmentCleanerService;
+		this.launchRepository = launchRepository;
 	}
 
 	@Override
 	@Transactional
-	public void cleanOutdatedLaunches(Project project, Duration period, AtomicLong launchesRemoved, AtomicLong attachmentsRemoved,
-			AtomicLong thumbnailsRemoved) {
-		activityRepository.deleteModifiedLaterAgo(project.getId(), period);
-		List<Long> launchIds = launchRepository.findIdsByProjectIdAndStartTimeBefore(project.getId(),
-				LocalDateTime.now(ZoneOffset.UTC).minus(period)
-		);
-		attachmentCleanerService.removeOutdatedLaunchesAttachments(launchIds, attachmentsRemoved, thumbnailsRemoved);
-		launchRepository.deleteAllByIdIn(launchIds);
-		launchesRemoved.addAndGet(launchIds.size());
+	public void cleanLaunch(Long launchId, AtomicLong attachmentsRemoved, AtomicLong thumbnailsRemoved) {
+		attachmentCleanerService.removeLaunchAttachments(launchId, attachmentsRemoved, thumbnailsRemoved);
+		launchRepository.deleteById(launchId);
 	}
 }

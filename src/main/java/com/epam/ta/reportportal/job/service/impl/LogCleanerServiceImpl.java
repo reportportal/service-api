@@ -17,20 +17,14 @@
 package com.epam.ta.reportportal.job.service.impl;
 
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.epam.ta.reportportal.job.service.LogCleanerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -38,42 +32,19 @@ import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 @Service
 public class LogCleanerServiceImpl implements LogCleanerService {
 
-	private final Integer itemPageSize;
-
 	private final AttachmentCleanerService attachmentCleanerService;
-
-	private final TestItemRepository testItemRepository;
 	private final LogRepository logRepository;
 
 	@Autowired
-	public LogCleanerServiceImpl(@Value("${rp.environment.variable.clean.items.size}") Integer itemPageSize,
-			AttachmentCleanerService attachmentCleanerService, TestItemRepository testItemRepository, LogRepository logRepository) {
-		this.itemPageSize = itemPageSize;
+	public LogCleanerServiceImpl(AttachmentCleanerService attachmentCleanerService, LogRepository logRepository) {
 		this.attachmentCleanerService = attachmentCleanerService;
-		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 	}
 
 	@Override
 	@Transactional
 	public long removeOutdatedLogs(Long launchId, LocalDateTime startTimeBound, AtomicLong attachmentsCount, AtomicLong thumbnailsCount) {
-		final Duration period = Duration.between(LocalDateTime.now(), startTimeBound);
-		final AtomicLong logsCount = new AtomicLong(0);
-
-		iterateOverContent(itemPageSize, pageable -> testItemRepository.findTestItemIdsByLaunchId(launchId, pageable), itemIds -> {
-			attachmentCleanerService.removeOutdatedItemsAttachments(itemIds, startTimeBound, attachmentsCount, thumbnailsCount);
-			long removedCount = logRepository.deleteByPeriodAndTestItemIds(period, itemIds);
-			logsCount.addAndGet(removedCount);
-		});
-
-		attachmentCleanerService.removeOutdatedLaunchesAttachments(Collections.singletonList(launchId),
-				startTimeBound,
-				attachmentsCount,
-				thumbnailsCount
-		);
-
-		long removedCount = logRepository.deleteByPeriodAndLaunchIds(period, Collections.singletonList(launchId));
-		logsCount.addAndGet(removedCount);
-		return logsCount.get();
+		attachmentCleanerService.removeLaunchAttachments(launchId, attachmentsCount, thumbnailsCount);
+		return logRepository.deleteLogsUnderLaunchByLogTimeBefore(launchId, startTimeBound);
 	}
 }

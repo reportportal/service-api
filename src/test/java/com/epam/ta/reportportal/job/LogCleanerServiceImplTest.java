@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
 import com.epam.ta.reportportal.job.service.impl.LogCleanerServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
@@ -79,10 +80,12 @@ class LogCleanerServiceImplTest {
 		when(logRepository.deleteByPeriodAndLaunchIds(eq(period), any())).thenReturn(deletedLogsCount);
 		logCleanerService.removeOutdatedLogs(launchId, LocalDateTime.now(ZoneOffset.UTC).minus(period), attachments, thumbnails);
 
+		ArgumentCaptor<LocalDateTime> timeArgumentCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+
 		verify(attachmentCleanerService, times(1)).removeOutdatedLaunchesAttachments(eq(Collections.singletonList(launchId)),
-				any(),
-				any(),
-				any()
+				timeArgumentCaptor.capture(),
+				eq(attachments),
+				eq(thumbnails)
 		);
 	}
 }

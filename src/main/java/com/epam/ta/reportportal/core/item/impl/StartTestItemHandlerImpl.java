@@ -121,7 +121,14 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 
-		final TestItem parentItem = testItemRepository.findByUuid(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		final TestItem parentItem;
+		if (isRetry) {
+			// Lock for test
+			Long lockedParentId = testItemRepository.findIdByUuidForUpdate(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			parentItem = testItemRepository.getOne(lockedParentId);
+		} else {
+			parentItem = testItemRepository.findByUuid(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		}
 
 		validate(rq, parentItem);
 

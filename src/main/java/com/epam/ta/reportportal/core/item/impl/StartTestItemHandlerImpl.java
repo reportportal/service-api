@@ -125,8 +125,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 		}
 
-		TestItem parentItem = testItemRepository.findByUuid(parentId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		final TestItem parentItem;
+		if (isRetry) {
+			// Lock for test
+			Long lockedParentId = testItemRepository.findIdByUuidForUpdate(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			parentItem = testItemRepository.getOne(lockedParentId);
+		} else {
+			parentItem = testItemRepository.findByUuid(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		}
 
 		validate(rq, parentItem);
 
@@ -209,7 +217,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(ErrorType.BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

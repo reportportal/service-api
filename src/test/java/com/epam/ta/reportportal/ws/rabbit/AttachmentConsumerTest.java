@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.*;
 
 /**
@@ -73,7 +74,7 @@ class AttachmentConsumerTest {
 
 		attachmentConsumer.onEvent(event);
 
-		verify(dataStoreService, times(1)).delete(any());
-		verify(attachmentRepository, times(1)).deleteAllByIds(any());
+		verify(dataStoreService, times(1)).delete(eq("fileId"));
+		verify(attachmentRepository, times(1)).deleteAllByIds(eq(emptyList()));
 	}
 }

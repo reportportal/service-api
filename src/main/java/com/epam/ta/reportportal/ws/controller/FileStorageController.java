@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.file.DeleteFilesHandler;
 import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
@@ -38,8 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.NOT_CUSTOMER;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
@@ -53,10 +53,13 @@ public class FileStorageController {
 
 	private final GetFileHandler getFileHandler;
 
+	private final DeleteFilesHandler deleteFilesHandler;
+
 	@Autowired
-	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler) {
+	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler, DeleteFilesHandler deleteFilesHandler) {
 		this.editUserHandler = editUserHandler;
 		this.getFileHandler = getFileHandler;
+		this.deleteFilesHandler = deleteFilesHandler;
 	}
 
 	@Transactional(readOnly = true)
@@ -104,6 +107,15 @@ public class FileStorageController {
 	@ApiOperation("Delete user's photo")
 	public OperationCompletionRS deletePhoto(@AuthenticationPrincipal ReportPortalUser user) {
 		return editUserHandler.deletePhoto(EntityUtils.normalizeId(user.getUsername()));
+	}
+
+	@Transactional
+	@PreAuthorize(ADMIN_ONLY)
+	@PostMapping(value = "/clean", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@ApiOperation("Remove attachments from file storage according to uploaded csv file")
+	public OperationCompletionRS removeAttachmentsByCsv(@RequestParam("file") MultipartFile file,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return deleteFilesHandler.removeFilesByCsv(file);
 	}
 
 	/**

@@ -1,7 +1,13 @@
 rp:
   amqp:
     host: localhost
+    user:
+    pass:
+    apiuser:
+    apipass:
   db:
+    user:
+    pass:
     host: localhost
   plugins:
     rootDir: /Users/pavel_bortnik/ReportPortal5/data/storage/

@@ -45,7 +45,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -179,10 +178,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
-		if (Objects.isNull(item.getUniqueId())) {
+		if (StringUtils.isBlank(item.getUniqueId())) {
 			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch));
 		}
-		if (Objects.isNull(item.getTestCaseId())) {
+		if (StringUtils.isBlank(item.getTestCaseId())) {
 			item.setTestCaseHash(testCaseHashGenerator.generate(item, IdentityUtil.getParentIds(item), launch.getProjectId()));
 		}
 	}

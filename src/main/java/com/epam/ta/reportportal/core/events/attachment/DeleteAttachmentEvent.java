@@ -29,12 +29,21 @@ public class DeleteAttachmentEvent {
 	@JsonProperty(value = "ids")
 	private List<Long> ids;
 
+	@JsonProperty(value = "paths")
+	private List<String> paths;
+
 	public DeleteAttachmentEvent() {
 		ids = Lists.newArrayList();
+		paths = Lists.newArrayList();
 	}
 
 	public DeleteAttachmentEvent(List<Long> ids) {
 		this.ids = ids;
+	}
+
+	public DeleteAttachmentEvent(List<Long> ids, List<String> paths) {
+		this.ids = ids;
+		this.paths = paths;
 	}
 
 	public List<Long> getIds() {
@@ -43,5 +52,13 @@ public class DeleteAttachmentEvent {
 
 	public void setIds(List<Long> ids) {
 		this.ids = ids;
+	}
+
+	public List<String> getPaths() {
+		return paths;
+	}
+
+	public void setPaths(List<String> paths) {
+		this.paths = paths;
 	}
 }

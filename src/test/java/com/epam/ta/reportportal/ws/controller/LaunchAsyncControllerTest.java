@@ -25,18 +25,20 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.web.savedrequest.Enumerator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,15 +88,14 @@ class LaunchAsyncControllerTest {
 
         String launchId = UUID.randomUUID().toString();
 
-        when(httpServletRequest.getScheme()).thenReturn("http");
-        when(httpServletRequest.getHeader("host")).thenReturn("host");
-
         ArgumentCaptor<String> launchIdArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<FinishExecutionRQ> requestArgumentCaptor = ArgumentCaptor.forClass(FinishExecutionRQ.class);
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
         ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.class);
         ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
+        when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
+        when(httpServletRequest.getHeaderNames()).thenReturn(new Enumerator<>(Lists.newArrayList()));
         launchAsyncController.finishLaunch("test_project", launchId, finishExecutionRQ, user, httpServletRequest);
         verify(finishLaunchHandler).finishLaunch(
                 launchIdArgumentCaptor.capture(),

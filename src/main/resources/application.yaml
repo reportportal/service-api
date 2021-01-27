@@ -55,14 +55,12 @@ rp:
     recalculate: false
   environment:
     variable:
-      job:
-        delay: P7D
       flushing:
         time: PT24H
       clean:
-        attach: P3D
-        logs: P7D
-        launches: P14D
+        attach: P1D
+        logs: P2D
+        launches: P3D
         items:
           size: 500
       history:
@@ -141,7 +139,7 @@ rp:
       secretKey:
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
-    # could be one of [seaweed, filesystem, minio]
+    # could be one of [filesystem, minio]
     type: filesystem
     thumbnail:
       attachment:

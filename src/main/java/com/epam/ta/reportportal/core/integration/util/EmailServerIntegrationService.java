@@ -30,6 +30,7 @@ import com.google.common.collect.Maps;
 import com.mchange.lang.IntegerUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +109,9 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.SSL_ENABLED.getAttribute(), BooleanUtils.toBoolean(attr)));
 		EmailSettingsEnum.HOST.getAttribute(integrationParams)
 				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.HOST.getAttribute(), attr));
+		EmailSettingsEnum.RP_HOST.getAttribute(integrationParams)
+				.filter(UrlValidator.getInstance()::isValid)
+				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.RP_HOST.getAttribute(), attr));
 
 		return resultParams;
 	}

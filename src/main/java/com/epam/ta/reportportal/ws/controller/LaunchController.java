@@ -52,7 +52,7 @@ import java.util.Map;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER_OR_ADMIN;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.core.launch.util.LaunchLinkGenerator.composeBaseUrl;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -121,7 +121,7 @@ public class LaunchController {
 				finishLaunchRQ,
 				extractProjectDetails(user, normalizeId(projectName)),
 				user,
-				composeBaseUrl(request.getScheme(), request.getHeader("host"))
+				composeBaseUrl(request)
 		);
 	}
 
@@ -212,7 +212,7 @@ public class LaunchController {
 	@GetMapping(value = "/latest")
 	@ResponseStatus(OK)
 	@ApiOperation("Get list of latest project launches by filter")
-	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+	public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLatestLaunches(extractProjectDetails(user, normalizeId(projectName)), filter, pageable);
 	}
@@ -353,7 +353,7 @@ public class LaunchController {
 				user,
 				"XUNIT",
 				file,
-				composeBaseUrl(request.getScheme(), request.getHeader("host"))
+				composeBaseUrl(request)
 		);
 	}
 }

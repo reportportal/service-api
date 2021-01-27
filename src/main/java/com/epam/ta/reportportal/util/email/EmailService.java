@@ -32,6 +32,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -63,6 +65,7 @@ public class EmailService extends JavaMailSenderImpl {
 	private TemplateEngine templateEngine;
 	/* Default value for FROM project notifications field */
 	private String from;
+	private String rpHost;
 
 	public EmailService(Properties javaMailProperties) {
 		super.setJavaMailProperties(javaMailProperties);
@@ -83,7 +86,7 @@ public class EmailService extends JavaMailSenderImpl {
 			setFrom(message);
 
 			Map<String, Object> email = new HashMap<>();
-			email.put("url", url);
+			email.put("url", getUrl(url));
 			String text = templateEngine.merge("registration-template.ftl", email);
 			message.setText(text, true);
 
@@ -109,7 +112,7 @@ public class EmailService extends JavaMailSenderImpl {
 			message.setTo(recipients);
 			setFrom(message);
 
-			String text = mergeFinishLaunchText(url, launch, project.getProjectIssueTypes());
+			String text = mergeFinishLaunchText(getUrl(url), launch, project.getProjectIssueTypes());
 			message.setText(text, true);
 
 			attachSocialImages(message);
@@ -129,8 +132,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 		/* Tags with links */
 		if (!CollectionUtils.isEmpty(launch.getAttributes())) {
-			email.put(
-					"attributes",
+			email.put("attributes",
 					launch.getAttributes()
 							.stream()
 							.filter(it -> !it.isSystem())
@@ -172,10 +174,22 @@ public class EmailService extends JavaMailSenderImpl {
 		return templateEngine.merge("finish-launch-template.ftl", email);
 	}
 
+	private String getUrl(String baseUrl) {
+		return ofNullable(rpHost).map(rh -> {
+			final UriComponents rpHostUri = UriComponentsBuilder.fromUriString(rh).build();
+			return UriComponentsBuilder.fromUriString(baseUrl)
+					.scheme(rpHostUri.getScheme())
+					.host(rpHostUri.getHost())
+					.port(rpHostUri.getPort())
+					.build()
+					.toUri()
+					.toASCIIString();
+		}).orElse(baseUrl);
+	}
+
 	private String buildAttributesLink(String basicUrl, ItemAttribute attribute) {
 		if (null != attribute.getKey()) {
-			return format(
-					FULL_ATTRIBUTE_FILTER_FORMAT,
+			return format(FULL_ATTRIBUTE_FILTER_FORMAT,
 					basicUrl,
 					urlPathSegmentEscaper().escape(attribute.getKey()),
 					urlPathSegmentEscaper().escape(attribute.getValue())
@@ -187,14 +201,16 @@ public class EmailService extends JavaMailSenderImpl {
 
 	private void fillEmail(Map<String, Object> email, String statisticsName, Map<String, Integer> statistics,
 			Map<String, String> locatorsMapping, String regex) {
-		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet().stream().filter(entry -> {
-			Pattern pattern = Pattern.compile(regex);
-			return pattern.matcher(entry.getKey()).matches();
-		}).collect(Collectors.toMap(
-				entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
-				entry -> ofNullable(entry.getValue()).orElse(0),
-				(prev, curr) -> prev
-		)));
+		Optional<Map<String, Integer>> pb = Optional.of(statistics.entrySet()
+				.stream()
+				.filter(entry -> {
+					Pattern pattern = Pattern.compile(regex);
+					return pattern.matcher(entry.getKey()).matches();
+				})
+				.collect(Collectors.toMap(entry -> locatorsMapping.get(StringUtils.substringAfterLast(entry.getKey(), "$")),
+						entry -> ofNullable(entry.getValue()).orElse(0),
+						(prev, curr) -> prev
+				)));
 
 		pb.ifPresent(stats -> email.put(statisticsName, stats));
 	}
@@ -247,6 +263,10 @@ public class EmailService extends JavaMailSenderImpl {
 
 	public void setFrom(String from) {
 		this.from = from;
+	}
+
+	public void setRpHost(String rpHost) {
+		this.rpHost = rpHost;
 	}
 
 	public void sendCreateUserConfirmationEmail(CreateUserRQFull req, String basicUrl) {

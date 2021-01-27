@@ -106,32 +106,28 @@ public class SchedulerConfiguration {
 	@Bean
 	@Profile("!demo")
 	public SimpleTriggerFactoryBean createCleanLogsTrigger(@Named("cleanLogsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.logs.cron}") String cleanLogsCron,
-			@Value("${com.ta.reportportal.job.delay}") String delay) {
-		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis(), Duration.parse(delay).toMillis());
+			@Value("${com.ta.reportportal.job.clean.logs.cron}") String cleanLogsCron) {
+		return createTriggerDelayed(jobDetail, Duration.parse(cleanLogsCron).toMillis());
 	}
 
 	@Bean
 	@Profile("!demo")
 	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron,
-			@Value("${com.ta.reportportal.job.delay}") String delay) {
-		return createTrigger(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis(), Duration.parse(delay).toMillis());
+			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
+		return createTriggerDelayed(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
 	}
 
 	@Bean
 	@Profile("!demo")
 	public SimpleTriggerFactoryBean createCleanLaunchesTrigger(@Named("cleanLaunchesJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLogsCron,
-			@Value("${com.ta.reportportal.job.delay}") String delay) {
-		return createTrigger(jobDetail, Duration.parse(cleanLogsCron).toMillis(), Duration.parse(delay).toMillis());
+			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLaunchesCron) {
+		return createTriggerDelayed(jobDetail, Duration.parse(cleanLaunchesCron).toMillis());
 	}
 
 	@Bean
 	public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Named("interruptLaunchesJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron,
-			@Value("${com.ta.reportportal.job.delay}") String delay) {
-		return createTrigger(jobDetail, Duration.parse(interruptLaunchesCron).toMillis(), Duration.parse(delay).toMillis());
+			@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
+		return createTriggerDelayed(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
 	}
 
 	@Bean
@@ -185,7 +181,7 @@ public class SchedulerConfiguration {
 	public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
 		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setStartDelay(0l);
+		factoryBean.setStartDelay(0L);
 		factoryBean.setRepeatInterval(pollFrequencyMs);
 		factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
 		// in case of misfire, ignore all missed triggers and continue :
@@ -193,10 +189,10 @@ public class SchedulerConfiguration {
 		return factoryBean;
 	}
 
-	public SimpleTriggerFactoryBean createTrigger(JobDetail jobDetail, long pollFrequencyMs, long delay) {
+	public SimpleTriggerFactoryBean createTriggerDelayed(JobDetail jobDetail, long pollFrequencyMs) {
 		SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
 		factoryBean.setJobDetail(jobDetail);
-		factoryBean.setStartDelay(delay);
+		factoryBean.setStartDelay(pollFrequencyMs);
 		factoryBean.setRepeatInterval(pollFrequencyMs);
 		factoryBean.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
 		// in case of misfire, ignore all missed triggers and continue :

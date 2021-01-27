@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -100,53 +101,57 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	}
 
 	@Override
-	public void finishDescendants(T entity, StatusEnum status, Date endDate, ReportPortalUser user,
+	public int finishDescendants(T parentEntity, StatusEnum status, Date endDate, ReportPortalUser user,
 			ReportPortalUser.ProjectDetails projectDetails) {
 
 		expect(status, s -> s != IN_PROGRESS).verify(INCORRECT_REQUEST, "Unable to update current status to - " + IN_PROGRESS);
 
 		LocalDateTime endTime = TO_LOCAL_DATE_TIME.apply(endDate);
 
-		updateDescendantsWithoutChildren(entity, projectDetails.getProjectId(), status, endTime, user);
-		updateDescendantsWithChildren(entity, endTime);
+		final int withoutChildren = updateDescendantsWithoutChildren(parentEntity, projectDetails.getProjectId(), status, endTime, user);
+		final int withChildren = updateDescendantsWithChildren(parentEntity, endTime);
+		return withoutChildren + withChildren;
 	}
 
-	private void updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status, LocalDateTime endTime,
-			ReportPortalUser user) {
+	private int updateDescendantsWithoutChildren(T entity, Long projectId, StatusEnum status, LocalDateTime endTime, ReportPortalUser user) {
+		AtomicInteger updatedCount = new AtomicInteger(0);
 		getIssueType(isIssueRequired(status, entity),
 				projectId,
 				TO_INVESTIGATE.getLocator()
 		).ifPresentOrElse(issueType -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
 				getItemIdsFunction(false, entity, IN_PROGRESS),
-				getItemIdsWithoutChildrenHandler(issueType, status, endTime, projectId, user)
+				itemIdsWithoutChildrenHandler(issueType, status, endTime, projectId, user, updatedCount)
 				),
 				() -> PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
 						getItemIdsFunction(false, entity, IN_PROGRESS),
-						getItemIdsWithoutChildrenHandler(status, endTime, projectId, user)
+						itemIdsWithoutChildrenHandler(status, endTime, projectId, user, updatedCount)
 				)
 		);
+		return updatedCount.get();
 	}
 
-	private Consumer<List<Long>> getItemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status, LocalDateTime endTime,
-			Long projectId, ReportPortalUser user) {
+	private Consumer<List<Long>> itemIdsWithoutChildrenHandler(IssueType issueType, StatusEnum status, LocalDateTime endTime,
+			Long projectId, ReportPortalUser user, AtomicInteger updatedCount) {
 		return itemIds -> {
 			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				finishItem(testItem, status, endTime);
 				attachIssue(testItem, issueType);
-				changeStatusHandler.changeParentStatus(itemId, projectId, user);
+				changeStatusHandler.changeParentStatus(testItem, projectId, user);
 			}));
+			updatedCount.addAndGet(itemIds.size());
 		};
 	}
 
-	private Consumer<List<Long>> getItemIdsWithoutChildrenHandler(StatusEnum status, LocalDateTime endTime, Long projectId,
-			ReportPortalUser user) {
+	private Consumer<List<Long>> itemIdsWithoutChildrenHandler(StatusEnum status, LocalDateTime endTime, Long projectId,
+			ReportPortalUser user, AtomicInteger updatedCount) {
 		return itemIds -> {
 			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
 				finishItem(testItem, status, endTime);
-				changeStatusHandler.changeParentStatus(itemId, projectId, user);
+				changeStatusHandler.changeParentStatus(testItem, projectId, user);
 			}));
+			updatedCount.addAndGet(itemIds.size());
 		};
 	}
 
@@ -169,11 +174,16 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		}
 	}
 
-	private void updateDescendantsWithChildren(T entity, LocalDateTime endTime) {
-		PageUtil.iterateOverContent(ITEM_PAGE_SIZE, getItemIdsFunction(true, entity, IN_PROGRESS), getItemIdsWithChildrenHandler(endTime));
+	private int updateDescendantsWithChildren(T entity, LocalDateTime endTime) {
+		AtomicInteger updatedCount = new AtomicInteger(0);
+		PageUtil.iterateOverContent(ITEM_PAGE_SIZE,
+				getItemIdsFunction(true, entity, IN_PROGRESS),
+				itemIdsWithChildrenHandler(endTime, updatedCount)
+		);
+		return updatedCount.get();
 	}
 
-	private Consumer<List<Long>> getItemIdsWithChildrenHandler(LocalDateTime endTime) {
+	private Consumer<List<Long>> itemIdsWithChildrenHandler(LocalDateTime endTime, AtomicInteger updatedCount) {
 		return itemIds -> {
 			Map<Long, TestItem> itemMapping = getItemMapping(itemIds);
 			itemIds.forEach(itemId -> ofNullable(itemMapping.get(itemId)).ifPresent(testItem -> {
@@ -184,6 +194,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 				);
 				finishItem(testItem, isFailed ? FAILED : PASSED, endTime);
 			}));
+			updatedCount.addAndGet(itemIds.size());
 		};
 	}
 

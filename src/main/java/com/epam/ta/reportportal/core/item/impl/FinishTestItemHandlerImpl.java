@@ -42,7 +42,6 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.TestItemBuilder;
 import com.epam.ta.reportportal.ws.converter.converters.IssueConverter;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
@@ -118,7 +117,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
 			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher,
-			LaunchRepository launchRepository, RetriesHandler retriesHandler, MessageBus messageBus,
+			LaunchRepository launchRepository, @Qualifier("uniqueIdRetriesHandler") RetriesHandler retriesHandler, MessageBus messageBus,
 			ExternalTicketHandler externalTicketHandler) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
@@ -138,12 +137,15 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	@Override
 	public OperationCompletionRS finishTestItem(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, String testItemId,
 			FinishTestItemRQ finishExecutionRQ) {
-		TestItem testItem = testItemRepository.findByUuid(testItemId)
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId));
+		final TestItem testItem = testItemRepository.findByUuid(testItemId)
+				.filter(it -> it.isHasChildren() || (!it.isHasChildren() && it.getItemResults().getStatus() == IN_PROGRESS))
+				.orElseGet(() -> testItemRepository.findIdByUuidForUpdate(testItemId)
+						.flatMap(testItemRepository::findById)
+						.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItemId)));
 
-		Launch launch = retrieveLaunch(testItem);
+		final Launch launch = retrieveLaunch(testItem);
 
-		TestItemResults testItemResults = processItemResults(user,
+		final TestItemResults testItemResults = processItemResults(user,
 				projectDetails,
 				launch,
 				testItem,
@@ -151,18 +153,27 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				testItem.isHasChildren()
 		);
 
-		testItem = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
+		final TestItem itemForUpdate = new TestItemBuilder(testItem).addDescription(finishExecutionRQ.getDescription())
 				.addTestCaseId(finishExecutionRQ.getTestCaseId())
 				.addAttributes(finishExecutionRQ.getAttributes())
 				.addTestItemResults(testItemResults)
 				.get();
 
-		testItemRepository.save(testItem);
+		testItemRepository.save(itemForUpdate);
 
-		boolean handleRetries = !testItem.isHasChildren() && (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(
-				finishExecutionRQ.getRetryOf()));
-		if (handleRetries) {
-			retriesHandler.handleRetries(launch, testItem, finishExecutionRQ.getRetryOf());
+		if (BooleanUtils.toBoolean(finishExecutionRQ.isRetry()) || StringUtils.isNotBlank(finishExecutionRQ.getRetryOf())) {
+			Optional.of(testItem)
+					.filter(it -> !it.isHasChildren() && !it.isHasRetries() && Objects.isNull(it.getRetryOf()))
+					.map(TestItem::getParentId)
+					.flatMap(testItemRepository::findById)
+					.ifPresent(parentItem -> ofNullable(finishExecutionRQ.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate)
+							.ifPresentOrElse(retryParentId -> retriesHandler.handleRetries(launch, itemForUpdate, retryParentId),
+									() -> retriesHandler.findPreviousRetry(launch, itemForUpdate, parentItem)
+											.ifPresent(previousRetryId -> retriesHandler.handleRetries(launch,
+													itemForUpdate,
+													previousRetryId
+											))
+							));
 		}
 
 		return new OperationCompletionRS("TestItem with ID = '" + testItemId + "' successfully finished.");
@@ -197,16 +208,17 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 		return ofNullable(testItem.getRetryOf()).map(retryParentId -> {
 			TestItem retryParent = testItemRepository.findById(retryParentId)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, testItem.getRetryOf()));
 			return getLaunch(retryParent);
-		}).orElseGet(() -> getLaunch(testItem)).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND));
+		}).orElseGet(() -> getLaunch(testItem)).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND));
 	}
 
 	private Optional<Launch> getLaunch(TestItem testItem) {
-		return ofNullable(testItem.getLaunchId()).map(launchRepository::findByIdForUpdate)
-				.orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunchId)
-						.map(launchRepository::findByIdForUpdate)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
+		return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
+				.orElseGet(() -> ofNullable(testItem.getParentId()).flatMap(testItemRepository::findById)
+						.map(TestItem::getLaunchId)
+						.map(launchRepository::findById)
+						.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND)));
 	}
 
 	/**
@@ -242,8 +254,13 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		TestItemResults testItemResults = testItem.getItemResults();
 		Optional<StatusEnum> actualStatus = fromValue(finishTestItemRQ.getStatus());
 
-		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), StatusEnum.IN_PROGRESS.name())) {
-			finishHierarchyHandler.finishDescendants(testItem, actualStatus.orElse(INTERRUPTED), finishTestItemRQ.getEndTime(), user, projectDetails);
+		if (testItemRepository.hasItemsInStatusByParent(testItem.getItemId(), testItem.getPath(), IN_PROGRESS.name())) {
+			finishHierarchyHandler.finishDescendants(testItem,
+					actualStatus.orElse(INTERRUPTED),
+					finishTestItemRQ.getEndTime(),
+					user,
+					projectDetails
+			);
 			testItemResults.setStatus(resolveStatus(testItem.getItemId()));
 		} else {
 			testItemResults.setStatus(actualStatus.orElseGet(() -> resolveStatus(testItem.getItemId())));
@@ -253,7 +270,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 				.removeIf(attribute -> ATTRIBUTE_KEY_STATUS.equalsIgnoreCase(attribute.getKey())
 						&& ATTRIBUTE_VALUE_INTERRUPTED.equalsIgnoreCase(attribute.getValue()));
 
-		changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
+		changeStatusHandler.changeParentStatus(testItem, projectDetails.getProjectId(), user);
 		changeStatusHandler.changeLaunchStatus(launch);
 
 		return testItemResults;
@@ -274,7 +291,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			testItemResults.setStatus(actualStatus.orElse(INTERRUPTED));
 			resolvedIssue.ifPresent(issue -> updateItemIssue(testItemResults, issue));
 			if (Objects.isNull(testItem.getRetryOf())) {
-				changeStatusHandler.changeParentStatus(testItem.getItemId(), projectDetails.getProjectId(), user);
+				changeStatusHandler.changeParentStatus(testItem, projectDetails.getProjectId(), user);
 				changeStatusHandler.changeLaunchStatus(launch);
 			}
 		} else {
@@ -295,11 +312,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	}
 
 	private StatusEnum resolveStatus(Long itemId) {
-		return testItemRepository.hasDescendantsNotInStatus(itemId,
-				StatusEnum.PASSED.name(),
-				StatusEnum.INFO.name(),
-				StatusEnum.WARN.name()
-		) ? FAILED : PASSED;
+		return testItemRepository.hasDescendantsNotInStatus(itemId, PASSED.name(), INFO.name(), WARN.name()) ? FAILED : PASSED;
 	}
 
 	private boolean isIssueRequired(TestItem testItem, StatusEnum status) {

@@ -92,7 +92,7 @@ class TestItemConverterTest {
 		assertEquals(resource.getLaunchId(), item.getLaunchId());
 		assertEquals(resource.getUuid(), item.getUuid());
 		assertEquals(resource.getItemId(), item.getItemId());
-		assertEquals(resource.getParent(), item.getParent().getItemId());
+		assertEquals(resource.getParent(), item.getParentId());
 		assertEquals(resource.getPath(), item.getPath());
 		assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
 		assertEquals(resource.getType(), item.getType().name());
@@ -125,7 +125,7 @@ class TestItemConverterTest {
 		assertEquals(resource.getLaunchId(), item.getLaunchId());
 		assertEquals(resource.getUuid(), item.getUuid());
 		assertEquals(resource.getItemId(), item.getItemId());
-		assertEquals(resource.getParent(), item.getParent().getItemId());
+		assertEquals(resource.getParent(), item.getParentId());
 		assertEquals(resource.getPath(), item.getPath());
 		assertEquals(resource.getStatus(), item.getItemResults().getStatus().name());
 		assertEquals(resource.getType(), item.getType().name());
@@ -167,7 +167,7 @@ class TestItemConverterTest {
 		item.setHasChildren(false);
 		final TestItem parent = new TestItem();
 		parent.setItemId(3L);
-		item.setParent(parent);
+		item.setParentId(parent.getItemId());
 		final TestItemResults itemResults = new TestItemResults();
 		itemResults.setStatus(StatusEnum.FAILED);
 		itemResults.setEndTime(LocalDateTime.now());

@@ -18,10 +18,12 @@ package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -47,7 +49,7 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -57,6 +59,9 @@ class FinishLaunchHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
+
+	@Mock
+	private FinishHierarchyHandler<Launch> finishHierarchyHandler;
 
 	@Mock
 	private TestItemRepository testItemRepository;
@@ -84,6 +89,8 @@ class FinishLaunchHandlerImplTest {
 
 		FinishLaunchRS response = handler.finishLaunch("1", finishExecutionRQ, extractProjectDetails(rpUser, "test_project"), rpUser, null);
 
+		verify(finishHierarchyHandler,times(1)).finishDescendants(any(), any(),any(),any(),any());
+
 		assertNotNull(response);
 	}
 
@@ -102,6 +109,8 @@ class FinishLaunchHandlerImplTest {
 				rpUser,
 				"http://example.com"
 		);
+
+		verify(finishHierarchyHandler,times(1)).finishDescendants(any(), any(),any(),any(),any());
 
 		assertNotNull(finishLaunchRS);
 		assertEquals("http://example.com/ui/#test_project/launches/all/1", finishLaunchRS.getLink());

@@ -24,10 +24,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.IssueEntityRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -36,6 +33,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.google.common.collect.Lists;
 
@@ -63,16 +61,18 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 	private final IssueTypeHandler issueTypeHandler;
 	private final MessageBus messageBus;
 
+	protected final TestItemRepository testItemRepository;
 	protected final IssueEntityRepository issueEntityRepository;
 	protected final LogRepository logRepository;
 	protected final LogIndexer logIndexer;
 
 	protected AbstractStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
-			LaunchRepository launchRepository, IssueTypeHandler issueTypeHandler, MessageBus messageBus,
-			IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
+			LaunchRepository launchRepository, TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
+			MessageBus messageBus, IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
 		this.testItemService = testItemService;
 		this.projectRepository = projectRepository;
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
 		this.issueEntityRepository = issueEntityRepository;
@@ -117,8 +117,11 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 	protected List<Long> changeParentsStatuses(TestItem testItem, Launch launch, boolean issueRequired, ReportPortalUser user) {
 		List<Long> updatedParents = Lists.newArrayList();
 
-		TestItem parent = testItem.getParent();
-		while (parent != null) {
+		Long parentId = testItem.getParentId();
+		while (parentId != null) {
+
+			TestItem parent = testItemRepository.findById(parentId)
+					.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItem.getParentId()));
 
 			StatusEnum currentParentStatus = parent.getItemResults().getStatus();
 			if (!StatusEnum.IN_PROGRESS.equals(currentParentStatus)) {
@@ -137,7 +140,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 				return updatedParents;
 			}
 
-			parent = parent.getParent();
+			parentId = parent.getParentId();
 		}
 
 		if (launch.getStatus() != IN_PROGRESS) {

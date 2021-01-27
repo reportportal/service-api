@@ -25,11 +25,9 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.converter.builders.LaunchBuilder;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.FinishLaunchRS;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,9 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate;
 import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validateRoles;
+import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
 import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
@@ -83,13 +81,14 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 		Optional<StatusEnum> status = StatusEnum.fromValue(finishLaunchRQ.getStatus());
 
 		Long id = launch.getId();
-		if (launchRepository.hasItemsInStatuses(launch.getId(), Lists.newArrayList(JStatusEnum.IN_PROGRESS))) {
-			finishHierarchyHandler.finishDescendants(launch,
-					status.orElse(StatusEnum.INTERRUPTED),
-					finishLaunchRQ.getEndTime(),
-					user,
-					projectDetails
-			);
+
+		final int finishedCount = finishHierarchyHandler.finishDescendants(launch,
+				status.orElse(StatusEnum.INTERRUPTED),
+				finishLaunchRQ.getEndTime(),
+				user,
+				projectDetails
+		);
+		if (finishedCount > 0) {
 			launch.setStatus(launchRepository.hasRootItemsWithStatusNotEqual(id,
 					StatusEnum.PASSED.name(),
 					StatusEnum.INFO.name(),

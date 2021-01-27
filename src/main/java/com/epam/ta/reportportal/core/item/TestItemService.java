@@ -56,7 +56,8 @@ public class TestItemService {
 
 	private Optional<Launch> getLaunch(TestItem testItem) {
 		return ofNullable(testItem.getLaunchId()).map(launchRepository::findById)
-				.orElseGet(() -> ofNullable(testItem.getParent()).map(TestItem::getLaunchId)
+				.orElseGet(() -> ofNullable(testItem.getParentId()).flatMap(testItemRepository::findById)
+						.map(TestItem::getLaunchId)
 						.map(launchRepository::findById)
 						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND)));
 	}

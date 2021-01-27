@@ -121,7 +121,16 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 
-		final TestItem parentItem = testItemRepository.findByUuid(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		final TestItem parentItem;
+		if (isRetry) {
+			// Lock for test
+			Long lockedParentId = testItemRepository.findIdByUuidForUpdate(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			parentItem = testItemRepository.getOne(lockedParentId);
+		} else {
+			parentItem = testItemRepository.findByUuid(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+		}
 
 		validate(rq, parentItem);
 
@@ -132,35 +141,23 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
+				.addAttributes(rq.getAttributes())
+				.addLaunchId(launch.getId())
+				.addParent(parentItem)
+				.get();
 
-		if (isRetry) {
-			ofNullable(rq.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate).ifPresentOrElse(retryParentId -> {
-				saveChildItem(launch, item, parentItem);
-				retriesHandler.handleRetries(launch, item, retryParentId);
-			}, () -> retriesHandler.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
-				saveChildItem(launch, item, parentItem);
-				retriesHandler.handleRetries(launch, item, previousRetryId);
-			}, () -> saveChildItem(launch, item, parentItem)));
-
-		} else {
-			saveChildItem(launch, item, parentItem);
-		}
-
-		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
-
+		testItemRepository.save(item);
+		generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
 		if (rq.isHasStats() && !parentItem.isHasChildren()) {
 			parentItem.setHasChildren(true);
 		}
+		if (isRetry) {
+			retriesHandler.handleRetries(launch, item, rq.getRetryOf());
+		}
 
+		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
 		return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
-	}
-
-	private TestItem saveChildItem(Launch launch, TestItem childItem, TestItem parentItem) {
-		childItem.setParentId(parentItem.getItemId());
-		testItemRepository.save(childItem);
-		generateUniqueId(launch, childItem, parentItem.getPath() + "." + childItem.getItemId());
-		return childItem;
 	}
 
 	/**
@@ -216,7 +213,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -28,19 +30,21 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -55,57 +59,89 @@ import static java.time.Duration.ofSeconds;
 public class CleanLogsJob implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLogsJob.class);
-	public static final int DEFAULT_THREAD_COUNT = 5;
 
-	@Value("5")
-	private Integer threadsCount;
-
-	private final ProjectRepository projectRepository;
+	private final Integer threadsCount;
+	private final Integer launchesLimit;
 
 	private final LogCleanerService logCleaner;
 
-	@Autowired
-	public CleanLogsJob(ProjectRepository projectRepository, LogCleanerService logCleaner) {
-		this.projectRepository = projectRepository;
+	private final ProjectRepository projectRepository;
+	private final ActivityRepository activityRepository;
+	private final LaunchRepository launchRepository;
+
+	public CleanLogsJob(@Value("${rp.environment.variable.clean.logs.pool}") Integer threadsCount,
+			@Value("${rp.environment.variable.clean.launches.size}") Integer launchesLimit, LogCleanerService logCleaner,
+			ProjectRepository projectRepository, ActivityRepository activityRepository, LaunchRepository launchRepository) {
+		this.threadsCount = threadsCount;
+		this.launchesLimit = launchesLimit;
 		this.logCleaner = logCleaner;
+		this.projectRepository = projectRepository;
+		this.activityRepository = activityRepository;
+		this.launchRepository = launchRepository;
 	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		LOGGER.info("Cleaning outdated logs has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
+		final ExecutorService executor = Executors.newFixedThreadPool(threadsCount,
 				new ThreadFactoryBuilder().setNameFormat("clean-logs-job-thread-%d").build()
 		);
 
 		iterateOverPages(Sort.by(Sort.Order.asc(CRITERIA_ID)),
 				projectRepository::findAllIdsAndProjectAttributes,
-				projects -> CompletableFuture.allOf(projects.stream().map(project -> {
-					AtomicLong removedLogsCount = new AtomicLong(0);
-					return CompletableFuture.runAsync(() -> {
-						try {
-							LOGGER.debug("Cleaning outdated logs for project {} has been started", project.getId());
-							proceedLogsRemoving(project, removedLogsCount);
-
-						} catch (Exception e) {
-							LOGGER.debug("Cleaning outdated logs for project {} has been failed", project.getId(), e);
-						}
-						LOGGER.info("Cleaning outdated logs for project {} has been finished. Total logs removed: {}",
-								project.getId(),
-								removedLogsCount.get()
-						);
-					}, executor);
-				}).toArray(CompletableFuture[]::new)).join()
+				projects -> projects.forEach(project -> {
+					try {
+						LOGGER.info("Cleaning outdated logs for project {} has been started", project.getId());
+						proceedLogsRemoving(project, executor);
+					} catch (Exception e) {
+						LOGGER.error("Cleaning outdated logs for project {} has been failed", project.getId(), e);
+					}
+				})
 		);
 
 		executor.shutdown();
-
+		LOGGER.info("Cleaning logs has been finished");
 	}
 
-	private void proceedLogsRemoving(Project project, AtomicLong removedLogsCount) {
+	private void proceedLogsRemoving(Project project, ExecutorService executor) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LOGS)
 				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
-				.ifPresent(it -> logCleaner.removeOutdatedLogs(project, it, removedLogsCount));
+				.ifPresent(period -> {
+					activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+					cleanLogs(project, period, executor);
+				});
+	}
+
+	private void cleanLogs(Project project, Duration period, ExecutorService executor) {
+		final LocalDateTime startTimeBound = LocalDateTime.now(ZoneOffset.UTC).minus(period);
+
+		final AtomicLong removedLogsCount = new AtomicLong(0);
+		final AtomicLong attachmentsCount = new AtomicLong(0);
+		final AtomicLong thumbnailsCount = new AtomicLong(0);
+
+		iterateOverContent(launchesLimit,
+				pageable -> launchRepository.findIdsByProjectIdAndStartTimeBefore(project.getId(),
+						startTimeBound,
+						pageable.getPageSize(),
+						pageable.getOffset()
+				),
+				launchIds -> CompletableFuture.allOf(launchIds.stream()
+						.map(launchId -> CompletableFuture.supplyAsync(() -> logCleaner.removeOutdatedLogs(launchId,
+								startTimeBound,
+								attachmentsCount,
+								thumbnailsCount
+						), executor).thenAcceptAsync(removedLogsCount::addAndGet, executor))
+						.toArray(CompletableFuture[]::new)).join()
+		);
+
+		LOGGER.info("Cleaning outdated logs for project {} has been finished. Removed {} logs with {} attachments and {} thumbnails",
+				project.getId(),
+				removedLogsCount.get(),
+				attachmentsCount.get(),
+				thumbnailsCount.get()
+		);
+
 	}
 
 }

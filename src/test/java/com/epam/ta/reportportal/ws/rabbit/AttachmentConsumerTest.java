@@ -64,4 +64,16 @@ class AttachmentConsumerTest {
 		verify(dataStoreService, times(1)).delete(attachment.getFileId());
 		verify(dataStoreService, times(1)).delete(attachment.getThumbnailId());
 	}
+
+	@Test
+	void consumePaths() {
+		ArrayList<String> paths = Lists.newArrayList("fileId");
+		DeleteAttachmentEvent event = new DeleteAttachmentEvent();
+		event.setPaths(paths);
+
+		attachmentConsumer.onEvent(event);
+
+		verify(dataStoreService, times(1)).delete(any());
+		verify(attachmentRepository, times(1)).deleteAllByIds(any());
+	}
 }

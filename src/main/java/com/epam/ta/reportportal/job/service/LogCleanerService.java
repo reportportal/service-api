@@ -16,9 +16,7 @@
 
 package com.epam.ta.reportportal.job.service;
 
-import com.epam.ta.reportportal.entity.project.Project;
-
-import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -26,5 +24,5 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public interface LogCleanerService {
 
-	void removeOutdatedLogs(Project project, Duration period, AtomicLong removedLogsCount);
+	long removeOutdatedLogs(Long launchId, LocalDateTime startTimeBound, AtomicLong attachmentsCount, AtomicLong thumbnailsCount);
 }

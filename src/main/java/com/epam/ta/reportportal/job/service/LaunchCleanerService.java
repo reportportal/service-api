@@ -16,9 +16,6 @@
 
 package com.epam.ta.reportportal.job.service;
 
-import com.epam.ta.reportportal.entity.project.Project;
-
-import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -26,6 +23,5 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public interface LaunchCleanerService {
 
-	void cleanOutdatedLaunches(Project project, Duration period, AtomicLong launchesRemoved, AtomicLong attachmentsRemoved,
-			AtomicLong thumbnailsRemoved);
+	void cleanLaunch(Long launchId, AtomicLong attachmentsRemoved, AtomicLong thumbnailsRemoved);
 }

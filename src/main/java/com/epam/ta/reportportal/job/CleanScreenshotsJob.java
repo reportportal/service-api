@@ -20,18 +20,22 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.job.service.impl.AttachmentCleanerServiceImpl;
+import com.epam.ta.reportportal.job.service.AttachmentCleanerService;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
@@ -47,43 +51,50 @@ import static java.time.Duration.ofSeconds;
 public class CleanScreenshotsJob implements Job {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanScreenshotsJob.class);
 
+	private final Integer threadsCount;
+
+	private final AttachmentCleanerService attachmentCleanerService;
+
 	private final ProjectRepository projectRepository;
 
-	private final AttachmentCleanerServiceImpl attachmentCleanerService;
-
-	@Autowired
-	public CleanScreenshotsJob(ProjectRepository projectRepository, AttachmentCleanerServiceImpl attachmentCleanerService) {
-		this.projectRepository = projectRepository;
+	public CleanScreenshotsJob(@Value("${rp.environment.variable.clean.attach.pool}") Integer threadsCount, AttachmentCleanerService attachmentCleanerService, ProjectRepository projectRepository) {
+		this.threadsCount = threadsCount;
 		this.attachmentCleanerService = attachmentCleanerService;
+		this.projectRepository = projectRepository;
 	}
 
 	@Override
 	public void execute(JobExecutionContext context) {
+		final ExecutorService executor = Executors.newFixedThreadPool(threadsCount,
+				new ThreadFactoryBuilder().setNameFormat("clean-attachments-job-thread-%d").build()
+		);
 		LOGGER.info("Cleaning outdated screenshots has been started");
 
-		iterateOverPages(
-				Sort.by(Sort.Order.asc(CRITERIA_ID)),
+		iterateOverPages(Sort.by(Sort.Order.asc(CRITERIA_ID)),
 				projectRepository::findAllIdsAndProjectAttributes,
-				projects -> projects.forEach(project -> {
-					AtomicLong attachmentsCount = new AtomicLong(0);
-					AtomicLong thumbnailsCount = new AtomicLong(0);
+				projects -> CompletableFuture.allOf(projects.stream().map(project -> CompletableFuture.runAsync(() -> {
+					final AtomicLong attachmentsCount = new AtomicLong(0);
+					final AtomicLong thumbnailsCount = new AtomicLong(0);
 
 					try {
-						LOGGER.debug("Cleaning outdated screenshots for project {} has been started", project.getId());
+						LOGGER.info("Cleaning outdated screenshots for project {} has been started", project.getId());
 						proceedScreenShotsCleaning(project, attachmentsCount, thumbnailsCount);
 					} catch (Exception e) {
 						LOGGER.error("Cleaning outdated screenshots for project {} has been failed", project.getId(), e);
 					}
-					if (attachmentsCount.get() > 0 || thumbnailsCount.get() > 0) {
-						LOGGER.info(
-								"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
-								project.getId(),
-								attachmentsCount.get(),
-								thumbnailsCount.get()
-						);
-					}
-				})
+
+					LOGGER.info(
+							"Cleaning outdated screenshots for project {} has been finished. {} attachments and {} thumbnails have been deleted",
+							project.getId(),
+							attachmentsCount.get(),
+							thumbnailsCount.get()
+					);
+
+				}, executor)).toArray(CompletableFuture[]::new)).join()
 		);
+
+		executor.shutdown();
+
 		LOGGER.info("Cleaning outdated screenshots has been finished");
 	}
 

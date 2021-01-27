@@ -141,23 +141,34 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			}
 		}
 
-		TestItem item = new TestItemBuilder().addStartItemRequest(rq)
-				.addAttributes(rq.getAttributes())
-				.addLaunchId(launch.getId())
-				.addParent(parentItem)
-				.get();
+		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 
-		testItemRepository.save(item);
-		generateUniqueId(launch, item, parentItem.getPath() + "." + item.getItemId());
-		if (rq.isHasStats() && !parentItem.isHasChildren()) {
-			parentItem.setHasChildren(true);
-		}
 		if (isRetry) {
-			retriesHandler.handleRetries(launch, item, rq.getRetryOf());
+			ofNullable(rq.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate).ifPresentOrElse(retryParentId -> {
+				saveChildItem(launch, item, parentItem);
+				retriesHandler.handleRetries(launch, item, retryParentId);
+			}, () -> retriesHandler.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
+				saveChildItem(launch, item, parentItem);
+				retriesHandler.handleRetries(launch, item, previousRetryId);
+			}, () -> saveChildItem(launch, item, parentItem)));
+		} else {
+			saveChildItem(launch, item, parentItem);
 		}
 
 		LOGGER.debug("Created new child TestItem {} with root {}", item.getUuid(), parentId);
+
+		if (rq.isHasStats() && !parentItem.isHasChildren()) {
+			parentItem.setHasChildren(true);
+		}
+
 		return new ItemCreatedRS(item.getUuid(), item.getUniqueId());
+	}
+
+	private TestItem saveChildItem(Launch launch, TestItem childItem, TestItem parentItem) {
+		childItem.setParentId(parentItem.getItemId());
+		testItemRepository.save(childItem);
+		generateUniqueId(launch, childItem, parentItem.getPath() + "." + childItem.getItemId());
+		return childItem;
 	}
 
 	/**

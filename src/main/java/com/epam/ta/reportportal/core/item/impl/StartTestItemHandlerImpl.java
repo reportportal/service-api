@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -123,10 +124,12 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		final TestItem parentItem;
 		if (isRetry) {
 			// Lock for test
-			Long lockedParentId = testItemRepository.findIdByUuidForUpdate(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			Long lockedParentId = testItemRepository.findIdByUuidForUpdate(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
 			parentItem = testItemRepository.getOne(lockedParentId);
 		} else {
-			parentItem = testItemRepository.findByUuid(parentId).orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
+			parentItem = testItemRepository.findByUuid(parentId)
+					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
 		}
 
 		validate(rq, parentItem);
@@ -148,7 +151,6 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 				saveChildItem(launch, item, parentItem);
 				retriesHandler.handleRetries(launch, item, previousRetryId);
 			}, () -> saveChildItem(launch, item, parentItem)));
-
 		} else {
 			saveChildItem(launch, item, parentItem);
 		}
@@ -178,10 +180,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	 */
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
-		if (StringUtils.isBlank(item.getUniqueId())) {
+		if (Objects.isNull(item.getUniqueId())) {
 			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch));
 		}
-		if (StringUtils.isBlank(item.getTestCaseId())) {
+		if (Objects.isNull(item.getTestCaseId())) {
 			item.setTestCaseHash(testCaseHashGenerator.generate(item, IdentityUtil.getParentIds(item), launch.getProjectId()));
 		}
 	}
@@ -222,7 +224,8 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(BAD_REQUEST_ERROR,
 					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
 							parent.getItemId()
-					).get()
+					)
+							.get()
 			);
 		}
 

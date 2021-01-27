@@ -65,6 +65,7 @@ public class AttachmentConsumer {
 				LOGGER.error(Suppliers.formattedSupplier("Error during removing attachment with id = {}", id).get());
 			}
 		}));
+		ofNullable(event.getPaths()).ifPresent(paths -> paths.forEach(dataStoreService::delete));
 		attachmentRepository.deleteAllByIds(ids);
 	}
 }

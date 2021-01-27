@@ -16,6 +16,8 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.dao.ActivityRepository;
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -28,18 +30,22 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
 import static java.time.Duration.ofSeconds;
 
@@ -50,66 +56,88 @@ import static java.time.Duration.ofSeconds;
 @Profile("!unittest")
 public class CleanLaunchesJob implements Job {
 
-	public static final int DEFAULT_THREAD_COUNT = 5;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(CleanLaunchesJob.class);
 
+	private final Integer threadsCount;
+	private final Integer launchesLimit;
+
+	private final LaunchCleanerService launchCleanerService;
+
 	private final ProjectRepository projectRepository;
+	private final ActivityRepository activityRepository;
+	private final LaunchRepository launchRepository;
 
-	private final LaunchCleanerService launchCleaner;
-
-	@Value("5")
-	private Integer threadsCount;
-
-	public CleanLaunchesJob(ProjectRepository projectRepository, LaunchCleanerService launchCleaner) {
+	@Autowired
+	public CleanLaunchesJob(@Value("${rp.environment.variable.clean.launches.pool}") Integer threadsCount,
+			@Value("${rp.environment.variable.clean.launches.size}") Integer launchesLimit, LaunchCleanerService launchCleanerService,
+			ProjectRepository projectRepository, ActivityRepository activityRepository, LaunchRepository launchRepository) {
+		this.threadsCount = threadsCount;
+		this.launchesLimit = launchesLimit;
+		this.launchCleanerService = launchCleanerService;
 		this.projectRepository = projectRepository;
-		this.launchCleaner = launchCleaner;
+		this.activityRepository = activityRepository;
+		this.launchRepository = launchRepository;
 	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		LOGGER.info("Cleaning outdated launches has been started");
-		ExecutorService executor = Executors.newFixedThreadPool(Optional.ofNullable(threadsCount).orElse(DEFAULT_THREAD_COUNT),
+		final ExecutorService executor = Executors.newFixedThreadPool(threadsCount,
 				new ThreadFactoryBuilder().setNameFormat("clean-launches-job-thread-%d").build()
 		);
 
-		iterateOverPages(
-				Sort.by(Sort.Order.asc(CRITERIA_ID)), projectRepository::findAllIdsAndProjectAttributes,
-				projects -> CompletableFuture.allOf(projects.stream().map(project -> {
-					AtomicLong removedLaunchesCount = new AtomicLong(0);
-					AtomicLong removedAttachmentsCount = new AtomicLong(0);
-					AtomicLong removedThumbnailsCount = new AtomicLong(0);
-					return CompletableFuture.runAsync(() -> {
-						try {
-							proceedLaunchesCleaning(project, removedLaunchesCount, removedAttachmentsCount, removedThumbnailsCount);
-						} catch (Exception e) {
-							LOGGER.error("Cleaning outdated launches for project {} has been failed", project.getId(), e);
-						}
-
-						if (removedLaunchesCount.get() > 0 || removedAttachmentsCount.get() > 0 || removedThumbnailsCount.get() > 0) {
-							LOGGER.info(
-									"Cleaning outdated launches for project {} has been finished. Total launches removed: {}. Attachments removed: {}. Thumbnails removed: {}",
-									project.getId(),
-									removedLaunchesCount.get(),
-									removedAttachmentsCount.get(),
-									removedThumbnailsCount.get()
-							);
-						}
-
-					}, executor);
-				}).toArray(CompletableFuture[]::new)).join()
-		);
+		iterateOverPages(Sort.by(Sort.Order.asc(CRITERIA_ID)), projectRepository::findAllIdsAndProjectAttributes, projects -> {
+			projects.forEach(p -> {
+				try {
+					proceedLaunchesCleaning(p, executor);
+				} catch (Exception ex) {
+					LOGGER.error("Cleaning outdated launches for project {} has been failed", p.getId(), ex);
+				}
+			});
+		});
 
 		executor.shutdown();
 		LOGGER.info("Cleaning outdated launches has been finished");
 	}
 
-	private void proceedLaunchesCleaning(Project project, AtomicLong removedLaunches, AtomicLong removedAttachments,
-			AtomicLong removedThumbnails) {
+	private void proceedLaunchesCleaning(Project project, ExecutorService executorService) {
 		ProjectUtils.extractAttributeValue(project, ProjectAttributeEnum.KEEP_LAUNCHES)
 				.map(it -> ofSeconds(NumberUtils.toLong(it, 0L)))
 				.filter(it -> !it.isZero())
-				.ifPresent(it -> launchCleaner.cleanOutdatedLaunches(project, it, removedLaunches, removedAttachments, removedThumbnails));
+				.ifPresent(period -> {
+					activityRepository.deleteModifiedLaterAgo(project.getId(), period);
+					cleanLaunches(project.getId(), period, executorService);
+				});
+	}
+
+	private void cleanLaunches(Long projectId, Duration period, ExecutorService executorService) {
+		final LocalDateTime startTimeBound = LocalDateTime.now(ZoneOffset.UTC).minus(period);
+
+		final AtomicLong removedLaunches = new AtomicLong(0);
+		final AtomicLong removedAttachments = new AtomicLong(0);
+		final AtomicLong removedThumbnails = new AtomicLong(0);
+
+		iterateOverContent(launchesLimit,
+				pageable -> launchRepository.findIdsByProjectIdAndStartTimeBefore(projectId, startTimeBound, pageable.getPageSize()),
+				ids -> {
+					CompletableFuture.allOf(ids.stream()
+							.map(id -> CompletableFuture.runAsync(() -> launchCleanerService.cleanLaunch(id,
+									removedAttachments,
+									removedThumbnails
+							), executorService))
+							.toArray(CompletableFuture[]::new)).join();
+					removedLaunches.addAndGet(ids.size());
+				}
+		);
+
+		LOGGER.info(
+				"Cleaning outdated launches for project {} has been finished. Total launches removed: {}. Attachments removed: {}. Thumbnails removed: {}",
+				projectId,
+				removedLaunches.get(),
+				removedAttachments.get(),
+				removedThumbnails.get()
+		);
+
 	}
 
 }

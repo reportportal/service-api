@@ -65,7 +65,7 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:4f7c731f'
+        compile 'com.github.reportportal:commons-dao:85882f6'
         compile 'com.github.reportportal:commons-rules:331c402'
         compile 'com.github.reportportal:commons-model:2662a59b'
         compile 'com.github.reportportal:commons:7480d61'
@@ -80,6 +80,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-amqp'
     compile('org.springframework.boot:spring-boot-starter-batch')
+
+    compile group: 'com.opencsv', name: 'opencsv', version: '5.3'
 
     //https://nvd.nist.gov/vuln/detail/CVE-2020-11996 AND https://nvd.nist.gov/vuln/detail/CVE-2020-9484
     //AND https://nvd.nist.gov/vuln/detail/CVE-2020-13934 AND https://nvd.nist.gov/vuln/detail/CVE-2020-13935

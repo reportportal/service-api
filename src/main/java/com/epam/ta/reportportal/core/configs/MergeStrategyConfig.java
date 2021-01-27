@@ -20,7 +20,9 @@ import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.merge.strategy.*;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
 import com.epam.ta.reportportal.core.item.merge.StatisticsCalculationStrategy;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +45,18 @@ public class MergeStrategyConfig {
 
 	private final TestItemUniqueIdGenerator testItemUniqueIdGenerator;
 
+	private final LogRepository logRepository;
+
+	private final AttachmentRepository attachmentRepository;
+
 	@Autowired
 	public MergeStrategyConfig(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			TestItemUniqueIdGenerator testItemUniqueIdGenerator) {
+			TestItemUniqueIdGenerator testItemUniqueIdGenerator, LogRepository logRepository, AttachmentRepository attachmentRepository) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.testItemUniqueIdGenerator = testItemUniqueIdGenerator;
+		this.logRepository = logRepository;
+		this.attachmentRepository = attachmentRepository;
 	}
 
 	@Bean
@@ -64,13 +72,22 @@ public class MergeStrategyConfig {
 	@Bean
 	public Map<MergeStrategyType, LaunchMergeStrategy> launchMergeStrategyMapping() {
 		return ImmutableMap.<MergeStrategyType, LaunchMergeStrategy>builder().put(MergeStrategyType.BASIC,
-				new BasicLaunchMergeStrategy(testItemRepository,
+				new BasicLaunchMergeStrategy(launchRepository,
+						testItemRepository,
+						logRepository,
+						attachmentRepository,
 						testItemUniqueIdGenerator,
-						launchRepository,
 						statisticsCalculationFactory()
 				)
 		)
-				.put(MergeStrategyType.DEEP, new DeepLaunchMergeStrategy(testItemRepository, testItemUniqueIdGenerator, launchRepository))
+				.put(MergeStrategyType.DEEP,
+						new DeepLaunchMergeStrategy(launchRepository,
+								testItemRepository,
+								logRepository,
+								attachmentRepository,
+								testItemUniqueIdGenerator
+						)
+				)
 				.build();
 	}
 

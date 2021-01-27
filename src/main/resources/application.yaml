@@ -55,14 +55,20 @@ rp:
     recalculate: false
   environment:
     variable:
-      job:
-        delay: P7D
       flushing:
         time: PT24H
       clean:
-        attach: P3D
-        logs: P7D
-        launches: P14D
+        attach:
+          period: P1D
+          size: 200
+          pool: 5
+        logs:
+          period: P2D
+          pool: 5
+        launches:
+          period: P3D
+          size: 50
+          pool: 5
         items:
           size: 500
       history:

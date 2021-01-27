@@ -26,14 +26,12 @@ import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -44,15 +42,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AttachmentCleanerServiceImplTest {
 
+	private final int attachmentsPageSize = 200;
+
 	private AttachmentRepository attachmentRepository = mock(AttachmentRepository.class);
 	private LaunchRepository launchRepository = mock(LaunchRepository.class);
 	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 	private DataStoreService dataStoreService = mock(DataStoreService.class);
 
-	private final AttachmentCleanerServiceImpl attachmentCleanerService = new AttachmentCleanerServiceImpl(500,
+	private final AttachmentCleanerServiceImpl attachmentCleanerService = new AttachmentCleanerServiceImpl(attachmentsPageSize,
 			attachmentRepository,
-			launchRepository,
-			testItemRepository,
 			dataStoreService
 	);
 
@@ -88,9 +86,9 @@ class AttachmentCleanerServiceImplTest {
 		String thumbnailId = "thumbnailId";
 		Attachment attachment = testAttachment(fileId, thumbnailId);
 
-		when(attachmentRepository.findAllByLaunchIdIn(launchIds)).thenReturn(Collections.singletonList(attachment));
+		when(attachmentRepository.findAllByLaunchIdIn(anyList())).thenReturn(Collections.singletonList(attachment));
 
-		attachmentCleanerService.removeOutdatedLaunchesAttachments(launchIds, attachmentCount, thumbnailCount);
+		attachmentCleanerService.removeLaunchAttachments(launchIds.get(0), attachmentCount, thumbnailCount);
 
 		assertEquals(1L, attachmentCount.get());
 		assertEquals(1L, thumbnailCount.get());
@@ -107,33 +105,23 @@ class AttachmentCleanerServiceImplTest {
 		AtomicLong attachmentCount = new AtomicLong();
 		AtomicLong thumbnailCount = new AtomicLong();
 
-		when(launchRepository.streamIdsByStartTimeBefore(project.getId(), before)).thenReturn(Stream.of(1L, 2L, 3L));
-		when(testItemRepository.findTestItemIdsByLaunchId(eq(1L), any(Pageable.class))).thenReturn(Lists.newArrayList(11L));
-		when(testItemRepository.findTestItemIdsByLaunchId(eq(2L), any(Pageable.class))).thenReturn(Lists.newArrayList(22L));
-		when(testItemRepository.findTestItemIdsByLaunchId(eq(3L), any(Pageable.class))).thenReturn(Lists.newArrayList(33L));
-		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(11L),
-				before
-		)).thenReturn(Collections.singletonList(testAttachment("one", "two")));
-		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(22L),
-				before
-		)).thenReturn(Collections.singletonList(testAttachment("three", "four")));
-		when(attachmentRepository.findByItemIdsAndLogTimeBefore(Collections.singletonList(33L),
-				before
-		)).thenReturn(Collections.singletonList(testAttachment("five", null)));
-
-		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(1L),
-				before
-		)).thenReturn(Collections.singletonList(testAttachment("firstLaunch", "two")));
-		when(attachmentRepository.findByLaunchIdsAndLogTimeBefore(Collections.singletonList(2L),
-				before
-		)).thenReturn(Collections.singletonList(testAttachment("secondLaunch", null)));
+		when(attachmentRepository.findByProjectIdsAndLogTimeBefore(project.getId(),
+				before,
+				attachmentsPageSize,
+				0
+		)).thenReturn(Lists.newArrayList(testAttachment("one", "two"),
+				testAttachment("three", "four"),
+				testAttachment("five", null),
+				testAttachment("firstLaunch", "two"),
+				testAttachment("secondLaunch", null)
+		));
 
 		attachmentCleanerService.removeProjectAttachments(project, before, attachmentCount, thumbnailCount);
 
 		assertEquals(5L, attachmentCount.get());
 		assertEquals(3L, thumbnailCount.get());
 		verify(dataStoreService, times(8)).delete(anyString());
-		verify(attachmentRepository, times(5)).deleteAllByIds(anyCollection());
+		verify(attachmentRepository, times(1)).deleteAllByIds(anyCollection());
 	}
 
 	private static Attachment testAttachment(String fileId, String thumbnailId) {

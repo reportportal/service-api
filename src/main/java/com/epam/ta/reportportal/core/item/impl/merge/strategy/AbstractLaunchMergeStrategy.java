@@ -22,7 +22,9 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestItemUniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.merge.LaunchMergeStrategy;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -55,18 +57,20 @@ import static java.util.stream.Collectors.toList;
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy {
-
-	private final TestItemRepository testItemRepository;
-
-	private final TestItemUniqueIdGenerator identifierGenerator;
-
 	protected final LaunchRepository launchRepository;
 
-	public AbstractLaunchMergeStrategy(TestItemRepository testItemRepository, TestItemUniqueIdGenerator identifierGenerator,
-			LaunchRepository launchRepository) {
-		this.testItemRepository = testItemRepository;
-		this.identifierGenerator = identifierGenerator;
+	private final TestItemRepository testItemRepository;
+	private final LogRepository logRepository;
+	private final AttachmentRepository attachmentRepository;
+	private final TestItemUniqueIdGenerator identifierGenerator;
+
+	protected AbstractLaunchMergeStrategy(LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			LogRepository logRepository, AttachmentRepository attachmentRepository, TestItemUniqueIdGenerator identifierGenerator) {
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
+		this.logRepository = logRepository;
+		this.attachmentRepository = attachmentRepository;
+		this.identifierGenerator = identifierGenerator;
 	}
 
 	protected Launch createNewLaunch(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user, MergeLaunchesRQ rq,
@@ -81,8 +85,8 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 	/**
 	 * Create launch that will be the result of merge
 	 *
-	 * @param projectId       {@link Project#id}
-	 * @param userId          {@link ReportPortalUser#userId}
+	 * @param projectId       {@link Project#getId()}
+	 * @param userId          {@link ReportPortalUser#getUserId()}
 	 * @param mergeLaunchesRQ {@link MergeLaunchesRQ}
 	 * @param launches        {@link List} of the {@link Launch}
 	 * @return launch
@@ -166,7 +170,10 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 	 * @param isNameChanged     launch name change indicator
 	 */
 	private void updateChildrenOfLaunches(Launch newLaunch, Set<Long> launches, boolean extendDescription, boolean isNameChanged) {
-		List<TestItem> testItems = launches.stream().flatMap(id -> {
+		List<TestItem> testItems = launches.stream().peek(id -> {
+			logRepository.updateLaunchIdByLaunchId(id, newLaunch.getId());
+			attachmentRepository.updateLaunchIdByProjectIdAndLaunchId(newLaunch.getProjectId(), id, newLaunch.getId());
+		}).flatMap(id -> {
 			Launch launch = launchRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, id));
 			return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
 				testItem.setLaunchId(newLaunch.getId());

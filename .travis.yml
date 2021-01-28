@@ -9,6 +9,7 @@ script: ./gradlew buildDocker --full-stacktrace
 env:
   global:
     - GRADLE_OPTS="-Xms128m -Xmx1g"
+    - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
 
 jdk:
   - openjdk11

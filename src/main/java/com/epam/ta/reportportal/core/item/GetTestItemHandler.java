@@ -80,9 +80,8 @@ public interface GetTestItemHandler {
 	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
 	 * @return Accumulated statistics
 	 */
-	StatisticsResource getStatisticsByProvider(Queryable filter, ReportPortalUser.ProjectDetails projectDetails,
-			ReportPortalUser user, Map<String, String> providerParams);
-
+	StatisticsResource getStatisticsByProvider(Queryable filter, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
+			Map<String, String> providerParams);
 
 	/**
 	 * Get tickets that contains a term as a part inside for specified launch
@@ -97,7 +96,7 @@ public interface GetTestItemHandler {
 	 * Get tickets that contains a term as a part inside for specified project
 	 *
 	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
-	 * @param term     part of {@link Ticket#getTicketId()} to search
+	 * @param term           part of {@link Ticket#getTicketId()} to search
 	 * @return {@link List} of {@link Ticket#getTicketId()}
 	 */
 	List<String> getTicketIds(ReportPortalUser.ProjectDetails projectDetails, String term);
@@ -132,6 +131,25 @@ public interface GetTestItemHandler {
 	 * @return {@link List} of the {@link com.epam.ta.reportportal.entity.ItemAttribute#value}
 	 */
 	List<String> getAttributeValues(Long launchId, String key, String value);
+
+	/**
+	 * Get attributes keys of test items under {@link com.epam.ta.reportportal.entity.project.Project} specified by `projectDetails`
+	 *
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param keyPart        part of the {@link ItemAttribute#getKey()} to search
+	 * @return {@link List} of the {@link ItemAttribute#getKey()}
+	 */
+	List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String keyPart);
+
+	/**
+	 * Get attributes values of test items under {@link com.epam.ta.reportportal.entity.project.Project} specified by `projectDetails`
+	 *
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @param key            {@link ItemAttribute#getKey()}
+	 * @param valuePart      part of the {@link ItemAttribute#getValue()} to search
+	 * @return {@link List} of the {@link ItemAttribute#getValue()}
+	 */
+	List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String key, String valuePart);
 
 	/**
 	 * @param ids array of the {@link com.epam.ta.reportportal.entity.launch.Launch#id}

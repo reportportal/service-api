@@ -271,6 +271,7 @@ public class TestItemController {
 		return getTestItemHandler.getTicketIds(extractProjectDetails(user, projectName), normalizeId(term));
 	}
 
+	//TODO EPMRPP-59414
 	@Transactional(readOnly = true)
 	@GetMapping("/attribute/keys")
 	@ResponseStatus(OK)
@@ -281,6 +282,7 @@ public class TestItemController {
 		return getTestItemHandler.getAttributeKeys(id, value);
 	}
 
+	//TODO EPMRPP-59414
 	@Transactional(readOnly = true)
 	@GetMapping("/attribute/keys/all")
 	@ResponseStatus(OK)
@@ -298,6 +300,7 @@ public class TestItemController {
 		);
 	}
 
+	//TODO EPMRPP-59414
 	@Transactional(readOnly = true)
 	@GetMapping("/attribute/values")
 	@ResponseStatus(OK)
@@ -307,6 +310,25 @@ public class TestItemController {
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE) String value) {
 		return getTestItemHandler.getAttributeValues(id, key, value);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/step/attribute/keys")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute keys of step items under specified project")
+	public List<String> getAttributeKeys(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY) String value) {
+		return getTestItemHandler.getAttributeKeys(extractProjectDetails(user, projectName), value);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/step/attribute/values")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute values of step items inder specified project")
+	public List<String> getAttributeValues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE) String value) {
+		return getTestItemHandler.getAttributeValues(extractProjectDetails(user, projectName), key, value);
 	}
 
 	@Transactional

@@ -51,8 +51,7 @@ import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PARENT_ID;
@@ -317,18 +316,20 @@ public class TestItemController {
 	@ResponseStatus(OK)
 	@ApiOperation("Get all unique attribute keys of step items under specified project")
 	public List<String> getAttributeKeys(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME) String launchName,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY) String value) {
-		return getTestItemHandler.getAttributeKeys(extractProjectDetails(user, projectName), value);
+		return getTestItemHandler.getAttributeKeys(extractProjectDetails(user, projectName), launchName, value);
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping("/step/attribute/values")
 	@ResponseStatus(OK)
-	@ApiOperation("Get all unique attribute values of step items inder specified project")
+	@ApiOperation("Get all unique attribute values of step items under specified project")
 	public List<String> getAttributeValues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME) String launchName,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE) String value) {
-		return getTestItemHandler.getAttributeValues(extractProjectDetails(user, projectName), key, value);
+		return getTestItemHandler.getAttributeValues(extractProjectDetails(user, projectName), launchName, key, value);
 	}
 
 	@Transactional

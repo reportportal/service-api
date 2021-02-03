@@ -330,6 +330,19 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getAttributeKeysByProjectId() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+				+ "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getAttributeValuesByKeyAndProjectId() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(token(
+				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
 	void defineTestItemIssue() throws Exception {
 		DefineIssueRQ rq = new DefineIssueRQ();
 		IssueDefinition issueDefinition = new IssueDefinition();

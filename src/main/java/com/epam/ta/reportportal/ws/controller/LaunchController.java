@@ -212,7 +212,7 @@ public class LaunchController {
 	@GetMapping(value = "/latest")
 	@ResponseStatus(OK)
 	@ApiOperation("Get list of latest project launches by filter")
-	public Page<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
+	public Iterable<LaunchResource> getLatestLaunches(@PathVariable String projectName, @FilterFor(Launch.class) Filter filter,
 			@SortFor(Launch.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getLatestLaunches(extractProjectDetails(user, normalizeId(projectName)), filter, pageable);
 	}

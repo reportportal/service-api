@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
+import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
@@ -28,6 +29,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,19 +44,21 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 	private final AnalyzerServiceAsync analyzerServiceAsync;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 	private final LogIndexer logIndexer;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public LaunchAutoAnalysisSubscriber(AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory,
-			LogIndexer logIndexer) {
+			LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
 		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 		this.logIndexer = logIndexer;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
 	public void handleEvent(LaunchFinishedEvent launchFinishedEvent, Project project, Launch launch) {
 		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled()) && analyzerServiceAsync.hasAnalyzers()) {
+		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), launchFinishedEvent.getUser());
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
@@ -65,6 +69,7 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 		} else {
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
 		}
+		eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId()));
 	}
 
 	@Override

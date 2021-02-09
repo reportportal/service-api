@@ -147,7 +147,7 @@ rp:
       secretKey:
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
-    # could be one of [seaweed, filesystem, minio]
+    # could be one of [filesystem, minio]
     type: filesystem
     thumbnail:
       attachment:

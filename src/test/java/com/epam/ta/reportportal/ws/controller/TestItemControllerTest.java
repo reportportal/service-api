@@ -193,8 +193,7 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getTestItemRetryStringPositive() throws Exception {
-		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-retry").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/3ab067e5-537b-45ff-9605-retry").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -209,6 +208,44 @@ class TestItemControllerTest extends BaseMvcTest {
 	void getTestItemsPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getTestItemsBadProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=bad").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getTestItemsLaunchProvider() throws Exception {
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getTestItemsLaunchProviderMissedParam() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=launch").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getTestItemsFilterProvider() throws Exception {
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter&filterId=1&launchesLimit=10").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getTestItemsFilterProviderMissedParam() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=filter").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void getTestItemsWidgetProvider() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/v2?providerType=widget").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
@@ -231,7 +268,7 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void getAccumulatedStatisticsByFilter() throws Exception {
 		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/statistics?filter.eq.launchId=1").with(token(oAuthHelper.getDefaultToken())))
+				DEFAULT_PROJECT_BASE_URL + "/item/statistics?providerType=launch&launchId=1").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -244,15 +281,15 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getItemHistoryByLaunchIdPositive() throws Exception {
-		mockMvc.perform(get(
-				SUPERADMIN_PROJECT_BASE_URL + "/item/history?filter.eq.launchId=1&historyDepth=3").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL
+				+ "/item/history?filter.eq.launchId=1&historyDepth=3").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getItemHistoryByFilterIdPositive() throws Exception {
-		mockMvc.perform(get(
-				DEFAULT_PROJECT_BASE_URL + "/item/history?filterId=1&launchesLimit=10&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+				+ "/item/history?filterId=1&launchesLimit=10&historyDepth=3").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
 	}
 
@@ -289,6 +326,19 @@ class TestItemControllerTest extends BaseMvcTest {
 	@Test
 	void getAttributeValues() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/attribute/values?launch=1&filter.cnt.attributeValue=lin").with(token(
+				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+	}
+
+	@Test
+	void getAttributeKeysByProjectId() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
+				+ "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void getAttributeValuesByKeyAndProjectId() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(token(
 				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
@@ -372,7 +422,6 @@ class TestItemControllerTest extends BaseMvcTest {
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
 
-
 	@Test
 	void finishTestItemWithLinkedTicketsBadBtsProject() throws Exception {
 		FinishTestItemRQ rq = new FinishTestItemRQ();
@@ -397,7 +446,6 @@ class TestItemControllerTest extends BaseMvcTest {
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
-
 
 	@Test
 	void finishTestItemWithLinkedTicketsBadUrl() throws Exception {
@@ -443,7 +491,6 @@ class TestItemControllerTest extends BaseMvcTest {
 				.contentType(APPLICATION_JSON)
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
 	}
-
 
 	@Test
 	void finishTestItemWithLinkedTickets() throws Exception {

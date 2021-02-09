@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.impl;
 
+import com.epam.reportportal.extension.event.GetLaunchResourceCollectionEvent;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.*;
@@ -45,6 +46,7 @@ import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -91,12 +93,13 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private final JasperDataProvider dataProvider;
 	private final GetJasperReportHandler<Launch> jasperReportHandler;
 	private final LaunchConverter launchConverter;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
 	public GetLaunchHandlerImpl(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
 			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository, UserRepository userRepository,
 			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler,
-			LaunchConverter launchConverter) {
+			LaunchConverter launchConverter, ApplicationEventPublisher applicationEventPublisher) {
 		this.launchRepository = launchRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
@@ -105,6 +108,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 		this.dataProvider = Preconditions.checkNotNull(dataProvider);
 		this.jasperReportHandler = jasperReportHandler;
 		this.launchConverter = launchConverter;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -117,7 +121,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 			launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		}
 		validate(launch, projectDetails);
-		return launchConverter.TO_RESOURCE.apply(launch);
+		return getLaunchResource(launch);
 	}
 
 	@Override
@@ -127,7 +131,13 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		expect(launches, notNull()).verify(LAUNCH_NOT_FOUND);
-		return launchConverter.TO_RESOURCE.apply(launches.iterator().next());
+		return getLaunchResource(launches.iterator().next());
+	}
+
+	private LaunchResource getLaunchResource(Launch launch) {
+		final LaunchResource launchResource = launchConverter.TO_RESOURCE.apply(launch);
+		applicationEventPublisher.publishEvent(new GetLaunchResourceCollectionEvent(Collections.singletonList(launchResource)));
+		return launchResource;
 	}
 
 	@Override
@@ -139,7 +149,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 		filter = addLaunchCommonCriteria(DEFAULT, filter);
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, project.getId()), pageable);
-		return PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
+		return getLaunchResources(launches);
 	}
 
 	/*
@@ -151,7 +161,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 		validateModeConditions(filter);
 		filter = addLaunchCommonCriteria(DEBUG, filter);
 		Page<Launch> launches = launchRepository.findByFilter(ProjectFilter.of(filter, projectDetails.getProjectId()), pageable);
-		return PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
+		return getLaunchResources(launches);
 	}
 
 	@Override
@@ -165,7 +175,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
-	public com.epam.ta.reportportal.ws.model.Page<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
+	public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
 			Filter filter, Pageable pageable) {
 
 		validateModeConditions(filter);
@@ -176,12 +186,20 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 		filter = addLaunchCommonCriteria(DEFAULT, filter);
 
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
-		return PagedResourcesAssembler.pageConverter(launchConverter.TO_RESOURCE).apply(launches);
+		return getLaunchResources(launches);
+	}
+
+	private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {
+		final com.epam.ta.reportportal.ws.model.Page<LaunchResource> launchResourcePage = PagedResourcesAssembler.pageConverter(
+				launchConverter.TO_RESOURCE).apply(launches);
+		applicationEventPublisher.publishEvent(new GetLaunchResourceCollectionEvent(launchResourcePage.getContent()));
+		return launchResourcePage;
 	}
 
 	@Override
 	public List<String> getLaunchNames(ReportPortalUser.ProjectDetails projectDetails, String value) {
-		expect(value.length() >= MIN_LAUNCH_NAME_LENGTH && value.length() <= MAX_LAUNCH_NAME_LENGTH, equalTo(true)).verify(INCORRECT_FILTER_PARAMETERS,
+		expect(value.length() >= MIN_LAUNCH_NAME_LENGTH && value.length() <= MAX_LAUNCH_NAME_LENGTH, equalTo(true)).verify(
+				INCORRECT_FILTER_PARAMETERS,
 				formattedSupplier("Length of the launch name string '{}' is less than {} symbols or more than {} symbols",
 						value,
 						MIN_LAUNCH_NAME_LENGTH,

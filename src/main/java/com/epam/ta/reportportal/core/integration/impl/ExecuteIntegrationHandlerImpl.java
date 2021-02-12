@@ -18,18 +18,20 @@ package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
+import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
 import static java.util.Optional.ofNullable;
@@ -39,6 +41,8 @@ import static java.util.Optional.ofNullable;
  */
 @Service
 public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler {
+
+	private static final String ASYNC_MODE = "async";
 
 	private final Map<String, IntegrationService> integrationServiceMapping;
 
@@ -72,17 +76,25 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Plugin for '{}' isn't installed", integration.getType().getName()).get()
+						formattedSupplier("Plugin for '{}' isn't installed", integration.getType().getName()).get()
 				));
 
-		Object response = ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> it.executeCommand(integration, executionParams))
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Command '{}' is not found in plugin {}.", command, integration.getType().getName())
-								.get()
-				));
+		Boolean asyncMode = ofNullable((Boolean) executionParams.get(ASYNC_MODE)).orElse(false);
+
+		Object response = ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
+			if (asyncMode) {
+				CompletableFuture.runAsync(() -> it.executeCommand(integration, executionParams));
+				return new OperationCompletionRS(formattedSupplier("Command '{}' accepted for processing in plugin",
+						command,
+						integration.getType().getName()
+				).get());
+			}
+			return it.executeCommand(integration, executionParams);
+		}).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+				formattedSupplier("Command '{}' is not found in plugin {}.", command, integration.getType().getName()).get()
+		));
 
 		integrationService.encryptParams(integration);
-
 		return response;
 	}
 }

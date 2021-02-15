@@ -26,9 +26,11 @@ import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
@@ -82,7 +84,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		Object response = ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
 			if (asyncMode) {
-				new Thread(() -> it.executeCommand(integration, executionParams)).start();
+				supplyAsync(() -> it.executeCommand(integration, executionParams));
 				return new OperationCompletionRS(formattedSupplier("Command '{}' accepted for processing in plugin",
 						command,
 						integration.getType().getName()
@@ -95,5 +97,11 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		integrationService.encryptParams(integration);
 		return response;
+	}
+
+	@Async
+	//need for security context sharing into plugin
+	public <U> void supplyAsync(Supplier<U> supplier) {
+		supplier.get();
 	}
 }

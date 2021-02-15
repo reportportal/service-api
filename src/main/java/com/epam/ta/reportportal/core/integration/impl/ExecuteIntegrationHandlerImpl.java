@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
@@ -83,7 +82,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		Object response = ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
 			if (asyncMode) {
-				CompletableFuture.runAsync(() -> it.executeCommand(integration, executionParams));
+				new Thread(() -> it.executeCommand(integration, executionParams)).start();
 				return new OperationCompletionRS(formattedSupplier("Command '{}' accepted for processing in plugin",
 						command,
 						integration.getType().getName()

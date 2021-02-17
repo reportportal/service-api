@@ -62,7 +62,6 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
-		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
 		Launch latestLaunch = launchRepository.findLatestByFilter(filter.withCondition(new FilterCondition(Condition.EQUALS,
 				false,
@@ -70,8 +69,7 @@ public class PassingRatePerLaunchContentLoader implements LoadContentStrategy {
 				CRITERIA_NAME
 		))).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
 
-		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(latestLaunch.getId()), CRITERIA_ID));
-		PassingRateStatisticsResult result = widgetContentRepository.passingRatePerLaunchStatistics(filter, sort, limit);
+		PassingRateStatisticsResult result = widgetContentRepository.passingRatePerLaunchStatistics(latestLaunch.getId());
 		return result.getTotal() != 0 ? singletonMap(RESULT, result) : emptyMap();
 	}
 

@@ -266,6 +266,16 @@ class GetTestItemHandlerImpl implements GetTestItemHandler {
 	}
 
 	@Override
+	public List<String> getAttributeKeys(ReportPortalUser.ProjectDetails projectDetails, String launchName, String keyPart) {
+		return itemAttributeRepository.findTestItemKeysByProjectIdAndLaunchName(projectDetails.getProjectId(), launchName, keyPart, false);
+	}
+
+	@Override
+	public List<String> getAttributeValues(ReportPortalUser.ProjectDetails projectDetails, String launchName, String key, String valuePart) {
+		return itemAttributeRepository.findTestItemValuesByProjectIdAndLaunchName(projectDetails.getProjectId(), launchName, key, valuePart, false);
+	}
+
+	@Override
 	public List<TestItemResource> getTestItems(Long[] ids, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		List<TestItem> items;
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {

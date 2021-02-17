@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.statistics.StatisticsResource;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -45,19 +46,20 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.*;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_KEY;
 import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PARENT_ID;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAULT_FILTER_PREFIX;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -271,6 +273,7 @@ public class TestItemController {
 		return getTestItemHandler.getTicketIds(extractProjectDetails(user, projectName), normalizeId(term));
 	}
 
+	//TODO EPMRPP-59414
 	@Transactional(readOnly = true)
 	@GetMapping("/attribute/keys")
 	@ResponseStatus(OK)
@@ -281,6 +284,7 @@ public class TestItemController {
 		return getTestItemHandler.getAttributeKeys(id, value);
 	}
 
+	//TODO EPMRPP-59414
 	@Transactional(readOnly = true)
 	@GetMapping("/attribute/keys/all")
 	@ResponseStatus(OK)
@@ -298,6 +302,7 @@ public class TestItemController {
 		);
 	}
 
+	//TODO EPMRPP-59414
 	@Transactional(readOnly = true)
 	@GetMapping("/attribute/values")
 	@ResponseStatus(OK)
@@ -307,6 +312,31 @@ public class TestItemController {
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE) String value) {
 		return getTestItemHandler.getAttributeValues(id, key, value);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/step/attribute/keys")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute keys of step items under specified project")
+	public List<String> getAttributeKeys(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false) String launchName,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_KEY) String value) {
+		return ofNullable(launchName).filter(StringUtils::isNotBlank)
+				.map(name -> getTestItemHandler.getAttributeKeys(extractProjectDetails(user, projectName), name, value))
+				.orElseGet(Collections::emptyList);
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/step/attribute/values")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all unique attribute values of step items under specified project")
+	public List<String> getAttributeValues(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_NAME, required = false) String launchName,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.EQ + CRITERIA_ITEM_ATTRIBUTE_KEY, required = false) String key,
+			@RequestParam(value = DEFAULT_FILTER_PREFIX + Condition.CNT + CRITERIA_ITEM_ATTRIBUTE_VALUE) String value) {
+		return ofNullable(launchName).filter(StringUtils::isNotBlank)
+				.map(name -> getTestItemHandler.getAttributeValues(extractProjectDetails(user, projectName), name, key, value))
+				.orElseGet(Collections::emptyList);
 	}
 
 	@Transactional

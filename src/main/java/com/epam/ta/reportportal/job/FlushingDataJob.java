@@ -159,7 +159,7 @@ public class FlushingDataJob implements Job {
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		try {
-			minioClient.deleteBucketLifeCycle(bucketPrefix + project.getId());
+			minioClient.removeBucket(bucketPrefix + project.getId());
 		} catch (Exception e) {
 			LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
 		}

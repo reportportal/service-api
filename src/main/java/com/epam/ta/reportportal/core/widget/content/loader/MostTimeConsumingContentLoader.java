@@ -30,8 +30,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.LatestLaunchContent;
 import com.epam.ta.reportportal.entity.widget.content.MostTimeConsumingTestCasesContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,10 +77,13 @@ public class MostTimeConsumingContentLoader implements LoadContentStrategy {
 		Filter filter = GROUP_FILTERS.apply(filterSortMap.keySet());
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
 
-		Launch launch = launchRepository.findLatestByFilter(filter.withCondition(FilterCondition.builder()
-				.eq(CRITERIA_NAME, launchName)
-				.build())).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
+		return launchRepository.findLatestByFilter(filter.withCondition(FilterCondition.builder().eq(CRITERIA_NAME, launchName).build()))
+				.map(l -> loadContent(l, widgetOptions, contentFields))
+				.orElseGet(Collections::emptyMap);
 
+	}
+
+	private Map<String, ?> loadContent(Launch launch, WidgetOptions widgetOptions, List<String> contentFields) {
 		final List<MostTimeConsumingTestCasesContent> content = widgetContentRepository.mostTimeConsumingTestCasesStatistics(buildItemFilter(
 				launch.getId(),
 				widgetOptions,

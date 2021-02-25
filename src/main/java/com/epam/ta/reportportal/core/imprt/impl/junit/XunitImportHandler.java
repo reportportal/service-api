@@ -199,6 +199,11 @@ public class XunitImportHandler extends DefaultHandler {
 					.optionalStart()
 					.appendZoneId()
 					.optionalEnd()
+					.optionalStart()
+					.appendLiteral(' ')
+					.parseCaseSensitive()
+					.appendZoneId()
+					.optionalEnd()
 					.toFormatter();
 			localDateTime = LocalDateTime.parse(timestamp, formatter);
 		}

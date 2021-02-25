@@ -78,7 +78,7 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 						.orElse(false),
 				limit
 		);
-		return CollectionUtils.isNotEmpty(flakyCasesTableContent) ?
+		return CollectionUtils.isEmpty(flakyCasesTableContent) ?
 				emptyMap() :
 				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, latestLaunchContent).put(FLAKY, flakyCasesTableContent).build();
 	}

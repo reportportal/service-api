@@ -183,8 +183,7 @@ public class LogController {
 	public Iterable<LogResource> getLogs(@PathVariable String projectName,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false) String underPath,
 			@FilterFor(Log.class) Filter filter,
-			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
-			@AuthenticationPrincipal ReportPortalUser user) {
+			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLogs(underPath, extractProjectDetails(user, projectName), filter, pageable);
 	}
 

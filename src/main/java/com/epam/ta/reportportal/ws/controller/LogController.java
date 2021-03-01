@@ -148,7 +148,7 @@ public class LogController {
 					/* Find by request part */
 					MultipartFile data = findByFileName(filename, uploadedFiles);
 					BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
-									Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
+							Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
 					);
 					/*
 					 * If provided content type is null or this is octet

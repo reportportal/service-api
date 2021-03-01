@@ -75,6 +75,25 @@ class LogAsyncControllerTest {
     }
 
     @Test
+    void createLogEntry() {
+        ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
+
+        SaveLogRQ saveLogRQ = new SaveLogRQ();
+
+        ArgumentCaptor<SaveLogRQ> requestArgumentCaptor = ArgumentCaptor.forClass(SaveLogRQ.class);
+        ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
+        ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
+
+        logAsyncController.createLogEntry("test_project", saveLogRQ, user);
+        verify(createLogHandler).createLog(requestArgumentCaptor.capture(), fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());
+        verify(validator).validate(requestArgumentCaptor.capture());
+
+        requestArgumentCaptor.getAllValues().forEach(rq -> assertEquals(saveLogRQ, rq));
+        assertEquals(null, fileArgumentCaptor.getValue());
+        assertEquals(user.getProjectDetails().get("test_project"), projectDetailsArgumentCaptor.getValue());
+    }
+
+    @Test
     void createLogs() {
         ReportPortalUser user = getRpUser("test", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 

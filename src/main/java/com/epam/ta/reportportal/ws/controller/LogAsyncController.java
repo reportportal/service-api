@@ -35,6 +35,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
@@ -62,12 +63,15 @@ public class LogAsyncController {
 		this.validator = validator;
 	}
 
+	/**
+	 * @deprecated in favour of {@link LogAsyncController#createLogEntry(String, SaveLogRQ, ReportPortalUser)} because of mapping collisions
+	 */
 	/* Report client API */
-
+	@Deprecated
 	@HttpLogging
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE })
 	@ResponseStatus(CREATED)
-	@ApiOperation("Create log")
+	@ApiIgnore
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
@@ -76,8 +80,19 @@ public class LogAsyncController {
 	}
 
 	@HttpLogging
+	@PostMapping(value = "/entry", consumes = { MediaType.APPLICATION_JSON_VALUE })
+	@ResponseStatus(CREATED)
+	@ApiOperation("Create log")
+	@PreAuthorize(ALLOWED_TO_REPORT)
+	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		validateSaveRQ(validator, createLogRQ);
+		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
+	}
+
+	@HttpLogging
 	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	// @ApiOperation("Create log (batching operation)")
+	@ApiOperation("Create log (batching operation)")
 	// Specific handler should be added for springfox in case of similar POST
 	// request mappings
 	//	@Async

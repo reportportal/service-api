@@ -147,10 +147,9 @@ public class LogController {
 				} else {
 					/* Find by request part */
 					MultipartFile data = findByFileName(filename, uploadedFiles);
-					BusinessRule.expect(data, Predicates.notNull())
-							.verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
+					BusinessRule.expect(data, Predicates.notNull()).verify(ErrorType.BINARY_DATA_CANNOT_BE_SAVED,
 									Suppliers.formattedSupplier("There is no request part or file with name {}", filename)
-							);
+					);
 					/*
 					 * If provided content type is null or this is octet
 					 * stream, try to detect real content type of binary
@@ -183,7 +182,8 @@ public class LogController {
 	@Transactional(readOnly = true)
 	public Iterable<LogResource> getLogs(@PathVariable String projectName,
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false) String underPath,
-			@FilterFor(Log.class) Filter filter, @SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
+			@FilterFor(Log.class) Filter filter,
+			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLogs(underPath, extractProjectDetails(user, projectName), filter, pageable);
 	}

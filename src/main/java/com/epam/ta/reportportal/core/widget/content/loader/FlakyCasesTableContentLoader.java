@@ -27,8 +27,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.WidgetOptions;
 import com.epam.ta.reportportal.entity.widget.content.FlakyCasesTableContent;
 import com.epam.ta.reportportal.entity.widget.content.LatestLaunchContent;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -36,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -65,8 +64,13 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 		String launchName = WidgetOptionUtil.getValueByKey(LAUNCH_NAME_FIELD, widgetOptions);
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, launchName, CRITERIA_NAME));
 
-		Launch launch = launchRepository.findLatestByFilter(filter)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, "No launch with name: " + launchName));
+		return launchRepository.findLatestByFilter(filter)
+				.map(l -> loadContent(l, filter, widgetOptions, limit))
+				.orElseGet(Collections::emptyMap);
+
+	}
+
+	private Map<String, ?> loadContent(Launch launch, Filter filter, WidgetOptions widgetOptions, int limit) {
 		LatestLaunchContent latestLaunchContent = new LatestLaunchContent(launch);
 
 		List<FlakyCasesTableContent> flakyCasesTableContent = widgetRepository.flakyCasesStatistics(filter,
@@ -78,5 +82,4 @@ public class FlakyCasesTableContentLoader implements LoadContentStrategy {
 				emptyMap() :
 				ImmutableMap.<String, Object>builder().put(LATEST_LAUNCH, latestLaunchContent).put(FLAKY, flakyCasesTableContent).build();
 	}
-
 }

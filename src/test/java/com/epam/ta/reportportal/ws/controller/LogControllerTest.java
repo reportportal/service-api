@@ -55,6 +55,19 @@ class LogControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void createLogEntryPositive() throws Exception {
+		SaveLogRQ rq = new SaveLogRQ();
+		rq.setLaunchUuid(UUID.randomUUID().toString());
+		rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
+		rq.setLevel("ERROR");
+		rq.setMessage("log message");
+		rq.setLogTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/log/entry").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+	}
+
+	@Test
 	void deleteLogPositive() throws Exception {
 		mockMvc.perform(delete(DEFAULT_PROJECT_BASE_URL + "/log/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}

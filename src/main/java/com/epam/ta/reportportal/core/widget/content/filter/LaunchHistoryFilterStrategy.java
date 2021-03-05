@@ -50,7 +50,7 @@ public class LaunchHistoryFilterStrategy extends GeneralLaunchFilterStrategy {
 				.withCondition(new FilterCondition(
 						Condition.IN,
 						false,
-						Stream.of(StatusEnum.FAILED, StatusEnum.PASSED, StatusEnum.STOPPED).map(Enum::name).collect(joining(",")),
+						Stream.of(StatusEnum.FAILED, StatusEnum.PASSED, StatusEnum.STOPPED, StatusEnum.UNTESTED).map(Enum::name).collect(joining(",")),
 						CRITERIA_LAUNCH_STATUS
 				));
 	}

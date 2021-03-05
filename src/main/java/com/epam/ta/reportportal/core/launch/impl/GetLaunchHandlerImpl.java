@@ -237,6 +237,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 				DEFECTS_TO_INVESTIGATE_TOTAL,
 				EXECUTIONS_FAILED,
 				EXECUTIONS_PASSED,
+				EXECUTIONS_UNTESTED,
 				EXECUTIONS_SKIPPED
 		);
 

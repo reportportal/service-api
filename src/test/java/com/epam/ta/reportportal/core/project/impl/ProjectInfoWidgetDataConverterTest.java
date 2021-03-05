@@ -83,11 +83,11 @@ class ProjectInfoWidgetDataConverterTest {
 				InfoInterval.ONE_MONTH
 		);
 
-		assertEquals("33.33", investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("toInvestigate"));
-		assertEquals("66.67", investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("investigated"));
+		assertEquals("42.8", investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("57.2", investigatedProjectInfo.get(yesterdayString).get(0).getValues().get("investigated"));
 
-		assertEquals("38.46", investigatedProjectInfo.get(todayString).get(0).getValues().get("toInvestigate"));
-		assertEquals("61.54", investigatedProjectInfo.get(todayString).get(0).getValues().get("investigated"));
+		assertEquals("50.0", investigatedProjectInfo.get(todayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("50.0", investigatedProjectInfo.get(todayString).get(0).getValues().get("investigated"));
 	}
 
 	@Test
@@ -111,9 +111,9 @@ class ProjectInfoWidgetDataConverterTest {
 	void getTestCasesStatisticsProjectInfo() {
 		Map<String, List<ChartObject>> testCasesStatisticsProjectInfo = converter.getTestCasesStatisticsProjectInfo(getTestData());
 
-		assertEquals("18.0", testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("min"));
-		assertEquals("19.5", testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("avg"));
-		assertEquals("21.0", testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("max"));
+		assertEquals("20.0", testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("min"));
+		assertEquals("22.0", testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("avg"));
+		assertEquals("24.0", testCasesStatisticsProjectInfo.get("test_launch").get(0).getValues().get("max"));
 	}
 
 	@Test
@@ -136,12 +136,12 @@ class ProjectInfoWidgetDataConverterTest {
 		Map<String, List<ChartObject>> launchesIssues = converter.getLaunchesIssues(getTestData(), InfoInterval.ONE_MONTH);
 
 		assertEquals("3", launchesIssues.get(yesterdayString).get(0).getValues().get("systemIssue"));
-		assertEquals("4", launchesIssues.get(yesterdayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("6", launchesIssues.get(yesterdayString).get(0).getValues().get("toInvestigate"));
 		assertEquals("2", launchesIssues.get(yesterdayString).get(0).getValues().get("productBug"));
 		assertEquals("3", launchesIssues.get(yesterdayString).get(0).getValues().get("automationBug"));
 
 		assertEquals("3", launchesIssues.get(todayString).get(0).getValues().get("systemIssue"));
-		assertEquals("5", launchesIssues.get(todayString).get(0).getValues().get("toInvestigate"));
+		assertEquals("8", launchesIssues.get(todayString).get(0).getValues().get("toInvestigate"));
 		assertEquals("1", launchesIssues.get(todayString).get(0).getValues().get("productBug"));
 		assertEquals("4", launchesIssues.get(todayString).get(0).getValues().get("automationBug"));
 	}
@@ -151,7 +151,7 @@ class ProjectInfoWidgetDataConverterTest {
 		Map<String, List<ChartObject>> launchesIssues = converter.getLaunchesIssues(getTestData(), InfoInterval.THREE_MONTHS);
 
 		assertEquals("6", launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("systemIssue"));
-		assertEquals("9", launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("toInvestigate"));
+		assertEquals("14", launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("toInvestigate"));
 		assertEquals("3", launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("productBug"));
 		assertEquals("7", launchesIssues.get(thisWeekFormattedDate).get(0).getValues().get("automationBug"));
 	}
@@ -162,28 +162,30 @@ class ProjectInfoWidgetDataConverterTest {
 		launch1.setId(1L);
 		launch1.setNumber(1L);
 		launch1.setStartTime(LocalDateTime.of(yesterday, LocalTime.now(ZoneOffset.UTC)));
-		launch1.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 18),
+		launch1.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 20),
 				getStatistics(EXECUTIONS_PASSED, 5),
 				getStatistics(EXECUTIONS_SKIPPED, 1),
+				getStatistics(EXECUTIONS_UNTESTED, 2),
 				getStatistics(EXECUTIONS_FAILED, 12),
 				getStatistics(DEFECTS_AUTOMATION_BUG_TOTAL, 3),
 				getStatistics(DEFECTS_PRODUCT_BUG_TOTAL, 2),
 				getStatistics(DEFECTS_SYSTEM_ISSUE_TOTAL, 3),
-				getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 4)
+				getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 6)
 		));
 		Launch launch2 = new Launch();
 		launch2.setName("test_launch");
 		launch2.setId(2L);
 		launch2.setNumber(2L);
 		launch2.setStartTime(LocalDateTime.of(today, LocalTime.now(ZoneOffset.UTC)));
-		launch2.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 21),
+		launch2.setStatistics(Sets.newHashSet(getStatistics(EXECUTIONS_TOTAL, 24),
 				getStatistics(EXECUTIONS_PASSED, 6),
 				getStatistics(EXECUTIONS_SKIPPED, 2),
+				getStatistics(EXECUTIONS_UNTESTED, 3),
 				getStatistics(EXECUTIONS_FAILED, 13),
 				getStatistics(DEFECTS_AUTOMATION_BUG_TOTAL, 4),
 				getStatistics(DEFECTS_PRODUCT_BUG_TOTAL, 1),
 				getStatistics(DEFECTS_SYSTEM_ISSUE_TOTAL, 3),
-				getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 5)
+				getStatistics(DEFECTS_TO_INVESTIGATE_TOTAL, 8)
 		));
 		return Arrays.asList(launch1, launch2);
 	}

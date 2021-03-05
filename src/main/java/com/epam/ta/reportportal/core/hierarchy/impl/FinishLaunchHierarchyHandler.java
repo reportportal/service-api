@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.UNTESTED;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -49,7 +50,7 @@ public class FinishLaunchHierarchyHandler extends AbstractFinishHierarchyHandler
 
 	@Override
 	protected boolean isIssueRequired(StatusEnum status, Launch launch) {
-		return FAILED.equals(status) || evaluateSkippedAttributeValue(status, launch.getId());
+		return FAILED.equals(status) || UNTESTED.equals(status) || evaluateSkippedAttributeValue(status, launch.getId());
 	}
 
 	@Override

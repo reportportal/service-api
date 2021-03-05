@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.UNTESTED;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -48,7 +49,8 @@ public class FinishTestItemHierarchyHandler extends AbstractFinishHierarchyHandl
 
 	@Override
 	protected boolean isIssueRequired(StatusEnum status, TestItem testItem) {
-		return FAILED.equals(status) || ofNullable(testItem.getLaunchId()).map(launchId -> evaluateSkippedAttributeValue(status, launchId))
+		return FAILED.equals(status) || UNTESTED.equals(status) || ofNullable(testItem.getLaunchId()).map(launchId -> 
+				evaluateSkippedAttributeValue(status, launchId))
 				.orElse(false);
 	}
 

@@ -124,6 +124,10 @@ public class XunitImportHandler extends DefaultHandler {
 				message = new StringBuilder();
 				status = StatusEnum.SKIPPED;
 				break;
+			case MANUAL_TEST:
+				message = new StringBuilder();
+				status = StatusEnum.UNTESTED;
+				break;
 			case SYSTEM_OUT:
 			case SYSTEM_ERR:
 			case WARNING:
@@ -148,6 +152,7 @@ public class XunitImportHandler extends DefaultHandler {
 			case SKIPPED:
 			case ERROR:
 			case FAILURE:
+			case MANUAL_TEST:
 			case SYSTEM_ERR:
 				attachLog(LogLevel.ERROR);
 				break;

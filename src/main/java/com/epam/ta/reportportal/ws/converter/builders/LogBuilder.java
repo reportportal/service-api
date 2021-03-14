@@ -33,7 +33,7 @@ import static java.util.Optional.ofNullable;
  */
 public class LogBuilder implements Supplier<Log> {
 
-	private Log log;
+	private final Log log;
 
 	public LogBuilder() {
 		log = new Log();
@@ -54,6 +54,11 @@ public class LogBuilder implements Supplier<Log> {
 
 	public LogBuilder addLaunch(Launch launch) {
 		log.setLaunch(launch);
+		return this;
+	}
+
+	public LogBuilder addProjectId(Long projectId) {
+		log.setProjectId(projectId);
 		return this;
 	}
 

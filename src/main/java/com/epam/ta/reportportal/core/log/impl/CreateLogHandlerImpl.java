@@ -41,8 +41,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Create log handler. Save log and binary data related to it
@@ -86,47 +88,42 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	public EntryCreatedAsyncRS createLog(@Nonnull SaveLogRQ request, MultipartFile file, ReportPortalUser.ProjectDetails projectDetails) {
 		validate(request);
 
-		Optional<TestItem> itemOptional = testItemRepository.findByUuid(request.getItemUuid());
-		if (itemOptional.isPresent()) {
-			return createItemLog(request, itemOptional.get(), file, projectDetails.getProjectId());
-		}
+		final LogBuilder logBuilder = new LogBuilder().addSaveLogRq(request).addProjectId(projectDetails.getProjectId());
 
-		Launch launch = launchRepository.findByUuid(request.getLaunchUuid())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid()));
-		return createLaunchLog(request, launch, file, projectDetails.getProjectId());
-	}
+		final Launch launch = testItemRepository.findByUuid(request.getItemUuid()).map(item -> {
+			logBuilder.addTestItem(item);
+			return testItemService.getEffectiveLaunch(item);
+		}).orElseGet(() -> launchRepository.findByUuid(request.getLaunchUuid()).map(l -> {
+			logBuilder.addLaunch(l);
+			return l;
+		}).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid())));
 
-	private EntryCreatedAsyncRS createItemLog(SaveLogRQ request, TestItem item, MultipartFile file, Long projectId) {
-		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+		final Log log = logBuilder.get();
 		logRepository.save(log);
-		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
-		saveBinaryData(file, projectId, log.getId(), effectiveLaunch.getId(), item.getItemId(), effectiveLaunch.getUuid(), log.getUuid());
+
+		ofNullable(file).ifPresent(f -> saveBinaryData(f, launch, log));
+
 		return new EntryCreatedAsyncRS(log.getUuid());
+
 	}
 
-	private EntryCreatedAsyncRS createLaunchLog(SaveLogRQ request, Launch launch, MultipartFile file, Long projectId) {
-		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
-		logRepository.save(log);
-		saveBinaryData(file, projectId, log.getId(), launch.getId(), null, launch.getUuid(), log.getUuid());
-		return new EntryCreatedAsyncRS(log.getUuid());
-	}
+	private void saveBinaryData(MultipartFile file, Launch launch, Log log) {
 
-	private void saveBinaryData(MultipartFile file, Long projectId, Long logId, Long launchId, Long itemId, String launchUuid,
-			String logUuid) {
-		if (!Objects.isNull(file)) {
-			SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
-					.withFile(file)
-					.withAttachmentMetaInfo(AttachmentMetaInfo.builder()
-							.withProjectId(projectId)
-							.withLaunchId(launchId)
-							.withItemId(itemId)
-							.withLogId(logId)
-							.withLaunchUuid(launchUuid)
-							.withLogUuid(logUuid)
-							.build());
+		final AttachmentMetaInfo.AttachmentMetaInfoBuilder metaInfoBuilder = AttachmentMetaInfo.builder()
+				.withProjectId(launch.getProjectId())
+				.withLaunchId(launch.getId())
+				.withLaunchUuid(launch.getUuid())
+				.withLogId(log.getId())
+				.withLogUuid(log.getUuid())
+				.withCreationDate(LocalDateTime.now(ZoneOffset.UTC));
+		ofNullable(log.getTestItem()).map(TestItem::getItemId).ifPresent(metaInfoBuilder::withItemId);
 
-			taskExecutor.execute(saveLogBinaryDataTask);
-		}
+		SaveLogBinaryDataTask saveLogBinaryDataTask = this.saveLogBinaryDataTask.get()
+				.withFile(file)
+				.withAttachmentMetaInfo(metaInfoBuilder.build());
+
+		taskExecutor.execute(saveLogBinaryDataTask);
+
 	}
 
 }

@@ -57,6 +57,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -276,7 +278,7 @@ public class AsyncReportingListener implements MessageListener {
 	}
 
 	private void createItemLog(SaveLogRQ request, TestItem item, BinaryDataMetaInfo metaInfo, Long projectId) {
-		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).get();
+		Log log = new LogBuilder().addSaveLogRq(request).addTestItem(item).addProjectId(projectId).get();
 		logRepository.save(log);
 		Launch effectiveLaunch = testItemService.getEffectiveLaunch(item);
 		saveAttachment(metaInfo,
@@ -290,7 +292,7 @@ public class AsyncReportingListener implements MessageListener {
 	}
 
 	private void createLaunchLog(SaveLogRQ request, Launch launch, BinaryDataMetaInfo metaInfo, Long projectId) {
-		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).get();
+		Log log = new LogBuilder().addSaveLogRq(request).addLaunch(launch).addProjectId(projectId).get();
 		logRepository.save(log);
 		saveAttachment(metaInfo, log.getId(), projectId, launch.getId(), null, launch.getUuid(), log.getUuid());
 	}
@@ -306,6 +308,7 @@ public class AsyncReportingListener implements MessageListener {
 							.withLogId(logId)
 							.withLaunchUuid(launchUuid)
 							.withLogUuid(logUuid)
+							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
 							.build()
 			);
 		}

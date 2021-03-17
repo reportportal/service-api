@@ -206,7 +206,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	}
 
 	private void generateLogs(String itemId, String launchId, StatusEnum status, ReportPortalUser.ProjectDetails projectDetails) {
-		List<Log> logs = demoLogsService.generateDemoLogs(itemId, status);
+		List<Log> logs = demoLogsService.generateDemoLogs(projectDetails.getProjectId(), itemId, status);
 		demoLogsService.attachFiles(logs, projectDetails.getProjectId(), itemId, launchId);
 	}
 

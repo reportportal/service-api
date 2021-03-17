@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.SplittableRandom;
 import java.util.UUID;
@@ -77,6 +78,7 @@ class DemoLogsService {
 			Log log = new Log();
 			log.setLogLevel(infoLevel().toInt());
 			log.setLaunch(launch);
+			log.setProjectId(launch.getProjectId());
 			log.setLogTime(LocalDateTime.now());
 			log.setLogMessage(ContentUtils.getLogMessage());
 			log.setUuid(UUID.randomUUID().toString());
@@ -89,6 +91,7 @@ class DemoLogsService {
 				log.setLogLevel(errorLevel().toInt());
 				log.setLogTime(LocalDateTime.now());
 				log.setLaunch(launch);
+				log.setProjectId(launch.getProjectId());
 				log.setLogMessage(msg);
 				log.setUuid(UUID.randomUUID().toString());
 				return log;
@@ -98,7 +101,7 @@ class DemoLogsService {
 		return logs;
 	}
 
-	List<Log> generateDemoLogs(String itemUuid, StatusEnum status) {
+	List<Log> generateDemoLogs(Long projectId, String itemUuid, StatusEnum status) {
 		TestItem testItem = testItemRepository.findByUuid(itemUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
@@ -107,6 +110,7 @@ class DemoLogsService {
 			log.setLogLevel(infoLevel().toInt());
 			log.setLogTime(LocalDateTime.now());
 			log.setTestItem(testItem);
+			log.setProjectId(projectId);
 			log.setLogMessage(ContentUtils.getLogMessage());
 			log.setUuid(UUID.randomUUID().toString());
 			return log;
@@ -118,6 +122,7 @@ class DemoLogsService {
 				log.setLogLevel(errorLevel().toInt());
 				log.setLogTime(LocalDateTime.now());
 				log.setTestItem(testItem);
+				log.setProjectId(projectId);
 				log.setLogMessage(msg);
 				log.setUuid(UUID.randomUUID().toString());
 				return log;
@@ -169,6 +174,7 @@ class DemoLogsService {
 							.withLogId(it.getId())
 							.withLaunchUuid(launchUuid)
 							.withLogUuid(it.getUuid())
+							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
 							.build()
 			);
 		} catch (IOException e) {

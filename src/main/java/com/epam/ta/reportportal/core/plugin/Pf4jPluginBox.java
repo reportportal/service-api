@@ -18,10 +18,11 @@ package com.epam.ta.reportportal.core.plugin;
 
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
+import org.pf4j.PluginException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -42,6 +43,14 @@ public interface Pf4jPluginBox extends PluginBox {
 	PluginState startUpPlugin(String pluginId);
 
 	/**
+	 * Start up plugin from path
+	 *
+	 * @param pluginPath {@link Path} to the plugin file
+	 * @return {@link PluginState}
+	 */
+	PluginState startUpPlugin(Path pluginPath);
+
+	/**
 	 * Load plugin to the plugin manager by plugin file path
 	 *
 	 * @param pluginId               {@link PluginWrapper#getPluginId()}
@@ -57,6 +66,22 @@ public interface Pf4jPluginBox extends PluginBox {
 	 * @return 'true' if a plugin was successfully unloaded, else 'false'
 	 */
 	boolean unloadPlugin(IntegrationType integrationType);
+
+	/**
+	 * Unload plugin from the plugin manager
+	 *
+	 * @param pluginWrapper {@link PluginWrapper}
+	 * @return 'true' if a plugin was successfully unloaded, else 'false'
+	 */
+	boolean unloadPlugin(PluginWrapper pluginWrapper);
+
+	/**
+	 * Unload plugin from the plugin manager
+	 *
+	 * @param id {@link PluginWrapper#getPluginId()}
+	 * @return {@link Optional} containing {@link PluginWrapper} if unloaded
+	 */
+	Optional<PluginWrapper> unloadPlugin(String id) throws PluginException;
 
 	/**
 	 * Delete plugin by id
@@ -83,16 +108,5 @@ public interface Pf4jPluginBox extends PluginBox {
 	 */
 	Optional<PluginWrapper> getPluginById(String id);
 
-	/**
-	 * Check if uploading plugins holder contains plugin file name
-	 *
-	 * @param fileName Name of the plugin file in the {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins}
-	 *                 which uploaded state is required
-	 * @return 'true' if {@link com.epam.ta.reportportal.plugin.Pf4jPluginManager#uploadingPlugins} contains plugin file name,
-	 * else 'false'
-	 * @see com.epam.ta.reportportal.plugin.Pf4jPluginManager
-	 */
-	boolean isInUploadingState(String fileName);
-
-	IntegrationType uploadPlugin(String newPluginFileName, InputStream fileStream);
+	void loadPreviousPlugin(String pluginId, PluginPathInfo previousPluginPathInfo);
 }

@@ -79,9 +79,9 @@ public class LoadPluginsJob {
 			try (InputStream inputStream = dataStore.load(pluginInfo.getFileId())) {
 				LOGGER.debug("Plugin loading has started...");
 
-				if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getFileName()))) {
+				if (!Files.exists(Paths.get(pluginsRootPath, pluginInfo.getOriginalFileName()))) {
 					LOGGER.debug("Copying plugin file...");
-					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getFileName()));
+					FileUtils.copyToFile(inputStream, new File(pluginsRootPath, pluginInfo.getOriginalFileName()));
 				}
 
 				if (pluginInfo.isEnabled()) {

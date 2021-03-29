@@ -17,8 +17,11 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.м2.ExtensionValidator;
+import com.epam.ta.reportportal.core.integration.plugin.м2.FileValidator;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
 import com.epam.ta.reportportal.plugin.ReportPortalExtensionFactory;
 import org.pf4j.*;
@@ -31,8 +34,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -115,6 +120,14 @@ public class PluginConfiguration {
 	@Bean
 	public PluginDescriptorFinder pluginDescriptorFinder() {
 		return new ManifestPluginDescriptorFinder();
+	}
+
+	@Bean
+	public FileValidator extensionValidator() {
+		final Set<String> allowedExtensions = Arrays.stream(PluginFileExtension.values())
+				.map(v -> v.getExtension().split("\\.")[1])
+				.collect(Collectors.toSet());
+		return new ExtensionValidator(allowedExtensions);
 	}
 
 }

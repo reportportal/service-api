@@ -16,8 +16,8 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.nio.file.Path;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -28,29 +28,19 @@ public class PluginInfo implements Serializable {
 
 	private String version;
 
-	private String fileId;
-
-	private String fileName;
+	private Path originalFilePath;
 
 	private boolean isEnabled;
 
 	public PluginInfo() {
 	}
 
-	public PluginInfo(String id, String version) {
+	public PluginInfo(String id, String version, Path originalFilePath) {
 		this.id = id;
 		this.version = version;
+		this.originalFilePath = originalFilePath;
 	}
 
-	public PluginInfo(String id, String version, String fileId, String fileName, boolean isEnabled) {
-		this.id = id;
-		this.version = version;
-		this.fileId = fileId;
-		this.fileName = fileName;
-		this.isEnabled = isEnabled;
-	}
-
-	@Nullable
 	public String getId() {
 		return id;
 	}
@@ -59,7 +49,6 @@ public class PluginInfo implements Serializable {
 		this.id = id;
 	}
 
-	@Nullable
 	public String getVersion() {
 		return version;
 	}
@@ -68,22 +57,12 @@ public class PluginInfo implements Serializable {
 		this.version = version;
 	}
 
-	@Nullable
-	public String getFileId() {
-		return fileId;
+	public Path getOriginalFilePath() {
+		return originalFilePath;
 	}
 
-	public void setFileId(String fileId) {
-		this.fileId = fileId;
-	}
-
-	@Nullable
-	public String getFileName() {
-		return fileName;
-	}
-
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setOriginalFilePath(Path originalFilePath) {
+		this.originalFilePath = originalFilePath;
 	}
 
 	public boolean isEnabled() {
@@ -93,5 +72,4 @@ public class PluginInfo implements Serializable {
 	public void setEnabled(boolean enabled) {
 		isEnabled = enabled;
 	}
-
 }

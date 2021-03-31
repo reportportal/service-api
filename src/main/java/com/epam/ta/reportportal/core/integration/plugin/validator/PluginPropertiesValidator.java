@@ -1,5 +1,6 @@
-package com.epam.ta.reportportal.core.integration.plugin.м2;
+package com.epam.ta.reportportal.core.integration.plugin.validator;
 
+import com.epam.ta.reportportal.core.integration.plugin.validator.exception.PluginValidationException;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;

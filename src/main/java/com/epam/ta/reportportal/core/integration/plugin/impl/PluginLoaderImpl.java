@@ -16,29 +16,15 @@
 
 package com.epam.ta.reportportal.core.integration.plugin.impl;
 
-import com.epam.reportportal.extension.common.ExtensionPoint;
-import com.epam.reportportal.extension.common.IntegrationTypeProperties;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.plugin.PluginInfo;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.filesystem.DataStore;
-import com.epam.ta.reportportal.ws.converter.builders.IntegrationTypeBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.pf4j.PluginDescriptor;
-import org.pf4j.PluginDescriptorFinder;
-import org.pf4j.PluginException;
-import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,11 +33,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -59,64 +42,11 @@ import static java.util.Optional.ofNullable;
 @Service
 public class PluginLoaderImpl implements PluginLoader {
 
-	private final String pluginsRootPath;
-
 	private final DataStore dataStore;
-	private final IntegrationTypeRepository integrationTypeRepository;
-	private final PluginDescriptorFinder pluginDescriptorFinder;
 
 	@Autowired
-	public PluginLoaderImpl(@Value("${rp.plugins.path}") String pluginsRootPath, DataStore dataStore,
-			IntegrationTypeRepository integrationTypeRepository, PluginDescriptorFinder pluginDescriptorFinder) {
-		this.pluginsRootPath = pluginsRootPath;
+	public PluginLoaderImpl(DataStore dataStore) {
 		this.dataStore = dataStore;
-		this.integrationTypeRepository = integrationTypeRepository;
-		this.pluginDescriptorFinder = pluginDescriptorFinder;
-	}
-
-	@Override
-	@NotNull
-	public PluginInfo extractPluginInfo(Path pluginPath) throws PluginException {
-		PluginDescriptor pluginDescriptor = pluginDescriptorFinder.find(pluginPath);
-		return new PluginInfo(pluginDescriptor.getPluginId(), pluginDescriptor.getVersion());
-	}
-
-	@Override
-	public IntegrationTypeDetails resolvePluginDetails(PluginInfo pluginInfo) {
-
-		integrationTypeRepository.findByName(pluginInfo.getId())
-				.flatMap(it -> ofNullable(it.getDetails()))
-				.flatMap(typeDetails -> IntegrationTypeProperties.VERSION.getValue(typeDetails.getDetails()).map(String::valueOf))
-				.ifPresent(version -> BusinessRule.expect(version, v -> !v.equalsIgnoreCase(pluginInfo.getVersion()))
-						.verify(ErrorType.PLUGIN_UPLOAD_ERROR,
-								Suppliers.formattedSupplier("Plugin with ID = '{}' of the same VERSION = '{}' has already been uploaded.",
-										pluginInfo.getId(),
-										pluginInfo.getVersion()
-								)
-						));
-
-		IntegrationTypeDetails pluginDetails = IntegrationTypeBuilder.createIntegrationTypeDetails();
-		IntegrationTypeProperties.VERSION.setValue(pluginDetails, pluginInfo.getVersion());
-		return pluginDetails;
-	}
-
-	@Override
-	public boolean validatePluginExtensionClasses(PluginWrapper plugin) {
-		return plugin.getPluginManager()
-				.getExtensionClasses(plugin.getPluginId())
-				.stream()
-				.map(ExtensionPoint::findByExtension)
-				.anyMatch(Optional::isPresent);
-	}
-
-	@Override
-	public String saveToDataStore(String fileName, InputStream fileStream) throws ReportPortalException {
-		return dataStore.save(fileName, fileStream);
-	}
-
-	@Override
-	public void savePlugin(Path pluginPath, InputStream fileStream) throws IOException {
-		Files.copy(fileStream, pluginPath, StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	@Override
@@ -167,11 +97,6 @@ public class PluginLoaderImpl implements PluginLoader {
 		} else {
 			Files.createDirectories(Paths.get(destination.toString(), fileName));
 		}
-	}
-
-	@Override
-	public void deleteTempPlugin(String pluginFileDirectory, String pluginFileName) throws IOException {
-		Files.deleteIfExists(Paths.get(pluginFileDirectory, pluginFileName));
 	}
 
 }

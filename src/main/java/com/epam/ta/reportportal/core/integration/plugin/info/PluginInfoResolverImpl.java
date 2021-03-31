@@ -1,5 +1,8 @@
-package com.epam.ta.reportportal.core.integration.plugin.м2;
+package com.epam.ta.reportportal.core.integration.plugin.info;
 
+import com.epam.ta.reportportal.core.integration.plugin.file.PluginFileManager;
+import com.epam.ta.reportportal.core.integration.plugin.validator.PluginInfoValidator;
+import com.epam.ta.reportportal.core.integration.plugin.validator.exception.PluginValidationException;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;

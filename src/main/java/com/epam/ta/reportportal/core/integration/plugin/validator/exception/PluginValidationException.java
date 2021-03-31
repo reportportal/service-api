@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.integration.plugin.м2;
+package com.epam.ta.reportportal.core.integration.plugin.validator.exception;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

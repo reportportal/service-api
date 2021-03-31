@@ -1,6 +1,7 @@
-package com.epam.ta.reportportal.core.integration.plugin.м2;
+package com.epam.ta.reportportal.core.integration.plugin.impl;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
+import com.epam.ta.reportportal.core.integration.plugin.IntegrationTypeHandler;
 import com.epam.ta.reportportal.core.plugin.PluginMetadata;
 import com.epam.ta.reportportal.core.plugin.PluginPathInfo;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;

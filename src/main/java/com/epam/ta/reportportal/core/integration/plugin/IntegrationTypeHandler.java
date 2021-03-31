@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.integration.plugin.м2;
+package com.epam.ta.reportportal.core.integration.plugin;
 
 import com.epam.ta.reportportal.core.plugin.PluginMetadata;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;

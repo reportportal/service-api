@@ -1,4 +1,4 @@
-package com.epam.ta.reportportal.core.integration.plugin.м2;
+package com.epam.ta.reportportal.core.integration.plugin.file.validator;
 
 import org.springframework.web.multipart.MultipartFile;
 

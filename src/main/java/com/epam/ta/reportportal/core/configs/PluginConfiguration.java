@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
-import com.epam.ta.reportportal.core.integration.plugin.м2.ExtensionValidator;
-import com.epam.ta.reportportal.core.integration.plugin.м2.FileValidator;
+import com.epam.ta.reportportal.core.integration.plugin.file.validator.ExtensionValidator;
+import com.epam.ta.reportportal.core.integration.plugin.file.validator.FileValidator;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.plugin.PluginFileExtension;

@@ -71,6 +71,8 @@ rp:
           pool: 5
         items:
           size: 500
+        pattern-analysis:
+          batch-size: 100
       history:
         old: false
       executor:

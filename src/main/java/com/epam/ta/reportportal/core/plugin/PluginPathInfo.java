@@ -12,6 +12,9 @@ public class PluginPathInfo {
 	private String fileName;
 	private String fileId;
 
+	public PluginPathInfo() {
+	}
+
 	public PluginPathInfo(Path pluginPath, Path resourcesPath, String fileName, String fileId) {
 		this.pluginPath = pluginPath;
 		this.resourcesPath = resourcesPath;

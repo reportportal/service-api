@@ -69,14 +69,8 @@ class Pf4jPluginManagerTest {
 	private final PluginWrapper newPlugin = mock(PluginWrapper.class);
 	private final ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(PLUGINS_PATH,
-			PLUGINS_TEMP_PATH,
-			RESOURCES_PATH,
-			pluginLoader,
-			integrationTypeRepository,
-			pluginManager,
-			beanFactory,
-			applicationEventPublisher
+	private final Pf4jPluginManager pluginBox = new Pf4jPluginManager(pluginManager,
+			beanFactory, applicationEventPublisher
 	);
 
 	private final InputStream fileStream = mock(InputStream.class);

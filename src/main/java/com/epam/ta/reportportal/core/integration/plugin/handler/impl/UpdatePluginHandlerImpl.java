@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin.impl;
+package com.epam.ta.reportportal.core.integration.plugin.handler.impl;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.core.integration.plugin.handler.UpdatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.loader.PluginLoader;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -37,12 +37,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 
-	private final Pf4jPluginBox pluginBox;
+	private final PluginLoader pluginLoader;
 	private final IntegrationTypeRepository integrationTypeRepository;
 
 	@Autowired
-	public UpdatePluginHandlerImpl(Pf4jPluginBox pluginBox, IntegrationTypeRepository integrationTypeRepository) {
-		this.pluginBox = pluginBox;
+	public UpdatePluginHandlerImpl(PluginLoader pluginLoader, IntegrationTypeRepository integrationTypeRepository) {
+		this.pluginLoader = pluginLoader;
 		this.integrationTypeRepository = integrationTypeRepository;
 	}
 
@@ -68,12 +68,12 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 		 *  and rewrite as a plugin
 		 */
 		if (ReservedIntegrationTypeEnum.fromName(integrationType.getName()).isPresent()) {
-			return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+			return new OperationCompletionRS(Suppliers.formattedSupplier(
+					"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 					integrationType.getName(),
 					isEnabled
 			).get());
 		}
-
 
 		if (isEnabled) {
 			loadPlugin(integrationType);
@@ -81,30 +81,24 @@ public class UpdatePluginHandlerImpl implements UpdatePluginHandler {
 			unloadPlugin(integrationType);
 		}
 
-		return new OperationCompletionRS(Suppliers.formattedSupplier("Enabled state of the plugin with id = '{}' has been switched to - '{}'",
+		return new OperationCompletionRS(Suppliers.formattedSupplier(
+				"Enabled state of the plugin with id = '{}' has been switched to - '{}'",
 				integrationType.getName(),
 				isEnabled
 		).get());
 	}
 
 	private void loadPlugin(IntegrationType integrationType) {
-		if (pluginBox.getPluginById(integrationType.getName()).isEmpty()) {
-			boolean isLoaded = pluginBox.loadPlugin(integrationType.getName(), integrationType.getDetails());
-			BusinessRule.expect(isLoaded, BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
-			);
-		}
+			BusinessRule.expect(pluginLoader.load(integrationType), BooleanUtils::isTrue)
+					.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+							Suppliers.formattedSupplier("Error during loading the plugin with id = '{}'", integrationType.getName()).get()
+					);
 	}
 
 	private void unloadPlugin(IntegrationType integrationType) {
-
-		pluginBox.getPluginById(integrationType.getName()).ifPresent(plugin -> {
-
-			if (!pluginBox.unloadPlugin(integrationType)) {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+		BusinessRule.expect(pluginLoader.unload(integrationType), BooleanUtils::isTrue)
+				.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						Suppliers.formattedSupplier("Error during unloading the plugin with id = '{}'", integrationType.getName()).get()
 				);
-			}
-		});
 	}
 }

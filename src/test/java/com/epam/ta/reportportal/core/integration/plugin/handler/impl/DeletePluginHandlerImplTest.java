@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin.impl;
+package com.epam.ta.reportportal.core.integration.plugin.handler.impl;
 
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.enums.ReservedIntegrationTypeEnum;

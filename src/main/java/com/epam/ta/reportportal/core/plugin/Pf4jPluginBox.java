@@ -16,9 +16,6 @@
 
 package com.epam.ta.reportportal.core.plugin;
 
-import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.entity.integration.IntegrationTypeDetails;
-import org.pf4j.PluginException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
@@ -30,18 +27,6 @@ import java.util.Optional;
  */
 public interface Pf4jPluginBox extends PluginBox {
 
-	void startUp();
-
-	void shutDown();
-
-	/**
-	 * Start up loaded plugin by id
-	 *
-	 * @param pluginId {@link PluginWrapper#getPluginId()}
-	 * @return {@link PluginState}
-	 */
-	PluginState startUpPlugin(String pluginId);
-
 	/**
 	 * Start up plugin from path
 	 *
@@ -50,22 +35,9 @@ public interface Pf4jPluginBox extends PluginBox {
 	 */
 	PluginState startUpPlugin(Path pluginPath);
 
-	/**
-	 * Load plugin to the plugin manager by plugin file path
-	 *
-	 * @param pluginId               {@link PluginWrapper#getPluginId()}
-	 * @param integrationTypeDetails {@link IntegrationTypeDetails}
-	 * @return {@link PluginWrapper#getPluginId()}
-	 */
-	boolean loadPlugin(String pluginId, IntegrationTypeDetails integrationTypeDetails);
+	PluginState startUpPlugin(PluginWrapper pluginWrapper);
 
-	/**
-	 * Unload plugin from the plugin manager by id
-	 *
-	 * @param integrationType {@link IntegrationType}
-	 * @return 'true' if a plugin was successfully unloaded, else 'false'
-	 */
-	boolean unloadPlugin(IntegrationType integrationType);
+	Optional<String> loadPlugin(Path pluginPath);
 
 	/**
 	 * Unload plugin from the plugin manager
@@ -76,20 +48,12 @@ public interface Pf4jPluginBox extends PluginBox {
 	boolean unloadPlugin(PluginWrapper pluginWrapper);
 
 	/**
-	 * Unload plugin from the plugin manager
+	 * Get plugin from the plugin manager by id
 	 *
 	 * @param id {@link PluginWrapper#getPluginId()}
-	 * @return {@link Optional} containing {@link PluginWrapper} if unloaded
+	 * @return {@link PluginWrapper} wrapped in the {@link Optional}
 	 */
-	Optional<PluginWrapper> unloadPlugin(String id) throws PluginException;
-
-	/**
-	 * Delete plugin by id
-	 *
-	 * @param pluginId {@link IntegrationType#getName()}
-	 * @return 'true' if a plugin was successfully deleted, else 'false'
-	 */
-	boolean deletePlugin(String pluginId);
+	Optional<PluginWrapper> getPluginById(String id);
 
 	/**
 	 * Delete plugin
@@ -99,14 +63,4 @@ public interface Pf4jPluginBox extends PluginBox {
 	 */
 	boolean deletePlugin(PluginWrapper pluginWrapper);
 
-
-	/**
-	 * Get plugin from the plugin manager by id
-	 *
-	 * @param id {@link PluginWrapper#getPluginId()}
-	 * @return {@link PluginWrapper} wrapped in the {@link Optional}
-	 */
-	Optional<PluginWrapper> getPluginById(String id);
-
-	void loadPreviousPlugin(String pluginId, PluginPathInfo previousPluginPathInfo);
 }

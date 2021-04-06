@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin;
+package com.epam.ta.reportportal.core.integration.plugin.handler;
 
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.UpdatePluginStateRQ;

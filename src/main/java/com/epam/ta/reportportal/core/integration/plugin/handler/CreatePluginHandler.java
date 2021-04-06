@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin;
+package com.epam.ta.reportportal.core.integration.plugin.handler;
 
-import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
+import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface DeletePluginHandler {
+public interface CreatePluginHandler {
 
 	/**
-	 * Delete plugin representation from the database and from the {@link com.epam.ta.reportportal.core.plugin.Pf4jPluginBox} instance
+	 * Upload and start up the plugin
 	 *
-	 * @param id {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
-	 * @return {@link OperationCompletionRS} with result message
+	 * @param pluginFile Plugin file
+	 * @return {@link EntryCreatedRS} with the newly created {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
 	 */
-	OperationCompletionRS deleteById(Long id);
+	EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
 }

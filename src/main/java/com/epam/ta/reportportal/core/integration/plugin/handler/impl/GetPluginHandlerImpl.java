@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin.impl;
+package com.epam.ta.reportportal.core.integration.plugin.handler.impl;
 
-import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.GetPluginHandler;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.ws.converter.converters.IntegrationTypeConverter;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;

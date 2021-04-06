@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,9 +25,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -36,20 +37,33 @@ public class DataStorePluginFileManager implements PluginFileManager {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(DataStorePluginFileManager.class);
 
+	private final String pluginsTempDir;
+	private final String pluginsDir;
+	private final String resourcesDir;
+
 	private final List<FileValidator> fileValidators;
 	private final DataStore dataStore;
 
 	@Autowired
-	public DataStorePluginFileManager(List<FileValidator> fileValidators, DataStore dataStore) {
+	public DataStorePluginFileManager(@Value("${rp.plugins.temp.path}") String pluginsTempPath,
+			@Value("${rp.plugins.path}") String pluginsDir, @Value("${rp.plugins.resources.path}") String resourcesDir,
+			List<FileValidator> fileValidators, DataStore dataStore) throws IOException {
+		this.pluginsTempDir = pluginsTempPath;
+		this.pluginsDir = pluginsDir;
+		this.resourcesDir = resourcesDir;
 		this.fileValidators = fileValidators;
 		this.dataStore = dataStore;
+
+		Files.createDirectories(Paths.get(this.pluginsTempDir));
+		Files.createDirectories(Paths.get(this.pluginsDir));
+		Files.createDirectories(Paths.get(this.resourcesDir));
 	}
 
 	@Override
-	public Path uploadTemp(MultipartFile pluginFile, Path tempPath) {
+	public Path uploadTemp(MultipartFile pluginFile) {
 		fileValidators.forEach(v -> v.validate(pluginFile));
 		final String fileName = pluginFile.getOriginalFilename();
-		final Path targetPath = tempPath.resolve(fileName);
+		final Path targetPath = Paths.get(pluginsTempDir, fileName);
 
 		try (InputStream inputStream = pluginFile.getInputStream()) {
 			Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
@@ -64,21 +78,33 @@ public class DataStorePluginFileManager implements PluginFileManager {
 	}
 
 	@Override
-	public PluginPathInfo upload(PluginInfo pluginInfo, Path pluginPath, Path resourcePath) {
+	public PluginPathInfo download(PluginInfo pluginInfo) {
 		final String newPluginFileName = generatePluginFileName(pluginInfo);
 		final String fileId = saveToDataStore(pluginInfo.getOriginalFilePath(), pluginInfo, newPluginFileName);
 
-		final Path targetPluginPath = pluginPath.resolve(newPluginFileName);
-		final Path targetResourcesPath = resourcePath.resolve(pluginInfo.getId());
+		final Path targetPluginPath = Paths.get(pluginsDir, newPluginFileName);
+		final Path targetResourcesPath = Paths.get(resourcesDir, pluginInfo.getId());
 		copyPluginToRootDirectory(targetPluginPath, targetResourcesPath, fileId);
 
 		return new PluginPathInfo(targetPluginPath, targetResourcesPath, newPluginFileName, fileId);
 	}
 
 	@Override
+	public void download(PluginPathInfo pluginPathInfo) {
+		copyPluginToRootDirectory(pluginPathInfo.getPluginPath(), pluginPathInfo.getResourcesPath(), pluginPathInfo.getFileId());
+	}
+
+	@Override
+	public void delete(PluginPathInfo pluginPathInfo) {
+		delete(pluginPathInfo.getFileId());
+		delete(pluginPathInfo.getPluginPath());
+		delete(pluginPathInfo.getResourcesPath());
+	}
+
+	@Override
 	public void delete(Path path) {
 		try {
-			Files.deleteIfExists(path);
+			FileUtils.deleteDirectory(path.toFile());
 		} catch (IOException e) {
 			//error during temp plugin is not crucial, temp files cleaning will be delegated to the plugins cleaning job
 			LOGGER.error("Error during plugin file removing: '{}'", e.getMessage());
@@ -114,26 +140,21 @@ public class DataStorePluginFileManager implements PluginFileManager {
 
 	private void copyPluginToRootDirectory(Path targetPluginPath, Path targetResourcesPath, String fileId) {
 		try {
-			if (Objects.nonNull(targetPluginPath.getParent())) {
-				Files.createDirectories(targetPluginPath.getParent());
-			}
 			try (InputStream inputStream = dataStore.load(fileId)) {
 				Files.copy(inputStream, targetPluginPath, StandardCopyOption.REPLACE_EXISTING);
 			}
 			copyPluginResource(targetPluginPath, targetResourcesPath);
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR,
-					Suppliers.formattedSupplier("Unable to copy new plugin file = '{}' from the data store to the root directory",
-							targetPluginPath.getFileName().toString()
+					Suppliers.formattedSupplier("Unable to copy new plugin file = '{}' from the data store to the root directory: {}",
+							targetPluginPath.getFileName().toString(),
+							e.getMessage()
 					).get()
 			);
 		}
 	}
 
 	public void copyPluginResource(Path pluginPath, Path resourcesTargetPath) throws IOException {
-		if (Objects.nonNull(resourcesTargetPath.getParent())) {
-			Files.createDirectories(resourcesTargetPath.getParent());
-		}
 		try (JarFile jar = new JarFile(pluginPath.toFile())) {
 			if (!Files.isDirectory(resourcesTargetPath)) {
 				Files.createDirectories(resourcesTargetPath);
@@ -142,14 +163,14 @@ public class DataStorePluginFileManager implements PluginFileManager {
 		}
 	}
 
-	private void copyJarResourcesRecursively(Path destination, JarFile jarFile) {
-		jarFile.stream().filter(jarEntry -> jarEntry.getName().startsWith("resources")).forEach(entry -> {
-			try {
-				copyResources(jarFile, entry, destination);
-			} catch (IOException e) {
-				throw new ReportPortalException(ErrorType.PLUGIN_UPLOAD_ERROR, e.getMessage());
-			}
-		});
+	private void copyJarResourcesRecursively(Path destination, JarFile jarFile) throws IOException {
+		final List<JarEntry> resources = jarFile.stream()
+				.filter(jarEntry -> jarEntry.getName().startsWith("resources"))
+				.collect(Collectors.toList());
+
+		for (JarEntry entry : resources) {
+			copyResources(jarFile, entry, destination);
+		}
 	}
 
 	private void copyResources(JarFile jarFile, JarEntry entry, Path destination) throws IOException {

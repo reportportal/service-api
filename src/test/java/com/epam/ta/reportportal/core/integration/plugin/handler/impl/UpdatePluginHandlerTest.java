@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin.impl;
+package com.epam.ta.reportportal.core.integration.plugin.handler.impl;
 
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.UpdatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
@@ -59,7 +59,7 @@ class UpdatePluginHandlerTest {
 
 	private PluginWrapper pluginWrapper = mock(PluginWrapper.class);
 
-	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox, integrationTypeRepository);
+	private final UpdatePluginHandler updatePluginHandler = new UpdatePluginHandlerImpl(pluginBox, pluginLoader, integrationTypeRepository);
 
 	@AfterAll
 	static void clearPluginDirectory() throws IOException {

@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin;
+package com.epam.ta.reportportal.core.integration.plugin.handler;
 
-import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
-import org.springframework.web.multipart.MultipartFile;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface CreatePluginHandler {
+public interface GetPluginHandler {
 
 	/**
-	 * Upload and start up the plugin
+	 * Get a list of all existing plugins
 	 *
-	 * @param pluginFile Plugin file
-	 * @return {@link EntryCreatedRS} with the newly created {@link com.epam.ta.reportportal.entity.integration.IntegrationType#id}
+	 * @return {@link List} of the {@link IntegrationTypeResource}
 	 */
-	EntryCreatedRS uploadPlugin(MultipartFile pluginFile);
+	List<IntegrationTypeResource> getPlugins();
+
 }

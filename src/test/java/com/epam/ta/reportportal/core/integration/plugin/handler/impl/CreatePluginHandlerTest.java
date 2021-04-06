@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.integration.plugin.impl;
+package com.epam.ta.reportportal.core.integration.plugin.handler.impl;
 
 import com.epam.ta.reportportal.core.integration.impl.util.IntegrationTestUtil;
-import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.CreatePluginHandler;
 import com.epam.ta.reportportal.core.plugin.PluginInfo;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;

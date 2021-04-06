@@ -17,10 +17,10 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
-import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
-import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
-import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.DeletePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.GetPluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.UpdatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.handler.CreatePluginHandler;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;

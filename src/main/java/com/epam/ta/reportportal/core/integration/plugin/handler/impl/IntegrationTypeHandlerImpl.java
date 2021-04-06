@@ -30,7 +30,7 @@ public class IntegrationTypeHandlerImpl implements IntegrationTypeHandler {
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<IntegrationType> getByName(String name) {
-		return Optional.empty();
+		return integrationTypeRepository.findByName(name);
 	}
 
 	@Override

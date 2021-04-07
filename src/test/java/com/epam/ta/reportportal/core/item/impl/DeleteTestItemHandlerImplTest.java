@@ -47,7 +47,6 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -197,7 +196,7 @@ class DeleteTestItemHandlerImplTest {
 		when(testItemRepository.findById(parentId)).thenReturn(Optional.of(parent));
 		when(testItemRepository.hasChildren(parent.getItemId(), parent.getPath())).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
-		doNothing().when(attachmentRepository).moveForDeletionByItems(any(Collection.class));
+		when(attachmentRepository.moveForDeletionByItems(any(Collection.class))).thenReturn(1);
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		assertFalse(parent.isHasChildren());

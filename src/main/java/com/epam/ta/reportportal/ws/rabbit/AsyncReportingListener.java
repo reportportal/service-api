@@ -314,23 +314,6 @@ public class AsyncReportingListener implements MessageListener {
 		}
 	}
 
-	/**
-	 * Cleanup log content corresponding to log request, that was stored in DataStore
-	 * <p>
-	 * Consider how appropriate it to use this method for dropped messages, that exceeded retry count
-	 * and were routed into dropped DLQ
-	 *
-	 * @param payload
-	 */
-	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
-		// we need to delete only binary data, log and attachment shouldn't be dirty created
-		if (payload.getRight() != null) {
-			BinaryDataMetaInfo metaInfo = payload.getRight();
-			attachmentBinaryDataService.delete(metaInfo.getFileId());
-			attachmentBinaryDataService.delete(metaInfo.getThumbnailFileId());
-		}
-	}
-
 	private RequestType getRequestType(Message message) {
 		return RequestType.valueOf((String) message.getMessageProperties().getHeaders().get(MessageHeaders.REQUEST_TYPE));
 	}

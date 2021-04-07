@@ -16,10 +16,10 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.attachment.Attachment;
@@ -61,7 +61,7 @@ class DeleteLogHandlerTest {
 	private LogRepository logRepository;
 
 	@Mock
-	private AttachmentBinaryDataService attachmentBinaryDataService;
+	private AttachmentRepository attachmentRepository;
 
 	@Mock
 	private TestItemService testItemService;
@@ -166,8 +166,6 @@ class DeleteLogHandlerTest {
 
 		verify(logRepository, times(1)).delete(log);
 		verify(logIndexer, times(1)).cleanIndex(projectId, Collections.singletonList(logId));
-		verify(attachmentBinaryDataService, times(1)).delete(attachmentPath);
-		verify(attachmentBinaryDataService, times(1)).delete(attachmentThumbnailPath);
 	}
 
 	@Test

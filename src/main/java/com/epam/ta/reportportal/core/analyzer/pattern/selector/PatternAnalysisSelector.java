@@ -16,10 +16,11 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.selector;
 
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
-import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,11 +29,12 @@ import java.util.List;
 public interface PatternAnalysisSelector {
 
 	/**
-	 * Select {@link PatternTemplateTestItemPojo} matched by {@link PatternTemplate#value}
+	 * Select {@link TestItem#getItemId()} with logs matched by pattern value
 	 *
-	 * @param filter          {@link Queryable}
-	 * @param patternTemplate {@link PatternTemplate}
-	 * @return {@link PatternTemplateTestItemPojo} that contains item ID, which was matched by pattern and ID of the matched pattern
+	 * @param launchId {@link Launch#getId()}
+	 * @param itemIds  {@link Collection} with {@link TestItem#getItemId()}
+	 * @param pattern  {@link PatternTemplate#getValue()}
+	 * @return {@link List} of {@link TestItem#getItemId()}
 	 */
-	List<PatternTemplateTestItemPojo> selectItemsByPattern(Queryable filter, PatternTemplate patternTemplate);
+	List<Long> selectItemsByPattern(Long launchId, Collection<Long> itemIds, String pattern);
 }

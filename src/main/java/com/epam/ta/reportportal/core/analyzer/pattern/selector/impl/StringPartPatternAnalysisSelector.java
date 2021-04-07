@@ -16,36 +16,39 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.selector.impl;
 
-import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
-import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
-import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class StringPartPatternAnalysisSelector implements PatternAnalysisSelector {
-
-	private final TestItemRepository testItemRepository;
+public class StringPartPatternAnalysisSelector extends AbstractPatternAnalysisSelector {
 
 	@Autowired
 	public StringPartPatternAnalysisSelector(TestItemRepository testItemRepository) {
-		this.testItemRepository = testItemRepository;
+		super(testItemRepository);
 	}
 
 	@Override
-	public List<PatternTemplateTestItemPojo> selectItemsByPattern(Queryable filter, PatternTemplate patternTemplate) {
-		return testItemRepository.selectIdsByStringPatternMatchedLogMessage(filter, LogLevel.ERROR.toInt(), patternTemplate.getValue())
-				.stream()
-				.map(itemId -> new PatternTemplateTestItemPojo(patternTemplate.getId(), itemId))
-				.collect(Collectors.toList());
+	protected List<Long> getItemsWithMatches(String pattern, Set<Long> itemIds) {
+		return testItemRepository.selectIdsByStringLogMessage(itemIds,
+				LogLevel.ERROR_INT,
+				pattern
+		);
+	}
+
+	@Override
+	protected List<Long> getItemsWithNestedStepsMatches(Long launchId, String pattern, List<Long> itemsWithNestedSteps) {
+		return testItemRepository.selectIdsUnderByStringLogMessage(launchId,
+				itemsWithNestedSteps,
+				LogLevel.ERROR_INT,
+				pattern
+		);
 	}
 }

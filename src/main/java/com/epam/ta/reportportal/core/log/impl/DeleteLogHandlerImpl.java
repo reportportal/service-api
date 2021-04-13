@@ -16,12 +16,12 @@
 
 package com.epam.ta.reportportal.core.log.impl;
 
-import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -34,7 +34,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -60,7 +59,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	private final LogRepository logRepository;
 
-	private final AttachmentBinaryDataService attachmentBinaryDataService;
+	private final AttachmentRepository attachmentRepository;
 
 	private final ProjectRepository projectRepository;
 
@@ -68,13 +67,13 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 	private final LogIndexer logIndexer;
 
-	public DeleteLogHandlerImpl(LogRepository logRepository, AttachmentBinaryDataService attachmentBinaryDataService,
-			ProjectRepository projectRepository, TestItemService testItemService, LogIndexer logIndexer) {
+	public DeleteLogHandlerImpl(LogRepository logRepository, ProjectRepository projectRepository, TestItemService testItemService,
+			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
 		this.logRepository = logRepository;
-		this.attachmentBinaryDataService = attachmentBinaryDataService;
 		this.projectRepository = projectRepository;
 		this.testItemService = testItemService;
 		this.logIndexer = logIndexer;
+		this.attachmentRepository = attachmentRepository;
 	}
 
 	@Override
@@ -85,25 +84,13 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 		Log log = validate(logId, user, projectDetails);
 		try {
 			logRepository.delete(log);
-			cleanUpLogData(log);
+			ofNullable(log.getAttachment()).ifPresent(attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
 		} catch (Exception exc) {
 			throw new ReportPortalException("Error while Log instance deleting.", exc);
 		}
 
 		logIndexer.cleanIndex(projectDetails.getProjectId(), Collections.singletonList(logId));
 		return new OperationCompletionRS(formattedSupplier("Log with ID = '{}' successfully deleted.", logId).toString());
-	}
-
-	private void cleanUpLogData(Log log) {
-		ofNullable(log.getAttachment()).ifPresent(a -> {
-			if (StringUtils.isNotBlank(a.getFileId())) {
-				attachmentBinaryDataService.delete(a.getFileId());
-			}
-			if (StringUtils.isNotBlank(a.getThumbnailId())) {
-				attachmentBinaryDataService.delete(a.getThumbnailId());
-			}
-		});
-
 	}
 
 	/**
@@ -122,12 +109,11 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 
 		//TODO check if statistics is right in item results
 		if (itemOptional.isPresent()) {
-			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED,
-					formattedSupplier("Unable to delete log '{}' when test item '{}' in progress state",
-							log.getId(),
-							itemOptional.get().getItemId()
-					)
-			);
+			expect(itemOptional.get().getItemResults().getStatistics(), notNull()).verify(TEST_ITEM_IS_NOT_FINISHED, formattedSupplier(
+					"Unable to delete log '{}' when test item '{}' in progress state",
+					log.getId(),
+					itemOptional.get().getItemId()
+			));
 		} else {
 			expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
 					formattedSupplier("Unable to delete log '{}' when launch '{}' in progress state", log.getId(), launch.getId())

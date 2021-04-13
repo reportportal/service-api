@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -39,7 +40,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -61,6 +61,9 @@ class DeleteProjectHandlerImplTest {
 	private UserRepository userRepository;
 
 	@Mock
+	private AttachmentRepository attachmentRepository;
+
+	@Mock
 	private LogIndexer logIndexer;
 
 	@Mock
@@ -77,9 +80,6 @@ class DeleteProjectHandlerImplTest {
 
 	@Mock
 	private ProjectContentRemover projectContentRemover;
-
-	@Mock
-	private ApplicationEventPublisher eventPublisher;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;

@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -37,7 +37,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -71,16 +70,16 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private final LaunchRepository launchRepository;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
 	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
-			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher) {
+			LaunchRepository launchRepository, AttachmentRepository attachmentRepository) {
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
 		this.logIndexer = logIndexer;
 		this.launchRepository = launchRepository;
-		this.eventPublisher = eventPublisher;
+		this.attachmentRepository = attachmentRepository;
 	}
 
 	@Override
@@ -108,7 +107,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 						LogLevel.ERROR.toInt()
 				)
 		);
-		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedDescendants));
+
+		attachmentRepository.moveForDeletionByItems(removedDescendants);
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
 	}
@@ -163,7 +163,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
-		idsToDelete.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedItems)));
+		attachmentRepository.moveForDeletionByItems(removedItems);
 
 		return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
 	}

@@ -84,8 +84,7 @@ public class DeleteLogHandlerImpl implements DeleteLogHandler {
 		Log log = validate(logId, user, projectDetails);
 		try {
 			logRepository.delete(log);
-			ofNullable(log.getAttachment()).ifPresent(attachment -> attachmentRepository.moveForDeletion(Collections.singletonList(
-					attachment.getId())));
+			ofNullable(log.getAttachment()).ifPresent(attachment -> attachmentRepository.moveForDeletion(attachment.getId()));
 		} catch (Exception exc) {
 			throw new ReportPortalException("Error while Log instance deleting.", exc);
 		}

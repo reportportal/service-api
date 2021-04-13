@@ -113,18 +113,18 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 			}
 		});
 
+		List<Long> launchIds = toDelete.stream().map(Launch::getId).collect(Collectors.toList());
 		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
-						LogLevel.ERROR.toInt()
-				)
+				logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(launchIds, LogLevel.ERROR.toInt())
 		);
-
 		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(it -> {
-			attachmentRepository.moveForDeletionByLaunchId(it.getId());
-			messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername()));
-		});
-		return new DeleteBulkRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()), notFound, exceptions.stream().map(ex -> {
+		attachmentRepository.moveForDeletionByLaunchIds(launchIds);
+
+		toDelete.stream()
+				.map(TO_ACTIVITY_RESOURCE)
+				.forEach(it -> messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername())));
+
+		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
 			ErrorRS errorResponse = new ErrorRS();
 			errorResponse.setErrorType(ex.getErrorType());
 			errorResponse.setMessage(ex.getMessage());

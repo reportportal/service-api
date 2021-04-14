@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.project.config.UpdateIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.UpdateOneIssueSubTypeRQ;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.UpdatePatternTemplateRQ;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,9 +112,9 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getId()));
 
-		final String name = updatePatternTemplateRQ.getName().trim();
-		if (!patternTemplate.getName().equalsIgnoreCase(name)) {
+		final String name = StringUtils.trim(updatePatternTemplateRQ.getName());
 
+		if (!patternTemplate.getName().equalsIgnoreCase(name)) {
 			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(
 					project.getId(), name
 			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);

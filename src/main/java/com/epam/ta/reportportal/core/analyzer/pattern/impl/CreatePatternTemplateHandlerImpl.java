@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
@@ -40,7 +41,7 @@ public class CreatePatternTemplateHandlerImpl implements CreatePatternTemplateHa
 
 	@Override
 	public PatternTemplate createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
-		final String name = createPatternTemplateRQ.getName().trim();
+		final String name = StringUtils.trim(createPatternTemplateRQ.getName());
 		BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, name), equalTo(false))
 				.verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
 		PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ)

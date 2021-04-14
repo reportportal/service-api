@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -114,11 +115,13 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		});
 
 		List<Long> launchIds = toDelete.stream().map(Launch::getId).collect(Collectors.toList());
-		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(launchIds, LogLevel.ERROR.toInt())
-		);
-		launchRepository.deleteAll(toDelete);
-		attachmentRepository.moveForDeletionByLaunchIds(launchIds);
+		if (CollectionUtils.isNotEmpty(launchIds)) {
+			logIndexer.cleanIndex(projectDetails.getProjectId(),
+					logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(launchIds, LogLevel.ERROR.toInt())
+			);
+			launchRepository.deleteAll(toDelete);
+			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
+		}
 
 		toDelete.stream()
 				.map(TO_ACTIVITY_RESOURCE)

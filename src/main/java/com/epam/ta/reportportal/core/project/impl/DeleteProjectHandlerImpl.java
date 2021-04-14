@@ -24,10 +24,7 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
-import com.epam.ta.reportportal.dao.AttachmentRepository;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
@@ -72,11 +69,13 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectContentRemover projectContentRemover;
 
+	private final LogRepository logRepository;
+
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
 			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
-			AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository,
-			ProjectContentRemover projectContentRemover) {
+			AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository, ProjectContentRemover projectContentRemover,
+			LogRepository logRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
@@ -86,6 +85,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		this.attachmentRepository = attachmentRepository;
 		this.issueTypeRepository = issueTypeRepository;
 		this.projectContentRemover = projectContentRemover;
+		this.logRepository = logRepository;
 	}
 
 	@Override
@@ -157,6 +157,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 				.map(ProjectIssueType::getIssueType)
 				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
 				.collect(Collectors.toSet());
+		logRepository.deleteByProjectId(project.getId());
 		projectContentRemover.removeContent(project);
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);

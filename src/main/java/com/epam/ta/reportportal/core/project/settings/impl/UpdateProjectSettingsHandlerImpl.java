@@ -111,17 +111,17 @@ public class UpdateProjectSettingsHandlerImpl implements UpdateProjectSettingsHa
 		PatternTemplate patternTemplate = patternTemplateRepository.findById(id)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_TEMPLATE_NOT_FOUND_IN_PROJECT, id, project.getId()));
 
-		if (!patternTemplate.getName().equalsIgnoreCase(updatePatternTemplateRQ.getName())) {
+		final String name = updatePatternTemplateRQ.getName().trim();
+		if (!patternTemplate.getName().equalsIgnoreCase(name)) {
 
 			BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(
-					project.getId(),
-					updatePatternTemplateRQ.getName()
-			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, updatePatternTemplateRQ.getName());
+					project.getId(), name
+			), equalTo(false)).verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
 		}
 
 		PatternTemplateActivityResource before = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);
 
-		patternTemplate.setName(updatePatternTemplateRQ.getName());
+		patternTemplate.setName(name);
 		patternTemplate.setEnabled(updatePatternTemplateRQ.getEnabled());
 
 		PatternTemplateActivityResource after = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(patternTemplate);

@@ -41,14 +41,14 @@ public class PatternTemplateBuilder implements Supplier<PatternTemplate> {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
 						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createRequest.getType()).get()
 				)));
-		patternTemplate.setName(createRequest.getName());
+		patternTemplate.setName(createRequest.getName().trim());
 		patternTemplate.setValue(createRequest.getValue());
 		patternTemplate.setEnabled(createRequest.getEnabled());
 		return this;
 	}
 
 	public PatternTemplateBuilder withName(String name) {
-		patternTemplate.setName(name);
+		patternTemplate.setName(name.trim());
 		return this;
 	}
 

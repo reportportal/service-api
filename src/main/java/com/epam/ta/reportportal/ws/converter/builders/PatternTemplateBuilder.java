@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Supplier;
 
@@ -37,18 +38,18 @@ public class PatternTemplateBuilder implements Supplier<PatternTemplate> {
 	}
 
 	public PatternTemplateBuilder withCreateRequest(CreatePatternTemplateRQ createRequest) {
-		patternTemplate.setTemplateType(PatternTemplateType.fromString(createRequest.getType())
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
-						Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createRequest.getType()).get()
-				)));
-		patternTemplate.setName(createRequest.getName());
+		patternTemplate.setTemplateType(PatternTemplateType.fromString(createRequest.getType()).orElseThrow(() -> new ReportPortalException(
+				ErrorType.BAD_REQUEST_ERROR,
+				Suppliers.formattedSupplier("Unknown pattern template type - '{}'", createRequest.getType()).get()
+		)));
+		patternTemplate.setName(StringUtils.trim(createRequest.getName()));
 		patternTemplate.setValue(createRequest.getValue());
 		patternTemplate.setEnabled(createRequest.getEnabled());
 		return this;
 	}
 
 	public PatternTemplateBuilder withName(String name) {
-		patternTemplate.setName(name);
+		patternTemplate.setName(StringUtils.trim(name));
 		return this;
 	}
 

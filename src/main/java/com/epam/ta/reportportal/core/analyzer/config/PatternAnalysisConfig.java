@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.analyzer.config;
 
 import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreatePatternTemplateHandlerImpl;
 import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreateRegexPatternTemplateHandler;
-import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreateStringPatternTemplateHandler;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.impl.RegexPatternAnalysisSelector;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.impl.StringPartPatternAnalysisSelector;
@@ -53,7 +53,7 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
 	@Bean("createPatternTemplateMapping")
 	public Map<PatternTemplateType, CreatePatternTemplateHandler> createPatternTemplateHandlerMapping() {
 		return ImmutableMap.<PatternTemplateType, CreatePatternTemplateHandler>builder().put(PatternTemplateType.STRING,
-				applicationContext.getBean(CreateStringPatternTemplateHandler.class)
+				applicationContext.getBean(CreatePatternTemplateHandlerImpl.class)
 		).put(PatternTemplateType.REGEX, applicationContext.getBean(CreateRegexPatternTemplateHandler.class)).build();
 	}
 

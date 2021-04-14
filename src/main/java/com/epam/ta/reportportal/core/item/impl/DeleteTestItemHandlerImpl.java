@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -163,7 +164,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
-		attachmentRepository.moveForDeletionByItems(removedItems);
+		if (CollectionUtils.isNotEmpty(removedItems)) {
+			attachmentRepository.moveForDeletionByItems(removedItems);
+		}
 
 		return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
 	}
@@ -183,12 +186,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
-					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
-							testItem.getItemId(),
-							projectDetails.getProjectId()
-					)
-			);
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
+					"Deleting testItem '{}' is not under specified project '{}'",
+					testItem.getItemId(),
+					projectDetails.getProjectId()
+			));
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
 			}
@@ -199,11 +201,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
-				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-						testItem.getItemId(),
-						launch.getId()
-				)
-		);
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
+				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+				testItem.getItemId(),
+				launch.getId()
+		));
 	}
 }

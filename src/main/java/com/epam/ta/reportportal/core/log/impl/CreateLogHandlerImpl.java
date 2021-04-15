@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.ws.converter.builders.LogBuilder;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -41,9 +42,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
+import javax.persistence.PersistenceException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.fail;
+import static com.epam.ta.reportportal.ws.model.ErrorType.FORBIDDEN_OPERATION;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -99,7 +103,15 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 		}).orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, request.getLaunchUuid())));
 
 		final Log log = logBuilder.get();
-		logRepository.save(log);
+
+		try {
+			logRepository.save(log);
+		} catch (PersistenceException pe) {
+			if (pe.getCause() instanceof ConstraintViolationException) {
+				fail().withError(FORBIDDEN_OPERATION, ((ConstraintViolationException) pe.getCause()).getConstraintName());
+			}
+			throw new ReportPortalException("Error while log creating: " + pe.getMessage(), pe);
+		}
 
 		ofNullable(file).ifPresent(f -> saveBinaryData(f, launch, log));
 

@@ -30,11 +30,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -62,17 +59,6 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
 		return ImmutableMap.<PatternTemplateType, PatternAnalysisSelector>builder().put(PatternTemplateType.STRING,
 				applicationContext.getBean(StringPartPatternAnalysisSelector.class)
 		).put(PatternTemplateType.REGEX, applicationContext.getBean(RegexPatternAnalysisSelector.class)).build();
-	}
-
-	@Bean("patternAnalysisTaskExecutor")
-	public TaskExecutor patternAnalysisTaskExecutor() {
-		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-		taskExecutor.setCorePoolSize(20);
-		taskExecutor.setMaxPoolSize(100);
-		taskExecutor.setQueueCapacity(600);
-		taskExecutor.setThreadNamePrefix("pattern-analysis-task-exec");
-		taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-		return taskExecutor;
 	}
 
 }

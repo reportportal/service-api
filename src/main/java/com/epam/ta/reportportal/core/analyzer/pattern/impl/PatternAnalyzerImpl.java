@@ -80,7 +80,7 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public PatternAnalyzerImpl(@Value("${rp.environment.variable.clean.pattern-analysis.batch-size}") Integer batchSize,
+	public PatternAnalyzerImpl(@Value("${rp.environment.variable.pattern-analysis.batch-size}") Integer batchSize,
 			TestItemRepository testItemRepository, PatternTemplateRepository patternTemplateRepository,
 			@Qualifier("patternAnalysisSelectorMapping") Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
 			TaskExecutor patternAnalysisTaskExecutor, PatternConditionProviderChain patternConditionProviderChain,
@@ -99,16 +99,19 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 	public void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes) {
 		BusinessRule.expect(analyzerStatusCache.getStartedAnalyzers(launch.getId()), not(started -> started.contains(PATTERN_ANALYZER_KEY)))
 				.verify(ErrorType.PATTERN_ANALYSIS_ERROR, "Pattern analysis is still in progress.");
-		try {
-			analyzerStatusCache.analyzeStarted(PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
-			final ConvertibleCondition itemCondition = getItemCondition(analyzeModes);
-			patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
-					.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> analyze(launch, itemCondition, patternTemplate)));
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		} finally {
-			analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, launch.getId());
-		}
+
+		analyzerStatusCache.analyzeStarted(PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+		patternAnalysisTaskExecutor.execute(() -> {
+			try {
+				final ConvertibleCondition itemCondition = getItemCondition(analyzeModes);
+				patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
+						.forEach(patternTemplate -> analyze(launch, itemCondition, patternTemplate));
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+			} finally {
+				analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, launch.getId());
+			}
+		});
 
 	}
 

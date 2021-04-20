@@ -60,8 +60,8 @@ rp:
       clean:
         items:
           size: 500
-        pattern-analysis:
-          batch-size: 100
+      pattern-analysis:
+        batch-size: 100
       history:
         old: false
       executor:
@@ -74,6 +74,10 @@ rp:
             core: 10
             max: 30
             queue: 200
+          pattern-analyze:
+            core: 20
+            max: 30
+            queue: 500
           demo-data:
             core: 10
             max: 20

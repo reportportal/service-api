@@ -1,4 +1,4 @@
-FROM adoptopenjdk:11-jdk-hotspot-bionic as builder
+FROM adoptopenjdk:11-jdk-hotspot-focal as builder
 
 RUN apt-get update && apt-get install ca-certificates git fonts-noto zip -y
 

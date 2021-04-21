@@ -58,19 +58,10 @@ rp:
       flushing:
         time: PT24H
       clean:
-        attach:
-          period: P1D
-          size: 200
-          pool: 5
-        logs:
-          period: P2D
-          pool: 5
-        launches:
-          period: P3D
-          size: 50
-          pool: 5
         items:
           size: 500
+      pattern-analysis:
+        batch-size: 100
       history:
         old: false
       executor:
@@ -83,6 +74,10 @@ rp:
             core: 10
             max: 30
             queue: 200
+          pattern-analyze:
+            core: 20
+            max: 30
+            queue: 500
           demo-data:
             core: 10
             max: 20
@@ -147,7 +142,7 @@ rp:
       secretKey:
       bucketPrefix: prj-
       defaultBucketName: rp-bucket
-    # could be one of [seaweed, filesystem, minio]
+    # could be one of [filesystem, minio]
     type: filesystem
     thumbnail:
       attachment:

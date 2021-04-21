@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -44,6 +45,9 @@ class DeleteLaunchHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
+
+	@Mock
+	private AttachmentRepository attachmentRepository;
 
 	@InjectMocks
 	private DeleteLaunchHandlerImpl handler;

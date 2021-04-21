@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Isolation;
@@ -74,7 +73,7 @@ public class FlushingDataJob implements Job {
 	private IssueTypeRepository issueTypeRepository;
 
 	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+	private AttachmentRepository attachmentRepository;
 
 	@Autowired
 	private UserBinaryDataService dataStore;
@@ -108,9 +107,9 @@ public class FlushingDataJob implements Job {
 	 * Get exclusive lock. Kill all running transactions. Truncate tables
 	 */
 	private void truncateTables() {
-		jdbcTemplate.execute("BEGIN; " + "SELECT pg_advisory_xact_lock(1);"
-				+ "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
-				+ "AND pid <> pg_backend_pid()\n"
+		jdbcTemplate.execute("BEGIN; " + "SELECT PG_ADVISORY_XACT_LOCK(1);"
+				+ "SELECT PG_TERMINATE_BACKEND(pid) FROM pg_stat_activity WHERE datname = 'reportportal'\n"
+				+ "AND pid <> PG_BACKEND_PID()\n"
 				+ "AND state IN ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled'); "
 				+ "TRUNCATE TABLE launch RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE activity RESTART IDENTITY CASCADE;"
 				+ "TRUNCATE TABLE shareable_entity RESTART IDENTITY CASCADE;" + "TRUNCATE TABLE ticket RESTART IDENTITY CASCADE;"
@@ -159,13 +158,13 @@ public class FlushingDataJob implements Job {
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		try {
-			minioClient.deleteBucketLifeCycle(bucketPrefix + project.getId());
+			minioClient.removeBucket(bucketPrefix + project.getId());
 		} catch (Exception e) {
 			LOGGER.warn("Cannot delete attachments bucket " + bucketPrefix + project.getId());
 		}
 		logIndexer.deleteIndex(project.getId());
 		projectRepository.flush();
-		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
+		attachmentRepository.moveForDeletionByProjectId(project.getId());
 		LOGGER.info("Project with id = '" + project.getId() + "' has been successfully deleted.");
 	}
 }

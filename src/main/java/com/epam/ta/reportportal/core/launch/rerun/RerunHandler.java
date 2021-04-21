@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import com.epam.ta.reportportal.ws.model.item.ItemCreatedRS;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
-import com.epam.ta.reportportal.ws.model.launch.StartLaunchRS;
 
 import java.util.Optional;
 
@@ -37,9 +36,9 @@ public interface RerunHandler {
 	 * @param request   Request data
 	 * @param projectId Project ID
 	 * @param user      ReportPortal user
-	 * @return StartLaunchRS
+	 * @return {@link Launch}
 	 */
-	StartLaunchRS handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
+	Launch handleLaunch(StartLaunchRQ request, Long projectId, ReportPortalUser user);
 
 	/**
 	 * Finds root {@link TestItem} to rerun and creates retries

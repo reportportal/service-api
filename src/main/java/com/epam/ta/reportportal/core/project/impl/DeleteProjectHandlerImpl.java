@@ -22,12 +22,9 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
-import com.epam.ta.reportportal.core.events.attachment.DeleteProjectAttachmentsEvent;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
@@ -37,7 +34,6 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,26 +63,29 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final MessageBus messageBus;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private final AttachmentRepository attachmentRepository;
 
 	private final IssueTypeRepository issueTypeRepository;
 
 	private final ProjectContentRemover projectContentRemover;
 
+	private final LogRepository logRepository;
+
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
 			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
-			ApplicationEventPublisher eventPublisher, IssueTypeRepository issueTypeRepository,
-			ProjectContentRemover projectContentRemover) {
+			AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository, ProjectContentRemover projectContentRemover,
+			LogRepository logRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.messageBus = messageBus;
-		this.eventPublisher = eventPublisher;
+		this.attachmentRepository = attachmentRepository;
 		this.issueTypeRepository = issueTypeRepository;
 		this.projectContentRemover = projectContentRemover;
+		this.logRepository = logRepository;
 	}
 
 	@Override
@@ -162,7 +161,8 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(project.getId());
-		eventPublisher.publishEvent(new DeleteProjectAttachmentsEvent(project.getId()));
+		logRepository.deleteByProjectId(project.getId());
+		attachmentRepository.moveForDeletionByProjectId(project.getId());
 		return new OperationCompletionRS("Project with id = '" + project.getId() + "' has been successfully deleted.");
 	}
 }

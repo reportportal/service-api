@@ -33,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Date;
 import java.util.Optional;
@@ -60,6 +61,9 @@ class StartLaunchHandlerImplTest {
 	@Mock
 	private RerunHandler rerunHandler;
 
+	@Mock
+	private ApplicationEventPublisher eventPublisher;
+
 	@InjectMocks
 	private StartLaunchHandlerImpl startLaunchHandlerImpl;
 
@@ -72,13 +76,22 @@ class StartLaunchHandlerImplTest {
 		startLaunchRQ.setStartTime(new Date());
 		startLaunchRQ.setName("test");
 
+		Launch launch = new Launch();
+		launch.setId(1L);
+
+		when(launchRepository.save(any(Launch.class))).then(a -> {
+			Launch l = a.getArgument(0);
+			l.setId(1L);
+			return l;
+		}).thenReturn(launch);
+
 		final StartLaunchRS startLaunchRS = startLaunchHandlerImpl.startLaunch(rpUser,
 				extractProjectDetails(rpUser, "test_project"),
 				startLaunchRQ
 		);
 
-		verify(launchRepository, times(1)).save(any(Launch.class));
 		verify(launchRepository, times(1)).refresh(any(Launch.class));
+		verify(eventPublisher, times(1)).publishEvent(any());
 		assertNotNull(startLaunchRS);
 	}
 

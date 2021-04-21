@@ -22,9 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -39,7 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -61,6 +58,9 @@ class DeleteProjectHandlerImplTest {
 	private UserRepository userRepository;
 
 	@Mock
+	private AttachmentRepository attachmentRepository;
+
+	@Mock
 	private LogIndexer logIndexer;
 
 	@Mock
@@ -79,7 +79,7 @@ class DeleteProjectHandlerImplTest {
 	private ProjectContentRemover projectContentRemover;
 
 	@Mock
-	private ApplicationEventPublisher eventPublisher;
+	private LogRepository logRepository;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;
@@ -168,7 +168,8 @@ class DeleteProjectHandlerImplTest {
 		project.setName(projectName);
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.of(project));
 		when(userRepository.findByLogin(userName)).thenReturn(Optional.of(new User()));
-		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(CacheBuilder.newBuilder().build()));
+		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(CacheBuilder.newBuilder()
+				.build()));
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
 
 		OperationCompletionRS response = handler.deleteProjectIndex(projectName, "user");
@@ -188,6 +189,7 @@ class DeleteProjectHandlerImplTest {
 		project.setName(projectName);
 		when(issueTypeRepository.getDefaultIssueTypes()).thenReturn(new ArrayList<>());
 		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+		when(logRepository.deleteByProjectId(1L)).thenReturn(10);
 
 		OperationCompletionRS response = handler.deleteProject(1L);
 

@@ -31,6 +31,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * Configs for beans related to job execution
  *
@@ -91,6 +93,19 @@ public class ExecutorConfiguration {
 		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
 		threadPoolTaskExecutor.setThreadNamePrefix("auto-analyze-exec");
 		return threadPoolTaskExecutor;
+	}
+
+	@Bean("patternAnalysisTaskExecutor")
+	public TaskExecutor patternAnalysisTaskExecutor(@Value("${rp.environment.variable.executor.pool.pattern-analyze.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.pattern-analyze.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.pattern-analyze.queue}") Integer queueCapacity) {
+		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+		taskExecutor.setCorePoolSize(corePoolSize);
+		taskExecutor.setMaxPoolSize(maxPoolSize);
+		taskExecutor.setQueueCapacity(queueCapacity);
+		taskExecutor.setThreadNamePrefix("pattern-analysis-task-exec");
+		taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		return taskExecutor;
 	}
 
 	@Bean(name = "demoDataTaskExecutor")

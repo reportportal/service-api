@@ -104,27 +104,6 @@ public class SchedulerConfiguration {
 	}
 
 	@Bean
-	@Profile("!demo")
-	public SimpleTriggerFactoryBean createCleanLogsTrigger(@Named("cleanLogsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.logs.cron}") String cleanLogsCron) {
-		return createTriggerDelayed(jobDetail, Duration.parse(cleanLogsCron).toMillis());
-	}
-
-	@Bean
-	@Profile("!demo")
-	public SimpleTriggerFactoryBean cleanScreenshotsTrigger(@Named("cleanScreenshotsJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.screenshots.cron}") String cleanScreenshotsCron) {
-		return createTriggerDelayed(jobDetail, Duration.parse(cleanScreenshotsCron).toMillis());
-	}
-
-	@Bean
-	@Profile("!demo")
-	public SimpleTriggerFactoryBean createCleanLaunchesTrigger(@Named("cleanLaunchesJobBean") JobDetail jobDetail,
-			@Value("${com.ta.reportportal.job.clean.launches.cron}") String cleanLaunchesCron) {
-		return createTriggerDelayed(jobDetail, Duration.parse(cleanLaunchesCron).toMillis());
-	}
-
-	@Bean
 	public SimpleTriggerFactoryBean interruptLaunchesTrigger(@Named("interruptLaunchesJobBean") JobDetail jobDetail,
 			@Value("${com.ta.reportportal.job.interrupt.broken.launches.cron}") String interruptLaunchesCron) {
 		return createTriggerDelayed(jobDetail, Duration.parse(interruptLaunchesCron).toMillis());
@@ -151,24 +130,6 @@ public class SchedulerConfiguration {
 	@Bean("cleanExpiredCreationBidsJobBean")
 	public JobDetailFactoryBean cleanExpiredCreationBidsJob() {
 		return createJobDetail(CleanExpiredCreationBidsJob.class);
-	}
-
-	@Bean("cleanLogsJobBean")
-	@Profile("!demo")
-	public JobDetailFactoryBean cleanLogsJob() {
-		return createJobDetail(CleanLogsJob.class);
-	}
-
-	@Bean("cleanScreenshotsJobBean")
-	@Profile("!demo")
-	public JobDetailFactoryBean cleanScreenshotsJob() {
-		return createJobDetail(CleanScreenshotsJob.class);
-	}
-
-	@Bean("cleanLaunchesJobBean")
-	@Profile("!demo")
-	public JobDetailFactoryBean cleanLaunchesJob() {
-		return createJobDetail(CleanLaunchesJob.class);
 	}
 
 	@Bean

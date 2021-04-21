@@ -390,7 +390,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getFlakyTestCasesWidgetWithNotExistLaunch() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/2").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isOk());
 	}
 
 	@Sql("/db/widget/flaky-test-cases.sql")
@@ -514,7 +514,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getPassingRatePerLaunchWidgetWithNotExistLaunchName() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/3").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isOk());
 	}
 
 	@Sql("/db/widget/passing-rate-summary.sql")
@@ -695,7 +695,7 @@ class WidgetControllerTest extends BaseMvcTest {
 	@Test
 	void getMostTimeConsumingWidgetWithNotExistLaunch() throws Exception {
 		mockMvc.perform(get(SUPERADMIN_PROJECT_BASE_URL + "/widget/5").with(token(oAuthHelper.getSuperadminToken())))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isOk());
 	}
 
 	@Sql("/db/widget/most-time-consuming.sql")

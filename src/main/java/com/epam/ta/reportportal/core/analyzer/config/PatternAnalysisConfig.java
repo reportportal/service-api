@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.analyzer.config;
 
 import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
+import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreatePatternTemplateHandlerImpl;
 import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreateRegexPatternTemplateHandler;
-import com.epam.ta.reportportal.core.analyzer.pattern.impl.CreateStringPatternTemplateHandler;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.PatternAnalysisSelector;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.impl.RegexPatternAnalysisSelector;
 import com.epam.ta.reportportal.core.analyzer.pattern.selector.impl.StringPartPatternAnalysisSelector;
@@ -30,11 +30,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -53,7 +50,7 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
 	@Bean("createPatternTemplateMapping")
 	public Map<PatternTemplateType, CreatePatternTemplateHandler> createPatternTemplateHandlerMapping() {
 		return ImmutableMap.<PatternTemplateType, CreatePatternTemplateHandler>builder().put(PatternTemplateType.STRING,
-				applicationContext.getBean(CreateStringPatternTemplateHandler.class)
+				applicationContext.getBean(CreatePatternTemplateHandlerImpl.class)
 		).put(PatternTemplateType.REGEX, applicationContext.getBean(CreateRegexPatternTemplateHandler.class)).build();
 	}
 
@@ -62,17 +59,6 @@ public class PatternAnalysisConfig implements ApplicationContextAware {
 		return ImmutableMap.<PatternTemplateType, PatternAnalysisSelector>builder().put(PatternTemplateType.STRING,
 				applicationContext.getBean(StringPartPatternAnalysisSelector.class)
 		).put(PatternTemplateType.REGEX, applicationContext.getBean(RegexPatternAnalysisSelector.class)).build();
-	}
-
-	@Bean("patternAnalysisTaskExecutor")
-	public TaskExecutor patternAnalysisTaskExecutor() {
-		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-		taskExecutor.setCorePoolSize(20);
-		taskExecutor.setMaxPoolSize(100);
-		taskExecutor.setQueueCapacity(600);
-		taskExecutor.setThreadNamePrefix("pattern-analysis-task-exec");
-		taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-		return taskExecutor;
 	}
 
 }

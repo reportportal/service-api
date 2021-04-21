@@ -20,8 +20,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
-import com.epam.ta.reportportal.core.events.attachment.DeleteLaunchAttachmentsEvent;
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
@@ -31,8 +31,8 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.*;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -66,16 +66,16 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 	private final LogIndexer logIndexer;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
 	public DeleteLaunchHandlerImpl(LaunchRepository launchRepository, LogRepository logRepository, MessageBus messageBus,
-			LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
+			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
 		this.launchRepository = launchRepository;
 		this.logRepository = logRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
-		this.eventPublisher = eventPublisher;
+		this.attachmentRepository = attachmentRepository;
 	}
 
 	public OperationCompletionRS deleteLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
@@ -88,7 +88,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 		launchRepository.delete(launch);
 
-		eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(launch.getId()));
+		attachmentRepository.moveForDeletionByLaunchId(launchId);
+
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
 		return new OperationCompletionRS("Launch with ID = '" + launchId + "' successfully deleted.");
 	}
@@ -113,18 +114,20 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 			}
 		});
 
-		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(toDelete.stream().map(Launch::getId).collect(Collectors.toList()),
-						LogLevel.ERROR.toInt()
-				)
-		);
+		List<Long> launchIds = toDelete.stream().map(Launch::getId).collect(Collectors.toList());
+		if (CollectionUtils.isNotEmpty(launchIds)) {
+			logIndexer.cleanIndex(projectDetails.getProjectId(),
+					logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(launchIds, LogLevel.ERROR.toInt())
+			);
+			launchRepository.deleteAll(toDelete);
+			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
+		}
 
-		launchRepository.deleteAll(toDelete);
-		toDelete.stream().map(TO_ACTIVITY_RESOURCE).forEach(it -> {
-			eventPublisher.publishEvent(new DeleteLaunchAttachmentsEvent(it.getId()));
-			messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername()));
-		});
-		return new DeleteBulkRS(toDelete.stream().map(Launch::getId).collect(Collectors.toList()), notFound, exceptions.stream().map(ex -> {
+		toDelete.stream()
+				.map(TO_ACTIVITY_RESOURCE)
+				.forEach(it -> messageBus.publishActivity(new LaunchDeletedEvent(it, user.getUserId(), user.getUsername())));
+
+		return new DeleteBulkRS(launchIds, notFound, exceptions.stream().map(ex -> {
 			ErrorRS errorResponse = new ErrorRS();
 			errorResponse.setErrorType(ex.getErrorType());
 			errorResponse.setMessage(ex.getMessage());

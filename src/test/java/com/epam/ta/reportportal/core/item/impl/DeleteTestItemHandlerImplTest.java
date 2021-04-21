@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -37,8 +37,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -47,7 +47,6 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -69,7 +68,7 @@ class DeleteTestItemHandlerImplTest {
 	private LaunchRepository launchRepository;
 
 	@Mock
-	private ApplicationEventPublisher eventPublisher;
+	private AttachmentRepository attachmentRepository;
 
 	@InjectMocks
 	private DeleteTestItemHandlerImpl handler;
@@ -197,7 +196,7 @@ class DeleteTestItemHandlerImplTest {
 		when(testItemRepository.findById(parentId)).thenReturn(Optional.of(parent));
 		when(testItemRepository.hasChildren(parent.getItemId(), parent.getPath())).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);
-		doNothing().when(eventPublisher).publishEvent(any(DeleteTestItemAttachmentsEvent.class));
+		when(attachmentRepository.moveForDeletionByItems(any(Collection.class))).thenReturn(1);
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		assertFalse(parent.isHasChildren());

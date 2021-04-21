@@ -16,13 +16,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.impl;
 
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
-import com.epam.ta.reportportal.core.analyzer.pattern.CreatePatternTemplateHandler;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,24 +27,19 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.PersistenceException;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class CreateRegexPatternTemplateHandler implements CreatePatternTemplateHandler {
-
-	private final PatternTemplateRepository patternTemplateRepository;
+public class CreateRegexPatternTemplateHandler extends CreatePatternTemplateHandlerImpl {
 
 	@Autowired
 	public CreateRegexPatternTemplateHandler(PatternTemplateRepository patternTemplateRepository) {
-		this.patternTemplateRepository = patternTemplateRepository;
+		super(patternTemplateRepository);
 	}
 
 	@Override
 	public PatternTemplate createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
-
 		try {
 			patternTemplateRepository.validateRegex(createPatternTemplateRQ.getValue());
 		} catch (PersistenceException ex) {
@@ -55,14 +47,6 @@ public class CreateRegexPatternTemplateHandler implements CreatePatternTemplateH
 					Suppliers.formattedSupplier("Provided regex pattern - '{}' is invalid", createPatternTemplateRQ.getValue()).get()
 			);
 		}
-
-		BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, createPatternTemplateRQ.getName()),
-				equalTo(false)
-		).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createPatternTemplateRQ.getName());
-
-		PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ)
-				.withProjectId(projectId)
-				.get();
-		return patternTemplateRepository.save(patternTemplate);
+		return super.createPatternTemplate(projectId, createPatternTemplateRQ);
 	}
 }

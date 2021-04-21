@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.epam.ta.reportportal.core.analyzer.pattern.impl;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
@@ -23,32 +22,30 @@ import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.ws.converter.builders.PatternTemplateBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.config.pattern.CreatePatternTemplateRQ;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-@Service
-public class CreateStringPatternTemplateHandler implements CreatePatternTemplateHandler {
+public class CreatePatternTemplateHandlerImpl implements CreatePatternTemplateHandler {
 
-	private final PatternTemplateRepository patternTemplateRepository;
+	protected final PatternTemplateRepository patternTemplateRepository;
 
 	@Autowired
-	public CreateStringPatternTemplateHandler(PatternTemplateRepository patternTemplateRepository) {
+	public CreatePatternTemplateHandlerImpl(PatternTemplateRepository patternTemplateRepository) {
 		this.patternTemplateRepository = patternTemplateRepository;
 	}
 
 	@Override
 	public PatternTemplate createPatternTemplate(Long projectId, CreatePatternTemplateRQ createPatternTemplateRQ) {
-
-		BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, createPatternTemplateRQ.getName()),
-				equalTo(false)
-		).verify(ErrorType.RESOURCE_ALREADY_EXISTS, createPatternTemplateRQ.getName());
-
+		final String name = StringUtils.trim(createPatternTemplateRQ.getName());
+		BusinessRule.expect(patternTemplateRepository.existsByProjectIdAndNameIgnoreCase(projectId, name), equalTo(false))
+				.verify(ErrorType.RESOURCE_ALREADY_EXISTS, name);
 		PatternTemplate patternTemplate = new PatternTemplateBuilder().withCreateRequest(createPatternTemplateRQ)
+				.withName(name)
 				.withProjectId(projectId)
 				.get();
 		return patternTemplateRepository.save(patternTemplate);

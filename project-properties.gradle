@@ -5,6 +5,7 @@ def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-sc
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
 
 project.ext {
+    publishRepo = "https://maven.pkg.github.com/reportportal/service-api"
     limits = [
             'instruction': 70,
             'branch'     : 53,
@@ -15,7 +16,7 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
-    scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
+    scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'github-release-action')
     migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [

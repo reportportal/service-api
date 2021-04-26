@@ -28,6 +28,7 @@ apply from: "$scriptsUrl/build-docker.gradle"
 apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
+apply from: "$scriptsUrl/release-github.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 apply from: "$scriptsUrl/build-quality.gradle"
 apply from: "$scriptsUrl/jacoco.gradle"
@@ -162,7 +163,5 @@ test {
 
 addDockerfileToGit.dependsOn createDockerfile
 beforeReleaseBuild.dependsOn addDockerfileToGit
-bintrayUpload.mustRunAfter build
-afterReleaseBuild.dependsOn bintrayUpload
 checkCommitNeeded.dependsOn removeScripts
 build.dependsOn jacocoTestReport

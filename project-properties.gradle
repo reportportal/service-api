@@ -6,7 +6,7 @@ def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migra
 
 project.ext {
     publishRepo = "https://maven.pkg.github.com/reportportal/service-api"
-    dependencyRepos = ["commons-dao", "commons-rules", "commons-model", "commons", "commons-fonts", "plugin-api"]
+    dependencyRepos = ["commons-dao", "commons-rules", "commons-model", "commons", "commons-fonts", "plugin-api", "commons-bom"]
     limits = [
             'instruction': 70,
             'branch'     : 53,

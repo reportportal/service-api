@@ -28,6 +28,7 @@ apply from: "$scriptsUrl/build-docker.gradle"
 apply from: "$scriptsUrl/build-commons.gradle"
 apply from: "$scriptsUrl/build-info.gradle"
 apply from: "$scriptsUrl/release-service.gradle"
+apply from: "$scriptsUrl/signing.gradle"
 apply from: "$scriptsUrl/copy-database-scripts.gradle"
 apply from: "$scriptsUrl/build-quality.gradle"
 apply from: "$scriptsUrl/jacoco.gradle"
@@ -35,7 +36,19 @@ project.hasProperty('sealightsSession') && sealightsSession?.trim() ? apply(from
 
 repositories {
     mavenCentral { url "https://repo1.maven.org/maven2" }
-    releaseMode ? maven { url "http://dl.bintray.com/epam/reportportal" } : maven { url 'https://jitpack.io' }
+    if (releaseMode) {
+        dependencyRepos.forEach { path ->
+            maven {
+                setUrl("https://maven.pkg.github.com/reportportal/${path}")
+                credentials {
+                    username = findProperty("githubUserName")
+                    password = findProperty("githubToken")
+                }
+            }
+        }
+    } else {
+        maven { url 'https://jitpack.io' }
+    }
     maven { url "http://jasperreports.sourceforge.net/maven2" }
     maven { url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts" }
 }
@@ -162,7 +175,7 @@ test {
 
 addDockerfileToGit.dependsOn createDockerfile
 beforeReleaseBuild.dependsOn addDockerfileToGit
-bintrayUpload.mustRunAfter build
-afterReleaseBuild.dependsOn bintrayUpload
+publish.dependsOn build
+publish.mustRunAfter build
 checkCommitNeeded.dependsOn removeScripts
 build.dependsOn jacocoTestReport

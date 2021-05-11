@@ -145,8 +145,6 @@ public class RerunHandlerImpl implements RerunHandler {
 				return Optional.of(updateRootItem(request, foundItem));
 			}
 
-			System.out.println("NOT EQUAL NAMES: " + foundItem.getName() + " " + newItem.getName());
-
 			childItemFilter.withCondition(new FilterCondition(Condition.EQUALS, false, newItem.getName(), CRITERIA_NAME));
 			return rerunSearcher.findItem(childItemFilter).flatMap(testItemRepository::findById).map(it -> updateRootItem(request, it));
 		});

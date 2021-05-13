@@ -17,9 +17,11 @@
 package com.epam.ta.reportportal.core.launch.rerun;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
-import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
+import com.epam.ta.reportportal.core.item.impl.rerun.RerunSearcher;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -71,7 +73,10 @@ class RerunHandlerImplTest {
 	private ApplicationEventPublisher eventPublisher;
 
 	@Mock
-	private RetriesHandler retriesHandler;
+	private RerunSearcher rerunSearcher;
+
+	@Mock
+	private RetryHandler retryHandler;
 
 	@InjectMocks
 	private RerunHandlerImpl rerunHandler;
@@ -144,8 +149,7 @@ class RerunHandlerImplTest {
 		request.setTestCaseId(testCaseId);
 		Launch launch = getLaunch("uuid");
 
-		when(testItemRepository.findLatestIdByTestCaseHashAndLaunchIdWithoutParents(testCaseId.hashCode(), launch.getId())).thenReturn(
-				Optional.empty());
+		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.empty());
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
 
@@ -164,8 +168,7 @@ class RerunHandlerImplTest {
 		Launch launch = getLaunch("uuid");
 
 		final TestItem item = getItem(itemName, launch);
-		when(testItemRepository.findLatestIdByTestCaseHashAndLaunchIdWithoutParents(testCaseId.hashCode(), launch.getId())).thenReturn(
-				Optional.of(item.getItemId()));
+		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
 		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleRootItem(request, launch);
@@ -187,7 +190,7 @@ class RerunHandlerImplTest {
 		parent.setItemId(2L);
 		parent.setPath("1.2");
 
-		when(retriesHandler.findPreviousRetry(eq(launch), any(), eq(parent))).thenReturn(Optional.empty());
+		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.empty());
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, parent);
 
@@ -209,12 +212,12 @@ class RerunHandlerImplTest {
 		parent.setPath("1.2");
 
 		final TestItem item = getItem(itemName, launch);
-		when(retriesHandler.findPreviousRetry(eq(launch), any(), eq(parent))).thenReturn(Optional.of(item.getItemId()));
+		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
 		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, parent);
 
-		verify(retriesHandler, times(1)).handleRetries(any(), any(), any());
+		verify(retryHandler, times(1)).handleRetries(any(), any(), any());
 
 		assertTrue(rerunCreatedRS.isPresent());
 	}

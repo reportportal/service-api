@@ -23,7 +23,8 @@ import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
-import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -78,18 +79,20 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private final RerunHandler rerunHandler;
 
-	private final RetriesHandler retriesHandler;
+	private final RetrySearcher retrySearcher;
+	private final RetryHandler retryHandler;
 
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
 			UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator, RerunHandler rerunHandler,
-			@Qualifier("uniqueIdRetriesHandler") RetriesHandler retriesHandler) {
+			@Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher, RetryHandler retryHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
 		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.rerunHandler = rerunHandler;
-		this.retriesHandler = retriesHandler;
+		this.retrySearcher = retrySearcher;
+		this.retryHandler = retryHandler;
 	}
 
 	@Override
@@ -146,10 +149,10 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		if (isRetry) {
 			ofNullable(rq.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate).ifPresentOrElse(retryParentId -> {
 				saveChildItem(launch, item, parentItem);
-				retriesHandler.handleRetries(launch, item, retryParentId);
-			}, () -> retriesHandler.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
+				retryHandler.handleRetries(launch, item, retryParentId);
+			}, () -> retrySearcher.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
 				saveChildItem(launch, item, parentItem);
-				retriesHandler.handleRetries(launch, item, previousRetryId);
+				retryHandler.handleRetries(launch, item, previousRetryId);
 			}, () -> saveChildItem(launch, item, parentItem)));
 		} else {
 			saveChildItem(launch, item, parentItem);

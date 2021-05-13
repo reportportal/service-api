@@ -62,6 +62,19 @@ public class LaunchPreparerService {
 		return Optional.empty();
 	}
 
+	public List<IndexTestItem> prepare(Long launchId, List<IndexTestItem> indexTestItemList) {
+		final Map<Long, List<Log>> logsMapping = getLogsMapping(launchId,
+				indexTestItemList.stream().map(IndexTestItem::getTestItemId).collect(toList())
+		);
+
+		return indexTestItemList.stream()
+				.peek(indexTestItem -> ofNullable(logsMapping.get(indexTestItem.getTestItemId())).filter(CollectionUtils::isNotEmpty)
+						.map(AnalyzerUtils::fromLogs)
+						.ifPresent(indexTestItem::setLogs))
+				.filter(it -> CollectionUtils.isNotEmpty(it.getLogs()))
+				.collect(toList());
+	}
+
 	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, AnalyzerConfig analyzerConfig,
 			List<IndexTestItem> rqTestItems) {
 		IndexLaunch rqLaunch = new IndexLaunch();
@@ -84,15 +97,18 @@ public class LaunchPreparerService {
 	private List<IndexTestItem> prepareItemsForIndexing(Long launchId, List<TestItem> testItems) {
 		List<TestItem> itemsForIndexing = testItems.stream().filter(ITEM_CAN_BE_INDEXED).collect(toList());
 
-		Map<Long, List<Log>> logsMapping = logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-				itemsForIndexing.stream().map(TestItem::getItemId).collect(toList()),
-				LogLevel.ERROR.toInt()
-		).stream().collect(groupingBy(l -> l.getTestItem().getItemId()));
+		Map<Long, List<Log>> logsMapping = getLogsMapping(launchId, itemsForIndexing.stream().map(TestItem::getItemId).collect(toList()));
 
 		return itemsForIndexing.stream()
 				.map(it -> AnalyzerUtils.fromTestItem(it, ofNullable(logsMapping.get(it.getItemId())).orElseGet(Collections::emptyList)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(toList());
 
+	}
+
+	private Map<Long, List<Log>> getLogsMapping(Long launchId, List<Long> itemIds) {
+		return logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt())
+				.stream()
+				.collect(groupingBy(l -> l.getTestItem().getItemId()));
 	}
 }

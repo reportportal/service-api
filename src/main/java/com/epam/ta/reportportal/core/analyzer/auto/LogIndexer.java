@@ -39,7 +39,7 @@ public interface LogIndexer {
 	 * @param analyzerConfig - anlayzer config
 	 * @return The count of indexed test items
 	 */
-	CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig);
+	CompletableFuture<Long> index(Long projectId, AnalyzerConfig analyzerConfig);
 
 	CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig);
 

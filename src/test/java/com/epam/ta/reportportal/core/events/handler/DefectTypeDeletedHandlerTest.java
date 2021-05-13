@@ -27,6 +27,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.activity.IssueTypeActivityResource;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
@@ -123,7 +124,7 @@ class DefectTypeDeletedHandlerTest {
 
 		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
 
-		verify(logIndexer, times(1)).indexLaunchesLogs(eq(projectId), eq(launchIds), any());
+		verify(logIndexer, times(1)).index(eq(projectId), any(AnalyzerConfig.class));
 	}
 
 	private Project getProjectWithAnalyzerAttributes(Long projectId) {

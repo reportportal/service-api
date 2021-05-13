@@ -120,7 +120,6 @@ class DefectTypeDeletedHandlerTest {
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(analyzerStatusCache.getAnalyzeStatus(AnalyzerStatusCache.AUTO_ANALYZER_KEY)).thenReturn(Optional.of(CacheBuilder.newBuilder().build()));
 		List<Long> launchIds = Arrays.asList(1L, 2L, 3L);
-		when(launchRepository.findLaunchIdsByProjectId(projectId)).thenReturn(launchIds);
 
 		handler.handleDefectTypeDeleted(new DefectTypeDeletedEvent(new IssueTypeActivityResource(), 1L, "user", projectId));
 

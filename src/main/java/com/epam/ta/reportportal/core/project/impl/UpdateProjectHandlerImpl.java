@@ -269,11 +269,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				"Index can not be removed until auto-analysis proceeds."
 		);
 
-		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
-
 		logIndexer.deleteIndex(project.getId());
 
-		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project))
+		logIndexer.index(project.getId(), AnalyzerUtils.getAnalyzerConfig(project))
 				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
 						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 

@@ -60,6 +60,8 @@ rp:
       clean:
         items:
           size: 500
+      log-index:
+        batch-size: 20
       pattern-analysis:
         batch-size: 100
       history:
@@ -70,6 +72,10 @@ rp:
             core: 20
             max: 100
             queue: 5000
+          log-index:
+            core: 5
+            max: 10
+            queue: 500
           auto-analyze:
             core: 10
             max: 30

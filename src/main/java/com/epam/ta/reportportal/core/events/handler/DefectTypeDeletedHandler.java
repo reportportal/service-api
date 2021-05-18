@@ -33,8 +33,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.util.List;
-
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
@@ -81,8 +79,7 @@ public class DefectTypeDeletedHandler {
 					"Index can not be removed until auto-analysis proceeds."
 			);
 
-			List<Long> launches = launchRepository.findLaunchIdsByProjectId(event.getProjectId());
-			logIndexer.indexLaunchesLogs(event.getProjectId(), launches, getAnalyzerConfig(project));
+			logIndexer.index(event.getProjectId(), getAnalyzerConfig(project));
 		}
 	}
 

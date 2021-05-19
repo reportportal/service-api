@@ -192,7 +192,7 @@ class RerunHandlerImplTest {
 
 		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.empty());
 
-		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, parent);
+		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 
 		assertFalse(rerunCreatedRS.isPresent());
 	}
@@ -215,7 +215,7 @@ class RerunHandlerImplTest {
 		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
 		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
 
-		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, parent);
+		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 
 		verify(retryHandler, times(1)).handleRetries(any(), any(), any());
 

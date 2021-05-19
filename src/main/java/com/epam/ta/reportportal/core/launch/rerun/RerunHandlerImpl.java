@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.rerun.RerunSearcher;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
+import com.epam.ta.reportportal.core.item.validator.ParentItemValidator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -42,9 +43,11 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,18 +71,20 @@ public class RerunHandlerImpl implements RerunHandler {
 	private final TestCaseHashGenerator testCaseHashGenerator;
 	private final ApplicationEventPublisher eventPublisher;
 	private final RerunSearcher rerunSearcher;
+	private final List<ParentItemValidator> parentItemValidators;
 	private final RetryHandler retryHandler;
 
 	@Autowired
 	public RerunHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository, UniqueIdGenerator uniqueIdGenerator,
 			TestCaseHashGenerator testCaseHashGenerator, ApplicationEventPublisher eventPublisher, RerunSearcher rerunSearcher,
-			RetryHandler retryHandler) {
+			List<ParentItemValidator> parentItemValidators, RetryHandler retryHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
 		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.eventPublisher = eventPublisher;
 		this.rerunSearcher = rerunSearcher;
+		this.parentItemValidators = parentItemValidators;
 		this.retryHandler = retryHandler;
 	}
 
@@ -119,25 +124,35 @@ public class RerunHandlerImpl implements RerunHandler {
 	}
 
 	@Override
-	public Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, TestItem parent) {
+	public Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, String parentUuid) {
 		if (!request.isHasStats()) {
 			return Optional.empty();
 		}
 
+		final Pair<Long, String> pathName = testItemRepository.selectPathName(parentUuid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
+
 		TestItem newItem = new TestItemBuilder().addLaunchId(launch.getId())
 				.addStartItemRequest(request)
 				.addAttributes(request.getAttributes())
-				.addParentId(parent.getItemId())
+				.addParentId(pathName.getFirst())
 				.get();
 
 		if (Objects.isNull(newItem.getTestCaseId())) {
-			newItem.setTestCaseHash(testCaseHashGenerator.generate(newItem, IdentityUtil.getItemTreeIds(parent), launch.getProjectId()));
+			newItem.setTestCaseHash(testCaseHashGenerator.generate(newItem,
+					IdentityUtil.getItemTreeIds(pathName.getSecond()),
+					launch.getProjectId()
+			));
 		}
 
-		final Filter childItemFilter = getChildItemFilter(launch, newItem.getTestCaseHash(), parent);
+		final Filter childItemFilter = getChildItemFilter(launch, newItem.getTestCaseHash(), pathName.getFirst());
 
 		return rerunSearcher.findItem(childItemFilter).flatMap(testItemRepository::findById).flatMap(foundItem -> {
 			if (!foundItem.isHasChildren()) {
+				final TestItem parent = testItemRepository.findIdByUuidForUpdate(parentUuid)
+						.map(testItemRepository::getOne)
+						.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
+				parentItemValidators.forEach(v -> v.validate(request, parent));
 				return Optional.of(handleRetry(launch, newItem, foundItem, parent));
 			}
 
@@ -166,10 +181,10 @@ public class RerunHandlerImpl implements RerunHandler {
 		)).withCondition(new FilterCondition(Condition.EXISTS, true, "1", CRITERIA_PARENT_ID));
 	}
 
-	private Filter getChildItemFilter(Launch launch, Integer testCaseHash, TestItem parent) {
+	private Filter getChildItemFilter(Launch launch, Integer testCaseHash, Long parentId) {
 		return getCommonFilter(launch.getId(), testCaseHash).withCondition(new FilterCondition(Condition.EXISTS,
 				false,
-				String.valueOf(parent.getItemId()),
+				String.valueOf(parentId),
 				CRITERIA_PARENT_ID
 		));
 	}

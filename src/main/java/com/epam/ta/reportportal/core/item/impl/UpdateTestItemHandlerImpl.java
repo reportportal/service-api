@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
@@ -31,7 +30,6 @@ import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -59,14 +57,15 @@ import com.epam.ta.reportportal.ws.model.item.ExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -78,7 +77,6 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
 import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
-import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
@@ -138,7 +136,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			ReportPortalUser user) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 
 		List<String> errors = new ArrayList<>();
 		List<IssueDefinition> definitions = defineIssue.getIssues();
@@ -147,8 +144,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
 
 		// key - launch id, value - list of item ids
-		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
-		List<Long> logIdsToCleanIndex = new ArrayList<>();
+//		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+//		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
+//		List<Long> logIdsToCleanIndex = new ArrayList<>();
+		//
 
 		definitions.forEach(issueDefinition -> {
 			try {
@@ -172,28 +171,28 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				externalTicketHandler.updateLinking(user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());
 
-				issueEntity.setTestItemResults(testItem.getItemResults());
-				issueEntityRepository.save(issueEntity);
 				testItem.getItemResults().setIssue(issueEntity);
-
+				issueEntity.setTestItemResults(testItem.getItemResults());
 				testItemRepository.save(testItem);
 
-				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					Long launchId = testItem.getLaunchId();
-					Long itemId = testItem.getItemId();
-					if (logsToReindexMap.containsKey(launchId)) {
-						logsToReindexMap.get(launchId).add(itemId);
-					} else {
-						List<Long> itemIds = Lists.newArrayList();
-						itemIds.add(itemId);
-						logsToReindexMap.put(launchId, itemIds);
-					}
-				} else {
-					logIdsToCleanIndex.addAll(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							Collections.singletonList(testItem.getItemId()),
-							LogLevel.ERROR.toInt()
-					));
-				}
+				//
+//				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+//					Long launchId = testItem.getLaunchId();
+//					Long itemId = testItem.getItemId();
+//					if (logsToReindexMap.containsKey(launchId)) {
+//						logsToReindexMap.get(launchId).add(itemId);
+//					} else {
+//						List<Long> itemIds = Lists.newArrayList();
+//						itemIds.add(itemId);
+//						logsToReindexMap.put(launchId, itemIds);
+//					}
+//				} else {
+//					logIdsToCleanIndex.addAll(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
+//							Collections.singletonList(testItem.getItemId()),
+//							LogLevel.ERROR.toInt()
+//					));
+//				}
+				//
 
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
@@ -205,12 +204,16 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		if (!logsToReindexMap.isEmpty()) {
-			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
-		}
-		if (!logIdsToCleanIndex.isEmpty()) {
-			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
-		}
+
+		//
+//		if (!logsToReindexMap.isEmpty()) {
+//			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
+//		}
+//		if (!logIdsToCleanIndex.isEmpty()) {
+//			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
+//		}
+		//
+
 		events.forEach(messageBus::publishActivity);
 		return updated;
 	}

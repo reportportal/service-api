@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.rerun.RerunSearcher;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
+import com.epam.ta.reportportal.core.item.validator.ParentItemValidator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -42,9 +43,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
@@ -56,6 +60,9 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 class RerunHandlerImplTest {
+
+	@Spy
+	private ArrayList<ParentItemValidator> parentItemValidators;
 
 	@Mock
 	private TestItemRepository testItemRepository;
@@ -191,6 +198,7 @@ class RerunHandlerImplTest {
 		parent.setPath("1.2");
 
 		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.empty());
+		when(testItemRepository.selectPathName("uuid")).thenReturn(Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 
@@ -214,6 +222,9 @@ class RerunHandlerImplTest {
 		final TestItem item = getItem(itemName, launch);
 		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
 		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
+		when(testItemRepository.selectPathName("uuid")).thenReturn(Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
+		when(testItemRepository.findIdByUuidForUpdate("uuid")).thenReturn(Optional.of(parent.getItemId()));
+		when(testItemRepository.getOne(parent.getItemId())).thenReturn(parent);
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 

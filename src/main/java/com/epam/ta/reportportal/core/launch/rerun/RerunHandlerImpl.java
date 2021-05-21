@@ -129,7 +129,7 @@ public class RerunHandlerImpl implements RerunHandler {
 			return Optional.empty();
 		}
 
-		final Pair<Long, String> pathName = testItemRepository.selectPathName(parentUuid)
+		final Pair<Long, String> pathName = testItemRepository.selectPath(parentUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, parentUuid));
 
 		TestItem newItem = new TestItemBuilder().addLaunchId(launch.getId())

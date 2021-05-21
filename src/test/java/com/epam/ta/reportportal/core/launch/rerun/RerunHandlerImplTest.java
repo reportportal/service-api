@@ -198,7 +198,7 @@ class RerunHandlerImplTest {
 		parent.setPath("1.2");
 
 		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.empty());
-		when(testItemRepository.selectPathName("uuid")).thenReturn(Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
+		when(testItemRepository.selectPath("uuid")).thenReturn(Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
 
 		Optional<ItemCreatedRS> rerunCreatedRS = rerunHandler.handleChildItem(request, launch, "uuid");
 
@@ -222,7 +222,7 @@ class RerunHandlerImplTest {
 		final TestItem item = getItem(itemName, launch);
 		when(rerunSearcher.findItem(any(Queryable.class))).thenReturn(Optional.of(item.getItemId()));
 		when(testItemRepository.findById(item.getItemId())).thenReturn(Optional.of(item));
-		when(testItemRepository.selectPathName("uuid")).thenReturn(Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
+		when(testItemRepository.selectPath("uuid")).thenReturn(Optional.of(Pair.of(parent.getItemId(), parent.getPath())));
 		when(testItemRepository.findIdByUuidForUpdate("uuid")).thenReturn(Optional.of(parent.getItemId()));
 		when(testItemRepository.getOne(parent.getItemId())).thenReturn(parent);
 

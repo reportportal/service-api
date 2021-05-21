@@ -47,9 +47,9 @@ project.ext {
             (migrationsUrl + '/migrations/24_widget_views_cleanup.up.sql')               : 'V024__widget_views_cleanup.sql',
             (migrationsUrl + '/migrations/25_deep_merge_nested_steps_path_fix.up.sql')   : 'V025__deep_merge_nested_steps_path_fix.sql',
             (migrationsUrl + '/migrations/26_retries_lock_fix.up.sql')                   : 'V026__retries_lock_fix.sql',
-            (migrationsUrl + '/migrations/31_shedlock_table.up.sql')                     : 'V031__shedlock_table.sql',
-            (migrationsUrl + '/migrations/32_attachment_for_deletion_table.up.sql')      : 'V032__attachment_for_deletion_table.sql',
-            (migrationsUrl + '/migrations/33_remove_triggers.up.sql')                    : 'V033__remove_triggers.sql',
+            (migrationsUrl + '/migrations/42_shedlock_table.up.sql')                     : 'V032__shedlock_table.sql',
+            (migrationsUrl + '/migrations/43_attachment_for_deletion_table.up.sql')      : 'V033__attachment_for_deletion_table.sql',
+            (migrationsUrl + '/migrations/44_remove_triggers.up.sql')                    : 'V034__remove_triggers.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

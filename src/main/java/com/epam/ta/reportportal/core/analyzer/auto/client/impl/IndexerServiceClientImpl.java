@@ -45,6 +45,8 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndexerServiceClient.class);
 	private static final String INDEX_ROUTE = "index";
+	private static final String DEFECT_UPDATE_ROUTE = "defect_update";
+	private static final String ITEM_REMOVE_ROUTE = "item_remove";
 	private static final String NAMESPACE_FINDER_ROUTE = "namespace_finder";
 	private static final String DELETE_ROUTE = "delete";
 	private static final String CLEAN_ROUTE = "clean";
@@ -76,6 +78,22 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 			}
 			return 0;
 		}).sum();
+	}
+
+	@Override
+	public void indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate) {
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DEFECT_UPDATE_ROUTE, itemsForIndexUpdate));
+	}
+
+	@Override
+	public void indexItemsRemove(List<Long> itemsForIndexRemove) {
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), ITEM_REMOVE_ROUTE, itemsForIndexRemove));
 	}
 
 	@Override

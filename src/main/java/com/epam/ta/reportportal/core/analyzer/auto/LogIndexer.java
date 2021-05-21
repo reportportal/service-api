@@ -63,7 +63,4 @@ public interface LogIndexer {
 	 */
 	CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
 
-
-//	void updateItemDefectType(Long itemId, String defectType);
-
 }

@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
@@ -27,7 +27,9 @@ import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -62,10 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -77,6 +76,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
 import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttribute;
 import static com.epam.ta.reportportal.util.ItemInfoUtils.extractAttributeResource;
+import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.lang.Boolean.FALSE;
@@ -100,33 +100,30 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
-	private final LogRepository logRepository;
-
 	private final ExternalTicketHandler externalTicketHandler;
 
 	private final IssueTypeHandler issueTypeHandler;
 
 	private final MessageBus messageBus;
 
-	private final LogIndexer logIndexer;
+	private final IndexerServiceClient indexerServiceClient;
 
 	private final IssueEntityRepository issueEntityRepository;
 
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, LogRepository logRepository, ExternalTicketHandler externalTicketHandler,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
+	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository,
+			TestItemRepository testItemRepository, ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
+			MessageBus messageBus, IndexerServiceClient indexerServiceClient, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.testItemService = testItemService;
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
 		this.externalTicketHandler = externalTicketHandler;
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
-		this.logIndexer = logIndexer;
+		this.indexerServiceClient = indexerServiceClient;
 		this.issueEntityRepository = issueEntityRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
@@ -142,12 +139,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
-
-		// key - launch id, value - list of item ids
-//		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
-//		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
-//		List<Long> logIdsToCleanIndex = new ArrayList<>();
-		//
+		Map<Long, String> itemsForIndexUpdate = new HashMap<>();
+		List<Long> itemsForIndexRemove = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
 			try {
@@ -175,24 +168,11 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				issueEntity.setTestItemResults(testItem.getItemResults());
 				testItemRepository.save(testItem);
 
-				//
-//				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-//					Long launchId = testItem.getLaunchId();
-//					Long itemId = testItem.getItemId();
-//					if (logsToReindexMap.containsKey(launchId)) {
-//						logsToReindexMap.get(launchId).add(itemId);
-//					} else {
-//						List<Long> itemIds = Lists.newArrayList();
-//						itemIds.add(itemId);
-//						logsToReindexMap.put(launchId, itemIds);
-//					}
-//				} else {
-//					logIdsToCleanIndex.addAll(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-//							Collections.singletonList(testItem.getItemId()),
-//							LogLevel.ERROR.toInt()
-//					));
-//				}
-				//
+				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
+					itemsForIndexUpdate.put(testItem.getItemId(), testItem.getItemResults().getIssue().getIssueType().getLocator());
+				} else {
+					itemsForIndexRemove.add(testItem.getItemId());
+				}
 
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
 
@@ -205,14 +185,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-		//
-//		if (!logsToReindexMap.isEmpty()) {
-//			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
-//		}
-//		if (!logIdsToCleanIndex.isEmpty()) {
-//			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
-//		}
-		//
+		indexerServiceClient.indexDefectsUpdate(itemsForIndexUpdate);
+		indexerServiceClient.indexItemsRemove(itemsForIndexRemove);
 
 		events.forEach(messageBus::publishActivity);
 		return updated;
@@ -228,8 +202,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent() && !providedStatus.get().equals(testItem.getItemResults().getStatus())) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
-					INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			checkInitialStatusAttribute(testItem, rq);
@@ -317,7 +290,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
 				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
-		).filter(it -> it.getValue().equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
+		).filter(it -> it.getValue()
+				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
 
 		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
 				addInitialStatusAttribute

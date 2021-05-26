@@ -28,14 +28,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_INDEX;
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -81,11 +79,18 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate) {
-		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+	public Map<Integer, List<Long>> indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate) {
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), DEFECT_UPDATE_ROUTE, itemsForIndexUpdate));
+				.collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt,
+						exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+								DEFECT_UPDATE_ROUTE,
+								itemsForIndexUpdate,
+								new ParameterizedTypeReference<List<Long>>() {
+								}
+						)).orElse(Collections.emptyList())
+				));
 	}
 
 	@Override
@@ -104,14 +109,14 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 						exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
 								CLEAN_ROUTE,
 								new CleanIndexRq(index, ids),
-								new ParameterizedTypeReference<Long>() {
+								new ParameterizedTypeReference<>() {
 								}
 						)
 				));
 		return priorityToCleanedLogsCountMapping.entrySet()
 				.stream()
 				.min(Map.Entry.comparingByKey())
-				.orElseGet(() -> new AbstractMap.SimpleEntry<Integer, Long>(0, 0L))
+				.orElseGet(() -> new AbstractMap.SimpleEntry<>(0, 0L))
 				.getValue();
 	}
 

@@ -189,8 +189,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-		logIndexerService.indexDefectsUpdate(itemsForIndexUpdate);
-		indexerServiceClient.indexItemsRemove(itemsForIndexRemove);
+		logIndexerService.indexDefectsUpdate(project.getId(), itemsForIndexUpdate);
+		indexerServiceClient.indexItemsRemove(project.getId(), itemsForIndexRemove);
 
 		events.forEach(messageBus::publishActivity);
 		return updated;

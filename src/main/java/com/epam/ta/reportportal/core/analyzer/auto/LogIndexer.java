@@ -63,12 +63,11 @@ public interface LogIndexer {
 	 */
 	CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
 
-
 	/**
 	 * Async handle of updated items for indexing.
 	 *
 	 * @param itemsForIndexUpdate Pair of itemId - issue type
 	 */
-	void indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate);
+	void indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
 
 }

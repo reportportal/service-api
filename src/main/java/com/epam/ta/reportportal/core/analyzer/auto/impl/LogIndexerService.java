@@ -209,8 +209,8 @@ public class LogIndexerService implements LogIndexer {
 
 	@Async
 	@Override
-	public void indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate) {
-		indexerServiceClient.indexDefectsUpdate(itemsForIndexUpdate);
+	public void indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
+		indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
 	}
 
 }

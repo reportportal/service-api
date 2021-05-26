@@ -56,13 +56,13 @@ public interface IndexerServiceClient {
 	 * @param itemsForIndexUpdate Pair of itemId - issue type
 	 * @return Order of analyzer - list of missed items in analyzer
 	 */
-	Map<Integer, List<Long>> indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate);
+	Map<Integer, List<Long>> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
 
 	/**
 	 * Sends a message to the queue with a list of items which must be removed from index
 	 *
 	 * @param itemsForIndexRemove List of item ids
 	 */
-	void indexItemsRemove(List<Long> itemsForIndexRemove);
+	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
 
 }

@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexDefectsUpdate;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexItemsRemove;
 import com.epam.ta.reportportal.ws.model.analyzer.CleanIndexRq;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
@@ -79,26 +81,28 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public Map<Integer, List<Long>> indexDefectsUpdate(Map<Long, String> itemsForIndexUpdate) {
+	public Map<Integer, List<Long>> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
 		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
-				.collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt,
-						exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
-								DEFECT_UPDATE_ROUTE,
-								itemsForIndexUpdate,
-								new ParameterizedTypeReference<List<Long>>() {
-								}
-						)).orElse(Collections.emptyList())
-				));
+				.collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt, exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(
+						exchange.getName(),
+						DEFECT_UPDATE_ROUTE,
+						new IndexDefectsUpdate(projectId, itemsForIndexUpdate),
+						new ParameterizedTypeReference<List<Long>>() {
+						}
+				)).orElse(Collections.emptyList())));
 	}
 
 	@Override
-	public void indexItemsRemove(List<Long> itemsForIndexRemove) {
+	public void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
-				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(), ITEM_REMOVE_ROUTE, itemsForIndexRemove));
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
+						ITEM_REMOVE_ROUTE,
+						new IndexItemsRemove(projectId, itemsForIndexRemove)
+				));
 	}
 
 	@Override

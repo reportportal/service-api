@@ -56,5 +56,5 @@ public interface RerunHandler {
 	 * @param launch  {@link Launch}
 	 * @return {@link ItemCreatedRS} if item is rerun, otherwise {@link Optional#empty()}
 	 */
-	Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, TestItem parent);
+	Optional<ItemCreatedRS> handleChildItem(StartTestItemRQ request, Launch launch, String parentUuid);
 }

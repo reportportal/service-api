@@ -13,7 +13,7 @@ public class IndexDefectsUpdate {
 	@JsonProperty("project")
 	private Long projectId;
 
-	@JsonProperty("itemToUpdate")
+	@JsonProperty("itemsToUpdate")
 	private Map<Long, String> itemsToUpdate;
 
 	public IndexDefectsUpdate(Long projectId, Map<Long, String> itemsToUpdate) {

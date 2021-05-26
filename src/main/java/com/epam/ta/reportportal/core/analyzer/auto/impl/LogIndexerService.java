@@ -213,4 +213,10 @@ public class LogIndexerService implements LogIndexer {
 		indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
 	}
 
+	@Async
+	@Override
+	public void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove) {
+		indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
+	}
+
 }

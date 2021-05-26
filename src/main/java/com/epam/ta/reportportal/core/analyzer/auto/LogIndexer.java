@@ -66,8 +66,17 @@ public interface LogIndexer {
 	/**
 	 * Async handle of updated items for indexing.
 	 *
+	 * @param projectId           Project id
 	 * @param itemsForIndexUpdate Pair of itemId - issue type
 	 */
 	void indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+
+	/**
+	 * Async handle of items that should be removed from index.
+	 *
+	 * @param projectId           Project id
+	 * @param itemsForIndexRemove Ids of items
+	 */
+	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
 
 }

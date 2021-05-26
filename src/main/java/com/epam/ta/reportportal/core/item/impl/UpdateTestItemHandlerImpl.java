@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
@@ -109,8 +108,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final LogIndexerService logIndexerService;
 
-	private final IndexerServiceClient indexerServiceClient;
-
 	private final IssueEntityRepository issueEntityRepository;
 
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
@@ -118,8 +115,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 	@Autowired
 	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository,
 			TestItemRepository testItemRepository, ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
-			MessageBus messageBus, LogIndexerService logIndexerService, IndexerServiceClient indexerServiceClient,
-			IssueEntityRepository issueEntityRepository, Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
+			MessageBus messageBus, LogIndexerService logIndexerService, IssueEntityRepository issueEntityRepository,
+			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.testItemService = testItemService;
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
@@ -127,7 +124,6 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
 		this.logIndexerService = logIndexerService;
-		this.indexerServiceClient = indexerServiceClient;
 		this.issueEntityRepository = issueEntityRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
@@ -190,7 +186,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
 		logIndexerService.indexDefectsUpdate(project.getId(), itemsForIndexUpdate);
-		indexerServiceClient.indexItemsRemove(project.getId(), itemsForIndexRemove);
+		logIndexerService.indexItemsRemove(project.getId(), itemsForIndexRemove);
 
 		events.forEach(messageBus::publishActivity);
 		return updated;

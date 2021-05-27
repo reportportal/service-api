@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.client;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -48,5 +49,20 @@ public interface IndexerServiceClient {
 	 * @return Count of indexed test items
 	 */
 	Long index(List<IndexLaunch> rq);
+
+	/**
+	 * Sends a message to the queue with a map of items which must be updated with a new issue type
+	 *
+	 * @param itemsForIndexUpdate Pair of itemId - issue type
+	 * @return Order of analyzer - list of missed items in analyzer
+	 */
+	Map<Integer, List<Long>> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+
+	/**
+	 * Sends a message to the queue with a list of items which must be removed from index
+	 *
+	 * @param itemsForIndexRemove List of item ids
+	 */
+	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
 
 }

@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -35,7 +36,6 @@ public interface LogIndexer {
 	 * for all given test items within launch
 	 *
 	 * @param projectId      - project id
-	 * @param launchIds      - ID of the launch
 	 * @param analyzerConfig - anlayzer config
 	 * @return The count of indexed test items
 	 */
@@ -62,5 +62,21 @@ public interface LogIndexer {
 	 * @return Amount of deleted logs
 	 */
 	CompletableFuture<Long> cleanIndex(Long index, List<Long> ids);
+
+	/**
+	 * Async handle of updated items for indexing.
+	 *
+	 * @param projectId           Project id
+	 * @param itemsForIndexUpdate Pair of itemId - issue type
+	 */
+	void indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+
+	/**
+	 * Async handle of items that should be removed from index.
+	 *
+	 * @param projectId           Project id
+	 * @param itemsForIndexRemove Ids of items
+	 */
+	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
 
 }

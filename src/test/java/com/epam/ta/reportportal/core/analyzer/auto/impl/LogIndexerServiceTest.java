@@ -36,6 +36,8 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRsIndex;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRsItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.assertj.core.util.Lists;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -43,6 +45,7 @@ import org.springframework.core.task.TaskExecutor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -93,6 +96,22 @@ class LogIndexerServiceTest {
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
 		verify(indexerStatusCache, times(1)).indexingFinished(1L);
+	}
+
+	@Test
+	void testIndexDefectsUpdate() {
+		final Map<Long, String> toUpdate = Maps.newHashMap(1L, "pb001");
+		when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyMap());
+		logIndexerService.indexDefectsUpdate(1L, toUpdate);
+		verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate);
+	}
+
+	@Test
+	void testIndexItemsRemove() {
+		List<Long> list = Lists.newArrayList(1L);
+		doNothing().when(indexerServiceClient).indexItemsRemove(1L, list);
+		logIndexerService.indexItemsRemove(1L, list);
+		verify(indexerServiceClient, times(1)).indexItemsRemove(1L, list);
 	}
 
 	private AnalyzerConfig analyzerConfig() {

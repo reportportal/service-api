@@ -58,7 +58,6 @@ public class XunitParseJob implements Callable<ParseResults> {
 			spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
 			spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 			spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-
 			spf.setXIncludeAware(false);
 			// Using the XMLReader's setFeature
 			reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);

@@ -177,7 +177,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
 				.collect(toSet()));
-		final Double duration = ofNullable(testItem.getItemResults().getDuration()).orElseGet(() ->
+		final double duration = ofNullable(testItem.getItemResults().getDuration()).orElseGet(() ->
 				ChronoUnit.MILLIS.between(testItem.getStartTime(), testItem.getItemResults().getEndTime()) / 1000d);
 		response.setDuration(duration);
 		response.setStatus(testItem.getItemResults().getStatus().name());

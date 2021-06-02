@@ -177,9 +177,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
 				.collect(toSet()));
-		final double duration = ofNullable(testItem.getItemResults().getDuration()).orElseGet(() ->
-				ChronoUnit.MILLIS.between(testItem.getStartTime(), testItem.getItemResults().getEndTime()) / 1000d);
-		response.setDuration(duration);
+		response.setDuration(ofNullable(testItem.getItemResults().getDuration()).orElseGet(() -> getDuration(testItem)));
 		response.setStatus(testItem.getItemResults().getStatus().name());
 
 		TestItem itemWithStats = testItem;
@@ -192,5 +190,9 @@ public class SearchLogServiceImpl implements SearchLogService {
 		response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));
 		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
+	}
+
+	private double getDuration(TestItem testItem) {
+		return ChronoUnit.MILLIS.between(testItem.getStartTime(), testItem.getItemResults().getEndTime()) / 1000d;
 	}
 }

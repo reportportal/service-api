@@ -179,7 +179,6 @@ public class SearchLogServiceImpl implements SearchLogService {
 				.collect(toSet()));
 		response.setDuration(ofNullable(testItem.getItemResults().getDuration()).orElseGet(() -> getDuration(testItem)));
 		response.setStatus(testItem.getItemResults().getStatus().name());
-
 		TestItem itemWithStats = testItem;
 		while (!itemWithStats.isHasStats()) {
 			final Long parentId = itemWithStats.getParentId();

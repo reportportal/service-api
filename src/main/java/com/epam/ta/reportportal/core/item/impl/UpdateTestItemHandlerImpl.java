@@ -139,7 +139,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
-		Map<Long, String> itemsForIndexUpdate = new HashMap<>();
+		List<TestItem> itemsForIndexUpdate = new ArrayList<>();
 		List<Long> itemsForIndexRemove = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
@@ -169,7 +169,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					itemsForIndexUpdate.put(testItem.getItemId(), testItem.getItemResults().getIssue().getIssueType().getLocator());
+					itemsForIndexUpdate.add(testItem);
 				} else {
 					itemsForIndexRemove.add(testItem.getItemId());
 				}
@@ -185,7 +185,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-		logIndexerService.indexDefectsUpdate(project.getId(), itemsForIndexUpdate);
+		logIndexerService.indexDefectsUpdate(project, itemsForIndexUpdate);
 		logIndexerService.indexItemsRemove(project.getId(), itemsForIndexRemove);
 
 		events.forEach(messageBus::publishActivity);

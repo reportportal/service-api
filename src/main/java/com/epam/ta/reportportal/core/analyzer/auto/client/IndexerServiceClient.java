@@ -54,9 +54,9 @@ public interface IndexerServiceClient {
 	 * Sends a message to the queue with a map of items which must be updated with a new issue type
 	 *
 	 * @param itemsForIndexUpdate Pair of itemId - issue type
-	 * @return Order of analyzer - list of missed items in analyzer
+	 * @return  List of missed items in analyzer
 	 */
-	Map<Integer, List<Long>> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+	List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
 
 	/**
 	 * Sends a message to the queue with a list of items which must be removed from index

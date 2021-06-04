@@ -16,11 +16,12 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto;
 
+import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -66,10 +67,10 @@ public interface LogIndexer {
 	/**
 	 * Async handle of updated items for indexing.
 	 *
-	 * @param projectId           Project id
-	 * @param itemsForIndexUpdate Pair of itemId - issue type
+	 * @param project   Project
+	 * @param testItems Test items must be updated
 	 */
-	void indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate);
+	void indexDefectsUpdate(Project project, List<TestItem> testItems);
 
 	/**
 	 * Async handle of items that should be removed from index.

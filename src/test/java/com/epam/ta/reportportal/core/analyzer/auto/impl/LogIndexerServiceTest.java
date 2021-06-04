@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
@@ -101,8 +102,10 @@ class LogIndexerServiceTest {
 	@Test
 	void testIndexDefectsUpdate() {
 		final Map<Long, String> toUpdate = Maps.newHashMap(1L, "pb001");
-		when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyMap());
-		logIndexerService.indexDefectsUpdate(1L, toUpdate);
+		Project project = new Project();
+		project.setId(1L);
+		when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyList());
+		logIndexerService.indexDefectsUpdate(project, Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG)));
 		verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate);
 	}
 

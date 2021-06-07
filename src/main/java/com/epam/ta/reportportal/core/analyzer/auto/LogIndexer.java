@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
@@ -67,10 +66,11 @@ public interface LogIndexer {
 	/**
 	 * Async handle of updated items for indexing.
 	 *
-	 * @param project   Project
-	 * @param testItems Test items must be updated
+	 * @param projectId      Project id
+	 * @param analyzerConfig Analyzer config for indexing
+	 * @param testItems      Test items must be updated
 	 */
-	void indexDefectsUpdate(Project project, List<TestItem> testItems);
+	void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
 
 	/**
 	 * Async handle of items that should be removed from index.

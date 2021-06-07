@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
@@ -185,7 +186,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 		});
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
 
-		logIndexerService.indexDefectsUpdate(project, itemsForIndexUpdate);
+		logIndexerService.indexDefectsUpdate(project.getId(), AnalyzerUtils.getAnalyzerConfig(project), itemsForIndexUpdate);
 		logIndexerService.indexItemsRemove(project.getId(), itemsForIndexRemove);
 
 		events.forEach(messageBus::publishActivity);

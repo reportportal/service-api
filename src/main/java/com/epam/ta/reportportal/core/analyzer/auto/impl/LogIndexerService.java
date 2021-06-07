@@ -23,7 +23,6 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -211,10 +210,14 @@ public class LogIndexerService implements LogIndexer {
 
 	@Async
 	@Override
-	public void indexDefectsUpdate(Project project, List<TestItem> testItems) {
+	public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems) {
+		if (CollectionUtils.isEmpty(testItems)) {
+			return;
+		}
+
 		Map<Long, String> itemsForIndexUpdate = testItems.stream()
 				.collect(Collectors.toMap(TestItem::getItemId, it -> it.getItemResults().getIssue().getIssueType().getLocator()));
-		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(project.getId(), itemsForIndexUpdate);
+		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
 
 		final List<IndexLaunch> indexLaunchList = testItems.stream()
 				.filter(it -> missedItemIds.contains(it.getItemId()))
@@ -224,7 +227,7 @@ public class LogIndexerService implements LogIndexer {
 				.flatMap(entry -> {
 					Launch launch = launchRepository.findById(entry.getKey())
 							.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, entry.getKey()));
-					return launchPreparerService.prepare(launch, entry.getValue(), AnalyzerUtils.getAnalyzerConfig(project)).stream();
+					return launchPreparerService.prepare(launch, entry.getValue(), analyzerConfig).stream();
 				})
 				.collect(Collectors.toList());
 

@@ -114,7 +114,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 						exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
 								CLEAN_ROUTE,
 								new CleanIndexRq(index, ids),
-								new ParameterizedTypeReference<>() {
+								new ParameterizedTypeReference<Long>() {
 								}
 						)
 				));

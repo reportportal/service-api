@@ -217,19 +217,11 @@ public class LogIndexerService implements LogIndexer {
 
 		Map<Long, String> itemsForIndexUpdate = testItems.stream()
 				.collect(Collectors.toMap(TestItem::getItemId, it -> it.getItemResults().getIssue().getIssueType().getLocator()));
-		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
 
-		final List<IndexLaunch> indexLaunchList = testItems.stream()
-				.filter(it -> missedItemIds.contains(it.getItemId()))
-				.collect(Collectors.groupingBy(TestItem::getLaunchId))
-				.entrySet()
-				.stream()
-				.flatMap(entry -> {
-					Launch launch = launchRepository.findById(entry.getKey())
-							.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, entry.getKey()));
-					return launchPreparerService.prepare(launch, entry.getValue(), analyzerConfig).stream();
-				})
-				.collect(Collectors.toList());
+		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
+		List<TestItem> missedItems = testItems.stream().filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
+
+		List<IndexLaunch> indexLaunchList = launchPreparerService.prepareLaunches(analyzerConfig, missedItems);
 
 		indexerServiceClient.index(indexLaunchList);
 	}

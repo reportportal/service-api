@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
@@ -176,9 +177,8 @@ public class SearchLogServiceImpl implements SearchLogService {
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
 				.collect(toSet()));
-		response.setDuration(testItem.getItemResults().getDuration());
+		response.setDuration(ofNullable(testItem.getItemResults().getDuration()).orElseGet(() -> getDuration(testItem)));
 		response.setStatus(testItem.getItemResults().getStatus().name());
-
 		TestItem itemWithStats = testItem;
 		while (!itemWithStats.isHasStats()) {
 			final Long parentId = itemWithStats.getParentId();
@@ -189,5 +189,9 @@ public class SearchLogServiceImpl implements SearchLogService {
 		response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));
 		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
+	}
+
+	private double getDuration(TestItem testItem) {
+		return ChronoUnit.MILLIS.between(testItem.getStartTime(), testItem.getItemResults().getEndTime()) / 1000d;
 	}
 }

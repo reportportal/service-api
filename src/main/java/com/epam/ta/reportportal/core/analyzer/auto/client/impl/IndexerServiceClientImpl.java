@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_INDEX;
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -81,17 +82,17 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public Map<Integer, List<Long>> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
+	public List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
 		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
-				.collect(Collectors.toMap(EXCHANGE_PRIORITY::applyAsInt, exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(
-						exchange.getName(),
+				.flatMap(exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
 						DEFECT_UPDATE_ROUTE,
 						new IndexDefectsUpdate(projectId, itemsForIndexUpdate),
 						new ParameterizedTypeReference<List<Long>>() {
 						}
-				)).orElse(Collections.emptyList())));
+				)).orElse(Collections.emptyList()).stream())
+				.collect(toList());
 	}
 
 	@Override

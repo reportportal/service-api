@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -103,20 +102,20 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	@Override
 	public boolean validateIntegration(Integration integration) {
-		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
 		expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(), integration.getType().getId()),
 				equalTo(Boolean.FALSE)
-		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
+		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, ofNullable(integration.getName()).orElseGet(() -> integration.getType().getName()));
 		return true;
 	}
 
 	@Override
 	public boolean validateIntegration(Integration integration, Project project) {
-		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
 		expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
 				integration.getType().getId(),
 				project.getId()
-		), equalTo(Boolean.FALSE)).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
+		), equalTo(Boolean.FALSE)).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+				ofNullable(integration.getName()).orElseGet(() -> integration.getType().getName())
+		);
 		return true;
 	}
 
@@ -128,7 +127,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 						integration.getType().getName()
 				));
 
-		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(
+				BAD_REQUEST_ERROR,
 				"Command {} is not found in plugin {}.",
 				TEST_CONNECTION_COMMAND,
 				integration.getType().getName()

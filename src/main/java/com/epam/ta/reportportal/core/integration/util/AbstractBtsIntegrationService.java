@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -57,6 +58,7 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 	}
 
 	private void validateCommonBtsParams(Integration integration) {
+		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
 		expect(BtsConstants.URL.getParam(integration.getParams(), String.class),
 				Optional::isPresent
 		).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.");

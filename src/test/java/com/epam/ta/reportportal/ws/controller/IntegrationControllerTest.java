@@ -54,6 +54,10 @@ class IntegrationControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(post("/v1/integration/email").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
+
+		mockMvc.perform(post("/v1/integration/email").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isConflict());
 	}
 
@@ -83,6 +87,10 @@ class IntegrationControllerTest extends BaseMvcTest {
 		request.setEnabled(true);
 
 		doNothing().when(emailService).testConnection();
+
+		mockMvc.perform(post("/v1/integration/default_personal/email").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
 
 		mockMvc.perform(post("/v1/integration/default_personal/email").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)

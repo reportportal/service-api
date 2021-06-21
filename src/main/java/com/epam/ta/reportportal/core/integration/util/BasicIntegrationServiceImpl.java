@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -33,9 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
+import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
@@ -102,18 +102,19 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	@Override
 	public boolean validateIntegration(Integration integration) {
-		List<Integration> global = integrationRepository.findAllGlobalByType(integration.getType());
-		BusinessRule.expect(global, List::isEmpty).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Integration with type " + integration.getType().getName() + " is already exists"
-		);
+		expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(), integration.getType().getId()),
+				equalTo(Boolean.FALSE)
+		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, ofNullable(integration.getName()).orElseGet(() -> integration.getType().getName()));
 		return true;
 	}
 
 	@Override
 	public boolean validateIntegration(Integration integration, Project project) {
-		List<Integration> integrations = integrationRepository.findAllByProjectIdAndType(project.getId(), integration.getType());
-		BusinessRule.expect(integrations, List::isEmpty).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Integration with type " + integration.getType().getName() + " is already exists for project " + project.getName()
+		expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
+				integration.getType().getId(),
+				project.getId()
+		), equalTo(Boolean.FALSE)).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
+				ofNullable(integration.getName()).orElseGet(() -> integration.getType().getName())
 		);
 		return true;
 	}
@@ -126,7 +127,8 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 						integration.getType().getName()
 				));
 
-		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(
+				BAD_REQUEST_ERROR,
 				"Command {} is not found in plugin {}.",
 				TEST_CONNECTION_COMMAND,
 				integration.getType().getName()

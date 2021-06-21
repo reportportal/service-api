@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexDefectsUpdate;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexItemsRemove;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexLaunchRemove;
 import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.assertj.core.util.Lists;
 import org.assertj.core.util.Maps;
@@ -71,6 +72,16 @@ class IndexerServiceClientImplTest {
 		doNothing().when(rabbitTemplate).convertAndSend(AUTO_ANALYZER_KEY, ITEM_REMOVE_ROUTE, indexItemsRemove);
 		indexerServiceClient.indexItemsRemove(1L, list);
 		verify(rabbitTemplate, times(1)).convertAndSend(AUTO_ANALYZER_KEY, ITEM_REMOVE_ROUTE, indexItemsRemove);
+	}
+
+	@Test
+	void indexLaunchesRemove() {
+		List<Long> list = Lists.newArrayList(1L);
+		IndexLaunchRemove indexLaunchRemove = new IndexLaunchRemove(1L, list);
+		when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
+		doNothing().when(rabbitTemplate).convertAndSend(AUTO_ANALYZER_KEY, LAUNCH_REMOVE_ROUTE, indexLaunchRemove);
+		indexerServiceClient.indexLaunchesRemove(1L, list);
+		verify(rabbitTemplate, times(1)).convertAndSend(AUTO_ANALYZER_KEY, LAUNCH_REMOVE_ROUTE, indexLaunchRemove);
 	}
 
 	private List<ExchangeInfo> getExchanges() {

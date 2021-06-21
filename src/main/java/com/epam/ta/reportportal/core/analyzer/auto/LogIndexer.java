@@ -80,4 +80,12 @@ public interface LogIndexer {
 	 */
 	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
 
+	/**
+	 * Async handle of launches that should be removed from index.
+	 *
+	 * @param projectId              Project id
+	 * @param launchesForIndexRemove Ids of  launches
+	 */
+	void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove);
+
 }

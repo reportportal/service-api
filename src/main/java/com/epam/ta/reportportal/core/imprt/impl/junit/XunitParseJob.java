@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ public class XunitParseJob implements Callable<ParseResults> {
 			spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
 			spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 			spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-
 			spf.setXIncludeAware(false);
 			// Using the XMLReader's setFeature
 			reader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);

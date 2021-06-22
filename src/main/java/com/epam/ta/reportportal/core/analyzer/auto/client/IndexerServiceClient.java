@@ -65,4 +65,11 @@ public interface IndexerServiceClient {
 	 */
 	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
 
+	/**
+	 * Sends a message to the queue with a list of launches which must be removed from index
+	 *
+	 * @param launchesForIndexRemove List of launhces ids
+	 */
+	void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove);
+
 }

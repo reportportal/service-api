@@ -232,4 +232,10 @@ public class LogIndexerService implements LogIndexer {
 		indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
 	}
 
+	@Async
+	@Override
+	public void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove) {
+		indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+	}
+
 }

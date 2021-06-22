@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexDefectsUpdate;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexItemsRemove;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexLaunchRemove;
 import com.epam.ta.reportportal.ws.model.analyzer.CleanIndexRq;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
@@ -48,6 +49,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	private static final String INDEX_ROUTE = "index";
 	static final String DEFECT_UPDATE_ROUTE = "defect_update";
 	static final String ITEM_REMOVE_ROUTE = "item_remove";
+	static final String LAUNCH_REMOVE_ROUTE = "launch_remove";
 	private static final String NAMESPACE_FINDER_ROUTE = "namespace_finder";
 	static final String DELETE_ROUTE = "delete";
 	private static final String CLEAN_ROUTE = "clean";
@@ -103,6 +105,17 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
 						ITEM_REMOVE_ROUTE,
 						new IndexItemsRemove(projectId, itemsForIndexRemove)
+				));
+	}
+
+	@Override
+	public void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove) {
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
+						LAUNCH_REMOVE_ROUTE,
+						new IndexLaunchRemove(projectId, launchesForIndexRemove)
 				));
 	}
 

@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -82,12 +81,9 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 		validate(launch, user, projectDetails);
-		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findItemLogIdsByLaunchIdAndLogLevelGte(launchId, LogLevel.ERROR.toInt())
-		);
 
+		logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
 		launchRepository.delete(launch);
-
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
 		messageBus.publishActivity(new LaunchDeletedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user.getUserId(), user.getUsername()));
@@ -98,6 +94,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		List<Long> notFound = Lists.newArrayList();
 		List<ReportPortalException> exceptions = Lists.newArrayList();
 		List<Launch> toDelete = Lists.newArrayList();
+		List<Long> launchIds = Lists.newArrayList();
 
 		deleteBulkRQ.getIds().forEach(id -> {
 			Optional<Launch> optionalLaunch = launchRepository.findById(id);
@@ -106,6 +103,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 				try {
 					validate(launch, user, projectDetails);
 					toDelete.add(launch);
+					launchIds.add(id);
 				} catch (ReportPortalException ex) {
 					exceptions.add(ex);
 				}
@@ -114,11 +112,8 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 			}
 		});
 
-		List<Long> launchIds = toDelete.stream().map(Launch::getId).collect(Collectors.toList());
 		if (CollectionUtils.isNotEmpty(launchIds)) {
-			logIndexer.cleanIndex(projectDetails.getProjectId(),
-					logRepository.findItemLogIdsByLaunchIdsAndLogLevelGte(launchIds, LogLevel.ERROR.toInt())
-			);
+			logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
 			launchRepository.deleteAll(toDelete);
 			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 		}

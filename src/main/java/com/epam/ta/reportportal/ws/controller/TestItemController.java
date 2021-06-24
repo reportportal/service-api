@@ -21,6 +21,8 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRs;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.SuggestItemService;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
@@ -87,17 +89,19 @@ public class TestItemController {
 	private final UpdateTestItemHandler updateTestItemHandler;
 	private final GetTestItemHandler getTestItemHandler;
 	private final TestItemsHistoryHandler testItemsHistoryHandler;
+	private final SuggestItemService suggestItemService;
 
 	@Autowired
 	public TestItemController(StartTestItemHandler startTestItemHandler, DeleteTestItemHandler deleteTestItemHandler,
 			FinishTestItemHandler finishTestItemHandler, UpdateTestItemHandler updateTestItemHandler, GetTestItemHandler getTestItemHandler,
-			TestItemsHistoryHandler testItemsHistoryHandler) {
+			TestItemsHistoryHandler testItemsHistoryHandler, SuggestItemService suggestItemService) {
 		this.startTestItemHandler = startTestItemHandler;
 		this.deleteTestItemHandler = deleteTestItemHandler;
 		this.finishTestItemHandler = finishTestItemHandler;
 		this.updateTestItemHandler = updateTestItemHandler;
 		this.getTestItemHandler = getTestItemHandler;
 		this.testItemsHistoryHandler = testItemsHistoryHandler;
+		this.suggestItemService = suggestItemService;
 	}
 
 	/* Report client API */
@@ -150,6 +154,15 @@ public class TestItemController {
 			@PathVariable String itemId) {
 		return getTestItemHandler.getTestItem(itemId, extractProjectDetails(user, projectName), user);
 
+	}
+
+	@Transactional(readOnly = true)
+	@GetMapping("/suggest/{itemId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Find test item by UUID")
+	public List<SuggestRs> getSuggestedItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long itemId) {
+		return suggestItemService.suggestItems(itemId, extractProjectDetails(user, projectName), user);
 	}
 
 	//TODO check pre-defined filter

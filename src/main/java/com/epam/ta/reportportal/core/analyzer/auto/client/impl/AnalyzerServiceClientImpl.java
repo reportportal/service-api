@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRs;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
@@ -42,6 +44,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
 	private static final String ANALYZE_ROUTE = "analyze";
 	private static final String SEARCH_ROUTE = "search";
+	private static final String SUGGEST_ROUTE = "suggest";
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
@@ -74,6 +77,26 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 				.filter(DOES_SUPPORT_SEARCH)
 				.collect(toList());
 		return search(rq, analyzerExchanges);
+	}
+
+	@Override
+	public List<SuggestRs> searchSuggests(SuggestRq rq) {
+		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_SEARCH)
+				.collect(toList());
+		if (CollectionUtils.isEmpty(exchangeInfos)) {
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+					"There are no analyzer services with suggest items support deployed."
+			);
+		}
+		ExchangeInfo prioritizedExchange = Collections.min(exchangeInfos, Comparator.comparingInt(EXCHANGE_PRIORITY));
+		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
+				SUGGEST_ROUTE,
+				rq,
+				new ParameterizedTypeReference<>() {
+				}
+		);
 	}
 
 	private List<SearchRs> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {

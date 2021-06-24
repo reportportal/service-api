@@ -34,6 +34,7 @@ public final class AnalyzerUtils {
 	static final String ANALYZER_PRIORITY = "analyzer_priority";
 	static final String ANALYZER_INDEX = "analyzer_index";
 	static final String ANALYZER_LOG_SEARCH = "analyzer_log_search";
+	static final String ANALYZER_SUGGEST = "analyzer_suggest";
 
 	/**
 	 * Comparing by client service priority
@@ -54,5 +55,12 @@ public final class AnalyzerUtils {
 	 */
 	static final Predicate<ExchangeInfo> DOES_SUPPORT_SEARCH = it -> ofNullable(it.getArguments()
 			.get(ANALYZER_LOG_SEARCH)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
+
+	/**
+	 * Checks if service support logs searching. <code>false</code>
+	 * by default
+	 */
+	static final Predicate<ExchangeInfo> DOES_SUPPORT_SUGGEST = it -> ofNullable(it.getArguments()
+			.get(ANALYZER_SUGGEST)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
 
 }

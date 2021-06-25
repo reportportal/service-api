@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,8 +88,9 @@ public class SuggestItemService {
 		return suggestRS.stream().map(this::prepareSuggestedItem).collect(Collectors.toList());
 	}
 
-	public void handleSuggestChoice(List<SuggestInfo> suggestInfos) {
+	public OperationCompletionRS handleSuggestChoice(List<SuggestInfo> suggestInfos) {
 		analyzerServiceClient.handleSuggestChoice(suggestInfos);
+		return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");
 	}
 
 	private SuggestedItem prepareSuggestedItem(SuggestInfo suggestInfo) {

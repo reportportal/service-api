@@ -160,7 +160,7 @@ public class TestItemController {
 	@Transactional(readOnly = true)
 	@GetMapping("/suggest/{itemId}")
 	@ResponseStatus(OK)
-	@ApiOperation("Find test item by UUID")
+	@ApiOperation("Search suggested items in analyzer for provided one")
 	public List<SuggestedItem> getSuggestedItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable Long itemId) {
 		return suggestItemService.suggestItems(itemId, extractProjectDetails(user, projectName), user);

@@ -6,3 +6,4 @@ ignore:
   - "**/demodata/**"
   - "**/exception/**"
   - "**/job/FlushingDataJob**"
+  - "**/core/analyzer/auto/client/model**"

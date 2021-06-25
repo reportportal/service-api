@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -57,24 +56,5 @@ public class SuggestedItem {
 
 	public void setSuggestRs(SuggestInfo suggestInfo) {
 		this.suggestInfo = suggestInfo;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		SuggestedItem that = (SuggestedItem) o;
-		return Objects.equals(testItemResource, that.testItemResource) && Objects.equals(logs, that.logs) && Objects.equals(suggestInfo,
-				that.suggestInfo
-		);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(testItemResource, logs, suggestInfo);
 	}
 }

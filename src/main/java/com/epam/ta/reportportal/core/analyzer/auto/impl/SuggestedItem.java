@@ -1,0 +1,66 @@
+package com.epam.ta.reportportal.core.analyzer.auto.impl;
+
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
+import com.epam.ta.reportportal.ws.model.TestItemResource;
+import com.epam.ta.reportportal.ws.model.log.LogResource;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.io.Serializable;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SuggestedItem implements Serializable {
+
+	private TestItemResource testItemResource;
+
+	private Set<LogResource> logs;
+
+	private SuggestInfo suggestInfo;
+
+	public Set<LogResource> getLogs() {
+		return logs;
+	}
+
+	public void setLogs(Set<LogResource> logs) {
+		this.logs = logs;
+	}
+
+	public TestItemResource getTestItemResource() {
+		return testItemResource;
+	}
+
+	public void setTestItemResource(TestItemResource testItemResource) {
+		this.testItemResource = testItemResource;
+	}
+
+	public SuggestInfo getSuggestRs() {
+		return suggestInfo;
+	}
+
+	public void setSuggestRs(SuggestInfo suggestInfo) {
+		this.suggestInfo = suggestInfo;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		SuggestedItem that = (SuggestedItem) o;
+		return Objects.equals(testItemResource, that.testItemResource) && Objects.equals(logs, that.logs) && Objects.equals(suggestInfo,
+				that.suggestInfo
+		);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(testItemResource, logs, suggestInfo);
+	}
+}

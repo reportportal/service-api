@@ -21,8 +21,9 @@ import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
 import com.epam.ta.reportportal.commons.querygen.Condition;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRs;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.SuggestItemService;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.SuggestedItem;
 import com.epam.ta.reportportal.core.item.*;
 import com.epam.ta.reportportal.core.item.history.TestItemsHistoryHandler;
 import com.epam.ta.reportportal.core.item.impl.history.param.HistoryRequestParams;
@@ -160,9 +161,19 @@ public class TestItemController {
 	@GetMapping("/suggest/{itemId}")
 	@ResponseStatus(OK)
 	@ApiOperation("Find test item by UUID")
-	public List<SuggestRs> getSuggestedItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+	public List<SuggestedItem> getSuggestedItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable Long itemId) {
 		return suggestItemService.suggestItems(itemId, extractProjectDetails(user, projectName), user);
+	}
+
+	@Transactional
+	@PutMapping("/suggest/choice")
+	@ResponseStatus(OK)
+	@ApiOperation("Handle user choice from suggested items")
+	public OperationCompletionRS handleSuggestChoose(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@RequestBody @Validated List<SuggestInfo> request) {
+		suggestItemService.handleSuggestChoose(request);
+		return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");
 	}
 
 	//TODO check pre-defined filter

@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRs;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
@@ -45,6 +45,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	private static final String ANALYZE_ROUTE = "analyze";
 	private static final String SEARCH_ROUTE = "search";
 	private static final String SUGGEST_ROUTE = "suggest";
+	private static final String SUGGEST_INFO_ROUTE = "index_suggest_info";
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
@@ -80,7 +81,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	}
 
 	@Override
-	public List<SuggestRs> searchSuggests(SuggestRq rq) {
+	public List<SuggestInfo> searchSuggests(SuggestRq rq) {
 		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SEARCH)
@@ -97,6 +98,21 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 				new ParameterizedTypeReference<>() {
 				}
 		);
+	}
+
+	@Override
+	public void handleSuggestChoose(List<SuggestInfo> suggestInfos) {
+		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_SEARCH)
+				.collect(toList());
+		if (CollectionUtils.isEmpty(exchangeInfos)) {
+			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+					"There are no analyzer services with suggest items support deployed."
+			);
+		}
+		ExchangeInfo prioritizedExchange = Collections.min(exchangeInfos, Comparator.comparingInt(EXCHANGE_PRIORITY));
+		rabbitTemplate.convertAndSend(prioritizedExchange.getName(), SUGGEST_INFO_ROUTE, suggestInfos);
 	}
 
 	private List<SearchRs> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {

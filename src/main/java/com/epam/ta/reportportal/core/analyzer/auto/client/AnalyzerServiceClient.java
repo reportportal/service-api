@@ -79,9 +79,9 @@ public interface AnalyzerServiceClient {
 	List<SuggestInfo> searchSuggests(SuggestRq rq);
 
 	/**
-	 * Sends to analyzer info about user choose from suggests
+	 * Sends to analyzer info about user choice from suggests
 	 *
 	 * @param suggestInfos Info about user suggests
 	 */
-	void handleSuggestChoose(List<SuggestInfo> suggestInfos);
+	void handleSuggestChoice(List<SuggestInfo> suggestInfos);
 }

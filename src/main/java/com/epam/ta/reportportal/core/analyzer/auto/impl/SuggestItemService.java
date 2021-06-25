@@ -72,8 +72,8 @@ public class SuggestItemService {
 		return suggestRS.stream().map(this::prepareSuggestedItem).collect(Collectors.toList());
 	}
 
-	public void handleSuggestChoose(List<SuggestInfo> suggestInfos) {
-		analyzerServiceClient.handleSuggestChoose(suggestInfos);
+	public void handleSuggestChoice(List<SuggestInfo> suggestInfos) {
+		analyzerServiceClient.handleSuggestChoice(suggestInfos);
 	}
 
 	private SuggestedItem prepareSuggestedItem(SuggestInfo suggestInfo) {

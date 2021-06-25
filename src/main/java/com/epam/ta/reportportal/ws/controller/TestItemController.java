@@ -172,7 +172,7 @@ public class TestItemController {
 	@ApiOperation("Handle user choice from suggested items")
 	public OperationCompletionRS handleSuggestChoose(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated List<SuggestInfo> request) {
-		suggestItemService.handleSuggestChoose(request);
+		suggestItemService.handleSuggestChoice(request);
 		return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");
 	}
 

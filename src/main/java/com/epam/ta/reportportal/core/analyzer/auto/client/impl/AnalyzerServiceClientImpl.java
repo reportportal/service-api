@@ -101,7 +101,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	}
 
 	@Override
-	public void handleSuggestChoose(List<SuggestInfo> suggestInfos) {
+	public void handleSuggestChoice(List<SuggestInfo> suggestInfos) {
 		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SEARCH)

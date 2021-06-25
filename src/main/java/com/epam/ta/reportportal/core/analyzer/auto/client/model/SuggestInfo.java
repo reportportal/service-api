@@ -15,13 +15,12 @@
  */
 package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class SuggestInfo implements Serializable {
+public class SuggestInfo {
 
 	private Long project;
 

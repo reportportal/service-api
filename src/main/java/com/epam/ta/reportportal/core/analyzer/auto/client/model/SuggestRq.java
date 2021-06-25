@@ -18,14 +18,13 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class SuggestRq implements Serializable {
+public class SuggestRq {
 
 	private Long testItemId;
 

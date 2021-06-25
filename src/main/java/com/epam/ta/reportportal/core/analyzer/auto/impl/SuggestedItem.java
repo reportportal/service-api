@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.ws.model.TestItemResource;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
@@ -28,7 +27,7 @@ import java.util.Set;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SuggestedItem implements Serializable {
+public class SuggestedItem {
 
 	private TestItemResource testItemResource;
 

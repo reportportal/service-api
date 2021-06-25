@@ -84,7 +84,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	public List<SuggestInfo> searchSuggests(SuggestRq rq) {
 		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
-				.filter(DOES_SUPPORT_SEARCH)
+				.filter(DOES_SUPPORT_SUGGEST)
 				.collect(toList());
 		if (CollectionUtils.isEmpty(exchangeInfos)) {
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,

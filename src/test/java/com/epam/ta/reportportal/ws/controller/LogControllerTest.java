@@ -16,8 +16,10 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
+import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,8 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,16 +59,19 @@ class LogControllerTest extends BaseMvcTest {
 	}
 
 	@Test
-	void createLogEntryPositive() throws Exception {
-		SaveLogRQ rq = new SaveLogRQ();
-		rq.setLaunchUuid(UUID.randomUUID().toString());
-		rq.setItemUuid("f3960757-1a06-405e-9eb7-607c34683154");
-		rq.setLevel("ERROR");
-		rq.setMessage("log message");
-		rq.setLogTime(Date.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
-		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/log/entry").with(token(oAuthHelper.getDefaultToken()))
+	void searchLogsNegative() throws Exception {
+		SearchLogRq rq = new SearchLogRq();
+		rq.setSearchMode("currentLaunch");
+		rq.setFilterId(1L);
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/log/search/1").with(token(oAuthHelper.getDefaultToken()))
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsBytes(rq))).andExpect(status().isCreated());
+				.content(objectMapper.writeValueAsBytes(rq)))
+				.andExpect(result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
+				.andExpect(result -> assertEquals(
+						"Unable to perform operation for non-finished test item.",
+						result.getResolvedException().getMessage()
+				));
+		;
 	}
 
 	@Test
@@ -85,12 +92,16 @@ class LogControllerTest extends BaseMvcTest {
 
 	@Test
 	void getLogStringPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/log/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test
 	void getLogUuidPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/log/uuid/9ba98f41-2cde-4510-8503-d8eda901cc71").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().isOk());
 	}
 
 	@Test

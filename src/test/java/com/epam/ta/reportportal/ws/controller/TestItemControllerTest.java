@@ -16,12 +16,14 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
@@ -175,6 +177,16 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getSuggestedItemsAnalyzerNotDeployed() throws Exception {
+		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/suggest/1").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
+				.andExpect(result -> assertEquals(
+						"Impossible interact with integration. There are no analyzer services with suggest items support deployed.",
+						result.getResolvedException().getMessage()
+				));
+	}
+
+	@Test
 	void getTestItemPositive() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/1").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
@@ -304,6 +316,20 @@ class TestItemControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void handleSuggestChooseAnalyzerNotDeployed() throws Exception {
+		SuggestInfo suggestInfo = new SuggestInfo();
+		suggestInfo.setTestItem(1L);
+		mockMvc.perform(put(DEFAULT_PROJECT_BASE_URL + "/item/suggest/choice").with(token(oAuthHelper.getDefaultToken()))
+				.contentType(APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(Lists.newArrayList(suggestInfo))))
+				.andExpect(result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
+				.andExpect(result -> assertEquals(
+						"Impossible interact with integration. There are no analyzer services with suggest items support deployed.",
+						result.getResolvedException().getMessage()
+				));
+	}
+
+	@Test
 	void getTickets() throws Exception {
 		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/ticket/ids?launch=1&term=ticket").with(token(oAuthHelper.getDefaultToken())))
 				.andExpect(status().isOk());
@@ -331,15 +357,16 @@ class TestItemControllerTest extends BaseMvcTest {
 
 	@Test
 	void getAttributeKeysByProjectId() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL
-				+ "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(token(oAuthHelper.getDefaultToken())))
-				.andExpect(status().isOk());
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/keys?filter.eq.name=test launch&filter.cnt.attributeKey=bro").with(token(
+				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
 	void getAttributeValuesByKeyAndProjectId() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(token(
-				oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/item/step/attribute/values?filter.eq.name=test launch&filter.cnt.attributeValue=lin").with(
+				token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 	}
 
 	@Test
@@ -620,8 +647,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
@@ -676,8 +702,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		updatedItem = testItemRepository.findById(11L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.PRODUCT_BUG,
+		assertEquals(TestItemIssueGroup.PRODUCT_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
@@ -721,8 +746,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.AUTOMATION_BUG,
+		assertEquals(TestItemIssueGroup.AUTOMATION_BUG,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
@@ -746,8 +770,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
@@ -815,8 +838,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.SKIPPED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());
@@ -840,8 +862,7 @@ class TestItemControllerTest extends BaseMvcTest {
 		Optional<TestItem> updatedItem = testItemRepository.findById(6L);
 		assertTrue(updatedItem.isPresent());
 		assertEquals(StatusEnum.FAILED, updatedItem.get().getItemResults().getStatus());
-		assertEquals(
-				TestItemIssueGroup.TO_INVESTIGATE,
+		assertEquals(TestItemIssueGroup.TO_INVESTIGATE,
 				updatedItem.get().getItemResults().getIssue().getIssueType().getIssueGroup().getTestItemIssueGroup()
 		);
 		assertEquals(StatusEnum.FAILED, testItemRepository.findById(updatedItem.get().getParentId()).get().getItemResults().getStatus());

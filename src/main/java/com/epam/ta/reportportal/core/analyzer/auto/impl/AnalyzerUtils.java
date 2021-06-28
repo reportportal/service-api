@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ public class AnalyzerUtils {
 	 * Creates {@link IndexLog} model for log for further
 	 * sending that into analyzer
 	 */
-	private static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
+	private final static Function<Log, IndexLog> TO_INDEX_LOG = log -> {
 		IndexLog indexLog = new IndexLog();
 		indexLog.setLogId(log.getId());
 		if (log.getLogLevel() != null) {
@@ -79,9 +80,13 @@ public class AnalyzerUtils {
 			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
 		}
 		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(logs.stream().filter(it -> StringUtils.isNotEmpty(it.getLogMessage())).map(TO_INDEX_LOG).collect(Collectors.toSet()));
+			indexTestItem.setLogs(fromLogs(logs));
 		}
 		return indexTestItem;
+	}
+
+	public static Set<IndexLog> fromLogs(List<Log> logs) {
+		return logs.stream().filter(it -> StringUtils.isNotEmpty(it.getLogMessage())).map(TO_INDEX_LOG).collect(Collectors.toSet());
 	}
 
 	public static AnalyzerConfig getAnalyzerConfig(Project project) {

@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRuleViolationException;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.LogIndexerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
@@ -28,10 +28,11 @@ import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
-import com.epam.ta.reportportal.dao.*;
+import com.epam.ta.reportportal.dao.IssueEntityRepository;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
@@ -59,8 +60,6 @@ import com.epam.ta.reportportal.ws.model.item.ExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.LinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UnlinkExternalIssueRQ;
 import com.epam.ta.reportportal.ws.model.item.UpdateTestItemRQ;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,33 +101,30 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
-	private final LogRepository logRepository;
-
 	private final ExternalTicketHandler externalTicketHandler;
 
 	private final IssueTypeHandler issueTypeHandler;
 
 	private final MessageBus messageBus;
 
-	private final LogIndexer logIndexer;
+	private final LogIndexerService logIndexerService;
 
 	private final IssueEntityRepository issueEntityRepository;
 
 	private final Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping;
 
 	@Autowired
-	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, LogRepository logRepository, ExternalTicketHandler externalTicketHandler,
-			IssueTypeHandler issueTypeHandler, MessageBus messageBus, LogIndexer logIndexer, IssueEntityRepository issueEntityRepository,
+	public UpdateTestItemHandlerImpl(TestItemService testItemService, ProjectRepository projectRepository,
+			TestItemRepository testItemRepository, ExternalTicketHandler externalTicketHandler, IssueTypeHandler issueTypeHandler,
+			MessageBus messageBus, LogIndexerService logIndexerService, IssueEntityRepository issueEntityRepository,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping) {
 		this.testItemService = testItemService;
 		this.projectRepository = projectRepository;
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
 		this.externalTicketHandler = externalTicketHandler;
 		this.issueTypeHandler = issueTypeHandler;
 		this.messageBus = messageBus;
-		this.logIndexer = logIndexer;
+		this.logIndexerService = logIndexerService;
 		this.issueEntityRepository = issueEntityRepository;
 		this.statusChangingStrategyMapping = statusChangingStrategyMapping;
 	}
@@ -138,17 +134,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			ReportPortalUser user) {
 		Project project = projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
-		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
 
 		List<String> errors = new ArrayList<>();
 		List<IssueDefinition> definitions = defineIssue.getIssues();
 		expect(CollectionUtils.isEmpty(definitions), equalTo(false)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION);
 		List<Issue> updated = new ArrayList<>(defineIssue.getIssues().size());
 		List<ItemIssueTypeDefinedEvent> events = new ArrayList<>();
-
-		// key - launch id, value - list of item ids
-		Map<Long, List<Long>> logsToReindexMap = new HashMap<>();
-		List<Long> logIdsToCleanIndex = new ArrayList<>();
+		List<TestItem> itemsForIndexUpdate = new ArrayList<>();
+		List<Long> itemsForIndexRemove = new ArrayList<>();
 
 		definitions.forEach(issueDefinition -> {
 			try {
@@ -172,27 +165,14 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 				externalTicketHandler.updateLinking(user.getUsername(), issueEntity, issueDefinition.getIssue().getExternalSystemIssues());
 
-				issueEntity.setTestItemResults(testItem.getItemResults());
-				issueEntityRepository.save(issueEntity);
 				testItem.getItemResults().setIssue(issueEntity);
-
+				issueEntity.setTestItemResults(testItem.getItemResults());
 				testItemRepository.save(testItem);
 
 				if (ITEM_CAN_BE_INDEXED.test(testItem)) {
-					Long launchId = testItem.getLaunchId();
-					Long itemId = testItem.getItemId();
-					if (logsToReindexMap.containsKey(launchId)) {
-						logsToReindexMap.get(launchId).add(itemId);
-					} else {
-						List<Long> itemIds = Lists.newArrayList();
-						itemIds.add(itemId);
-						logsToReindexMap.put(launchId, itemIds);
-					}
+					itemsForIndexUpdate.add(testItem);
 				} else {
-					logIdsToCleanIndex.addAll(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							Collections.singletonList(testItem.getItemId()),
-							LogLevel.ERROR.toInt()
-					));
+					itemsForIndexRemove.add(testItem.getItemId());
 				}
 
 				updated.add(IssueConverter.TO_MODEL.apply(issueEntity));
@@ -205,12 +185,10 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 			}
 		});
 		expect(errors.isEmpty(), equalTo(TRUE)).verify(FAILED_TEST_ITEM_ISSUE_TYPE_DEFINITION, errors.toString());
-		if (!logsToReindexMap.isEmpty()) {
-			logsToReindexMap.forEach((key, value) -> logIndexer.indexItemsLogs(project.getId(), key, value, analyzerConfig));
-		}
-		if (!logIdsToCleanIndex.isEmpty()) {
-			logIndexer.cleanIndex(project.getId(), logIdsToCleanIndex);
-		}
+
+		logIndexerService.indexDefectsUpdate(project.getId(), AnalyzerUtils.getAnalyzerConfig(project), itemsForIndexUpdate);
+		logIndexerService.indexItemsRemove(project.getId(), itemsForIndexRemove);
+
 		events.forEach(messageBus::publishActivity);
 		return updated;
 	}
@@ -225,8 +203,7 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Optional<StatusEnum> providedStatus = StatusEnum.fromValue(rq.getStatus());
 		if (providedStatus.isPresent() && !providedStatus.get().equals(testItem.getItemResults().getStatus())) {
-			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(
-					INCORRECT_REQUEST,
+			expect(testItem.isHasChildren() && !testItem.getType().sameLevel(TestItemTypeEnum.STEP), equalTo(FALSE)).verify(INCORRECT_REQUEST,
 					"Unable to change status on test item with children"
 			);
 			checkInitialStatusAttribute(testItem, rq);
@@ -314,7 +291,8 @@ public class UpdateTestItemHandlerImpl implements UpdateTestItemHandler {
 
 		Consumer<ItemAttribute> removeManuallyStatusAttributeIfSameAsInitial = statusAttribute -> extractAttributeResource(request.getAttributes(),
 				MANUALLY_CHANGED_STATUS_ATTRIBUTE_KEY
-		).filter(it -> it.getValue().equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
+		).filter(it -> it.getValue()
+				.equalsIgnoreCase(statusAttribute.getValue())).ifPresent(it -> request.getAttributes().remove(it));
 
 		extractAttribute(item.getAttributes(), INITIAL_STATUS_ATTRIBUTE_KEY).ifPresentOrElse(removeManuallyStatusAttributeIfSameAsInitial,
 				addInitialStatusAttribute

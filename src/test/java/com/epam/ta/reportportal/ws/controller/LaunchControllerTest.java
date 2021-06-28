@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import com.epam.ta.reportportal.ws.model.BulkInfoUpdateRQ;
 import com.epam.ta.reportportal.ws.model.BulkRQ;
@@ -30,6 +31,7 @@ import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
 import com.epam.ta.reportportal.ws.model.attribute.UpdateItemAttributeRQ;
+import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
@@ -85,6 +87,23 @@ class LaunchControllerTest extends BaseMvcTest {
 	}
 
 	@Test
+	void getSuggestedItemsAnalyzerNotDeployed() throws Exception {
+		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
+		analyzeLaunchRQ.setLaunchId(1L);
+		analyzeLaunchRQ.setAnalyzeItemsModes(Collections.singletonList("TO_INVESTIGATE"));
+		analyzeLaunchRQ.setAnalyzerTypeName("autoAnalyzer");
+		analyzeLaunchRQ.setAnalyzerHistoryMode("ALL");
+		mockMvc.perform(post(DEFAULT_PROJECT_BASE_URL + "/launch/analyze").with(token(oAuthHelper.getDefaultToken()))
+				.content(objectMapper.writeValueAsBytes(analyzeLaunchRQ))
+				.contentType(APPLICATION_JSON))
+				.andExpect(result -> assertTrue(result.getResolvedException() instanceof ReportPortalException))
+				.andExpect(result -> assertEquals(
+						"Impossible interact with integration. There are no analyzer services are deployed.",
+						result.getResolvedException().getMessage()
+				));
+	}
+
+	@Test
 	void updateLaunchPositive() throws Exception {
 		UpdateLaunchRQ rq = new UpdateLaunchRQ();
 		rq.setMode(DEFAULT);
@@ -102,12 +121,16 @@ class LaunchControllerTest extends BaseMvcTest {
 
 	@Test
 	void getLaunchStringPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/launch/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().is(200));
 	}
 
 	@Test
 	void getLaunchUuidPositive() throws Exception {
-		mockMvc.perform(get(DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().is(200));
+		mockMvc.perform(get(
+				DEFAULT_PROJECT_BASE_URL + "/launch/uuid/4850a659-ac26-4a65-8ea4-a6756a57fb92").with(token(oAuthHelper.getDefaultToken())))
+				.andExpect(status().is(200));
 	}
 
 	@Test

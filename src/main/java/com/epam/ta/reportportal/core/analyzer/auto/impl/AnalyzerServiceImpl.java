@@ -237,13 +237,19 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		TestItem relevantItem = testItemRepository.findById(relevantItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, relevantItemId));
 
-		if (relevantItem.getItemResults().getIssue() != null) {
-			issue.setIssueDescription(emptyToNull(nullToEmpty(issue.getIssueDescription()) + nullToEmpty(relevantItem.getItemResults()
-					.getIssue()
-					.getIssueDescription())));
-			issue.setTickets(Sets.newHashSet(relevantItem.getItemResults().getIssue().getTickets()));
-		}
+		ofNullable(relevantItem.getItemResults().getIssue()).ifPresent(relevantIssue -> {
+			final String issueDescription = resolveDescription(issue, relevantIssue);
+			issue.setIssueDescription(emptyToNull(issueDescription));
+			issue.setTickets(Sets.newHashSet(relevantIssue.getTickets()));
+		});
 
 		return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
+	}
+
+	private String resolveDescription(IssueEntity issue, IssueEntity relevantIssue) {
+		return ofNullable(issue.getIssueDescription()).map(description -> String.join("\n",
+				description,
+				nullToEmpty(relevantIssue.getIssueDescription())
+		)).orElseGet(() -> nullToEmpty(relevantIssue.getIssueDescription()));
 	}
 }

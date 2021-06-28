@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
@@ -47,19 +46,14 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 	@Override
 	public boolean validateIntegration(Integration integration) {
 		validateCommonBtsParams(integration);
-		expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(), integration.getType().getId()),
-				equalTo(Boolean.FALSE)
-		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
+		super.validateIntegration(integration);
 		return true;
 	}
 
 	@Override
 	public boolean validateIntegration(Integration integration, Project project) {
 		validateCommonBtsParams(integration);
-		expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
-				integration.getType().getId(),
-				project.getId()
-		), equalTo(Boolean.FALSE)).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, integration.getName());
+		super.validateIntegration(integration, project);
 		return true;
 	}
 

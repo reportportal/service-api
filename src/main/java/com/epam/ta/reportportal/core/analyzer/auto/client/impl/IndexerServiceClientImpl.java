@@ -18,6 +18,9 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.RabbitMqManagementClient;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexDefectsUpdate;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexItemsRemove;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.IndexLaunchRemove;
 import com.epam.ta.reportportal.ws.model.analyzer.CleanIndexRq;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
@@ -28,14 +31,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.DOES_SUPPORT_INDEX;
 import static com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils.EXCHANGE_PRIORITY;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -45,8 +47,11 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndexerServiceClient.class);
 	private static final String INDEX_ROUTE = "index";
+	static final String DEFECT_UPDATE_ROUTE = "defect_update";
+	static final String ITEM_REMOVE_ROUTE = "item_remove";
+	static final String LAUNCH_REMOVE_ROUTE = "launch_remove";
 	private static final String NAMESPACE_FINDER_ROUTE = "namespace_finder";
-	private static final String DELETE_ROUTE = "delete";
+	static final String DELETE_ROUTE = "delete";
 	private static final String CLEAN_ROUTE = "clean";
 	private static final Integer DELETE_INDEX_SUCCESS_CODE = 1;
 
@@ -79,6 +84,42 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
+	public List<Long> indexDefectsUpdate(Long projectId, Map<Long, String> itemsForIndexUpdate) {
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.flatMap(exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+						DEFECT_UPDATE_ROUTE,
+						new IndexDefectsUpdate(projectId, itemsForIndexUpdate),
+						new ParameterizedTypeReference<List<Long>>() {
+						}
+				)).orElse(Collections.emptyList()).stream())
+				.collect(toList());
+	}
+
+	@Override
+	public void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove) {
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
+						ITEM_REMOVE_ROUTE,
+						new IndexItemsRemove(projectId, itemsForIndexRemove)
+				));
+	}
+
+	@Override
+	public void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove) {
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.forEach(exchange -> rabbitTemplate.convertAndSend(exchange.getName(),
+						LAUNCH_REMOVE_ROUTE,
+						new IndexLaunchRemove(projectId, launchesForIndexRemove)
+				));
+	}
+
+	@Override
 	public Long cleanIndex(Long index, List<Long> ids) {
 		Map<Integer, Long> priorityToCleanedLogsCountMapping = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
@@ -93,7 +134,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 		return priorityToCleanedLogsCountMapping.entrySet()
 				.stream()
 				.min(Map.Entry.comparingByKey())
-				.orElseGet(() -> new AbstractMap.SimpleEntry<Integer, Long>(0, 0L))
+				.orElseGet(() -> new AbstractMap.SimpleEntry<>(0, 0L))
 				.getValue();
 	}
 

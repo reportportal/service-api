@@ -37,6 +37,16 @@ public class IdentityUtil {
 		return getIds(testItem.getPath(), true);
 	}
 
+	/**
+	 * * Parse {@link TestItem#getPath()} and get all ids including id of the provided {@link TestItem}
+	 *
+	 * @param path {@link TestItem#getPath()}
+	 * @return {@link List} with ids parsed from {@link TestItem#getPath()}
+	 */
+	public static List<Long> getItemTreeIds(String path) {
+		return getIds(path, true);
+	}
+
 	private static List<Long> getIds(String path, boolean includeLast) {
 		String[] ids = path.split("\\.");
 		return Stream.of(ids).limit(includeLast ? ids.length : ids.length - 1).map(id -> {

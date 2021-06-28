@@ -2,11 +2,9 @@ package com.epam.ta.reportportal.core.item.impl.retry;
 
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
-import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -17,15 +15,15 @@ import static java.util.Optional.ofNullable;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@Service("uniqueIdRetriesHandler")
-public class UniqueIdRetriesHandler extends AbstractRetriesHandler {
+@Service("uniqueIdRetrySearcher")
+public class UniqueIdRetrySearcher implements RetrySearcher {
 
 	private final UniqueIdGenerator uniqueIdGenerator;
+	private final TestItemRepository testItemRepository;
 
-	public UniqueIdRetriesHandler(TestItemRepository testItemRepository, LaunchRepository launchRepository,
-			ApplicationEventPublisher eventPublisher, UniqueIdGenerator uniqueIdGenerator) {
-		super(testItemRepository, launchRepository, eventPublisher);
+	public UniqueIdRetrySearcher(UniqueIdGenerator uniqueIdGenerator, TestItemRepository testItemRepository) {
 		this.uniqueIdGenerator = uniqueIdGenerator;
+		this.testItemRepository = testItemRepository;
 	}
 
 	@Override

@@ -30,16 +30,22 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRsIndex;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRsItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.assertj.core.util.Lists;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,6 +57,10 @@ import static org.mockito.Mockito.*;
  * @author Ivan Sharamet
  */
 class LogIndexerServiceTest {
+
+	private Integer launchBatchSize = 50;
+
+	private TaskExecutor taskExecutor = new SyncTaskExecutor();
 
 	private IndexerServiceClient indexerServiceClient = mock(IndexerServiceClient.class);
 
@@ -64,7 +74,9 @@ class LogIndexerServiceTest {
 
 	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
-	private LogIndexerService logIndexerService = new LogIndexerService(launchRepository,
+	private LogIndexerService logIndexerService = new LogIndexerService(launchBatchSize,
+			taskExecutor,
+			launchRepository,
 			testItemRepository,
 			indexerServiceClient,
 			launchPreparerService,
@@ -72,25 +84,34 @@ class LogIndexerServiceTest {
 	);
 
 	@Test
-	void testIndexLogsWithNonExistentLaunchId() {
-		Long launchId = 1L;
-		when(launchRepository.findById(launchId)).thenReturn(Optional.empty());
-		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig())
-				.exceptionally(it -> 0L)
-				.join();
+	void testIndexLogsWithoutTestItems() {
+		Long launchId = 2L;
+		final IndexLaunch indexLaunch = new IndexLaunch();
+		indexLaunch.setLaunchId(launchId);
+		when(launchRepository.findIndexLaunchByProjectId(eq(1L), anyInt(), anyLong())).thenReturn(List.of(indexLaunch));
+		when(testItemRepository.findIndexTestItemByLaunchId(eq(launchId),
+				eq(List.of(JTestItemTypeEnum.STEP))
+		)).thenReturn(Collections.emptyList());
+		Long result = logIndexerService.index(1L, analyzerConfig()).join();
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
 		verifyZeroInteractions(logRepository);
 		verify(indexerStatusCache, times(1)).indexingFinished(1L);
 	}
 
 	@Test
-	void testIndexLogsWithoutTestItems() {
-		Long launchId = 2L;
-		when(launchRepository.findById(launchId)).thenReturn(Optional.of(createLaunch(launchId)));
-		Long result = logIndexerService.indexLaunchesLogs(1L, Collections.singletonList(launchId), analyzerConfig()).join();
-		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
-		verifyZeroInteractions(logRepository);
-		verify(indexerStatusCache, times(1)).indexingFinished(1L);
+	void testIndexDefectsUpdate() {
+		final Map<Long, String> toUpdate = Maps.newHashMap(1L, "pb001");
+		when(indexerServiceClient.indexDefectsUpdate(1L, toUpdate)).thenReturn(Collections.emptyList());
+		logIndexerService.indexDefectsUpdate(1L, new AnalyzerConfig(), Lists.newArrayList(createTestItem(1L, TestItemIssueGroup.PRODUCT_BUG)));
+		verify(indexerServiceClient, times(1)).indexDefectsUpdate(1L, toUpdate);
+	}
+
+	@Test
+	void testIndexItemsRemove() {
+		List<Long> list = Lists.newArrayList(1L);
+		doNothing().when(indexerServiceClient).indexItemsRemove(1L, list);
+		logIndexerService.indexItemsRemove(1L, list);
+		verify(indexerServiceClient, times(1)).indexItemsRemove(1L, list);
 	}
 
 	private AnalyzerConfig analyzerConfig() {

@@ -102,17 +102,15 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
 	@Override
 	public void handleSuggestChoice(List<SuggestInfo> suggestInfos) {
-		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+		String exchangeName = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SEARCH)
-				.collect(toList());
-		if (CollectionUtils.isEmpty(exchangeInfos)) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					"There are no analyzer services with suggest items support deployed."
-			);
-		}
-		ExchangeInfo prioritizedExchange = Collections.min(exchangeInfos, Comparator.comparingInt(EXCHANGE_PRIORITY));
-		rabbitTemplate.convertAndSend(prioritizedExchange.getName(), SUGGEST_INFO_ROUTE, suggestInfos);
+				.min(Comparator.comparingInt(EXCHANGE_PRIORITY))
+				.map(ExchangeInfo::getName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"There are no analyzer services with suggest items support deployed."
+				));
+		rabbitTemplate.convertAndSend(exchangeName, SUGGEST_INFO_ROUTE, suggestInfos);
 	}
 
 	private List<SearchRs> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {

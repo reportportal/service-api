@@ -73,31 +73,30 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 
 	@Override
 	public List<SearchRs> searchLogs(SearchRq rq) {
-		List<ExchangeInfo> analyzerExchanges = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+		String exchangeName = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SEARCH)
-				.collect(toList());
-		return search(rq, analyzerExchanges);
+				.min(Comparator.comparingInt(EXCHANGE_PRIORITY))
+				.map(ExchangeInfo::getName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"There are no analyzer services with search logs support deployed."
+				));
+		return rabbitTemplate.convertSendAndReceiveAsType(exchangeName, SEARCH_ROUTE, rq, new ParameterizedTypeReference<>() {
+		});
 	}
 
 	@Override
 	public List<SuggestInfo> searchSuggests(SuggestRq rq) {
-		final List<ExchangeInfo> exchangeInfos = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+		String exchangeName = rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SUGGEST)
-				.collect(toList());
-		if (CollectionUtils.isEmpty(exchangeInfos)) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					"There are no analyzer services with suggest items support deployed."
-			);
-		}
-		ExchangeInfo prioritizedExchange = Collections.min(exchangeInfos, Comparator.comparingInt(EXCHANGE_PRIORITY));
-		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
-				SUGGEST_ROUTE,
-				rq,
-				new ParameterizedTypeReference<>() {
-				}
-		);
+				.min(Comparator.comparingInt(EXCHANGE_PRIORITY))
+				.map(ExchangeInfo::getName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+						"There are no analyzer services with suggest items support deployed."
+				));
+		return rabbitTemplate.convertSendAndReceiveAsType(exchangeName, SUGGEST_ROUTE, rq, new ParameterizedTypeReference<>() {
+		});
 	}
 
 	@Override
@@ -113,26 +112,11 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 		rabbitTemplate.convertAndSend(exchangeName, SUGGEST_INFO_ROUTE, suggestInfos);
 	}
 
-	private List<SearchRs> search(SearchRq rq, List<ExchangeInfo> analyzerExchanges) {
-		if (CollectionUtils.isEmpty(analyzerExchanges)) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-					"There are no analyzer services with search logs support deployed."
-			);
-		}
-		ExchangeInfo prioritizedExchange = Collections.min(analyzerExchanges, Comparator.comparingInt(EXCHANGE_PRIORITY));
-		return rabbitTemplate.convertSendAndReceiveAsType(prioritizedExchange.getName(),
-				SEARCH_ROUTE,
-				rq,
-				new ParameterizedTypeReference<List<SearchRs>>() {
-				}
-		);
-	}
-
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {
 		List<AnalyzedItemRs> result = rabbitTemplate.convertSendAndReceiveAsType(exchangeInfo.getName(),
 				ANALYZE_ROUTE,
 				Collections.singletonList(rq),
-				new ParameterizedTypeReference<List<AnalyzedItemRs>>() {
+				new ParameterizedTypeReference<>() {
 				}
 		);
 		if (!CollectionUtils.isEmpty(result)) {

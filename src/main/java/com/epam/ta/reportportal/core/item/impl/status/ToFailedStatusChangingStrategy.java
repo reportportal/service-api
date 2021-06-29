@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -50,7 +49,8 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 	public ToFailedStatusChangingStrategy(TestItemService testItemService, ProjectRepository projectRepository,
 			LaunchRepository launchRepository, TestItemRepository testItemRepository, IssueTypeHandler issueTypeHandler,
 			MessageBus messageBus, IssueEntityRepository issueEntityRepository, LogRepository logRepository, LogIndexer logIndexer) {
-		super(testItemService,
+		super(
+				testItemService,
 				projectRepository,
 				launchRepository,
 				testItemRepository,
@@ -64,11 +64,10 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 
 	@Override
 	protected void updateStatus(Project project, Launch launch, TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
-		BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED))
-				.verify(INCORRECT_REQUEST,
-						Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus, StatusEnum.FAILED)
-								.get()
-				);
+		BusinessRule.expect(providedStatus, statusIn(StatusEnum.FAILED)).verify(
+				INCORRECT_REQUEST,
+				Suppliers.formattedSupplier("Incorrect status - '{}', only '{}' is allowed", providedStatus, StatusEnum.FAILED).get()
+		);
 
 		testItem.getItemResults().setStatus(providedStatus);
 		if (Objects.isNull(testItem.getRetryOf())) {
@@ -78,12 +77,7 @@ public class ToFailedStatusChangingStrategy extends AbstractStatusChangingStrate
 
 			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
 			itemsToReindex.add(testItem.getItemId());
-			logIndexer.cleanIndex(project.getId(),
-					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							itemsToReindex,
-							LogLevel.ERROR.toInt()
-					)
-			);
+			logIndexer.indexItemsRemove(project.getId(), itemsToReindex);
 			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemsToReindex, AnalyzerUtils.getAnalyzerConfig(project));
 		}
 	}

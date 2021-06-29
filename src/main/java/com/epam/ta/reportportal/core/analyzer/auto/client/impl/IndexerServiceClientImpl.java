@@ -98,7 +98,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove) {
+	public void indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
@@ -109,7 +109,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove) {
+	public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)

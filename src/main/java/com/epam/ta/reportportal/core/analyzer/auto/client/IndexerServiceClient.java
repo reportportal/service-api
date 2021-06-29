@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.client;
 
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -63,13 +64,13 @@ public interface IndexerServiceClient {
 	 *
 	 * @param itemsForIndexRemove List of item ids
 	 */
-	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
+	void indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
 
 	/**
 	 * Sends a message to the queue with a list of launches which must be removed from index
 	 *
 	 * @param launchesForIndexRemove List of launhces ids
 	 */
-	void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove);
+	void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove);
 
 }

@@ -17,7 +17,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -29,9 +29,9 @@ public class IndexLaunchRemove {
 	private Long projectId;
 
 	@JsonProperty("launch_ids")
-	private List<Long> launchIds;
+	private Collection<Long> launchIds;
 
-	public IndexLaunchRemove(Long projectId, List<Long> launchIds) {
+	public IndexLaunchRemove(Long projectId, Collection<Long> launchIds) {
 		this.projectId = projectId;
 		this.launchIds = launchIds;
 	}
@@ -44,11 +44,11 @@ public class IndexLaunchRemove {
 		this.projectId = projectId;
 	}
 
-	public List<Long> getLaunchIds() {
+	public Collection<Long> getLaunchIds() {
 		return launchIds;
 	}
 
-	public void setLaunchIds(List<Long> launchIds) {
+	public void setLaunchIds(Collection<Long> launchIds) {
 		this.launchIds = launchIds;
 	}
 

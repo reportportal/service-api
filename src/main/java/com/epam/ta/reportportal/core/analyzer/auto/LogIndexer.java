@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -78,7 +79,7 @@ public interface LogIndexer {
 	 * @param projectId           Project id
 	 * @param itemsForIndexRemove Ids of items
 	 */
-	void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove);
+	void indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
 
 	/**
 	 * Async handle of launches that should be removed from index.
@@ -86,6 +87,6 @@ public interface LogIndexer {
 	 * @param projectId              Project id
 	 * @param launchesForIndexRemove Ids of  launches
 	 */
-	void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove);
+	void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove);
 
 }

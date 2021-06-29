@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -47,6 +46,7 @@ import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -184,12 +184,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	 */
 	private void reindexLogs(Launch launch, AnalyzerConfig analyzerConfig, Long projectId) {
 		if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
-			logIndexer.cleanIndex(projectId,
-					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
-							testItemRepository.selectIdsWithIssueByLaunch(launch.getId()),
-							LogLevel.ERROR.toInt()
-					)
-			);
+			logIndexer.indexLaunchesRemove(projectId, Lists.newArrayList(launch.getId()));
 		} else {
 			List<TestItem> items = testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE);
 			launchPreparerService.prepare(launch, items, analyzerConfig).ifPresent(it -> logIndexer.indexPreparedLogs(projectId, it));

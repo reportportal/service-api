@@ -95,7 +95,7 @@ public class SuggestItemService {
 
 	private SuggestedItem prepareSuggestedItem(SuggestInfo suggestInfo) {
 		TestItem relevantTestItem = testItemRepository.findById(suggestInfo.getRelevantItem()).orElse(null);
-		//temp fix for the case when item was removed from db but still exists in elastic
+		//TODO: EPMRPP-61038 temp fix for the case when item was removed from db but still exists in elastic
 		if (relevantTestItem == null) {
 			return null;
 		}

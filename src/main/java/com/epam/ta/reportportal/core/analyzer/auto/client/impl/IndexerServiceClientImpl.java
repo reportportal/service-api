@@ -98,7 +98,22 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove) {
+	public Integer indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_INDEX)
+				.map(exchange -> ofNullable(rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
+						ITEM_REMOVE_ROUTE,
+						new IndexItemsRemove(projectId, itemsForIndexRemove),
+						new ParameterizedTypeReference<Integer>() {
+						}
+				)).orElse(0))
+				.mapToInt(Integer::intValue)
+				.sum();
+	}
+
+	@Override
+	public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
@@ -109,7 +124,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 	}
 
 	@Override
-	public void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove) {
+	public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
 		rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_INDEX)
@@ -127,7 +142,7 @@ public class IndexerServiceClientImpl implements IndexerServiceClient {
 						exchange -> rabbitTemplate.convertSendAndReceiveAsType(exchange.getName(),
 								CLEAN_ROUTE,
 								new CleanIndexRq(index, ids),
-								new ParameterizedTypeReference<Long>() {
+								new ParameterizedTypeReference<>() {
 								}
 						)
 				));

@@ -109,9 +109,9 @@ class LogIndexerServiceTest {
 	@Test
 	void testIndexItemsRemove() {
 		List<Long> list = Lists.newArrayList(1L);
-		doNothing().when(indexerServiceClient).indexItemsRemove(1L, list);
-		logIndexerService.indexItemsRemove(1L, list);
-		verify(indexerServiceClient, times(1)).indexItemsRemove(1L, list);
+		doNothing().when(indexerServiceClient).indexItemsRemoveAsync(1L, list);
+		logIndexerService.indexItemsRemoveAsync(1L, list);
+		verify(indexerServiceClient, times(1)).indexItemsRemoveAsync(1L, list);
 	}
 
 	private AnalyzerConfig analyzerConfig() {

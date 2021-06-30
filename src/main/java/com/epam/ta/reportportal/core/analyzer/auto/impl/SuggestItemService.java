@@ -17,8 +17,8 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -38,12 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR_INT;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
-import static com.epam.ta.reportportal.ws.model.ErrorType.TEST_ITEM_NOT_FOUND;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -85,7 +85,7 @@ public class SuggestItemService {
 
 		SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project.getId(), getAnalyzerConfig(project));
 		List<SuggestInfo> suggestRS = analyzerServiceClient.searchSuggests(suggestRq);
-		return suggestRS.stream().map(this::prepareSuggestedItem).collect(Collectors.toList());
+		return suggestRS.stream().map(this::prepareSuggestedItem).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
 	public OperationCompletionRS handleSuggestChoice(List<SuggestInfo> suggestInfos) {
@@ -94,10 +94,13 @@ public class SuggestItemService {
 	}
 
 	private SuggestedItem prepareSuggestedItem(SuggestInfo suggestInfo) {
+		TestItem relevantTestItem = testItemRepository.findById(suggestInfo.getRelevantItem()).orElse(null);
+		//TODO: EPMRPP-61038 temp fix for the case when item was removed from db but still exists in elastic
+		if (relevantTestItem == null) {
+			return null;
+		}
 		SuggestedItem suggestedItem = new SuggestedItem();
 		suggestedItem.setSuggestRs(suggestInfo);
-		TestItem relevantTestItem = testItemRepository.findById(suggestInfo.getRelevantItem())
-				.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, "Suggested item was not found"));
 		suggestedItem.setTestItemResource(TestItemConverter.TO_RESOURCE.apply(relevantTestItem));
 		suggestedItem.setLogs(logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(relevantTestItem.getLaunchId(),
 				relevantTestItem.getItemId(),

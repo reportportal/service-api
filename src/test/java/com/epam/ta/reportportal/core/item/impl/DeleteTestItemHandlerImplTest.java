@@ -22,7 +22,6 @@ import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -39,9 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
@@ -187,12 +184,7 @@ class DeleteTestItemHandlerImplTest {
 
 		item.setLaunchId(launch.getId());
 		when(launchRepository.findById(item.getLaunchId())).thenReturn(Optional.of(launch));
-		when(logIndexer.cleanIndex(any(), any())).thenReturn(CompletableFuture.completedFuture(0L));
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(item));
-		when(logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(item.getLaunchId(),
-				testItemRepository.selectAllDescendantsIds(item.getPath()),
-				LogLevel.ERROR.toInt()
-		)).thenReturn(Collections.emptyList());
 		when(testItemRepository.findById(parentId)).thenReturn(Optional.of(parent));
 		when(testItemRepository.hasChildren(parent.getItemId(), parent.getPath())).thenReturn(false);
 		when(launchRepository.hasRetries(any())).thenReturn(false);

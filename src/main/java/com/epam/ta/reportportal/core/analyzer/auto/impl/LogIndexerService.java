@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -226,15 +227,20 @@ public class LogIndexerService implements LogIndexer {
 		indexerServiceClient.index(indexLaunchList);
 	}
 
-	@Async
 	@Override
-	public void indexItemsRemove(Long projectId, List<Long> itemsForIndexRemove) {
-		indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
+	public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
+		return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
 	}
 
 	@Async
 	@Override
-	public void indexLaunchesRemove(Long projectId, List<Long> launchesForIndexRemove) {
+	public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
+		indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+	}
+
+	@Async
+	@Override
+	public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
 		indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
 	}
 

@@ -17,7 +17,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -29,9 +29,9 @@ public class IndexItemsRemove {
 	private Long projectId;
 
 	@JsonProperty("itemsToDelete")
-	private List<Long> itemsToDelete;
+	private Collection<Long> itemsToDelete;
 
-	public IndexItemsRemove(Long projectId, List<Long> itemsToDelete) {
+	public IndexItemsRemove(Long projectId, Collection<Long> itemsToDelete) {
 		this.projectId = projectId;
 		this.itemsToDelete = itemsToDelete;
 	}
@@ -44,11 +44,11 @@ public class IndexItemsRemove {
 		this.projectId = projectId;
 	}
 
-	public List<Long> getItemsToDelete() {
+	public Collection<Long> getItemsToDelete() {
 		return itemsToDelete;
 	}
 
-	public void setItemsToDelete(List<Long> itemsToDelete) {
+	public void setItemsToDelete(Collection<Long> itemsToDelete) {
 		this.itemsToDelete = itemsToDelete;
 	}
 

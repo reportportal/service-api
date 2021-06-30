@@ -74,12 +74,21 @@ public interface LogIndexer {
 	void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems);
 
 	/**
+	 * Handle of items that should be removed from index.
+	 *
+	 * @param projectId           Project id
+	 * @param itemsForIndexRemove Ids of items
+	 * @return number of removed items
+	 */
+	int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
+
+	/**
 	 * Async handle of items that should be removed from index.
 	 *
 	 * @param projectId           Project id
 	 * @param itemsForIndexRemove Ids of items
 	 */
-	void indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove);
+	void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove);
 
 	/**
 	 * Async handle of launches that should be removed from index.

@@ -41,6 +41,6 @@ public class TestItemRetryEventHandler {
 	@Async
 	@TransactionalEventListener
 	public void onItemRetry(ItemRetryEvent event) {
-		logIndexer.indexItemsRemove(event.getProjectId(), Collections.singletonList(event.getItemId()));
+		logIndexer.indexItemsRemoveAsync(event.getProjectId(), Collections.singletonList(event.getItemId()));
 	}
 }

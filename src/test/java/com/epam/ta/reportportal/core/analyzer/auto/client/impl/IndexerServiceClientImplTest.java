@@ -70,7 +70,7 @@ class IndexerServiceClientImplTest {
 		IndexItemsRemove indexItemsRemove = new IndexItemsRemove(1L, list);
 		when(rabbitMqManagementClient.getAnalyzerExchangesInfo()).thenReturn(getExchanges());
 		doNothing().when(rabbitTemplate).convertAndSend(AUTO_ANALYZER_KEY, ITEM_REMOVE_ROUTE, indexItemsRemove);
-		indexerServiceClient.indexItemsRemove(1L, list);
+		indexerServiceClient.indexItemsRemoveAsync(1L, list);
 		verify(rabbitTemplate, times(1)).convertAndSend(AUTO_ANALYZER_KEY, ITEM_REMOVE_ROUTE, indexItemsRemove);
 	}
 

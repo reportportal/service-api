@@ -82,7 +82,7 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				testItem.getItemResults().setIssue(null);
-				logIndexer.indexItemsRemove(project.getId(), Collections.singletonList(testItem.getItemId()));
+				logIndexer.indexItemsRemoveAsync(project.getId(), Collections.singletonList(testItem.getItemId()));
 			});
 
 			changeParentsStatuses(testItem, launch, false, user);

@@ -380,7 +380,7 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {
 		if (actualStatus == PASSED || ITEM_CAN_BE_INDEXED.test(testItem)) {
-			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.indexItemsRemove(projectId,
+			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.indexItemsRemoveAsync(projectId,
 					Collections.singletonList(testItem.getItemId())
 			));
 		}

@@ -227,10 +227,15 @@ public class LogIndexerService implements LogIndexer {
 		indexerServiceClient.index(indexLaunchList);
 	}
 
+	@Override
+	public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
+		return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
+	}
+
 	@Async
 	@Override
-	public void indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
-		indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
+	public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
+		indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
 	}
 
 	@Async

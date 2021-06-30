@@ -169,7 +169,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				parent.getItemResults().setIssue(null);
-				logIndexer.indexItemsRemove(projectId, Collections.singletonList(parent.getItemId()));
+				logIndexer.indexItemsRemoveAsync(projectId, Collections.singletonList(parent.getItemId()));
 			});
 		}
 	}

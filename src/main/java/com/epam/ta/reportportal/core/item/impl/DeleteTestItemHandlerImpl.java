@@ -100,7 +100,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		parentId.flatMap(testItemRepository::findById)
 				.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		logIndexer.indexItemsRemove(projectDetails.getProjectId(), itemsForRemove);
+		logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), itemsForRemove);
 		attachmentRepository.moveForDeletionByItems(itemsForRemove);
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
@@ -150,7 +150,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
 		if (CollectionUtils.isNotEmpty(removedItems)) {
-			logIndexer.indexItemsRemove(projectDetails.getProjectId(), removedItems);
+			logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), removedItems);
 			attachmentRepository.moveForDeletionByItems(removedItems);
 		}
 

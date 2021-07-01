@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.job;
 
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.IssueTypeRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -59,6 +60,9 @@ public class FlushingDataJob implements Job {
 
 	@Autowired
 	private PersonalProjectService personalProjectService;
+
+	@Autowired
+	private AnalyzerServiceClient analyzerServiceClient;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -156,6 +160,7 @@ public class FlushingDataJob implements Job {
 				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
 				.collect(Collectors.toSet());
 		projectRepository.delete(project);
+		analyzerServiceClient.removeSuggest(project.getId());
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		try {
 			minioClient.removeBucket(bucketPrefix + project.getId());

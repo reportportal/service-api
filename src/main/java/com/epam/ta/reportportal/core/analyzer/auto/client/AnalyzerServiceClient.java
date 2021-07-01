@@ -71,6 +71,13 @@ public interface AnalyzerServiceClient {
 	List<SearchRs> searchLogs(SearchRq rq);
 
 	/**
+	 * Removes suggest index
+	 *
+	 * @param projectId Project/index id
+	 */
+	void removeSuggest(Long projectId);
+
+	/**
 	 * Searches suggests in analyzer for provided item
 	 *
 	 * @param rq {@link SuggestRq} request

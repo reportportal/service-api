@@ -46,6 +46,7 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	private static final String SEARCH_ROUTE = "search";
 	private static final String SUGGEST_ROUTE = "suggest";
 	private static final String SUGGEST_INFO_ROUTE = "index_suggest_info";
+	private static final String REMOVE_SUGGEST_ROUTE = "remove_suggest_info";
 
 	private final RabbitMqManagementClient rabbitMqManagementClient;
 
@@ -86,8 +87,28 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 	}
 
 	@Override
+	public void removeSuggest(Long projectId) {
+		rabbitMqManagementClient.getAnalyzerExchangesInfo()
+				.stream()
+				.filter(DOES_SUPPORT_SUGGEST)
+				.min(Comparator.comparingInt(EXCHANGE_PRIORITY))
+				.map(ExchangeInfo::getName)
+				.ifPresent(suggestExchange -> rabbitTemplate.convertAndSend(suggestExchange, REMOVE_SUGGEST_ROUTE, projectId));
+	}
+
+	@Override
 	public List<SuggestInfo> searchSuggests(SuggestRq rq) {
-		String exchangeName = rabbitMqManagementClient.getAnalyzerExchangesInfo()
+		return rabbitTemplate.convertSendAndReceiveAsType(getSuggestExchangeName(), SUGGEST_ROUTE, rq, new ParameterizedTypeReference<>() {
+		});
+	}
+
+	@Override
+	public void handleSuggestChoice(List<SuggestInfo> suggestInfos) {
+		rabbitTemplate.convertAndSend(getSuggestExchangeName(), SUGGEST_INFO_ROUTE, suggestInfos);
+	}
+
+	private String getSuggestExchangeName() {
+		return rabbitMqManagementClient.getAnalyzerExchangesInfo()
 				.stream()
 				.filter(DOES_SUPPORT_SUGGEST)
 				.min(Comparator.comparingInt(EXCHANGE_PRIORITY))
@@ -95,21 +116,6 @@ public class AnalyzerServiceClientImpl implements AnalyzerServiceClient {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						"There are no analyzer services with suggest items support deployed."
 				));
-		return rabbitTemplate.convertSendAndReceiveAsType(exchangeName, SUGGEST_ROUTE, rq, new ParameterizedTypeReference<>() {
-		});
-	}
-
-	@Override
-	public void handleSuggestChoice(List<SuggestInfo> suggestInfos) {
-		String exchangeName = rabbitMqManagementClient.getAnalyzerExchangesInfo()
-				.stream()
-				.filter(DOES_SUPPORT_SEARCH)
-				.min(Comparator.comparingInt(EXCHANGE_PRIORITY))
-				.map(ExchangeInfo::getName)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"There are no analyzer services with suggest items support deployed."
-				));
-		rabbitTemplate.convertAndSend(exchangeName, SUGGEST_INFO_ROUTE, suggestInfos);
 	}
 
 	private void analyze(IndexLaunch rq, Map<String, List<AnalyzedItemRs>> resultMap, ExchangeInfo exchangeInfo) {

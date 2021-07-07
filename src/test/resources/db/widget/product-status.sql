@@ -149,12 +149,14 @@ values (4, 'statistics$executions$total'),
        (4, 'statistics$executions$passed'),
        (4, 'statistics$executions$failed'),
        (4, 'statistics$executions$skipped'),
+       (4, 'statistics$executions$untested'),
        (4, 'statistics$defects$product_bug$pb001'),
        (4, 'statistics$defects$automation_bug$ab001'),
        (4, 'statistics$defects$to_investigate$ti001'),
        (5, 'statistics$executions$total'),
        (5, 'statistics$executions$passed'),
        (5, 'statistics$executions$failed');
+       (5, 'statistics$executions$untested');
 
 insert into widget_filter(widget_id, filter_id)
 values (4, 1),

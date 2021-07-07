@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
 
 import static com.epam.ta.reportportal.entity.enums.LogLevel.*;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
+import static com.epam.ta.reportportal.entity.enums.StatusEnum.UNTESTED;
 import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 import static java.util.stream.Collectors.toList;
 
@@ -84,7 +85,7 @@ class DemoLogsService {
 			log.setUuid(UUID.randomUUID().toString());
 			return log;
 		}).collect(toList());
-		if (FAILED.equals(status)) {
+		if ((FAILED.equals(status)) || (UNTESTED.equals(status))) {
 			List<String> errors = ContentUtils.getErrorLogs();
 			logs.addAll(errors.stream().map(msg -> {
 				Log log = new Log();
@@ -115,7 +116,7 @@ class DemoLogsService {
 			log.setUuid(UUID.randomUUID().toString());
 			return log;
 		}).collect(toList());
-		if (FAILED.equals(status)) {
+		if ((FAILED.equals(status)) || (UNTESTED.equals(status))) {
 			List<String> errors = ContentUtils.getErrorLogs();
 			logs.addAll(errors.stream().map(msg -> {
 				Log log = new Log();

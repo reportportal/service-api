@@ -89,7 +89,7 @@ public class LaunchValidator {
 	 */
 	public static void validateProvidedStatus(Launch launch, StatusEnum providedStatus, StatusEnum fromStatisticsStatus) {
 		/* Validate provided status */
-		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED))).verify(INCORRECT_FINISH_STATUS,
+		expect(providedStatus, not(statusIn(IN_PROGRESS, SKIPPED, UNTESTED))).verify(INCORRECT_FINISH_STATUS,
 				formattedSupplier("Cannot finish launch '{}' with status '{}'", launch.getId(), providedStatus)
 		);
 		if (PASSED.equals(providedStatus)) {

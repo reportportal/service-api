@@ -50,7 +50,7 @@ public final class ContentFieldPatternConstants {
 			"^" + "statistics" + CONTENT_FIELD_SPLITTER + EXECUTIONS_KEY + CONTENT_FIELD_SPLITTER + TOTAL + "$";
 
 	/*
-		^statistics\\$executions\\$(passed|failed|skipped|total)$
+		^statistics\\$executions\\$(passed|failed|skipped|untested|total)$
 	 */
 	public static final String EXECUTIONS_REGEX;
 
@@ -60,7 +60,7 @@ public final class ContentFieldPatternConstants {
 	public static final String DEFECTS_REGEX;
 
 	/*
-		((^statistics\\$defects\\$(automation_bug|product_bug|no_defect|system_issue|to_investigate)\\$[\\w\\d]+$)|(^statistics\\$executions\\$(passed|failed|skipped|total)$))
+		((^statistics\\$defects\\$(automation_bug|product_bug|no_defect|system_issue|to_investigate)\\$[\\w\\d]+$)|(^statistics\\$executions\\$(passed|failed|skipped|untested|total)$))
 	 */
 	public static final String COMBINED_CONTENT_FIELDS_REGEX = "(" + DEFECTS_REGEX + ")" + "|" + "(" + EXECUTIONS_REGEX + ")";
 

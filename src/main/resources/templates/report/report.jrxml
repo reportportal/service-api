@@ -71,6 +71,7 @@
             <fieldDescription><![CDATA[]]></fieldDescription>
         </field>
         <field name="skipped" class="java.lang.Integer"/>
+        <field name="untested" class="java.lang.Integer"/>
         <field name="automationBug" class="java.lang.Integer">
             <fieldDescription><![CDATA[]]></fieldDescription>
         </field>
@@ -109,6 +110,9 @@
         <defaultValueExpression><![CDATA[0]]></defaultValueExpression>
     </parameter>
     <parameter name="SKIPPED" class="java.lang.Integer">
+        <defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+    </parameter>
+    <parameter name="UNTESTED" class="java.lang.Integer">
         <defaultValueExpression><![CDATA[0]]></defaultValueExpression>
     </parameter>
     <parameter name="AB" class="java.lang.Integer">
@@ -287,6 +291,20 @@
                 </textElement>
                 <text><![CDATA[Skipped]]></text>
             </staticText>
+            <staticText>
+                <reportElement mode="Opaque" x="600" y="40" width="48" height="20" backcolor="#BDC7CC"
+                               uuid="b85b72e9-4054-457b-bb42-b44bd3e4b858"/>
+                <box>
+                    <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Noto Sans" size="9" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Untested]]></text>
+            </staticText>
             <textField>
                 <reportElement x="480" y="60" width="30" height="20" uuid="be0a5e88-b3b2-4bb2-881d-90ff51d7caf1"/>
                 <box>
@@ -338,6 +356,19 @@
                     <font fontName="Noto Sans" size="9"/>
                 </textElement>
                 <textFieldExpression><![CDATA[$P{SKIPPED}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="600" y="60" width="48" height="20" uuid="4272b431-fab3-40fd-92f5-1de979e56249"/>
+                <box>
+                    <topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                    <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font fontName="Noto Sans" size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{UNTESTED}]]></textFieldExpression>
             </textField>
             <staticText>
                 <reportElement mode="Opaque" x="648" y="40" width="30" height="20" backcolor="#F7D63E"
@@ -659,6 +690,27 @@
                                     <font fontName="Noto Sans" size="9"/>
                                 </textElement>
                                 <textFieldExpression><![CDATA[$F{skipped}.toString()]]></textFieldExpression>
+                            </textField>
+                        </jr:detailCell>
+                    </jr:column>
+                    <jr:column width="50" uuid="08db46ac-76eb-416c-97e7-c3748e6671fa">
+                        <property name="com.jaspersoft.studio.components.table.model.column.name" value="Column7"/>
+                        <jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+                            <staticText>
+                                <reportElement x="0" y="0" width="50" height="30" uuid="1ae2a81b-db01-49f0-b25c-89cfc989eb41"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font fontName="Noto Sans" size="9" isBold="true"/>
+                                </textElement>
+                                <text><![CDATA[Untested]]></text>
+                            </staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell style="Table_TD" height="20">
+                            <textField>
+                                <reportElement x="0" y="0" width="50" height="20" uuid="508d7d97-04ff-4734-b0e9-826fdc2b30f6"/>
+                                <textElement textAlignment="Center" verticalAlignment="Middle">
+                                    <font fontName="Noto Sans" size="9"/>
+                                </textElement>
+                                <textFieldExpression><![CDATA[$F{untested}.toString()]]></textFieldExpression>
                             </textField>
                         </jr:detailCell>
                     </jr:column>

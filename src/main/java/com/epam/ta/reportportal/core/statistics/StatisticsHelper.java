@@ -40,6 +40,7 @@ public final class StatisticsHelper {
 	private static final String PASSED = "statistics$executions$passed";
 	private static final String SKIPPED = "statistics$executions$skipped";
 	private static final String FAILED = "statistics$executions$failed";
+	private static final String UNTESTED = "statistics$executions$untested";
 
 	private StatisticsHelper() {
 		//static only
@@ -55,7 +56,7 @@ public final class StatisticsHelper {
 		));
 		String field = statisticsField.getName();
 		Integer counter = statistics.getCounter();
-		return (field.contains("failed") || field.contains("skipped") || field.contains("to_investigate")) && counter > 0;
+		return (field.contains("failed") || field.contains("skipped") || field.contains("untested") || field.contains("to_investigate")) && counter > 0;
 	};
 
 	public static Integer extractStatisticsCount(String statisticsField, Set<Statistics> statistics) {
@@ -71,7 +72,7 @@ public final class StatisticsHelper {
 				Arrays.stream(TestItemIssueGroup.values())
 						.filter(value -> !value.getIssueCounterField().equalsIgnoreCase(NOT_ISSUE_FLAG.getIssueCounterField()))
 						.map(value -> "statistics$defects$" + value.getValue().toLowerCase() + "$" + value.getLocator()),
-				Stream.of(TOTAL, PASSED, SKIPPED, FAILED)
+				Stream.of(TOTAL, PASSED, SKIPPED, FAILED, UNTESTED)
 		);
 	}
 }

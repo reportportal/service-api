@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.core.item.impl.status.ToFailedStatusChangingStrategy;
 import com.epam.ta.reportportal.core.item.impl.status.ToPassedStatusChangingStrategy;
 import com.epam.ta.reportportal.core.item.impl.status.ToSkippedStatusChangingStrategy;
+import com.epam.ta.reportportal.core.item.impl.status.ToUntestedStatusChangingStrategy;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +41,17 @@ public class ItemStatusChangingStrategyConfig {
 
 	private final ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy;
 
+	private final ToUntestedStatusChangingStrategy toUntestedStatusChangingStrategy;
+
 	@Autowired
 	public ItemStatusChangingStrategyConfig(ToFailedStatusChangingStrategy toFailedStatusChangingStrategy,
 			ToPassedStatusChangingStrategy toPassedStatusChangingStrategy,
-			ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy) {
+			ToSkippedStatusChangingStrategy toSkippedStatusChangingStrategy,
+			ToUntestedStatusChangingStrategy toUntestedStatusChangingStrategy) {
 		this.toFailedStatusChangingStrategy = toFailedStatusChangingStrategy;
 		this.toPassedStatusChangingStrategy = toPassedStatusChangingStrategy;
 		this.toSkippedStatusChangingStrategy = toSkippedStatusChangingStrategy;
+		this.toUntestedStatusChangingStrategy = toUntestedStatusChangingStrategy;
 	}
 
 	@Bean
@@ -56,6 +61,7 @@ public class ItemStatusChangingStrategyConfig {
 				.put(StatusEnum.WARN, toPassedStatusChangingStrategy)
 				.put(StatusEnum.FAILED, toFailedStatusChangingStrategy)
 				.put(StatusEnum.SKIPPED, toSkippedStatusChangingStrategy)
+				.put(StatusEnum.UNTESTED, toUntestedStatusChangingStrategy)
 				.build();
 	}
 }

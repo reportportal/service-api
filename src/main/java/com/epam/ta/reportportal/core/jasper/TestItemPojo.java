@@ -39,6 +39,7 @@ public class TestItemPojo {
 	private Double duration;
 	private Integer total;
 	private Integer passed;
+	private Integer untested;
 	private Integer failed;
 	private Integer skipped;
 	private Integer automationBug;
@@ -68,6 +69,7 @@ public class TestItemPojo {
 		this.passed = getStatisticsCounter(statistics, EXECUTIONS_PASSED);
 		this.failed = getStatisticsCounter(statistics, EXECUTIONS_FAILED);
 		this.skipped = getStatisticsCounter(statistics, EXECUTIONS_SKIPPED);
+		this.untested = getStatisticsCounter(statistics, EXECUTIONS_UNTESTED);
 
 		this.automationBug = getStatisticsCounter(statistics, DEFECTS_AUTOMATION_BUG_TOTAL);
 		this.productBug = getStatisticsCounter(statistics, DEFECTS_PRODUCT_BUG_TOTAL);
@@ -114,6 +116,14 @@ public class TestItemPojo {
 
 	public Integer getPassed() {
 		return passed;
+	}
+
+	public void setUntested(Integer value) {
+		this.untested = value;
+	}
+
+	public Integer getUntested() {
+		return untested;
 	}
 
 	public void setFailed(Integer value) {
@@ -195,6 +205,7 @@ public class TestItemPojo {
 		sb.append(", passed=").append(passed);
 		sb.append(", failed=").append(failed);
 		sb.append(", skipped=").append(skipped);
+		sb.append(", untested=").append(untested);
 		sb.append(", automationBug=").append(automationBug);
 		sb.append(", productBug=").append(productBug);
 		sb.append(", systemIssue=").append(systemIssue);

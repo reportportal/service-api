@@ -1,13 +1,13 @@
 rp:
   amqp:
     host: localhost
-    user: rabbitmq
-    pass: rabbitmq
-    apiuser: rabbitmq
-    apipass: rabbitmq
+    user:
+    pass:
+    apiuser:
+    apipass:
   db:
-    user: rpuser
-    pass: rppass
+    user:
+    pass:
     host: localhost
   plugins:
     rootDir: /Users/pavel_bortnik/ReportPortal5/data/storage/
@@ -18,5 +18,5 @@ rp:
     type: minio
     minio:
       endpoint: http://localhost:9000
-      accessKey: minio
-      secretKey: minio123
+      accessKey:
+      secretKey:

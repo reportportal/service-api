@@ -161,7 +161,10 @@ public class SearchLogServiceImpl implements SearchLogService {
 		));
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(Collections.singletonList(testItem.getItemId()),
+
+		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(
+				Collections.singletonList(testItem.getItemId()),
+				Collections.singletonList(launchId),
 				projectId
 		);
 

@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.model;
 
+import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 
 /**
@@ -33,7 +34,11 @@ public class DemoItemMetadata {
 
 	private TestItemTypeEnum type;
 
+	private StatusEnum status;
+
 	private String issue;
+
+	private int logCount;
 
 	public DemoItemMetadata withName(String name) {
 		this.name = name;
@@ -60,8 +65,18 @@ public class DemoItemMetadata {
 		return this;
 	}
 
+	public DemoItemMetadata withStatus(StatusEnum status) {
+		this.status = status;
+		return this;
+	}
+
 	public DemoItemMetadata withIssue(String issue) {
 		this.issue = issue;
+		return this;
+	}
+
+	public DemoItemMetadata withLogCount(int logCount) {
+		this.logCount = logCount;
 		return this;
 	}
 
@@ -85,8 +100,15 @@ public class DemoItemMetadata {
 		return type;
 	}
 
+	public StatusEnum getStatus() {
+		return status;
+	}
+
 	public String getIssue() {
 		return issue;
 	}
 
+	public int getLogCount() {
+		return logCount;
+	}
 }

@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.demodata.service.generator;
 
 import com.epam.ta.reportportal.demodata.model.DemoItemMetadata;
-import com.epam.ta.reportportal.demodata.model.Step;
+import com.epam.ta.reportportal.demodata.model.RootMetaData;
 import com.epam.ta.reportportal.demodata.service.DemoDataTestItemService;
 import com.epam.ta.reportportal.demodata.service.DemoLogsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ public class SuiteWithNestedStepsGenerator extends DefaultSuiteGenerator {
 	}
 
 	@Override
-	protected DemoItemMetadata getMetadata(Step step, String parentId) {
-		return super.getMetadata(step, parentId).withNested(true);
+	protected void createStep(DemoItemMetadata stepMetaData, RootMetaData rootMetaData) {
+		super.createStep(stepMetaData.withNested(true), rootMetaData);
 	}
 }

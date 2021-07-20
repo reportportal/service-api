@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.stream.IntStream;
 
-import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
-
 @Service
 public class SuiteWithRetriesGenerator extends DefaultSuiteGenerator {
 
@@ -23,18 +21,21 @@ public class SuiteWithRetriesGenerator extends DefaultSuiteGenerator {
 	}
 
 	@Override
-	protected void createStep(int logsCount, RootMetaData rootMetaData, StatusEnum stepStatus, DemoItemMetadata stepMetaData) {
-		super.createStep(logsCount, rootMetaData, stepStatus, stepMetaData);
-		if (stepStatus != StatusEnum.PASSED) {
+	protected void createStep(DemoItemMetadata stepMetaData, RootMetaData rootMetaData) {
+		super.createStep(stepMetaData, rootMetaData);
+		if (stepMetaData.getStatus() != StatusEnum.PASSED) {
 			generateRetries(stepMetaData, rootMetaData);
 		}
 	}
 
 	private void generateRetries(final DemoItemMetadata metadata, RootMetaData rootMetaData) {
 		IntStream.range(0, RETRIES_COUNT).forEach(i -> {
-			final DemoItemMetadata retryMetaData = getMetadata(metadata.getName(), metadata.getType(), metadata.getParentId()).withIssue(
-					metadata.getIssue()).withRetry(true);
-			super.createStep(STEP_LOGS_COUNT, rootMetaData, FAILED, retryMetaData);
+			final DemoItemMetadata retryMetaData = getMetadata(metadata.getName(),
+					metadata.getType(),
+					metadata.getStatus(),
+					metadata.getParentId()
+			).withIssue(metadata.getIssue()).withRetry(true);
+			super.createStep(retryMetaData, rootMetaData);
 		});
 	}
 }

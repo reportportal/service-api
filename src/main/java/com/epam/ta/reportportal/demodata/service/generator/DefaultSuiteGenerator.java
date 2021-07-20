@@ -38,38 +38,71 @@ public class DefaultSuiteGenerator implements SuiteGenerator {
 		final StatusEnum suiteStatus = StatusEnum.valueOf(suite.getStatus());
 
 		if (suite.isHasBefore()) {
-			createRootItem(BEFORE_AFTER_LOGS_COUNT, getNameFromType(BEFORE_SUITE), BEFORE_SUITE, rootMetaData, suiteStatus);
+			final DemoItemMetadata beforeMetaData = getMetadata(getNameFromType(BEFORE_SUITE),
+					BEFORE_SUITE,
+					suiteStatus,
+					null
+			).withLogCount(BEFORE_AFTER_LOGS_COUNT);
+			createStep(beforeMetaData, rootMetaData);
 		}
 
-		final DemoItemMetadata metadata = new DemoItemMetadata().withName(suite.getName()).withType(SUITE);
-		final String suiteId = demoDataTestItemService.startRootItem(metadata, rootMetaData);
+		final DemoItemMetadata suiteMetaData = getMetadata(suite.getName(), SUITE, suiteStatus, null);
+		final String suiteId = demoDataTestItemService.startRootItem(suiteMetaData, rootMetaData);
 
 		suite.getTests().forEach(test -> {
 			final StatusEnum testStatus = StatusEnum.valueOf(test.getStatus());
 
-			generateBefore(test, suiteId, BEFORE_CLASS, testStatus, rootMetaData);
+			if (test.isHasBefore()) {
+				final DemoItemMetadata beforeMetaData = getMetadata(getNameFromType(BEFORE_CLASS),
+						BEFORE_CLASS,
+						testStatus,
+						suiteId
+				).withLogCount(BEFORE_AFTER_LOGS_COUNT);
+				createStep(beforeMetaData, rootMetaData);
+			}
 			generateTest(suiteId, rootMetaData, test, testStatus);
-			generateAfter(test, suiteId, AFTER_CLASS, testStatus, rootMetaData);
+			if (test.isHasAfter()) {
+				final DemoItemMetadata afterMetaData = getMetadata(getNameFromType(AFTER_CLASS),
+						AFTER_CLASS,
+						testStatus,
+						suiteId
+				).withLogCount(BEFORE_AFTER_LOGS_COUNT);
+				createStep(afterMetaData, rootMetaData);
+			}
 		});
 
 		demoDataTestItemService.finishTestItem(suiteId, suiteStatus, rootMetaData);
 		generateLogs(SUITE_LOGS_COUNT, suiteId, suiteStatus, rootMetaData);
 
 		if (suite.isHasAfter()) {
-			createRootItem(BEFORE_AFTER_LOGS_COUNT, getNameFromType(AFTER_SUITE), AFTER_SUITE, rootMetaData, suiteStatus);
+			createStep(getMetadata(getNameFromType(AFTER_SUITE), AFTER_SUITE, suiteStatus, null).withLogCount(BEFORE_AFTER_LOGS_COUNT),
+					rootMetaData
+			);
 		}
 	}
 
+	protected DemoItemMetadata getMetadata(String name, TestItemTypeEnum type, StatusEnum status, String parentId) {
+		return new DemoItemMetadata().withName(name).withType(type).withStatus(status).withParentId(parentId);
+	}
+
+	protected void createStep(DemoItemMetadata stepMetaData, RootMetaData rootMetaData) {
+		final String stepId = ofNullable(stepMetaData.getParentId()).map(parentId -> demoDataTestItemService.startTestItem(stepMetaData,
+				rootMetaData
+		)).orElseGet(() -> demoDataTestItemService.startRootItem(stepMetaData, rootMetaData));
+
+		generateLogs(stepMetaData.getLogCount(), stepId, stepMetaData.getStatus(), rootMetaData);
+		ofNullable(stepMetaData.getIssue()).ifPresentOrElse(issue -> demoDataTestItemService.finishTestItem(stepId,
+				stepMetaData.getStatus(),
+				rootMetaData,
+				issue
+		), () -> demoDataTestItemService.finishTestItem(stepId, stepMetaData.getStatus(), rootMetaData));
+	}
+
 	private void generateTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
-		final DemoItemMetadata testMetaData = getMetadata(test.getName(), TEST, suiteId).withIssue(test.getIssue());
+		final DemoItemMetadata testMetaData = getMetadata(test.getName(), TEST, testStatus, suiteId).withIssue(test.getIssue());
 		final String testId = demoDataTestItemService.startTestItem(testMetaData, rootMetaData);
 
-		test.getSteps().forEach(step -> {
-			final StatusEnum stepStatus = StatusEnum.valueOf(step.getStatus());
-			generateBefore(step, testId, BEFORE_METHOD, stepStatus, rootMetaData);
-			generateStep(rootMetaData, testId, step);
-			generateAfter(step, testId, AFTER_METHOD, stepStatus, rootMetaData);
-		});
+		generateSteps(rootMetaData, test, testId);
 
 		ofNullable(test.getIssue()).ifPresentOrElse(issue -> demoDataTestItemService.finishTestItem(testId,
 				testStatus,
@@ -79,54 +112,29 @@ public class DefaultSuiteGenerator implements SuiteGenerator {
 		generateLogs(TEST_LOGS_COUNT, testId, testStatus, rootMetaData);
 	}
 
-	private void createRootItem(int logsCount, String name, TestItemTypeEnum type, RootMetaData rootMetaData, StatusEnum status) {
-		final DemoItemMetadata beforeMetaData = new DemoItemMetadata().withName(name).withType(type);
-		final String itemId = demoDataTestItemService.startRootItem(beforeMetaData, rootMetaData);
-		generateLogs(logsCount, itemId, status, rootMetaData);
-		demoDataTestItemService.finishTestItem(itemId, status, rootMetaData);
-	}
-
-	private void generateBefore(TestingModel testingModel, String parentId, TestItemTypeEnum type, StatusEnum status,
-			RootMetaData rootMetaData) {
-		if (testingModel.isHasBefore()) {
-			final DemoItemMetadata metadata = getMetadata(type, parentId);
-			createStep(BEFORE_AFTER_LOGS_COUNT, rootMetaData, status, metadata);
-		}
-	}
-
-	private void generateAfter(TestingModel testingModel, String parentId, TestItemTypeEnum type, StatusEnum status,
-			RootMetaData rootMetaData) {
-		if (testingModel.isHasAfter()) {
-			final DemoItemMetadata metadata = getMetadata(type, parentId);
-			createStep(BEFORE_AFTER_LOGS_COUNT, rootMetaData, status, metadata);
-		}
-	}
-
-	protected void generateStep(RootMetaData rootMetaData, String parentId, Step step) {
-		final DemoItemMetadata stepMetaData = getMetadata(step, parentId);
-		createStep(STEP_LOGS_COUNT, rootMetaData, StatusEnum.valueOf(step.getStatus()), stepMetaData);
-	}
-
-	protected DemoItemMetadata getMetadata(Step step, String parentId) {
-		return new DemoItemMetadata().withName(step.getName()).withType(STEP).withParentId(parentId).withIssue(step.getIssue());
-	}
-
-	protected DemoItemMetadata getMetadata(String name, TestItemTypeEnum type, String parentId) {
-		return new DemoItemMetadata().withName(name).withType(type).withParentId(parentId);
-	}
-
-	private DemoItemMetadata getMetadata(TestItemTypeEnum type, String parentId) {
-		return new DemoItemMetadata().withName(getNameFromType(type)).withType(type).withParentId(parentId);
-	}
-
-	protected void createStep(int logsCount, RootMetaData rootMetaData, StatusEnum stepStatus, DemoItemMetadata stepMetaData) {
-		final String stepId = demoDataTestItemService.startTestItem(stepMetaData, rootMetaData);
-		generateLogs(logsCount, stepId, stepStatus, rootMetaData);
-		ofNullable(stepMetaData.getIssue()).ifPresentOrElse(issue -> demoDataTestItemService.finishTestItem(stepId,
-				stepStatus,
-				rootMetaData,
-				issue
-		), () -> demoDataTestItemService.finishTestItem(stepId, stepStatus, rootMetaData));
+	private void generateSteps(RootMetaData rootMetaData, Test test, String testId) {
+		test.getSteps().forEach(step -> {
+			final StatusEnum stepStatus = StatusEnum.valueOf(step.getStatus());
+			if (step.isHasBefore()) {
+				final DemoItemMetadata beforeMetaData = getMetadata(getNameFromType(BEFORE_METHOD),
+						BEFORE_METHOD,
+						stepStatus,
+						testId
+				).withLogCount(BEFORE_AFTER_LOGS_COUNT);
+				createStep(beforeMetaData, rootMetaData);
+			}
+			final DemoItemMetadata stepMetaData = getMetadata(step.getName(), STEP, stepStatus, testId).withLogCount(STEP_LOGS_COUNT)
+					.withIssue(step.getIssue());
+			createStep(stepMetaData, rootMetaData);
+			if (step.isHasBefore()) {
+				final DemoItemMetadata afterMetaData = getMetadata(getNameFromType(AFTER_METHOD),
+						AFTER_METHOD,
+						stepStatus,
+						testId
+				).withLogCount(BEFORE_AFTER_LOGS_COUNT);
+				createStep(afterMetaData, rootMetaData);
+			}
+		});
 	}
 
 	private void generateLogs(int count, String itemId, StatusEnum status, RootMetaData rootMetaData) {

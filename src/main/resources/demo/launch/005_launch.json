@@ -4,7 +4,6 @@
       "type": "RETRY",
       "name": "Suite with retries",
       "status": "PASSED",
-      "hasBefore": true,
       "tests": [
         {
           "name": "First test case",

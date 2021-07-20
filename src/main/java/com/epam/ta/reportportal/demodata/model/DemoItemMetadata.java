@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.demodata.model;
 
-import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 
 /**
@@ -28,17 +27,13 @@ public class DemoItemMetadata {
 
 	private String parentId;
 
-	private String launchId;
-
 	private boolean retry;
 
 	private boolean nested;
 
 	private TestItemTypeEnum type;
 
-	private ReportPortalUser user;
-
-	private ReportPortalUser.ProjectDetails projectDetails;
+	private String issue;
 
 	public DemoItemMetadata withName(String name) {
 		this.name = name;
@@ -47,11 +42,6 @@ public class DemoItemMetadata {
 
 	public DemoItemMetadata withParentId(String parentId) {
 		this.parentId = parentId;
-		return this;
-	}
-
-	public DemoItemMetadata withLaunch(String launch) {
-		this.launchId = launch;
 		return this;
 	}
 
@@ -70,13 +60,8 @@ public class DemoItemMetadata {
 		return this;
 	}
 
-	public DemoItemMetadata withUser(ReportPortalUser user) {
-		this.user = user;
-		return this;
-	}
-
-	public DemoItemMetadata withProjectDetails(ReportPortalUser.ProjectDetails projectDetails) {
-		this.projectDetails = projectDetails;
+	public DemoItemMetadata withIssue(String issue) {
+		this.issue = issue;
 		return this;
 	}
 
@@ -86,10 +71,6 @@ public class DemoItemMetadata {
 
 	public String getParentId() {
 		return parentId;
-	}
-
-	public String getLaunchId() {
-		return launchId;
 	}
 
 	public boolean isRetry() {
@@ -104,11 +85,8 @@ public class DemoItemMetadata {
 		return type;
 	}
 
-	public ReportPortalUser getUser() {
-		return user;
+	public String getIssue() {
+		return issue;
 	}
 
-	public ReportPortalUser.ProjectDetails getProjectDetails() {
-		return projectDetails;
-	}
 }

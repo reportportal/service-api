@@ -66,6 +66,9 @@ rp:
         batch-size: 100
       history:
         old: false
+      demo:
+        attachment:
+          probability: 20
       executor:
         pool:
           save-logs:

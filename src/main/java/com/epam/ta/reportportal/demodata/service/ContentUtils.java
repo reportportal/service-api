@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.demodata.service;
 
+import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
 import com.epam.ta.reportportal.entity.enums.TestItemTypeEnum;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.attribute.ItemAttributesRQ;
@@ -30,8 +31,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SplittableRandom;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -44,7 +47,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  *
  * @author Pavel_Bortnik
  */
-final class ContentUtils {
+public final class ContentUtils {
 
 	private static final int MAX_ERROR_LOGS_COUNT = 2;
 
@@ -54,11 +57,25 @@ final class ContentUtils {
 
 	private static SplittableRandom random = new SplittableRandom();
 
+	private static final Map<TestItemIssueGroup, Supplier<Issue>> ISSUE_MAPPING = Map.of(PRODUCT_BUG,
+			() -> getIssue(PRODUCT_BUG.getLocator(), bugDescription("demo/content/comments/product.txt")),
+			AUTOMATION_BUG,
+			() -> getIssue(AUTOMATION_BUG.getLocator(), bugDescription("demo/content/comments/automation.txt")),
+			SYSTEM_ISSUE,
+			() -> getIssue(SYSTEM_ISSUE.getLocator(), bugDescription("demo/content/comments/system.txt")),
+			TO_INVESTIGATE,
+			() -> getIssue(TO_INVESTIGATE.getLocator(), bugDescription("demo/content/comments/investigate.txt"))
+	);
+
 	private ContentUtils() {
 		//static only
 	}
 
-	static Set<ItemAttributesRQ> getAttributesInRange(int limit) {
+	public static String getNameFromType(TestItemTypeEnum type) {
+		return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, type.name());
+	}
+
+	public static Set<ItemAttributesRQ> getAttributesInRange(int limit) {
 		List<Pair<String, String>> content = readAttributes("demo/content/attributes.txt");
 		int fromIndex = random.nextInt(content.size() - limit);
 		return content.subList(fromIndex, fromIndex + limit).stream().map(it -> {
@@ -71,67 +88,50 @@ final class ContentUtils {
 
 	}
 
-	static String getSuiteDescription() {
+	public static String getSuiteDescription() {
 		List<String> content = readToList("demo/content/suite-description.txt");
 		return content.get(random.nextInt(content.size()));
 	}
 
-	static String getStepDescription() {
+	public static String getStepDescription() {
 		List<String> content = readToList("demo/content/step-description.txt");
 		return content.get(random.nextInt(content.size()));
 	}
 
-	static String getTestDescription() {
+	public static String getTestDescription() {
 		List<String> content = readToList("demo/content/test-description.txt");
 		return content.get(random.nextInt(content.size()));
 	}
 
-	static String getLaunchDescription() {
+	public static String getLaunchDescription() {
 		return readToString("demo/content/description.txt");
 	}
 
-	static List<String> getErrorLogs() {
+	public static List<String> getErrorLogs() {
 		return IntStream.range(0, MAX_ERROR_LOGS_COUNT).mapToObj(i -> {
 			int errorNumber = random.nextInt(1, ERRORS_COUNT);
 			return readToString("demo/errors/" + errorNumber + ".txt");
 		}).collect(Collectors.toList());
 	}
 
-	static String getLogMessage() {
+	public static String getLogMessage() {
 		List<String> logs = readToList("demo/content/demo_logs.txt");
 		return logs.get(random.nextInt(logs.size()));
 	}
 
-	static boolean getWithProbability(int probability) {
+	public static boolean getWithProbability(int probability) {
 		Preconditions.checkArgument(PROBABILITY_RANGE.contains(probability), "%s is not in range [%s]", probability, PROBABILITY_RANGE);
 		return Range.closedOpen(PROBABILITY_RANGE.lowerEndpoint(), probability).contains(random.nextInt(PROBABILITY_RANGE.upperEndpoint()));
 	}
 
-	static Issue getProductBug() {
-		Issue issue = new Issue();
-		issue.setIssueType(PRODUCT_BUG.getLocator());
-		issue.setComment(bugDescription("demo/content/comments/product.txt"));
-		return issue;
+	public static Issue getIssue(TestItemIssueGroup group) {
+		return ISSUE_MAPPING.get(group).get();
 	}
 
-	static Issue getAutomationBug() {
+	private static Issue getIssue(String locator, String comment) {
 		Issue issue = new Issue();
-		issue.setIssueType(AUTOMATION_BUG.getLocator());
-		issue.setComment(bugDescription("demo/content/comments/automation.txt"));
-		return issue;
-	}
-
-	static Issue getSystemIssue() {
-		Issue issue = new Issue();
-		issue.setIssueType(SYSTEM_ISSUE.getLocator());
-		issue.setComment(bugDescription("demo/content/comments/system.txt"));
-		return issue;
-	}
-
-	static Issue getInvestigate() {
-		Issue issue = new Issue();
-		issue.setIssueType(TO_INVESTIGATE.getLocator());
-		issue.setComment(bugDescription("demo/content/comments/investigate.txt"));
+		issue.setIssueType(locator);
+		issue.setComment(comment);
 		return issue;
 	}
 
@@ -178,9 +178,5 @@ final class ContentUtils {
 			throw new ReportPortalException("Missing demo content.", e);
 		}
 		return content;
-	}
-
-	static String getNameFromType(TestItemTypeEnum type) {
-		return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, type.name());
 	}
 }

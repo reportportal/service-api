@@ -80,7 +80,7 @@ dependencies {
     } else {
         compile 'com.github.reportportal:commons-dao:d55a4a8f'
         compile 'com.github.reportportal:commons-rules:331c402'
-        compile 'com.github.reportportal:commons-model:34257a7'
+        compile 'com.github.reportportal:commons-model:dc983715'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
         compile 'com.github.reportportal:plugin-api:faa94671'

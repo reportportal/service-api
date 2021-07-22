@@ -27,10 +27,7 @@ import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.ws.model.log.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
@@ -53,6 +50,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
@@ -185,6 +183,14 @@ public class LogController {
 			@FilterFor(Log.class) Filter filter,
 			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLogHandler.getLogs(underPath, extractProjectDetails(user, projectName), filter, pageable);
+	}
+
+	@GetMapping(value = "/under")
+	@ApiOperation("Get logs under items")
+	@Transactional(readOnly = true)
+	public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectName,
+			@RequestBody GetLogsUnderRq logsUnderRq, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLogs(logsUnderRq, extractProjectDetails(user, projectName));
 	}
 
 	@GetMapping(value = "/{logId}/page")

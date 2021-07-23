@@ -32,13 +32,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -65,7 +64,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private final UserRepository userRepository;
 
 	@Value("classpath:demo/launch")
-	private Resource resource;
+	private String resource;
 
 	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoLogsService demoLogsService, ObjectMapper objectMapper,
 			SuiteGeneratorResolver suiteGeneratorResolver, UserRepository userRepository,
@@ -81,10 +80,10 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	@Override
 	public List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		return CompletableFuture.supplyAsync(() -> {
-			try (Stream<Path> paths = Files.list(resource.getFile().toPath())) {
-				return paths.sorted().map(path -> {
+			try {
+				return Stream.of(ResourceUtils.getFile(resource).listFiles()).sorted().map(File::toURI).map(fileUri -> {
 					try {
-						final DemoLaunch demoLaunch = objectMapper.readValue(path.toFile(), new TypeReference<DemoLaunch>() {
+						final DemoLaunch demoLaunch = objectMapper.readValue(fileUri.toURL(), new TypeReference<DemoLaunch>() {
 						});
 						return generateLaunch(demoLaunch, user, projectDetails);
 					} catch (IOException e) {

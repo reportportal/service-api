@@ -185,7 +185,7 @@ public class LogController {
 		return getLogHandler.getLogs(underPath, extractProjectDetails(user, projectName), filter, pageable);
 	}
 
-	@GetMapping(value = "/under")
+	@PutMapping(value = "/under")
 	@ApiOperation("Get logs under items")
 	@Transactional(readOnly = true)
 	public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectName,

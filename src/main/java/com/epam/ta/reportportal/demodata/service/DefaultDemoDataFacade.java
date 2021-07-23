@@ -63,7 +63,7 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private final UserRepository userRepository;
 
-	@Value("classpath:demo/launch")
+	@Value("classpath:demo/launch/")
 	private String resource;
 
 	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoLogsService demoLogsService, ObjectMapper objectMapper,
@@ -81,9 +81,9 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	public List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return Stream.of(ResourceUtils.getFile(resource).listFiles()).sorted().map(File::toURI).map(fileUri -> {
+				return Stream.of(ResourceUtils.getFile(resource).listFiles()).sorted().map(File::getName).map(name -> {
 					try {
-						final DemoLaunch demoLaunch = objectMapper.readValue(fileUri.toURL(), new TypeReference<DemoLaunch>() {
+						final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(resource + name), new TypeReference<DemoLaunch>() {
 						});
 						return generateLaunch(demoLaunch, user, projectDetails);
 					} catch (IOException e) {

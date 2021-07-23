@@ -19,10 +19,13 @@ package com.epam.ta.reportportal.core.log;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.ws.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +43,13 @@ public interface GetLogHandler {
 	 * @return Iterable<LogResource>
 	 */
 	Iterable<LogResource> getLogs(String path, ReportPortalUser.ProjectDetails projectDetails, Filter filterable, Pageable pageable);
+
+	/**
+	 * @param logsUnderRq    {@link GetLogsUnderRq}
+	 * @param projectDetails {@link com.epam.ta.reportportal.commons.ReportPortalUser.ProjectDetails}
+	 * @return mapping with {@link TestItem#getItemId()} as key and its {@link Log} list as value
+	 */
+	Map<Long, List<LogResource>> getLogs(GetLogsUnderRq logsUnderRq, ReportPortalUser.ProjectDetails projectDetails);
 
 	/**
 	 * Returns log by UUID

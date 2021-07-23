@@ -48,8 +48,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 @Service
 public class DemoDataLaunchService {
 
-	private static LocalDateTime lastLaunchTime = LocalDateTime.now();
-
 	private final String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
 			"windows 10", "windows 7", "windows server", "debian", "alpine" };
 
@@ -69,11 +67,7 @@ public class DemoDataLaunchService {
 		rq.setDescription(ContentUtils.getLaunchDescription());
 		LocalDateTime now = LocalDateTime.now();
 		rq.setName(name);
-		if (now.isAfter(lastLaunchTime)) {
-			rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
-		} else {
-			rq.setStartTime(Date.from(lastLaunchTime.plusSeconds(3).atZone(ZoneId.systemDefault()).toInstant()));
-		}
+		rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
 		rq.setUuid(UUID.randomUUID().toString());
 		Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
 						platformValues[new Random().nextInt(platformValues.length)]
@@ -87,11 +81,6 @@ public class DemoDataLaunchService {
 		launch.setUserId(user.getId());
 		launchRepository.save(launch);
 		launchRepository.refresh(launch);
-
-		if (launch.getStartTime().isAfter(lastLaunchTime)) {
-			lastLaunchTime = lastLaunchTime.with(launch.getStartTime());
-		}
-
 		return launch;
 	}
 

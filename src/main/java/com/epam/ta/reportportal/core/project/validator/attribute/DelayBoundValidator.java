@@ -22,12 +22,18 @@ public class DelayBoundValidator {
 
 	public void validate(Map<String, String> currentAttributes, Map<ProjectAttributeEnum, Long> newAttributes) {
 		rules.forEach(rule -> {
-			final Long lowerDelay = ofNullable(newAttributes.get(rule.getLower())).orElseGet(() -> getCurrentDelay(currentAttributes,
+			Long lowerDelay = ofNullable(newAttributes.get(rule.getLower())).orElseGet(() -> getCurrentDelay(currentAttributes,
 					rule.getLower()
 			));
-			final Long higherDelay = ofNullable(newAttributes.get(rule.getHigher())).orElseGet(() -> getCurrentDelay(currentAttributes,
+			Long higherDelay = ofNullable(newAttributes.get(rule.getHigher())).orElseGet(() -> getCurrentDelay(currentAttributes,
 					rule.getHigher()
 			));
+
+			//Replace higher delay for forever keep launches case
+			if (rule.getHigher() == ProjectAttributeEnum.KEEP_LAUNCHES && higherDelay == 0) {
+				higherDelay = Long.MAX_VALUE;
+			}
+
 			BusinessRule.expect(lowerDelay <= higherDelay, equalTo(Boolean.TRUE))
 					.verify(BAD_REQUEST_ERROR,
 							Suppliers.formattedSupplier("Delay of '{}' should not be higher than '{}'",

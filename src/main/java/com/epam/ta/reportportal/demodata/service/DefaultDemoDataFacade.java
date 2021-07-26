@@ -36,7 +36,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -64,7 +63,10 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 	private final UserRepository userRepository;
 
 	@Value("classpath:demo/launch/")
-	private String resource;
+	private String resourceFolder;
+
+	@Value("${rp.environment.variable.demo.source}")
+	private String[] sources;
 
 	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoLogsService demoLogsService, ObjectMapper objectMapper,
 			SuiteGeneratorResolver suiteGeneratorResolver, UserRepository userRepository,
@@ -79,21 +81,15 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	@Override
 	public List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		return CompletableFuture.supplyAsync(() -> {
+		return CompletableFuture.supplyAsync(() -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
 			try {
-				return Stream.of(ResourceUtils.getFile(resource).listFiles()).sorted().map(File::getName).map(name -> {
-					try {
-						final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(resource + name), new TypeReference<DemoLaunch>() {
-						});
-						return generateLaunch(demoLaunch, user, projectDetails);
-					} catch (IOException e) {
-						throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
-					}
-				}).collect(toList());
+				final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source), new TypeReference<DemoLaunch>() {
+				});
+				return generateLaunch(demoLaunch, user, projectDetails);
 			} catch (IOException e) {
-				throw new ReportPortalException("Unable to load suites resource. " + e.getMessage(), e);
+				throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
 			}
-		}, executor).join();
+		}).collect(toList()), executor).join();
 	}
 
 	private Long generateLaunch(DemoLaunch demoLaunch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {

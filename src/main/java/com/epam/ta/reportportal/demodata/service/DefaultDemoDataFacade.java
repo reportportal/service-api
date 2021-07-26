@@ -32,13 +32,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -64,8 +62,11 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	private final UserRepository userRepository;
 
-	@Value("classpath:demo/launch")
-	private Resource resource;
+	@Value("classpath:demo/launch/")
+	private String resourceFolder;
+
+	@Value("${rp.environment.variable.demo.source}")
+	private String[] sources;
 
 	public DefaultDemoDataFacade(DemoDataLaunchService demoDataLaunchService, DemoLogsService demoLogsService, ObjectMapper objectMapper,
 			SuiteGeneratorResolver suiteGeneratorResolver, UserRepository userRepository,
@@ -80,21 +81,15 @@ public class DefaultDemoDataFacade implements DemoDataFacade {
 
 	@Override
 	public List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
-		return CompletableFuture.supplyAsync(() -> {
-			try (Stream<Path> paths = Files.list(resource.getFile().toPath())) {
-				return paths.sorted().map(path -> {
-					try {
-						final DemoLaunch demoLaunch = objectMapper.readValue(path.toFile(), new TypeReference<DemoLaunch>() {
-						});
-						return generateLaunch(demoLaunch, user, projectDetails);
-					} catch (IOException e) {
-						throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
-					}
-				}).collect(toList());
+		return CompletableFuture.supplyAsync(() -> Stream.of(sources).map(source -> resourceFolder + source).map(source -> {
+			try {
+				final DemoLaunch demoLaunch = objectMapper.readValue(ResourceUtils.getURL(source), new TypeReference<DemoLaunch>() {
+				});
+				return generateLaunch(demoLaunch, user, projectDetails);
 			} catch (IOException e) {
-				throw new ReportPortalException("Unable to load suites resource. " + e.getMessage(), e);
+				throw new ReportPortalException("Unable to load suites description. " + e.getMessage(), e);
 			}
-		}, executor).join();
+		}).collect(toList()), executor).join();
 	}
 
 	private Long generateLaunch(DemoLaunch demoLaunch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {

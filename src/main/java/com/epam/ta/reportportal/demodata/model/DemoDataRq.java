@@ -19,16 +19,8 @@ package com.epam.ta.reportportal.demodata.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DemoDataRq {
-
-	@Min(1)
-	@Max(100)
-	@JsonProperty(defaultValue = "10")
-	private int launchesQuantity = 10;
 
 	@JsonProperty(defaultValue = "true")
 	private boolean createDashboard = true;
@@ -41,19 +33,10 @@ public class DemoDataRq {
 		this.createDashboard = createDashboard;
 	}
 
-	public int getLaunchesQuantity() {
-		return launchesQuantity;
-	}
-
-	public void setLaunchesQuantity(int launchesQuantity) {
-		this.launchesQuantity = launchesQuantity;
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("DemoDataRq{");
-		sb.append("launchesQuantity=").append(launchesQuantity);
-		sb.append(", createDashboard=").append(createDashboard);
+		sb.append("createDashboard=").append(createDashboard);
 		sb.append('}');
 		return sb.toString();
 	}

@@ -28,6 +28,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -44,25 +45,22 @@ import static com.epam.ta.reportportal.util.MultipartFileUtils.getMultipartFile;
 import static java.util.stream.Collectors.toList;
 
 @Service
-class DemoLogsService {
-	private static final int MIN_LOGS_COUNT = 5;
+public class DemoLogsService {
 
-	private static final int MAX_LOGS_COUNT = 30;
+	private final int attachmentProbability;
 
-	private static final int BINARY_CONTENT_PROBABILITY = 7;
+	private final SplittableRandom random;
 
-	private SplittableRandom random;
+	private final LogRepository logRepository;
+	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
 
-	private LogRepository logRepository;
+	private final AttachmentBinaryDataService attachmentBinaryDataService;
 
-	private LaunchRepository launchRepository;
-
-	private TestItemRepository testItemRepository;
-
-	private AttachmentBinaryDataService attachmentBinaryDataService;
-
-	public DemoLogsService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
+	public DemoLogsService(@Value("${rp.environment.variable.demo.attachment.probability}") int attachmentProbability,
+			LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			AttachmentBinaryDataService attachmentBinaryDataService) {
+		this.attachmentProbability = attachmentProbability;
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
@@ -70,75 +68,63 @@ class DemoLogsService {
 		this.attachmentBinaryDataService = attachmentBinaryDataService;
 	}
 
-	List<Log> generateDemoLaunchLogs(String launchUUid, StatusEnum status) {
-		Launch launch = launchRepository.findByUuid(launchUUid)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
-		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
-			Log log = new Log();
-			log.setLogLevel(infoLevel().toInt());
-			log.setLaunch(launch);
-			log.setProjectId(launch.getProjectId());
-			log.setLogTime(LocalDateTime.now());
-			log.setLogMessage(ContentUtils.getLogMessage());
-			log.setUuid(UUID.randomUUID().toString());
-			return log;
-		}).collect(toList());
+	public List<Log> generateLaunchLogs(int count, String launchUUid, StatusEnum status) {
+		final Launch launch = launchRepository.findByUuid(launchUUid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchUUid));
+		final List<Log> logs = IntStream.range(0, count)
+				.mapToObj(it -> getLog(launch, ContentUtils.getLogMessage(), infoLevel()))
+				.collect(toList());
 		if (FAILED.equals(status)) {
 			List<String> errors = ContentUtils.getErrorLogs();
-			logs.addAll(errors.stream().map(msg -> {
-				Log log = new Log();
-				log.setLogLevel(errorLevel().toInt());
-				log.setLogTime(LocalDateTime.now());
-				log.setLaunch(launch);
-				log.setProjectId(launch.getProjectId());
-				log.setLogMessage(msg);
-				log.setUuid(UUID.randomUUID().toString());
-				return log;
-			}).collect(toList()));
+			logs.addAll(errors.stream().map(msg -> getLog(launch, msg, errorLevel())).collect(toList()));
 		}
 		logRepository.saveAll(logs);
 		return logs;
 	}
 
-	List<Log> generateDemoLogs(Long projectId, String itemUuid, StatusEnum status) {
-		TestItem testItem = testItemRepository.findByUuid(itemUuid)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
-		int logsCount = random.nextInt(MIN_LOGS_COUNT, MAX_LOGS_COUNT);
-		List<Log> logs = IntStream.range(1, logsCount).mapToObj(it -> {
-			Log log = new Log();
-			log.setLogLevel(infoLevel().toInt());
-			log.setLogTime(LocalDateTime.now());
-			log.setTestItem(testItem);
-			log.setProjectId(projectId);
-			log.setLogMessage(ContentUtils.getLogMessage());
-			log.setUuid(UUID.randomUUID().toString());
-			return log;
-		}).collect(toList());
+	private Log getLog(Launch launch, String message, LogLevel logLevel) {
+		Log log = new Log();
+		log.setLogLevel(logLevel.toInt());
+		log.setLogTime(LocalDateTime.now());
+		log.setLaunch(launch);
+		log.setProjectId(launch.getProjectId());
+		log.setLogMessage(message);
+		log.setUuid(UUID.randomUUID().toString());
+		return log;
+	}
+
+	public List<Log> generateItemLogs(int count, Long projectId, String itemUuid, StatusEnum status) {
+		final TestItem testItem = testItemRepository.findByUuid(itemUuid)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, itemUuid));
+		List<Log> logs = IntStream.range(0, count)
+				.mapToObj(it -> getLog(projectId, testItem, infoLevel(), ContentUtils.getLogMessage()))
+				.collect(toList());
 		if (FAILED.equals(status)) {
 			List<String> errors = ContentUtils.getErrorLogs();
-			logs.addAll(errors.stream().map(msg -> {
-				Log log = new Log();
-				log.setLogLevel(errorLevel().toInt());
-				log.setLogTime(LocalDateTime.now());
-				log.setTestItem(testItem);
-				log.setProjectId(projectId);
-				log.setLogMessage(msg);
-				log.setUuid(UUID.randomUUID().toString());
-				return log;
-			}).collect(toList()));
+			logs.addAll(errors.stream().map(msg -> getLog(projectId, testItem, errorLevel(), msg)).collect(toList()));
 		}
 		logRepository.saveAll(logs);
 		return logs;
 	}
 
-	void attachFiles(List<Log> logs, Long projectId, String launchUuid) {
+	private Log getLog(Long projectId, TestItem testItem, LogLevel logLevel, String logMessage) {
+		Log log = new Log();
+		log.setLogLevel(logLevel.toInt());
+		log.setLogTime(LocalDateTime.now());
+		log.setTestItem(testItem);
+		log.setProjectId(projectId);
+		log.setLogMessage(logMessage);
+		log.setUuid(UUID.randomUUID().toString());
+		return log;
+	}
+
+	public void attachFiles(List<Log> logs, Long projectId, String launchUuid) {
 		Launch launch = launchRepository.findByUuid(launchUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		createAttachments(logs, projectId, launch.getId(), null, launchUuid);
 	}
 
-	void attachFiles(List<Log> logs, Long projectId, String itemUuid, String launchUuid) {
+	public void attachFiles(List<Log> logs, Long projectId, String itemUuid, String launchUuid) {
 		Launch launch = launchRepository.findByUuid(launchUuid)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNCLASSIFIED_REPORT_PORTAL_ERROR));
 		TestItem item = testItemRepository.findByUuid(itemUuid)
@@ -150,11 +136,11 @@ class DemoLogsService {
 		BooleanHolder binaryDataAttached = new BooleanHolder();
 		logs.forEach(it -> {
 			if (ERROR.toInt() >= it.getLogLevel()) {
-				if (ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+				if (ContentUtils.getWithProbability(attachmentProbability)) {
 					createAttachment(projectId, itemId, launchId, it, launchUuid);
 				}
 			} else {
-				if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(BINARY_CONTENT_PROBABILITY)) {
+				if (!binaryDataAttached.getValue() && ContentUtils.getWithProbability(attachmentProbability)) {
 					createAttachment(projectId, itemId, launchId, it, launchUuid);
 					binaryDataAttached.setValue(true);
 				}
@@ -165,8 +151,7 @@ class DemoLogsService {
 	private void createAttachment(Long projectId, Long testItemId, Long launchId, Log it, String launchUuid) {
 		Attachment attachment = Attachment.values()[random.nextInt(Attachment.values().length)];
 		try {
-			attachmentBinaryDataService.saveFileAndAttachToLog(
-					getMultipartFile(attachment.getResource().getPath()),
+			attachmentBinaryDataService.saveFileAndAttachToLog(getMultipartFile(attachment.getResource().getPath()),
 					AttachmentMetaInfo.builder()
 							.withProjectId(projectId)
 							.withLaunchId(launchId)

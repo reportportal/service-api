@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
@@ -49,7 +50,7 @@ public class ProjectAttributeValidator {
 
 	private Long getDelay(String value) {
 		try {
-			final long delay = Long.parseLong(value);
+			final Long delay = FOREVER_ALIAS.equals(value) ? Long.MAX_VALUE : Long.parseLong(value);
 			BusinessRule.expect(delay, d -> d >= 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
 			return delay;
 		} catch (NumberFormatException exc) {

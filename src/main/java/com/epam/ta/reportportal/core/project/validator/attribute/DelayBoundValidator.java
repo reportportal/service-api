@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
@@ -28,11 +29,6 @@ public class DelayBoundValidator {
 			Long higherDelay = ofNullable(newAttributes.get(rule.getHigher())).orElseGet(() -> getCurrentDelay(currentAttributes,
 					rule.getHigher()
 			));
-
-			//Replace higher delay for forever keep launches case
-			if (rule.getHigher() == ProjectAttributeEnum.KEEP_LAUNCHES && higherDelay == 0) {
-				higherDelay = Long.MAX_VALUE;
-			}
 
 			BusinessRule.expect(lowerDelay <= higherDelay, equalTo(Boolean.TRUE))
 					.verify(BAD_REQUEST_ERROR,
@@ -54,7 +50,7 @@ public class DelayBoundValidator {
 
 	private Long resolveDelay(String value) {
 		try {
-			return Long.parseLong(value);
+			return FOREVER_ALIAS.equals(value) ? Long.MAX_VALUE : Long.parseLong(value);
 		} catch (NumberFormatException exc) {
 			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
 		}

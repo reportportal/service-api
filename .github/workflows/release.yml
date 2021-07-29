@@ -15,6 +15,7 @@ env:
   BOM_VERSION: 5.5.0
   MIGRATIONS_VERSION: 5.5.0
   RELEASE_VERSION: 5.5.0
+  REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
 jobs:
   release:
@@ -45,5 +46,6 @@ jobs:
           ./gradlew release -PreleaseMode -Pscripts.version=${{env.SCRIPTS_VERSION}} \
           -Pbom.version=${{env.BOM_VERSION}} -Pmigrations.version=${{env.MIGRATIONS_VERSION}} \
           -PgithubUserName=${{env.GH_USER_NAME}} -PgithubToken=${{secrets.GITHUB_TOKEN}} \
+          -PpublishRepo=${{ env.REPOSITORY_URL }}${{ github.repository }} \
           -PgpgPassphrase=${{secrets.GPG_PASSPHRASE}} -PgpgPrivateKey="${{secrets.GPG_PRIVATE_KEY}}" \
           -Prelease.releaseVersion=${{env.RELEASE_VERSION}}

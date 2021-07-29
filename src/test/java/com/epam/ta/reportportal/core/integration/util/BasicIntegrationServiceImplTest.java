@@ -68,10 +68,14 @@ class BasicIntegrationServiceImplTest {
 	void validateGlobalIntegrationNegative() {
 		//given
 		Integration integration = new Integration();
+		integration.setName("test");
 		IntegrationType integrationType = new IntegrationType();
+		integrationType.setId(1L);
 		integrationType.setName("email");
 		integration.setType(integrationType);
-		when(integrationRepository.findAllGlobalByType(integrationType)).thenReturn(Lists.newArrayList(new Integration()));
+		when(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(),
+				integrationType.getId()
+		)).thenReturn(true);
 
 		//when
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -79,7 +83,7 @@ class BasicIntegrationServiceImplTest {
 		);
 
 		//then
-		assertEquals("Impossible interact with integration. Integration with type email is already exists", exception.getMessage());
+		assertEquals("Integration 'test' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 	@Test
@@ -87,12 +91,16 @@ class BasicIntegrationServiceImplTest {
 		//given
 		Integration integration = new Integration();
 		IntegrationType integrationType = new IntegrationType();
+		integrationType.setId(1L);
 		integration.setType(integrationType);
 
 		Project project = new Project();
 		project.setId(1L);
 
-		when(integrationRepository.findAllByProjectIdAndType(1L, integrationType)).thenReturn(Lists.newArrayList());
+		when(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
+				integrationType.getId(),
+				project.getId()
+		)).thenReturn(false);
 
 		//when
 		boolean b = basicIntegrationService.validateIntegration(integration, project);
@@ -107,13 +115,17 @@ class BasicIntegrationServiceImplTest {
 		Integration integration = new Integration();
 		IntegrationType integrationType = new IntegrationType();
 		integrationType.setName("email");
+		integrationType.setId(1L);
 		integration.setType(integrationType);
 
 		Project project = new Project();
 		project.setId(1L);
 		project.setName("default");
 
-		when(integrationRepository.findAllByProjectIdAndType(1L, integrationType)).thenReturn(Lists.newArrayList(new Integration()));
+		when(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
+				integrationType.getId(),
+				project.getId()
+		)).thenReturn(true);
 
 		//when
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
@@ -121,10 +133,7 @@ class BasicIntegrationServiceImplTest {
 		);
 
 		//then
-		assertEquals(
-				"Impossible interact with integration. Integration with type email is already exists for project default",
-				exception.getMessage()
-		);
+		assertEquals("Integration 'email' already exists. You couldn't create the duplicate.", exception.getMessage());
 	}
 
 }

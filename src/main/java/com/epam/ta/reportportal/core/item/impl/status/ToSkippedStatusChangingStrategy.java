@@ -26,7 +26,6 @@ import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -105,12 +104,7 @@ public class ToSkippedStatusChangingStrategy extends AbstractStatusChangingStrat
 
 			List<Long> itemsToReindex = changeParentsStatuses(testItem, launch, true, user);
 			itemsToReindex.add(testItem.getItemId());
-			logIndexer.cleanIndex(project.getId(),
-					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							itemsToReindex,
-							LogLevel.ERROR.toInt()
-					)
-			);
+			logIndexer.indexLaunchesRemove(project.getId(), itemsToReindex);
 
 			if (!issueRequired) {
 				itemsToReindex.remove(itemsToReindex.size() - 1);

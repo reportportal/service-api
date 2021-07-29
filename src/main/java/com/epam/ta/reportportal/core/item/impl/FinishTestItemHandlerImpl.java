@@ -24,14 +24,14 @@ import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.item.ExternalTicketHandler;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
-import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
@@ -104,7 +104,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private final ChangeStatusHandler changeStatusHandler;
 
-	private final RetriesHandler retriesHandler;
+	private final RetrySearcher retrySearcher;
+	private final RetryHandler retryHandler;
 
 	private final ApplicationEventPublisher eventPublisher;
 
@@ -117,8 +118,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 			@Qualifier("finishTestItemHierarchyHandler") FinishHierarchyHandler<TestItem> finishHierarchyHandler, LogIndexer logIndexer,
 			Map<StatusEnum, StatusChangingStrategy> statusChangingStrategyMapping, IssueEntityRepository issueEntityRepository,
 			LogRepository logRepository, ChangeStatusHandler changeStatusHandler, ApplicationEventPublisher eventPublisher,
-			LaunchRepository launchRepository, @Qualifier("uniqueIdRetriesHandler") RetriesHandler retriesHandler, MessageBus messageBus,
-			ExternalTicketHandler externalTicketHandler) {
+			LaunchRepository launchRepository, @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher, RetryHandler retryHandler,
+			MessageBus messageBus, ExternalTicketHandler externalTicketHandler) {
 		this.testItemRepository = testItemRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.finishHierarchyHandler = finishHierarchyHandler;
@@ -129,7 +130,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 		this.launchRepository = launchRepository;
 		this.changeStatusHandler = changeStatusHandler;
 		this.eventPublisher = eventPublisher;
-		this.retriesHandler = retriesHandler;
+		this.retrySearcher = retrySearcher;
+		this.retryHandler = retryHandler;
 		this.messageBus = messageBus;
 		this.externalTicketHandler = externalTicketHandler;
 	}
@@ -167,9 +169,9 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 					.map(TestItem::getParentId)
 					.flatMap(testItemRepository::findById)
 					.ifPresent(parentItem -> ofNullable(finishExecutionRQ.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate)
-							.ifPresentOrElse(retryParentId -> retriesHandler.handleRetries(launch, itemForUpdate, retryParentId),
-									() -> retriesHandler.findPreviousRetry(launch, itemForUpdate, parentItem)
-											.ifPresent(previousRetryId -> retriesHandler.handleRetries(launch,
+							.ifPresentOrElse(retryParentId -> retryHandler.handleRetries(launch, itemForUpdate, retryParentId),
+									() -> retrySearcher.findPreviousRetry(launch, itemForUpdate, parentItem)
+											.ifPresent(previousRetryId -> retryHandler.handleRetries(launch,
 													itemForUpdate,
 													previousRetryId
 											))
@@ -229,12 +231,10 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 	 * @param hasChildren  Does item contain children
 	 */
 	private void verifyTestItem(TestItem testItem, Optional<StatusEnum> actualStatus, boolean hasChildren) {
-		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS,
-				formattedSupplier(
-						"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
-						testItem.getItemId()
-				)
-		);
+		expect(!actualStatus.isPresent() && !hasChildren, equalTo(Boolean.FALSE)).verify(AMBIGUOUS_TEST_ITEM_STATUS, formattedSupplier(
+				"There is no status provided from request and there are no descendants to check statistics for test item id '{}'",
+				testItem.getItemId()
+		));
 	}
 
 	private void validateRoles(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails, Launch launch) {
@@ -380,11 +380,8 @@ class FinishTestItemHandlerImpl implements FinishTestItemHandler {
 
 	private void deleteOldIssueIndex(StatusEnum actualStatus, TestItem testItem, TestItemResults testItemResults, Long projectId) {
 		if (actualStatus == PASSED || ITEM_CAN_BE_INDEXED.test(testItem)) {
-			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.cleanIndex(projectId,
-					logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-							Collections.singletonList(testItem.getItemId()),
-							LogLevel.ERROR.toInt()
-					)
+			ofNullable(testItemResults.getIssue()).ifPresent(issue -> logIndexer.indexItemsRemoveAsync(projectId,
+					Collections.singletonList(testItem.getItemId())
 			));
 		}
 	}

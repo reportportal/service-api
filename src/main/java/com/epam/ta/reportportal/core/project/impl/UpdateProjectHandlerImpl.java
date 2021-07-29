@@ -20,7 +20,6 @@ import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.auth.acl.ShareableObjectsHandler;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
@@ -32,8 +31,11 @@ import com.epam.ta.reportportal.core.events.activity.ProjectAnalyzerConfigEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.core.events.activity.ProjectUpdatedEvent;
 import com.epam.ta.reportportal.core.project.UpdateProjectHandler;
-import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.AnalyzeMode;
+import com.epam.ta.reportportal.core.project.validator.attribute.ProjectAttributeValidator;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
+import com.epam.ta.reportportal.dao.UserPreferenceRepository;
+import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -96,6 +98,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private static final String UPDATE_EVENT = "update";
 
+	private final ProjectAttributeValidator projectAttributeValidator;
+
 	private final ProjectRepository projectRepository;
 
 	private final UserRepository userRepository;
@@ -110,8 +114,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private final MailServiceFactory mailServiceFactory;
 
-	private final LaunchRepository launchRepository;
-
 	private final AnalyzerStatusCache analyzerStatusCache;
 
 	private final IndexerStatusCache indexerStatusCache;
@@ -125,11 +127,13 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectConverter projectConverter;
 
 	@Autowired
-	public UpdateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
-			ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory, LaunchRepository launchRepository, AnalyzerStatusCache analyzerStatusCache,
-			IndexerStatusCache indexerStatusCache, AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer,
-			ShareableObjectsHandler aclHandler, ProjectConverter projectConverter) {
+	public UpdateProjectHandlerImpl(ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
+			UserRepository userRepository, UserPreferenceRepository preferenceRepository, MessageBus messageBus,
+			ProjectUserRepository projectUserRepository, ApplicationEventPublisher applicationEventPublisher,
+			MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
+			ProjectConverter projectConverter) {
+		this.projectAttributeValidator = projectAttributeValidator;
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.preferenceRepository = preferenceRepository;
@@ -137,7 +141,6 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 		this.projectUserRepository = projectUserRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
 		this.mailServiceFactory = mailServiceFactory;
-		this.launchRepository = launchRepository;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.indexerStatusCache = indexerStatusCache;
 		this.analyzerServiceClient = analyzerServiceClient;
@@ -269,11 +272,9 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				"Index can not be removed until auto-analysis proceeds."
 		);
 
-		List<Long> launches = launchRepository.findLaunchIdsByProjectId(project.getId());
-
 		logIndexer.deleteIndex(project.getId());
 
-		logIndexer.indexLaunchesLogs(project.getId(), launches, AnalyzerUtils.getAnalyzerConfig(project))
+		logIndexer.index(project.getId(), AnalyzerUtils.getAnalyzerConfig(project))
 				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
 						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 
@@ -401,36 +402,13 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private void updateProjectConfiguration(ProjectConfigurationUpdate configuration, Project project) {
 		ofNullable(configuration).flatMap(config -> ofNullable(config.getProjectAttributes())).ifPresent(attributes -> {
-			verifyProjectAttributes(attributes);
+			projectAttributeValidator.verifyProjectAttributes(ProjectUtils.getConfigParameters(project.getProjectAttributes()), attributes);
 			attributes.forEach((attribute, value) -> project.getProjectAttributes()
 					.stream()
 					.filter(it -> it.getAttribute().getName().equalsIgnoreCase(attribute))
 					.findFirst()
 					.ifPresent(attr -> attr.setValue(value)));
 		});
-	}
-
-	private void verifyProjectAttributes(Map<String, String> attributes) {
-		Set<String> incompatibleAttributes = attributes.keySet()
-				.stream()
-				.filter(it -> !ProjectAttributeEnum.isPresent(it))
-				.collect(toSet());
-		expect(incompatibleAttributes, Set::isEmpty).verify(BAD_REQUEST_ERROR, incompatibleAttributes);
-
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LOGS.getAttribute())).ifPresent(this::validateDelay);
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_LAUNCHES.getAttribute())).ifPresent(this::validateDelay);
-		ofNullable(attributes.get(ProjectAttributeEnum.INTERRUPT_JOB_TIME.getAttribute())).ifPresent(this::validateDelay);
-		ofNullable(attributes.get(ProjectAttributeEnum.KEEP_SCREENSHOTS.getAttribute())).ifPresent(this::validateDelay);
-		ofNullable(attributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
-				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
-	}
-
-	private void validateDelay(String value) {
-		try {
-			BusinessRule.expect(Long.parseLong(value), delay -> delay >= 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
-		} catch (NumberFormatException exc) {
-			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
-		}
 	}
 
 	private void updateSenderCases(Project project, List<SenderCaseDTO> cases) {

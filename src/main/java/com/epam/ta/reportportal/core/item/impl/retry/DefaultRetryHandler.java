@@ -8,19 +8,21 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public abstract class AbstractRetriesHandler implements RetriesHandler {
+@Service
+public class DefaultRetryHandler implements RetryHandler {
 
-	protected final TestItemRepository testItemRepository;
+	private final TestItemRepository testItemRepository;
 	private final LaunchRepository launchRepository;
 	private final ApplicationEventPublisher eventPublisher;
 
-	public AbstractRetriesHandler(TestItemRepository testItemRepository, LaunchRepository launchRepository,
+	public DefaultRetryHandler(TestItemRepository testItemRepository, LaunchRepository launchRepository,
 			ApplicationEventPublisher eventPublisher) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;

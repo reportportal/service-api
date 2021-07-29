@@ -118,8 +118,8 @@ class ProjectControllerTest extends BaseMvcTest {
 		projectAttributes.put("job.keepLogs", String.valueOf(3600 * 24 * 14));
 		//1 week in seconds
 		projectAttributes.put("job.interruptJobTime", String.valueOf(3600 * 24 * 7));
-		//3 weeks in seconds
-		projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 21));
+		//1 week in seconds
+		projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 7));
 		projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
 		projectAttributes.put("analyzer.minShouldMatch", "5");
 		projectAttributes.put("analyzer.numberOfLogLines", "5");
@@ -143,6 +143,35 @@ class ProjectControllerTest extends BaseMvcTest {
 			assertTrue(pa.isPresent());
 			assertEquals(value, pa.get().getValue());
 		});
+	}
+
+	@Test
+	void updateProjectNegativeWithWrongBounds() throws Exception {
+		final UpdateProjectRQ rq = new UpdateProjectRQ();
+		ProjectConfigurationUpdate configuration = new ProjectConfigurationUpdate();
+		HashMap<String, String> projectAttributes = new HashMap<>();
+		projectAttributes.put("notifications.enabled", "false");
+		//2 weeks in seconds
+		projectAttributes.put("job.keepLaunches", String.valueOf(3600 * 24 * 14));
+		//2 weeks in seconds
+		projectAttributes.put("job.keepLogs", String.valueOf(3600 * 24 * 14));
+		//1 week in seconds
+		projectAttributes.put("job.interruptJobTime", String.valueOf(3600 * 24 * 7));
+		//3 weeks in seconds
+		projectAttributes.put("job.keepScreenshots", String.valueOf(3600 * 24 * 21));
+		projectAttributes.put("analyzer.autoAnalyzerMode", "CURRENT_LAUNCH");
+		projectAttributes.put("analyzer.minShouldMatch", "5");
+		projectAttributes.put("analyzer.numberOfLogLines", "5");
+		projectAttributes.put("analyzer.isAutoAnalyzerEnabled", "false");
+		configuration.setProjectAttributes(projectAttributes);
+		rq.setConfiguration(configuration);
+
+		HashMap<String, String> userRoles = new HashMap<>();
+		userRoles.put("test_user", "PROJECT_MANAGER");
+		rq.setUserRoles(userRoles);
+		mockMvc.perform(put("/v1/project/test_project").content(objectMapper.writeValueAsBytes(rq))
+				.contentType(APPLICATION_JSON)
+				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isBadRequest());
 	}
 
 	@Test

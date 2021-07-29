@@ -195,6 +195,7 @@ class DeleteProjectHandlerImplTest {
 
 		verify(projectContentRemover, times(1)).removeContent(project);
 		verify(logIndexer, times(1)).deleteIndex(projectId);
+		verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
 
 		assertEquals(response.getResultMessage(), "Project with id = '" + project.getId() + "' has been successfully deleted.");
 

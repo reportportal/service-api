@@ -45,10 +45,11 @@ public class PathNameUpdaterProvider implements ResourceUpdaterProvider<TestItem
 
 	@Override
 	public ResourceUpdater<TestItemResource> retrieve(TestItemUpdaterContent updaterContent) {
-		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(updaterContent.getTestItems()
-				.stream()
-				.map(TestItem::getItemId)
-				.collect(Collectors.toList()), updaterContent.getProjectId());
+		Map<Long, PathName> pathNamesMapping = testItemRepository.selectPathNames(
+				updaterContent.getTestItems().stream().map(TestItem::getItemId).collect(Collectors.toList()),
+				updaterContent.getTestItems().stream().map(TestItem::getLaunchId).collect(Collectors.toSet()),
+				updaterContent.getProjectId()
+		);
 		return PathNameUpdater.of(pathNamesMapping);
 	}
 }

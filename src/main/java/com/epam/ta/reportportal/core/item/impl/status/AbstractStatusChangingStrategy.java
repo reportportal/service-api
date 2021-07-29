@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.core.events.activity.TestItemStatusChangedEvent;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
@@ -88,12 +87,10 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 	@Override
 	public void changeStatus(TestItem testItem, StatusEnum providedStatus, ReportPortalUser user) {
 		BusinessRule.expect(testItem.getItemResults().getStatus(), currentStatus -> !IN_PROGRESS.equals(currentStatus))
-				.verify(INCORRECT_REQUEST,
-						Suppliers.formattedSupplier("Unable to update status of test item = '{}' because of '{}' status",
-								testItem.getItemId(),
-								testItem.getItemResults().getStatus()
-						).get()
-				);
+				.verify(INCORRECT_REQUEST, Suppliers.formattedSupplier("Unable to update status of test item = '{}' because of '{}' status",
+						testItem.getItemId(),
+						testItem.getItemResults().getStatus()
+				).get());
 		if (providedStatus == testItem.getItemResults().getStatus()) {
 			return;
 		}
@@ -172,12 +169,7 @@ public abstract class AbstractStatusChangingStrategy implements StatusChangingSt
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				parent.getItemResults().setIssue(null);
-				logIndexer.cleanIndex(projectId,
-						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(parent.getLaunchId(),
-								Collections.singletonList(parent.getItemId()),
-								LogLevel.ERROR.toInt()
-						)
-				);
+				logIndexer.indexItemsRemoveAsync(projectId, Collections.singletonList(parent.getItemId()));
 			});
 		}
 	}

@@ -18,12 +18,13 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.item.identity.IdentityUtil;
 import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
-import com.epam.ta.reportportal.core.item.impl.retry.RetriesHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
+import com.epam.ta.reportportal.core.item.validator.ParentItemValidator;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -45,11 +46,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
@@ -78,18 +79,24 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 
 	private final RerunHandler rerunHandler;
 
-	private final RetriesHandler retriesHandler;
+	private final List<ParentItemValidator> parentItemValidators;
+
+	private final RetrySearcher retrySearcher;
+	private final RetryHandler retryHandler;
 
 	@Autowired
 	public StartTestItemHandlerImpl(TestItemRepository testItemRepository, LaunchRepository launchRepository,
 			UniqueIdGenerator uniqueIdGenerator, TestCaseHashGenerator testCaseHashGenerator, RerunHandler rerunHandler,
-			@Qualifier("uniqueIdRetriesHandler") RetriesHandler retriesHandler) {
+			List<ParentItemValidator> parentItemValidators, @Qualifier("uniqueIdRetrySearcher") RetrySearcher retrySearcher,
+			RetryHandler retryHandler) {
 		this.testItemRepository = testItemRepository;
 		this.launchRepository = launchRepository;
 		this.uniqueIdGenerator = uniqueIdGenerator;
 		this.testCaseHashGenerator = testCaseHashGenerator;
 		this.rerunHandler = rerunHandler;
-		this.retriesHandler = retriesHandler;
+		this.parentItemValidators = parentItemValidators;
+		this.retrySearcher = retrySearcher;
+		this.retryHandler = retryHandler;
 	}
 
 	@Override
@@ -121,6 +128,13 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		Launch launch = launchRepository.findByUuid(rq.getLaunchUuid())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, rq.getLaunchUuid()));
 
+		if (launch.isRerun()) {
+			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleChildItem(rq, launch, parentId);
+			if (rerunCreatedRs.isPresent()) {
+				return rerunCreatedRs.get();
+			}
+		}
+
 		final TestItem parentItem;
 		if (isRetry) {
 			// Lock for test
@@ -132,24 +146,17 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 					.orElseThrow(() -> new ReportPortalException(TEST_ITEM_NOT_FOUND, parentId));
 		}
 
-		validate(rq, parentItem);
-
-		if (launch.isRerun()) {
-			Optional<ItemCreatedRS> rerunCreatedRs = rerunHandler.handleChildItem(rq, launch, parentItem);
-			if (rerunCreatedRs.isPresent()) {
-				return rerunCreatedRs.get();
-			}
-		}
+		parentItemValidators.forEach(v -> v.validate(rq, parentItem));
 
 		TestItem item = new TestItemBuilder().addStartItemRequest(rq).addAttributes(rq.getAttributes()).addLaunchId(launch.getId()).get();
 
 		if (isRetry) {
 			ofNullable(rq.getRetryOf()).flatMap(testItemRepository::findIdByUuidForUpdate).ifPresentOrElse(retryParentId -> {
 				saveChildItem(launch, item, parentItem);
-				retriesHandler.handleRetries(launch, item, retryParentId);
-			}, () -> retriesHandler.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
+				retryHandler.handleRetries(launch, item, retryParentId);
+			}, () -> retrySearcher.findPreviousRetry(launch, item, parentItem).ifPresentOrElse(previousRetryId -> {
 				saveChildItem(launch, item, parentItem);
-				retriesHandler.handleRetries(launch, item, previousRetryId);
+				retryHandler.handleRetries(launch, item, previousRetryId);
 			}, () -> saveChildItem(launch, item, parentItem)));
 		} else {
 			saveChildItem(launch, item, parentItem);
@@ -209,34 +216,4 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 		expect(isTrue(BooleanUtils.toBoolean(rq.isRetry())), equalTo(false)).verify(BAD_REQUEST_ERROR, "Root test item can't be a retry.");
 	}
 
-	/**
-	 * Verifies if the start of a child item is allowed. Conditions are
-	 * - the item's parent should not be a retry
-	 * - the item's start time must be same or later than the parent's
-	 * - the parent item hasn't any logs
-	 *
-	 * @param rq     Start child item request
-	 * @param parent Parent item
-	 */
-	private void validate(StartTestItemRQ rq, TestItem parent) {
-
-		if (!parent.isHasStats()) {
-			expect(rq.isHasStats(), equalTo(Boolean.FALSE)).verify(BAD_REQUEST_ERROR,
-					Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step",
-							parent.getItemId()
-					)
-							.get()
-			);
-		}
-
-		if (rq.isHasStats()) {
-			expect(parent.getRetryOf(), isNull()::test).verify(UNABLE_TO_SAVE_CHILD_ITEM_FOR_THE_RETRY, parent.getItemId());
-		}
-
-		expect(rq.getStartTime(), Preconditions.sameTimeOrLater(parent.getStartTime())).verify(CHILD_START_TIME_EARLIER_THAN_PARENT,
-				rq.getStartTime(),
-				parent.getStartTime(),
-				parent.getItemId()
-		);
-	}
 }

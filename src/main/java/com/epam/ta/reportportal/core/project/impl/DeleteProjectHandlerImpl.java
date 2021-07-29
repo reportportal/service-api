@@ -161,6 +161,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(project.getId());
+		analyzerServiceClient.removeSuggest(project.getId());
 		logRepository.deleteByProjectId(project.getId());
 		attachmentRepository.moveForDeletionByProjectId(project.getId());
 		return new OperationCompletionRS("Project with id = '" + project.getId() + "' has been successfully deleted.");

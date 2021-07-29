@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -93,7 +92,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validate(item, launch, user, projectDetails);
 		Optional<Long> parentId = ofNullable(item.getParentId());
 
-		Set<Long> removedDescendants = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
+		Set<Long> itemsForRemove = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
 
 		testItemRepository.deleteById(item.getItemId());
 
@@ -101,15 +100,8 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		parentId.flatMap(testItemRepository::findById)
 				.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		//TODO if item is under another project and action is performed by an admin, wrong request will be sent to the ES query
-		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
-						List.copyOf(removedDescendants),
-						LogLevel.ERROR.toInt()
-				)
-		);
-
-		attachmentRepository.moveForDeletionByItems(removedDescendants);
+		logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), itemsForRemove);
+		attachmentRepository.moveForDeletionByItems(itemsForRemove);
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
 	}
@@ -127,7 +119,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
 
-		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(itemIds, projectDetails.getProjectId());
+		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(
+				itemIds,
+				launchItemMap.keySet(),
+				projectDetails.getProjectId()
+		);
 
 		Set<Long> idsToDelete = Sets.newHashSet(descendantsMapping.keySet());
 
@@ -142,13 +138,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.map(TestItem::getParentId)
 				.filter(Objects::nonNull)
 				.collect(toList()));
-
-		launchItemMap.forEach((launchId, testItemIds) -> logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-						testItemIds.stream().map(TestItem::getItemId).filter(idsToDelete::contains).collect(toList()),
-						LogLevel.ERROR.toInt()
-				)
-		));
 
 		Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
 				.stream()
@@ -165,6 +154,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
 		if (CollectionUtils.isNotEmpty(removedItems)) {
+			logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), removedItems);
 			attachmentRepository.moveForDeletionByItems(removedItems);
 		}
 
@@ -186,11 +176,12 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	 */
 	private void validate(TestItem testItem, Launch launch, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION, formattedSupplier(
-					"Deleting testItem '{}' is not under specified project '{}'",
-					testItem.getItemId(),
-					projectDetails.getProjectId()
-			));
+			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
+					formattedSupplier("Deleting testItem '{}' is not under specified project '{}'",
+							testItem.getItemId(),
+							projectDetails.getProjectId()
+					)
+			);
 			if (projectDetails.getProjectRole().lowerThan(ProjectRole.PROJECT_MANAGER)) {
 				expect(user.getUserId(), Predicate.isEqual(launch.getUserId())).verify(ACCESS_DENIED, "You are not a launch owner.");
 			}
@@ -201,10 +192,11 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		expect(testItem.getItemResults().getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(TEST_ITEM_IS_NOT_FINISHED,
 				formattedSupplier("Unable to delete test item ['{}'] in progress state", testItem.getItemId())
 		);
-		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED, formattedSupplier(
-				"Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
-				testItem.getItemId(),
-				launch.getId()
-		));
+		expect(launch.getStatus(), not(it -> it.equals(StatusEnum.IN_PROGRESS))).verify(LAUNCH_IS_NOT_FINISHED,
+				formattedSupplier("Unable to delete test item ['{}'] under launch ['{}'] with 'In progress' state",
+						testItem.getItemId(),
+						launch.getId()
+				)
+		);
 	}
 }

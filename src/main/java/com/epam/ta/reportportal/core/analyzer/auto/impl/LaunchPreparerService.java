@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
@@ -32,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
@@ -45,11 +49,14 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class LaunchPreparerService {
 
+	private final LaunchRepository launchRepository;
+
 	private final LogRepository logRepository;
 
 	@Autowired
-	public LaunchPreparerService(LogRepository logRepository) {
+	public LaunchPreparerService(LogRepository logRepository, LaunchRepository launchRepository) {
 		this.logRepository = logRepository;
+		this.launchRepository = launchRepository;
 	}
 
 	public Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems, AnalyzerConfig analyzerConfig) {
@@ -60,6 +67,27 @@ public class LaunchPreparerService {
 			}
 		}
 		return Optional.empty();
+	}
+
+	public List<IndexTestItem> prepare(Long launchId, List<IndexTestItem> indexTestItemList) {
+		final Map<Long, List<Log>> logsMapping = getLogsMapping(launchId,
+				indexTestItemList.stream().map(IndexTestItem::getTestItemId).collect(toList())
+		);
+
+		return indexTestItemList.stream()
+				.peek(indexTestItem -> ofNullable(logsMapping.get(indexTestItem.getTestItemId())).filter(CollectionUtils::isNotEmpty)
+						.map(AnalyzerUtils::fromLogs)
+						.ifPresent(indexTestItem::setLogs))
+				.filter(it -> CollectionUtils.isNotEmpty(it.getLogs()))
+				.collect(toList());
+	}
+
+	public List<IndexLaunch> prepareLaunches(AnalyzerConfig analyzerConfig, List<TestItem> testItems) {
+		return testItems.stream().collect(Collectors.groupingBy(TestItem::getLaunchId)).entrySet().stream().flatMap(entry -> {
+			Launch launch = launchRepository.findById(entry.getKey())
+					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, entry.getKey()));
+			return prepare(launch, entry.getValue(), analyzerConfig).stream();
+		}).collect(Collectors.toList());
 	}
 
 	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, AnalyzerConfig analyzerConfig,
@@ -84,15 +112,18 @@ public class LaunchPreparerService {
 	private List<IndexTestItem> prepareItemsForIndexing(Long launchId, List<TestItem> testItems) {
 		List<TestItem> itemsForIndexing = testItems.stream().filter(ITEM_CAN_BE_INDEXED).collect(toList());
 
-		Map<Long, List<Log>> logsMapping = logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-				itemsForIndexing.stream().map(TestItem::getItemId).collect(toList()),
-				LogLevel.ERROR.toInt()
-		).stream().collect(groupingBy(l -> l.getTestItem().getItemId()));
+		Map<Long, List<Log>> logsMapping = getLogsMapping(launchId, itemsForIndexing.stream().map(TestItem::getItemId).collect(toList()));
 
 		return itemsForIndexing.stream()
 				.map(it -> AnalyzerUtils.fromTestItem(it, ofNullable(logsMapping.get(it.getItemId())).orElseGet(Collections::emptyList)))
 				.filter(it -> !CollectionUtils.isEmpty(it.getLogs()))
 				.collect(toList());
 
+	}
+
+	private Map<Long, List<Log>> getLogsMapping(Long launchId, List<Long> itemIds) {
+		return logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt())
+				.stream()
+				.collect(groupingBy(l -> l.getTestItem().getItemId()));
 	}
 }

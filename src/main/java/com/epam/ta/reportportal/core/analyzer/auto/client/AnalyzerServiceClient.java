@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.analyzer.auto.client;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
@@ -68,4 +70,25 @@ public interface AnalyzerServiceClient {
 	 */
 	List<SearchRs> searchLogs(SearchRq rq);
 
+	/**
+	 * Removes suggest index
+	 *
+	 * @param projectId Project/index id
+	 */
+	void removeSuggest(Long projectId);
+
+	/**
+	 * Searches suggests in analyzer for provided item
+	 *
+	 * @param rq {@link SuggestRq} request
+	 * @return {@link List<SuggestInfo>} list of founded suggests
+	 */
+	List<SuggestInfo> searchSuggests(SuggestRq rq);
+
+	/**
+	 * Sends to analyzer info about user choice from suggests
+	 *
+	 * @param suggestInfos Info about user suggests
+	 */
+	void handleSuggestChoice(List<SuggestInfo> suggestInfos);
 }

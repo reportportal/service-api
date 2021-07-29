@@ -21,23 +21,35 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
+import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -45,6 +57,10 @@ import java.util.stream.Collectors;
 @Service
 public class LogIndexerService implements LogIndexer {
 	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
+
+	private final Integer launchBatchSize;
+
+	private final TaskExecutor taskExecutor;
 
 	private final LaunchRepository launchRepository;
 
@@ -57,8 +73,12 @@ public class LogIndexerService implements LogIndexer {
 	private final IndexerStatusCache indexerStatusCache;
 
 	@Autowired
-	public LogIndexerService(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
+	public LogIndexerService(@Value("${rp.environment.variable.log-index.batch-size}") Integer launchBatchSize,
+			@Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor, LaunchRepository launchRepository,
+			TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
+			IndexerStatusCache indexerStatusCache) {
+		this.launchBatchSize = launchBatchSize;
+		this.taskExecutor = taskExecutor;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.indexerServiceClient = indexerServiceClient;
@@ -67,27 +87,57 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
-	public CompletableFuture<Long> indexLaunchesLogs(Long projectId, List<Long> launchIds, AnalyzerConfig analyzerConfig) {
+	//TODO refactor to execute in single Transaction (because of CompletableFuture there is no transaction inside).
+	//TODO Probably we should implement AsyncLogIndexer and use this service as sync delegate with transaction
+	public CompletableFuture<Long> index(Long projectId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				indexerStatusCache.indexingStarted(projectId);
-				List<IndexLaunch> indexLaunches = prepareLaunches(launchRepository.findAllById(launchIds), analyzerConfig);
-				LOGGER.info("Start indexing for {} launches", indexLaunches.size());
-				Long indexed = indexerServiceClient.index(indexLaunches);
-				LOGGER.info("Indexed {} logs", indexed);
-				return indexed;
+				final AtomicLong indexed = new AtomicLong(0L);
+				iterateOverContent(launchBatchSize,
+						pageable -> launchRepository.findIndexLaunchByProjectId(projectId, pageable.getPageSize(), pageable.getOffset()),
+						indexLaunches -> {
+							LOGGER.debug("Start indexing for {} launches", indexLaunches.size());
+							final List<IndexLaunch> preparedLaunches = prepareLaunches(analyzerConfig, indexLaunches);
+							indexed.addAndGet(indexerServiceClient.index(preparedLaunches));
+							LOGGER.debug("Indexed {} logs", indexed);
+						}
+				);
+				return indexed.get();
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
 			} finally {
 				indexerStatusCache.indexingFinished(projectId);
 			}
-		});
+		}, taskExecutor);
+	}
+
+	/**
+	 * Prepare launches for indexing
+	 *
+	 * @param analyzerConfig - Analyzer config
+	 * @param indexLaunches  - Launches to be prepared
+	 * @return List of prepared launches for indexing
+	 */
+	private List<IndexLaunch> prepareLaunches(AnalyzerConfig analyzerConfig, List<IndexLaunch> indexLaunches) {
+		return indexLaunches.stream()
+				.peek(l -> {
+					final List<IndexTestItem> indexTestItemList = testItemRepository.findIndexTestItemByLaunchId(l.getLaunchId(),
+							List.of(JTestItemTypeEnum.STEP)
+					);
+					if (!indexTestItemList.isEmpty()) {
+						l.setTestItems(launchPreparerService.prepare(l.getLaunchId(), indexTestItemList));
+					}
+				})
+				.filter(l -> !CollectionUtils.isEmpty(l.getTestItems()))
+				.peek(l -> l.setAnalyzerConfig(analyzerConfig))
+				.collect(Collectors.toList());
 	}
 
 	@Override
 	@Transactional(readOnly = true)
+	//TODO same refactoring as for the method above
 	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
@@ -115,6 +165,7 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	@Transactional(readOnly = true)
+	//TODO same refactoring as for the method above
 	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(projectId);
@@ -158,19 +209,39 @@ public class LogIndexerService implements LogIndexer {
 				CompletableFuture.supplyAsync(() -> indexerServiceClient.cleanIndex(index, ids));
 	}
 
-	/**
-	 * Prepare launches for indexing
-	 *
-	 * @param launches       - Launches to be prepared
-	 * @param analyzerConfig - Analyzer config
-	 * @return List of prepared launches for indexing
-	 */
-	private List<IndexLaunch> prepareLaunches(List<Launch> launches, AnalyzerConfig analyzerConfig) {
-		return launches.stream()
-				.filter(it -> testItemRepository.hasItemsWithIssueByLaunch(it.getId()))
-				.map(it -> launchPreparerService.prepare(it, testItemRepository.findTestItemsByLaunchId(it.getId()), analyzerConfig))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(Collectors.toList());
+	@Async
+	@Override
+	public void indexDefectsUpdate(Long projectId, AnalyzerConfig analyzerConfig, List<TestItem> testItems) {
+		if (CollectionUtils.isEmpty(testItems)) {
+			return;
+		}
+
+		Map<Long, String> itemsForIndexUpdate = testItems.stream()
+				.collect(Collectors.toMap(TestItem::getItemId, it -> it.getItemResults().getIssue().getIssueType().getLocator()));
+
+		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
+		List<TestItem> missedItems = testItems.stream().filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
+
+		List<IndexLaunch> indexLaunchList = launchPreparerService.prepareLaunches(analyzerConfig, missedItems);
+
+		indexerServiceClient.index(indexLaunchList);
 	}
+
+	@Override
+	public int indexItemsRemove(Long projectId, Collection<Long> itemsForIndexRemove) {
+		return indexerServiceClient.indexItemsRemove(projectId, itemsForIndexRemove);
+	}
+
+	@Async
+	@Override
+	public void indexItemsRemoveAsync(Long projectId, Collection<Long> itemsForIndexRemove) {
+		indexerServiceClient.indexItemsRemoveAsync(projectId, itemsForIndexRemove);
+	}
+
+	@Async
+	@Override
+	public void indexLaunchesRemove(Long projectId, Collection<Long> launchesForIndexRemove) {
+		indexerServiceClient.indexLaunchesRemove(projectId, launchesForIndexRemove);
+	}
+
 }

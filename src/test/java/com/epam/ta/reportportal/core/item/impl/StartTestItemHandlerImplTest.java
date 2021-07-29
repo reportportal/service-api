@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.core.item.validator.ParentItemValidator;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -26,16 +28,20 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 
@@ -43,13 +49,16 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
 @ExtendWith(MockitoExtension.class)
 class StartTestItemHandlerImplTest {
+
+	private final ParentItemValidator validator = mock(ParentItemValidator.class);
 
 	@Mock
 	private LaunchRepository launchRepository;
@@ -59,6 +68,15 @@ class StartTestItemHandlerImplTest {
 
 	@InjectMocks
 	private StartTestItemHandlerImpl handler;
+
+	@Spy
+	private ArrayList<ParentItemValidator> parentItemValidators = new ArrayList<>();
+
+	@BeforeEach
+	public void setup() throws Exception {
+		parentItemValidators.clear();
+		parentItemValidators.add(validator);
+	}
 
 	@Test
 	void startRootItemUnderNotExistedLaunch() {
@@ -132,7 +150,9 @@ class StartTestItemHandlerImplTest {
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.empty());
 
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1"));
+		final ReportPortalException exception = assertThrows(ReportPortalException.class,
+				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), rq, "1")
+		);
 		assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
 	}
 
@@ -148,6 +168,8 @@ class StartTestItemHandlerImplTest {
 		item.setStartTime(LocalDateTime.now().plusHours(1));
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
+		doThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR)).when(validator)
+				.validate(any(StartTestItemRQ.class), any(TestItem.class));
 
 		assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")
@@ -169,6 +191,10 @@ class StartTestItemHandlerImplTest {
 		item.setStartTime(LocalDateTime.now().minusHours(1));
 		when(launchRepository.findByUuid("1")).thenReturn(Optional.of(getLaunch(1L, StatusEnum.IN_PROGRESS)));
 		when(testItemRepository.findByUuid("1")).thenReturn(Optional.of(item));
+		doThrow(new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+				Suppliers.formattedSupplier("Unable to add a not nested step item, because parent item with ID = '{}' is a nested step", 1L)
+						.get()
+		)).when(validator).validate(any(StartTestItemRQ.class), any(TestItem.class));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.startChildItem(rpUser, extractProjectDetails(rpUser, "test_project"), startTestItemRQ, "1")

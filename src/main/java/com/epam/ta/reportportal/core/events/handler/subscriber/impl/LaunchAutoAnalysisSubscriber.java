@@ -64,8 +64,7 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
 			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
 
-			//TODO provide executor
-			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
+			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig);
 		} else {
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
 		}

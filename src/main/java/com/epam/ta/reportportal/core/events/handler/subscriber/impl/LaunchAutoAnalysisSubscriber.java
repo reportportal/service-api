@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
 import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
-import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
+import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -40,15 +41,15 @@ import java.util.List;
 @Service
 public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscriber {
 
-	private final AnalyzerService analyzerService;
+	private final AnalyzerServiceAsync analyzerServiceAsync;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 	private final LogIndexer logIndexer;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public LaunchAutoAnalysisSubscriber(AnalyzerService analyzerService, AnalyzeCollectorFactory analyzeCollectorFactory,
-										LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
-		this.analyzerService = analyzerService;
+	public LaunchAutoAnalysisSubscriber(AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory,
+			LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
+		this.analyzerServiceAsync = analyzerServiceAsync;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 		this.logIndexer = logIndexer;
 		this.eventPublisher = eventPublisher;
@@ -61,9 +62,10 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), launchFinishedEvent.getUser());
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
-			analyzerService.runAnalyzers(launch, itemIds, analyzerConfig);
+			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
 
-			logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig);
+			//TODO provide executor
+			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 		} else {
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
 		}

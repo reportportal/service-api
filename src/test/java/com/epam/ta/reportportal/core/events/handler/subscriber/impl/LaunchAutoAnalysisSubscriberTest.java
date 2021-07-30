@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
 
-import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
@@ -48,7 +47,7 @@ import static org.mockito.Mockito.*;
  */
 class LaunchAutoAnalysisSubscriberTest {
 
-	private final AnalyzerService analyzerService = mock(AnalyzerService.class);
+	private final AnalyzerServiceAsync analyzerServiceAsync = mock(AnalyzerServiceAsync.class);
 	private final AnalyzeCollectorFactory analyzeCollectorFactory = mock(AnalyzeCollectorFactory.class);
 	private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
 	private final LogIndexer logIndexer = mock(LogIndexer.class);
@@ -57,7 +56,7 @@ class LaunchAutoAnalysisSubscriberTest {
 	private CompletableFuture<Long> indexed = mock(CompletableFuture.class);
 	private CompletableFuture<Void> analyzed = mock(CompletableFuture.class);
 
-	private final LaunchAutoAnalysisSubscriber autoAnalysisSubscriber = new LaunchAutoAnalysisSubscriber(analyzerService,
+	private final LaunchAutoAnalysisSubscriber autoAnalysisSubscriber = new LaunchAutoAnalysisSubscriber(analyzerServiceAsync,
 			analyzeCollectorFactory,
 			logIndexer, eventPublisher
 	);
@@ -81,15 +80,15 @@ class LaunchAutoAnalysisSubscriberTest {
 		project.setId(1L);
 		project.setProjectAttributes(LaunchFinishedTestUtils.getProjectAttributes(mapping));
 
-		when(analyzerService.hasAnalyzers()).thenReturn(true);
+		when(analyzerServiceAsync.hasAnalyzers()).thenReturn(true);
 		when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
 		when(analyzeItemsCollector.collectItems(any(), any(), any())).thenReturn(Lists.newArrayList(1L, 2L));
 		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(indexed);
-//		when(analyzerService.runAnalyzers(any(), any(), any()))
+		when(analyzerServiceAsync.analyze(any(), any(), any())).thenReturn(analyzed);
 		autoAnalysisSubscriber.handleEvent(event, project, launch.get());
 
 		verify(logIndexer, times(1)).indexLaunchLogs(any(), any(), any());
-		verify(analyzerService, times(1)).runAnalyzers(any(), any(), any());
+		verify(analyzerServiceAsync, times(1)).analyze(any(), any(), any());
 		verify(eventPublisher, times(1)).publishEvent(any());
 
 	}
@@ -115,7 +114,7 @@ class LaunchAutoAnalysisSubscriberTest {
 
 		autoAnalysisSubscriber.handleEvent(event, project, launch.get());
 
-		verify(analyzerService, times(0)).runAnalyzers(any(), any(), any());
+		verify(analyzerServiceAsync, times(0)).analyze(any(), any(), any());
 		verify(logIndexer, times(1)).indexLaunchLogs(any(), any(), any());
 
 	}

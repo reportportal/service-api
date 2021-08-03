@@ -62,14 +62,17 @@ public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscrib
 			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
 					.collectItems(project.getId(), launch.getId(), launchFinishedEvent.getUser());
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
-			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig).join();
+			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
+					.thenRunAsync(() -> eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId())))
+					.join();
 
 			//TODO provide executor
 			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
 		} else {
 			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
+			eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId()));
 		}
-		eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId()));
+
 	}
 
 	@Override

@@ -16,19 +16,23 @@
 
 package com.epam.ta.reportportal.job;
 
+import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +44,7 @@ import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
+import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static java.time.Duration.ofSeconds;
 
 /**
@@ -53,6 +58,8 @@ public class InterruptBrokenLaunchesJob implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InterruptBrokenLaunchesJob.class);
 
+	private final ApplicationEventPublisher eventPublisher;
+
 	private final LaunchRepository launchRepository;
 
 	private final TestItemRepository testItemRepository;
@@ -62,8 +69,9 @@ public class InterruptBrokenLaunchesJob implements Job {
 	private final ProjectRepository projectRepository;
 
 	@Autowired
-	public InterruptBrokenLaunchesJob(LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
+	public InterruptBrokenLaunchesJob(ApplicationEventPublisher eventPublisher, LaunchRepository launchRepository, TestItemRepository testItemRepository, LogRepository logRepository,
 			ProjectRepository projectRepository) {
+		this.eventPublisher = eventPublisher;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
@@ -133,16 +141,19 @@ public class InterruptBrokenLaunchesJob implements Job {
 			launch.setStatus(StatusEnum.INTERRUPTED);
 			launch.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
 			launchRepository.save(launch);
+			publishFinishEvent(launch);
 		});
+	}
+
+	private void publishFinishEvent(Launch launch) {
+		final LaunchActivityResource eventResource = TO_ACTIVITY_RESOURCE.apply(launch);
+		final LaunchFinishedEvent event = new LaunchFinishedEvent();
+		event.setLaunchActivityResource(eventResource);
+		eventPublisher.publishEvent(event);
 	}
 
 	private void interruptItems(Long launchId) {
 		testItemRepository.interruptInProgressItems(launchId);
-		launchRepository.findById(launchId).ifPresent(l -> {
-			l.setStatus(StatusEnum.INTERRUPTED);
-			l.setEndTime(LocalDateTime.now(ZoneOffset.UTC));
-			launchRepository.save(l);
-		});
-
+		interruptLaunch(launchId);
 	}
 }

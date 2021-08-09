@@ -30,16 +30,15 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Delete user handler
@@ -98,23 +97,4 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}
 
-	@Override
-	public DeleteBulkRS deleteUsers(DeleteBulkRQ deleteBulkRQ, ReportPortalUser currentUser) {
-		List<ReportPortalException> exceptions = Lists.newArrayList();
-		List<Long> deleted = Lists.newArrayList();
-		deleteBulkRQ.getIds().forEach(userId -> {
-			try {
-				deleteUser(userId, currentUser);
-				deleted.add(userId);
-			} catch (ReportPortalException rp) {
-				exceptions.add(rp);
-			}
-		});
-		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {
-			ErrorRS errorResponse = new ErrorRS();
-			errorResponse.setErrorType(ex.getErrorType());
-			errorResponse.setMessage(ex.getMessage());
-			return errorResponse;
-		}).collect(Collectors.toList()));
-	}
 }

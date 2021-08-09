@@ -39,6 +39,7 @@ import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.jooq.Operator;
@@ -57,11 +58,14 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -130,16 +134,24 @@ public class ProjectController {
 		return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user, updateProjectNotificationConfigRQ);
 	}
 
-	@Transactional
 	@DeleteMapping
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
 	public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProjects(deleteBulkRQ);
+		final List<ReportPortalException> exceptions = Lists.newArrayList();
+		final List<Long> deleted = Lists.newArrayList();
+		deleteBulkRQ.getIds().forEach(projectId -> {
+			try {
+				deleteProjectHandler.deleteProject(projectId);
+				deleted.add(projectId);
+			} catch (ReportPortalException ex) {
+				exceptions.add(ex);
+			}
+		});
+		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList()));
 	}
 
-	@Transactional
 	@DeleteMapping("/{projectId}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
@@ -148,7 +160,6 @@ public class ProjectController {
 		return deleteProjectHandler.deleteProject(projectId);
 	}
 
-	@Transactional
 	@DeleteMapping("/{projectName}/index")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)

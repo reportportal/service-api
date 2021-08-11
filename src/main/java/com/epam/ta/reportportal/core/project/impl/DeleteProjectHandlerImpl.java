@@ -35,6 +35,7 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +50,7 @@ import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCac
  * @author Pavel Bortnik
  */
 @Service
+@Transactional
 public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectRepository projectRepository;

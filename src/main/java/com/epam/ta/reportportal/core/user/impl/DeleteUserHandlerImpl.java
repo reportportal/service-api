@@ -92,7 +92,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 				deleteProjectHandler.deleteProject(project.getId());
 			} else {
 				shareableObjectsHandler.preventSharedObjects(project.getId(), user.getLogin());
-				projectRecipientHandler.excludeProjectRecipients(Lists.newArrayList(user), project);
+				projectRecipientHandler.handle(Lists.newArrayList(user), project);
 			}
 		});
 

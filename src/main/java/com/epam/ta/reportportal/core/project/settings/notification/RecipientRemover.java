@@ -13,18 +13,25 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
+/**
+ * @author Ivan Budaev
+ */
 @Service
-public class ProjectRecipientHandlerImpl implements ProjectRecipientHandler {
+public class RecipientRemover implements ProjectRecipientHandler {
 
 	private final SenderCaseRepository senderCaseRepository;
 
 	@Autowired
-	public ProjectRecipientHandlerImpl(SenderCaseRepository senderCaseRepository) {
+	public RecipientRemover(SenderCaseRepository senderCaseRepository) {
 		this.senderCaseRepository = senderCaseRepository;
 	}
 
+	/**
+	 * @param users   {@link User} collection to remove from project recipient list
+	 * @param project {@link Project}
+	 */
 	@Override
-	public void excludeProjectRecipients(Iterable<User> users, Project project) {
+	public void handle(Iterable<User> users, Project project) {
 		final Set<String> toExclude = stream(users.spliterator(), false).map(user -> asList(user.getEmail().toLowerCase(),
 				user.getLogin().toLowerCase()
 		)).flatMap(List::stream).collect(toSet());

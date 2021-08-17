@@ -41,6 +41,7 @@ import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
 import com.google.common.collect.Sets;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -170,6 +171,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 	 * @param isNameChanged     launch name change indicator
 	 */
 	private void updateChildrenOfLaunches(Launch newLaunch, Set<Long> launches, boolean extendDescription, boolean isNameChanged) {
+		ConcurrentHashMap<Long, String> testItemNamesCache = new ConcurrentHashMap<>();
 		List<TestItem> testItems = launches.stream().peek(id -> {
 			logRepository.updateLaunchIdByLaunchId(id, newLaunch.getId());
 			attachmentRepository.updateLaunchIdByProjectIdAndLaunchId(newLaunch.getProjectId(), id, newLaunch.getId());
@@ -178,7 +180,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 			return testItemRepository.findTestItemsByLaunchId(launch.getId()).stream().peek(testItem -> {
 				testItem.setLaunchId(newLaunch.getId());
 				if (isNameChanged && identifierGenerator.validate(testItem.getUniqueId())) {
-					testItem.setUniqueId(identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem), newLaunch));
+					testItem.setUniqueId(identifierGenerator.generate(testItem, IdentityUtil.getParentIds(testItem), newLaunch, testItemNamesCache));
 				}
 				if (testItem.getType().sameLevel(TestItemTypeEnum.SUITE)) {
 					// Add launch reference description for top level items
@@ -190,6 +192,7 @@ public abstract class AbstractLaunchMergeStrategy implements LaunchMergeStrategy
 				}
 			});
 		}).collect(toList());
+		testItemNamesCache.clear();
 		testItemRepository.saveAll(testItems);
 	}
 }

@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Unique id generator for designate test item's originality
@@ -34,9 +35,11 @@ public interface UniqueIdGenerator {
 	 *
 	 * @param testItem  source for id
 	 * @param parentIds all {@link TestItem} ancestors' ids
+	 * @param testItemNamesCache if this map contains names of parents of the testItem then
+	 *                              they will be taken from here, and not from the database
 	 * @return unique id
 	 */
-	String generate(TestItem testItem, List<Long> parentIds, Launch launch);
+	String generate(TestItem testItem, List<Long> parentIds, Launch launch, Map<Long, String> testItemNamesCache);
 
 	/**
 	 * Validate if string has been generated automatically

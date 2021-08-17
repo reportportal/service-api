@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -188,7 +189,7 @@ class StartTestItemHandlerImpl implements StartTestItemHandler {
 	private void generateUniqueId(Launch launch, TestItem item, String path) {
 		item.setPath(path);
 		if (Objects.isNull(item.getUniqueId())) {
-			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch));
+			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch, new HashMap<>()));
 		}
 		if (Objects.isNull(item.getTestCaseId())) {
 			item.setTestCaseHash(testCaseHashGenerator.generate(item, IdentityUtil.getParentIds(item), launch.getProjectId()));

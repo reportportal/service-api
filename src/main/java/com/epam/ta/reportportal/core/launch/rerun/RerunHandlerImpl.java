@@ -46,10 +46,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
@@ -200,7 +197,7 @@ public class RerunHandlerImpl implements RerunHandler {
 
 	private void generateUniqueId(Launch launch, TestItem item) {
 		if (null == item.getUniqueId()) {
-			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch));
+			item.setUniqueId(uniqueIdGenerator.generate(item, IdentityUtil.getParentIds(item), launch, new HashMap<>()));
 		}
 	}
 

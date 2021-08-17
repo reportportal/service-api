@@ -29,10 +29,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,11 +67,6 @@ class TestItemUniqueIdGeneratorTest {
 		testItem.setName("itemName");
 		testItem.setPath("1.2.3");
 
-		HashMap<Long, String> pathNamesMap = new HashMap<>();
-		pathNamesMap.put(1L, "first");
-		pathNamesMap.put(2L, "second");
-		pathNamesMap.put(3L, "third");
-
 		Parameter param1 = new Parameter();
 		param1.setKey("key1");
 		param1.setValue("val1");
@@ -88,17 +80,17 @@ class TestItemUniqueIdGeneratorTest {
 		pathNames.put(1L, "suite");
 		pathNames.put(2L, "test");
 
-		List<TestItem> parents = pathNames.entrySet().stream().map(entry -> {
+		Map<Long, TestItem> parents = pathNames.entrySet().stream().map(entry -> {
 			TestItem parent = new TestItem();
 			parent.setItemId(entry.getKey());
 			parent.setName(entry.getValue());
 			return parent;
-		}).collect(Collectors.toList());
+		}).collect(Collectors.toMap(TestItem::getItemId, item -> item));
 
 		final List<Long> parentIds = IdentityUtil.getParentIds(testItem);
-
-		when(testItemRepository.findAllById(parentIds)).thenReturn(parents);
-		String generated = uniqueIdGenerator.generate(testItem, parentIds, launch);
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(parents.get(1L)));
+		when(testItemRepository.findById(2L)).thenReturn(Optional.of(parents.get(2L)));
+		String generated = uniqueIdGenerator.generate(testItem, parentIds, launch, new HashMap<>());
 
 		assertNotNull(generated);
 		assertTrue(generated.startsWith("auto:"));

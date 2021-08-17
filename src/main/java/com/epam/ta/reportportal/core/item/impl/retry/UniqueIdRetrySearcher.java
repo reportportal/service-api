@@ -7,6 +7,7 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -29,7 +30,7 @@ public class UniqueIdRetrySearcher implements RetrySearcher {
 	@Override
 	public Optional<Long> findPreviousRetry(Launch launch, TestItem newItem, TestItem parentItem) {
 		if (Objects.isNull(newItem.getUniqueId())) {
-			newItem.setUniqueId(uniqueIdGenerator.generate(newItem, IdentityUtil.getItemTreeIds(parentItem), launch));
+			newItem.setUniqueId(uniqueIdGenerator.generate(newItem, IdentityUtil.getItemTreeIds(parentItem), launch, new HashMap<>()));
 		}
 		return ofNullable(newItem.getItemId()).map(itemId -> testItemRepository.findLatestIdByUniqueIdAndLaunchIdAndParentIdAndItemIdNotEqual(
 				newItem.getUniqueId(),

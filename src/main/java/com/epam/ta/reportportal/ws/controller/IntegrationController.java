@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.integration.CreateIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.DeleteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
@@ -39,7 +40,6 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
@@ -49,14 +49,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(value = "/v1/integration")
 public class IntegrationController {
 
+	private final ProjectExtractor projectExtractor;
 	private final DeleteIntegrationHandler deleteIntegrationHandler;
 	private final GetIntegrationHandler getIntegrationHandler;
 	private final CreateIntegrationHandler createIntegrationHandler;
 	private final ExecuteIntegrationHandler executeIntegrationHandler;
 
 	@Autowired
-	public IntegrationController(DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
+	public IntegrationController(ProjectExtractor projectExtractor, DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
 			CreateIntegrationHandler createIntegrationHandler, ExecuteIntegrationHandler executeIntegrationHandler) {
+		this.projectExtractor = projectExtractor;
 		this.deleteIntegrationHandler = deleteIntegrationHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.createIntegrationHandler = createIntegrationHandler;
@@ -227,7 +229,7 @@ public class IntegrationController {
 	public Object executeIntegrationCommand(@PathVariable String projectName, @PathVariable("integrationId") Long integrationId,
 			@PathVariable("command") String command, @RequestBody Map<String, ?> executionParams,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return executeIntegrationHandler.executeCommand(extractProjectDetails(user, projectName), integrationId, command, executionParams);
+		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName), integrationId, command, executionParams);
 	}
 
 }

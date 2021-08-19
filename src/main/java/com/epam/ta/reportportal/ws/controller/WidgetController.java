@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.widget.CreateWidgetHandler;
 import com.epam.ta.reportportal.core.widget.GetWidgetHandler;
 import com.epam.ta.reportportal.core.widget.UpdateWidgetHandler;
 import com.epam.ta.reportportal.entity.widget.Widget;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.widget.WidgetPreviewRQ;
@@ -44,7 +45,6 @@ import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -56,13 +56,15 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v1/{projectName}/widget")
 public class WidgetController {
 
+	private final ProjectExtractor projectExtractor;
 	private final CreateWidgetHandler createWidgetHandler;
 	private final UpdateWidgetHandler updateWidgetHandler;
 	private final GetWidgetHandler getWidgetHandler;
 
 	@Autowired
-	public WidgetController(CreateWidgetHandler createWidgetHandler, UpdateWidgetHandler updateWidgetHandler,
+	public WidgetController(ProjectExtractor projectExtractor, CreateWidgetHandler createWidgetHandler, UpdateWidgetHandler updateWidgetHandler,
 			GetWidgetHandler getWidgetHandler) {
+		this.projectExtractor = projectExtractor;
 		this.createWidgetHandler = createWidgetHandler;
 		this.updateWidgetHandler = updateWidgetHandler;
 		this.getWidgetHandler = getWidgetHandler;
@@ -74,7 +76,7 @@ public class WidgetController {
 	@ApiOperation("Create a new widget")
 	public EntryCreatedRS createWidget(@RequestBody @Validated WidgetRQ createWidget, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String projectName) {
-		return createWidgetHandler.createWidget(createWidget, extractProjectDetails(user, projectName), user);
+		return createWidgetHandler.createWidget(createWidget, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -83,7 +85,7 @@ public class WidgetController {
 	@ApiOperation("Get widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -92,7 +94,7 @@ public class WidgetController {
 	@ApiOperation("Get multilevel widget by ID")
 	public WidgetResource getWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@RequestParam(required = false, name = "attributes") String[] attributes, @RequestParam MultiValueMap<String, String> params, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, extractProjectDetails(user, projectName), user);
+		return getWidgetHandler.getWidget(widgetId, ArrayUtils.nullToEmpty(attributes), params, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -101,7 +103,7 @@ public class WidgetController {
 	@ApiOperation("Get widget preview")
 	public Map<String, ?> getWidgetPreview(@PathVariable String projectName, @RequestBody @Validated WidgetPreviewRQ previewRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getWidgetPreview(previewRQ, extractProjectDetails(user, normalizeId(projectName)), user);
+		return getWidgetHandler.getWidgetPreview(previewRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional
@@ -110,7 +112,7 @@ public class WidgetController {
 	@ApiOperation("Update specified widget")
 	public OperationCompletionRS updateWidget(@PathVariable String projectName, @PathVariable Long widgetId,
 			@RequestBody @Validated WidgetRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateWidgetHandler.updateWidget(widgetId, updateRQ, extractProjectDetails(user, projectName), user);
+		return updateWidgetHandler.updateWidget(widgetId, updateRQ, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)
@@ -119,7 +121,7 @@ public class WidgetController {
 	@ApiOperation("Load all widget names which belong to a user")
 	public Iterable<Object> getWidgetNames(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
 			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getOwnNames(extractProjectDetails(user, projectName), pageable, filter, user);
+		return getWidgetHandler.getOwnNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)
@@ -128,7 +130,7 @@ public class WidgetController {
 	@ApiOperation("Load shared widgets")
 	public Iterable<WidgetResource> getShared(@PathVariable String projectName, @SortFor(Widget.class) Pageable pageable,
 			@FilterFor(Widget.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.getShared(extractProjectDetails(user, projectName), pageable, filter, user);
+		return getWidgetHandler.getShared(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional(readOnly = true)
@@ -138,7 +140,7 @@ public class WidgetController {
 	public Iterable<WidgetResource> searchShared(@RequestParam("term") String term, @PathVariable String projectName,
 			@SortFor(Widget.class) Pageable pageable, @FilterFor(Widget.class) Filter filter,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getWidgetHandler.searchShared(extractProjectDetails(user, projectName), pageable, filter, user, term);
+		return getWidgetHandler.searchShared(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user, term);
 	}
 
 }

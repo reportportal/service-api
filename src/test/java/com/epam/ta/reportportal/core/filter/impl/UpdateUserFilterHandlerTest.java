@@ -23,6 +23,8 @@ import com.epam.ta.reportportal.core.events.ActivityEvent;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.filter.UpdateUserFilterHandler;
 import com.epam.ta.reportportal.core.shareable.GetShareableEntityHandler;
+import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
@@ -30,6 +32,7 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.filter.Order;
 import com.epam.ta.reportportal.ws.model.filter.UpdateUserFilterRQ;
@@ -40,7 +43,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +61,11 @@ class UpdateUserFilterHandlerTest {
 
 	private Project project = mock(Project.class);
 
+	private ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private ProjectUserRepository projectUserRepository = mock(ProjectUserRepository.class);
+
+	private ProjectExtractor projectExtractor = new ProjectExtractor(projectRepository, projectUserRepository);
+
 	private UserFilterRepository userFilterRepository = mock(UserFilterRepository.class);
 
 	private WidgetRepository widgetRepository = mock(WidgetRepository.class);
@@ -68,8 +76,7 @@ class UpdateUserFilterHandlerTest {
 
 	private GetShareableEntityHandler<UserFilter> getShareableEntityHandler = mock(GetShareableEntityHandler.class);
 
-	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(
-			getShareableEntityHandler,
+	private UpdateUserFilterHandler updateUserFilterHandler = new UpdateUserFilterHandlerImpl(projectExtractor, getShareableEntityHandler,
 			userFilterRepository, widgetRepository, aclHandler,
 			messageBus
 	);

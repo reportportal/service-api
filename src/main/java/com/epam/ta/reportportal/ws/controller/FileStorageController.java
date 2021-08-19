@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.file.GetFileHandler;
 import com.epam.ta.reportportal.core.user.EditUserHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
@@ -40,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * @author Dzianis_Shybeka
@@ -49,14 +49,14 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 @RequestMapping("/v1/data")
 public class FileStorageController {
 
+	private final ProjectExtractor projectExtractor;
 	private final EditUserHandler editUserHandler;
-
 	private final GetFileHandler getFileHandler;
-
 	private final DeleteFilesHandler deleteFilesHandler;
 
 	@Autowired
-	public FileStorageController(EditUserHandler editUserHandler, GetFileHandler getFileHandler, DeleteFilesHandler deleteFilesHandler) {
+	public FileStorageController(ProjectExtractor projectExtractor, EditUserHandler editUserHandler, GetFileHandler getFileHandler, DeleteFilesHandler deleteFilesHandler) {
+		this.projectExtractor = projectExtractor;
 		this.editUserHandler = editUserHandler;
 		this.getFileHandler = getFileHandler;
 		this.deleteFilesHandler = deleteFilesHandler;
@@ -67,7 +67,7 @@ public class FileStorageController {
 	@GetMapping(value = "/{projectName}/{dataId}")
 	public void getFile(@PathVariable String projectName, @PathVariable("dataId") Long dataId, HttpServletResponse response,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		toResponse(response, getFileHandler.loadFileById(dataId, extractProjectDetails(user, projectName)));
+		toResponse(response, getFileHandler.loadFileById(dataId, projectExtractor.extractProjectDetails(user, projectName)));
 	}
 
 	/**

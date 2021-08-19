@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +35,10 @@ import javax.validation.Validator;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 /**
@@ -42,6 +46,9 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
  */
 @ExtendWith(MockitoExtension.class)
 class LogAsyncControllerTest {
+
+    @Mock
+    ProjectExtractor projectExtractor;
 
     @Mock
     CreateLogHandler createLogHandler;
@@ -65,6 +72,9 @@ class LogAsyncControllerTest {
         ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
 
+		when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+				.get("test_project"));
+
         logAsyncController.createLog("test_project", saveLogRQ, user);
         verify(createLogHandler).createLog(requestArgumentCaptor.capture(), fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());
         verify(validator).validate(requestArgumentCaptor.capture());
@@ -83,6 +93,9 @@ class LogAsyncControllerTest {
         ArgumentCaptor<SaveLogRQ> requestArgumentCaptor = ArgumentCaptor.forClass(SaveLogRQ.class);
         ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
+
+		when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+				.get("test_project"));
 
         logAsyncController.createLogEntry("test_project", saveLogRQ, user);
         verify(createLogHandler).createLog(requestArgumentCaptor.capture(), fileArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture());
@@ -103,6 +116,9 @@ class LogAsyncControllerTest {
         ArgumentCaptor<SaveLogRQ> requestArgumentCaptor = ArgumentCaptor.forClass(SaveLogRQ.class);
         ArgumentCaptor<MultipartFile> fileArgumentCaptor = ArgumentCaptor.forClass(MultipartFile.class);
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
+
+		when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+				.get("test_project"));
 
         logAsyncController.createLog("test_project", saveLogRQs, httpServletRequest, user);
         verify(validator, times(4)).validate(requestArgumentCaptor.capture());

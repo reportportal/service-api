@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.auth.basic;
 import com.epam.ta.reportportal.auth.util.AuthUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,7 +48,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		ReportPortalUser user = userRepository.findUserDetails(normalizeId(username))
+		ReportPortalUser user = userRepository.findReportPortalUser(normalizeId(username))
 				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
 		UserDetails userDetails = User.builder()
@@ -58,9 +59,9 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 
 		return ReportPortalUser.userBuilder()
 				.withUserDetails(userDetails)
-				.withProjectDetails(user.getProjectDetails())
 				.withUserId(user.getUserId())
 				.withUserRole(user.getUserRole())
+				.withProjectDetails(Maps.newHashMapWithExpectedSize(1))
 				.withEmail(user.getEmail())
 				.build();
 	}

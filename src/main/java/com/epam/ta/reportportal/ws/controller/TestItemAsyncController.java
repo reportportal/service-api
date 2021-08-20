@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedAsyncRS;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -34,7 +35,6 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -50,12 +50,14 @@ import static org.springframework.http.HttpStatus.OK;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class TestItemAsyncController {
 
+	private final ProjectExtractor projectExtractor;
 	private final StartTestItemHandler startTestItemHandler;
 	private final FinishTestItemHandler finishTestItemHandler;
 
 	@Autowired
-	public TestItemAsyncController(@Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler,
+	public TestItemAsyncController(ProjectExtractor projectExtractor, @Qualifier("startTestItemHandlerAsync") StartTestItemHandler startTestItemHandler,
 			@Qualifier("finishTestItemHandlerAsync") FinishTestItemHandler finishTestItemHandler) {
+		this.projectExtractor = projectExtractor;
 		this.startTestItemHandler = startTestItemHandler;
 		this.finishTestItemHandler = finishTestItemHandler;
 	}
@@ -67,7 +69,7 @@ public class TestItemAsyncController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startRootItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@RequestBody @Validated StartTestItemRQ startTestItemRQ) {
-		return startTestItemHandler.startRootItem(user, extractProjectDetails(user, projectName), startTestItemRQ);
+		return startTestItemHandler.startRootItem(user, projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ);
 	}
 
 	@HttpLogging
@@ -77,7 +79,7 @@ public class TestItemAsyncController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public EntryCreatedAsyncRS startChildItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String parentItem, @RequestBody @Validated StartTestItemRQ startTestItemRQ) {
-		return startTestItemHandler.startChildItem(user, extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
+		return startTestItemHandler.startChildItem(user, projectExtractor.extractProjectDetails(user, projectName), startTestItemRQ, parentItem);
 	}
 
 	@HttpLogging
@@ -87,7 +89,7 @@ public class TestItemAsyncController {
 	@PreAuthorize(ALLOWED_TO_REPORT)
 	public OperationCompletionRS finishTestItem(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
 			@PathVariable String testItemId, @RequestBody @Validated FinishTestItemRQ finishExecutionRQ) {
-		return finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
+		return finishTestItemHandler.finishTestItem(user, projectExtractor.extractProjectDetails(user, projectName), testItemId, finishExecutionRQ);
 	}
 
 }

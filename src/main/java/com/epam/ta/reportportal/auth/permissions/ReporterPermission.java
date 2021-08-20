@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.util.ProjectExtractor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +30,11 @@ import org.springframework.stereotype.Component;
 @Component
 @LookupPermission({ "reporterPermission" })
 public class ReporterPermission extends BaseProjectPermission {
+
+	@Autowired
+	public ReporterPermission(ProjectExtractor projectExtractor) {
+		super(projectExtractor);
+	}
 
 	/**
 	 * Validates that user is allowed to report (start/finish, launch, start/finish item, log)

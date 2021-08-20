@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
 import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import io.swagger.annotations.ApiOperation;
@@ -37,7 +38,6 @@ import javax.servlet.http.HttpServletRequest;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -51,14 +51,15 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v2/{projectName}/launch")
 public class LaunchAsyncController {
 
+	private final ProjectExtractor projectExtractor;
 	private final StartLaunchHandler startLaunchHandler;
 	private final FinishLaunchHandler finishLaunchHandler;
 	private final MergeLaunchHandler mergeLaunchesHandler;
 
 	@Autowired
-	public LaunchAsyncController(@Qualifier("startLaunchHandlerAsync") StartLaunchHandler startLaunchHandler,
-			@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchHandler,
-			MergeLaunchHandler mergeLaunchesHandler) {
+	public LaunchAsyncController(ProjectExtractor projectExtractor, @Qualifier("startLaunchHandlerAsync") StartLaunchHandler startLaunchHandler,
+			@Qualifier("finishLaunchHandlerAsync") FinishLaunchHandler finishLaunchHandler, MergeLaunchHandler mergeLaunchesHandler) {
+		this.projectExtractor = projectExtractor;
 		this.startLaunchHandler = startLaunchHandler;
 		this.finishLaunchHandler = finishLaunchHandler;
 		this.mergeLaunchesHandler = mergeLaunchesHandler;
@@ -72,7 +73,7 @@ public class LaunchAsyncController {
 	public StartLaunchRS startLaunch(@PathVariable String projectName,
 			@ApiParam(value = "Start launch request body", required = true) @RequestBody @Validated StartLaunchRQ startLaunchRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return startLaunchHandler.startLaunch(user, extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
+		return startLaunchHandler.startLaunch(user, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), startLaunchRQ);
 	}
 
 	@HttpLogging
@@ -86,7 +87,7 @@ public class LaunchAsyncController {
 		return finishLaunchHandler.finishLaunch(
 				launchId,
 				finishLaunchRQ,
-				extractProjectDetails(user, normalizeId(projectName)),
+				projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
 				user,
 				composeBaseUrl(request)
 		);
@@ -101,7 +102,7 @@ public class LaunchAsyncController {
 	public LaunchResource mergeLaunches(@PathVariable String projectName,
 			@ApiParam(value = "Merge launches request body", required = true) @RequestBody @Validated MergeLaunchesRQ mergeLaunchesRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return mergeLaunchesHandler.mergeLaunches(extractProjectDetails(user, normalizeId(projectName)), user, mergeLaunchesRQ);
+		return mergeLaunchesHandler.mergeLaunches(projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user, mergeLaunchesRQ);
 	}
 
 }

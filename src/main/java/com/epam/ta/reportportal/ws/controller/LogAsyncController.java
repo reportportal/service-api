@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.logging.HttpLogging;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
 import io.swagger.annotations.ApiOperation;
@@ -44,7 +45,6 @@ import java.util.Map;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 
 /**
@@ -55,10 +55,13 @@ import static org.springframework.http.HttpStatus.CREATED;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogAsyncController {
 
+	private final ProjectExtractor projectExtractor;
 	private final CreateLogHandler createLogHandler;
 	private final Validator validator;
 
-	public LogAsyncController(@Autowired @Qualifier("asyncCreateLogHandler") CreateLogHandler createLogHandler, Validator validator) {
+	@Autowired
+	public LogAsyncController(ProjectExtractor projectExtractor, @Qualifier("asyncCreateLogHandler") CreateLogHandler createLogHandler, Validator validator) {
+		this.projectExtractor = projectExtractor;
 		this.createLogHandler = createLogHandler;
 		this.validator = validator;
 	}
@@ -76,7 +79,7 @@ public class LogAsyncController {
 	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
+		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@HttpLogging
@@ -87,7 +90,7 @@ public class LogAsyncController {
 	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
+		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@HttpLogging
@@ -133,7 +136,7 @@ public class LogAsyncController {
 					 * data
 					 */
 					//noinspection ConstantConditions
-					responseItem = createLogHandler.createLog(createLogRq, data, extractProjectDetails(user, projectName));
+					responseItem = createLogHandler.createLog(createLogRq, data, projectExtractor.extractProjectDetails(user, projectName));
 				}
 				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
 			} catch (Exception e) {

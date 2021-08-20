@@ -77,6 +77,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v1/project")
 public class ProjectController {
 
+	private final ProjectExtractor projectExtractor;
 	private final GetProjectHandler getProjectHandler;
 	private final GetProjectInfoHandler projectInfoHandler;
 	private final CreateProjectHandler createProjectHandler;
@@ -88,10 +89,11 @@ public class ProjectController {
 	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	@Autowired
-	public ProjectController(GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
+	public ProjectController(ProjectExtractor projectExtractor, GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
 			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference,
 			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
+		this.projectExtractor = projectExtractor;
 		this.getProjectHandler = getProjectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
@@ -221,7 +223,7 @@ public class ProjectController {
 	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getUserHandler.getUsers(filter, pageable, ProjectExtractor.extractProjectDetails(user, projectName));
+		return getUserHandler.getUsers(filter, pageable, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -232,7 +234,7 @@ public class ProjectController {
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getUserNames(ProjectExtractor.extractProjectDetails(user, projectName), normalizeId(value));
+		return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectName), normalizeId(value));
 	}
 
 	@Transactional(readOnly = true)
@@ -241,7 +243,7 @@ public class ProjectController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectExtractor.extractProjectDetails(user, projectName);
+		projectExtractor.extractProjectDetails(user, projectName);
 		return getProjectHandler.getUserNames(term, pageable);
 	}
 
@@ -251,7 +253,7 @@ public class ProjectController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	public OperationCompletionRS addUserPreference(@PathVariable String projectName, @PathVariable String login,
 			@PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updatePreference.addPreference(ProjectExtractor.extractProjectDetails(user, projectName), user, filterId);
+		return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectName), user, filterId);
 	}
 
 	@Transactional
@@ -260,7 +262,7 @@ public class ProjectController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	public OperationCompletionRS removeUserPreference(@PathVariable String projectName, @PathVariable String login,
 			@PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updatePreference.removePreference(ProjectExtractor.extractProjectDetails(user, projectName), user, filterId);
+		return updatePreference.removePreference(projectExtractor.extractProjectDetails(user, projectName), user, filterId);
 	}
 
 	@Transactional(readOnly = true)
@@ -270,7 +272,7 @@ public class ProjectController {
 	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
 	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getPreference.getPreference(ProjectExtractor.extractProjectDetails(user, projectName), user);
+		return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

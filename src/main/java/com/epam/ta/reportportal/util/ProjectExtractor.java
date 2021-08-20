@@ -56,7 +56,7 @@ public class ProjectExtractor {
 	 */
 	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
 		final String normalizedProjectName = normalizeId(projectName);
-		return Optional.ofNullable(user.getProjectDetails().get(normalizedProjectName)).orElseGet(() -> {
+		return user.getProjectDetails().computeIfAbsent(normalizedProjectName, k -> {
 			final ReportPortalUser.ProjectDetails projectDetails = findProjectDetails(user,
 					normalizedProjectName
 			).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));

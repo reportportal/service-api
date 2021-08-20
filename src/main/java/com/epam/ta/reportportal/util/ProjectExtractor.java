@@ -56,13 +56,14 @@ public class ProjectExtractor {
 	 */
 	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
 		final String normalizedProjectName = normalizeId(projectName);
-		return user.getProjectDetails().computeIfAbsent(normalizedProjectName, k -> {
-			final ReportPortalUser.ProjectDetails projectDetails = findProjectDetails(user,
-					normalizedProjectName
-			).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
-			user.setProjectDetails(Map.of(projectName, projectDetails));
-			return projectDetails;
-		});
+		return user.getProjectDetails()
+				.computeIfAbsent(normalizedProjectName,
+						k -> findProjectDetails(user,
+								normalizedProjectName
+						).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+								"Please check the list of your available projects."
+						))
+				);
 	}
 
 	/**

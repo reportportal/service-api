@@ -23,10 +23,10 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -56,16 +56,13 @@ public class ProjectExtractor {
 	 */
 	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
 		final String normalizedProjectName = normalizeId(projectName);
-		if (MapUtils.isNotEmpty(user.getProjectDetails())) {
-			return Optional.ofNullable(user.getProjectDetails().get(normalizedProjectName))
-					.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-							"Please check the list of your available projects."
-					));
-		}
-		return findProjectDetails(user, normalizedProjectName).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
-				"Please check the list of your available projects."
-		));
-
+		return Optional.ofNullable(user.getProjectDetails().get(normalizedProjectName)).orElseGet(() -> {
+			final ReportPortalUser.ProjectDetails projectDetails = findProjectDetails(user,
+					normalizedProjectName
+			).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
+			user.setProjectDetails(Map.of(projectName, projectDetails));
+			return projectDetails;
+		});
 	}
 
 	/**

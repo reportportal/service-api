@@ -18,11 +18,13 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
@@ -50,13 +52,14 @@ import static java.util.stream.Collectors.toList;
 public class LaunchPreparerService {
 
 	private final LaunchRepository launchRepository;
-
+	private final TestItemRepository testItemRepository;
 	private final LogRepository logRepository;
 
 	@Autowired
-	public LaunchPreparerService(LogRepository logRepository, LaunchRepository launchRepository) {
+	public LaunchPreparerService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 	}
 
 	public Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems, AnalyzerConfig analyzerConfig) {
@@ -69,7 +72,22 @@ public class LaunchPreparerService {
 		return Optional.empty();
 	}
 
-	public List<IndexTestItem> prepare(Long launchId, List<IndexTestItem> indexTestItemList) {
+	/**
+	 * Update prepared launch with items for indexing
+	 *
+	 * @param indexLaunch  - Launch to be updated
+	 */
+	public void fillLaunch(IndexLaunch indexLaunch) {
+		final List<IndexTestItem> indexTestItemList = testItemRepository.findIndexTestItemByLaunchId(indexLaunch.getLaunchId(),
+				List.of(JTestItemTypeEnum.STEP)
+		);
+		if (!indexTestItemList.isEmpty()) {
+			final List<IndexTestItem> preparedItems = prepare(indexLaunch.getLaunchId(), indexTestItemList);
+			indexLaunch.setTestItems(preparedItems);
+		}
+	}
+
+	private List<IndexTestItem> prepare(Long launchId, List<IndexTestItem> indexTestItemList) {
 		final Map<Long, List<Log>> logsMapping = getLogsMapping(launchId,
 				indexTestItemList.stream().map(IndexTestItem::getTestItemId).collect(toList())
 		);

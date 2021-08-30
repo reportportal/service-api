@@ -18,23 +18,21 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.auto.indexer.BatchLogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -46,10 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
-import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -58,7 +53,7 @@ import static com.epam.ta.reportportal.job.PageUtil.iterateOverContent;
 public class LogIndexerService implements LogIndexer {
 	private static Logger LOGGER = LoggerFactory.getLogger(LogIndexerService.class);
 
-	private final Integer launchBatchSize;
+	private final BatchLogIndexer batchLogIndexer;
 
 	private final TaskExecutor taskExecutor;
 
@@ -73,11 +68,10 @@ public class LogIndexerService implements LogIndexer {
 	private final IndexerStatusCache indexerStatusCache;
 
 	@Autowired
-	public LogIndexerService(@Value("${rp.environment.variable.log-index.batch-size}") Integer launchBatchSize,
-			@Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor, LaunchRepository launchRepository,
+	public LogIndexerService(BatchLogIndexer batchLogIndexer, @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor, LaunchRepository launchRepository,
 			TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
 			IndexerStatusCache indexerStatusCache) {
-		this.launchBatchSize = launchBatchSize;
+		this.batchLogIndexer = batchLogIndexer;
 		this.taskExecutor = taskExecutor;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
@@ -87,23 +81,14 @@ public class LogIndexerService implements LogIndexer {
 	}
 
 	@Override
-	//TODO refactor to execute in single Transaction (because of CompletableFuture there is no transaction inside).
-	//TODO Probably we should implement AsyncLogIndexer and use this service as sync delegate with transaction
 	public CompletableFuture<Long> index(Long projectId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
+				LOGGER.info("Start indexing for project: {}", projectId);
 				indexerStatusCache.indexingStarted(projectId);
-				final AtomicLong indexed = new AtomicLong(0L);
-				iterateOverContent(launchBatchSize,
-						pageable -> launchRepository.findIndexLaunchByProjectId(projectId, pageable.getPageSize(), pageable.getOffset()),
-						indexLaunches -> {
-							LOGGER.debug("Start indexing for {} launches", indexLaunches.size());
-							final List<IndexLaunch> preparedLaunches = prepareLaunches(analyzerConfig, indexLaunches);
-							indexed.addAndGet(indexerServiceClient.index(preparedLaunches));
-							LOGGER.debug("Indexed {} logs", indexed);
-						}
-				);
-				return indexed.get();
+				final Long indexed = batchLogIndexer.index(projectId, analyzerConfig);
+				LOGGER.info("Indexing finished for project: {}. Logs indexed: {}", projectId, indexed);
+				return indexed;
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 				throw new ReportPortalException(e.getMessage());
@@ -113,31 +98,10 @@ public class LogIndexerService implements LogIndexer {
 		}, taskExecutor);
 	}
 
-	/**
-	 * Prepare launches for indexing
-	 *
-	 * @param analyzerConfig - Analyzer config
-	 * @param indexLaunches  - Launches to be prepared
-	 * @return List of prepared launches for indexing
-	 */
-	private List<IndexLaunch> prepareLaunches(AnalyzerConfig analyzerConfig, List<IndexLaunch> indexLaunches) {
-		return indexLaunches.stream()
-				.peek(l -> {
-					final List<IndexTestItem> indexTestItemList = testItemRepository.findIndexTestItemByLaunchId(l.getLaunchId(),
-							List.of(JTestItemTypeEnum.STEP)
-					);
-					if (!indexTestItemList.isEmpty()) {
-						l.setTestItems(launchPreparerService.prepare(l.getLaunchId(), indexTestItemList));
-					}
-				})
-				.filter(l -> !CollectionUtils.isEmpty(l.getTestItems()))
-				.peek(l -> l.setAnalyzerConfig(analyzerConfig))
-				.collect(Collectors.toList());
-	}
-
 	@Override
 	@Transactional(readOnly = true)
-	//TODO same refactoring as for the method above
+	//TODO refactor to execute in single Transaction (because of CompletableFuture there is no transaction inside).
+	//TODO Probably we should implement AsyncLogIndexer and use this service as sync delegate with transaction
 	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {

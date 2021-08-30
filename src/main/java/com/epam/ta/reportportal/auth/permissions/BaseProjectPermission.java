@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Maps;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
@@ -59,10 +60,16 @@ abstract class BaseProjectPermission implements Permission {
 		final String resolvedProjectName = String.valueOf(projectName);
 		final ReportPortalUser.ProjectDetails projectDetails = projectExtractor.findProjectDetails(rpUser, resolvedProjectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED));
-		rpUser.setProjectDetails(Map.of(resolvedProjectName, projectDetails));
+		fillProjectDetails(rpUser, resolvedProjectName, projectDetails);
 
 		ProjectRole role = projectDetails.getProjectRole();
 		return checkAllowed(rpUser, projectName.toString(), role);
+	}
+
+	private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName, ReportPortalUser.ProjectDetails projectDetails) {
+		final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(1);
+		projectDetailsMapping.put(resolvedProjectName, projectDetails);
+		rpUser.setProjectDetails(projectDetailsMapping);
 	}
 
 	/**

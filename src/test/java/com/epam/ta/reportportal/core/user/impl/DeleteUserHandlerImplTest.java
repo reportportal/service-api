@@ -66,7 +66,7 @@ class DeleteUserHandlerImplTest {
 		user.setLogin("test");
 
 		doReturn(Optional.of(user)).when(repository).findById(2L);
-		when(projectRepository.findUserProjects(anyString())).thenReturn(Lists.newArrayList());
+		when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
 		doNothing().when(dataStore).deleteUserPhoto(any());
 
 		handler.deleteUser(2L, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));

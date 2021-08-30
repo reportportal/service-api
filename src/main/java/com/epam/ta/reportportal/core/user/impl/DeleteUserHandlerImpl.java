@@ -86,7 +86,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 		userContentRemover.removeContent(user);
 
-		List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
+		List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
 		userProjects.forEach(project -> {
 			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
 				deleteProjectHandler.deleteProject(project.getId());

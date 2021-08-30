@@ -54,6 +54,7 @@ import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -162,11 +163,7 @@ public class SearchLogServiceImpl implements SearchLogService {
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
 
-		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(
-				Collections.singletonList(testItem.getItemId()),
-				Collections.singletonList(launchId),
-				projectId
-		);
+		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(singletonList(testItem));
 
 		SearchLogRs response = new SearchLogRs();
 		response.setLaunchId(launch.getId());

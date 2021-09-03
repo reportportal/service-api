@@ -35,6 +35,7 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -241,10 +242,9 @@ public class ProjectController {
 	@GetMapping("/{projectName}/usernames/search")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
+	public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		projectExtractor.extractProjectDetails(user, projectName);
-		return getProjectHandler.getUserNames(term, pageable);
+		return getProjectHandler.getUserNames(term, projectExtractor.extractProjectDetails(user, projectName), pageable);
 	}
 
 	@Transactional

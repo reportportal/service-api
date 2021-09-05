@@ -17,12 +17,10 @@
 package com.epam.ta.reportportal.core.item.impl.provider.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.CompositeFilter;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.item.impl.provider.DataProviderHandler;
+import com.epam.ta.reportportal.dao.IssueTypeRepositoryCustom;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.statistics.Statistics;
@@ -35,11 +33,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_TYPE;
+import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_ISSUE_TYPE_ID;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -54,6 +57,9 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 
 	@Autowired
 	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private IssueTypeRepositoryCustom issueTypeRepository;
 
 	@Override
 	public Page<TestItem> getTestItems(Queryable filter, Pageable pageable, ReportPortalUser.ProjectDetails projectDetails,
@@ -81,6 +87,24 @@ public class LaunchDataProviderHandlerImpl implements DataProviderHandler {
 				.withTarget(TestItem.class)
 				.withCondition(FilterCondition.builder().eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId)).build())
 				.build();
+
+		// Added to fix performance issue.
+		List<String> issueTypeLocators = filter.getFilterConditions().stream()
+				.map(ConvertibleCondition::getAllConditions)
+				.flatMap(List::stream)
+				.filter(c -> CRITERIA_ISSUE_TYPE.equals(c.getSearchCriteria())
+						&& !c.isNegative() && Condition.IN.equals(c.getCondition())
+				).map(FilterCondition::getValue)
+				.flatMap(c -> Stream.of(c.split(",")))
+				.collect(Collectors.toList());
+
+		String issueTypeIdsString = issueTypeRepository.getIssueTypeIdsByLocators(issueTypeLocators)
+				.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+		FilterCondition oldIssueTypeCondition = new FilterCondition(Condition.IN, false, null, CRITERIA_ISSUE_TYPE);
+		FilterCondition issueTypeIdCondition = new FilterCondition(Condition.IN, false, issueTypeIdsString, CRITERIA_ISSUE_TYPE_ID);
+		filter.replaceSearchCriteria(oldIssueTypeCondition, issueTypeIdCondition);
+
 		return new CompositeFilter(Operator.AND, filter, launchBasedFilter);
 	}
 }

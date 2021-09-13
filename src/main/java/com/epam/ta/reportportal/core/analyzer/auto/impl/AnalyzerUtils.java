@@ -72,6 +72,7 @@ public class AnalyzerUtils {
 	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
 		IndexTestItem indexTestItem = new IndexTestItem();
 		indexTestItem.setTestItemId(testItem.getItemId());
+		indexTestItem.setTestItemName(testItem.getName());
 		indexTestItem.setUniqueId(testItem.getUniqueId());
 		indexTestItem.setStartTime(testItem.getStartTime());
 		indexTestItem.setTestCaseHash(testItem.getTestCaseHash());

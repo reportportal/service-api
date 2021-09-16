@@ -20,10 +20,7 @@ import com.epam.reportportal.extension.event.ProjectEvent;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.project.CreateProjectHandler;
-import com.epam.ta.reportportal.dao.AttributeRepository;
-import com.epam.ta.reportportal.dao.IssueTypeRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.ProjectType;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -35,7 +32,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -66,15 +62,18 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 	private final ApplicationEventPublisher applicationEventPublisher;
 
+	private final ProjectUserRepository projectUserRepository;
+
 	@Autowired
 	public CreateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
 			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
-			ApplicationEventPublisher applicationEventPublisher) {
+			ApplicationEventPublisher applicationEventPublisher, ProjectUserRepository projectUserRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.attributeRepository = attributeRepository;
 		this.issueTypeRepository = issueTypeRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
+		this.projectUserRepository = projectUserRepository;
 	}
 
 	@Override
@@ -98,7 +97,7 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 				"Only internal projects can be created via API"
 		);
 
-		User dbUser = userRepository.findById(user.getUserId())
+		User dbUser = userRepository.findRawById(user.getUserId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, user.getUsername()));
 
 		Project project = new Project();
@@ -116,9 +115,8 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 
 		ProjectUser projectUser = new ProjectUser().withProject(project).withUser(dbUser).withProjectRole(ProjectRole.PROJECT_MANAGER);
 
-		Set<ProjectUser> projectUsers = Sets.newHashSet(projectUser);
-		project.setUsers(projectUsers);
 		projectRepository.save(project);
+		projectUserRepository.save(projectUser);
 
 		applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
 

@@ -100,6 +100,7 @@ public class AnalyzerUtils {
 				NUMBER_OF_LOG_LINES.getDefaultValue())));
 		analyzerConfig.setIndexingRunning(BooleanUtils.toBoolean(configParameters.get(INDEXING_RUNNING.getAttribute())));
 		analyzerConfig.setAnalyzerMode(configParameters.get(AUTO_ANALYZER_MODE.getAttribute()));
+		analyzerConfig.setAllMessagesShouldMatch(BooleanUtils.toBoolean(configParameters.get(ALL_MESSAGES_SHOULD_MATCH.getAttribute())));
 		return analyzerConfig;
 	}
 

@@ -23,7 +23,7 @@ public class DefaultSuiteGenerator implements SuiteGenerator {
 	public static final int TEST_LOGS_COUNT = 3;
 	public static final int STEP_LOGS_COUNT = 5;
 
-	private final DemoDataTestItemService demoDataTestItemService;
+	protected final DemoDataTestItemService demoDataTestItemService;
 	private final DemoLogsService demoLogsService;
 
 	@Autowired
@@ -98,7 +98,7 @@ public class DefaultSuiteGenerator implements SuiteGenerator {
 		), () -> demoDataTestItemService.finishTestItem(stepId, stepMetaData.getStatus(), rootMetaData));
 	}
 
-	private void generateTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
+	protected void generateTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
 		final DemoItemMetadata testMetaData = getMetadata(test.getName(), TEST, testStatus, suiteId).withIssue(test.getIssue());
 		final String testId = demoDataTestItemService.startTestItem(testMetaData, rootMetaData);
 

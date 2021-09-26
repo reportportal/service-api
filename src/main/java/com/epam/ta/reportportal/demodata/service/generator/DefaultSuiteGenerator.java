@@ -99,9 +99,7 @@ public class DefaultSuiteGenerator implements SuiteGenerator {
 	}
 
 	protected void generateTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
-		final DemoItemMetadata testMetaData = getMetadata(test.getName(), TEST, testStatus, suiteId).withIssue(test.getIssue());
-		final String testId = demoDataTestItemService.startTestItem(testMetaData, rootMetaData);
-
+		final String testId = startTest(suiteId, rootMetaData, test, testStatus);
 		generateSteps(rootMetaData, test, testId);
 
 		ofNullable(test.getIssue()).ifPresentOrElse(issue -> demoDataTestItemService.finishTestItem(testId,
@@ -110,6 +108,11 @@ public class DefaultSuiteGenerator implements SuiteGenerator {
 				issue
 		), () -> demoDataTestItemService.finishTestItem(testId, testStatus, rootMetaData));
 		generateLogs(TEST_LOGS_COUNT, testId, testStatus, rootMetaData);
+	}
+
+	protected String startTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
+		final DemoItemMetadata testMetaData = getMetadata(test.getName(), TEST, testStatus, suiteId).withIssue(test.getIssue());
+		return demoDataTestItemService.startTestItem(testMetaData, rootMetaData);
 	}
 
 	private void generateSteps(RootMetaData rootMetaData, Test test, String testId) {

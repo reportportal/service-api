@@ -9,7 +9,7 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.TEST;
+import static com.epam.ta.reportportal.entity.enums.TestItemTypeEnum.STEP;
 
 @Service
 public class SuiteWithNestedStepsGenerator extends DefaultSuiteGenerator {
@@ -25,10 +25,10 @@ public class SuiteWithNestedStepsGenerator extends DefaultSuiteGenerator {
 	}
 
 	@Override
-	protected void generateTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
-		final DemoItemMetadata stepParentMetadata = getMetadata(test.getName(), TEST, testStatus, suiteId);
-		final String testParentId = demoDataTestItemService.startTestItem(stepParentMetadata, rootMetaData);
-		super.generateTest(testParentId, rootMetaData, test, testStatus);
+	protected String startTest(String suiteId, RootMetaData rootMetaData, Test test, StatusEnum testStatus) {
+		final String testId = super.startTest(suiteId, rootMetaData, test, testStatus);
+		final DemoItemMetadata stepParentMetadata = getMetadata(test.getName(), STEP, testStatus, testId);
+		return demoDataTestItemService.startTestItem(stepParentMetadata, rootMetaData);
 	}
 
 }

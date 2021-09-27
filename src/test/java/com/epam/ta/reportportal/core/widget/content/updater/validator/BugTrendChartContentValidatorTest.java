@@ -34,7 +34,7 @@ class BugTrendChartContentValidatorTest {
 					.withTarget(Launch.class)
 					.withCondition(FilterCondition.builder().eq("id", "1").build())
 					.build(), Sort.unsorted());
-			bugTrendChartContentValidator.validate(Collections.singletonList("test"), filterSortMap, new WidgetOptions(), 5);
+			bugTrendChartContentValidator.validate(Collections.singletonList("statistics$defects$automation_bug$total'"), filterSortMap, new WidgetOptions(), 5);
 		});
 
 		String expectedMessage = "Bad content fields format";

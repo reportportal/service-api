@@ -55,6 +55,13 @@ public final class ContentFieldPatternConstants {
 	public static final String EXECUTIONS_REGEX;
 
 	/*
+		^statistics\\$executions\\$failed$
+	 */
+	public static final String EXECUTIONS_FAILED_REGEX =
+			"^" + "statistics" + CONTENT_FIELD_SPLITTER + EXECUTIONS_KEY + CONTENT_FIELD_SPLITTER
+					+ StatusEnum.FAILED.getExecutionCounterField() + "$";
+
+	/*
 		^statistics\\$defects\\$(automation_bug|product_bug|no_defect|system_issue|to_investigate)\\$[\\w\\d]+$
 	 */
 	public static final String DEFECTS_REGEX;

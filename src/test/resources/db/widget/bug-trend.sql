@@ -126,10 +126,7 @@ INSERT INTO public.widget (id, name, description, widget_type, items_count, widg
 VALUES (2, 'bug trend', null, 'bugTrend', 20, '{"options": {}}');
 
 insert into content_field(id, field)
-values (2, 'statistics$defects$product_bug$total'),
-       (2, 'statistics$defects$automation_bug$total'),
-       (2, 'statistics$defects$system_issue$total'),
-       (2, 'statistics$defects$to_investigate$total');
+values (2, 'statistics$executions$failed');
 
 insert into widget_filter(widget_id, filter_id)
 values (2, 1);

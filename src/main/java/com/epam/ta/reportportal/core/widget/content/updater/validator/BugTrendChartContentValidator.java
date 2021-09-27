@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.DEFECTS_REGEX;
+import static com.epam.ta.reportportal.core.widget.util.ContentFieldPatternConstants.EXECUTIONS_FAILED_REGEX;
 
 /**
  * @author Pavel Bortnik
@@ -66,7 +66,7 @@ public class BugTrendChartContentValidator implements WidgetValidatorStrategy {
 	private void validateContentFields(List<String> contentFields) {
 		BusinessRule.expect(CollectionUtils.isNotEmpty(contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Content fields should not be empty");
-		BusinessRule.expect(ContentFieldMatcherUtil.match(DEFECTS_REGEX, contentFields), equalTo(true))
+		BusinessRule.expect(ContentFieldMatcherUtil.match(EXECUTIONS_FAILED_REGEX, contentFields), equalTo(true))
 				.verify(ErrorType.BAD_REQUEST_ERROR, "Bad content fields format");
 	}
 }

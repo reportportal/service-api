@@ -49,7 +49,12 @@ public class TopPatternContentLoader implements MultilevelLoadContentStrategy {
 	@Override
 	public Map<String, Object> loadContent(List<String> contentFields, Map<Filter, Sort> filterSortMapping, WidgetOptions widgetOptions,
 			String[] attributes, MultiValueMap<String, String> params, int limit) {
+		final List<TopPatternTemplatesContent> content = getContent(filterSortMapping, widgetOptions, params, limit);
+		return content.isEmpty() ? Collections.emptyMap() : Collections.singletonMap(RESULT, content);
+	}
 
+	private List<TopPatternTemplatesContent> getContent(Map<Filter, Sort> filterSortMapping,
+			WidgetOptions widgetOptions, MultiValueMap<String, String> params, int limit) {
 		Filter filter = GROUP_FILTERS.apply(filterSortMapping.keySet());
 		Sort sort = GROUP_SORTS.apply(filterSortMapping.values());
 
@@ -57,12 +62,11 @@ public class TopPatternContentLoader implements MultilevelLoadContentStrategy {
 				sort,
 				WidgetOptionUtil.getValueByKey(ATTRIBUTE_KEY, widgetOptions),
 				params.getFirst(PATTERN_TEMPLATE_NAME),
-				WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions),
-				limit,
+				WidgetOptionUtil.getBooleanByKey(LATEST_OPTION, widgetOptions), limit,
 				TOP_PATTERN_TEMPLATES_ATTRIBUTES_COUNT
 		);
-
-		return content.isEmpty() ? Collections.emptyMap() : Collections.singletonMap(RESULT, content);
+		Collections.reverse(content);
+		return content;
 	}
 
 }

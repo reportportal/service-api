@@ -16,11 +16,14 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
@@ -32,7 +35,9 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -41,6 +46,8 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
 public class AzureIntegrationService extends AbstractBtsIntegrationService {
 
 	private BasicTextEncryptor basicTextEncryptor;
+
+	private static final String TEST_CONNECTION_COMMAND = "testConnection";
 
 	@Autowired
 	public AzureIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
@@ -80,5 +87,23 @@ public class AzureIntegrationService extends AbstractBtsIntegrationService {
 				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
 
 		return resultParams;
+	}
+
+	@Override
+	public boolean checkConnection(Integration integration) {
+		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						"Plugin for {} isn't installed",
+						integration.getType().getName()
+				));
+
+		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(
+				BAD_REQUEST_ERROR,
+				"Command {} is not found in plugin {}.",
+				TEST_CONNECTION_COMMAND,
+				integration.getType().getName()
+		));
+
+		return (Boolean) commandToExecute.executeCommand(integration, integration.getParams().getParams());
 	}
 }

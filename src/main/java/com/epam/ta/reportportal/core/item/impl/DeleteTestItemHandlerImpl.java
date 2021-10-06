@@ -110,7 +110,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		List<TestItem> items = testItemRepository.findAllById(ids);
-		Set<Long> itemIds = items.stream().map(TestItem::getItemId).collect(Collectors.toSet());
 
 		List<Launch> launches = launchRepository.findAllById(items.stream()
 				.map(TestItem::getLaunchId)
@@ -119,11 +118,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
 
-		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(
-				itemIds,
-				launchItemMap.keySet(),
-				projectDetails.getProjectId()
-		);
+		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 
 		Set<Long> idsToDelete = Sets.newHashSet(descendantsMapping.keySet());
 

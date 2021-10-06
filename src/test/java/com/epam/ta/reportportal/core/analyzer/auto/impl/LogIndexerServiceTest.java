@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.auto.indexer.BatchLogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -30,7 +31,6 @@ import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
-import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexRsIndex;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.*;
  */
 class LogIndexerServiceTest {
 
-	private Integer launchBatchSize = 50;
+	private BatchLogIndexer batchLogIndexer = mock(BatchLogIndexer.class);
 
 	private TaskExecutor taskExecutor = new SyncTaskExecutor();
 
@@ -74,7 +74,7 @@ class LogIndexerServiceTest {
 
 	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
-	private LogIndexerService logIndexerService = new LogIndexerService(launchBatchSize,
+	private LogIndexerService logIndexerService = new LogIndexerService(batchLogIndexer,
 			taskExecutor,
 			launchRepository,
 			testItemRepository,
@@ -84,17 +84,13 @@ class LogIndexerServiceTest {
 	);
 
 	@Test
-	void testIndexLogsWithoutTestItems() {
+	void testIndexWithZeroCount() {
 		Long launchId = 2L;
 		final IndexLaunch indexLaunch = new IndexLaunch();
 		indexLaunch.setLaunchId(launchId);
-		when(launchRepository.findIndexLaunchByProjectId(eq(1L), anyInt(), anyLong())).thenReturn(List.of(indexLaunch));
-		when(testItemRepository.findIndexTestItemByLaunchId(eq(launchId),
-				eq(List.of(JTestItemTypeEnum.STEP))
-		)).thenReturn(Collections.emptyList());
+		when(batchLogIndexer.index(eq(1L), any(AnalyzerConfig.class))).thenReturn(0L);
 		Long result = logIndexerService.index(1L, analyzerConfig()).join();
 		assertThat(result, org.hamcrest.Matchers.equalTo(0L));
-		verifyZeroInteractions(logRepository);
 		verify(indexerStatusCache, times(1)).indexingFinished(1L);
 	}
 

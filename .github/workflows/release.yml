@@ -12,9 +12,9 @@ on:
 env:
   GH_USER_NAME: github.actor
   SCRIPTS_VERSION: 5.5.0
-  BOM_VERSION: 5.5.0
+  BOM_VERSION: 5.5.1
   MIGRATIONS_VERSION: 5.5.0
-  RELEASE_VERSION: 5.5.0
+  RELEASE_VERSION: 5.5.1
   REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
 jobs:

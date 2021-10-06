@@ -18,10 +18,7 @@ package com.epam.ta.reportportal.core.project.impl;
 
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.commons.querygen.Condition;
-import com.epam.ta.reportportal.commons.querygen.Filter;
-import com.epam.ta.reportportal.commons.querygen.FilterCondition;
-import com.epam.ta.reportportal.commons.querygen.Queryable;
+import com.epam.ta.reportportal.commons.querygen.*;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
@@ -38,6 +35,7 @@ import com.epam.ta.reportportal.ws.converter.converters.ProjectConverter;
 import com.epam.ta.reportportal.ws.converter.converters.UserConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
+import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -56,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
@@ -115,18 +114,29 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Iterable<UserResource> getUserNames(String value, Pageable pageable) {
+	public Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
 		BusinessRule.expect(value.length() >= 1, Predicates.equalTo(true))
 				.verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
 						Suppliers.formattedSupplier("Length of the filtering string '{}' is less than 1 symbol", value)
 				);
-		Filter filter = Filter.builder()
+
+		final CompositeFilterCondition userCondition = getUserSearchCondition(value);
+
+		final Filter filter = Filter.builder()
 				.withTarget(User.class)
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER))
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME))
-				.withCondition(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL))
+				.withCondition(userCondition)
+				.withCondition(new FilterCondition(Operator.AND, Condition.ANY, true, projectDetails.getProjectName(), CRITERIA_PROJECT))
 				.build();
-		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(userRepository.findByFilter(filter, pageable));
+
+		return PagedResourcesAssembler.pageConverter(UserConverter.TO_SEARCH_RESOURCE)
+				.apply(userRepository.findByFilterExcludingProjects(filter, pageable));
+	}
+
+	private CompositeFilterCondition getUserSearchCondition(String value) {
+		return new CompositeFilterCondition(List.of(new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_USER),
+				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_FULL_NAME),
+				new FilterCondition(Operator.OR, Condition.CONTAINS, false, value, CRITERIA_EMAIL)
+		), Operator.AND);
 	}
 
 	@Override

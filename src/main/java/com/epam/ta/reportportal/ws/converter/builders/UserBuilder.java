@@ -48,9 +48,7 @@ public class UserBuilder implements Supplier<User> {
 	}
 
 	public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
-		if (request != null) {
-			fillUser(request.getLogin(), request.getEmail(), request.getFullName());
-		}
+		fillUser(request.getLogin(), request.getEmail(), request.getFullName());
 		return this;
 	}
 

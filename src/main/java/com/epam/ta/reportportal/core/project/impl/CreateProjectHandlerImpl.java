@@ -29,6 +29,7 @@ import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.ProjectUser;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.PersonalProjectService;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
@@ -52,6 +53,8 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 	private static final String CREATE_KEY = "create";
 	private static final String RESERVED_PROJECT_NAME = "project";
 
+	private final PersonalProjectService personalProjectService;
+
 	private final ProjectRepository projectRepository;
 
 	private final UserRepository userRepository;
@@ -65,9 +68,10 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 	private final ProjectUserRepository projectUserRepository;
 
 	@Autowired
-	public CreateProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository,
-			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository,
-			ApplicationEventPublisher applicationEventPublisher, ProjectUserRepository projectUserRepository) {
+	public CreateProjectHandlerImpl(PersonalProjectService personalProjectService, ProjectRepository projectRepository, UserRepository userRepository,
+			AttributeRepository attributeRepository, IssueTypeRepository issueTypeRepository, ApplicationEventPublisher applicationEventPublisher,
+			ProjectUserRepository projectUserRepository) {
+		this.personalProjectService = personalProjectService;
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.attributeRepository = attributeRepository;
@@ -121,5 +125,14 @@ public class CreateProjectHandlerImpl implements CreateProjectHandler {
 		applicationEventPublisher.publishEvent(new ProjectEvent(project.getId(), CREATE_KEY));
 
 		return new EntryCreatedRS(project.getId());
+	}
+
+	@Override
+	public Project createPersonal(User user) {
+		//TODO refactor personal project generation to not add user inside method (cannot be done now, because DAO dependency may affect other services)
+		final Project personalProject = personalProjectService.generatePersonalProject(user);
+		personalProject.getUsers().clear();
+		projectRepository.save(personalProject);
+		return personalProject;
 	}
 }

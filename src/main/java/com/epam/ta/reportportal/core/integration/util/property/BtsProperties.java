@@ -26,6 +26,7 @@ public enum BtsProperties {
 
 	USER_NAME("username"),
 	PASSWORD("password"),
+	API_TOKEN("apiToken"),
 	PROJECT("project"),
 	AUTH_TYPE("authType"),
 	OAUTH_ACCESS_KEY("oauthAccessKey"),

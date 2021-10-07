@@ -30,6 +30,7 @@ import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -39,6 +40,13 @@ import static java.util.Optional.ofNullable;
  */
 public final class IntegrationConverter {
 
+	private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION = entry ->
+			!EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()) ||
+					!SauceLabsProperties.ACCESS_TOKEN.getName().equalsIgnoreCase(entry.getKey()) ||
+					!BtsProperties.OAUTH_ACCESS_KEY.getName().equalsIgnoreCase(entry.getKey()) ||
+					!BtsProperties.API_TOKEN.getName().equalsIgnoreCase(entry.getKey()) ||
+					!AuthProperties.MANAGER_PASSWORD.getName().equalsIgnoreCase(entry.getKey());
+
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
 		resource.setId(integration.getId());
@@ -47,14 +55,9 @@ public final class IntegrationConverter {
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
 		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
-		ofNullable(integration.getParams()).ifPresent(it -> resource.setIntegrationParams(ofNullable(it.getParams()).map(p -> p.entrySet()
-				.stream()
-				.filter(entry -> !EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> !SauceLabsProperties.ACCESS_TOKEN.getName().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> !BtsProperties.OAUTH_ACCESS_KEY.getName().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> !AuthProperties.MANAGER_PASSWORD.getName().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> null != entry.getValue())
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))).orElseGet(Collections::emptyMap)));
+		ofNullable(integration.getParams()).ifPresent(it -> resource.setIntegrationParams(ofNullable(it.getParams()).map(p -> {
+			return p.entrySet().stream().filter(IGNORE_FIELDS_CONDITION).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}).orElseGet(Collections::emptyMap)));
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());

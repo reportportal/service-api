@@ -48,9 +48,7 @@ public class UserBuilder implements Supplier<User> {
 	}
 
 	public UserBuilder addCreateUserRQ(CreateUserRQConfirm request) {
-		if (request != null) {
-			fillUser(request.getLogin(), request.getEmail(), request.getFullName());
-		}
+		ofNullable(request).ifPresent(r -> fillUser(r.getLogin(), r.getEmail(), r.getFullName()));
 		return this;
 	}
 
@@ -78,7 +76,7 @@ public class UserBuilder implements Supplier<User> {
 
 	private void fillUser(String login, String email, String fullName) {
 		user.setLogin(EntityUtils.normalizeId(login));
-		user.setEmail(EntityUtils.normalizeId(email.trim()));
+		ofNullable(email).map(String::trim).map(EntityUtils::normalizeId).ifPresent(user::setEmail);
 		user.setFullName(fullName);
 		user.setUserType(UserType.INTERNAL);
 		user.setExpired(false);

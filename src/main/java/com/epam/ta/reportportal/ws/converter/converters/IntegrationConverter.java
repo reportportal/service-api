@@ -22,17 +22,18 @@ import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.AuthFlowEnum;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
@@ -59,10 +60,7 @@ public final class IntegrationConverter {
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
 		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
-		ofNullable(integration.getParams()).map(it -> ofNullable(it.getParams()).map(p -> p.entrySet()
-						.stream()
-						.filter(IGNORE_FIELDS_CONDITION)
-						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))).orElseGet(Collections::emptyMap))
+		ofNullable(integration.getParams()).flatMap(IntegrationConverter::convertToResourceParams)
 				.ifPresent(resource::setIntegrationParams);
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());
@@ -76,6 +74,13 @@ public final class IntegrationConverter {
 
 		return resource;
 	};
+
+	private static Optional<Map<String, Object>> convertToResourceParams(IntegrationParams it) {
+		return ofNullable(it.getParams()).map(p -> p.entrySet()
+				.stream()
+				.filter(IGNORE_FIELDS_CONDITION)
+				.collect(HashMap::new, (resourceParams, entry) -> resourceParams.put(entry.getKey(), entry.getValue()), Map::putAll));
+	}
 
 	public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE = integration -> {
 		IntegrationActivityResource resource = new IntegrationActivityResource();

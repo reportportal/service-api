@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
@@ -63,16 +64,19 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected final TestItemRepository testItemRepository;
 	protected final ItemAttributeRepository itemAttributeRepository;
 	protected final IssueEntityRepository issueEntityRepository;
+	private final RetryHandler retryHandler;
 	private final IssueTypeHandler issueTypeHandler;
 	private final ChangeStatusHandler changeStatusHandler;
 
 	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler,
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, RetryHandler retryHandler,
+			IssueTypeHandler issueTypeHandler,
 			ChangeStatusHandler changeStatusHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.issueEntityRepository = issueEntityRepository;
+		this.retryHandler = retryHandler;
 		this.issueTypeHandler = issueTypeHandler;
 		this.changeStatusHandler = changeStatusHandler;
 	}
@@ -207,11 +211,7 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		interruptedAttribute.setTestItem(testItem);
 		testItem.getAttributes().add(interruptedAttribute);
 		if (testItem.isHasRetries()) {
-			testItemRepository.updateStatusAndEndTimeByRetryOfId(testItem.getItemId(),
-					JStatusEnum.IN_PROGRESS,
-					JStatusEnum.valueOf(status.name()),
-					endTime
-			);
+			retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(status.name()), endTime);
 		}
 	}
 }

@@ -29,14 +29,12 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.job.PageUtil;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -208,5 +206,12 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
 		interruptedAttribute.setTestItem(testItem);
 		testItem.getAttributes().add(interruptedAttribute);
+		if (testItem.isHasRetries()) {
+			testItemRepository.updateStatusAndEndTimeByRetryOfId(testItem.getItemId(),
+					JStatusEnum.IN_PROGRESS,
+					JStatusEnum.valueOf(status.name()),
+					endTime
+			);
+		}
 	}
 }

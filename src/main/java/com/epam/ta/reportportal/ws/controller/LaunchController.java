@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
+import com.epam.ta.reportportal.core.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
@@ -247,6 +248,17 @@ public class LaunchController {
 			@RequestParam(value = "filter." + "eq." + "attributeKey", required = false) String key,
 			@RequestParam(value = "filter." + "cnt." + "attributeValue") String value, @AuthenticationPrincipal ReportPortalUser user) {
 		return getLaunchMessageHandler.getAttributeValues(projectExtractor.extractProjectDetails(user, normalizeId(projectName)), key, value);
+	}
+
+	@GetMapping(value = "/cluster/{launchId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all index clusters of the launch")
+	public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectName, @PathVariable String launchId, Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getClusters(launchId,
+				projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+				pageable
+		);
 	}
 
 	@Transactional

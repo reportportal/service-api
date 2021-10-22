@@ -21,6 +21,8 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
+import com.epam.ta.reportportal.core.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterInfoHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -31,6 +33,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
+import com.epam.ta.reportportal.ws.model.Page;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +41,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
@@ -55,6 +60,9 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 class GetLaunchHandlerImplTest {
+
+	@Mock
+	private GetClusterInfoHandler getClusterInfoHandler;
 
 	@Mock
 	private LaunchRepository launchRepository;
@@ -110,8 +118,7 @@ class GetLaunchHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
 		assertThrows(ReportPortalException.class, () -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), ""));
-		assertThrows(
-				ReportPortalException.class,
+		assertThrows(ReportPortalException.class,
 				() -> handler.getLaunchNames(extractProjectDetails(rpUser, "test_project"), RandomStringUtils.random(257))
 		);
 	}
@@ -250,6 +257,38 @@ class GetLaunchHandlerImplTest {
 				() -> handler.getLaunch(launchId, extractProjectDetails(user, "test_project"))
 		);
 		assertEquals("You do not have enough permissions.", exception.getMessage());
+	}
+
+	@Test
+	void getClusterInfo() {
+		long projectId = 1L;
+		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, projectId);
+		String launchId = "1";
+
+		Launch launch = new Launch();
+		launch.setProjectId(projectId);
+		launch.setMode(LaunchModeEnum.DEBUG);
+		when(launchRepository.findById(Long.parseLong(launchId))).thenReturn(Optional.of(launch));
+
+		final Pageable pageable = PageRequest.of(1, 2);
+
+		final Page<ClusterInfoResource> expected = new Page<>(List.of(new ClusterInfoResource(), new ClusterInfoResource()), 2, 1, 10);
+
+		when(getClusterInfoHandler.getResources(launch, pageable)).thenReturn(expected);
+
+		final Iterable<ClusterInfoResource> result = handler.getClusters(launchId, extractProjectDetails(user, "test_project"), pageable);
+
+		final Page<ClusterInfoResource> castedResult = (Page<ClusterInfoResource>) result;
+
+		assertEquals(expected.getPage().getNumber(), castedResult.getPage().getNumber());
+		assertEquals(expected.getPage().getSize(), castedResult.getPage().getSize());
+		assertEquals(expected.getPage().getTotalElements(), castedResult.getPage().getTotalElements());
+
+		assertEquals(10, castedResult.getPage().getTotalElements());
+		assertEquals(1, castedResult.getPage().getNumber());
+		assertEquals(2, castedResult.getPage().getSize());
+
+		assertEquals(2, castedResult.getContent().size());
 	}
 
 	private Filter getDefaultFilter() {

@@ -58,7 +58,8 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
-                    '**/job/FlushingDataJob**'
+                    '**/job/FlushingDataJob**',
+                    "**/core/launch/cluster/**"
     ]
 }
 

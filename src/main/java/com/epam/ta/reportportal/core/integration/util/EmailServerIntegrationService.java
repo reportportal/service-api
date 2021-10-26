@@ -66,7 +66,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(EmailSettingsEnum.values().length);

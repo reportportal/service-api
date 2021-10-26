@@ -17,16 +17,10 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.reportportal.extension.bugtracking.BtsConstants;
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -35,6 +29,7 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
 public abstract class AbstractBtsIntegrationService extends BasicIntegrationServiceImpl {
@@ -43,22 +38,7 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 		super(integrationRepository, pluginBox);
 	}
 
-	@Override
-	public boolean validateIntegration(Integration integration) {
-		validateCommonBtsParams(integration);
-		super.validateIntegration(integration);
-		return true;
-	}
-
-	@Override
-	public boolean validateIntegration(Integration integration, Project project) {
-		validateCommonBtsParams(integration);
-		super.validateIntegration(integration, project);
-		return true;
-	}
-
 	private void validateCommonBtsParams(Integration integration) {
-		expect(integration.getName(), StringUtils::isNotBlank).verify(ErrorType.BAD_REQUEST_ERROR, "Integration name should be specified");
 		expect(BtsConstants.URL.getParam(integration.getParams(), String.class),
 				Optional::isPresent
 		).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.");
@@ -67,15 +47,4 @@ public abstract class AbstractBtsIntegrationService extends BasicIntegrationServ
 		).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified.");
 	}
 
-	@Override
-	public boolean checkConnection(Integration integration) {
-		BtsExtension extension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName()).get()
-				));
-		expect(extension.testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Connection refused."
-		);
-		return true;
-	}
 }

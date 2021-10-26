@@ -19,13 +19,11 @@ package com.epam.ta.reportportal.core.integration.impl;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
-import com.epam.ta.reportportal.core.integration.util.IntegrationService;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -45,21 +43,13 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 	private static final String ASYNC_MODE = "async";
 
-	private final Map<String, IntegrationService> integrationServiceMapping;
-
 	private final IntegrationRepository integrationRepository;
 
 	private final PluginBox pluginBox;
 
-	private final IntegrationService basicIntegrationService;
-
-	public ExecuteIntegrationHandlerImpl(IntegrationRepository integrationRepository, PluginBox pluginBox,
-			@Qualifier("integrationServiceMapping") Map<String, IntegrationService> integrationServiceMapping,
-			@Qualifier("basicIntegrationServiceImpl") IntegrationService basicIntegrationService) {
-		this.integrationServiceMapping = integrationServiceMapping;
+	public ExecuteIntegrationHandlerImpl(IntegrationRepository integrationRepository, PluginBox pluginBox) {
 		this.integrationRepository = integrationRepository;
 		this.pluginBox = pluginBox;
-		this.basicIntegrationService = basicIntegrationService;
 	}
 
 	@Override
@@ -69,12 +59,6 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 				.orElseGet(() -> integrationRepository.findGlobalById(integrationId)
 						.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId)));
 
-		IntegrationService integrationService = integrationServiceMapping.getOrDefault(integration.getType().getName(),
-				basicIntegrationService
-		);
-
-		integrationService.decryptParams(integration);
-
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 						formattedSupplier("Plugin for '{}' isn't installed", integration.getType().getName()).get()
@@ -82,7 +66,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		Boolean asyncMode = ofNullable((Boolean) executionParams.get(ASYNC_MODE)).orElse(false);
 
-		Object response = ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
+		return ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
 			if (asyncMode) {
 				supplyAsync(() -> it.executeCommand(integration, executionParams));
 				return new OperationCompletionRS(formattedSupplier("Command '{}' accepted for processing in plugin",
@@ -94,9 +78,6 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 		}).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 				formattedSupplier("Command '{}' is not found in plugin {}.", command, integration.getType().getName()).get()
 		));
-
-		integrationService.encryptParams(integration);
-		return response;
 	}
 
 	@Async

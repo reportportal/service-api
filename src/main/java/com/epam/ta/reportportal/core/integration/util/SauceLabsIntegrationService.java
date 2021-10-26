@@ -49,7 +49,7 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> integrationParams) {
 		expect(integrationParams, MapUtils::isNotEmpty).verify(BAD_REQUEST_ERROR, "No integration params provided");
 
 		final String encryptedToken = encryptor.encrypt(ACCESS_TOKEN.getParameter(integrationParams)
@@ -70,21 +70,11 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 
 	@Override
 	public boolean checkConnection(Integration integration) {
-		decryptParams(integration);
-		boolean connection = super.checkConnection(integration);
-		encryptParams(integration);
-		return connection;
-	}
-
-	@Override
-	public void encryptParams(Integration integration) {
-		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
-	}
-
-	@Override
-	public void decryptParams(Integration integration) {
 		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
 				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.decrypt(it)));
+		boolean connection = super.checkConnection(integration);
+		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
+				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
+		return connection;
 	}
 }

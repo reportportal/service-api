@@ -63,25 +63,6 @@ class EmailServerIntegrationServiceTest {
 	}
 
 	@Test
-	void validateGlobalIntegration() throws MessagingException {
-		//given
-		Integration integration = new Integration();
-		IntegrationType integrationType = new IntegrationType();
-		integrationType.setName(INTEGRATION_NAME);
-		integration.setType(integrationType);
-
-		//when
-		when(integrationRepository.findAllGlobalByType(integrationType)).thenReturn(Lists.newArrayList());
-		doNothing().when(emailService).testConnection();
-		when(mailServiceFactory.getEmailService(integration)).thenReturn(Optional.of(emailService));
-
-		boolean b = emailServerIntegrationService.validateIntegration(integration);
-
-		//then
-		assertTrue(b);
-	}
-
-	@Test
 	void validateGlobalIntegrationNegative() throws MessagingException {
 		//given
 		Integration integration = new Integration();
@@ -95,7 +76,7 @@ class EmailServerIntegrationServiceTest {
 		doThrow(MessagingException.class).when(emailService).testConnection();
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> emailServerIntegrationService.retrieveIntegrationParams(new HashMap<>())
+				() -> emailServerIntegrationService.retrieveValidParams("email", new HashMap<>())
 		);
 
 		//then
@@ -106,7 +87,7 @@ class EmailServerIntegrationServiceTest {
 
 	@Test
 	void retrieveIntegrationParams() {
-		Map<String, Object> map = emailServerIntegrationService.retrieveIntegrationParams(getParams());
+		Map<String, Object> map = emailServerIntegrationService.retrieveValidParams("email", getParams());
 		assertEquals(defaultParams(), map);
 	}
 
@@ -116,7 +97,7 @@ class EmailServerIntegrationServiceTest {
 		params.put("from", "from@mail.com");
 		params.put("port", "123456789");
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> emailServerIntegrationService.retrieveIntegrationParams(params)
+				() -> emailServerIntegrationService.retrieveValidParams("email", params)
 		);
 		assertEquals("Incorrect Request. Incorrect 'Port' value. Allowed value is [1..65535]", exception.getMessage());
 	}

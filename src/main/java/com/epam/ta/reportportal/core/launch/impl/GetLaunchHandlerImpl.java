@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterInfoHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -35,13 +36,12 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterInfoResource;
-import com.epam.ta.reportportal.core.launch.cluster.GetClusterInfoHandler;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sf.jasperreports.engine.JREmptyDataSource;
@@ -100,10 +100,11 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public GetLaunchHandlerImpl(GetClusterInfoHandler getClusterInfoHandler, LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
-			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository, UserRepository userRepository,
-			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler,
-			LaunchConverter launchConverter, ApplicationEventPublisher applicationEventPublisher) {
+	public GetLaunchHandlerImpl(GetClusterInfoHandler getClusterInfoHandler, LaunchRepository launchRepository,
+			ItemAttributeRepository itemAttributeRepository, ProjectRepository projectRepository,
+			WidgetContentRepository widgetContentRepository, UserRepository userRepository, JasperDataProvider dataProvider,
+			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler, LaunchConverter launchConverter,
+			ApplicationEventPublisher applicationEventPublisher) {
 		this.getClusterInfoHandler = getClusterInfoHandler;
 		this.launchRepository = launchRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
@@ -117,6 +118,11 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
+	public Launch getLaunch(Long id) {
+		return launchRepository.findById(id).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, id));
+	}
+
+	@Override
 	public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		final Launch launch = findLaunch(launchId, projectDetails);
 		return getLaunchResource(launch);
@@ -125,8 +131,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private Launch findLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		Launch launch;
 		try {
-			launch = launchRepository.findById(Long.parseLong(launchId))
-					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+			launch = getLaunch(Long.parseLong(launchId));
 		} catch (NumberFormatException e) {
 			launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		}
@@ -185,8 +190,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
-	public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
-			Filter filter, Pageable pageable) {
+	public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 
 		validateModeConditions(filter);
 
@@ -198,7 +202,6 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return getLaunchResources(launches);
 	}
-
 
 	@Override
 	@Transactional(readOnly = true)

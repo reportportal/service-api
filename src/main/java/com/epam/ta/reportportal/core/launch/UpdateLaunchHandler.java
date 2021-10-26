@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.ws.model.BulkRQ;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.launch.UpdateLaunchRQ;
+import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 
 import java.util.List;
 
@@ -55,6 +56,9 @@ public interface UpdateLaunchHandler {
 	 * @return OperationCompletionRS - Response Data
 	 */
 	OperationCompletionRS startLaunchAnalyzer(AnalyzeLaunchRQ analyzeLaunchRQ, ReportPortalUser.ProjectDetails projectDetails,
+			ReportPortalUser user);
+
+	OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user);
 
 	/**

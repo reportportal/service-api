@@ -58,6 +58,7 @@ import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteria
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
+import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 
 /**
  * @author Pavel Bortnik
@@ -93,6 +94,17 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 		filter.withCondition(new FilterCondition(Condition.EQUALS, false, String.valueOf(project.getId()), CRITERIA_PROJECT_ID));
 		Page<User> users = userRepository.findByFilterExcluding(filter, pageable, "email");
 		return PagedResourcesAssembler.pageConverter(UserConverter.TO_RESOURCE).apply(users);
+	}
+
+	@Override
+	public boolean exists(Long id) {
+		return projectRepository.existsById(id);
+	}
+
+	@Override
+	public Project getProject(ReportPortalUser.ProjectDetails projectDetails) {
+		return projectRepository.findById(projectDetails.getProjectId())
+				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 	}
 
 	@Override

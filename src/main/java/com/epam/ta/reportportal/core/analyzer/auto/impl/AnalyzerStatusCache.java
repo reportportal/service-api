@@ -39,9 +39,12 @@ public class AnalyzerStatusCache {
 
 	public static final String AUTO_ANALYZER_KEY = "autoAnalyzer";
 	public static final String PATTERN_ANALYZER_KEY = "patternAnalyzer";
+	public static final String CLUSTER_KEY = "cluster";
 
 	private static final int CACHE_ITEM_LIVE = 10;
 	private static final int MAXIMUM_SIZE = 50000;
+
+	private static final int CLUSTER_ITEM_LIVE = 20;
 
 	/**
 	 * Contains cache of analyze running for concrete launch
@@ -58,8 +61,13 @@ public class AnalyzerStatusCache {
 				.maximumSize(MAXIMUM_SIZE)
 				.expireAfterWrite(CACHE_ITEM_LIVE, TimeUnit.MINUTES)
 				.build();
+		Cache<Long, Long> clusterCache = CacheBuilder.newBuilder()
+				.maximumSize(MAXIMUM_SIZE)
+				.expireAfterWrite(CLUSTER_ITEM_LIVE, TimeUnit.MINUTES)
+				.build();
 		analyzeStatus = ImmutableMap.<String, Cache<Long, Long>>builder().put(AUTO_ANALYZER_KEY, autoAnalysisStatusCache)
 				.put(PATTERN_ANALYZER_KEY, patternAnalysisCache)
+				.put(CLUSTER_KEY, clusterCache)
 				.build();
 	}
 
@@ -87,6 +95,14 @@ public class AnalyzerStatusCache {
 
 	public Optional<Cache<Long, Long>> getAnalyzeStatus(String analyzerKey) {
 		return ofNullable(analyzeStatus.get(analyzerKey));
+	}
+
+	public boolean containsLaunchId(String analyzerKey, Long launchId) {
+		return ofNullable(analyzeStatus.get(analyzerKey)).map(cache -> cache.asMap().containsKey(launchId)).orElse(Boolean.FALSE);
+	}
+
+	public boolean containsProjectId(String analyzerKey, Long projectId) {
+		return ofNullable(analyzeStatus.get(analyzerKey)).map(cache -> cache.asMap().containsValue(projectId)).orElse(Boolean.FALSE);
 	}
 
 	public Set<String> getStartedAnalyzers(Long launchId) {

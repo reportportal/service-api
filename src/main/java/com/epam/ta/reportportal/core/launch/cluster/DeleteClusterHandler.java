@@ -16,10 +16,14 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
+import java.util.Collection;
+
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface DeleteClusterHandler {
 
 	void deleteLaunchClusters(Long launchId);
+
+	void deleteLaunchClusters(Collection<Long> launchIds);
 }

@@ -19,9 +19,10 @@ package com.epam.ta.reportportal.core.launch;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
+import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import org.springframework.data.domain.Pageable;
 
 import javax.servlet.http.HttpServletResponse;
@@ -38,6 +39,8 @@ import java.util.Map;
  * @author Andrei Varabyeu
  */
 public interface GetLaunchHandler {
+
+	Launch getLaunch(Long id);
 
 	/**
 	 * Get Launch resource by specified UUID
@@ -161,7 +164,7 @@ public interface GetLaunchHandler {
 	 *
 	 * @param launchId       Launch uuid
 	 * @param projectDetails Project Details
-	 * @return {@link LaunchResource}
+	 * @return {@link ClusterInfoResource}
 	 */
 	Iterable<ClusterInfoResource> getClusters(String launchId, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
 }

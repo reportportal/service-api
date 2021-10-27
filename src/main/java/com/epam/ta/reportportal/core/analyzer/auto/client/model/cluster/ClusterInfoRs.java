@@ -14,16 +14,43 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster;
+package com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster;
 
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface GetClusterInfoHandler {
+public class ClusterInfoRs {
 
-	Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
+	private Long clusterId;
+	private String clusterMessage;
+	private List<Long> logIds;
+
+	public ClusterInfoRs() {
+	}
+
+	public Long getClusterId() {
+		return clusterId;
+	}
+
+	public void setClusterId(Long clusterId) {
+		this.clusterId = clusterId;
+	}
+
+	public String getClusterMessage() {
+		return clusterMessage;
+	}
+
+	public void setClusterMessage(String clusterMessage) {
+		this.clusterMessage = clusterMessage;
+	}
+
+	public List<Long> getLogIds() {
+		return logIds;
+	}
+
+	public void setLogIds(List<Long> logIds) {
+		this.logIds = logIds;
+	}
 }

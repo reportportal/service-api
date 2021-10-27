@@ -17,11 +17,19 @@
 package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.entity.launch.Launch;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface LaunchAccessValidator {
+
+	/**
+	 * @param launch       {@link com.epam.ta.reportportal.entity.launch.Launch}
+	 * @param projectDetails {@link ReportPortalUser.ProjectDetails}
+	 * @param user           {@link ReportPortalUser}
+	 */
+	void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user);
 
 	/**
 	 * @param launchId       {@link com.epam.ta.reportportal.entity.launch.Launch#getId()}

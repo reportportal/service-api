@@ -25,9 +25,10 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.widget.content.ChartStatisticsContent;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterInfoResource;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.*;
+import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
@@ -317,6 +318,14 @@ public class LaunchController {
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
 			@RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateLaunchHandler.startLaunchAnalyzer(analyzeLaunchRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
+	}
+
+	@PostMapping(value = "/cluster")
+	@ResponseStatus(OK)
+	@ApiOperation("Create launch clusters")
+	public OperationCompletionRS createClusters(@PathVariable String projectName,
+			@RequestBody @Validated CreateClustersRQ createClustersRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.createClusters(createClustersRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional(readOnly = true)

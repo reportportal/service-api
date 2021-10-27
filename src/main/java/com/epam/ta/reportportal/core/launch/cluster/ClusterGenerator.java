@@ -16,14 +16,13 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
-import org.springframework.data.domain.Pageable;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface GetClusterInfoHandler {
+public interface ClusterGenerator {
 
-	Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
+	void generate(GenerateClustersRq generateClustersRq);
+
 }

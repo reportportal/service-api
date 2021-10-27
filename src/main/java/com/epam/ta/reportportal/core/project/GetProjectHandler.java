@@ -46,6 +46,10 @@ public interface GetProjectHandler {
 	 */
 	Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable);
 
+	boolean exists(Long id);
+
+	Project getProject(ReportPortalUser.ProjectDetails projectDetails);
+
 	Project getProject(String name);
 
 	/**

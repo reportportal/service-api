@@ -23,6 +23,8 @@ import java.util.Collection;
  */
 public interface DeleteClusterHandler {
 
+	void deleteProjectClusters(Long projectId);
+
 	void deleteLaunchClusters(Long launchId);
 
 	void deleteLaunchClusters(Collection<Long> launchIds);

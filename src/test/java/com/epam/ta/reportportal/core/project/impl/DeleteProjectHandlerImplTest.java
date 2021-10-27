@@ -21,6 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.launch.cluster.DeleteClusterHandler;
 import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
@@ -80,6 +81,9 @@ class DeleteProjectHandlerImplTest {
 
 	@Mock
 	private LogRepository logRepository;
+
+	@Mock
+	private DeleteClusterHandler deleteClusterHandler;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;
@@ -196,6 +200,7 @@ class DeleteProjectHandlerImplTest {
 		verify(projectContentRemover, times(1)).removeContent(project);
 		verify(logIndexer, times(1)).deleteIndex(projectId);
 		verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
+		verify(deleteClusterHandler, times(1)).deleteProjectClusters(projectId);
 
 		assertEquals(response.getResultMessage(), "Project with id = '" + project.getId() + "' has been successfully deleted.");
 

@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
+import com.epam.ta.reportportal.core.launch.cluster.DeleteClusterHandler;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
 import com.epam.ta.reportportal.dao.*;
@@ -69,13 +70,15 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectContentRemover projectContentRemover;
 
+	private final DeleteClusterHandler deleteClusterHandler;
+
 	private final LogRepository logRepository;
 
 	@Autowired
 	public DeleteProjectHandlerImpl(ProjectRepository projectRepository, UserRepository userRepository, LogIndexer logIndexer,
 			AnalyzerServiceClient analyzerServiceClient, AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus,
 			AttachmentRepository attachmentRepository, IssueTypeRepository issueTypeRepository, ProjectContentRemover projectContentRemover,
-			LogRepository logRepository) {
+			DeleteClusterHandler deleteClusterHandler, LogRepository logRepository) {
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
 		this.logIndexer = logIndexer;
@@ -85,6 +88,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		this.attachmentRepository = attachmentRepository;
 		this.issueTypeRepository = issueTypeRepository;
 		this.projectContentRemover = projectContentRemover;
+		this.deleteClusterHandler = deleteClusterHandler;
 		this.logRepository = logRepository;
 	}
 
@@ -132,6 +136,7 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 				.filter(issueType -> !defaultIssueTypeIds.contains(issueType.getId()))
 				.collect(Collectors.toSet());
 		projectContentRemover.removeContent(project);
+		deleteClusterHandler.deleteProjectClusters(project.getId());
 		projectRepository.delete(project);
 		issueTypeRepository.deleteAll(issueTypesToRemove);
 		logIndexer.deleteIndex(project.getId());

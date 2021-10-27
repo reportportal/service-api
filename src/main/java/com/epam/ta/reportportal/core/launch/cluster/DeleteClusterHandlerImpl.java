@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch.cluster;
 
 import com.epam.ta.reportportal.dao.ClusterRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +32,22 @@ import java.util.Collection;
 public class DeleteClusterHandlerImpl implements DeleteClusterHandler {
 
 	private final ClusterRepository clusterRepository;
+	private final LogRepository logRepository;
 
 	@Autowired
-	public DeleteClusterHandlerImpl(ClusterRepository clusterRepository) {
+	public DeleteClusterHandlerImpl(ClusterRepository clusterRepository, LogRepository logRepository) {
 		this.clusterRepository = clusterRepository;
+		this.logRepository = logRepository;
+	}
+
+	@Override
+	public void deleteProjectClusters(Long projectId) {
+		clusterRepository.deleteAllByProjectId(projectId);
 	}
 
 	@Override
 	public void deleteLaunchClusters(Long launchId) {
+		logRepository.updateClusterIdSetNullByLaunchId(launchId);
 		clusterRepository.deleteAllByLaunchId(launchId);
 	}
 

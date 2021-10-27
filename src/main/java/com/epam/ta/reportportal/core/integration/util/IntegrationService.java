@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 
 import java.util.Map;
@@ -32,15 +31,8 @@ public interface IntegrationService {
 
 	Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ);
 
-	boolean validateIntegration(Integration integration);
-
-	boolean validateIntegration(Integration integration, Project project);
+	Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> params);
 
 	boolean checkConnection(Integration integration);
 
-	Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams);
-
-	void decryptParams(Integration integration);
-
-	void encryptParams(Integration integration);
 }

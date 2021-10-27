@@ -23,10 +23,8 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IntegrationBuilder;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,8 +32,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
@@ -46,6 +42,7 @@ import static java.util.Optional.ofNullable;
 public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	private static final String TEST_CONNECTION_COMMAND = "testConnection";
+	private static final String RETRIEVE_VALID_PARAMS = "retrieveValid";
 
 	protected IntegrationRepository integrationRepository;
 
@@ -58,41 +55,18 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
-		return integrationParams;
-	}
-
-	@Override
-	public void decryptParams(Integration integration) {
-
-	}
-
-	@Override
-	public void encryptParams(Integration integration) {
-
-	}
-
-	private static IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
-		if (integration.getParams() != null && integration.getParams().getParams() != null) {
-			integration.getParams().getParams().putAll(retrievedParams);
-			return integration.getParams();
-		}
-		return new IntegrationParams(retrievedParams);
-	}
-
-	@Override
 	public Integration createIntegration(IntegrationRQ integrationRq, IntegrationType integrationType) {
 		return new IntegrationBuilder().withCreationDate(LocalDateTime.now())
 				.withType(integrationType)
 				.withEnabled(integrationRq.getEnabled())
 				.withName(integrationRq.getName())
-				.withParams(new IntegrationParams(retrieveIntegrationParams(integrationRq.getIntegrationParams())))
+				.withParams(new IntegrationParams(retrieveValidParams(integrationType.getName(), integrationRq.getIntegrationParams())))
 				.get();
 	}
 
 	@Override
 	public Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ) {
-		Map<String, Object> integrationParams = retrieveIntegrationParams(integrationRQ.getIntegrationParams());
+		Map<String, Object> integrationParams = retrieveValidParams(integration.getType().getName(), integrationRQ.getIntegrationParams());
 		IntegrationParams params = getIntegrationParams(integration, integrationParams);
 		integration.setParams(params);
 		ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
@@ -101,39 +75,32 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 	}
 
 	@Override
-	public boolean validateIntegration(Integration integration) {
-		expect(integrationRepository.existsByNameAndTypeIdAndProjectIdIsNull(integration.getName(), integration.getType().getId()),
-				equalTo(Boolean.FALSE)
-		).verify(ErrorType.INTEGRATION_ALREADY_EXISTS, ofNullable(integration.getName()).orElseGet(() -> integration.getType().getName()));
-		return true;
-	}
-
-	@Override
-	public boolean validateIntegration(Integration integration, Project project) {
-		expect(integrationRepository.existsByNameAndTypeIdAndProjectId(integration.getName(),
-				integration.getType().getId(),
-				project.getId()
-		), equalTo(Boolean.FALSE)).verify(ErrorType.INTEGRATION_ALREADY_EXISTS,
-				ofNullable(integration.getName()).orElseGet(() -> integration.getType().getName())
-		);
-		return true;
+	public Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> integrationParams) {
+		final PluginCommand<?> pluginCommand = getCommandByName(integrationType, RETRIEVE_VALID_PARAMS);
+		return (Map<String, Object>) pluginCommand.executeCommand(null, integrationParams);
 	}
 
 	@Override
 	public boolean checkConnection(Integration integration) {
-		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						"Plugin for {} isn't installed",
-						integration.getType().getName()
-				));
+		final PluginCommand<?> pluginCommand = getCommandByName(integration.getType().getName(), TEST_CONNECTION_COMMAND);
+		return (Boolean) pluginCommand.executeCommand(integration, integration.getParams().getParams());
+	}
 
-		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(
-				BAD_REQUEST_ERROR,
+	private PluginCommand<?> getCommandByName(String integration, String commandName) {
+		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
+		return ofNullable(pluginInstance.getCommandToExecute(commandName)).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 				"Command {} is not found in plugin {}.",
-				TEST_CONNECTION_COMMAND,
-				integration.getType().getName()
+				commandName,
+				integration
 		));
+	}
 
-		return (Boolean) commandToExecute.executeCommand(integration, integration.getParams().getParams());
+	private IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
+		if (integration.getParams() != null && integration.getParams().getParams() != null) {
+			integration.getParams().getParams().putAll(retrievedParams);
+			return integration.getParams();
+		}
+		return new IntegrationParams(retrievedParams);
 	}
 }

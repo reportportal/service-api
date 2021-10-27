@@ -43,6 +43,9 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 	private static final String ASYNC_MODE = "async";
 
+	//Required field for user authorization in plugin
+	private static final String PROJECT_ID = "projectId";
+
 	private final IntegrationRepository integrationRepository;
 
 	private final PluginBox pluginBox;
@@ -54,7 +57,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 	@Override
 	public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId, String command,
-			Map<String, ?> executionParams) {
+			Map<String, Object> executionParams) {
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
 				.orElseGet(() -> integrationRepository.findGlobalById(integrationId)
 						.orElseThrow(() -> new ReportPortalException(INTEGRATION_NOT_FOUND, integrationId)));
@@ -65,6 +68,8 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 				));
 
 		Boolean asyncMode = ofNullable((Boolean) executionParams.get(ASYNC_MODE)).orElse(false);
+
+		executionParams.put(PROJECT_ID, projectDetails.getProjectId());
 
 		return ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
 			if (asyncMode) {

@@ -87,7 +87,6 @@ class ClusterGeneratorImplTest {
 		);
 
 		verify(deleteClusterHandler, times(0)).deleteLaunchClusters(generateRq.getLaunchId());
-
 		verify(analyzerServiceClient, times(1)).generateClusters(generateRq);
 		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
 		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY,

@@ -51,6 +51,8 @@ public class CreateClusterHandlerImpl implements CreateClusterHandler {
 		ofNullable(clusterData.getClusterInfo()).filter(CollectionUtils::isNotEmpty).ifPresent(clusters -> {
 			clusters.stream().filter(c -> Objects.nonNull(c.getClusterId())).forEach(clusterInfoRs -> {
 				final Cluster cluster = TO_CLUSTER.apply(clusterInfoRs);
+				cluster.setProjectId(clusterData.getProject());
+				cluster.setLaunchId(clusterData.getLaunchId());
 				clusterRepository.save(cluster);
 				logRepository.updateClusterIdByIdIn(cluster.getId(), clusterInfoRs.getLogIds());
 			});

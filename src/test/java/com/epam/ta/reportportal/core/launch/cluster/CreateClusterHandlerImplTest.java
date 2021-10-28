@@ -66,7 +66,7 @@ class CreateClusterHandlerImplTest {
 		second.setClusterMessage("second");
 		second.setLogIds(List.of(3L, 4L));
 
-		clusterData.setClusterInfo(List.of(first, second));
+		clusterData.setClusters(List.of(first, second));
 
 		createClusterHandler.create(clusterData);
 

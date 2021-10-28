@@ -25,7 +25,7 @@ public class ClusterData {
 
 	private Long project;
 	private Long launchId;
-	private List<ClusterInfoRs> clusterInfo;
+	private List<ClusterInfoRs> clusters;
 
 	public ClusterData() {
 	}
@@ -46,11 +46,11 @@ public class ClusterData {
 		this.launchId = launchId;
 	}
 
-	public List<ClusterInfoRs> getClusterInfo() {
-		return clusterInfo;
+	public List<ClusterInfoRs> getClusters() {
+		return clusters;
 	}
 
-	public void setClusterInfo(List<ClusterInfoRs> clusterInfo) {
-		this.clusterInfo = clusterInfo;
+	public void setClusters(List<ClusterInfoRs> clusters) {
+		this.clusters = clusters;
 	}
 }

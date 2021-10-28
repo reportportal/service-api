@@ -48,7 +48,7 @@ public class CreateClusterHandlerImpl implements CreateClusterHandler {
 
 	@Override
 	public void create(ClusterData clusterData) {
-		ofNullable(clusterData.getClusterInfo()).filter(CollectionUtils::isNotEmpty).ifPresent(clusters -> {
+		ofNullable(clusterData.getClusters()).filter(CollectionUtils::isNotEmpty).ifPresent(clusters -> {
 			clusters.stream().filter(c -> Objects.nonNull(c.getClusterId())).forEach(clusterInfoRs -> {
 				final Cluster cluster = TO_CLUSTER.apply(clusterInfoRs);
 				cluster.setProjectId(clusterData.getProject());

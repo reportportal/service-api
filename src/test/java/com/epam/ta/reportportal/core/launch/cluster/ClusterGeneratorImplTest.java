@@ -20,11 +20,16 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 
+import java.util.Optional;
+
+import static com.epam.ta.reportportal.core.launch.cluster.ClusterGeneratorImpl.RP_CLUSTER_LAST_RUN_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -44,11 +49,14 @@ class ClusterGeneratorImplTest {
 	private final CreateClusterHandler createClusterHandler = mock(CreateClusterHandler.class);
 	private final DeleteClusterHandler deleteClusterHandler = mock(DeleteClusterHandler.class);
 
+	private final ItemAttributeRepository itemAttributeRepository = mock(ItemAttributeRepository.class);
+
 	private final ClusterGenerator clusterGenerator = new ClusterGeneratorImpl(logClusterExecutor,
 			analyzerStatusCache,
 			analyzerServiceClient,
 			createClusterHandler,
-			deleteClusterHandler
+			deleteClusterHandler,
+			itemAttributeRepository
 	);
 
 	@Test
@@ -90,9 +98,61 @@ class ClusterGeneratorImplTest {
 
 		verify(analyzerServiceClient, times(1)).generateClusters(generateRq);
 		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY,
-				generateRq.getLaunchId()
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateRq.getLaunchId());
+	}
+
+	@Test
+	void shouldSaveAttributeWhenNotExists() {
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
+		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
+
+		final GenerateClustersRq generateRq = getGenerateRq(true);
+		final ClusterData clusterData = new ClusterData();
+		clusterData.setLaunchId(generateRq.getLaunchId());
+		when(analyzerServiceClient.generateClusters(generateRq)).thenReturn(clusterData);
+
+		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(generateRq.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)).thenReturn(
+				Optional.empty());
+
+		clusterGenerator.generate(generateRq);
+
+		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+				generateRq.getLaunchId(),
+				generateRq.getProject()
 		);
+
+		verify(deleteClusterHandler, times(0)).deleteLaunchClusters(generateRq.getLaunchId());
+
+		verify(analyzerServiceClient, times(1)).generateClusters(generateRq);
+		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
+		verify(itemAttributeRepository, times(1)).saveByLaunchId(anyLong(), anyString(), anyString(), anyBoolean());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateRq.getLaunchId());
+	}
+
+	@Test
+	void shouldNotSaveAttributeWhenExists() {
+		when(analyzerServiceClient.hasClients()).thenReturn(true);
+		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
+
+		final GenerateClustersRq generateRq = getGenerateRq(true);
+		when(analyzerServiceClient.generateClusters(generateRq)).thenReturn(new ClusterData());
+
+		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(generateRq.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)).thenReturn(
+				Optional.of(new ItemAttribute()));
+
+		clusterGenerator.generate(generateRq);
+
+		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+				generateRq.getLaunchId(),
+				generateRq.getProject()
+		);
+
+		verify(deleteClusterHandler, times(0)).deleteLaunchClusters(generateRq.getLaunchId());
+
+		verify(analyzerServiceClient, times(1)).generateClusters(generateRq);
+		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
+		verify(itemAttributeRepository, times(0)).saveByLaunchId(anyLong(), anyString(), anyString(), anyBoolean());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateRq.getLaunchId());
 	}
 
 	@Test
@@ -114,9 +174,7 @@ class ClusterGeneratorImplTest {
 
 		verify(analyzerServiceClient, times(1)).generateClusters(generateRq);
 		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY,
-				generateRq.getLaunchId()
-		);
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateRq.getLaunchId());
 	}
 
 	private GenerateClustersRq getGenerateRq(boolean forUpdate) {

@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterInfoHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -40,6 +41,7 @@ import com.epam.ta.reportportal.ws.converter.converters.LaunchConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
+import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import net.sf.jasperreports.engine.JREmptyDataSource;
@@ -51,6 +53,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.OutputStream;
 import java.util.*;
@@ -85,6 +88,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
+	private final GetClusterInfoHandler getClusterInfoHandler;
 	private final LaunchRepository launchRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;
@@ -96,10 +100,12 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public GetLaunchHandlerImpl(LaunchRepository launchRepository, ItemAttributeRepository itemAttributeRepository,
-			ProjectRepository projectRepository, WidgetContentRepository widgetContentRepository, UserRepository userRepository,
-			JasperDataProvider dataProvider, @Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler,
-			LaunchConverter launchConverter, ApplicationEventPublisher applicationEventPublisher) {
+	public GetLaunchHandlerImpl(GetClusterInfoHandler getClusterInfoHandler, LaunchRepository launchRepository,
+			ItemAttributeRepository itemAttributeRepository, ProjectRepository projectRepository,
+			WidgetContentRepository widgetContentRepository, UserRepository userRepository, JasperDataProvider dataProvider,
+			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler, LaunchConverter launchConverter,
+			ApplicationEventPublisher applicationEventPublisher) {
+		this.getClusterInfoHandler = getClusterInfoHandler;
 		this.launchRepository = launchRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
@@ -112,16 +118,25 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
+	public Launch getLaunch(Long id) {
+		return launchRepository.findById(id).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, id));
+	}
+
+	@Override
 	public LaunchResource getLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
+		final Launch launch = findLaunch(launchId, projectDetails);
+		return getLaunchResource(launch);
+	}
+
+	private Launch findLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		Launch launch;
 		try {
-			launch = launchRepository.findById(Long.parseLong(launchId))
-					.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+			launch = getLaunch(Long.parseLong(launchId));
 		} catch (NumberFormatException e) {
 			launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		}
 		validate(launch, projectDetails);
-		return getLaunchResource(launch);
+		return launch;
 	}
 
 	@Override
@@ -175,8 +190,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
-	public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails,
-			Filter filter, Pageable pageable) {
+	public Iterable<LaunchResource> getLatestLaunches(ReportPortalUser.ProjectDetails projectDetails, Filter filter, Pageable pageable) {
 
 		validateModeConditions(filter);
 
@@ -187,6 +201,13 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 		Page<Launch> launches = launchRepository.findAllLatestByFilter(ProjectFilter.of(filter, project.getId()), pageable);
 		return getLaunchResources(launches);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Iterable<ClusterInfoResource> getClusters(String launchId, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
+		final Launch launch = findLaunch(launchId, projectDetails);
+		return getClusterInfoHandler.getResources(launch, pageable);
 	}
 
 	private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {

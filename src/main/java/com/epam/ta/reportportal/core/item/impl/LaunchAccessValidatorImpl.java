@@ -45,8 +45,8 @@ public class LaunchAccessValidatorImpl implements LaunchAccessValidator {
 	}
 
 	@Override
-	public void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+	//TODO separate project validation from launch state validation (mode)
+	public void validate(Launch launch, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
 			expect(launch.getProjectId(), equalTo(projectDetails.getProjectId())).verify(FORBIDDEN_OPERATION,
 					formattedSupplier("Specified launch with id '{}' not referenced to specified project with id '{}'",
@@ -58,6 +58,12 @@ public class LaunchAccessValidatorImpl implements LaunchAccessValidator {
 					Predicate.isEqual(false)
 			).verify(ACCESS_DENIED);
 		}
+	}
+
+	@Override
+	public void validate(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		Launch launch = launchRepository.findById(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
+		validate(launch, projectDetails, user);
 	}
 
 }

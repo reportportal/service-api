@@ -27,6 +27,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.launch.*;
+import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
+import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.net.HttpHeaders;
@@ -249,6 +251,17 @@ public class LaunchController {
 		return getLaunchMessageHandler.getAttributeValues(projectExtractor.extractProjectDetails(user, normalizeId(projectName)), key, value);
 	}
 
+	@GetMapping(value = "/cluster/{launchId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Get all index clusters of the launch")
+	public Iterable<ClusterInfoResource> getClusters(@PathVariable String projectName, @PathVariable String launchId, Pageable pageable,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return getLaunchMessageHandler.getClusters(launchId,
+				projectExtractor.extractProjectDetails(user, normalizeId(projectName)),
+				pageable
+		);
+	}
+
 	@Transactional
 	@PutMapping(value = "/info")
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
@@ -305,6 +318,14 @@ public class LaunchController {
 	public OperationCompletionRS startLaunchAnalyzer(@PathVariable String projectName,
 			@RequestBody @Validated AnalyzeLaunchRQ analyzeLaunchRQ, @AuthenticationPrincipal ReportPortalUser user) {
 		return updateLaunchHandler.startLaunchAnalyzer(analyzeLaunchRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
+	}
+
+	@PostMapping(value = "/cluster")
+	@ResponseStatus(OK)
+	@ApiOperation("Create launch clusters")
+	public OperationCompletionRS createClusters(@PathVariable String projectName,
+			@RequestBody @Validated CreateClustersRQ createClustersRQ, @AuthenticationPrincipal ReportPortalUser user) {
+		return updateLaunchHandler.createClusters(createClustersRQ, projectExtractor.extractProjectDetails(user, normalizeId(projectName)), user);
 	}
 
 	@Transactional(readOnly = true)

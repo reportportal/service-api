@@ -6,5 +6,5 @@ ignore:
   - "**/demodata/**"
   - "**/exception/**"
   - "**/job/FlushingDataJob**"
-  - "**/core/analyzer/auto/client/model**"
+  - "**/core/analyzer/auto/client/model/**"
   - "**/core/analyzer/auto/impl/SuggestedItem**"

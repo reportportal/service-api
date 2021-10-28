@@ -222,21 +222,27 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		issueEntity.setIssueId(testItem.getItemId());
 		issueEntity.setTestItemResults(testItem.getItemResults());
 		testItem.getItemResults().setIssue(issueEntity);
-		return ofNullable(rs.getRelevantItemId()).map(relevantItemId -> updateIssueFromRelevantItem(issueEntity, relevantItemId))
-				.orElse(null);
 
+		RelevantItemInfo relevantItemInfo = null;
+		if (rs.getRelevantItemId() != null) {
+			Optional<TestItem> relevantItemOptional = testItemRepository.findById(rs.getRelevantItemId());
+			if (relevantItemOptional.isPresent()) {
+				relevantItemInfo = updateIssueFromRelevantItem(issueEntity, relevantItemOptional.get());
+			} else {
+				LOGGER.error(ErrorType.TEST_ITEM_NOT_FOUND.getDescription(), rs.getRelevantItemId());
+			}
+		}
+
+		return relevantItemInfo;
 	}
 
 	/**
 	 * Updates issue with values are taken from most relevant item
 	 *
 	 * @param issue          Issue to update
-	 * @param relevantItemId Relevant item id
+	 * @param relevantItem Relevant item
 	 */
-	private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, Long relevantItemId) {
-		TestItem relevantItem = testItemRepository.findById(relevantItemId)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, relevantItemId));
-
+	private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, TestItem relevantItem) {
 		ofNullable(relevantItem.getItemResults().getIssue()).ifPresent(relevantIssue -> {
 			final String issueDescription = resolveDescription(issue, relevantIssue);
 			issue.setIssueDescription(emptyToNull(issueDescription));

@@ -38,6 +38,6 @@ public interface ExecuteIntegrationHandler {
 	 * @return Result of the command execution
 	 */
 	Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId, String command,
-			Map<String, ?> executionParams);
+			Map<String, Object> executionParams);
 
 }

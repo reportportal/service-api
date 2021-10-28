@@ -94,7 +94,6 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setCreator(user.getUsername());
-		integrationService.validateIntegration(integration);
 		integrationService.checkConnection(integration);
 		integrationRepository.save(integration);
 		return new EntryCreatedRS(integration.getId());
@@ -124,9 +123,7 @@ public class CreateIntegrationHandlerImpl implements CreateIntegrationHandler {
 		Integration integration = integrationService.createIntegration(createRequest, integrationType);
 		integration.setProject(project);
 		integration.setCreator(user.getUsername());
-		integrationService.validateIntegration(integration, project);
 		integrationService.checkConnection(integration);
-
 		integrationRepository.save(integration);
 
 		messageBus.publishActivity(new IntegrationCreatedEvent(TO_ACTIVITY_RESOURCE.apply(integration),

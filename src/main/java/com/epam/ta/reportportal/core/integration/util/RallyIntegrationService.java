@@ -32,13 +32,14 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class RallyIntegrationService extends AbstractBtsIntegrationService {
+public class RallyIntegrationService extends BasicIntegrationServiceImpl {
 
 	private BasicTextEncryptor basicTextEncryptor;
 
@@ -50,8 +51,15 @@ public class RallyIntegrationService extends AbstractBtsIntegrationService {
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
+
+		expect(BtsProperties.URL.getParam(integrationParams), Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"Url is not specified."
+		);
+		expect(BtsProperties.PROJECT.getParam(integrationParams), Optional::isPresent).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+				"BTS project is not specified."
+		);
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);
 

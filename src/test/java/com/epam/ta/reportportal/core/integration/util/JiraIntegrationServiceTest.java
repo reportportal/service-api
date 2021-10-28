@@ -54,7 +54,7 @@ class JiraIntegrationServiceTest {
 
 	@Test
 	void testParameters() {
-		Map<String, Object> res = jiraIntegrationService.retrieveIntegrationParams(getCorrectJiraIntegrationParams());
+		Map<String, Object> res = jiraIntegrationService.retrieveValidParams("jira", getCorrectJiraIntegrationParams());
 		assertThat(res.keySet(), hasSize(5));
 	}
 
@@ -64,7 +64,7 @@ class JiraIntegrationServiceTest {
 		params.remove(BtsProperties.USER_NAME.getName());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
+				() -> jiraIntegrationService.retrieveValidParams("jira", params)
 		);
 		assertEquals("Impossible interact with integration. Username value cannot be NULL", exception.getMessage());
 	}
@@ -75,7 +75,7 @@ class JiraIntegrationServiceTest {
 		params.remove(BtsProperties.PASSWORD.getName());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
+				() -> jiraIntegrationService.retrieveValidParams("jira", params)
 		);
 		assertEquals("Impossible interact with integration. Password value cannot be NULL", exception.getMessage());
 	}
@@ -86,7 +86,7 @@ class JiraIntegrationServiceTest {
 		params.put(BtsProperties.AUTH_TYPE.getName(), AuthType.OAUTH.name());
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
+				() -> jiraIntegrationService.retrieveValidParams("jira", params)
 		);
 		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
 	}
@@ -97,7 +97,7 @@ class JiraIntegrationServiceTest {
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> jiraIntegrationService.retrieveIntegrationParams(params)
+				() -> jiraIntegrationService.retrieveValidParams("jira", params)
 		);
 		assertEquals(
 				"Impossible interact with integration. Unsupported auth type for Jira integration - " + UNSUPPORTED_AUTH_TYPE_NAME,

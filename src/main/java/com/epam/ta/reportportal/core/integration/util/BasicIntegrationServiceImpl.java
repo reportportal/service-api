@@ -66,9 +66,9 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	@Override
 	public Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ) {
-		Map<String, Object> integrationParams = retrieveValidParams(integration.getType().getName(), integrationRQ.getIntegrationParams());
-		IntegrationParams params = getIntegrationParams(integration, integrationParams);
-		integration.setParams(params);
+		IntegrationParams combinedParams = getCombinedParams(integration, integrationRQ.getIntegrationParams());
+		Map<String, Object> validParams = retrieveValidParams(integration.getType().getName(), combinedParams.getParams());
+		integration.setParams(new IntegrationParams(validParams));
 		ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
 		ofNullable(integrationRQ.getName()).ifPresent(integration::setName);
 		return integration;
@@ -96,7 +96,7 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 		));
 	}
 
-	private IntegrationParams getIntegrationParams(Integration integration, Map<String, Object> retrievedParams) {
+	private IntegrationParams getCombinedParams(Integration integration, Map<String, Object> retrievedParams) {
 		if (integration.getParams() != null && integration.getParams().getParams() != null) {
 			integration.getParams().getParams().putAll(retrievedParams);
 			return integration.getParams();

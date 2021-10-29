@@ -57,6 +57,7 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 								AUTO_ANALYZER_MODE.getAttribute()
 						))
 						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_SHOULD_MATCH.getAttribute()))
+						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute()))
 						.addHistoryField(processParameter(getBefore().getConfig(),
 								getAfter().getConfig(),
 								NUMBER_OF_LOG_LINES.getAttribute()

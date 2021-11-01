@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -31,16 +30,16 @@ import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.entity.AnalyzeMode.ALL_LAUNCHES;
 import static com.epam.ta.reportportal.entity.enums.TestItemIssueGroup.PRODUCT_BUG;
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -58,13 +57,13 @@ class AnalyzerServiceServiceTest {
 
 	private MessageBus messageBus = mock(MessageBus.class);
 
-	private LogRepository logRepository = mock(LogRepository.class);
+	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
 	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(analyzerStatusCache,
+			launchPreparerService,
 			analyzerServiceClient,
-			logRepository,
 			issueTypeHandler,
 			testItemRepository,
 			messageBus
@@ -77,35 +76,6 @@ class AnalyzerServiceServiceTest {
 	}
 
 	@Test
-	void analyzeWithoutLogs() {
-		Launch launch = launch();
-		TestItem testItem = testItemsTI(1).get(0);
-		testItem.setLaunchId(launch.getId());
-
-		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-				singletonList(testItem.getItemId()),
-				LogLevel.ERROR.toInt()
-		)).thenReturn(Collections.emptyList());
-
-		when(testItemRepository.findAllById(singletonList(1L))).thenReturn(singletonList(testItem));
-
-		Project project = project();
-
-		when(analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId())).thenReturn(true);
-		when(analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId())).thenReturn(true);
-
-		issuesAnalyzer.runAnalyzers(launch, singletonList(1L), analyzerConfig());
-
-		verify(logRepository, times(1)).findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-				singletonList(testItem.getItemId()),
-				LogLevel.ERROR.toInt()
-		);
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), project.getId());
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
-		verifyZeroInteractions(analyzerServiceClient);
-	}
-
-	@Test
 	void analyze() {
 		int itemsCount = 2;
 
@@ -114,25 +84,23 @@ class AnalyzerServiceServiceTest {
 		List<TestItem> items = testItemsTI(itemsCount);
 		items.forEach(item -> item.setLaunchId(launch.getId()));
 
-		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(eq(launch.getId()),
-				anyList(),
-				eq(LogLevel.ERROR.toInt())
-		)).thenReturn(errorLogs(2));
+		AnalyzerConfig analyzerConfig = analyzerConfig();
 
-		when(testItemRepository.findAllById(anyList())).thenReturn(items);
+		final IndexLaunch indexLaunch = new IndexLaunch();
+		indexLaunch.setLaunchId(launch.getId());
+		indexLaunch.setAnalyzerConfig(analyzerConfig);
+
+		final List<IndexTestItem> indexTestItems = items.stream().map(it -> AnalyzerUtils.fromTestItem(it, errorLogs(2))).collect(Collectors.toList());
+		indexLaunch.setTestItems(indexTestItems);
+
+		when(launchPreparerService.prepare(any(Launch.class), anyList(), any(AnalyzerConfig.class))).thenReturn(Optional.of(indexLaunch));
 
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));
 
 		when(issueTypeHandler.defineIssueType(anyLong(), eq("pb001"))).thenReturn(issueProductBug().getIssueType());
 
-		AnalyzerConfig analyzerConfig = analyzerConfig();
-
 		issuesAnalyzer.runAnalyzers(launch, items.stream().map(TestItem::getItemId).collect(Collectors.toList()), analyzerConfig);
 
-		verify(logRepository, times(itemsCount)).findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(eq((launch.getId())),
-				anyList(),
-				eq(LogLevel.ERROR.toInt())
-		);
 		verify(analyzerServiceClient, times(1)).analyze(any());
 		verify(testItemRepository, times(itemsCount)).save(any());
 		verify(messageBus, times(4)).publishActivity(any());

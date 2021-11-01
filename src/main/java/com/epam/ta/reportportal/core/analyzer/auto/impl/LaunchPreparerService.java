@@ -16,9 +16,11 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
+import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -54,12 +56,15 @@ public class LaunchPreparerService {
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
 	private final LogRepository logRepository;
+	private final ClusterRepository clusterRepository;
 
 	@Autowired
-	public LaunchPreparerService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository) {
+	public LaunchPreparerService(LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
+			ClusterRepository clusterRepository) {
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
+		this.clusterRepository = clusterRepository;
 	}
 
 	public Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems, AnalyzerConfig analyzerConfig) {
@@ -116,7 +121,15 @@ public class LaunchPreparerService {
 		rqLaunch.setProjectId(projectId);
 		rqLaunch.setAnalyzerConfig(analyzerConfig);
 		rqLaunch.setTestItems(rqTestItems);
+		final Map<Long, String> clusters = getClusters(launchId);
+		if (!clusters.isEmpty()) {
+			rqLaunch.setClusters(clusters);
+		}
 		return rqLaunch;
+	}
+
+	private Map<Long, String> getClusters(Long launchId) {
+		return clusterRepository.findAllByLaunchId(launchId).stream().collect(Collectors.toMap(Cluster::getId, Cluster::getMessage));
 	}
 
 	/**

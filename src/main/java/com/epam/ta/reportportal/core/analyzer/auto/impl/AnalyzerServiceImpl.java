@@ -22,21 +22,17 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ItemIssueTypeDefinedEvent;
 import com.epam.ta.reportportal.core.events.activity.LinkTicketEvent;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.builders.IssueEntityBuilder;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.TestItemActivityResource;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Sets;
@@ -50,16 +46,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
-import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link AnalyzerService}.
@@ -75,9 +68,9 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
 	private final AnalyzerStatusCache analyzerStatusCache;
 
-	private final AnalyzerServiceClient analyzerServicesClient;
+	private final LaunchPreparerService launchPreparerService;
 
-	private final LogRepository logRepository;
+	private final AnalyzerServiceClient analyzerServicesClient;
 
 	private final IssueTypeHandler issueTypeHandler;
 
@@ -86,11 +79,12 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public AnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServicesClient,
-			LogRepository logRepository, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository, MessageBus messageBus) {
+	public AnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
+			AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository,
+			MessageBus messageBus) {
 		this.analyzerStatusCache = analyzerStatusCache;
+		this.launchPreparerService = launchPreparerService;
 		this.analyzerServicesClient = analyzerServicesClient;
-		this.logRepository = logRepository;
 		this.issueTypeHandler = issueTypeHandler;
 		this.testItemRepository = testItemRepository;
 		this.messageBus = messageBus;
@@ -106,57 +100,13 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		try {
 			analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
 			List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
-			Optional<IndexLaunch> rqLaunch = prepareLaunch(launch, analyzerConfig, toAnalyze);
+			Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze, analyzerConfig);
 			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, toAnalyze, rq));
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		} finally {
 			analyzerStatusCache.analyzeFinished(AUTO_ANALYZER_KEY, launch.getId());
 		}
-	}
-
-	/**
-	 * Create an {@link IndexLaunch} object to be sent to analyzers
-	 *
-	 * @param launch         Launch to be created from
-	 * @param analyzerConfig Analyzer config
-	 * @param toAnalyze      Items to be analyzed
-	 * @return Optional of {@link IndexLaunch}
-	 */
-	private Optional<IndexLaunch> prepareLaunch(Launch launch, AnalyzerConfig analyzerConfig, List<TestItem> toAnalyze) {
-		if (launch == null) {
-			return Optional.empty();
-		}
-		List<IndexTestItem> indexTestItems = prepareItems(toAnalyze);
-		if (!indexTestItems.isEmpty()) {
-			IndexLaunch rqLaunch = new IndexLaunch();
-			rqLaunch.setLaunchId(launch.getId());
-			rqLaunch.setLaunchName(launch.getName());
-			rqLaunch.setProjectId(launch.getProjectId());
-			rqLaunch.setAnalyzerConfig(analyzerConfig);
-			rqLaunch.setTestItems(indexTestItems);
-			return Optional.of(rqLaunch);
-		}
-		return Optional.empty();
-	}
-
-	/**
-	 * Filter items with logs greater than {@link LogLevel#ERROR} level
-	 * and convert them to {@link IndexTestItem} analyzer model
-	 *
-	 * @param testItems Test items for preparing
-	 * @return Prepared items for analyzer
-	 */
-	private List<IndexTestItem> prepareItems(List<TestItem> testItems) {
-		return testItems.stream()
-				.map(it -> AnalyzerUtils.fromTestItem(it,
-						logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(it.getLaunchId(),
-								singletonList(it.getItemId()),
-								LogLevel.ERROR.toInt()
-						)
-				))
-				.filter(it -> !isEmpty(it.getLogs()))
-				.collect(Collectors.toList());
 	}
 
 	/**
@@ -239,7 +189,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	/**
 	 * Updates issue with values are taken from most relevant item
 	 *
-	 * @param issue          Issue to update
+	 * @param issue        Issue to update
 	 * @param relevantItem Relevant item
 	 */
 	private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, TestItem relevantItem) {

@@ -58,6 +58,7 @@ public class AnalyzerUtils {
 			indexLog.setLogLevel(log.getLogLevel());
 		}
 		indexLog.setMessage(log.getLogMessage());
+		indexLog.setClusterId(log.getClusterId());
 		return indexLog;
 	};
 

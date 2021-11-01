@@ -80,7 +80,7 @@ public class LaunchPreparerService {
 	/**
 	 * Update prepared launch with items for indexing
 	 *
-	 * @param indexLaunch  - Launch to be updated
+	 * @param indexLaunch - Launch to be updated
 	 */
 	public void fillLaunch(IndexLaunch indexLaunch) {
 		final List<IndexTestItem> indexTestItemList = testItemRepository.findIndexTestItemByLaunchId(indexLaunch.getLaunchId(),
@@ -89,6 +89,7 @@ public class LaunchPreparerService {
 		if (!indexTestItemList.isEmpty()) {
 			final List<IndexTestItem> preparedItems = prepare(indexLaunch.getLaunchId(), indexTestItemList);
 			indexLaunch.setTestItems(preparedItems);
+			setClusters(indexLaunch);
 		}
 	}
 
@@ -121,15 +122,17 @@ public class LaunchPreparerService {
 		rqLaunch.setProjectId(projectId);
 		rqLaunch.setAnalyzerConfig(analyzerConfig);
 		rqLaunch.setTestItems(rqTestItems);
-		final Map<Long, String> clusters = getClusters(launchId);
-		if (!clusters.isEmpty()) {
-			rqLaunch.setClusters(clusters);
-		}
+		setClusters(rqLaunch);
 		return rqLaunch;
 	}
 
-	private Map<Long, String> getClusters(Long launchId) {
-		return clusterRepository.findAllByLaunchId(launchId).stream().collect(Collectors.toMap(Cluster::getId, Cluster::getMessage));
+	private void setClusters(IndexLaunch indexLaunch) {
+		final Map<Long, String> clusters = clusterRepository.findAllByLaunchId(indexLaunch.getLaunchId())
+				.stream()
+				.collect(Collectors.toMap(Cluster::getId, Cluster::getMessage));
+		if (!clusters.isEmpty()) {
+			indexLaunch.setClusters(clusters);
+		}
 	}
 
 	/**

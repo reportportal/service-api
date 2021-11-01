@@ -93,6 +93,8 @@ class AnalyzerServiceServiceTest {
 		final List<IndexTestItem> indexTestItems = items.stream().map(it -> AnalyzerUtils.fromTestItem(it, errorLogs(2))).collect(Collectors.toList());
 		indexLaunch.setTestItems(indexTestItems);
 
+		when(testItemRepository.findAllById(anyList())).thenReturn(items);
+
 		when(launchPreparerService.prepare(any(Launch.class), anyList(), any(AnalyzerConfig.class))).thenReturn(Optional.of(indexLaunch));
 
 		when(analyzerServiceClient.analyze(any())).thenReturn(analyzedItems(itemsCount));

@@ -31,8 +31,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -67,6 +66,14 @@ class CreateClusterHandlerImplTest {
 		second.setLogIds(List.of(3L, 4L));
 
 		clusterData.setClusters(List.of(first, second));
+
+		doAnswer(invocation -> {
+			Object[] args = invocation.getArguments();
+			Cluster cluster = ((Cluster) args[0]);
+			cluster.setId(cluster.getIndexId());
+			return null;
+		}).when(clusterRepository).save(any(Cluster.class));
+
 
 		createClusterHandler.create(clusterData);
 

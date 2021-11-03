@@ -33,7 +33,7 @@ public class ClusterConverter {
 
 	public static final Function<ClusterInfoRs, Cluster> TO_CLUSTER = rs -> {
 		final Cluster cluster = new Cluster();
-		cluster.setId(rs.getClusterId());
+		cluster.setIndexId(rs.getClusterId());
 		cluster.setMessage(rs.getClusterMessage());
 		return cluster;
 	};

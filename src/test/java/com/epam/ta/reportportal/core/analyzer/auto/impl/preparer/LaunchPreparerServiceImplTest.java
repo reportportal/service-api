@@ -61,6 +61,8 @@ class LaunchPreparerServiceImplTest {
 		when(testItemPreparerService.prepare(indexLaunch.getLaunchId())).thenReturn(List.of(indexTestItem));
 
 		final Cluster cluster = new Cluster();
+		cluster.setIndexId(1L);
+		cluster.setMessage("hello");
 		when(clusterRepository.findAllByLaunchId(indexLaunch.getLaunchId())).thenReturn(List.of(cluster));
 
 		final AnalyzerConfig analyzerConfig = new AnalyzerConfig();

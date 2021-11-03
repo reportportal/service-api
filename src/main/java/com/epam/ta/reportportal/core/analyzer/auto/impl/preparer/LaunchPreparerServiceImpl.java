@@ -120,7 +120,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 	private void setClusters(IndexLaunch indexLaunch) {
 		final Map<Long, String> clusters = clusterRepository.findAllByLaunchId(indexLaunch.getLaunchId())
 				.stream()
-				.collect(Collectors.toMap(Cluster::getId, Cluster::getMessage));
+				.collect(Collectors.toMap(Cluster::getIndexId, Cluster::getMessage));
 		if (!clusters.isEmpty()) {
 			indexLaunch.setClusters(clusters);
 		}

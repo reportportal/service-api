@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.LaunchPreparerService;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
 import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;

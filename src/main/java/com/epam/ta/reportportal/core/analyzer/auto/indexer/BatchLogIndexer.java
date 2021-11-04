@@ -1,15 +1,13 @@
 package com.epam.ta.reportportal.core.analyzer.auto.indexer;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.LaunchPreparerService;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Iterables;
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -64,8 +61,7 @@ public class BatchLogIndexer {
 			return;
 		}
 		LOGGER.debug("Project {}. Found {} ids", projectId, launchIds.size());
-		final List<IndexLaunch> launchesForIndexing = launchRepository.findIndexLaunchByIdsAndLogLevel(launchIds, LogLevel.ERROR.toInt());
-		final List<IndexLaunch> preparedLaunches = prepareLaunches(analyzerConfig, launchesForIndexing);
+		final List<IndexLaunch> preparedLaunches = launchPreparerService.prepare(launchIds, analyzerConfig);
 		LOGGER.debug("Project {}. Start indexing for {} launches", projectId, preparedLaunches.size());
 		final Long indexed = indexerServiceClient.index(preparedLaunches);
 		LOGGER.debug("Project {}. Indexed {} logs", projectId, indexed);
@@ -89,18 +85,4 @@ public class BatchLogIndexer {
 		);
 	}
 
-	/**
-	 * Prepare launches for indexing
-	 *
-	 * @param analyzerConfig - Analyzer config
-	 * @param indexLaunches  - Launches to be prepared
-	 * @return List of prepared launches for indexing
-	 */
-	private List<IndexLaunch> prepareLaunches(AnalyzerConfig analyzerConfig, List<IndexLaunch> indexLaunches) {
-		return indexLaunches.stream()
-				.peek(launchPreparerService::fillLaunch)
-				.filter(l -> CollectionUtils.isNotEmpty(l.getTestItems()))
-				.peek(l -> l.setAnalyzerConfig(analyzerConfig))
-				.collect(Collectors.toList());
-	}
 }

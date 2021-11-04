@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.BatchLogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.indexer.IndexerStatusCache;
 import com.epam.ta.reportportal.dao.LaunchRepository;
@@ -186,7 +187,7 @@ public class LogIndexerService implements LogIndexer {
 		List<Long> missedItemIds = indexerServiceClient.indexDefectsUpdate(projectId, itemsForIndexUpdate);
 		List<TestItem> missedItems = testItems.stream().filter(it -> missedItemIds.contains(it.getItemId())).collect(Collectors.toList());
 
-		List<IndexLaunch> indexLaunchList = launchPreparerService.prepareLaunches(analyzerConfig, missedItems);
+		List<IndexLaunch> indexLaunchList = launchPreparerService.prepare(analyzerConfig, missedItems);
 
 		indexerServiceClient.index(indexLaunchList);
 	}

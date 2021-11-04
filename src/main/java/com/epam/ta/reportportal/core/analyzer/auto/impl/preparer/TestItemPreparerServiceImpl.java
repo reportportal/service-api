@@ -52,7 +52,8 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
 
 	@Override
 	public List<IndexTestItem> prepare(Long launchId, Collection<TestItem> testItems) {
-		final List<IndexTestItem> itemsForIndexing = testItems.stream().filter(ITEM_CAN_BE_INDEXED).collect(toList()).stream()
+		final List<IndexTestItem> itemsForIndexing = testItems.stream()
+				.filter(ITEM_CAN_BE_INDEXED)
 				.map(AnalyzerUtils::fromTestItem)
 				.collect(toList());
 		return prepare(launchId, itemsForIndexing);
@@ -82,6 +83,5 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
 	private Map<Long, List<IndexLog>> getLogsMapping(Long launchId, List<Long> itemIds) {
 		return logRepository.findAllIndexUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt());
 	}
-
 
 }

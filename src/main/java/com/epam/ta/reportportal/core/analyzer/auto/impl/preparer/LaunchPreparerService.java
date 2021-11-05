@@ -31,6 +31,8 @@ public interface LaunchPreparerService {
 
 	Optional<IndexLaunch> prepare(Launch launch, List<TestItem> testItems, AnalyzerConfig analyzerConfig);
 
+	Optional<IndexLaunch> prepare(Long id, AnalyzerConfig analyzerConfig);
+
 	List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig);
 
 	List<IndexLaunch> prepare(AnalyzerConfig analyzerConfig, List<TestItem> testItems);

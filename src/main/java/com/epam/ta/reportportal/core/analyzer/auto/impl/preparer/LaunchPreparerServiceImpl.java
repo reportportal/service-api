@@ -86,6 +86,11 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 	}
 
 	@Override
+	public Optional<IndexLaunch> prepare(Long id, AnalyzerConfig analyzerConfig) {
+		return prepare(List.of(id), analyzerConfig).stream().findFirst();
+	}
+
+	@Override
 	public List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig) {
 		return launchRepository.findIndexLaunchByIdsAndLogLevel(ids, LogLevel.ERROR.toInt())
 				.stream()

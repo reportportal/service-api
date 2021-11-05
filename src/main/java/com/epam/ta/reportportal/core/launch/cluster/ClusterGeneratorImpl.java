@@ -18,8 +18,10 @@ package com.epam.ta.reportportal.core.launch.cluster;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -47,6 +50,7 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 	private final TaskExecutor logClusterExecutor;
 
 	private final AnalyzerStatusCache analyzerStatusCache;
+	private final LaunchPreparerService launchPreparerService;
 	private final AnalyzerServiceClient analyzerServiceClient;
 
 	private final CreateClusterHandler createClusterHandler;
@@ -55,10 +59,12 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 	private final ItemAttributeRepository itemAttributeRepository;
 
 	public ClusterGeneratorImpl(@Qualifier(value = "logClusterExecutor") TaskExecutor logClusterExecutor,
-			AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServiceClient, CreateClusterHandler createClusterHandler,
+			AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
+			AnalyzerServiceClient analyzerServiceClient, CreateClusterHandler createClusterHandler,
 			DeleteClusterHandler deleteClusterHandler, ItemAttributeRepository itemAttributeRepository) {
 		this.logClusterExecutor = logClusterExecutor;
 		this.analyzerStatusCache = analyzerStatusCache;
+		this.launchPreparerService = launchPreparerService;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.createClusterHandler = createClusterHandler;
 		this.deleteClusterHandler = deleteClusterHandler;
@@ -67,52 +73,63 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 
 	@Override
 	@Transactional
-	public void generate(GenerateClustersRq generateClustersRq) {
+	public void generate(GenerateClustersConfig config) {
 
 		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"There are no analyzer services are deployed."
 		);
 
-		expect(analyzerStatusCache.containsLaunchId(AnalyzerStatusCache.CLUSTER_KEY, generateClustersRq.getLaunchId()),
+		expect(analyzerStatusCache.containsLaunchId(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId()),
 				Predicate.isEqual(false)
 		).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Clusters creation is in progress.");
 
-		analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				generateClustersRq.getLaunchId(),
-				generateClustersRq.getProject()
-		);
+		analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId(), config.getProject());
 
 		try {
-			if (!generateClustersRq.isForUpdate()) {
-				deleteClusterHandler.deleteLaunchClusters(generateClustersRq.getLaunchId());
+			if (!config.isForUpdate()) {
+				deleteClusterHandler.deleteLaunchClusters(config.getLaunchId());
 			}
-			logClusterExecutor.execute(() -> generateClusters(generateClustersRq));
+			logClusterExecutor.execute(() -> generateClusters(config));
 		} catch (Exception ex) {
-			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateClustersRq.getLaunchId());
+			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
 			LOGGER.error(ex.getMessage(), ex);
 		}
 
 	}
 
-	private void generateClusters(GenerateClustersRq generateClustersRq) {
+	private void generateClusters(GenerateClustersConfig config) {
 		try {
-			final ClusterData clusterData = analyzerServiceClient.generateClusters(generateClustersRq);
-			createClusterHandler.create(clusterData);
-			saveLastRunAttribute(clusterData);
+			getGenerateRq(config).ifPresent(generateClustersRq -> {
+				final ClusterData clusterData = analyzerServiceClient.generateClusters(generateClustersRq);
+				createClusterHandler.create(clusterData);
+			});
+			saveLastRunAttribute(config);
 		} catch (Exception ex) {
 			LOGGER.error(ex.getMessage(), ex);
 		} finally {
-			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateClustersRq.getLaunchId());
+			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
 		}
 	}
 
-	private void saveLastRunAttribute(ClusterData clusterData) {
+	private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {
+		return launchPreparerService.prepare(config.getLaunchId(), config.getAnalyzerConfig()).map(indexLaunch -> {
+			final GenerateClustersRq generateClustersRq = new GenerateClustersRq();
+			generateClustersRq.setLaunch(indexLaunch);
+			generateClustersRq.setProject(config.getProject());
+			generateClustersRq.setCleanNumbers(config.isCleanNumbers());
+			generateClustersRq.setForUpdate(config.isForUpdate());
+			generateClustersRq.setNumberOfLogLines(config.getAnalyzerConfig().getNumberOfLogLines());
+			return generateClustersRq;
+		});
+	}
+
+	private void saveLastRunAttribute(GenerateClustersConfig config) {
 		final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
-		itemAttributeRepository.findByLaunchIdAndKeyAndSystem(clusterData.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)
+		itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)
 				.ifPresentOrElse(attr -> {
 					attr.setValue(lastRunDate);
 					itemAttributeRepository.save(attr);
-				}, () -> itemAttributeRepository.saveByLaunchId(clusterData.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, lastRunDate, false));
+				}, () -> itemAttributeRepository.saveByLaunchId(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, lastRunDate, false));
 	}
 
 }

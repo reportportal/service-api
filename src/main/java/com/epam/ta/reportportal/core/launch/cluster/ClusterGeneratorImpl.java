@@ -86,9 +86,6 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 		analyzerStatusCache.analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId(), config.getProject());
 
 		try {
-			if (!config.isForUpdate()) {
-				deleteClusterHandler.deleteLaunchClusters(config.getLaunchId());
-			}
 			logClusterExecutor.execute(() -> generateClusters(config));
 		} catch (Exception ex) {
 			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
@@ -99,6 +96,9 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 
 	private void generateClusters(GenerateClustersConfig config) {
 		try {
+			if (!config.isForUpdate()) {
+				deleteClusterHandler.deleteLaunchClusters(config.getLaunchId());
+			}
 			getGenerateRq(config).ifPresent(generateClustersRq -> {
 				final ClusterData clusterData = analyzerServiceClient.generateClusters(generateClustersRq);
 				createClusterHandler.create(clusterData);

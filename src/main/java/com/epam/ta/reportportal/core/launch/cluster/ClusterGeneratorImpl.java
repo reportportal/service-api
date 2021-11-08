@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -42,8 +40,6 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClusterGeneratorImpl.class);
 
-	public static final String RP_CLUSTER_LAST_RUN_KEY = "rp.cluster.lastRun";
-
 	private final TaskExecutor logClusterExecutor;
 
 	private final AnalyzerStatusCache analyzerStatusCache;
@@ -52,17 +48,14 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 	private final CreateClusterHandler createClusterHandler;
 	private final DeleteClusterHandler deleteClusterHandler;
 
-	private final ItemAttributeRepository itemAttributeRepository;
-
 	public ClusterGeneratorImpl(@Qualifier(value = "logClusterExecutor") TaskExecutor logClusterExecutor,
 			AnalyzerStatusCache analyzerStatusCache, AnalyzerServiceClient analyzerServiceClient, CreateClusterHandler createClusterHandler,
-			DeleteClusterHandler deleteClusterHandler, ItemAttributeRepository itemAttributeRepository) {
+			DeleteClusterHandler deleteClusterHandler) {
 		this.logClusterExecutor = logClusterExecutor;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.analyzerServiceClient = analyzerServiceClient;
 		this.createClusterHandler = createClusterHandler;
 		this.deleteClusterHandler = deleteClusterHandler;
-		this.itemAttributeRepository = itemAttributeRepository;
 	}
 
 	@Override
@@ -98,21 +91,11 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 		try {
 			final ClusterData clusterData = analyzerServiceClient.generateClusters(generateClustersRq);
 			createClusterHandler.create(clusterData);
-			saveLastRunAttribute(clusterData);
 		} catch (Exception ex) {
 			LOGGER.error(ex.getMessage(), ex);
 		} finally {
 			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, generateClustersRq.getLaunchId());
 		}
-	}
-
-	private void saveLastRunAttribute(ClusterData clusterData) {
-		final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
-		itemAttributeRepository.findByLaunchIdAndKeyAndSystem(clusterData.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)
-				.ifPresentOrElse(attr -> {
-					attr.setValue(lastRunDate);
-					itemAttributeRepository.save(attr);
-				}, () -> itemAttributeRepository.saveByLaunchId(clusterData.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, lastRunDate, false));
 	}
 
 }

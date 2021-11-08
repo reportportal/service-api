@@ -19,9 +19,12 @@ package com.epam.ta.reportportal.ws.converter.converters;
 import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolver;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
-import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
 import com.google.common.base.Preconditions;
@@ -29,10 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -47,6 +52,12 @@ public class LaunchConverter {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private ItemAttributeTypeResolver itemAttributeTypeResolver;
+
+	@Autowired
+	private Map<ItemAttributeType, ResourceAttributeHandler<LaunchResource>> resourceAttributeUpdaterMapping;
+
 	public static final Function<Launch, LaunchActivityResource> TO_ACTIVITY_RESOURCE = launch -> {
 		LaunchActivityResource resource = new LaunchActivityResource();
 		resource.setId(launch.getId());
@@ -54,6 +65,7 @@ public class LaunchConverter {
 		resource.setName(launch.getName() + " #" + launch.getNumber());
 		return resource;
 	};
+
 	public Function<Launch, LaunchResource> TO_RESOURCE = db -> {
 
 		Preconditions.checkNotNull(db);
@@ -68,21 +80,23 @@ public class LaunchConverter {
 		resource.setStartTime(db.getStartTime() == null ? null : EntityUtils.TO_DATE.apply(db.getStartTime()));
 		resource.setEndTime(db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
 		ofNullable(db.getLastModified()).map(EntityUtils.TO_DATE).ifPresent(resource::setLastModified);
-		resource.setAttributes(getAttributes(db));
+		ofNullable(db.getAttributes()).ifPresentOrElse(attributes -> updateAttributes(resource, attributes),
+				() -> resource.setAttributes(Collections.emptySet())
+		);
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
 		resource.setAnalyzers(analyzerStatusCache.getStartedAnalyzers(db.getId()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));
 		resource.setApproximateDuration(db.getApproximateDuration());
 		resource.setHasRetries(db.isHasRetries());
+		//TODO replace with single select on higher level to prevent selection for each launch
 		ofNullable(db.getUserId()).flatMap(id -> userRepository.findLoginById(id)).ifPresent(resource::setOwner);
 		resource.setRerun(db.isRerun());
 		return resource;
 	};
 
-	private static Set<ItemAttributeResource> getAttributes(Launch launch) {
-		return ofNullable(launch.getAttributes()).map(tags -> tags.stream()
-				.filter(it -> !it.isSystem())
-				.map(it -> new ItemAttributeResource(it.getKey(), it.getValue()))
-				.collect(toSet())).orElse(Collections.emptySet());
+	private void updateAttributes(LaunchResource resource, Set<ItemAttribute> attributes) {
+		final Map<ItemAttributeType, Set<ItemAttribute>> attributeMapping = attributes.stream()
+				.collect(groupingBy(attr -> itemAttributeTypeResolver.resolve(attr).orElse(ItemAttributeType.UNRESOLVED), toSet()));
+		attributeMapping.forEach((type, attr) -> resourceAttributeUpdaterMapping.get(type).handle(resource, attr));
 	}
 }

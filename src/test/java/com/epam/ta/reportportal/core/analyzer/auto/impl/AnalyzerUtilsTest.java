@@ -23,18 +23,18 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.fromTestItem;
@@ -49,7 +49,8 @@ class AnalyzerUtilsTest {
     void testConverting() {
         TestItem testItem = createTest();
         testItem.getItemResults().setIssue(createIssue(false));
-        IndexTestItem indexTestItem = fromTestItem(testItem, createSameLogs(5));
+        IndexTestItem indexTestItem = fromTestItem(testItem);
+        indexTestItem.setLogs(createSameLogs(5));
         assertEquals(testItem.getItemId(), indexTestItem.getTestItemId());
         assertEquals(testItem.getUniqueId(), indexTestItem.getUniqueId());
         assertEquals(testItem.getStartTime(), indexTestItem.getStartTime());
@@ -62,7 +63,8 @@ class AnalyzerUtilsTest {
     void testConvertingAnalyzed() {
         TestItem test = createTest();
         test.getItemResults().setIssue(createIssue(true));
-        IndexTestItem indexTestItem = fromTestItem(test, createSameLogs(1));
+        IndexTestItem indexTestItem = fromTestItem(test);
+        indexTestItem.setLogs(createSameLogs(1));
         assertTrue(indexTestItem.isAutoAnalyzed());
     }
 
@@ -97,13 +99,12 @@ class AnalyzerUtilsTest {
         return issue;
     }
 
-    private List<Log> createSameLogs(int count) {
-        List<Log> logs = new ArrayList<>();
+    private Set<IndexLog> createSameLogs(int count) {
+        Set<IndexLog> logs = new HashSet<>();
         for (int i = 0; i < count; i++) {
-            Log log = new Log();
+            IndexLog log = new IndexLog();
             log.setLogLevel(LogLevel.ERROR.toInt());
-            log.setTestItem(new TestItem(1L));
-            log.setLogMessage("Current message of the log");
+            log.setMessage("Current message of the log");
             logs.add(log);
         }
         return logs;

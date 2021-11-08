@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.impl;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -27,10 +28,10 @@ import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
@@ -90,7 +91,7 @@ class AnalyzerServiceServiceTest {
 		indexLaunch.setLaunchId(launch.getId());
 		indexLaunch.setAnalyzerConfig(analyzerConfig);
 
-		final List<IndexTestItem> indexTestItems = items.stream().map(it -> AnalyzerUtils.fromTestItem(it, errorLogs(2))).collect(Collectors.toList());
+		final List<IndexTestItem> indexTestItems = items.stream().map(AnalyzerUtils::fromTestItem).peek(item -> item.setLogs(errorLogs(2))).collect(Collectors.toList());
 		indexLaunch.setTestItems(indexTestItems);
 
 		when(testItemRepository.findAllById(anyList())).thenReturn(items);
@@ -159,15 +160,15 @@ class AnalyzerServiceServiceTest {
 		return issueEntity;
 	}
 
-	private List<Log> errorLogs(int count) {
-		List<Log> list = new ArrayList<>(count);
+	private Set<IndexLog> errorLogs(int count) {
+		Set<IndexLog> logs = new HashSet<>(count);
 		for (int i = 1; i <= count; i++) {
-			Log log = new Log();
-			log.setLogMessage("Error message " + i);
+			IndexLog log = new IndexLog();
+			log.setMessage("Error message " + i);
 			log.setLogLevel(LogLevel.ERROR.toInt());
-			list.add(log);
+			logs.add(log);
 		}
-		return list;
+		return logs;
 	}
 
 	private Map<String, List<AnalyzedItemRs>> analyzedItems(int itemsCount) {

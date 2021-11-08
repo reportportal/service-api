@@ -70,7 +70,7 @@ public class AnalyzerUtils {
 	 * @param logs     Test item's logs
 	 * @return {@link IndexTestItem} object
 	 */
-	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
+	public static IndexTestItem fromTestItem(TestItem testItem) {
 		IndexTestItem indexTestItem = new IndexTestItem();
 		indexTestItem.setTestItemId(testItem.getItemId());
 		indexTestItem.setTestItemName(testItem.getName());
@@ -80,9 +80,6 @@ public class AnalyzerUtils {
 		if (testItem.getItemResults().getIssue() != null) {
 			indexTestItem.setIssueTypeLocator(testItem.getItemResults().getIssue().getIssueType().getLocator());
 			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
-		}
-		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(fromLogs(logs));
 		}
 		return indexTestItem;
 	}

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
@@ -139,16 +139,15 @@ class UpdateLaunchHandlerImplTest {
 
 		verify(launchAccessValidator, times(1)).validate(any(Launch.class), any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
 
-		final ArgumentCaptor<GenerateClustersRq> argumentCaptor = ArgumentCaptor.forClass(GenerateClustersRq.class);
+		final ArgumentCaptor<GenerateClustersConfig> argumentCaptor = ArgumentCaptor.forClass(GenerateClustersConfig.class);
 		verify(clusterGenerator, times(1)).generate(argumentCaptor.capture());
 
-		final GenerateClustersRq generateClustersRq = argumentCaptor.getValue();
+		final GenerateClustersConfig config = argumentCaptor.getValue();
 
-		assertEquals(1L, generateClustersRq.getProject());
-		assertEquals(1L, generateClustersRq.getLaunchId());
-		assertEquals("launch name", generateClustersRq.getLaunchName());
-		assertEquals(createClustersRQ.isRemoveNumbers(), generateClustersRq.isCleanNumbers());
-		assertFalse(generateClustersRq.isForUpdate());
-		assertEquals(ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue(), String.valueOf(generateClustersRq.getNumberOfLogLines()));
+		assertEquals(1L, config.getProject());
+		assertEquals(1L, config.getLaunchId());
+		assertEquals(createClustersRQ.isRemoveNumbers(), config.isCleanNumbers());
+		assertFalse(config.isForUpdate());
+		assertEquals(ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue(), String.valueOf(config.getAnalyzerConfig().getNumberOfLogLines()));
 	}
 }

@@ -16,13 +16,13 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public interface ClusterGenerator {
 
-	void generate(GenerateClustersRq generateClustersRq);
+	void generate(GenerateClustersConfig config);
 
 }

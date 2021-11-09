@@ -64,7 +64,7 @@ class RallyIntegrationServiceTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> btsIntegrationService.retrieveCreateParams("rally", params)
 		);
-		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. AccessKey value is not specified", exception.getMessage());
 	}
 
 	@Test
@@ -76,7 +76,7 @@ class RallyIntegrationServiceTest {
 				() -> btsIntegrationService.retrieveCreateParams("rally", params)
 		);
 		assertEquals(
-				"Impossible interact with integration. Unsupported auth type for Rally integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
+				"Impossible interact with integration. Unsupported auth type for integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
 				exception.getMessage()
 		);
 	}

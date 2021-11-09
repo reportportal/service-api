@@ -64,7 +64,7 @@ class AzureIntegrationServiceTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> btsIntegrationService.retrieveCreateParams("azure",params)
 		);
-		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. AccessKey value is not specified", exception.getMessage());
 	}
 
 	@Test
@@ -76,7 +76,7 @@ class AzureIntegrationServiceTest {
 				() -> btsIntegrationService.retrieveCreateParams("azure", params)
 		);
 		assertEquals(
-				"Impossible interact with integration. Unsupported auth type for Azure integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
+				"Impossible interact with integration. Unsupported auth type for integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
 				exception.getMessage()
 		);
 	}

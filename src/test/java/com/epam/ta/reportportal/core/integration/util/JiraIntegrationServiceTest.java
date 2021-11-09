@@ -66,7 +66,7 @@ class JiraIntegrationServiceTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> btsService.retrieveCreateParams("jira", params)
 		);
-		assertEquals("Impossible interact with integration. Username value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. Username value is not specified", exception.getMessage());
 	}
 
 	@Test
@@ -77,7 +77,7 @@ class JiraIntegrationServiceTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> btsService.retrieveCreateParams("jira", params)
 		);
-		assertEquals("Impossible interact with integration. Password value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. Password value is not specified", exception.getMessage());
 	}
 
 	@Test
@@ -88,7 +88,7 @@ class JiraIntegrationServiceTest {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> btsService.retrieveCreateParams("jira", params)
 		);
-		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. AccessKey value is not specified", exception.getMessage());
 	}
 
 	@Test
@@ -100,7 +100,7 @@ class JiraIntegrationServiceTest {
 				() -> btsService.retrieveCreateParams("jira", params)
 		);
 		assertEquals(
-				"Impossible interact with integration. Unsupported auth type for Jira integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
+				"Impossible interact with integration. Unsupported auth type for integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
 				exception.getMessage()
 		);
 	}

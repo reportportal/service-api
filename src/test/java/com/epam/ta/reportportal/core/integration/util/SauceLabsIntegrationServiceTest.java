@@ -63,7 +63,7 @@ class SauceLabsIntegrationServiceTest {
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
 			sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 		});
-		assertEquals("Error in handled Request. Please, check specified parameters: 'AccessKey value cannot be NULL'",
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Access token value is not specified'",
 				exception.getMessage()
 		);
 	}
@@ -75,7 +75,7 @@ class SauceLabsIntegrationServiceTest {
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
 			sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 		});
-		assertEquals("Error in handled Request. Please, check specified parameters: 'Username is not specified'", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Username value is not specified'", exception.getMessage());
 	}
 
 	@Test

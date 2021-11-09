@@ -47,12 +47,12 @@ class RallyIntegrationServiceTest {
 	private BasicTextEncryptor encryptor;
 
 	@InjectMocks
-	private RallyIntegrationService rallyIntegrationService;
+	private BtsIntegrationService btsIntegrationService;
 
 	@Test
 	void testParameters() {
 		when(encryptor.encrypt(any())).thenReturn("encrypted");
-		Map<String, Object> res = rallyIntegrationService.retrieveValidParams("rally", getCorrectRallyIntegrationParams());
+		Map<String, Object> res = btsIntegrationService.retrieveCreateParams("rally", getCorrectRallyIntegrationParams());
 		assertThat(res.keySet(), hasSize(4));
 	}
 
@@ -62,7 +62,7 @@ class RallyIntegrationServiceTest {
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveValidParams("rally", params)
+				() -> btsIntegrationService.retrieveCreateParams("rally", params)
 		);
 		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
 	}
@@ -73,7 +73,7 @@ class RallyIntegrationServiceTest {
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveValidParams("rally", params)
+				() -> btsIntegrationService.retrieveCreateParams("rally", params)
 		);
 		assertEquals(
 				"Impossible interact with integration. Unsupported auth type for Rally integration - " + UNSUPPORTED_AUTH_TYPE_NAME,

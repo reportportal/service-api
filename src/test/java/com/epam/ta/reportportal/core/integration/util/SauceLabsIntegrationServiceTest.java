@@ -49,7 +49,7 @@ class SauceLabsIntegrationServiceTest {
 	@Test
 	void retrieveEmptyParamsTest() {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> sauceLabsIntegrationService.retrieveValidParams("saucelabs", Collections.emptyMap())
+				() -> sauceLabsIntegrationService.retrieveCreateParams("saucelabs", Collections.emptyMap())
 		);
 		assertEquals("Error in handled Request. Please, check specified parameters: 'No integration params provided'",
 				exception.getMessage()
@@ -61,7 +61,7 @@ class SauceLabsIntegrationServiceTest {
 		HashMap<String, Object> integrationParams = Maps.newHashMap();
 		integrationParams.put(SauceLabsProperties.USERNAME.getName(), "user");
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-			sauceLabsIntegrationService.retrieveValidParams("saucelabs", integrationParams);
+			sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 		});
 		assertEquals("Error in handled Request. Please, check specified parameters: 'AccessKey value cannot be NULL'",
 				exception.getMessage()
@@ -73,7 +73,7 @@ class SauceLabsIntegrationServiceTest {
 		HashMap<String, Object> integrationParams = Maps.newHashMap();
 		integrationParams.put(SauceLabsProperties.ACCESS_TOKEN.getName(), "token");
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-			sauceLabsIntegrationService.retrieveValidParams("saucelabs", integrationParams);
+			sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 		});
 		assertEquals("Error in handled Request. Please, check specified parameters: 'Username is not specified'", exception.getMessage());
 	}
@@ -88,7 +88,7 @@ class SauceLabsIntegrationServiceTest {
 		final String encryptedToken = "encryptedToken";
 		when(encryptor.encrypt("token")).thenReturn(encryptedToken);
 
-		final Map<String, Object> params = sauceLabsIntegrationService.retrieveValidParams("saucelabs", integrationParams);
+		final Map<String, Object> params = sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 
 		assertNotNull(params);
 		assertTrue(MapUtils.isNotEmpty(params));

@@ -63,10 +63,10 @@ public class BtsIntegrationService extends BasicIntegrationServiceImpl {
 	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(integrationParams.size());
 
-		Optional.ofNullable(BtsProperties.URL.getParam(integrationParams))
+		BtsProperties.URL.getParam(integrationParams)
 				.ifPresent(url -> resultParams.put(BtsProperties.URL.getName(), url));
 
-		Optional.ofNullable(BtsProperties.PROJECT.getParam(integrationParams))
+		BtsProperties.PROJECT.getParam(integrationParams)
 				.ifPresent(url -> resultParams.put(BtsProperties.PROJECT.getName(), url));
 
 		BtsProperties.AUTH_TYPE.getParam(integrationParams).ifPresent(authName -> {

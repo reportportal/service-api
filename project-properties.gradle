@@ -60,7 +60,8 @@ project.ext {
                     '**/demodata/**',
                     '**/exception/**',
                     '**/job/FlushingDataJob**',
-                    "**/core/analyzer/auto/client/model/**"
+                    "**/core/analyzer/auto/client/model/**",
+                    '**/core/item/impl/provider/impl/mock/**'
     ]
 }
 

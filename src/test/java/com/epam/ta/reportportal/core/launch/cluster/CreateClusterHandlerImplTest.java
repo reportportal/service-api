@@ -31,8 +31,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-import static com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandlerImpl.RP_CLUSTER_LAST_RUN_KEY;
+import static com.epam.ta.reportportal.core.launch.cluster.ClusterGeneratorImpl.RP_CLUSTER_LAST_RUN_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -65,12 +66,12 @@ class CreateClusterHandlerImplTest {
 		final ClusterInfoRs first = new ClusterInfoRs();
 		first.setClusterId(1L);
 		first.setClusterMessage("first");
-		first.setLogIds(List.of(1L, 2L));
+		first.setLogIds(Set.of(1L, 2L));
 
 		final ClusterInfoRs second = new ClusterInfoRs();
 		second.setClusterId(2L);
 		second.setClusterMessage("second");
-		second.setLogIds(List.of(3L, 4L));
+		second.setLogIds(Set.of(3L, 4L));
 
 		clusterData.setClusters(List.of(first, second));
 
@@ -101,12 +102,12 @@ class CreateClusterHandlerImplTest {
 		final ClusterInfoRs first = new ClusterInfoRs();
 		first.setClusterId(1L);
 		first.setClusterMessage("first");
-		first.setLogIds(List.of(1L, 2L));
+		first.setLogIds(Set.of(1L, 2L));
 
 		final ClusterInfoRs second = new ClusterInfoRs();
 		second.setClusterId(2L);
 		second.setClusterMessage("second");
-		second.setLogIds(List.of(3L, 4L));
+		second.setLogIds(Set.of(3L, 4L));
 
 		clusterData.setClusters(List.of(first, second));
 

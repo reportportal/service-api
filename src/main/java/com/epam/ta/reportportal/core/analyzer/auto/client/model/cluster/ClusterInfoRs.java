@@ -16,7 +16,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -25,7 +28,12 @@ public class ClusterInfoRs {
 
 	private Long clusterId;
 	private String clusterMessage;
-	private List<Long> logIds;
+
+	@JsonDeserialize(as = LinkedHashSet.class)
+	private Set<Long> itemIds;
+
+	@JsonDeserialize(as = LinkedHashSet.class)
+	private Set<Long> logIds;
 
 	public ClusterInfoRs() {
 	}
@@ -46,11 +54,19 @@ public class ClusterInfoRs {
 		this.clusterMessage = clusterMessage;
 	}
 
-	public List<Long> getLogIds() {
+	public Set<Long> getItemIds() {
+		return itemIds;
+	}
+
+	public void setItemIds(Set<Long> itemIds) {
+		this.itemIds = itemIds;
+	}
+
+	public Set<Long> getLogIds() {
 		return logIds;
 	}
 
-	public void setLogIds(List<Long> logIds) {
+	public void setLogIds(Set<Long> logIds) {
 		this.logIds = logIds;
 	}
 }

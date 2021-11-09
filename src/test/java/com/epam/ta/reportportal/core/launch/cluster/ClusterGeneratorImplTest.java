@@ -25,6 +25,8 @@ import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerS
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.pipeline.PipelineConstructor;
+import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
@@ -48,21 +50,16 @@ class ClusterGeneratorImplTest {
 	private final TaskExecutor logClusterExecutor = new SyncTaskExecutor();
 
 	private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
-	private final LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
-	private final AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
-	private final CreateClusterHandler createClusterHandler = mock(CreateClusterHandler.class);
-	private final DeleteClusterHandler deleteClusterHandler = mock(DeleteClusterHandler.class);
+	private final PipelineConstructor<GenerateClustersConfig> pipelineConstructor = (PipelineConstructor<GenerateClustersConfig>) mock(
+			PipelineConstructor.class);
 
-	private final ItemAttributeRepository itemAttributeRepository = mock(ItemAttributeRepository.class);
+	private final TransactionalPipeline transactionalPipeline = mock(TransactionalPipeline.class);
 
 	private final ClusterGenerator clusterGenerator = new ClusterGeneratorImpl(logClusterExecutor,
 			analyzerStatusCache,
-			launchPreparerService,
-			analyzerServiceClient,
-			createClusterHandler,
-			deleteClusterHandler,
-			itemAttributeRepository
+			pipelineConstructor,
+			transactionalPipeline
 	);
 
 	@Test
@@ -76,115 +73,12 @@ class ClusterGeneratorImplTest {
 
 	@Test
 	void shouldFailWhenCacheContainsLaunchId() {
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
 		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(true);
 
 		final GenerateClustersConfig config = getConfig(false);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> clusterGenerator.generate(config));
 		assertEquals("Impossible interact with integration. Clusters creation is in progress.", exception.getMessage());
-	}
-
-	@Test
-	void shouldGenerateWithoutRemoveWhenForUpdate() {
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
-		when(launchPreparerService.prepare(anyLong(), any(AnalyzerConfig.class))).thenReturn(Optional.of(new IndexLaunch()));
-
-		final GenerateClustersConfig config = getConfig(true);
-		when(analyzerServiceClient.generateClusters(any(GenerateClustersRq.class))).thenReturn(new ClusterData());
-
-		clusterGenerator.generate(config);
-
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				config.getLaunchId(),
-				config.getProject()
-		);
-
-		verify(deleteClusterHandler, times(0)).deleteLaunchClusters(config.getLaunchId());
-
-		verify(analyzerServiceClient, times(1)).generateClusters(any(GenerateClustersRq.class));
-		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
-	}
-
-	@Test
-	void shouldSaveAttributeWhenNotExists() {
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
-		when(launchPreparerService.prepare(anyLong(), any(AnalyzerConfig.class))).thenReturn(Optional.of(new IndexLaunch()));
-
-		final GenerateClustersConfig config = getConfig(true);
-		final ClusterData clusterData = new ClusterData();
-		clusterData.setLaunchId(config.getLaunchId());
-		when(analyzerServiceClient.generateClusters(any(GenerateClustersRq.class))).thenReturn(clusterData);
-
-		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)).thenReturn(
-				Optional.empty());
-
-		clusterGenerator.generate(config);
-
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				config.getLaunchId(),
-				config.getProject()
-		);
-
-		verify(deleteClusterHandler, times(0)).deleteLaunchClusters(config.getLaunchId());
-
-		verify(analyzerServiceClient, times(1)).generateClusters(any(GenerateClustersRq.class));
-		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
-		verify(itemAttributeRepository, times(1)).saveByLaunchId(anyLong(), anyString(), anyString(), anyBoolean());
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
-	}
-
-	@Test
-	void shouldNotSaveAttributeWhenExists() {
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
-		when(launchPreparerService.prepare(anyLong(), any(AnalyzerConfig.class))).thenReturn(Optional.of(new IndexLaunch()));
-
-		final GenerateClustersConfig config = getConfig(true);
-		when(analyzerServiceClient.generateClusters(any(GenerateClustersRq.class))).thenReturn(new ClusterData());
-
-		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)).thenReturn(
-				Optional.of(new ItemAttribute()));
-
-		clusterGenerator.generate(config);
-
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				config.getLaunchId(),
-				config.getProject()
-		);
-
-		verify(deleteClusterHandler, times(0)).deleteLaunchClusters(config.getLaunchId());
-
-		verify(analyzerServiceClient, times(1)).generateClusters(any(GenerateClustersRq.class));
-		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
-		verify(itemAttributeRepository, times(0)).saveByLaunchId(anyLong(), anyString(), anyString(), anyBoolean());
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
-	}
-
-	@Test
-	void shouldRemoveAndGenerateWhenNotForUpdate() {
-		when(analyzerServiceClient.hasClients()).thenReturn(true);
-		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
-		when(launchPreparerService.prepare(anyLong(), any(AnalyzerConfig.class))).thenReturn(Optional.of(new IndexLaunch()));
-
-		final GenerateClustersConfig config = getConfig(false);
-		when(analyzerServiceClient.generateClusters(any(GenerateClustersRq.class))).thenReturn(new ClusterData());
-
-		clusterGenerator.generate(config);
-
-		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
-				config.getLaunchId(),
-				config.getProject()
-		);
-
-		verify(deleteClusterHandler, times(1)).deleteLaunchClusters(config.getLaunchId());
-
-		verify(analyzerServiceClient, times(1)).generateClusters(any(GenerateClustersRq.class));
-		verify(createClusterHandler, times(1)).create(any(ClusterData.class));
-		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
 	}
 
 	private GenerateClustersConfig getConfig(boolean forUpdate) {

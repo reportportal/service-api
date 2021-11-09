@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
-import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -27,8 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandlerImpl.RP_CLUSTER_LAST_RUN_KEY;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.epam.ta.reportportal.core.launch.cluster.ClusterGeneratorImpl.RP_CLUSTER_LAST_RUN_KEY;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

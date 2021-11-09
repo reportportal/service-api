@@ -16,13 +16,11 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.pipeline.PipelineConstructor;
+import com.epam.ta.reportportal.pipeline.PipelinePart;
+import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +29,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.Optional;
+import java.util.List;
 import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
@@ -50,34 +47,22 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 	private final TaskExecutor logClusterExecutor;
 
 	private final AnalyzerStatusCache analyzerStatusCache;
-	private final LaunchPreparerService launchPreparerService;
-	private final AnalyzerServiceClient analyzerServiceClient;
 
-	private final CreateClusterHandler createClusterHandler;
-	private final DeleteClusterHandler deleteClusterHandler;
-
-	private final ItemAttributeRepository itemAttributeRepository;
+	private final PipelineConstructor<GenerateClustersConfig> generateClustersPipelineConstructor;
+	private final TransactionalPipeline transactionalPipeline;
 
 	public ClusterGeneratorImpl(@Qualifier(value = "logClusterExecutor") TaskExecutor logClusterExecutor,
-			AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
-			AnalyzerServiceClient analyzerServiceClient, CreateClusterHandler createClusterHandler,
-			DeleteClusterHandler deleteClusterHandler, ItemAttributeRepository itemAttributeRepository) {
+			AnalyzerStatusCache analyzerStatusCache, PipelineConstructor<GenerateClustersConfig> generateClustersPipelineConstructor,
+			TransactionalPipeline transactionalPipeline) {
 		this.logClusterExecutor = logClusterExecutor;
 		this.analyzerStatusCache = analyzerStatusCache;
-		this.launchPreparerService = launchPreparerService;
-		this.analyzerServiceClient = analyzerServiceClient;
-		this.createClusterHandler = createClusterHandler;
-		this.deleteClusterHandler = deleteClusterHandler;
-		this.itemAttributeRepository = itemAttributeRepository;
+		this.generateClustersPipelineConstructor = generateClustersPipelineConstructor;
+		this.transactionalPipeline = transactionalPipeline;
 	}
 
 	@Override
 	@Transactional
 	public void generate(GenerateClustersConfig config) {
-
-		expect(analyzerServiceClient.hasClients(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"There are no analyzer services are deployed."
-		);
 
 		expect(analyzerStatusCache.containsLaunchId(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId()),
 				Predicate.isEqual(false)
@@ -96,40 +81,13 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 
 	private void generateClusters(GenerateClustersConfig config) {
 		try {
-			if (!config.isForUpdate()) {
-				deleteClusterHandler.deleteLaunchClusters(config.getLaunchId());
-			}
-			getGenerateRq(config).ifPresent(generateClustersRq -> {
-				final ClusterData clusterData = analyzerServiceClient.generateClusters(generateClustersRq);
-				createClusterHandler.create(clusterData);
-			});
-			saveLastRunAttribute(config);
+			final List<PipelinePart> pipelineParts = generateClustersPipelineConstructor.construct(config);
+			transactionalPipeline.run(pipelineParts);
 		} catch (Exception ex) {
 			LOGGER.error(ex.getMessage(), ex);
 		} finally {
 			analyzerStatusCache.analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, config.getLaunchId());
 		}
-	}
-
-	private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {
-		return launchPreparerService.prepare(config.getLaunchId(), config.getAnalyzerConfig()).map(indexLaunch -> {
-			final GenerateClustersRq generateClustersRq = new GenerateClustersRq();
-			generateClustersRq.setLaunch(indexLaunch);
-			generateClustersRq.setProject(config.getProject());
-			generateClustersRq.setCleanNumbers(config.isCleanNumbers());
-			generateClustersRq.setForUpdate(config.isForUpdate());
-			generateClustersRq.setNumberOfLogLines(config.getAnalyzerConfig().getNumberOfLogLines());
-			return generateClustersRq;
-		});
-	}
-
-	private void saveLastRunAttribute(GenerateClustersConfig config) {
-		final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
-		itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, false)
-				.ifPresentOrElse(attr -> {
-					attr.setValue(lastRunDate);
-					itemAttributeRepository.save(attr);
-				}, () -> itemAttributeRepository.saveByLaunchId(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, lastRunDate, false));
 	}
 
 }

@@ -19,7 +19,7 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
@@ -164,15 +164,14 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 
-		final GenerateClustersRq generateClustersRq = new GenerateClustersRq();
-		generateClustersRq.setLaunchId(launch.getId());
-		generateClustersRq.setLaunchName(launch.getName());
-		generateClustersRq.setProject(project.getId());
-		generateClustersRq.setForUpdate(false);
-		generateClustersRq.setCleanNumbers(createClustersRQ.isRemoveNumbers());
-		generateClustersRq.setNumberOfLogLines(analyzerConfig.getNumberOfLogLines());
+		final GenerateClustersConfig config = new GenerateClustersConfig();
+		config.setAnalyzerConfig(analyzerConfig);
+		config.setLaunchId(launch.getId());
+		config.setProject(project.getId());
+		config.setForUpdate(false);
+		config.setCleanNumbers(createClustersRQ.isRemoveNumbers());
 
-		clusterGenerator.generate(generateClustersRq);
+		clusterGenerator.generate(config);
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Clusters generation for launch with ID='{}' started.", launch.getId())
 				.get());

@@ -16,31 +16,30 @@
 
 package com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster;
 
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class GenerateClustersRq {
+public class GenerateClustersConfig {
 
-	private IndexLaunch launch;
-
+	private Long launchId;
 	private Long project;
 
-	private int numberOfLogLines;
+	private AnalyzerConfig analyzerConfig;
 
 	private boolean forUpdate;
 	private boolean cleanNumbers;
 
-	public GenerateClustersRq() {
+	public GenerateClustersConfig() {
 	}
 
-	public IndexLaunch getLaunch() {
-		return launch;
+	public Long getLaunchId() {
+		return launchId;
 	}
 
-	public void setLaunch(IndexLaunch launch) {
-		this.launch = launch;
+	public void setLaunchId(Long launchId) {
+		this.launchId = launchId;
 	}
 
 	public Long getProject() {
@@ -51,12 +50,12 @@ public class GenerateClustersRq {
 		this.project = project;
 	}
 
-	public int getNumberOfLogLines() {
-		return numberOfLogLines;
+	public AnalyzerConfig getAnalyzerConfig() {
+		return analyzerConfig;
 	}
 
-	public void setNumberOfLogLines(int numberOfLogLines) {
-		this.numberOfLogLines = numberOfLogLines;
+	public void setAnalyzerConfig(AnalyzerConfig analyzerConfig) {
+		this.analyzerConfig = analyzerConfig;
 	}
 
 	public boolean isForUpdate() {

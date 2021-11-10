@@ -45,7 +45,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -57,6 +56,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v1/{projectName}/dashboard")
 public class DashboardController {
 
+	private final ProjectExtractor projectExtractor;
 	private final CreateDashboardHandler createDashboardHandler;
 	private final UpdateDashboardHandler updateDashboardHandler;
 	private final GetDashboardHandler getDashboardHandler;
@@ -64,8 +64,9 @@ public class DashboardController {
 	private final DeleteDashboardHandler deleteDashboardHandler;
 
 	@Autowired
-	public DashboardController(CreateDashboardHandler createDashboardHandler, UpdateDashboardHandler updateDashboardHandler,
+	public DashboardController(ProjectExtractor projectExtractor, CreateDashboardHandler createDashboardHandler, UpdateDashboardHandler updateDashboardHandler,
 			GetDashboardHandler getDashboardHandler, GetShareableEntityHandler<Dashboard> getShareableEntityHandler, DeleteDashboardHandler deleteDashboardHandler) {
+		this.projectExtractor = projectExtractor;
 		this.createDashboardHandler = createDashboardHandler;
 		this.updateDashboardHandler = updateDashboardHandler;
 		this.getDashboardHandler = getDashboardHandler;
@@ -79,7 +80,7 @@ public class DashboardController {
 	@ApiOperation("Create dashboard for specified project")
 	public EntryCreatedRS createDashboard(@PathVariable String projectName, @RequestBody @Validated CreateDashboardRQ createRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return createDashboardHandler.createDashboard(extractProjectDetails(user, projectName), createRQ, user);
+		return createDashboardHandler.createDashboard(projectExtractor.extractProjectDetails(user, projectName), createRQ, user);
 	}
 
 	@Transactional(readOnly = true)
@@ -88,7 +89,7 @@ public class DashboardController {
 	@ApiOperation("Get all permitted dashboard resources for specified project")
 	public Iterable<DashboardResource> getAllDashboards(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
 			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getPermitted(extractProjectDetails(user, projectName), pageable, filter, user);
+		return getDashboardHandler.getPermitted(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 	@Transactional
@@ -97,7 +98,7 @@ public class DashboardController {
 	@ApiOperation("Add widget to specified dashboard")
 	public OperationCompletionRS addWidget(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated AddWidgetRq addWidgetRq, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.addWidget(dashboardId, extractProjectDetails(user, projectName), addWidgetRq, user);
+		return updateDashboardHandler.addWidget(dashboardId, projectExtractor.extractProjectDetails(user, projectName), addWidgetRq, user);
 	}
 
 	@Transactional
@@ -106,7 +107,7 @@ public class DashboardController {
 	@ApiOperation("Remove widget from specified dashboard")
 	public OperationCompletionRS removeWidget(@PathVariable String projectName, @PathVariable Long dashboardId, @PathVariable Long widgetId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.removeWidget(widgetId, dashboardId, extractProjectDetails(user, projectName), user);
+		return updateDashboardHandler.removeWidget(widgetId, dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
@@ -115,7 +116,7 @@ public class DashboardController {
 	@ApiOperation("Update specified dashboard for specified project")
 	public OperationCompletionRS updateDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@RequestBody @Validated UpdateDashboardRQ updateRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return updateDashboardHandler.updateDashboard(extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
+		return updateDashboardHandler.updateDashboard(projectExtractor.extractProjectDetails(user, projectName), updateRQ, dashboardId, user);
 	}
 
 	@Transactional
@@ -124,7 +125,7 @@ public class DashboardController {
 	@ApiOperation("Delete specified dashboard by ID for specified project")
 	public OperationCompletionRS deleteDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteDashboardHandler.deleteDashboard(dashboardId, extractProjectDetails(user, projectName), user);
+		return deleteDashboardHandler.deleteDashboard(dashboardId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional
@@ -133,7 +134,7 @@ public class DashboardController {
 	@ApiOperation("Get specified dashboard by ID for specified project")
 	public DashboardResource getDashboard(@PathVariable String projectName, @PathVariable Long dashboardId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		Dashboard dashboard = getShareableEntityHandler.getPermitted(dashboardId, ProjectExtractor.extractProjectDetails(user, projectName));
+		Dashboard dashboard = getShareableEntityHandler.getPermitted(dashboardId, projectExtractor.extractProjectDetails(user, projectName));
 		return DashboardConverter.TO_RESOURCE.apply(dashboard);
 	}
 
@@ -142,7 +143,7 @@ public class DashboardController {
 	@ApiOperation("Get names of shared dashboards from specified project")
 	public Iterable<SharedEntity> getSharedDashboardsNames(@PathVariable String projectName, @SortFor(Dashboard.class) Pageable pageable,
 			@FilterFor(Dashboard.class) Filter filter, @AuthenticationPrincipal ReportPortalUser user) {
-		return getDashboardHandler.getSharedDashboardsNames(extractProjectDetails(user, projectName), pageable, filter, user);
+		return getDashboardHandler.getSharedDashboardsNames(projectExtractor.extractProjectDetails(user, projectName), pageable, filter, user);
 	}
 
 }

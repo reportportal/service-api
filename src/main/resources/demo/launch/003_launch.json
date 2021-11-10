@@ -1,0 +1,212 @@
+{
+  "suites": [
+    {
+      "type": "RETRY",
+      "name": "Suite with retries",
+      "status": "FAILED",
+      "tests": [
+        {
+          "name": "First test case",
+          "status": "FAILED",
+          "steps": [
+            {
+              "name": "first test",
+              "status": "FAILED",
+              "issue": "AUTOMATION_BUG"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "NESTED",
+      "name": "Suite with nested steps",
+      "status": "FAILED",
+      "tests": [
+        {
+          "name": "History table. Extended functionality. Permissions. Edit defect",
+          "status": "FAILED",
+          "issue": "AUTOMATION_BUG",
+          "steps": [
+            {
+              "name": "Launch was executed 11 times",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 1:** Login to https://localhost:8080/ with password *** <br />**Expected Result:** User is in RP",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 2:** Open 'All launches' <br />**Expected Result:** All launches page is presented",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 3:** Click on Total statistics <br />**Expected Result:** Launch list view is displayed, refines contains criteria **Method type: Test**; **Status: Passed, Failed, Skipped, Interrupted**",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 4:** Click on 'History view' icon <br />**Expected Result:** 10 latest executions for the first 20 items (from the latest executions to the eldest) displayed by default**",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 5:** Check several items **(own and not own)** <br />**Expected Result:** Items are added to the header",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 6:** Click 'Actions'> 'Edit Defects' <br />**Expected Result:** Edit modal for bulk operation is opened",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 7:** Update defect type <br />**Expected Result:** Value(s) are in the fields",
+              "status": "PASSED"
+            },
+            {
+              "name": "**Step 8:** Click 'Save'<br />**Expected Result:** Updates are saved for the last launch and all chosen items",
+              "status": "FAILED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "DEFAULT",
+      "name": "Filtering Launch Tests",
+      "status": "PASSED",
+      "hasBefore": true,
+      "tests": [
+        {
+          "name": "FilteringLaunchGtePassedTest",
+          "status": "PASSED",
+          "hasBefore": true,
+          "steps": [
+            {
+              "name": "testFilterLaunchGreaterThanEqualsNegativeValue",
+              "status": "PASSED",
+              "hasBefore": true
+            },
+            {
+              "name": "testFilterLaunchGreaterThanEqualsNotNumber",
+              "status": "PASSED",
+              "hasAfter": true
+            },
+            {
+              "name": "testFilterLaunchGreaterThanEqualsPositive",
+              "status": "PASSED"
+            },
+            {
+              "name": "testFilterLaunchGreaterThanEqualsZero",
+              "status": "PASSED"
+            },
+            {
+              "name": "testFilterLaunchLowerThanEqualsNegativeValue",
+              "status": "PASSED"
+            }
+          ]
+        },
+        {
+          "name": "FilteringLaunchInTagsTest",
+          "status": "PASSED",
+          "hasAfter": true,
+          "steps": [
+            {
+              "name": "testFilterPositive",
+              "status": "PASSED",
+              "hasBefore": true
+            },
+            {
+              "name": "testFilterNegative",
+              "status": "PASSED",
+              "hasAfter": true
+            },
+            {
+              "name": "testFilterSpecialSymbols",
+              "status": "PASSED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "DEFAULT",
+      "name": "Launch Tests",
+      "status": "FAILED",
+      "hasBefore": true,
+      "tests": [
+        {
+          "name": "LaunchStatusTest",
+          "status": "FAILED",
+          "hasBefore": true,
+          "steps": [
+            {
+              "name": "launchMixedItemsStatusText",
+              "status": "SKIPPED",
+              "issue": "TO_INVESTIGATE",
+              "hasBefore": true
+            },
+            {
+              "name": "launchStatusTest",
+              "status": "SKIPPED",
+              "hasAfter": true,
+              "issue": "TO_INVESTIGATE"
+            },
+            {
+              "name": "testLaunchStatusAfterDeletingTest",
+              "status": "FAILED",
+              "issue": "AUTOMATION_BUG"
+            },
+            {
+              "name": "testMixedItemsStatusAfterDeletingStep",
+              "status": "PASSED"
+            },
+            {
+              "name": "mixedItemStatus",
+              "status": "PASSED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "DEFAULT",
+      "name": "Test entity tests",
+      "status": "FAILED",
+      "hasBefore": true,
+      "tests": [
+        {
+          "name": "StartTestItemTest",
+          "status": "FAILED",
+          "hasBefore": true,
+          "steps": [
+            {
+              "name": "testIncorrectStartRootTestItem",
+              "status": "FAILED",
+              "issue": "AUTOMATION_BUG",
+              "hasBefore": true
+            },
+            {
+              "name": "testIncorrectStartTestItem",
+              "status": "FAILED",
+              "hasAfter": true,
+              "issue": "PRODUCT_BUG"
+            },
+            {
+              "name": "testStartComplexTestItem",
+              "status": "FAILED",
+              "issue": "PRODUCT_BUG"
+            },
+            {
+              "name": "testStartRootTestItem",
+              "status": "FAILED",
+              "issue": "PRODUCT_BUG"
+            },
+            {
+              "name": "testStartRootTestItemWithIncorrectLaunch",
+              "status": "FAILED",
+              "issue": "PRODUCT_BUG"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

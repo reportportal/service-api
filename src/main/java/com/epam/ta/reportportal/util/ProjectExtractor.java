@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.util;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.ProjectUserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -25,6 +26,7 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
@@ -36,8 +38,14 @@ import static com.epam.ta.reportportal.entity.user.UserRole.ADMINISTRATOR;
 @Service
 public class ProjectExtractor {
 
+	private final ProjectRepository projectRepository;
+	private final ProjectUserRepository projectUserRepository;
+
 	@Autowired
-	private ProjectRepository projectRepository;
+	public ProjectExtractor(ProjectRepository projectRepository, ProjectUserRepository projectUserRepository) {
+		this.projectRepository = projectRepository;
+		this.projectUserRepository = projectUserRepository;
+	}
 
 	/**
 	 * Extracts project details for specified user by specified project name
@@ -46,9 +54,28 @@ public class ProjectExtractor {
 	 * @param projectName Project name
 	 * @return Project Details
 	 */
-	public static ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
-		return Optional.ofNullable(user.getProjectDetails().get(normalizeId(projectName)))
-				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
+	public ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
+		final String normalizedProjectName = normalizeId(projectName);
+		return user.getProjectDetails()
+				.computeIfAbsent(normalizedProjectName,
+						k -> findProjectDetails(user,
+								normalizedProjectName
+						).orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED,
+								"Please check the list of your available projects."
+						))
+				);
+	}
+
+	/**
+	 * Find project details for specified user by specified project name
+	 *
+	 * @param user        User
+	 * @param projectName Project name
+	 * @return {@link Optional} with Project Details
+	 */
+	public Optional<ReportPortalUser.ProjectDetails> findProjectDetails(ReportPortalUser user, String projectName) {
+		return projectUserRepository.findDetailsByUserIdAndProjectName(user.getUserId(), projectName);
+
 	}
 
 	/**

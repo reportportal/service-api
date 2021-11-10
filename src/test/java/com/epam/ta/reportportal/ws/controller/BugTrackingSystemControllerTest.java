@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.ws.controller;
 import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import com.epam.ta.reportportal.ws.model.ErrorRS;
 import com.epam.ta.reportportal.ws.model.externalsystem.*;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationRQ;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,12 +30,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
+import static com.epam.ta.reportportal.ws.controller.constants.ValidationTestsConstants.INCORRECT_REQUEST_MESSAGE;
+import static com.epam.ta.reportportal.ws.model.ErrorType.INCORRECT_REQUEST;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -121,6 +128,24 @@ class BugTrackingSystemControllerTest extends BaseMvcTest {
 		mockMvc.perform(post("/v1/bts/superadmin_personal/10/ticket").with(token(oAuthHelper.getSuperadminToken()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isCreated());
+	}
+
+	@Test
+	void shouldNotCreateIssueWhenMoreThen300BackLinks() throws Exception {
+
+		final PostTicketRQ request = new PostTicketRQ();
+		final Map<Long, String> backLinks = LongStream.range(1, 302).boxed().collect(Collectors.toMap(it -> it, String::valueOf));
+		request.setBackLinks(backLinks);
+
+		final MvcResult mvcResult = mockMvc.perform(post("/v1/bts/superadmin_personal/10/ticket").with(token(oAuthHelper.getSuperadminToken()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsBytes(request))).andExpect(status().isBadRequest()).andReturn();
+
+		ErrorRS error = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ErrorRS.class);
+		assertEquals(INCORRECT_REQUEST, error.getErrorType());
+		assertEquals(INCORRECT_REQUEST_MESSAGE + "[Field 'backLinks' should have size from '0' to '300'.] ",
+				error.getMessage()
+		);
 	}
 
 	@Test

@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -26,6 +26,7 @@ import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserCreationBid;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQ;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
@@ -53,7 +54,7 @@ class CreateUserHandlerImplTest {
 	private UserRepository userRepository;
 
 	@Mock
-	private ProjectRepository projectRepository;
+	private GetProjectHandler getProjectHandler;
 
 	@Mock
 	private UserCreationBidRepository userCreationBidRepository;
@@ -65,7 +66,7 @@ class CreateUserHandlerImplTest {
 	void createByNotExistedAdmin() {
 
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
-		when(userRepository.findByLogin("admin")).thenReturn(Optional.empty());
+		when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url")
@@ -78,7 +79,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User user = new User();
 		user.setRole(UserRole.USER);
-		when(userRepository.findByLogin("admin")).thenReturn(Optional.of(user));
+		when(userRepository.findRawById(1L)).thenReturn(Optional.of(user));
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.createUserByAdmin(new CreateUserRQFull(), rpUser, "url")
@@ -94,7 +95,7 @@ class CreateUserHandlerImplTest {
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
 
-		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
 		doReturn(Optional.of(new User())).when(userRepository).findByLogin("new_user");
 
 		final CreateUserRQFull request = new CreateUserRQFull();
@@ -110,7 +111,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
 		doReturn(Optional.empty()).when(userRepository).findByLogin("#$$/");
 
 		final CreateUserRQFull request = new CreateUserRQFull();
@@ -126,7 +127,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
 		doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
 
 		final CreateUserRQFull request = new CreateUserRQFull();
@@ -143,7 +144,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
 		doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
 		when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
@@ -161,7 +162,7 @@ class CreateUserHandlerImplTest {
 		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.PROJECT_MANAGER, 1L);
 		User creator = new User();
 		creator.setRole(UserRole.ADMINISTRATOR);
-		doReturn(Optional.of(creator)).when(userRepository).findByLogin("admin");
+		doReturn(Optional.of(creator)).when(userRepository).findRawById(rpUser.getUserId());
 		doReturn(Optional.empty()).when(userRepository).findByLogin("new_user");
 		when(userRepository.findByEmail("correct@domain.com")).thenReturn(Optional.of(new User()));
 
@@ -178,7 +179,7 @@ class CreateUserHandlerImplTest {
 	void CreateUserBidOnNotExistedProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(projectRepository.findByName("not_exists")).thenReturn(Optional.empty());
+		when(getProjectHandler.getProject("not_exists")).thenThrow(new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "not_exists"));
 
 		CreateUserRQ request = new CreateUserRQ();
 		request.setDefaultProject("not_exists");
@@ -200,7 +201,9 @@ class CreateUserHandlerImplTest {
 
 	@Test
 	void createAlreadyExistedUser() {
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(new UserCreationBid()));
+		final UserCreationBid creationBid = new UserCreationBid();
+		creationBid.setDefaultProject(new Project());
+		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(creationBid));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
@@ -211,7 +214,9 @@ class CreateUserHandlerImplTest {
 
 	@Test
 	public void createUserWithIncorrectLogin() {
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(new UserCreationBid()));
+		final UserCreationBid creationBid = new UserCreationBid();
+		creationBid.setDefaultProject(new Project());
+		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(creationBid));
 		when(userRepository.findByLogin("##$%/")).thenReturn(Optional.empty());
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();

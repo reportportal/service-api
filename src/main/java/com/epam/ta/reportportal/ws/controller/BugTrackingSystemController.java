@@ -20,6 +20,7 @@ import com.epam.ta.reportportal.commons.EntityUtils;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.bts.handler.CreateTicketHandler;
 import com.epam.ta.reportportal.core.bts.handler.GetTicketHandler;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
 import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
@@ -36,7 +37,6 @@ import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.PROJECT_MANAGER;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * Controller implementation for working with external systems.
@@ -48,11 +48,13 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 @RequestMapping("/v1/bts")
 public class BugTrackingSystemController {
 
+	private final ProjectExtractor projectExtractor;
 	private final CreateTicketHandler createTicketHandler;
 	private final GetTicketHandler getTicketHandler;
 
 	@Autowired
-	public BugTrackingSystemController(CreateTicketHandler createTicketHandler, GetTicketHandler getTicketHandler) {
+	public BugTrackingSystemController(ProjectExtractor projectExtractor, CreateTicketHandler createTicketHandler, GetTicketHandler getTicketHandler) {
+		this.projectExtractor = projectExtractor;
 		this.createTicketHandler = createTicketHandler;
 		this.getTicketHandler = getTicketHandler;
 	}
@@ -66,7 +68,7 @@ public class BugTrackingSystemController {
 			@PathVariable String projectName, @PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
 		return getTicketHandler.getSubmitTicketFields(issuetype,
 				integrationId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName))
+				projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName))
 		);
 	}
 
@@ -77,7 +79,7 @@ public class BugTrackingSystemController {
 	@PreAuthorize(PROJECT_MANAGER)
 	public List<String> getAllowableIssueTypes(@PathVariable String projectName, @PathVariable Long integrationId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getAllowableIssueTypes(integrationId, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+		return getTicketHandler.getAllowableIssueTypes(integrationId, projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 	@Transactional(readOnly = true)
@@ -107,7 +109,7 @@ public class BugTrackingSystemController {
 			@PathVariable Long integrationId, @AuthenticationPrincipal ReportPortalUser user) {
 		return createTicketHandler.createIssue(ticketRQ,
 				integrationId,
-				extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
+				projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName)),
 				user
 		);
 	}
@@ -118,7 +120,7 @@ public class BugTrackingSystemController {
 	@ApiOperation("Get ticket from the bts integration")
 	public Ticket getTicket(@PathVariable String ticketId, @PathVariable String projectName, @RequestParam(value = "btsUrl") String btsUrl,
 			@RequestParam(value = "btsProject") String btsProject, @AuthenticationPrincipal ReportPortalUser user) {
-		return getTicketHandler.getTicket(ticketId, btsUrl, btsProject, extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
+		return getTicketHandler.getTicket(ticketId, btsUrl, btsProject, projectExtractor.extractProjectDetails(user, EntityUtils.normalizeId(projectName)));
 	}
 
 }

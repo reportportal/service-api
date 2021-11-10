@@ -48,10 +48,6 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 @Service
 public class DemoDataLaunchService {
 
-	private final static Object startLaunchSync = new Object();
-
-	private static LocalDateTime lastLaunchTime = LocalDateTime.now();
-
 	private final String[] platformValues = { "linux", "windows", "macos", "ios", "android", "windows mobile", "ubuntu", "mint", "arch",
 			"windows 10", "windows 7", "windows server", "debian", "alpine" };
 
@@ -65,38 +61,27 @@ public class DemoDataLaunchService {
 	}
 
 	@Transactional
-	public Launch startLaunch(String name, int i, User user, ReportPortalUser.ProjectDetails projectDetails) {
-		//TODO refactor global synchronization to allow non-blocking demo generation on the separate projects
-		synchronized (startLaunchSync) {
-
-			StartLaunchRQ rq = new StartLaunchRQ();
-			rq.setMode(Mode.DEFAULT);
-			rq.setDescription(ContentUtils.getLaunchDescription());
-			LocalDateTime now = LocalDateTime.now();
-			rq.setName(name);
-			if (now.isAfter(lastLaunchTime)) {
-				rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
-			} else {
-				rq.setStartTime(Date.from(lastLaunchTime.plusSeconds(3).atZone(ZoneId.systemDefault()).toInstant()));
-			}
-			rq.setUuid(UUID.randomUUID().toString());
-			Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
-							platformValues[new Random().nextInt(platformValues.length)]
-					),
-					new ItemAttributesRQ(null, "demo"),
-					new ItemAttributesRQ("build", "3." + now.getDayOfMonth() + "." + now.getHour() + "." + i)
-			);
-			Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
-			launch.setUserId(user.getId());
-			launchRepository.save(launch);
-			launchRepository.refresh(launch);
-
-			if (launch.getStartTime().isAfter(lastLaunchTime)) {
-				lastLaunchTime = lastLaunchTime.with(launch.getStartTime());
-			}
-
-			return launch;
-		}
+	public Launch startLaunch(String name, User user, ReportPortalUser.ProjectDetails projectDetails) {
+		StartLaunchRQ rq = new StartLaunchRQ();
+		rq.setMode(Mode.DEFAULT);
+		rq.setDescription(ContentUtils.getLaunchDescription());
+		LocalDateTime now = LocalDateTime.now();
+		rq.setName(name);
+		rq.setStartTime(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()));
+		rq.setUuid(UUID.randomUUID().toString());
+		Set<ItemAttributesRQ> attributes = Sets.newHashSet(new ItemAttributesRQ("platform",
+						platformValues[new Random().nextInt(platformValues.length)]
+				),
+				new ItemAttributesRQ(null, "demo"),
+				new ItemAttributesRQ("build",
+						"3." + now.getDayOfMonth() + "." + now.getHour() + "." + now.getMinute() + "." + now.getSecond()
+				)
+		);
+		Launch launch = new LaunchBuilder().addStartRQ(rq).addAttributes(attributes).addProject(projectDetails.getProjectId()).get();
+		launch.setUserId(user.getId());
+		launchRepository.save(launch);
+		launchRepository.refresh(launch);
+		return launch;
 	}
 
 	@Transactional

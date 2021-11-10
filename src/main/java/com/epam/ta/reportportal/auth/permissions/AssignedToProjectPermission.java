@@ -18,17 +18,16 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Provider;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Check whether user assigned to project
@@ -44,8 +43,12 @@ class AssignedToProjectPermission implements Permission {
 	 * doesn't know anything about Repository beans. We have to load this beans
 	 * lazily
 	 */
+	private final ProjectExtractor projectExtractor;
+
 	@Autowired
-	private Provider<ProjectRepository> projectRepository;
+	AssignedToProjectPermission(ProjectExtractor projectExtractor) {
+		this.projectExtractor = projectExtractor;
+	}
 
 	/**
 	 * Check whether user assigned to project<br>
@@ -60,9 +63,17 @@ class AssignedToProjectPermission implements Permission {
 		OAuth2Authentication oauth = (OAuth2Authentication) authentication;
 		ReportPortalUser rpUser = (ReportPortalUser) oauth.getUserAuthentication().getPrincipal();
 		BusinessRule.expect(rpUser, Objects::nonNull).verify(ErrorType.ACCESS_DENIED);
-		ReportPortalUser.ProjectDetails projectDetails = rpUser.getProjectDetails().get(targetDomainObject.toString());
 
-		return projectDetails != null;
+		final String resolvedProjectName = String.valueOf(targetDomainObject);
+		final Optional<ReportPortalUser.ProjectDetails> projectDetails = projectExtractor.findProjectDetails(rpUser, resolvedProjectName);
+		projectDetails.ifPresent(details -> fillProjectDetails(rpUser, resolvedProjectName, details));
+		return projectDetails.isPresent();
+	}
+
+	private void fillProjectDetails(ReportPortalUser rpUser, String resolvedProjectName, ReportPortalUser.ProjectDetails projectDetails) {
+		final Map<String, ReportPortalUser.ProjectDetails> projectDetailsMapping = Maps.newHashMapWithExpectedSize(1);
+		projectDetailsMapping.put(resolvedProjectName, projectDetails);
+		rpUser.setProjectDetails(projectDetailsMapping);
 	}
 
 	private boolean hasProjectAuthority(Collection<? extends GrantedAuthority> authorityList, String project) {

@@ -22,15 +22,18 @@ import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
 import com.epam.ta.reportportal.entity.EmailSettingsEnum;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.ws.model.activity.IntegrationActivityResource;
 import com.epam.ta.reportportal.ws.model.integration.AuthFlowEnum;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationResource;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 import static java.util.Optional.ofNullable;
 
@@ -38,6 +41,16 @@ import static java.util.Optional.ofNullable;
  * @author Pavel Bortnik
  */
 public final class IntegrationConverter {
+
+	private static final List<String> IGNORE_FIELDS = List.of(EmailSettingsEnum.PASSWORD.getAttribute(),
+			SauceLabsProperties.ACCESS_TOKEN.getName(),
+			BtsProperties.OAUTH_ACCESS_KEY.getName(),
+			BtsProperties.API_TOKEN.getName(),
+			AuthProperties.MANAGER_PASSWORD.getName()
+	);
+
+	private static final Predicate<Map.Entry<String, Object>> IGNORE_FIELDS_CONDITION = entry -> IGNORE_FIELDS.stream()
+			.noneMatch(field -> field.equalsIgnoreCase(entry.getKey()));
 
 	public static final Function<Integration, IntegrationResource> TO_INTEGRATION_RESOURCE = integration -> {
 		IntegrationResource resource = new IntegrationResource();
@@ -47,14 +60,8 @@ public final class IntegrationConverter {
 		resource.setCreationDate(EntityUtils.TO_DATE.apply(integration.getCreationDate()));
 		resource.setEnabled(integration.isEnabled());
 		ofNullable(integration.getProject()).ifPresent(p -> resource.setProjectId(p.getId()));
-		ofNullable(integration.getParams()).ifPresent(it -> resource.setIntegrationParams(ofNullable(it.getParams()).map(p -> p.entrySet()
-				.stream()
-				.filter(entry -> !EmailSettingsEnum.PASSWORD.getAttribute().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> !SauceLabsProperties.ACCESS_TOKEN.getName().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> !BtsProperties.OAUTH_ACCESS_KEY.getName().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> !AuthProperties.MANAGER_PASSWORD.getName().equalsIgnoreCase(entry.getKey()))
-				.filter(entry -> null != entry.getValue())
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))).orElseGet(Collections::emptyMap)));
+		ofNullable(integration.getParams()).flatMap(IntegrationConverter::convertToResourceParams)
+				.ifPresent(resource::setIntegrationParams);
 		IntegrationTypeResource type = new IntegrationTypeResource();
 		type.setId(integration.getType().getId());
 		type.setName(integration.getType().getName());
@@ -67,6 +74,13 @@ public final class IntegrationConverter {
 
 		return resource;
 	};
+
+	private static Optional<Map<String, Object>> convertToResourceParams(IntegrationParams it) {
+		return ofNullable(it.getParams()).map(p -> p.entrySet()
+				.stream()
+				.filter(IGNORE_FIELDS_CONDITION)
+				.collect(HashMap::new, (resourceParams, entry) -> resourceParams.put(entry.getKey(), entry.getValue()), Map::putAll));
+	}
 
 	public static final Function<Integration, IntegrationActivityResource> TO_ACTIVITY_RESOURCE = integration -> {
 		IntegrationActivityResource resource = new IntegrationActivityResource();

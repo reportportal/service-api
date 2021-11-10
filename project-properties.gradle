@@ -17,8 +17,8 @@ project.ext {
     ]
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
-    scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : '5.5.0')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : '5.5.0')
+    scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                          : 'V001__extensions.sql',
@@ -50,6 +50,7 @@ project.ext {
             (migrationsUrl + '/migrations/42_shedlock_table.up.sql')                     : 'V032__shedlock_table.sql',
             (migrationsUrl + '/migrations/43_attachment_for_deletion_table.up.sql')      : 'V033__attachment_for_deletion_table.sql',
             (migrationsUrl + '/migrations/44_remove_triggers.up.sql')                    : 'V034__remove_triggers.sql',
+            (migrationsUrl + '/migrations/48_composite_attribute.up.sql')                : 'V048__composite_attribute.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

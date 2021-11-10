@@ -98,6 +98,8 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 	private static final String UPDATE_EVENT = "update";
 
+	private final ProjectExtractor projectExtractor;
+
 	private final ProjectAttributeValidator projectAttributeValidator;
 
 	private final ProjectRepository projectRepository;
@@ -127,12 +129,11 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 	private final ProjectConverter projectConverter;
 
 	@Autowired
-	public UpdateProjectHandlerImpl(ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
-			UserRepository userRepository, UserPreferenceRepository preferenceRepository, MessageBus messageBus,
-			ProjectUserRepository projectUserRepository, ApplicationEventPublisher applicationEventPublisher,
-			MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
-			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler,
-			ProjectConverter projectConverter) {
+	public UpdateProjectHandlerImpl(ProjectExtractor projectExtractor, ProjectAttributeValidator projectAttributeValidator, ProjectRepository projectRepository,
+			UserRepository userRepository, UserPreferenceRepository preferenceRepository, MessageBus messageBus, ProjectUserRepository projectUserRepository,
+			ApplicationEventPublisher applicationEventPublisher, MailServiceFactory mailServiceFactory, AnalyzerStatusCache analyzerStatusCache, IndexerStatusCache indexerStatusCache,
+			AnalyzerServiceClient analyzerServiceClient, LogIndexer logIndexer, ShareableObjectsHandler aclHandler, ProjectConverter projectConverter) {
+		this.projectExtractor = projectExtractor;
 		this.projectAttributeValidator = projectAttributeValidator;
 		this.projectRepository = projectRepository;
 		this.userRepository = userRepository;
@@ -233,7 +234,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 					"User should not assign himself to project."
 			);
 
-			ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, projectName);
+			ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
 			Project project = projectRepository.findById(projectDetails.getProjectId())
 					.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, normalizeId(projectName)));
 
@@ -293,7 +294,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 
 			});
 		} else {
-			ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, project.getName());
+			ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, project.getName());
 
 			usernames.forEach(username -> {
 				User userForUnassign = userRepository.findByLogin(username)
@@ -382,7 +383,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				expect(updatingProjectUser, isPresent()).verify(ErrorType.USER_NOT_FOUND, key);
 
 				if (UserRole.ADMINISTRATOR != user.getUserRole()) {
-					ProjectRole principalRole = ProjectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
+					ProjectRole principalRole = projectExtractor.extractProjectDetails(user, project.getName()).getProjectRole();
 					ProjectRole updatingUserRole = ofNullable(ProjectUtils.findUserConfigByLogin(project,
 							key
 					)).orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, key)).getProjectRole();

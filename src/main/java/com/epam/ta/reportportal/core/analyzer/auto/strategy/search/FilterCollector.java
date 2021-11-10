@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.strategy.search;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
@@ -37,6 +38,7 @@ import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_START_TIME;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -58,12 +60,15 @@ public class FilterCollector implements SearchLaunchesCollector {
 	public List<Long> collect(Long filerId, Launch launch) {
 		UserFilter userFilter = userFilterRepository.findByIdAndProjectId(filerId, launch.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(ErrorType.USER_FILTER_NOT_FOUND_IN_PROJECT, filerId, launch.getProjectId()));
-		expect(userFilter.getTargetClass(), equalTo(ObjectType.Launch)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
-				formattedSupplier("Filter type '{}' is not supported", userFilter.getTargetClass())
+		ObjectType targetClass = userFilter.getTargetClass();
+		expect(targetClass, equalTo(ObjectType.Launch)).verify(ErrorType.INCORRECT_FILTER_PARAMETERS,
+				formattedSupplier("Filter type '{}' is not supported", targetClass)
 		);
 
-		Filter filter = new Filter(userFilter.getTargetClass().getClassObject(), Lists.newArrayList(userFilter.getFilterCondition()));
-		PageRequest pageable = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(Sort.Direction.DESC, CRITERIA_START_TIME));
+		Filter filter = ProjectFilter.of(
+				new Filter(targetClass.getClassObject(), Lists.newArrayList(userFilter.getFilterCondition())),
+				launch.getProjectId());
+		PageRequest pageable = PageRequest.of(0, LAUNCHES_FILTER_LIMIT, Sort.by(DESC, CRITERIA_START_TIME));
 		return launchRepository.findByFilter(filter, pageable).stream().map(Launch::getId).collect(Collectors.toList());
 	}
 }

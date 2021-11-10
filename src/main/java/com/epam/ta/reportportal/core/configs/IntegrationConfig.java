@@ -45,6 +45,7 @@ public class IntegrationConfig implements ApplicationContextAware {
 				.put("rally", applicationContext.getBean(RallyIntegrationService.class))
 				.put("email", applicationContext.getBean(EmailServerIntegrationService.class))
 				.put("saucelabs", applicationContext.getBean(SauceLabsIntegrationService.class))
+				.put("Azure DevOps", applicationContext.getBean(AzureIntegrationService.class))
 				.build();
 
 	}

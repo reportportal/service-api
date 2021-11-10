@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.project;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.Project;
+import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.project.CreateProjectRQ;
 
@@ -36,4 +37,6 @@ public interface CreateProjectHandler {
 	 * @return Response data
 	 */
 	EntryCreatedRS createProject(CreateProjectRQ createProjectRQ, ReportPortalUser user);
+
+	Project createPersonal(User user);
 }

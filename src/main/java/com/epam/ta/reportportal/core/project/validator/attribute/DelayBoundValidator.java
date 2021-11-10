@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 
@@ -22,12 +23,13 @@ public class DelayBoundValidator {
 
 	public void validate(Map<String, String> currentAttributes, Map<ProjectAttributeEnum, Long> newAttributes) {
 		rules.forEach(rule -> {
-			final Long lowerDelay = ofNullable(newAttributes.get(rule.getLower())).orElseGet(() -> getCurrentDelay(currentAttributes,
+			Long lowerDelay = ofNullable(newAttributes.get(rule.getLower())).orElseGet(() -> getCurrentDelay(currentAttributes,
 					rule.getLower()
 			));
-			final Long higherDelay = ofNullable(newAttributes.get(rule.getHigher())).orElseGet(() -> getCurrentDelay(currentAttributes,
+			Long higherDelay = ofNullable(newAttributes.get(rule.getHigher())).orElseGet(() -> getCurrentDelay(currentAttributes,
 					rule.getHigher()
 			));
+
 			BusinessRule.expect(lowerDelay <= higherDelay, equalTo(Boolean.TRUE))
 					.verify(BAD_REQUEST_ERROR,
 							Suppliers.formattedSupplier("Delay of '{}' should not be higher than '{}'",
@@ -48,7 +50,7 @@ public class DelayBoundValidator {
 
 	private Long resolveDelay(String value) {
 		try {
-			return Long.parseLong(value);
+			return FOREVER_ALIAS.equals(value) ? Long.MAX_VALUE : Long.parseLong(value);
 		} catch (NumberFormatException exc) {
 			throw new ReportPortalException(BAD_REQUEST_ERROR, exc.getMessage());
 		}

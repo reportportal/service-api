@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.commons.querygen.ProjectFilter;
 import com.epam.ta.reportportal.core.filter.GetUserFilterHandler;
 import com.epam.ta.reportportal.dao.UserFilterRepository;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter;
 import com.epam.ta.reportportal.ws.model.SharedEntity;
@@ -37,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.CAN_READ_OBJECT_FILTER;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 
 /**
  * @author Pavel Bortnik
@@ -47,6 +47,12 @@ import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetai
 public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	private UserFilterRepository filterRepository;
+	private final ProjectExtractor projectExtractor;
+
+	@Autowired
+	public GetUserFilterHandlerImpl(ProjectExtractor projectExtractor) {
+		this.projectExtractor = projectExtractor;
+	}
 
 	@Autowired
 	public void setFilterRepository(UserFilterRepository filterRepository) {
@@ -55,7 +61,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	@Override
 	public Iterable<UserFilterResource> getPermitted(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
 		Page<UserFilter> permitted = filterRepository.getPermitted(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
 				user.getUsername()
@@ -65,7 +71,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	@Override
 	public Iterable<UserFilterResource> getOwn(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
 		Page<UserFilter> filters = filterRepository.getOwn(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
 				user.getUsername()
@@ -75,7 +81,7 @@ public class GetUserFilterHandlerImpl implements GetUserFilterHandler {
 
 	@Override
 	public Iterable<UserFilterResource> getShared(String projectName, Pageable pageable, Filter filter, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
 		Page<UserFilter> filters = filterRepository.getShared(ProjectFilter.of(filter, projectDetails.getProjectId()),
 				pageable,
 				user.getUsername()

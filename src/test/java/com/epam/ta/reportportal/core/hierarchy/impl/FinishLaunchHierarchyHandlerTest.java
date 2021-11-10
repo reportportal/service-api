@@ -2,6 +2,7 @@ package com.epam.ta.reportportal.core.hierarchy.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
@@ -42,6 +43,7 @@ class FinishLaunchHierarchyHandlerTest {
 	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
 	private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
 	private final ItemAttributeRepository itemAttributeRepository = mock(ItemAttributeRepository.class);
+	private final RetryHandler retryHandler = mock(RetryHandler.class);
 	private final IssueTypeHandler issueTypeHandler = mock(IssueTypeHandler.class);
 	private final IssueEntityRepository issueEntityRepository = mock(IssueEntityRepository.class);
 	private final ChangeStatusHandler changeStatusHandler = mock(ChangeStatusHandler.class);
@@ -49,6 +51,7 @@ class FinishLaunchHierarchyHandlerTest {
 	private final FinishLaunchHierarchyHandler finishLaunchHierarchyHandler = new FinishLaunchHierarchyHandler(launchRepository,
 			testItemRepository,
 			itemAttributeRepository,
+			retryHandler,
 			issueTypeHandler,
 			issueEntityRepository,
 			changeStatusHandler

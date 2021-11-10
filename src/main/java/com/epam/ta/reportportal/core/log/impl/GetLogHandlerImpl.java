@@ -96,7 +96,7 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	public Iterable<LogResource> getLogs(@Nullable String path, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
 			Pageable pageable) {
 		ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
-		Page<Log> logPage = logRepository.findByFilter(filterable, pageable);
+		Page<Log> logPage = logRepository.findByFilter(ProjectFilter.of(filterable, projectDetails.getProjectId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logPage);
 	}
 

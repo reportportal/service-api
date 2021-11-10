@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.isPresent;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.FOREVER_ALIAS;
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
@@ -35,7 +36,11 @@ public class ProjectAttributeValidator {
 		ofNullable(newAttributes.get(ProjectAttributeEnum.AUTO_ANALYZER_MODE.getAttribute())).ifPresent(analyzerMode -> expect(AnalyzeMode.fromString(
 				analyzerMode), isPresent()).verify(ErrorType.BAD_REQUEST_ERROR, analyzerMode));
 		final Map<ProjectAttributeEnum, Long> delays = validateDelays(newAttributes,
-				List.of(ProjectAttributeEnum.KEEP_SCREENSHOTS, ProjectAttributeEnum.KEEP_LOGS, ProjectAttributeEnum.KEEP_LAUNCHES)
+				List.of(ProjectAttributeEnum.KEEP_SCREENSHOTS,
+						ProjectAttributeEnum.KEEP_LOGS,
+						ProjectAttributeEnum.KEEP_LAUNCHES,
+						ProjectAttributeEnum.INTERRUPT_JOB_TIME
+				)
 		);
 
 		delayBoundValidator.validate(currentAttributes, delays);
@@ -49,7 +54,7 @@ public class ProjectAttributeValidator {
 
 	private Long getDelay(String value) {
 		try {
-			final long delay = Long.parseLong(value);
+			final Long delay = FOREVER_ALIAS.equals(value) ? Long.MAX_VALUE : Long.parseLong(value);
 			BusinessRule.expect(delay, d -> d >= 0).verify(BAD_REQUEST_ERROR, "Delay attribute value should be greater than 0");
 			return delay;
 		} catch (NumberFormatException exc) {

@@ -66,6 +66,10 @@ rp:
         batch-size: 100
       history:
         old: false
+      demo:
+        source: 001_launch.json,002_launch.json,003_launch.json,004_launch.json,005_launch.json
+        attachment:
+          probability: 20
       executor:
         pool:
           save-logs:

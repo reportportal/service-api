@@ -54,7 +54,7 @@ class LaunchAutoAnalysisSubscriberTest {
 	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
 	private CompletableFuture<Long> indexed = mock(CompletableFuture.class);
-	private CompletableFuture<Void> analyzed = mock(CompletableFuture.class);
+	private CompletableFuture<Void> analyzed = CompletableFuture.completedFuture(null);
 
 	private final LaunchAutoAnalysisSubscriber autoAnalysisSubscriber = new LaunchAutoAnalysisSubscriber(analyzerServiceAsync,
 			analyzeCollectorFactory,
@@ -85,6 +85,7 @@ class LaunchAutoAnalysisSubscriberTest {
 		when(analyzeItemsCollector.collectItems(any(), any(), any())).thenReturn(Lists.newArrayList(1L, 2L));
 		when(logIndexer.indexLaunchLogs(any(), any(), any())).thenReturn(indexed);
 		when(analyzerServiceAsync.analyze(any(), any(), any())).thenReturn(analyzed);
+		doNothing().when(eventPublisher).publishEvent(any());
 		autoAnalysisSubscriber.handleEvent(event, project, launch.get());
 
 		verify(logIndexer, times(1)).indexLaunchLogs(any(), any(), any());

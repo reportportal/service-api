@@ -6,10 +6,12 @@ import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -33,6 +35,15 @@ public class DefaultRetryHandler implements RetryHandler {
 	public void handleRetries(Launch launch, TestItem newRetryParent, Long previousParent) {
 		handleRetries(launch, previousParent, newRetryParent);
 		eventPublisher.publishEvent(ItemRetryEvent.of(launch.getProjectId(), launch.getId(), newRetryParent.getItemId()));
+	}
+
+	@Override
+	public void finishRetries(Long retryParentId, JStatusEnum status, LocalDateTime endTime) {
+		testItemRepository.updateStatusAndEndTimeByRetryOfId(retryParentId,
+				JStatusEnum.IN_PROGRESS,
+				JStatusEnum.valueOf(status.name()),
+				endTime
+		);
 	}
 
 	/**

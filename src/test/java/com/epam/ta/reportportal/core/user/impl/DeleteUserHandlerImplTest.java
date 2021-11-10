@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.DeleteBulkRQ;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +66,7 @@ class DeleteUserHandlerImplTest {
 		user.setLogin("test");
 
 		doReturn(Optional.of(user)).when(repository).findById(2L);
-		when(projectRepository.findUserProjects(anyString())).thenReturn(Lists.newArrayList());
+		when(projectRepository.findAllByUserLogin(user.getLogin())).thenReturn(Lists.newArrayList());
 		doNothing().when(dataStore).deleteUserPhoto(any());
 
 		handler.deleteUser(2L, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));
@@ -105,27 +104,4 @@ class DeleteUserHandlerImplTest {
 		verify(repository, times(0)).delete(any(User.class));
 	}
 
-	@Test
-	void bulkDelete() {
-		User user = new User();
-		user.setId(2L);
-
-		User user2 = new User();
-		user.setId(3L);
-
-		doNothing().when(dataStore).deleteUserPhoto(any());
-
-		doReturn(Optional.of(user)).when(repository).findById(2L);
-		doReturn(Optional.of(user2)).when(repository).findById(3L);
-
-		DeleteBulkRQ deleteBulkRQ = new DeleteBulkRQ();
-		deleteBulkRQ.setIds(Lists.newArrayList(2L, 3L));
-
-		handler.deleteUsers(deleteBulkRQ, getRpUser("test", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L));
-
-		verify(repository, times(2)).findById(any(Long.class));
-		verify(repository, times(2)).delete(any(User.class));
-		verify(userContentRemover, times(2)).removeContent(any(User.class));
-		verify(dataStore, times(2)).deleteUserPhoto(any(User.class));
-	}
 }

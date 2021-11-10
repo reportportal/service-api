@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.util.ProjectExtractor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,6 +31,11 @@ import org.springframework.stereotype.Component;
 @Component
 @LookupPermission({ "notCustomerPermission" })
 public class NotCustomerPermission extends BaseProjectPermission {
+
+	@Autowired
+	public NotCustomerPermission(ProjectExtractor projectExtractor) {
+		super(projectExtractor);
+	}
 
 	/**
 	 * Validates this is not a {@link ProjectRole#CUSTOMER} or higher authority in the

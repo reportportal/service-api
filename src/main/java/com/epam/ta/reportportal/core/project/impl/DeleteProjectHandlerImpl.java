@@ -30,14 +30,13 @@ import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectIssueType;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.cache.Cache;
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -49,6 +48,7 @@ import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCac
  * @author Pavel Bortnik
  */
 @Service
+@Transactional
 public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 
 	private final ProjectRepository projectRepository;
@@ -119,32 +119,6 @@ public class DeleteProjectHandlerImpl implements DeleteProjectHandler {
 		logIndexer.deleteIndex(project.getId());
 		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getId(), user.getLogin(), false));
 		return new OperationCompletionRS("Project index with name = '" + projectName + "' is successfully deleted.");
-	}
-
-	@Override
-	public DeleteBulkRS deleteProjects(DeleteBulkRQ deleteBulkRQ) {
-		List<ReportPortalException> exceptions = Lists.newArrayList();
-		List<Long> notFound = Lists.newArrayList();
-		List<Long> deleted = Lists.newArrayList();
-		deleteBulkRQ.getIds().forEach(projectId -> {
-			try {
-				Optional<Project> project = projectRepository.findById(projectId);
-				if (project.isPresent()) {
-					deleteProject(project.get());
-					deleted.add(projectId);
-				} else {
-					notFound.add(projectId);
-				}
-			} catch (ReportPortalException ex) {
-				exceptions.add(ex);
-			}
-		});
-		return new DeleteBulkRS(deleted, notFound, exceptions.stream().map(ex -> {
-			ErrorRS errorResponse = new ErrorRS();
-			errorResponse.setErrorType(ex.getErrorType());
-			errorResponse.setMessage(ex.getMessage());
-			return errorResponse;
-		}).collect(Collectors.toList()));
 	}
 
 	private OperationCompletionRS deleteProject(Project project) {

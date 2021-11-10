@@ -22,8 +22,8 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
-import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolver;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.resolver.ItemAttributeTypeResolver;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import com.epam.ta.reportportal.ws.model.launch.LaunchResource;
 import com.epam.ta.reportportal.ws.model.launch.Mode;
@@ -80,9 +80,9 @@ public class LaunchConverter {
 		resource.setStartTime(db.getStartTime() == null ? null : EntityUtils.TO_DATE.apply(db.getStartTime()));
 		resource.setEndTime(db.getEndTime() == null ? null : EntityUtils.TO_DATE.apply(db.getEndTime()));
 		ofNullable(db.getLastModified()).map(EntityUtils.TO_DATE).ifPresent(resource::setLastModified);
-		ofNullable(db.getAttributes()).ifPresentOrElse(attributes -> updateAttributes(resource, attributes),
-				() -> resource.setAttributes(Collections.emptySet())
-		);
+		ofNullable(db.getAttributes()).ifPresent(attributes -> updateAttributes(resource, attributes));
+		ofNullable(resource.getAttributes()).ifPresentOrElse(a -> {
+		}, () -> resource.setAttributes(Collections.emptySet()));
 		resource.setMode(db.getMode() == null ? null : Mode.valueOf(db.getMode().name()));
 		resource.setAnalyzers(analyzerStatusCache.getStartedAnalyzers(db.getId()));
 		resource.setStatisticsResource(StatisticsConverter.TO_RESOURCE.apply(db.getStatistics()));

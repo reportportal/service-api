@@ -42,8 +42,6 @@ public class ClusterGeneratorImpl implements ClusterGenerator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClusterGeneratorImpl.class);
 
-	public static final String RP_CLUSTER_LAST_RUN_KEY = "rp.cluster.lastRun";
-
 	private final TaskExecutor logClusterExecutor;
 
 	private final AnalyzerStatusCache analyzerStatusCache;

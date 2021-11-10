@@ -17,7 +17,8 @@
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
-import com.epam.ta.reportportal.core.launch.cluster.DeleteClusterHandler;
+import com.epam.ta.reportportal.dao.ClusterRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
 import com.epam.ta.reportportal.pipeline.PipelinePartProvider;
 
@@ -26,17 +27,21 @@ import com.epam.ta.reportportal.pipeline.PipelinePartProvider;
  */
 public class DeleteClustersPartProvider implements PipelinePartProvider<GenerateClustersConfig> {
 
-	private final DeleteClusterHandler deleteClusterHandler;
+	private final ClusterRepository clusterRepository;
+	private final LogRepository logRepository;
 
-	public DeleteClustersPartProvider(DeleteClusterHandler deleteClusterHandler) {
-		this.deleteClusterHandler = deleteClusterHandler;
+	public DeleteClustersPartProvider(ClusterRepository clusterRepository, LogRepository logRepository) {
+		this.clusterRepository = clusterRepository;
+		this.logRepository = logRepository;
 	}
 
 	@Override
 	public PipelinePart provide(GenerateClustersConfig config) {
 		return () -> {
 			if (!config.isForUpdate()) {
-				deleteClusterHandler.deleteLaunchClusters(config.getLaunchId());
+				logRepository.updateClusterIdSetNullByLaunchId(config.getLaunchId());
+				clusterRepository.deleteClusterTestItemsByLaunchId(config.getLaunchId());
+				clusterRepository.deleteAllByLaunchId(config.getLaunchId());
 			}
 		};
 	}

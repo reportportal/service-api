@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster;
+package com.epam.ta.reportportal.core.remover.project;
 
-import java.util.Collection;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
+import com.epam.ta.reportportal.entity.project.Project;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface DeleteClusterHandler {
+public class ProjectContentRemover implements ContentRemover<Project> {
 
-	void deleteProjectClusters(Long projectId);
+	private final List<ContentRemover<Project>> removers;
 
-	void deleteLaunchClusters(Long launchId);
+	public ProjectContentRemover(List<ContentRemover<Project>> removers) {
+		this.removers = removers;
+	}
 
-	void deleteLaunchClusters(Collection<Long> launchIds);
+	@Override
+	public void remove(Project project) {
+		removers.forEach(r -> r.remove(project));
+	}
 }

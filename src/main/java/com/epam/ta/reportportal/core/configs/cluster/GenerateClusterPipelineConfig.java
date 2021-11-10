@@ -20,12 +20,13 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandler;
-import com.epam.ta.reportportal.core.launch.cluster.DeleteClusterHandler;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.AnalyzerClusterDataProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.DeleteClustersPartProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveClusterDataPartProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider;
+import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
+import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.pipeline.PipelineConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -40,21 +41,23 @@ import java.util.List;
 public class GenerateClusterPipelineConfig {
 
 	private final CreateClusterHandler createClusterHandler;
-	private final DeleteClusterHandler deleteClusterHandler;
 
 	private final LaunchPreparerService launchPreparerService;
 	private final AnalyzerServiceClient analyzerServiceClient;
 
+	private final ClusterRepository clusterRepository;
+	private final LogRepository logRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 
 	@Autowired
-	public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler, DeleteClusterHandler deleteClusterHandler,
-			LaunchPreparerService launchPreparerService, AnalyzerServiceClient analyzerServiceClient,
+	public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler, LaunchPreparerService launchPreparerService,
+			AnalyzerServiceClient analyzerServiceClient, ClusterRepository clusterRepository, LogRepository logRepository,
 			ItemAttributeRepository itemAttributeRepository) {
 		this.createClusterHandler = createClusterHandler;
-		this.deleteClusterHandler = deleteClusterHandler;
 		this.launchPreparerService = launchPreparerService;
 		this.analyzerServiceClient = analyzerServiceClient;
+		this.clusterRepository = clusterRepository;
+		this.logRepository = logRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 	}
 
@@ -68,7 +71,7 @@ public class GenerateClusterPipelineConfig {
 
 	@Bean
 	public DeleteClustersPartProvider deleteClustersPartProvider() {
-		return new DeleteClustersPartProvider(deleteClusterHandler);
+		return new DeleteClustersPartProvider(clusterRepository, logRepository);
 	}
 
 	@Bean

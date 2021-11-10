@@ -16,31 +16,22 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
-import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.pipeline.PipelineConstructor;
 import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.core.launch.cluster.ClusterGeneratorImpl.RP_CLUSTER_LAST_RUN_KEY;
+import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -63,15 +54,6 @@ class ClusterGeneratorImplTest {
 	);
 
 	@Test
-	void shouldFailWhenNoAnalyzer() {
-		when(analyzerServiceClient.hasClients()).thenReturn(false);
-
-		final GenerateClustersConfig config = getConfig(false);
-		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> clusterGenerator.generate(config));
-		assertEquals("Impossible interact with integration. There are no analyzer services are deployed.", exception.getMessage());
-	}
-
-	@Test
 	void shouldFailWhenCacheContainsLaunchId() {
 		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(true);
 
@@ -79,18 +61,6 @@ class ClusterGeneratorImplTest {
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> clusterGenerator.generate(config));
 		assertEquals("Impossible interact with integration. Clusters creation is in progress.", exception.getMessage());
-	}
-
-	private GenerateClustersConfig getConfig(boolean forUpdate) {
-		final GenerateClustersConfig config = new GenerateClustersConfig();
-		final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
-		analyzerConfig.setNumberOfLogLines(1);
-		config.setAnalyzerConfig(analyzerConfig);
-		config.setProject(1L);
-		config.setLaunchId(1L);
-		config.setForUpdate(forUpdate);
-		config.setCleanNumbers(false);
-		return config;
 	}
 
 }

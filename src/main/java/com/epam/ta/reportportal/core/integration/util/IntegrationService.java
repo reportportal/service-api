@@ -31,7 +31,9 @@ public interface IntegrationService {
 
 	Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ);
 
-	Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> params);
+	Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> params);
+
+	Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> params);
 
 	boolean checkConnection(Integration integration);
 

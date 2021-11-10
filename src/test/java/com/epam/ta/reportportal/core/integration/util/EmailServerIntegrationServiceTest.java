@@ -76,7 +76,7 @@ class EmailServerIntegrationServiceTest {
 		doThrow(MessagingException.class).when(emailService).testConnection();
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> emailServerIntegrationService.retrieveValidParams("email", new HashMap<>())
+				() -> emailServerIntegrationService.retrieveCreateParams("email", new HashMap<>())
 		);
 
 		//then
@@ -87,7 +87,7 @@ class EmailServerIntegrationServiceTest {
 
 	@Test
 	void retrieveIntegrationParams() {
-		Map<String, Object> map = emailServerIntegrationService.retrieveValidParams("email", getParams());
+		Map<String, Object> map = emailServerIntegrationService.retrieveCreateParams("email", getParams());
 		assertEquals(defaultParams(), map);
 	}
 
@@ -97,7 +97,7 @@ class EmailServerIntegrationServiceTest {
 		params.put("from", "from@mail.com");
 		params.put("port", "123456789");
 		ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> emailServerIntegrationService.retrieveValidParams("email", params)
+				() -> emailServerIntegrationService.retrieveCreateParams("email", params)
 		);
 		assertEquals("Incorrect Request. Incorrect 'Port' value. Allowed value is [1..65535]", exception.getMessage());
 	}

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 import static java.util.Optional.ofNullable;
@@ -42,7 +43,8 @@ import static java.util.Optional.ofNullable;
 public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	private static final String TEST_CONNECTION_COMMAND = "testConnection";
-	private static final String RETRIEVE_VALID_PARAMS = "retrieveValid";
+	private static final String RETRIEVE_CREATE_PARAMS = "retrieveCreate";
+	private static final String RETRIEVE_UPDATED_PARAMS = "retrieveUpdated";
 
 	protected IntegrationRepository integrationRepository;
 
@@ -60,40 +62,51 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 				.withType(integrationType)
 				.withEnabled(integrationRq.getEnabled())
 				.withName(integrationRq.getName())
-				.withParams(new IntegrationParams(retrieveValidParams(integrationType.getName(), integrationRq.getIntegrationParams())))
+				.withParams(new IntegrationParams(retrieveCreateParams(integrationType.getName(), integrationRq.getIntegrationParams())))
 				.get();
 	}
 
 	@Override
 	public Integration updateIntegration(Integration integration, IntegrationRQ integrationRQ) {
-		IntegrationParams combinedParams = getCombinedParams(integration, integrationRQ.getIntegrationParams());
-		Map<String, Object> validParams = retrieveValidParams(integration.getType().getName(), combinedParams.getParams());
-		integration.setParams(new IntegrationParams(validParams));
+		Map<String, Object> validParams = retrieveUpdatedParams(integration.getType().getName(), integrationRQ.getIntegrationParams());
+		IntegrationParams combinedParams = getCombinedParams(integration, validParams);
+		integration.setParams(combinedParams);
 		ofNullable(integrationRQ.getEnabled()).ifPresent(integration::setEnabled);
 		ofNullable(integrationRQ.getName()).ifPresent(integration::setName);
 		return integration;
 	}
 
 	@Override
-	public Map<String, Object> retrieveValidParams(String integrationType, Map<String, Object> integrationParams) {
-		final PluginCommand<?> pluginCommand = getCommandByName(integrationType, RETRIEVE_VALID_PARAMS);
-		return (Map<String, Object>) pluginCommand.executeCommand(null, integrationParams);
+	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
+		final Optional<PluginCommand<?>> pluginCommand = getCommandByName(integrationType, RETRIEVE_CREATE_PARAMS);
+		if (pluginCommand.isPresent()) {
+			return (Map<String, Object>) pluginCommand.get().executeCommand(null, integrationParams);
+		}
+		return integrationParams;
+	}
+
+	@Override
+	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
+		final Optional<PluginCommand<?>> pluginCommand = getCommandByName(integrationType, RETRIEVE_UPDATED_PARAMS);
+		if (pluginCommand.isPresent()) {
+			return (Map<String, Object>) pluginCommand.get().executeCommand(null, integrationParams);
+		}
+		return integrationParams;
 	}
 
 	@Override
 	public boolean checkConnection(Integration integration) {
-		final PluginCommand<?> pluginCommand = getCommandByName(integration.getType().getName(), TEST_CONNECTION_COMMAND);
-		return (Boolean) pluginCommand.executeCommand(integration, integration.getParams().getParams());
+		final Optional<PluginCommand<?>> pluginCommand = getCommandByName(integration.getType().getName(), TEST_CONNECTION_COMMAND);
+		if (pluginCommand.isPresent()) {
+			return (Boolean) pluginCommand.get().executeCommand(integration, integration.getParams().getParams());
+		}
+		return true;
 	}
 
-	private PluginCommand<?> getCommandByName(String integration, String commandName) {
+	private Optional<PluginCommand<?>> getCommandByName(String integration, String commandName) {
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
-		return ofNullable(pluginInstance.getCommandToExecute(commandName)).orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-				"Command {} is not found in plugin {}.",
-				commandName,
-				integration
-		));
+		return ofNullable(pluginInstance.getCommandToExecute(commandName));
 	}
 
 	private IntegrationParams getCombinedParams(Integration integration, Map<String, Object> retrievedParams) {

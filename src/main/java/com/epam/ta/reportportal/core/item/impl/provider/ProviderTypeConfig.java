@@ -20,7 +20,6 @@ import com.epam.ta.reportportal.core.item.impl.provider.impl.CumulativeTestItemD
 import com.epam.ta.reportportal.core.item.impl.provider.impl.DelegatingClusterDataProviderHandler;
 import com.epam.ta.reportportal.core.item.impl.provider.impl.LaunchDataProviderHandlerImpl;
 import com.epam.ta.reportportal.core.item.impl.provider.impl.MaterializedWidgetProviderHandlerImpl;
-import com.epam.ta.reportportal.core.item.impl.provider.impl.mock.ClusterItemDataProviderMock;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.BeansException;
@@ -48,8 +47,8 @@ public class ProviderTypeConfig {
 	@Bean
 	public DelegatingClusterDataProviderHandler delegatingClusterDataProviderHandler(
 			@Value("${rp.environment.variable.cluster.item.page-size}") Integer maxPageSize,
-			@Autowired ClusterItemDataProviderMock clusterItemDataProviderMock) {
-		return new DelegatingClusterDataProviderHandler(maxPageSize, clusterItemDataProviderMock);
+			@Autowired LaunchDataProviderHandlerImpl launchDataProviderHandler) {
+		return new DelegatingClusterDataProviderHandler(maxPageSize, launchDataProviderHandler);
 	}
 
 	@Bean("testItemDataProviders")

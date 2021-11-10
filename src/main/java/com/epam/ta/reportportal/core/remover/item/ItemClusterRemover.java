@@ -14,45 +14,28 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster;
+package com.epam.ta.reportportal.core.remover.item;
 
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.ClusterRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-@Transactional
-public class DeleteClusterHandlerImpl implements DeleteClusterHandler {
+public class ItemClusterRemover implements ContentRemover<Long> {
 
 	private final ClusterRepository clusterRepository;
-	private final LogRepository logRepository;
 
 	@Autowired
-	public DeleteClusterHandlerImpl(ClusterRepository clusterRepository, LogRepository logRepository) {
+	public ItemClusterRemover(ClusterRepository clusterRepository) {
 		this.clusterRepository = clusterRepository;
-		this.logRepository = logRepository;
 	}
 
 	@Override
-	public void deleteProjectClusters(Long projectId) {
-		clusterRepository.deleteAllByProjectId(projectId);
-	}
-
-	@Override
-	public void deleteLaunchClusters(Long launchId) {
-		logRepository.updateClusterIdSetNullByLaunchId(launchId);
-		clusterRepository.deleteAllByLaunchId(launchId);
-	}
-
-	@Override
-	public void deleteLaunchClusters(Collection<Long> launchIds) {
-		launchIds.forEach(this::deleteLaunchClusters);
+	public void remove(Long itemId) {
+		clusterRepository.deleteClusterTestItemsByItemId(itemId);
 	}
 }

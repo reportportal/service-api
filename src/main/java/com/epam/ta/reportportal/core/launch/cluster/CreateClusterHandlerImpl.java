@@ -17,8 +17,8 @@
 package com.epam.ta.reportportal.core.launch.cluster;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterInfoRs;
 import com.epam.ta.reportportal.dao.ClusterRepository;
-import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Objects;
 
 import static com.epam.ta.reportportal.ws.converter.converters.ClusterConverter.TO_CLUSTER;
@@ -39,41 +38,50 @@ import static java.util.Optional.ofNullable;
 @Transactional
 public class CreateClusterHandlerImpl implements CreateClusterHandler {
 
-	public static final String RP_CLUSTER_LAST_RUN_KEY = "rp.cluster.lastRun";
-
 	private final ClusterRepository clusterRepository;
 	private final LogRepository logRepository;
-	private final ItemAttributeRepository itemAttributeRepository;
 
 	@Autowired
-	public CreateClusterHandlerImpl(ClusterRepository clusterRepository, LogRepository logRepository,
-			ItemAttributeRepository itemAttributeRepository) {
+	public CreateClusterHandlerImpl(ClusterRepository clusterRepository, LogRepository logRepository) {
 		this.clusterRepository = clusterRepository;
 		this.logRepository = logRepository;
-		this.itemAttributeRepository = itemAttributeRepository;
 	}
 
 	@Override
 	public void create(ClusterData clusterData) {
-		ofNullable(clusterData.getClusters()).filter(CollectionUtils::isNotEmpty).ifPresent(clusters -> {
-			clusters.stream().filter(c -> Objects.nonNull(c.getClusterId())).forEach(clusterInfoRs -> {
-				final Cluster cluster = TO_CLUSTER.apply(clusterInfoRs);
-				cluster.setProjectId(clusterData.getProject());
-				cluster.setLaunchId(clusterData.getLaunchId());
-				clusterRepository.save(cluster);
-				logRepository.updateClusterIdByIdIn(cluster.getId(), clusterInfoRs.getLogIds());
-			});
-		});
-		saveLastRunAttribute(clusterData);
+		ofNullable(clusterData.getClusters()).filter(CollectionUtils::isNotEmpty)
+				.ifPresent(clusters -> clusters.stream().filter(c -> Objects.nonNull(c.getClusterId())).forEach(clusterInfoRs -> {
+					final Cluster cluster = saveCluster(clusterData, clusterInfoRs);
+					saveItems(clusterInfoRs, cluster);
+					updateLogs(clusterInfoRs, cluster);
+				}));
 	}
 
-	private void saveLastRunAttribute(ClusterData clusterData) {
-		final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
-		itemAttributeRepository.findByLaunchIdAndKeyAndSystem(clusterData.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, true)
-				.ifPresentOrElse(attr -> {
-					attr.setValue(lastRunDate);
-					itemAttributeRepository.save(attr);
-				}, () -> itemAttributeRepository.saveByLaunchId(clusterData.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, lastRunDate, true));
+	private Cluster saveCluster(ClusterData clusterData, ClusterInfoRs clusterInfoRs) {
+		final Cluster cluster = clusterRepository.findByIndexIdAndLaunchId(clusterInfoRs.getClusterId(), clusterData.getLaunchId())
+				.map(c -> {
+					c.setMessage(clusterInfoRs.getClusterMessage());
+					return c;
+				})
+				.orElseGet(() -> convertToCluster(clusterData, clusterInfoRs));
+		return clusterRepository.save(cluster);
+	}
+
+	private Cluster convertToCluster(ClusterData clusterData, ClusterInfoRs clusterInfoRs) {
+		final Cluster cluster = TO_CLUSTER.apply(clusterInfoRs);
+		cluster.setProjectId(clusterData.getProject());
+		cluster.setLaunchId(clusterData.getLaunchId());
+		return cluster;
+	}
+
+	private void saveItems(ClusterInfoRs clusterInfoRs, Cluster cluster) {
+		ofNullable(clusterInfoRs.getItemIds()).filter(CollectionUtils::isNotEmpty)
+				.ifPresent(itemIds -> clusterRepository.saveClusterTestItems(cluster, itemIds));
+	}
+
+	private void updateLogs(ClusterInfoRs clusterInfoRs, Cluster cluster) {
+		ofNullable(clusterInfoRs.getLogIds()).filter(CollectionUtils::isNotEmpty)
+				.ifPresent(logIds -> logRepository.updateClusterIdByIdIn(cluster.getId(), clusterInfoRs.getLogIds()));
 	}
 
 }

@@ -17,7 +17,8 @@
 package com.epam.ta.reportportal.core.configs.resource;
 
 import com.epam.ta.reportportal.entity.ItemAttribute;
-import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.*;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ItemAttributeType;
+import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.ResourceAttributeHandler;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch.LaunchResourceAttributeLogger;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch.LaunchResourceAttributeUpdater;
 import com.epam.ta.reportportal.ws.converter.resource.handler.attribute.launch.LaunchResourceMetadataAttributeUpdater;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandlerImpl.RP_CLUSTER_LAST_RUN_KEY;
+import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>

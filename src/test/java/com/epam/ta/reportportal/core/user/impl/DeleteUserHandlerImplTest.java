@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.binary.UserBinaryDataService;
-import com.epam.ta.reportportal.core.user.content.remover.UserContentRemover;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -51,7 +51,7 @@ class DeleteUserHandlerImplTest {
 	private UserBinaryDataService dataStore;
 
 	@Mock
-	private UserContentRemover userContentRemover;
+	private ContentRemover<User> userContentRemover;
 
 	@Mock
 	private ProjectRepository projectRepository;

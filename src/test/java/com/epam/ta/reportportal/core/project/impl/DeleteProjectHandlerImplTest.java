@@ -21,8 +21,7 @@ import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
-import com.epam.ta.reportportal.core.launch.cluster.DeleteClusterHandler;
-import com.epam.ta.reportportal.core.project.content.remover.ProjectContentRemover;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.attribute.Attribute;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -77,13 +76,10 @@ class DeleteProjectHandlerImplTest {
 	private IssueTypeRepository issueTypeRepository;
 
 	@Mock
-	private ProjectContentRemover projectContentRemover;
+	private ContentRemover<Project> projectContentRemover;
 
 	@Mock
 	private LogRepository logRepository;
-
-	@Mock
-	private DeleteClusterHandler deleteClusterHandler;
 
 	@InjectMocks
 	private DeleteProjectHandlerImpl handler;
@@ -197,10 +193,10 @@ class DeleteProjectHandlerImplTest {
 
 		OperationCompletionRS response = handler.deleteProject(1L);
 
-		verify(projectContentRemover, times(1)).removeContent(project);
+		verify(projectContentRemover, times(1)).remove(project);
 		verify(logIndexer, times(1)).deleteIndex(projectId);
 		verify(analyzerServiceClient, times(1)).removeSuggest(projectId);
-		verify(deleteClusterHandler, times(1)).deleteProjectClusters(projectId);
+		verify(projectContentRemover, times(1)).remove(any(Project.class));
 
 		assertEquals(response.getResultMessage(), "Project with id = '" + project.getId() + "' has been successfully deleted.");
 

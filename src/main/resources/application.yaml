@@ -62,7 +62,7 @@ rp:
           size: 500
       cluster:
         item:
-          page-size: 10
+          page-size: 20
       log-index:
         batch-size: 20
       pattern-analysis:

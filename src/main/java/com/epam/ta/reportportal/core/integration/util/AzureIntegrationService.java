@@ -15,42 +15,35 @@
  */
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.reportportal.extension.bugtracking.BtsExtension;
-import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class AzureIntegrationService extends BtsIntegrationService {
+public class AzureIntegrationService extends BasicIntegrationServiceImpl {
+
+	private BtsIntegrationService btsIntegrationService;
 
 	@Autowired
 	public AzureIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
-			BasicTextEncryptor basicTextEncryptor) {
-		super(integrationRepository, pluginBox, basicTextEncryptor);
+			BtsIntegrationService btsIntegrationService) {
+		super(integrationRepository, pluginBox);
+		this.btsIntegrationService = btsIntegrationService;
 	}
 
 	@Override
-	public boolean checkConnection(Integration integration) {
-		BtsExtension extension = pluginBox.getInstance(integration.getType().getName(), BtsExtension.class)
-				.orElseThrow(() -> new ReportPortalException(
-						ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						Suppliers.formattedSupplier("Could not find plugin with name '{}'.", integration.getType().getName()).get()
-				));
-		expect(extension.testConnection(integration), BooleanUtils::isTrue).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"Connection refused."
-		);
-		return true;
+	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
+		return btsIntegrationService.retrieveCreateParams(integrationType, integrationParams);
+	}
+
+	@Override
+	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
+		return btsIntegrationService.retrieveUpdatedParams(integrationType, integrationParams);
 	}
 }

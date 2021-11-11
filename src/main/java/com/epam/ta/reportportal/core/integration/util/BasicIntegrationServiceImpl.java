@@ -42,7 +42,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public class BasicIntegrationServiceImpl implements IntegrationService {
 
-	private static final String TEST_CONNECTION_COMMAND = "testConnection";
+	protected static final String TEST_CONNECTION_COMMAND = "testConnection";
 	private static final String RETRIEVE_CREATE_PARAMS = "retrieveCreate";
 	private static final String RETRIEVE_UPDATED_PARAMS = "retrieveUpdated";
 

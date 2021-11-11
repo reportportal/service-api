@@ -4,12 +4,14 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
-import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.item.validator.state.TestItemValidator;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -17,10 +19,13 @@ import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -28,31 +33,32 @@ import java.util.Optional;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR_INT;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class SuggestItemServiceTest {
 
-	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-
-	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
-
-	private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
-
-	private final LogRepository logRepository = mock(LogRepository.class);
-
 	private final AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
-	private final TestItemService testItemService = mock(TestItemService.class);
+	private final GetProjectHandler getProjectHandler = mock(GetProjectHandler.class);
+	private final GetLaunchHandler getLaunchHandler = mock(GetLaunchHandler.class);
+	private final GetClusterHandler getClusterHandler = mock(GetClusterHandler.class);
 
 	private final LaunchAccessValidator launchAccessValidator = mock(LaunchAccessValidator.class);
 
-	private final SuggestItemService searchLogService = new SuggestItemService(analyzerServiceClient,
-			testItemRepository,
-			projectRepository,
-			testItemService,
+	private final TestItemRepository testItemRepository = mock(TestItemRepository.class);
+	private final LogRepository logRepository = mock(LogRepository.class);
+
+	private final TestItemValidator testItemValidator = mock(TestItemValidator.class);
+	private final List<TestItemValidator> validators = List.of(testItemValidator);
+
+	private final SuggestItemService suggestItemService = new SuggestItemService(analyzerServiceClient,
+			getProjectHandler,
+			getLaunchHandler,
+			getClusterHandler,
 			launchAccessValidator,
-			logRepository
+			testItemRepository,
+			logRepository,
+			validators
 	);
 
 	@Test
@@ -62,6 +68,7 @@ class SuggestItemServiceTest {
 
 		TestItem testItem = new TestItem();
 		testItem.setItemId(1L);
+		testItem.setLaunchId(1L);
 
 		TestItem relevantItem = getRelevantItem();
 
@@ -74,9 +81,10 @@ class SuggestItemServiceTest {
 		suggestInfo.setRelevantItem(2L);
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+		when(testItemValidator.validate(any(TestItem.class))).thenReturn(true);
 		when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
-		when(testItemService.getEffectiveLaunch(testItem)).thenReturn(launch);
-		when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+		when(getLaunchHandler.getLaunch(testItem.getLaunchId())).thenReturn(launch);
+		when(getProjectHandler.getProject(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
 		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 				Collections.singletonList(testItem.getItemId()),
 				ERROR_INT
@@ -84,13 +92,128 @@ class SuggestItemServiceTest {
 
 		when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(Collections.singletonList(suggestInfo));
 
-		final List<SuggestedItem> suggestedItems = searchLogService.suggestItems(1L,
+		final List<SuggestedItem> suggestedItems = suggestItemService.suggestItems(1L,
 				ReportPortalUser.ProjectDetails.builder().withProjectId(1L).withProjectRole(ProjectRole.MEMBER.name()).build(),
 				rpUser
 		);
 
 		Assertions.assertEquals(1, suggestedItems.size());
 
+	}
+
+	@Test
+	void suggestRemovedItems() {
+		final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final Project project = new Project(1L, "default");
+
+		TestItem testItem = new TestItem();
+		testItem.setItemId(1L);
+		testItem.setLaunchId(1L);
+
+		Launch launch = new Launch();
+		launch.setId(1L);
+
+		SuggestInfo suggestInfo = new SuggestInfo();
+		suggestInfo.setRelevantItem(2L);
+
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+		when(testItemValidator.validate(any(TestItem.class))).thenReturn(true);
+		when(getLaunchHandler.getLaunch(testItem.getLaunchId())).thenReturn(launch);
+		when(getProjectHandler.getProject(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+		when(testItemRepository.findById(2L)).thenReturn(Optional.empty());
+
+		when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(Collections.singletonList(suggestInfo));
+
+		final List<SuggestedItem> suggestedItems = suggestItemService.suggestItems(1L,
+				ReportPortalUser.ProjectDetails.builder().withProjectId(1L).withProjectRole(ProjectRole.MEMBER.name()).build(),
+				rpUser
+		);
+
+		Assertions.assertTrue(suggestedItems.isEmpty());
+
+	}
+
+	@Test
+	void showThrowExceptionWhenNotValid() {
+		final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		TestItem testItem = new TestItem();
+		testItem.setItemId(1L);
+
+		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
+		when(testItemValidator.validate(testItem)).thenReturn(false);
+		when(testItemValidator.provide(testItem)).thenReturn("Test item = 1 is a nested step");
+
+		final ReportPortalException exception = Assertions.assertThrows(ReportPortalException.class,
+				() -> suggestItemService.suggestItems(1L,
+						ReportPortalUser.ProjectDetails.builder().withProjectId(1L).withProjectRole(ProjectRole.MEMBER.name()).build(),
+						rpUser
+				)
+		);
+
+		Assertions.assertEquals("Error in handled Request. Please, check specified parameters: 'Test item = 1 is a nested step'", exception.getMessage());
+	}
+
+	@Test
+	void showThrowExceptionWhenNotFound() {
+		final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+
+		when(testItemRepository.findById(1L)).thenReturn(Optional.empty());
+
+		final ReportPortalException exception = Assertions.assertThrows(ReportPortalException.class,
+				() -> suggestItemService.suggestItems(1L,
+						ReportPortalUser.ProjectDetails.builder().withProjectId(1L).withProjectRole(ProjectRole.MEMBER.name()).build(),
+						rpUser
+				)
+		);
+
+		Assertions.assertEquals("Test Item '1' not found. Did you use correct Test Item ID?", exception.getMessage());
+	}
+
+	@Test
+	void suggestClusterItems() {
+		final ReportPortalUser rpUser = getRpUser("owner", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final Project project = new Project(1L, "default");
+
+		final Cluster cluster = new Cluster();
+		cluster.setId(1L);
+		cluster.setLaunchId(1L);
+
+		TestItem relevantItem = getRelevantItem();
+
+		Launch launch = new Launch();
+		launch.setId(1L);
+
+		final Log log = new Log();
+
+		SuggestInfo suggestInfo = new SuggestInfo();
+		suggestInfo.setRelevantItem(2L);
+
+		when(getClusterHandler.getById(1L)).thenReturn(cluster);
+		when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
+		when(getLaunchHandler.getLaunch(cluster.getLaunchId())).thenReturn(launch);
+		when(getProjectHandler.getProject(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+				Collections.singletonList(relevantItem.getItemId()),
+				ERROR_INT
+		)).thenReturn(Collections.singletonList(log));
+
+		when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(Collections.singletonList(suggestInfo));
+
+		final List<SuggestedItem> suggestedItems = suggestItemService.suggestClusterItems(1L,
+				ReportPortalUser.ProjectDetails.builder().withProjectId(1L).withProjectRole(ProjectRole.MEMBER.name()).build(),
+				rpUser
+		);
+
+		Assertions.assertEquals(1, suggestedItems.size());
+
+	}
+
+	@Test
+	void handleSuggestChoice() {
+		final OperationCompletionRS operationCompletionRS = suggestItemService.handleSuggestChoice(new ArrayList<>());
+		verify(analyzerServiceClient, times(1)).handleSuggestChoice(anyList());
+		Assertions.assertEquals("User choice of suggested item was sent for handling to ML", operationCompletionRS.getResultMessage());
 	}
 
 	private TestItem getRelevantItem() {

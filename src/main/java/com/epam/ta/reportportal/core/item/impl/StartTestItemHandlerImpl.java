@@ -24,7 +24,7 @@ import com.epam.ta.reportportal.core.item.identity.TestCaseHashGenerator;
 import com.epam.ta.reportportal.core.item.identity.UniqueIdGenerator;
 import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.core.item.impl.retry.RetrySearcher;
-import com.epam.ta.reportportal.core.item.validator.ParentItemValidator;
+import com.epam.ta.reportportal.core.item.validator.parent.ParentItemValidator;
 import com.epam.ta.reportportal.core.launch.rerun.RerunHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;

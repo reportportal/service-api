@@ -19,7 +19,9 @@ package com.epam.ta.reportportal.core.launch.cluster;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,13 +37,18 @@ import static com.epam.ta.reportportal.ws.converter.converters.ClusterConverter.
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class GetClusterInfoHandlerImpl implements GetClusterInfoHandler {
+public class GetClusterHandlerImpl implements GetClusterHandler {
 
 	private final ClusterRepository clusterRepository;
 
 	@Autowired
-	public GetClusterInfoHandlerImpl(ClusterRepository clusterRepository) {
+	public GetClusterHandlerImpl(ClusterRepository clusterRepository) {
 		this.clusterRepository = clusterRepository;
+	}
+
+	@Override
+	public Cluster getById(Long id) {
+		return clusterRepository.findById(id).orElseThrow(() -> new ReportPortalException(ErrorType.CLUSTER_NOT_FOUND, id));
 	}
 
 	@Override

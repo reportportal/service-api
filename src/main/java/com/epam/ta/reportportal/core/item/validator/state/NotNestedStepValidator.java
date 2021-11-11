@@ -14,16 +14,31 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster;
+package com.epam.ta.reportportal.core.item.validator.state;
 
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
-import org.springframework.data.domain.Pageable;
+import com.epam.ta.reportportal.commons.validation.Suppliers;
+import com.epam.ta.reportportal.entity.item.TestItem;
+import org.springframework.core.Ordered;
+import org.springframework.stereotype.Service;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface GetClusterInfoHandler {
+@Service
+public class NotNestedStepValidator implements TestItemValidator, Ordered {
 
-	Iterable<ClusterInfoResource> getResources(Launch launch, Pageable pageable);
+	@Override
+	public boolean validate(TestItem item) {
+		return item.isHasStats();
+	}
+
+	@Override
+	public String provide(TestItem item) {
+		return Suppliers.formattedSupplier("Test item = {} is a nested step", item.getItemId()).get();
+	}
+
+	@Override
+	public int getOrder() {
+		return 1;
+	}
 }

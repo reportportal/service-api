@@ -1,7 +1,6 @@
-package com.epam.ta.reportportal.core.item.validator.impl;
+package com.epam.ta.reportportal.core.item.validator.parent;
 
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.core.item.validator.ParentItemValidator;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import org.springframework.core.Ordered;

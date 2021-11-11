@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
@@ -81,15 +80,5 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 				.filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey().equals(USERNAME.getName()))
 				.forEach(it -> result.put(it.getKey(), it.getValue()));
 		return result;
-	}
-
-	@Override
-	public boolean checkConnection(Integration integration) {
-		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.decrypt(it)));
-		boolean connection = super.checkConnection(integration);
-		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
-		return connection;
 	}
 }

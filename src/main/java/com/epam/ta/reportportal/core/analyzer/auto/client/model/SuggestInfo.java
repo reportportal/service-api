@@ -15,11 +15,12 @@
  */
 package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SuggestInfo {
 
 	private Long project;
@@ -63,6 +64,8 @@ public class SuggestInfo {
 	private int userChoice;
 
 	private String methodName;
+
+	private Long clusterId;
 
 	public Long getProject() {
 		return project;
@@ -230,5 +233,13 @@ public class SuggestInfo {
 
 	public void setMethodName(String methodName) {
 		this.methodName = methodName;
+	}
+
+	public Long getClusterId() {
+		return clusterId;
+	}
+
+	public void setClusterId(Long clusterId) {
+		this.clusterId = clusterId;
 	}
 }

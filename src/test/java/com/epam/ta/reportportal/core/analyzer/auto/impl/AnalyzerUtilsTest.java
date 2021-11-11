@@ -23,10 +23,12 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.TestItemResults;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
+import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
+import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -79,6 +82,35 @@ class AnalyzerUtilsTest {
         assertEquals(String.valueOf(config.isIndexingRunning()), ProjectAttributeEnum.INDEXING_RUNNING.getDefaultValue());
         assertEquals(String.valueOf(config.isAllMessagesShouldMatch()), ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH.getDefaultValue());
     }
+
+	@Test
+	void testFromLogs() {
+		final Log log = new Log();
+		log.setId(1L);
+		log.setLogMessage("Log message");
+		log.setLogLevel(40000);
+		log.setClusterId(2L);
+
+		final Set<IndexLog> indexLogs = AnalyzerUtils.fromLogs(List.of(log));
+		final IndexLog indexLog = indexLogs.stream().findFirst().get();
+		assertEquals(log.getId(), indexLog.getLogId());
+		assertEquals(log.getLogMessage(), indexLog.getMessage());
+		assertEquals(log.getLogLevel(), indexLog.getLogLevel());
+		assertEquals(log.getClusterId(), indexLog.getClusterId());
+	}
+
+	@Test
+	void testToRelevantItemInfo() {
+		final TestItem testItem = new TestItem();
+		testItem.setItemId(1L);
+		testItem.setLaunchId(2L);
+		testItem.setPath("1");
+
+		final RelevantItemInfo itemInfo = AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(testItem);
+		assertEquals(String.valueOf(testItem.getItemId()), itemInfo.getItemId());
+		assertEquals(String.valueOf(testItem.getLaunchId()), itemInfo.getLaunchId());
+		assertEquals(testItem.getPath(), itemInfo.getPath());
+	}
 
     private TestItem createTest() {
         TestItem testItem = new TestItem();

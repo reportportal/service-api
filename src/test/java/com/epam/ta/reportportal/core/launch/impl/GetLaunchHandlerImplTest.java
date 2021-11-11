@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
-import com.epam.ta.reportportal.core.launch.cluster.GetClusterInfoHandler;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
 class GetLaunchHandlerImplTest {
 
 	@Mock
-	private GetClusterInfoHandler getClusterInfoHandler;
+	private GetClusterHandler getClusterHandler;
 
 	@Mock
 	private LaunchRepository launchRepository;
@@ -274,7 +274,7 @@ class GetLaunchHandlerImplTest {
 
 		final Page<ClusterInfoResource> expected = new Page<>(List.of(new ClusterInfoResource(), new ClusterInfoResource()), 2, 1, 10);
 
-		when(getClusterInfoHandler.getResources(launch, pageable)).thenReturn(expected);
+		when(getClusterHandler.getResources(launch, pageable)).thenReturn(expected);
 
 		final Iterable<ClusterInfoResource> result = handler.getClusters(launchId, extractProjectDetails(user, "test_project"), pageable);
 

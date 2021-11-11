@@ -25,7 +25,7 @@ import com.epam.ta.reportportal.core.jasper.GetJasperReportHandler;
 import com.epam.ta.reportportal.core.jasper.constants.LaunchReportConstants;
 import com.epam.ta.reportportal.core.jasper.util.JasperDataProvider;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
-import com.epam.ta.reportportal.core.launch.cluster.GetClusterInfoHandler;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
 import com.epam.ta.reportportal.dao.*;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -88,7 +88,7 @@ import static java.util.Optional.ofNullable;
 @Service
 public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
-	private final GetClusterInfoHandler getClusterInfoHandler;
+	private final GetClusterHandler getClusterHandler;
 	private final LaunchRepository launchRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;
@@ -100,12 +100,12 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public GetLaunchHandlerImpl(GetClusterInfoHandler getClusterInfoHandler, LaunchRepository launchRepository,
+	public GetLaunchHandlerImpl(GetClusterHandler getClusterHandler, LaunchRepository launchRepository,
 			ItemAttributeRepository itemAttributeRepository, ProjectRepository projectRepository,
 			WidgetContentRepository widgetContentRepository, UserRepository userRepository, JasperDataProvider dataProvider,
 			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler, LaunchConverter launchConverter,
 			ApplicationEventPublisher applicationEventPublisher) {
-		this.getClusterInfoHandler = getClusterInfoHandler;
+		this.getClusterHandler = getClusterHandler;
 		this.launchRepository = launchRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
@@ -207,7 +207,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	@Transactional(readOnly = true)
 	public Iterable<ClusterInfoResource> getClusters(String launchId, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
 		final Launch launch = findLaunch(launchId, projectDetails);
-		return getClusterInfoHandler.getResources(launch, pageable);
+		return getClusterHandler.getResources(launch, pageable);
 	}
 
 	private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {

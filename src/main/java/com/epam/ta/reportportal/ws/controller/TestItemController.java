@@ -168,6 +168,14 @@ public class TestItemController {
 		return suggestItemService.suggestItems(itemId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
+	@GetMapping("/suggest/cluster/{clusterId}")
+	@ResponseStatus(OK)
+	@ApiOperation("Search suggested items in analyzer for provided one")
+	public List<SuggestedItem> getSuggestedClusterItems(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user,
+			@PathVariable Long clusterId) {
+		return suggestItemService.suggestClusterItems(clusterId, projectExtractor.extractProjectDetails(user, projectName), user);
+	}
+
 	@Transactional
 	@PutMapping("/suggest/choice")
 	@ResponseStatus(OK)

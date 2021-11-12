@@ -17,8 +17,6 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.entity.enums.AuthType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import org.jasypt.util.text.BasicTextEncryptor;
@@ -46,21 +44,15 @@ class RallyIntegrationServiceTest {
 	private static final String UNSUPPORTED_AUTH_TYPE_NAME = AuthType.NTLM.name();
 
 	@Mock
-	private IntegrationRepository integrationRepository;
-
-	@Mock
-	private PluginBox pluginBox;
-
-	@Mock
 	private BasicTextEncryptor encryptor;
 
 	@InjectMocks
-	private RallyIntegrationService rallyIntegrationService;
+	private BtsIntegrationService btsIntegrationService;
 
 	@Test
 	void testParameters() {
 		when(encryptor.encrypt(any())).thenReturn("encrypted");
-		Map<String, Object> res = rallyIntegrationService.retrieveIntegrationParams(getCorrectRallyIntegrationParams());
+		Map<String, Object> res = btsIntegrationService.retrieveCreateParams("rally", getCorrectRallyIntegrationParams());
 		assertThat(res.keySet(), hasSize(4));
 	}
 
@@ -70,9 +62,9 @@ class RallyIntegrationServiceTest {
 		params.remove(BtsProperties.OAUTH_ACCESS_KEY.getName());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
+				() -> btsIntegrationService.retrieveCreateParams("rally", params)
 		);
-		assertEquals("Impossible interact with integration. AccessKey value cannot be NULL", exception.getMessage());
+		assertEquals("Impossible interact with integration. AccessKey value is not specified", exception.getMessage());
 	}
 
 	@Test
@@ -81,10 +73,10 @@ class RallyIntegrationServiceTest {
 		params.put(BtsProperties.AUTH_TYPE.getName(), UNSUPPORTED_AUTH_TYPE_NAME);
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> rallyIntegrationService.retrieveIntegrationParams(params)
+				() -> btsIntegrationService.retrieveCreateParams("rally", params)
 		);
 		assertEquals(
-				"Impossible interact with integration. Unsupported auth type for Rally integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
+				"Impossible interact with integration. Unsupported auth type for integration - " + UNSUPPORTED_AUTH_TYPE_NAME,
 				exception.getMessage()
 		);
 	}

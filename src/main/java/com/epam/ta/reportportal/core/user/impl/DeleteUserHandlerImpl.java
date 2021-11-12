@@ -23,8 +23,8 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
 import com.epam.ta.reportportal.core.project.settings.notification.ProjectRecipientHandler;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
-import com.epam.ta.reportportal.core.user.content.remover.UserContentRemover;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -59,7 +59,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ShareableObjectsHandler shareableObjectsHandler;
 
-	private final UserContentRemover userContentRemover;
+	private final ContentRemover<User> userContentRemover;
 
 	private final ProjectRecipientHandler projectRecipientHandler;
 
@@ -67,7 +67,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, UserContentRemover userContentRemover,
+			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, ContentRemover<User> userContentRemover,
 			ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
@@ -84,7 +84,7 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 
-		userContentRemover.removeContent(user);
+		userContentRemover.remove(user);
 
 		List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
 		userProjects.forEach(project -> {

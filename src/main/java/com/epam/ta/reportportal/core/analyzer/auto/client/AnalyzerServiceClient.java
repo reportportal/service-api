@@ -17,6 +17,8 @@
 package com.epam.ta.reportportal.core.analyzer.auto.client;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.impl.AnalyzerUtils;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
+import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
@@ -91,4 +93,6 @@ public interface AnalyzerServiceClient {
 	 * @param suggestInfos Info about user suggests
 	 */
 	void handleSuggestChoice(List<SuggestInfo> suggestInfos);
+
+	ClusterData generateClusters(GenerateClustersRq generateClustersRq);
 }

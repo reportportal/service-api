@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto.indexer;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.LaunchPreparerService;
+import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
@@ -24,7 +24,11 @@ class BatchLogIndexerTest {
 	private LaunchRepository launchRepository = mock(LaunchRepository.class);
 	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
-	private final BatchLogIndexer batchLogIndexer = new BatchLogIndexer(batchSize, launchRepository, launchPreparerService, indexerServiceClient);
+	private final BatchLogIndexer batchLogIndexer = new BatchLogIndexer(batchSize,
+			launchRepository,
+			launchPreparerService,
+			indexerServiceClient
+	);
 
 	@Test
 	void index() {
@@ -37,9 +41,10 @@ class BatchLogIndexerTest {
 		)).thenReturn(ids);
 
 		final IndexLaunch firstIndex = new IndexLaunch();
+		firstIndex.setTestItems(List.of(new IndexTestItem()));
 		final IndexLaunch secondIndex = new IndexLaunch();
-
-		when(launchRepository.findIndexLaunchByIdsAndLogLevel(eq(ids), anyInt())).thenReturn(List.of(firstIndex, secondIndex));
+		secondIndex.setTestItems(List.of(new IndexTestItem()));
+		when(launchPreparerService.prepare(eq(ids), any(AnalyzerConfig.class))).thenReturn(List.of(firstIndex, secondIndex));
 
 		final List<Long> secondPortionIds = List.of(3L);
 		when(launchRepository.findIdsByProjectIdAndModeAndStatusNotEqAfterId(eq(1L),
@@ -48,14 +53,10 @@ class BatchLogIndexerTest {
 				eq(2L),
 				anyInt()
 		)).thenReturn(secondPortionIds);
-		final IndexLaunch thirdIndex = new IndexLaunch();
-		when(launchRepository.findIndexLaunchByIdsAndLogLevel(eq(secondPortionIds), anyInt())).thenReturn(List.of(thirdIndex));
 
-		doAnswer(invocation -> {
-			Object[] args = invocation.getArguments();
-			((IndexLaunch) args[0]).setTestItems(List.of(new IndexTestItem()));
-			return null;
-		}).when(launchPreparerService).fillLaunch(any(IndexLaunch.class));
+		final IndexLaunch thirdIndex = new IndexLaunch();
+		thirdIndex.setTestItems(List.of(new IndexTestItem()));
+		when(launchPreparerService.prepare(eq(secondPortionIds), any(AnalyzerConfig.class))).thenReturn(List.of(thirdIndex));
 
 		batchLogIndexer.index(1L, analyzerConfig());
 

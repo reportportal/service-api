@@ -19,11 +19,14 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestInfo;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.SuggestRq;
-import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
+import com.epam.ta.reportportal.core.item.validator.state.TestItemValidator;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.launch.cluster.GetClusterHandler;
+import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -32,7 +35,7 @@ import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,54 +46,114 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.enums.LogLevel.ERROR_INT;
-import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-@Transactional
 public class SuggestItemService {
 
 	private static final int SUGGESTED_ITEMS_LOGS_LIMIT = 5;
 
 	private final AnalyzerServiceClient analyzerServiceClient;
-	private final TestItemRepository testItemRepository;
-	private final ProjectRepository projectRepository;
-	private final TestItemService testItemService;
+
+	private final GetProjectHandler getProjectHandler;
+	private final GetLaunchHandler getLaunchHandler;
+	private final GetClusterHandler getClusterHandler;
+
 	private final LaunchAccessValidator launchAccessValidator;
+
+	private final TestItemRepository testItemRepository;
 	private final LogRepository logRepository;
 
-	public SuggestItemService(AnalyzerServiceClient analyzerServiceClient, TestItemRepository testItemRepository,
-			ProjectRepository projectRepository, TestItemService testItemService, LaunchAccessValidator launchAccessValidator,
-			LogRepository logRepository) {
+	private final List<TestItemValidator> testItemValidators;
+
+	@Autowired
+	public SuggestItemService(AnalyzerServiceClient analyzerServiceClient, GetProjectHandler getProjectHandler,
+			GetLaunchHandler getLaunchHandler, GetClusterHandler getClusterHandler, LaunchAccessValidator launchAccessValidator,
+			TestItemRepository testItemRepository, LogRepository logRepository, List<TestItemValidator> testItemValidators) {
 		this.analyzerServiceClient = analyzerServiceClient;
-		this.testItemRepository = testItemRepository;
-		this.projectRepository = projectRepository;
-		this.testItemService = testItemService;
+		this.getProjectHandler = getProjectHandler;
+		this.getLaunchHandler = getLaunchHandler;
+		this.getClusterHandler = getClusterHandler;
 		this.launchAccessValidator = launchAccessValidator;
+		this.testItemRepository = testItemRepository;
 		this.logRepository = logRepository;
+		this.testItemValidators = testItemValidators;
 	}
 
+	@Transactional(readOnly = true)
 	public List<SuggestedItem> suggestItems(Long testItemId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 
 		TestItem testItem = testItemRepository.findById(testItemId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, testItemId));
 
-		Launch launch = testItemService.getEffectiveLaunch(testItem);
-		launchAccessValidator.validate(launch.getId(), projectDetails, user);
+		validateTestItem(testItem);
 
-		Project project = projectRepository.findById(projectDetails.getProjectId())
-				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectId()));
+		Launch launch = getLaunch(testItem.getLaunchId(), projectDetails, user);
+		Project project = getProjectHandler.getProject(projectDetails);
 
-		SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project.getId(), getAnalyzerConfig(project));
-		List<SuggestInfo> suggestRS = analyzerServiceClient.searchSuggests(suggestRq);
-		return suggestRS.stream().map(this::prepareSuggestedItem).filter(Objects::nonNull).collect(Collectors.toList());
+		SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project);
+		return getSuggestedItems(suggestRq);
 	}
 
-	public OperationCompletionRS handleSuggestChoice(List<SuggestInfo> suggestInfos) {
-		analyzerServiceClient.handleSuggestChoice(suggestInfos);
-		return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");
+	private void validateTestItem(TestItem testItem) {
+		testItemValidators.forEach(v -> {
+			if (!v.validate(testItem)) {
+				throw new ReportPortalException(BAD_REQUEST_ERROR, v.provide(testItem));
+			}
+		});
+	}
+
+	@Transactional(readOnly = true)
+	public List<SuggestedItem> suggestClusterItems(Long clusterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		final Cluster cluster = getClusterHandler.getById(clusterId);
+		final Launch launch = getLaunch(cluster.getLaunchId(), projectDetails, user);
+		final Project project = getProjectHandler.getProject(projectDetails);
+		final SuggestRq suggestRq = prepareSuggestRq(cluster, launch, project);
+		return getSuggestedItems(suggestRq);
+	}
+
+	private Launch getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
+		Launch launch = getLaunchHandler.getLaunch(launchId);
+		launchAccessValidator.validate(launch, projectDetails, user);
+		return launch;
+	}
+
+	private SuggestRq prepareSuggestRq(TestItem testItem, Launch launch, Project project) {
+		SuggestRq suggestRq = prepareSuggestRq(launch, project);
+		suggestRq.setTestItemId(testItem.getItemId());
+		suggestRq.setUniqueId(testItem.getUniqueId());
+		suggestRq.setTestCaseHash(testItem.getTestCaseHash());
+		suggestRq.setLogs(AnalyzerUtils.fromLogs(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+				Collections.singletonList(testItem.getItemId()),
+				ERROR_INT
+		)));
+		return suggestRq;
+	}
+
+	private SuggestRq prepareSuggestRq(Cluster cluster, Launch launch, Project project) {
+		SuggestRq suggestRq = prepareSuggestRq(launch, project);
+		suggestRq.setClusterId(cluster.getIndexId());
+		return suggestRq;
+	}
+
+	private SuggestRq prepareSuggestRq(Launch launch, Project project) {
+		SuggestRq suggestRq = new SuggestRq();
+		suggestRq.setLaunchId(launch.getId());
+		suggestRq.setLaunchName(launch.getName());
+		suggestRq.setProject(project.getId());
+		suggestRq.setAnalyzerConfig(getAnalyzerConfig(project));
+		return suggestRq;
+	}
+
+	private List<SuggestedItem> getSuggestedItems(SuggestRq suggestRq) {
+		return analyzerServiceClient.searchSuggests(suggestRq)
+				.stream()
+				.map(this::prepareSuggestedItem)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 
 	private SuggestedItem prepareSuggestedItem(SuggestInfo suggestInfo) {
@@ -106,26 +169,12 @@ public class SuggestItemService {
 				relevantTestItem.getItemId(),
 				ERROR_INT,
 				SUGGESTED_ITEMS_LOGS_LIMIT
-		)
-				.stream()
-				.map(LogConverter.TO_RESOURCE)
-				.collect(Collectors.toSet()));
+		).stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toSet()));
 		return suggestedItem;
 	}
 
-	private SuggestRq prepareSuggestRq(TestItem testItem, Launch launch, Long projectId, AnalyzerConfig analyzerConfig) {
-		SuggestRq suggestRq = new SuggestRq();
-		suggestRq.setLaunchId(launch.getId());
-		suggestRq.setLaunchName(launch.getName());
-		suggestRq.setTestItemId(testItem.getItemId());
-		suggestRq.setUniqueId(testItem.getUniqueId());
-		suggestRq.setTestCaseHash(testItem.getTestCaseHash());
-		suggestRq.setProject(projectId);
-		suggestRq.setAnalyzerConfig(analyzerConfig);
-		suggestRq.setLogs(AnalyzerUtils.fromLogs(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
-				Collections.singletonList(testItem.getItemId()),
-				ERROR_INT
-		)));
-		return suggestRq;
+	public OperationCompletionRS handleSuggestChoice(List<SuggestInfo> suggestInfos) {
+		analyzerServiceClient.handleSuggestChoice(suggestInfos);
+		return new OperationCompletionRS("User choice of suggested item was sent for handling to ML");
 	}
 }

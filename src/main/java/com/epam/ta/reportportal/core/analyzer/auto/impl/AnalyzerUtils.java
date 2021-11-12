@@ -58,6 +58,7 @@ public class AnalyzerUtils {
 			indexLog.setLogLevel(log.getLogLevel());
 		}
 		indexLog.setMessage(log.getLogMessage());
+		indexLog.setClusterId(log.getClusterId());
 		return indexLog;
 	};
 
@@ -69,7 +70,7 @@ public class AnalyzerUtils {
 	 * @param logs     Test item's logs
 	 * @return {@link IndexTestItem} object
 	 */
-	public static IndexTestItem fromTestItem(TestItem testItem, List<Log> logs) {
+	public static IndexTestItem fromTestItem(TestItem testItem) {
 		IndexTestItem indexTestItem = new IndexTestItem();
 		indexTestItem.setTestItemId(testItem.getItemId());
 		indexTestItem.setTestItemName(testItem.getName());
@@ -79,9 +80,6 @@ public class AnalyzerUtils {
 		if (testItem.getItemResults().getIssue() != null) {
 			indexTestItem.setIssueTypeLocator(testItem.getItemResults().getIssue().getIssueType().getLocator());
 			indexTestItem.setAutoAnalyzed(testItem.getItemResults().getIssue().getAutoAnalyzed());
-		}
-		if (!logs.isEmpty()) {
-			indexTestItem.setLogs(fromLogs(logs));
 		}
 		return indexTestItem;
 	}
@@ -96,6 +94,8 @@ public class AnalyzerUtils {
 		analyzerConfig.setIsAutoAnalyzerEnabled(BooleanUtils.toBoolean(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
 		analyzerConfig.setMinShouldMatch(Integer.valueOf(ofNullable(configParameters.get(MIN_SHOULD_MATCH.getAttribute())).orElse(
 				MIN_SHOULD_MATCH.getDefaultValue())));
+		analyzerConfig.setSearchLogsMinShouldMatch(Integer.valueOf(ofNullable(configParameters.get(SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute())).orElse(
+				SEARCH_LOGS_MIN_SHOULD_MATCH.getDefaultValue())));
 		analyzerConfig.setNumberOfLogLines(Integer.valueOf(ofNullable(configParameters.get(NUMBER_OF_LOG_LINES.getAttribute())).orElse(
 				NUMBER_OF_LOG_LINES.getDefaultValue())));
 		analyzerConfig.setIndexingRunning(BooleanUtils.toBoolean(configParameters.get(INDEXING_RUNNING.getAttribute())));

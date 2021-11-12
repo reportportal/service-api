@@ -35,6 +35,7 @@ public final class AnalyzerUtils {
 	static final String ANALYZER_INDEX = "analyzer_index";
 	static final String ANALYZER_LOG_SEARCH = "analyzer_log_search";
 	static final String ANALYZER_SUGGEST = "analyzer_suggest";
+	static final String ANALYZER_CLUSTER = "analyzer_cluster";
 
 	/**
 	 * Comparing by client service priority
@@ -62,5 +63,12 @@ public final class AnalyzerUtils {
 	 */
 	static final Predicate<ExchangeInfo> DOES_SUPPORT_SUGGEST = it -> ofNullable(it.getArguments()
 			.get(ANALYZER_SUGGEST)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
+
+	/**
+	 * Checks if service support logs cluster creation. <code>false</code>
+	 * by default
+	 */
+	static final Predicate<ExchangeInfo> DOES_SUPPORT_CLUSTER = it -> ofNullable(it.getArguments()
+			.get(ANALYZER_CLUSTER)).map(val -> BooleanUtils.toBoolean(val.toString())).orElse(false);
 
 }

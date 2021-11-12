@@ -18,9 +18,9 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -44,7 +44,7 @@ import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -56,7 +56,7 @@ class DeleteTestItemHandlerImplTest {
 	private TestItemRepository testItemRepository;
 
 	@Mock
-	private LogRepository logRepository;
+	private ContentRemover<Long> itemContentRemover;
 
 	@Mock
 	private LogIndexer logIndexer;
@@ -191,6 +191,7 @@ class DeleteTestItemHandlerImplTest {
 		when(attachmentRepository.moveForDeletionByItems(any(Collection.class))).thenReturn(1);
 		handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
+		verify(itemContentRemover,times(1)).remove(anyLong());
 		assertFalse(parent.isHasChildren());
 	}
 
@@ -209,6 +210,7 @@ class DeleteTestItemHandlerImplTest {
 
 		OperationCompletionRS response = handler.deleteTestItem(1L, extractProjectDetails(rpUser, "test_project"), rpUser);
 
+		verify(itemContentRemover,times(1)).remove(anyLong());
 		assertEquals("Test Item with ID = '1' has been successfully deleted.", response.getResultMessage());
 
 	}

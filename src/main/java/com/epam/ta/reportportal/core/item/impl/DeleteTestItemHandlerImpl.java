@@ -20,9 +20,9 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.PathName;
@@ -64,7 +64,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
-	private final LogRepository logRepository;
+	private final ContentRemover<Long> itemContentRemover;
 
 	private final LogIndexer logIndexer;
 
@@ -73,10 +73,10 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
-	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
-			LaunchRepository launchRepository, AttachmentRepository attachmentRepository) {
+	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, ContentRemover<Long> itemContentRemover, LogIndexer logIndexer, LaunchRepository launchRepository,
+			AttachmentRepository attachmentRepository) {
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+		this.itemContentRemover = itemContentRemover;
 		this.logIndexer = logIndexer;
 		this.launchRepository = launchRepository;
 		this.attachmentRepository = attachmentRepository;
@@ -93,7 +93,9 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Optional<Long> parentId = ofNullable(item.getParentId());
 
 		Set<Long> itemsForRemove = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
+		itemsForRemove.forEach(itemContentRemover::remove);
 
+		itemContentRemover.remove(item.getItemId());
 		testItemRepository.deleteById(item.getItemId());
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
@@ -142,6 +144,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
 				.collect(toSet());
 
+		idsToDelete.forEach(itemContentRemover::remove);
 		testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
 		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));

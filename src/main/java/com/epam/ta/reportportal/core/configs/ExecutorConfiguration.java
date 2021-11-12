@@ -150,4 +150,17 @@ public class ExecutorConfiguration {
 		return executor;
 	}
 
+	@Bean(name = "logClusterExecutor")
+	public TaskExecutor logClusterExecutor(@Value("${rp.environment.variable.executor.pool.log-cluster.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.log-cluster.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.log-cluster.queue}") Integer queueCapacity) {
+		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setThreadNamePrefix("log-cluster-exec");
+		return threadPoolTaskExecutor;
+	}
+
 }

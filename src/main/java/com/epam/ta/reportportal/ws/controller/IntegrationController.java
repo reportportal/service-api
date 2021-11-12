@@ -227,7 +227,7 @@ public class IntegrationController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Execute command to the integration instance")
 	public Object executeIntegrationCommand(@PathVariable String projectName, @PathVariable("integrationId") Long integrationId,
-			@PathVariable("command") String command, @RequestBody Map<String, ?> executionParams,
+			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName), integrationId, command, executionParams);
 	}

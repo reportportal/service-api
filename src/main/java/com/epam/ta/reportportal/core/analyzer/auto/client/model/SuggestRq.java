@@ -17,12 +17,14 @@ package com.epam.ta.reportportal.core.analyzer.auto.client.model;
 
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.Set;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SuggestRq {
 
 	private Long testItemId;
@@ -30,6 +32,8 @@ public class SuggestRq {
 	private String uniqueId;
 
 	private Integer testCaseHash;
+
+	private Long clusterId;
 
 	private Long launchId;
 
@@ -66,6 +70,14 @@ public class SuggestRq {
 
 	public void setTestCaseHash(Integer testCaseHash) {
 		this.testCaseHash = testCaseHash;
+	}
+
+	public Long getClusterId() {
+		return clusterId;
+	}
+
+	public void setClusterId(Long clusterId) {
+		this.clusterId = clusterId;
 	}
 
 	public Long getLaunchId() {

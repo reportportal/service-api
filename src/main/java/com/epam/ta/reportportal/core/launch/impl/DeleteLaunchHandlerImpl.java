@@ -21,9 +21,9 @@ import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchDeletedEvent;
 import com.epam.ta.reportportal.core.launch.DeleteLaunchHandler;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.user.UserRole;
@@ -57,9 +57,9 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 @Service
 public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
-	private final LaunchRepository launchRepository;
+	private final ContentRemover<Launch> launchContentRemover;
 
-	private final LogRepository logRepository;
+	private final LaunchRepository launchRepository;
 
 	private final MessageBus messageBus;
 
@@ -68,10 +68,10 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
-	public DeleteLaunchHandlerImpl(LaunchRepository launchRepository, LogRepository logRepository, MessageBus messageBus,
+	public DeleteLaunchHandlerImpl(ContentRemover<Launch> launchContentRemover, LaunchRepository launchRepository, MessageBus messageBus,
 			LogIndexer logIndexer, AttachmentRepository attachmentRepository) {
+		this.launchContentRemover = launchContentRemover;
 		this.launchRepository = launchRepository;
-		this.logRepository = logRepository;
 		this.messageBus = messageBus;
 		this.logIndexer = logIndexer;
 		this.attachmentRepository = attachmentRepository;
@@ -83,6 +83,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 		validate(launch, user, projectDetails);
 
 		logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), Lists.newArrayList(launchId));
+		launchContentRemover.remove(launch);
 		launchRepository.delete(launch);
 		attachmentRepository.moveForDeletionByLaunchId(launchId);
 
@@ -114,6 +115,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 
 		if (CollectionUtils.isNotEmpty(launchIds)) {
 			logIndexer.indexLaunchesRemove(projectDetails.getProjectId(), launchIds);
+			toDelete.forEach(launchContentRemover::remove);
 			launchRepository.deleteAll(toDelete);
 			attachmentRepository.moveForDeletionByLaunchIds(launchIds);
 		}
@@ -131,7 +133,7 @@ public class DeleteLaunchHandlerImpl implements DeleteLaunchHandler {
 	}
 
 	/**
-	 * Validate user credentials and {@link Launch#status}
+	 * Validate user credentials and {@link Launch#getStatus()}
 	 *
 	 * @param launch         {@link Launch}
 	 * @param user           {@link ReportPortalUser}

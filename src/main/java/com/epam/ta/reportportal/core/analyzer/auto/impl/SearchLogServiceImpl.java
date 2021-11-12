@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
@@ -125,7 +126,10 @@ public class SearchLogServiceImpl implements SearchLogService {
 			return Optional.empty();
 		}
 		searchRq.setLogMessages(logMessages);
-		searchRq.setLogLines(AnalyzerUtils.getAnalyzerConfig(project).getNumberOfLogLines());
+
+		final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+		searchRq.setAnalyzerConfig(analyzerConfig);
+		searchRq.setLogLines(analyzerConfig.getNumberOfLogLines());
 		searchRq.setItemId(item.getItemId());
 		searchRq.setLaunchId(launch.getId());
 		searchRq.setLaunchName(launch.getName());

@@ -60,6 +60,9 @@ rp:
       clean:
         items:
           size: 500
+      cluster:
+        item:
+          page-size: 20
       log-index:
         batch-size: 20
       pattern-analysis:
@@ -77,6 +80,10 @@ rp:
             max: 100
             queue: 5000
           log-index:
+            core: 5
+            max: 10
+            queue: 500
+          log-cluster:
             core: 5
             max: 10
             queue: 500
@@ -109,7 +116,8 @@ rp:
     apipass:
     queues: 10
     queuesPerPod: 10
-    reply-timeout: 300000 #milliseconds
+    #TODO currently we wait for log clusterization finish that may last for ~20 mins
+    reply-timeout: 1200000 #milliseconds
 
   requestLogging: true
 

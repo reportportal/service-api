@@ -18,7 +18,6 @@ package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.MapUtils;
@@ -49,17 +48,18 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
 		expect(integrationParams, MapUtils::isNotEmpty).verify(BAD_REQUEST_ERROR, "No integration params provided");
 
 		final String encryptedToken = encryptor.encrypt(ACCESS_TOKEN.getParameter(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "AccessKey value cannot be NULL")));
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Access token value is not specified")));
 		final String username = USERNAME.getParameter(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Username is not specified"));
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Username value is not specified"));
 
-		HashMap<String, Object> result = Maps.newHashMap();
+		HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
 		result.put(ACCESS_TOKEN.getName(), encryptedToken);
 		result.put(USERNAME.getName(), username);
+
 		integrationParams.entrySet()
 				.stream()
 				.filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey().equals(USERNAME.getName()))
@@ -69,22 +69,16 @@ public class SauceLabsIntegrationService extends BasicIntegrationServiceImpl {
 	}
 
 	@Override
-	public boolean checkConnection(Integration integration) {
-		decryptParams(integration);
-		boolean connection = super.checkConnection(integration);
-		encryptParams(integration);
-		return connection;
-	}
-
-	@Override
-	public void encryptParams(Integration integration) {
-		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.encrypt(it)));
-	}
-
-	@Override
-	public void decryptParams(Integration integration) {
-		ACCESS_TOKEN.getParameter(integration.getParams().getParams())
-				.ifPresent(it -> ACCESS_TOKEN.setParameter(integration.getParams(), encryptor.decrypt(it)));
+	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
+		HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(integrationParams.size());
+		ACCESS_TOKEN.getParameter(integrationParams)
+				.ifPresent(token -> result.put(ACCESS_TOKEN.getName(), encryptor.encrypt(token)));
+		USERNAME.getParameter(integrationParams)
+				.ifPresent(username -> result.put(USERNAME.getName(), username));
+		integrationParams.entrySet()
+				.stream()
+				.filter(it -> !it.getKey().equals(ACCESS_TOKEN.getName()) && !it.getKey().equals(USERNAME.getName()))
+				.forEach(it -> result.put(it.getKey(), it.getValue()));
+		return result;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,97 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.epam.ta.reportportal.core.integration.util;
 
-import com.epam.reportportal.extension.PluginCommand;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.integration.util.property.BtsProperties;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.entity.enums.AuthType;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.google.common.collect.Maps;
-import org.apache.commons.collections4.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Optional;
-
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
-import static java.util.Optional.ofNullable;
 
 /**
- * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Service
-public class AzureIntegrationService extends AbstractBtsIntegrationService {
+public class AzureIntegrationService extends BasicIntegrationServiceImpl {
 
-	private BasicTextEncryptor basicTextEncryptor;
-
-	private static final String TEST_CONNECTION_COMMAND = "testConnection";
+	private BtsIntegrationService btsIntegrationService;
 
 	@Autowired
 	public AzureIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
-								   BasicTextEncryptor basicTextEncryptor) {
+			BtsIntegrationService btsIntegrationService) {
 		super(integrationRepository, pluginBox);
-		this.basicTextEncryptor = basicTextEncryptor;
+		this.btsIntegrationService = btsIntegrationService;
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
-		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
-
-		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(BtsProperties.values().length);
-
-		BtsProperties.AUTH_TYPE.getParam(integrationParams).ifPresent(authName -> {
-			AuthType authType = AuthType.findByName(authName)
-					.orElseThrow(() -> new ReportPortalException(ErrorType.INCORRECT_AUTHENTICATION_TYPE, authName));
-
-			if (AuthType.OAUTH.equals(authType)) {
-				final String encryptedAccessKey = basicTextEncryptor.encrypt(BtsProperties.OAUTH_ACCESS_KEY.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "AccessKey value cannot be NULL")));
-				resultParams.put(BtsProperties.OAUTH_ACCESS_KEY.getName(), encryptedAccessKey);
-			} else {
-				throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Unsupported auth type for Azure integration - " + authType.name()
-				);
-			}
-
-			resultParams.put(BtsProperties.AUTH_TYPE.getName(), authName);
-		});
-
-		BtsProperties.PROJECT.getParam(integrationParams)
-				.ifPresent(btsProject -> resultParams.put(BtsProperties.PROJECT.getName(), btsProject));
-		BtsProperties.URL.getParam(integrationParams).ifPresent(btsProject -> resultParams.put(BtsProperties.URL.getName(), btsProject));
-
-		Optional.ofNullable(integrationParams.get("defectFormFields"))
-				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
-
-		return resultParams;
+	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
+		return btsIntegrationService.retrieveCreateParams(integrationType, integrationParams);
 	}
 
 	@Override
-	public boolean checkConnection(Integration integration) {
-		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration.getType().getName(), ReportPortalExtensionPoint.class)
-				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						"Plugin for {} isn't installed",
-						integration.getType().getName()
-				));
-
-		PluginCommand commandToExecute = ofNullable(pluginInstance.getCommandToExecute(TEST_CONNECTION_COMMAND)).orElseThrow(() -> new ReportPortalException(
-				BAD_REQUEST_ERROR,
-				"Command {} is not found in plugin {}.",
-				TEST_CONNECTION_COMMAND,
-				integration.getType().getName()
-		));
-
-		return (Boolean) commandToExecute.executeCommand(integration, integration.getParams().getParams());
+	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
+		return btsIntegrationService.retrieveUpdatedParams(integrationType, integrationParams);
 	}
 }

@@ -17,8 +17,6 @@
 package com.epam.ta.reportportal.core.integration.util;
 
 import com.epam.ta.reportportal.core.integration.util.property.SauceLabsProperties;
-import com.epam.ta.reportportal.core.plugin.PluginBox;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
@@ -43,12 +41,6 @@ import static org.mockito.Mockito.when;
 class SauceLabsIntegrationServiceTest {
 
 	@Mock
-	private IntegrationRepository integrationRepository;
-
-	@Mock
-	private PluginBox pluginBox;
-
-	@Mock
 	private BasicTextEncryptor encryptor;
 
 	@InjectMocks
@@ -57,7 +49,7 @@ class SauceLabsIntegrationServiceTest {
 	@Test
 	void retrieveEmptyParamsTest() {
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
-				() -> sauceLabsIntegrationService.retrieveIntegrationParams(Collections.emptyMap())
+				() -> sauceLabsIntegrationService.retrieveCreateParams("saucelabs", Collections.emptyMap())
 		);
 		assertEquals("Error in handled Request. Please, check specified parameters: 'No integration params provided'",
 				exception.getMessage()
@@ -69,9 +61,9 @@ class SauceLabsIntegrationServiceTest {
 		HashMap<String, Object> integrationParams = Maps.newHashMap();
 		integrationParams.put(SauceLabsProperties.USERNAME.getName(), "user");
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-			sauceLabsIntegrationService.retrieveIntegrationParams(integrationParams);
+			sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 		});
-		assertEquals("Error in handled Request. Please, check specified parameters: 'AccessKey value cannot be NULL'",
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Access token value is not specified'",
 				exception.getMessage()
 		);
 	}
@@ -81,9 +73,9 @@ class SauceLabsIntegrationServiceTest {
 		HashMap<String, Object> integrationParams = Maps.newHashMap();
 		integrationParams.put(SauceLabsProperties.ACCESS_TOKEN.getName(), "token");
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> {
-			sauceLabsIntegrationService.retrieveIntegrationParams(integrationParams);
+			sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 		});
-		assertEquals("Error in handled Request. Please, check specified parameters: 'Username is not specified'", exception.getMessage());
+		assertEquals("Error in handled Request. Please, check specified parameters: 'Username value is not specified'", exception.getMessage());
 	}
 
 	@Test
@@ -96,7 +88,7 @@ class SauceLabsIntegrationServiceTest {
 		final String encryptedToken = "encryptedToken";
 		when(encryptor.encrypt("token")).thenReturn(encryptedToken);
 
-		final Map<String, Object> params = sauceLabsIntegrationService.retrieveIntegrationParams(integrationParams);
+		final Map<String, Object> params = sauceLabsIntegrationService.retrieveCreateParams("saucelabs", integrationParams);
 
 		assertNotNull(params);
 		assertTrue(MapUtils.isNotEmpty(params));

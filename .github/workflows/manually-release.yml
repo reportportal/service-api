@@ -1,20 +1,25 @@
-name: Release
-
 on:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '.github/**'
-      - README.md
-      - gradle.properties
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+      scripts_version:
+        description: 'Gradle scripts version'
+        required: true
+      bom_version:
+        description: 'Commons bom version'
+        required: true
+      migrations_version:
+        description: 'Db migrations version'
+        required: true
 
 env:
   GH_USER_NAME: github.actor
-  SCRIPTS_VERSION: 5.5.0
-  BOM_VERSION: 5.6.0
-  MIGRATIONS_VERSION: 5.6.0
-  RELEASE_VERSION: 5.6.0
+  SCRIPTS_VERSION: ${{ github.event.inputs.scripts_version }}
+  BOM_VERSION: ${{ github.event.inputs.bom_version }}
+  MIGRATIONS_VERSION: ${{ github.event.inputs.migrations_version }}
+  RELEASE_VERSION: ${{ github.event.inputs.version }}
   REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
 jobs:

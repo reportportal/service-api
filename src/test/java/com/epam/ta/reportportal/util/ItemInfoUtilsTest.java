@@ -21,9 +21,7 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

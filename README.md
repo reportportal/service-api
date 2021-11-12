@@ -5,7 +5,7 @@
 
 [![Build Status](https://travis-ci.org/reportportal/service-api.svg)](https://travis-ci.org/reportportal/service-api)
 [![Code Coverage](https://codecov.io/gh/reportportal/service-api/graphs/badge.svg)](https://codecov.io/gh/reportportal/service-api)
-[ ![Download](https://api.bintray.com/packages/epam/reportportal/service-api/images/download.svg) ](https://bintray.com/epam/reportportal/service-api/_latestVersion)
+[![Maven Central](https://img.shields.io/maven-central/v/com.epam.reportportal/service-api.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.epam.reportportal%22%20AND%20a:%22service-api%22)
 [![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-api.svg?maxAge=159200)](https://hub.docker.com/r/reportportal/service-api/)
 
 

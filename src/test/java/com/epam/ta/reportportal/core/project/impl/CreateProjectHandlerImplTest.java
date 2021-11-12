@@ -77,7 +77,7 @@ class CreateProjectHandlerImplTest {
 		createProjectRQ.setEntryType("internal");
 
 		when(projectRepository.findByName(projectName.toLowerCase().trim())).thenReturn(Optional.empty());
-		when(userRepository.findById(rpUser.getUserId())).thenReturn(Optional.empty());
+		when(userRepository.findRawById(rpUser.getUserId())).thenReturn(Optional.empty());
 
 		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.createProject(createProjectRQ, rpUser));
 

@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.history.TestItemHistory;
-import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
@@ -57,9 +56,6 @@ import java.util.function.Predicate;
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.LaunchCriteriaConstant.CRITERIA_LAUNCH_MODE;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_HAS_STATS;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.entity.project.ProjectRole.OPERATOR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.ACCESS_DENIED;
 import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_LOAD_TEST_ITEM_HISTORY;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MAX_HISTORY_DEPTH_BOUND;
 import static com.epam.ta.reportportal.ws.model.ValidationConstraints.MIN_HISTORY_DEPTH_BOUND;
@@ -95,8 +91,6 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 
 		validateHistoryDepth(historyRequestParams.getHistoryDepth());
 
-		validateProjectRole(projectDetails, user);
-
 		CompositeFilter itemHistoryFilter = new CompositeFilter(Operator.AND,
 				filter,
 				Filter.builder()
@@ -115,9 +109,8 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 				))
 				.provide(itemHistoryFilter, pageable, historyRequestParams, projectDetails, user, !oldHistory);
 
-		return buildHistoryElements(oldHistory ?
-						TestItemResource::getUniqueId :
-						testItemResource -> String.valueOf(testItemResource.getTestCaseHash()),
+		return buildHistoryElements(
+				oldHistory ? TestItemResource::getUniqueId : testItemResource -> String.valueOf(testItemResource.getTestCaseHash()),
 				testItemHistoryPage,
 				projectDetails.getProjectId(),
 				pageable
@@ -131,14 +124,9 @@ public class TestItemsHistoryHandlerImpl implements TestItemsHistoryHandler {
 		String historyDepthMessage = Suppliers.formattedSupplier("Items history depth should be greater than '{}' and lower than '{}'",
 				MIN_HISTORY_DEPTH_BOUND,
 				MAX_HISTORY_DEPTH_BOUND
-		).get();
+		)
+				.get();
 		BusinessRule.expect(historyDepth, greaterThan.and(lessThan)).verify(UNABLE_LOAD_TEST_ITEM_HISTORY, historyDepthMessage);
-	}
-
-	private void validateProjectRole(ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		if (user.getUserRole() != UserRole.ADMINISTRATOR) {
-			expect(projectDetails.getProjectRole() == OPERATOR, Predicate.isEqual(false)).verify(ACCESS_DENIED);
-		}
 	}
 
 	private Iterable<TestItemHistoryElement> buildHistoryElements(Function<TestItemResource, String> groupingFunction,

@@ -36,6 +36,7 @@ import com.epam.ta.reportportal.ws.resolver.ActiveRole;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.ResponseView;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.jooq.Operator;
@@ -53,11 +54,15 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
+import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -131,7 +136,17 @@ public class UserController {
 	@ResponseStatus(OK)
 	@ApiOperation("Delete specified users by ids")
 	public DeleteBulkRS deleteUsers(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteUserHandler.deleteUsers(deleteBulkRQ, user);
+		List<ReportPortalException> exceptions = Lists.newArrayList();
+		List<Long> deleted = Lists.newArrayList();
+		deleteBulkRQ.getIds().forEach(userId -> {
+			try {
+				deleteUserHandler.deleteUser(userId, user);
+				deleted.add(userId);
+			} catch (ReportPortalException rp) {
+				exceptions.add(rp);
+			}
+		});
+		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList()));
 	}
 
 	@Transactional
@@ -238,8 +253,7 @@ public class UserController {
 		ReportFormat format = jasperReportHandler.getReportFormat(view);
 		response.setContentType(format.getContentType());
 
-		response.setHeader(
-				com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
+		response.setHeader(com.google.common.net.HttpHeaders.CONTENT_DISPOSITION,
 				String.format("attachment; filename=RP_USERS_%s_Report.%s", format.name(), format.getValue())
 		);
 

@@ -40,6 +40,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.SearchRq;
 import com.epam.ta.reportportal.ws.model.analyzer.SearchRs;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
 import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
@@ -47,12 +48,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.ws.converter.converters.LogConverter.TO_LOG_ENTRY;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -123,7 +126,10 @@ public class SearchLogServiceImpl implements SearchLogService {
 			return Optional.empty();
 		}
 		searchRq.setLogMessages(logMessages);
-		searchRq.setLogLines(AnalyzerUtils.getAnalyzerConfig(project).getNumberOfLogLines());
+
+		final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+		searchRq.setAnalyzerConfig(analyzerConfig);
+		searchRq.setLogLines(analyzerConfig.getNumberOfLogLines());
 		searchRq.setItemId(item.getItemId());
 		searchRq.setLaunchId(launch.getId());
 		searchRq.setLaunchName(launch.getName());
@@ -160,9 +166,8 @@ public class SearchLogServiceImpl implements SearchLogService {
 		));
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(Collections.singletonList(testItem.getItemId()),
-				projectId
-		);
+
+		Map<Long, PathName> pathNameMapping = testItemRepository.selectPathNames(singletonList(testItem));
 
 		SearchLogRs response = new SearchLogRs();
 		response.setLaunchId(launch.getId());
@@ -176,9 +181,8 @@ public class SearchLogServiceImpl implements SearchLogService {
 				.stream()
 				.map(patternTemplateTestItem -> patternTemplateTestItem.getPatternTemplate().getName())
 				.collect(toSet()));
-		response.setDuration(testItem.getItemResults().getDuration());
+		response.setDuration(ofNullable(testItem.getItemResults().getDuration()).orElseGet(() -> getDuration(testItem)));
 		response.setStatus(testItem.getItemResults().getStatus().name());
-
 		TestItem itemWithStats = testItem;
 		while (!itemWithStats.isHasStats()) {
 			final Long parentId = itemWithStats.getParentId();
@@ -189,5 +193,9 @@ public class SearchLogServiceImpl implements SearchLogService {
 		response.setIssue(IssueConverter.TO_MODEL.apply(itemWithStats.getItemResults().getIssue()));
 		response.setLogs(Lists.newArrayList(TO_LOG_ENTRY.apply(log)));
 		return response;
+	}
+
+	private double getDuration(TestItem testItem) {
+		return ChronoUnit.MILLIS.between(testItem.getStartTime(), testItem.getItemResults().getEndTime()) / 1000d;
 	}
 }

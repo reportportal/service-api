@@ -20,7 +20,9 @@ import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.commons.querygen.Queryable;
 import com.epam.ta.reportportal.entity.jasper.ReportFormat;
+import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.ProjectResource;
+import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import org.springframework.data.domain.Pageable;
 
@@ -44,6 +46,20 @@ public interface GetProjectHandler {
 	 */
 	Iterable<UserResource> getProjectUsers(String projectName, Filter filter, Pageable pageable);
 
+	boolean exists(Long id);
+
+	Project getProject(ReportPortalUser.ProjectDetails projectDetails);
+
+	Project getProject(String name);
+
+	/**
+	 * Find project entity without fetching related entities
+	 *
+	 * @param name Project name to search
+	 * @return {@link Project}
+	 */
+	Project getRaw(String name);
+
 	/**
 	 * Get project resource information
 	 *
@@ -66,9 +82,10 @@ public interface GetProjectHandler {
 	 * Performs global search for user
 	 *
 	 * @param value login OR full name of user
-	 * @return List of found user logins
+	 * @param projectDetails
+	 * @return List of found user resources
 	 */
-	Iterable<UserResource> getUserNames(String value, Pageable pageable);
+	Iterable<SearchUserResource> getUserNames(String value, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
 
 	/**
 	 * Get all project names

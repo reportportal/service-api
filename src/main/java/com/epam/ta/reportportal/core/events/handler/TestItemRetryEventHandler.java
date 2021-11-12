@@ -18,8 +18,6 @@ package com.epam.ta.reportportal.core.events.handler;
 
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -35,22 +33,14 @@ public class TestItemRetryEventHandler {
 
 	private final LogIndexer logIndexer;
 
-	private final LogRepository logRepository;
-
 	@Autowired
-	public TestItemRetryEventHandler(LogIndexer logIndexer, LogRepository logRepository) {
+	public TestItemRetryEventHandler(LogIndexer logIndexer) {
 		this.logIndexer = logIndexer;
-		this.logRepository = logRepository;
 	}
 
 	@Async
 	@TransactionalEventListener
 	public void onItemRetry(ItemRetryEvent event) {
-		logIndexer.cleanIndex(event.getProjectId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(event.getLaunchId(),
-						Collections.singletonList(event.getItemId()),
-						LogLevel.ERROR.toInt()
-				)
-		);
+		logIndexer.indexItemsRemoveAsync(event.getProjectId(), Collections.singletonList(event.getItemId()));
 	}
 }

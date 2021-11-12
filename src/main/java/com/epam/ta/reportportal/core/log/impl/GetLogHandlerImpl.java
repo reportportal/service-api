@@ -23,6 +23,7 @@ import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.constant.LogRepositoryConstants;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.NestedItem;
 import com.epam.ta.reportportal.entity.item.NestedStep;
@@ -34,6 +35,7 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.converter.converters.LogConverter;
 import com.epam.ta.reportportal.ws.converter.converters.TestItemConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.log.GetLogsUnderRq;
 import com.epam.ta.reportportal.ws.model.log.LogResource;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.BooleanUtils;
@@ -75,6 +77,8 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	public static final String EXCLUDE_PASSED_LOGS = "excludePassedLogs";
 	public static final String EXCLUDE_EMPTY_STEPS = "excludeEmptySteps";
 
+	private static final int LOG_UNDER_ITEM_BATCH_SIZE = 5;
+
 	private final LogRepository logRepository;
 
 	private final TestItemRepository testItemRepository;
@@ -92,8 +96,25 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	public Iterable<LogResource> getLogs(@Nullable String path, ReportPortalUser.ProjectDetails projectDetails, Filter filterable,
 			Pageable pageable) {
 		ofNullable(path).ifPresent(p -> updateFilter(filterable, p));
-		Page<Log> logPage = logRepository.findByFilter(filterable, pageable);
+		Page<Log> logPage = logRepository.findByFilter(ProjectFilter.of(filterable, projectDetails.getProjectId()), pageable);
 		return PagedResourcesAssembler.pageConverter(LogConverter.TO_RESOURCE).apply(logPage);
+	}
+
+	@Override
+	public Map<Long, List<LogResource>> getLogs(GetLogsUnderRq logsUnderRq, ReportPortalUser.ProjectDetails projectDetails) {
+
+		final LogLevel logLevel = LogLevel.toLevel(logsUnderRq.getLogLevel())
+				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, logsUnderRq.getLogLevel()));
+
+		return testItemRepository.findAllById(logsUnderRq.getItemIds()).stream().collect(toMap(TestItem::getItemId, item -> {
+			final Launch launch = testItemService.getEffectiveLaunch(item);
+			validate(launch, projectDetails);
+			return logRepository.findLatestUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
+					item.getItemId(),
+					logLevel.toInt(),
+					LOG_UNDER_ITEM_BATCH_SIZE
+			).stream().map(LogConverter.TO_RESOURCE).collect(Collectors.toList());
+		}));
 	}
 
 	@Override
@@ -267,8 +288,9 @@ public class GetLogHandlerImpl implements GetLogHandler {
 	}
 
 	private FilterCondition getParentPathCondition(TestItem parent) {
-		String pathValue = ofNullable(parent.getRetryOf()).flatMap(retryParentId -> ofNullable(parent.getParentId()).flatMap(testItemRepository::findById).map(retryParent ->
-				retryParent.getPath() + "." + parent.getItemId())).orElse(parent.getPath());
+		String pathValue = ofNullable(parent.getRetryOf()).flatMap(retryParentId -> ofNullable(parent.getParentId()).flatMap(
+				testItemRepository::findById).map(retryParent -> retryParent.getPath() + "." + parent.getItemId()))
+				.orElse(parent.getPath());
 		return FilterCondition.builder().withCondition(Condition.UNDER).withSearchCriteria(CRITERIA_PATH).withValue(pathValue).build();
 	}
 

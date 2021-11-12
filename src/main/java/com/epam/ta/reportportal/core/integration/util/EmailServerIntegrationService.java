@@ -54,9 +54,9 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerAdminHandlerImpl.class);
 
-	private BasicTextEncryptor basicTextEncryptor;
+	private final BasicTextEncryptor basicTextEncryptor;
 
-	private MailServiceFactory emailServiceFactory;
+	private final MailServiceFactory emailServiceFactory;
 
 	public EmailServerIntegrationService(IntegrationRepository integrationRepository, PluginBox pluginBox,
 			BasicTextEncryptor basicTextEncryptor, MailServiceFactory emailServiceFactory) {
@@ -66,7 +66,7 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 	}
 
 	@Override
-	public Map<String, Object> retrieveIntegrationParams(Map<String, Object> integrationParams) {
+	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
 		BusinessRule.expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(EmailSettingsEnum.values().length);
@@ -114,6 +114,11 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 				.ifPresent(attr -> resultParams.put(EmailSettingsEnum.RP_HOST.getAttribute(), attr));
 
 		return resultParams;
+	}
+
+	@Override
+	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
+		return retrieveCreateParams(integrationType, integrationParams);
 	}
 
 	@Override

@@ -19,12 +19,11 @@ package com.epam.ta.reportportal.core.item.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.events.attachment.DeleteTestItemAttachmentsEvent;
 import com.epam.ta.reportportal.core.item.DeleteTestItemHandler;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.PathName;
 import com.epam.ta.reportportal.entity.item.TestItem;
@@ -36,8 +35,8 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -65,22 +64,22 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 
 	private final TestItemRepository testItemRepository;
 
-	private final LogRepository logRepository;
+	private final ContentRemover<Long> itemContentRemover;
 
 	private final LogIndexer logIndexer;
 
 	private final LaunchRepository launchRepository;
 
-	private final ApplicationEventPublisher eventPublisher;
+	private final AttachmentRepository attachmentRepository;
 
 	@Autowired
-	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
-			LaunchRepository launchRepository, ApplicationEventPublisher eventPublisher) {
+	public DeleteTestItemHandlerImpl(TestItemRepository testItemRepository, ContentRemover<Long> itemContentRemover, LogIndexer logIndexer, LaunchRepository launchRepository,
+			AttachmentRepository attachmentRepository) {
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
+		this.itemContentRemover = itemContentRemover;
 		this.logIndexer = logIndexer;
 		this.launchRepository = launchRepository;
-		this.eventPublisher = eventPublisher;
+		this.attachmentRepository = attachmentRepository;
 	}
 
 	@Override
@@ -93,22 +92,18 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		validate(item, launch, user, projectDetails);
 		Optional<Long> parentId = ofNullable(item.getParentId());
 
-		Set<Long> removedDescendants = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
+		Set<Long> itemsForRemove = Sets.newHashSet(testItemRepository.selectAllDescendantsIds(item.getPath()));
+		itemsForRemove.forEach(itemContentRemover::remove);
 
+		itemContentRemover.remove(item.getItemId());
 		testItemRepository.deleteById(item.getItemId());
 
 		launch.setHasRetries(launchRepository.hasRetries(launch.getId()));
 		parentId.flatMap(testItemRepository::findById)
 				.ifPresent(p -> p.setHasChildren(testItemRepository.hasChildren(p.getItemId(), p.getPath())));
 
-		//TODO if item is under another project and action is performed by an admin, wrong request will be sent to the ES query
-		logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
-						List.copyOf(removedDescendants),
-						LogLevel.ERROR.toInt()
-				)
-		);
-		eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedDescendants));
+		logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), itemsForRemove);
+		attachmentRepository.moveForDeletionByItems(itemsForRemove);
 
 		return COMPOSE_DELETE_RESPONSE.apply(item.getItemId());
 	}
@@ -117,7 +112,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 	public List<OperationCompletionRS> deleteTestItems(Collection<Long> ids, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 		List<TestItem> items = testItemRepository.findAllById(ids);
-		Set<Long> itemIds = items.stream().map(TestItem::getItemId).collect(Collectors.toSet());
 
 		List<Launch> launches = launchRepository.findAllById(items.stream()
 				.map(TestItem::getLaunchId)
@@ -126,7 +120,7 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 		Map<Long, List<TestItem>> launchItemMap = items.stream().collect(Collectors.groupingBy(TestItem::getLaunchId));
 		launches.forEach(launch -> launchItemMap.get(launch.getId()).forEach(item -> validate(item, launch, user, projectDetails)));
 
-		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(itemIds, projectDetails.getProjectId());
+		Map<Long, PathName> descendantsMapping = testItemRepository.selectPathNames(items);
 
 		Set<Long> idsToDelete = Sets.newHashSet(descendantsMapping.keySet());
 
@@ -142,13 +136,6 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.filter(Objects::nonNull)
 				.collect(toList()));
 
-		launchItemMap.forEach((launchId, testItemIds) -> logIndexer.cleanIndex(projectDetails.getProjectId(),
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId,
-						testItemIds.stream().map(TestItem::getItemId).filter(idsToDelete::contains).collect(toList()),
-						LogLevel.ERROR.toInt()
-				)
-		));
-
 		Set<Long> removedItems = testItemRepository.findAllById(idsToDelete)
 				.stream()
 				.map(TestItem::getPath)
@@ -157,13 +144,17 @@ public class DeleteTestItemHandlerImpl implements DeleteTestItemHandler {
 				.flatMap(path -> testItemRepository.selectAllDescendantsIds(path).stream())
 				.collect(toSet());
 
+		idsToDelete.forEach(itemContentRemover::remove);
 		testItemRepository.deleteAllByItemIdIn(idsToDelete);
 
 		launches.forEach(it -> it.setHasRetries(launchRepository.hasRetries(it.getId())));
 
 		parentsToUpdate.forEach(it -> it.setHasChildren(testItemRepository.hasChildren(it.getItemId(), it.getPath())));
 
-		idsToDelete.forEach(it -> eventPublisher.publishEvent(new DeleteTestItemAttachmentsEvent(removedItems)));
+		if (CollectionUtils.isNotEmpty(removedItems)) {
+			logIndexer.indexItemsRemoveAsync(projectDetails.getProjectId(), removedItems);
+			attachmentRepository.moveForDeletionByItems(removedItems);
+		}
 
 		return idsToDelete.stream().map(COMPOSE_DELETE_RESPONSE).collect(toList());
 	}

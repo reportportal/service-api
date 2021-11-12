@@ -37,7 +37,7 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.CRITERIA_ROLE;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -119,7 +119,9 @@ class GetProjectHandlerImplTest {
 
 	@Test
 	void getUserNamesNegative() {
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getUserNames("", PageRequest.of(0, 10)));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getUserNames("",
+				new ReportPortalUser.ProjectDetails(1L, "superadmin_personal", ProjectRole.PROJECT_MANAGER),
+				PageRequest.of(0, 10)));
 		assertEquals("Incorrect filtering parameters. Length of the filtering string '' is less than 1 symbol", exception.getMessage());
 	}
 }

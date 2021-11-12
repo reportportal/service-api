@@ -16,7 +16,10 @@
 
 package com.epam.ta.reportportal.core.analyzer.pattern.impl;
 
-import com.epam.ta.reportportal.commons.querygen.*;
+import com.epam.ta.reportportal.commons.querygen.Condition;
+import com.epam.ta.reportportal.commons.querygen.ConvertibleCondition;
+import com.epam.ta.reportportal.commons.querygen.Filter;
+import com.epam.ta.reportportal.commons.querygen.FilterCondition;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
@@ -26,27 +29,31 @@ import com.epam.ta.reportportal.core.analyzer.pattern.selector.condition.Pattern
 import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.PatternMatchedEvent;
 import com.epam.ta.reportportal.dao.PatternTemplateRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
+import com.epam.ta.reportportal.entity.pattern.PatternTemplate;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateTestItemPojo;
 import com.epam.ta.reportportal.entity.pattern.PatternTemplateType;
+import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.converter.converters.PatternTemplateConverter;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.activity.PatternTemplateActivityResource;
-import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATTERN_TEMPLATE_NAME;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.PATTERN_ANALYZER_KEY;
 
@@ -58,6 +65,9 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(PatternAnalyzerImpl.class);
 
+	private final Integer batchSize;
+
+	private final TestItemRepository testItemRepository;
 	private final PatternTemplateRepository patternTemplateRepository;
 	private final PatternConditionProviderChain patternConditionProviderChain;
 
@@ -70,10 +80,13 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public PatternAnalyzerImpl(PatternTemplateRepository patternTemplateRepository,
+	public PatternAnalyzerImpl(@Value("${rp.environment.variable.pattern-analysis.batch-size}") Integer batchSize,
+			TestItemRepository testItemRepository, PatternTemplateRepository patternTemplateRepository,
 			@Qualifier("patternAnalysisSelectorMapping") Map<PatternTemplateType, PatternAnalysisSelector> patternAnalysisSelectorMapping,
 			TaskExecutor patternAnalysisTaskExecutor, PatternConditionProviderChain patternConditionProviderChain,
 			AnalyzerStatusCache analyzerStatusCache, MessageBus messageBus) {
+		this.batchSize = batchSize;
+		this.testItemRepository = testItemRepository;
 		this.patternTemplateRepository = patternTemplateRepository;
 		this.patternAnalysisSelectorMapping = patternAnalysisSelectorMapping;
 		this.patternAnalysisTaskExecutor = patternAnalysisTaskExecutor;
@@ -84,48 +97,52 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 
 	@Override
 	public void analyzeTestItems(Launch launch, Set<AnalyzeItemsMode> analyzeModes) {
-
 		BusinessRule.expect(analyzerStatusCache.getStartedAnalyzers(launch.getId()), not(started -> started.contains(PATTERN_ANALYZER_KEY)))
 				.verify(ErrorType.PATTERN_ANALYSIS_ERROR, "Pattern analysis is still in progress.");
 
-		try {
-			analyzerStatusCache.analyzeStarted(PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+		analyzerStatusCache.analyzeStarted(PATTERN_ANALYZER_KEY, launch.getId(), launch.getProjectId());
+		patternAnalysisTaskExecutor.execute(() -> {
+			try {
+				final ConvertibleCondition itemCondition = getItemCondition(analyzeModes);
+				patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
+						.forEach(patternTemplate -> analyze(launch, itemCondition, patternTemplate));
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+			} finally {
+				analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, launch.getId());
+			}
+		});
 
-			ConvertibleCondition commonItemCondition = createCommonItemCondition(launch.getId(), analyzeModes);
-			patternTemplateRepository.findAllByProjectIdAndEnabled(launch.getProjectId(), true)
-					.forEach(patternTemplate -> patternAnalysisTaskExecutor.execute(() -> {
-						Filter filter = createItemFilter(commonItemCondition, patternTemplate.getName());
-						List<PatternTemplateTestItemPojo> patternTemplateTestItems = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType())
-								.selectItemsByPattern(filter, patternTemplate);
-						patternTemplateRepository.saveInBatch(patternTemplateTestItems);
+	}
 
-						PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
-								patternTemplate);
-						patternTemplateTestItems.forEach(patternItem -> {
-							PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(patternItem.getPatternTemplateId(),
-									patternItem.getTestItemId(),
-									patternTemplateActivityResource
-							);
-							messageBus.publishActivity(patternMatchedEvent);
-						});
+	private ConvertibleCondition getItemCondition(Set<AnalyzeItemsMode> analyzeModes) {
+		return patternConditionProviderChain.provideCondition(analyzeModes)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.PATTERN_ANALYSIS_ERROR, "Unable to resolve item search condition"));
+	}
 
-					}));
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		} finally {
-			analyzerStatusCache.analyzeFinished(PATTERN_ANALYZER_KEY, launch.getId());
+	private void analyze(Launch launch, ConvertibleCondition itemCondition, PatternTemplate patternTemplate) {
+		final Filter filter = createItemFilter(itemCondition, patternTemplate.getName());
+		int offset = 0;
+		List<Long> itemIds = testItemRepository.selectIdsByFilter(launch.getId(), filter, batchSize, offset);
+		while (CollectionUtils.isNotEmpty(itemIds)) {
+			final List<Long> matchedIds = attachToPatternTemplate(launch, patternTemplate, itemIds);
+			offset += itemIds.size() - matchedIds.size();
+			itemIds = testItemRepository.selectIdsByFilter(launch.getId(), filter, batchSize, offset);
 		}
 
 	}
 
-	private ConvertibleCondition createCommonItemCondition(Long launchId, Set<AnalyzeItemsMode> analyzeModes) {
-		CompositeFilterCondition testItemCondition = new CompositeFilterCondition(Lists.newArrayList(FilterCondition.builder()
-				.eq(CRITERIA_LAUNCH_ID, String.valueOf(launchId))
-				.build()));
-		patternConditionProviderChain.provideCondition(analyzeModes)
-				.ifPresent(condition -> testItemCondition.getConditions().add(condition));
+	private List<Long> attachToPatternTemplate(Launch launch, PatternTemplate patternTemplate, List<Long> itemIds) {
+		final List<Long> matchedIds = filterItems(launch, patternTemplate, itemIds);
+		final List<PatternTemplateTestItemPojo> patternTemplateTestItems = convertToPojo(patternTemplate, matchedIds);
+		patternTemplateRepository.saveInBatch(patternTemplateTestItems);
+		publishEvents(patternTemplate, patternTemplateTestItems);
+		return matchedIds;
+	}
 
-		return testItemCondition;
+	private List<Long> filterItems(Launch launch, PatternTemplate patternTemplate, List<Long> itemIds) {
+		final PatternAnalysisSelector patternAnalysisSelector = patternAnalysisSelectorMapping.get(patternTemplate.getTemplateType());
+		return patternAnalysisSelector.selectItemsByPattern(launch.getId(), itemIds, patternTemplate.getValue());
 	}
 
 	private Filter createItemFilter(ConvertibleCondition commonItemCondition, String patternTemplateName) {
@@ -139,6 +156,24 @@ public class PatternAnalyzerImpl implements PatternAnalyzer {
 						.withValue(patternTemplateName)
 						.build())
 				.build();
+	}
+
+	private List<PatternTemplateTestItemPojo> convertToPojo(PatternTemplate patternTemplate, List<Long> itemIds) {
+		return itemIds.stream()
+				.map(itemId -> new PatternTemplateTestItemPojo(patternTemplate.getId(), itemId))
+				.collect(Collectors.toList());
+	}
+
+	private void publishEvents(PatternTemplate patternTemplate, List<PatternTemplateTestItemPojo> patternTemplateTestItems) {
+		final PatternTemplateActivityResource patternTemplateActivityResource = PatternTemplateConverter.TO_ACTIVITY_RESOURCE.apply(
+				patternTemplate);
+		patternTemplateTestItems.forEach(patternItem -> {
+			PatternMatchedEvent patternMatchedEvent = new PatternMatchedEvent(patternItem.getPatternTemplateId(),
+					patternItem.getTestItemId(),
+					patternTemplateActivityResource
+			);
+			messageBus.publishActivity(patternMatchedEvent);
+		});
 	}
 
 }

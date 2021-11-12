@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.dao.AttachmentRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -31,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
+import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -44,6 +45,9 @@ class DeleteLaunchHandlerImplTest {
 
 	@Mock
 	private LaunchRepository launchRepository;
+
+	@Mock
+	private AttachmentRepository attachmentRepository;
 
 	@InjectMocks
 	private DeleteLaunchHandlerImpl handler;

@@ -57,10 +57,7 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
 		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, launchId, LogLevel.ERROR.toInt());
-		Long deletedLogsCount = logIndexer.cleanIndex(
-				projectId,
-				logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launchId, itemIds, LogLevel.ERROR.toInt())
-		).join();
+		int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
 		LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);
 		return itemIds;

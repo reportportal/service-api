@@ -233,7 +233,7 @@ public class EmailService extends JavaMailSenderImpl {
 
 			Map<String, Object> email = new HashMap<>();
 			email.put("login", login);
-			email.put("url", url);
+			email.put("url", getUrl(url));
 			String text = templateEngine.merge("restore-password-template.ftl", email);
 			message.setText(text, true);
 
@@ -277,7 +277,7 @@ public class EmailService extends JavaMailSenderImpl {
 			setFrom(message);
 
 			Map<String, Object> email = new HashMap<>();
-			email.put("url", basicUrl);
+			email.put("url", getUrl(basicUrl));
 			email.put("login", normalizeId(req.getLogin()));
 			email.put("password", req.getPassword());
 			String text = templateEngine.merge("create-user-template.ftl", email);

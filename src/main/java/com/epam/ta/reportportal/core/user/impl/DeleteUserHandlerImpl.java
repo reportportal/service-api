@@ -22,24 +22,24 @@ import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.project.DeleteProjectHandler;
+import com.epam.ta.reportportal.core.project.settings.notification.ProjectRecipientHandler;
+import com.epam.ta.reportportal.core.remover.ContentRemover;
 import com.epam.ta.reportportal.core.user.DeleteUserHandler;
-import com.epam.ta.reportportal.core.user.content.remover.UserContentRemover;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.*;
+import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Delete user handler
@@ -59,19 +59,22 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 
 	private final ShareableObjectsHandler shareableObjectsHandler;
 
-	private final UserContentRemover userContentRemover;
+	private final ContentRemover<User> userContentRemover;
+
+	private final ProjectRecipientHandler projectRecipientHandler;
 
 	private final ProjectRepository projectRepository;
 
 	@Autowired
 	public DeleteUserHandlerImpl(UserRepository userRepository, DeleteProjectHandler deleteProjectHandler,
-			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, UserContentRemover userContentRemover,
-			ProjectRepository projectRepository) {
+			ShareableObjectsHandler shareableObjectsHandler, UserBinaryDataService dataStore, ContentRemover<User> userContentRemover,
+			ProjectRecipientHandler projectRecipientHandler, ProjectRepository projectRepository) {
 		this.userRepository = userRepository;
 		this.deleteProjectHandler = deleteProjectHandler;
 		this.shareableObjectsHandler = shareableObjectsHandler;
 		this.dataStore = dataStore;
 		this.userContentRemover = userContentRemover;
+		this.projectRecipientHandler = projectRecipientHandler;
 		this.projectRepository = projectRepository;
 	}
 
@@ -81,15 +84,15 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		BusinessRule.expect(Objects.equals(userId, loggedInUser.getUserId()), Predicates.equalTo(false))
 				.verify(ErrorType.INCORRECT_REQUEST, "You cannot delete own account");
 
-		userContentRemover.removeContent(user);
+		userContentRemover.remove(user);
 
-		List<Project> userProjects = projectRepository.findUserProjects(user.getLogin());
+		List<Project> userProjects = projectRepository.findAllByUserLogin(user.getLogin());
 		userProjects.forEach(project -> {
 			if (ProjectUtils.isPersonalForUser(project.getProjectType(), project.getName(), user.getLogin())) {
 				deleteProjectHandler.deleteProject(project.getId());
 			} else {
 				shareableObjectsHandler.preventSharedObjects(project.getId(), user.getLogin());
-				ProjectUtils.excludeProjectRecipients(Lists.newArrayList(user), project);
+				projectRecipientHandler.handle(Lists.newArrayList(user), project);
 			}
 		});
 
@@ -98,23 +101,4 @@ public class DeleteUserHandlerImpl implements DeleteUserHandler {
 		return new OperationCompletionRS("User with ID = '" + userId + "' successfully deleted.");
 	}
 
-	@Override
-	public DeleteBulkRS deleteUsers(DeleteBulkRQ deleteBulkRQ, ReportPortalUser currentUser) {
-		List<ReportPortalException> exceptions = Lists.newArrayList();
-		List<Long> deleted = Lists.newArrayList();
-		deleteBulkRQ.getIds().forEach(userId -> {
-			try {
-				deleteUser(userId, currentUser);
-				deleted.add(userId);
-			} catch (ReportPortalException rp) {
-				exceptions.add(rp);
-			}
-		});
-		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(ex -> {
-			ErrorRS errorResponse = new ErrorRS();
-			errorResponse.setErrorType(ex.getErrorType());
-			errorResponse.setMessage(ex.getMessage());
-			return errorResponse;
-		}).collect(Collectors.toList()));
-	}
 }

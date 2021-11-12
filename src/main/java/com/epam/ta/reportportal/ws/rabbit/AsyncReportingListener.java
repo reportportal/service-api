@@ -110,6 +110,9 @@ public class AsyncReportingListener implements MessageListener {
 	@Autowired
 	private AttachmentBinaryDataService attachmentBinaryDataService;
 
+	@Autowired
+	private ProjectExtractor projectExtractor;
+
 	@Override
 	@RabbitMessageLogging
 	public void onMessage(Message message) {
@@ -183,17 +186,17 @@ public class AsyncReportingListener implements MessageListener {
 
 	public void onStartLaunch(StartLaunchRQ rq, String username, String projectName) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		startLaunchHandler.startLaunch(user, ProjectExtractor.extractProjectDetails(user, projectName), rq);
+		startLaunchHandler.startLaunch(user, extractProjectDetails(user, projectName), rq);
 	}
 
 	public void onFinishLaunch(FinishExecutionRQ rq, String username, String projectName, String launchId, String baseUrl) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		finishLaunchHandler.finishLaunch(launchId, rq, ProjectExtractor.extractProjectDetails(user, projectName), user, baseUrl);
+		finishLaunchHandler.finishLaunch(launchId, rq, extractProjectDetails(user, projectName), user, baseUrl);
 	}
 
 	public void onStartItem(StartTestItemRQ rq, String username, String projectName, String parentId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		ReportPortalUser.ProjectDetails projectDetails = ProjectExtractor.extractProjectDetails(user, normalizeId(projectName));
+		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, normalizeId(projectName));
 		if (!Strings.isNullOrEmpty(parentId)) {
 			startTestItemHandler.startChildItem(user, projectDetails, rq, parentId);
 		} else {
@@ -203,7 +206,12 @@ public class AsyncReportingListener implements MessageListener {
 
 	public void onFinishItem(FinishTestItemRQ rq, String username, String projectName, String itemId) {
 		ReportPortalUser user = (ReportPortalUser) userDetailsService.loadUserByUsername(username);
-		finishTestItemHandler.finishTestItem(user, ProjectExtractor.extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
+		finishTestItemHandler.finishTestItem(user, extractProjectDetails(user, normalizeId(projectName)), itemId, rq);
+	}
+
+	private ReportPortalUser.ProjectDetails extractProjectDetails(ReportPortalUser user, String projectName) {
+		return projectExtractor.findProjectDetails(user, projectName)
+				.orElseThrow(() -> new ReportPortalException(ErrorType.ACCESS_DENIED, "Please check the list of your available projects."));
 	}
 
 	public void onLogCreate(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload, Long projectId) {
@@ -311,23 +319,6 @@ public class AsyncReportingListener implements MessageListener {
 							.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
 							.build()
 			);
-		}
-	}
-
-	/**
-	 * Cleanup log content corresponding to log request, that was stored in DataStore
-	 * <p>
-	 * Consider how appropriate it to use this method for dropped messages, that exceeded retry count
-	 * and were routed into dropped DLQ
-	 *
-	 * @param payload
-	 */
-	private void cleanup(DeserializablePair<SaveLogRQ, BinaryDataMetaInfo> payload) {
-		// we need to delete only binary data, log and attachment shouldn't be dirty created
-		if (payload.getRight() != null) {
-			BinaryDataMetaInfo metaInfo = payload.getRight();
-			attachmentBinaryDataService.delete(metaInfo.getFileId());
-			attachmentBinaryDataService.delete(metaInfo.getThumbnailFileId());
 		}
 	}
 

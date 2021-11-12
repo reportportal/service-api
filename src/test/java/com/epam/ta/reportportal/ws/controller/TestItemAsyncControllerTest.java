@@ -21,7 +21,7 @@ import com.epam.ta.reportportal.core.item.FinishTestItemHandler;
 import com.epam.ta.reportportal.core.item.StartTestItemHandler;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.FinishTestItemRQ;
 import com.epam.ta.reportportal.ws.model.StartTestItemRQ;
 import org.junit.jupiter.api.Test;
@@ -35,14 +35,19 @@ import java.util.UUID;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Konstantin Antipin
  */
 @ExtendWith(MockitoExtension.class)
 class TestItemAsyncControllerTest {
+
+	@Mock
+	ProjectExtractor projectExtractor;
 
 	@Mock
 	StartTestItemHandler startTestItemHandler;
@@ -62,6 +67,9 @@ class TestItemAsyncControllerTest {
 		ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.class);
 		ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
 		ArgumentCaptor<StartTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(StartTestItemRQ.class);
+
+		when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+				.get("test_project"));
 
 		testItemAsyncController.startRootItem("test_project", user, startTestItemRQ);
 		verify(startTestItemHandler).startRootItem(userArgumentCaptor.capture(),
@@ -84,6 +92,9 @@ class TestItemAsyncControllerTest {
 		ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
 		ArgumentCaptor<StartTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(StartTestItemRQ.class);
 		ArgumentCaptor<String> parentArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+		when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+				.get("test_project"));
 
 		testItemAsyncController.startChildItem("test_project", user, parentItem, startTestItemRQ);
 		verify(startTestItemHandler).startChildItem(userArgumentCaptor.capture(),
@@ -108,6 +119,9 @@ class TestItemAsyncControllerTest {
 		ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
 		ArgumentCaptor<String> testItemCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<FinishTestItemRQ> requestArgumentCaptor = ArgumentCaptor.forClass(FinishTestItemRQ.class);
+
+		when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+				.get("test_project"));
 
 		testItemAsyncController.finishTestItem("test_project", user, testItemId, finishTestItemRQ);
 		verify(finishTestItemHandler).finishTestItem(userArgumentCaptor.capture(),

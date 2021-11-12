@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.core.launch.MergeLaunchHandler;
 import com.epam.ta.reportportal.core.launch.StartLaunchHandler;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.FinishExecutionRQ;
 import com.epam.ta.reportportal.ws.model.launch.MergeLaunchesRQ;
 import com.epam.ta.reportportal.ws.model.launch.StartLaunchRQ;
@@ -39,6 +40,8 @@ import java.util.UUID;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +50,9 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 class LaunchAsyncControllerTest {
+
+    @Mock
+    ProjectExtractor projectExtractor;
 
     @Mock
     StartLaunchHandler startLaunchHandler;
@@ -73,6 +79,9 @@ class LaunchAsyncControllerTest {
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
         ArgumentCaptor<StartLaunchRQ> requestArgumentCaptor = ArgumentCaptor.forClass(StartLaunchRQ.class);
 
+        when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+                .get("test_project"));
+
         launchAsyncController.startLaunch("test_project", startLaunchRQ, user);
         verify(startLaunchHandler).startLaunch(userArgumentCaptor.capture(), projectDetailsArgumentCaptor.capture(), requestArgumentCaptor.capture());
         assertEquals(user, userArgumentCaptor.getValue());
@@ -93,6 +102,9 @@ class LaunchAsyncControllerTest {
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
         ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.class);
         ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+                .get("test_project"));
 
         when(httpServletRequest.getRequestURL()).thenReturn(new StringBuffer("http://localhost:8080"));
         when(httpServletRequest.getHeaderNames()).thenReturn(new Enumerator<>(Lists.newArrayList()));
@@ -117,6 +129,9 @@ class LaunchAsyncControllerTest {
         ArgumentCaptor<ReportPortalUser.ProjectDetails> projectDetailsArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.ProjectDetails.class);
         ArgumentCaptor<ReportPortalUser> userArgumentCaptor = ArgumentCaptor.forClass(ReportPortalUser.class);
         ArgumentCaptor<MergeLaunchesRQ> requestArgumentCaptor = ArgumentCaptor.forClass(MergeLaunchesRQ.class);
+
+        when(projectExtractor.extractProjectDetails(any(ReportPortalUser.class), anyString())).thenReturn(user.getProjectDetails()
+                .get("test_project"));
 
         launchAsyncController.mergeLaunches("test_project", mergeLaunchesRQ, user);
         verify(mergeLaunchHandler).mergeLaunches(projectDetailsArgumentCaptor.capture(), userArgumentCaptor.capture(), requestArgumentCaptor.capture());

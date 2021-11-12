@@ -35,10 +35,12 @@ import com.epam.ta.reportportal.ws.model.*;
 import com.epam.ta.reportportal.ws.model.preference.PreferenceResource;
 import com.epam.ta.reportportal.ws.model.project.*;
 import com.epam.ta.reportportal.ws.model.project.email.ProjectNotificationConfigDTO;
+import com.epam.ta.reportportal.ws.model.user.SearchUserResource;
 import com.epam.ta.reportportal.ws.model.user.UserResource;
 import com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.jooq.Operator;
@@ -57,11 +59,14 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static com.epam.ta.reportportal.commons.EntityUtils.normalizeId;
+import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
 import static com.google.common.net.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -73,6 +78,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/v1/project")
 public class ProjectController {
 
+	private final ProjectExtractor projectExtractor;
 	private final GetProjectHandler getProjectHandler;
 	private final GetProjectInfoHandler projectInfoHandler;
 	private final CreateProjectHandler createProjectHandler;
@@ -84,10 +90,11 @@ public class ProjectController {
 	private final GetJasperReportHandler<ProjectInfo> jasperReportHandler;
 
 	@Autowired
-	public ProjectController(GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
+	public ProjectController(ProjectExtractor projectExtractor, GetProjectHandler getProjectHandler, GetProjectInfoHandler projectInfoHandler,
 			CreateProjectHandler createProjectHandler, UpdateProjectHandler updateProjectHandler, DeleteProjectHandler deleteProjectHandler,
 			GetUserHandler getUserHandler, GetPreferenceHandler getPreference, UpdatePreferenceHandler updatePreference,
 			@Qualifier("projectJasperReportHandler") GetJasperReportHandler<ProjectInfo> jasperReportHandler) {
+		this.projectExtractor = projectExtractor;
 		this.getProjectHandler = getProjectHandler;
 		this.projectInfoHandler = projectInfoHandler;
 		this.createProjectHandler = createProjectHandler;
@@ -130,16 +137,24 @@ public class ProjectController {
 		return updateProjectHandler.updateProjectNotificationConfig(normalizeId(projectName), user, updateProjectNotificationConfigRQ);
 	}
 
-	@Transactional
 	@DeleteMapping
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
 	@ApiOperation(value = "Delete multiple projects", notes = "Could be deleted only by users with administrator role")
 	public DeleteBulkRS deleteProject(@RequestBody @Valid DeleteBulkRQ deleteBulkRQ, @AuthenticationPrincipal ReportPortalUser user) {
-		return deleteProjectHandler.deleteProjects(deleteBulkRQ);
+		final List<ReportPortalException> exceptions = Lists.newArrayList();
+		final List<Long> deleted = Lists.newArrayList();
+		deleteBulkRQ.getIds().forEach(projectId -> {
+			try {
+				deleteProjectHandler.deleteProject(projectId);
+				deleted.add(projectId);
+			} catch (ReportPortalException ex) {
+				exceptions.add(ex);
+			}
+		});
+		return new DeleteBulkRS(deleted, Collections.emptyList(), exceptions.stream().map(TO_ERROR_RS).collect(Collectors.toList()));
 	}
 
-	@Transactional
 	@DeleteMapping("/{projectId}")
 	@ResponseStatus(OK)
 	@PreAuthorize(ADMIN_ONLY)
@@ -148,7 +163,6 @@ public class ProjectController {
 		return deleteProjectHandler.deleteProject(projectId);
 	}
 
-	@Transactional
 	@DeleteMapping("/{projectName}/index")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER_OR_ADMIN)
@@ -210,7 +224,7 @@ public class ProjectController {
 	@ApiOperation(value = "Load users which can be assigned to specified project", notes = "Only for users with project manager permissions")
 	public Iterable<UserResource> getUsersForAssign(@FilterFor(User.class) Filter filter, @SortFor(User.class) Pageable pageable,
 			@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getUserHandler.getUsers(filter, pageable, ProjectExtractor.extractProjectDetails(user, projectName));
+		return getUserHandler.getUsers(filter, pageable, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@Transactional(readOnly = true)
@@ -221,17 +235,16 @@ public class ProjectController {
 	public List<String> getProjectUsers(@PathVariable String projectName,
 			@RequestParam(value = FilterCriteriaResolver.DEFAULT_FILTER_PREFIX + Condition.CNT + "users") String value,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getUserNames(ProjectExtractor.extractProjectDetails(user, projectName), normalizeId(value));
+		return getProjectHandler.getUserNames(projectExtractor.extractProjectDetails(user, projectName), normalizeId(value));
 	}
 
 	@Transactional(readOnly = true)
 	@GetMapping("/{projectName}/usernames/search")
 	@ResponseStatus(OK)
 	@PreAuthorize(PROJECT_MANAGER)
-	public Iterable<UserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
+	public Iterable<SearchUserResource> searchForUser(@PathVariable String projectName, @RequestParam(value = "term") String term,
 			Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		ProjectExtractor.extractProjectDetails(user, projectName);
-		return getProjectHandler.getUserNames(term, pageable);
+		return getProjectHandler.getUserNames(term, projectExtractor.extractProjectDetails(user, projectName), pageable);
 	}
 
 	@Transactional
@@ -240,7 +253,7 @@ public class ProjectController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	public OperationCompletionRS addUserPreference(@PathVariable String projectName, @PathVariable String login,
 			@PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updatePreference.addPreference(ProjectExtractor.extractProjectDetails(user, projectName), user, filterId);
+		return updatePreference.addPreference(projectExtractor.extractProjectDetails(user, projectName), user, filterId);
 	}
 
 	@Transactional
@@ -249,7 +262,7 @@ public class ProjectController {
 	@PreAuthorize(ALLOWED_TO_EDIT_USER)
 	public OperationCompletionRS removeUserPreference(@PathVariable String projectName, @PathVariable String login,
 			@PathVariable Long filterId, @AuthenticationPrincipal ReportPortalUser user) {
-		return updatePreference.removePreference(ProjectExtractor.extractProjectDetails(user, projectName), user, filterId);
+		return updatePreference.removePreference(projectExtractor.extractProjectDetails(user, projectName), user, filterId);
 	}
 
 	@Transactional(readOnly = true)
@@ -259,7 +272,7 @@ public class ProjectController {
 	@ApiOperation(value = "Load user preferences", notes = "Only for users that allowed to edit other users")
 	public PreferenceResource getUserPreference(@PathVariable String projectName, @PathVariable String login,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getPreference.getPreference(ProjectExtractor.extractProjectDetails(user, projectName), user);
+		return getPreference.getPreference(projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@Transactional(readOnly = true)

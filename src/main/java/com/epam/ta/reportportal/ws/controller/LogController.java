@@ -26,11 +26,9 @@ import com.epam.ta.reportportal.core.log.CreateLogHandler;
 import com.epam.ta.reportportal.core.log.DeleteLogHandler;
 import com.epam.ta.reportportal.core.log.GetLogHandler;
 import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.*;
-import com.epam.ta.reportportal.ws.model.log.LogResource;
-import com.epam.ta.reportportal.ws.model.log.SaveLogRQ;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRq;
-import com.epam.ta.reportportal.ws.model.log.SearchLogRs;
+import com.epam.ta.reportportal.ws.model.log.*;
 import com.epam.ta.reportportal.ws.resolver.FilterFor;
 import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.ImmutableMap;
@@ -53,6 +51,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validator;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_REPORT;
@@ -60,7 +59,6 @@ import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_
 import static com.epam.ta.reportportal.commons.querygen.Condition.UNDR;
 import static com.epam.ta.reportportal.commons.querygen.constant.TestItemCriteriaConstant.CRITERIA_PATH;
 import static com.epam.ta.reportportal.util.ControllerUtils.*;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static com.epam.ta.reportportal.ws.resolver.FilterCriteriaResolver.DEFAULT_FILTER_PREFIX;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -73,6 +71,7 @@ import static org.springframework.http.HttpStatus.OK;
 @PreAuthorize(ASSIGNED_TO_PROJECT)
 public class LogController {
 
+	private final ProjectExtractor projectExtractor;
 	private final CreateLogHandler createLogHandler;
 	private final DeleteLogHandler deleteLogHandler;
 	private final GetLogHandler getLogHandler;
@@ -80,8 +79,9 @@ public class LogController {
 	private final Validator validator;
 
 	@Autowired
-	public LogController(@Autowired CreateLogHandler createLogHandler, DeleteLogHandler deleteLogHandler, GetLogHandler getLogHandler,
+	public LogController(ProjectExtractor projectExtractor, @Autowired CreateLogHandler createLogHandler, DeleteLogHandler deleteLogHandler, GetLogHandler getLogHandler,
 			SearchLogService searchLogService, Validator validator) {
+		this.projectExtractor = projectExtractor;
 		this.createLogHandler = createLogHandler;
 		this.deleteLogHandler = deleteLogHandler;
 		this.getLogHandler = getLogHandler;
@@ -101,7 +101,7 @@ public class LogController {
 	public EntryCreatedAsyncRS createLog(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
+		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	/* Report client API */
@@ -112,7 +112,7 @@ public class LogController {
 	public EntryCreatedAsyncRS createLogEntry(@PathVariable String projectName, @RequestBody SaveLogRQ createLogRQ,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		validateSaveRQ(validator, createLogRQ);
-		return createLogHandler.createLog(createLogRQ, null, extractProjectDetails(user, projectName));
+		return createLogHandler.createLog(createLogRQ, null, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -156,7 +156,7 @@ public class LogController {
 					 * data
 					 */
 					//noinspection ConstantConditions
-					responseItem = createLogHandler.createLog(createLogRq, data, extractProjectDetails(user, projectName));
+					responseItem = createLogHandler.createLog(createLogRq, data, projectExtractor.extractProjectDetails(user, projectName));
 				}
 				response.addResponse(new BatchElementCreatedRS(responseItem.getId()));
 			} catch (Exception e) {
@@ -174,7 +174,7 @@ public class LogController {
 	@Transactional
 	public OperationCompletionRS deleteLog(@PathVariable String projectName, @PathVariable Long logId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return deleteLogHandler.deleteLog(logId, extractProjectDetails(user, projectName), user);
+		return deleteLogHandler.deleteLog(logId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
@@ -184,7 +184,15 @@ public class LogController {
 			@RequestParam(value = DEFAULT_FILTER_PREFIX + UNDR + CRITERIA_PATH, required = false) String underPath,
 			@FilterFor(Log.class) Filter filter,
 			@SortDefault({ "logTime" }) @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLogs(underPath, extractProjectDetails(user, projectName), filter, pageable);
+		return getLogHandler.getLogs(underPath, projectExtractor.extractProjectDetails(user, projectName), filter, pageable);
+	}
+
+	@PostMapping(value = "/under")
+	@ApiOperation("Get logs under items")
+	@Transactional(readOnly = true)
+	public Map<Long, List<LogResource>> getLogsUnder(@PathVariable String projectName,
+			@RequestBody GetLogsUnderRq logsUnderRq, @AuthenticationPrincipal ReportPortalUser user) {
+		return getLogHandler.getLogs(logsUnderRq, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 	@GetMapping(value = "/{logId}/page")
@@ -193,7 +201,7 @@ public class LogController {
 	public Map<String, Serializable> getPageNumber(@PathVariable String projectName, @PathVariable Long logId,
 			@FilterFor(Log.class) Filter filter, @SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
 		return ImmutableMap.<String, Serializable>builder().put("number",
-				getLogHandler.getPageNumber(logId, extractProjectDetails(user, projectName), filter, pageable)
+				getLogHandler.getPageNumber(logId, projectExtractor.extractProjectDetails(user, projectName), filter, pageable)
 		).build();
 	}
 
@@ -202,7 +210,7 @@ public class LogController {
 	@Transactional(readOnly = true)
 	public LogResource getLog(@PathVariable String projectName, @PathVariable String logId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
+		return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@GetMapping(value = "/uuid/{logId}")
@@ -210,7 +218,7 @@ public class LogController {
 	@Transactional(readOnly = true)
 	public LogResource getLogByUuid(@PathVariable String projectName, @PathVariable String logId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getLog(logId, extractProjectDetails(user, projectName), user);
+		return getLogHandler.getLog(logId, projectExtractor.extractProjectDetails(user, projectName), user);
 	}
 
 	@GetMapping(value = "/nested/{parentId}")
@@ -219,7 +227,7 @@ public class LogController {
 	public Iterable<?> getNestedItems(@PathVariable String projectName, @PathVariable Long parentId,
 			@ApiParam(required = false) @RequestParam Map<String, String> params, @FilterFor(Log.class) Filter filter,
 			@SortFor(Log.class) Pageable pageable, @AuthenticationPrincipal ReportPortalUser user) {
-		return getLogHandler.getNestedItems(parentId, extractProjectDetails(user, projectName), params, filter, pageable);
+		return getLogHandler.getNestedItems(parentId, projectExtractor.extractProjectDetails(user, projectName), params, filter, pageable);
 	}
 
 	@PostMapping("search/{itemId}")
@@ -227,7 +235,7 @@ public class LogController {
 	@ApiOperation("Search test items with similar error logs")
 	public Iterable<SearchLogRs> searchLogs(@PathVariable String projectName, @RequestBody SearchLogRq request, @PathVariable Long itemId,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return searchLogService.search(itemId, request, extractProjectDetails(user, projectName));
+		return searchLogService.search(itemId, request, projectExtractor.extractProjectDetails(user, projectName));
 	}
 
 }

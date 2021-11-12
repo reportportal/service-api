@@ -279,13 +279,10 @@ class WidgetControllerTest extends BaseMvcTest {
 				.andExpect(jsonPath("$.name").value("bug trend"))
 				.andExpect(jsonPath("$.widgetType").value("bugTrend"))
 				.andExpect(jsonPath("$.content.result[0].name").value("test launch"))
-				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$automation_bug$total").value("1"))
-				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$product_bug$total").value("1"))
-				.andExpect(jsonPath("$.content.result[0].values.statistics$defects$to_investigate$total").value("1"))
+				.andExpect(jsonPath("$.content.result[0].values.statistics$executions$failed").value("3"))
 				.andExpect(jsonPath("$.content.result[0].values.total").value("3"))
 				.andExpect(jsonPath("$.content.result[1].name").value("test launch"))
-				.andExpect(jsonPath("$.content.result[1].values.statistics$defects$product_bug$total").value("1"))
-				.andExpect(jsonPath("$.content.result[1].values.statistics$defects$to_investigate$total").value("2"))
+				.andExpect(jsonPath("$.content.result[1].values.statistics$executions$failed").value("3"))
 				.andExpect(jsonPath("$.content.result[1].values.total").value("3"));
 	}
 

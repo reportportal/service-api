@@ -24,7 +24,6 @@ import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
 import com.epam.ta.reportportal.dao.*;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -83,12 +82,7 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 				issue.setTestItemResults(null);
 				issueEntityRepository.delete(issue);
 				testItem.getItemResults().setIssue(null);
-				logIndexer.cleanIndex(project.getId(),
-						logRepository.findIdsUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(testItem.getLaunchId(),
-								Collections.singletonList(testItem.getItemId()),
-								LogLevel.ERROR.toInt()
-						)
-				);
+				logIndexer.indexItemsRemoveAsync(project.getId(), Collections.singletonList(testItem.getItemId()));
 			});
 
 			changeParentsStatuses(testItem, launch, false, user);
@@ -102,7 +96,9 @@ public class ToPassedStatusChangingStrategy extends AbstractStatusChangingStrate
 				StatusEnum.PASSED.name(),
 				StatusEnum.INFO.name(),
 				StatusEnum.WARN.name()
-		) ? StatusEnum.FAILED : StatusEnum.PASSED;
+		) ?
+				StatusEnum.FAILED :
+				StatusEnum.PASSED;
 	}
 
 }

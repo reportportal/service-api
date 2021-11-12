@@ -33,6 +33,7 @@ import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.filter.ObjectType;
 import com.epam.ta.reportportal.entity.filter.UserFilter;
 import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.converter.builders.UserFilterBuilder;
 import com.epam.ta.reportportal.ws.model.CollectionsRQ;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
@@ -53,13 +54,13 @@ import java.util.function.Predicate;
 
 import static com.epam.ta.reportportal.commons.Preconditions.NOT_EMPTY_COLLECTION;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.util.ProjectExtractor.extractProjectDetails;
 import static com.epam.ta.reportportal.ws.converter.converters.UserFilterConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.USER_FILTER_NOT_FOUND;
 
 @Service
 public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
+	private final ProjectExtractor projectExtractor;
 	private final GetShareableEntityHandler<UserFilter> getShareableEntityHandler;
 	private final UserFilterRepository userFilterRepository;
 	private final WidgetRepository widgetRepository;
@@ -67,9 +68,9 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 	private final MessageBus messageBus;
 
 	@Autowired
-	public UpdateUserFilterHandlerImpl(GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
-			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler,
-			MessageBus messageBus) {
+	public UpdateUserFilterHandlerImpl(ProjectExtractor projectExtractor, GetShareableEntityHandler<UserFilter> getShareableEntityHandler,
+			UserFilterRepository userFilterRepository, WidgetRepository widgetRepository, ShareableObjectsHandler aclHandler, MessageBus messageBus) {
+		this.projectExtractor = projectExtractor;
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.userFilterRepository = userFilterRepository;
 		this.widgetRepository = widgetRepository;
@@ -79,7 +80,7 @@ public class UpdateUserFilterHandlerImpl implements UpdateUserFilterHandler {
 
 	@Override
 	public EntryCreatedRS createFilter(UpdateUserFilterRQ createFilterRQ, String projectName, ReportPortalUser user) {
-		ReportPortalUser.ProjectDetails projectDetails = extractProjectDetails(user, projectName);
+		ReportPortalUser.ProjectDetails projectDetails = projectExtractor.extractProjectDetails(user, projectName);
 
 		validateFilterRq(createFilterRQ);
 

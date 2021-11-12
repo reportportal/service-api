@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.hierarchy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.IssueTypeHandler;
+import com.epam.ta.reportportal.core.item.impl.retry.RetryHandler;
 import com.epam.ta.reportportal.core.item.impl.status.ChangeStatusHandler;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
@@ -29,14 +30,12 @@ import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.item.issue.IssueEntity;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.job.PageUtil;
+import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -65,16 +64,19 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 	protected final TestItemRepository testItemRepository;
 	protected final ItemAttributeRepository itemAttributeRepository;
 	protected final IssueEntityRepository issueEntityRepository;
+	private final RetryHandler retryHandler;
 	private final IssueTypeHandler issueTypeHandler;
 	private final ChangeStatusHandler changeStatusHandler;
 
 	public AbstractFinishHierarchyHandler(LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, IssueTypeHandler issueTypeHandler,
+			ItemAttributeRepository itemAttributeRepository, IssueEntityRepository issueEntityRepository, RetryHandler retryHandler,
+			IssueTypeHandler issueTypeHandler,
 			ChangeStatusHandler changeStatusHandler) {
 		this.launchRepository = launchRepository;
 		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.issueEntityRepository = issueEntityRepository;
+		this.retryHandler = retryHandler;
 		this.issueTypeHandler = issueTypeHandler;
 		this.changeStatusHandler = changeStatusHandler;
 	}
@@ -208,5 +210,8 @@ public abstract class AbstractFinishHierarchyHandler<T> implements FinishHierarc
 		ItemAttribute interruptedAttribute = new ItemAttribute(ATTRIBUTE_KEY_STATUS, ATTRIBUTE_VALUE_INTERRUPTED, false);
 		interruptedAttribute.setTestItem(testItem);
 		testItem.getAttributes().add(interruptedAttribute);
+		if (testItem.isHasRetries()) {
+			retryHandler.finishRetries(testItem.getItemId(), JStatusEnum.valueOf(status.name()), endTime);
+		}
 	}
 }

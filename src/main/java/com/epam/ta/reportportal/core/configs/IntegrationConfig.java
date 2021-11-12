@@ -41,8 +41,9 @@ public class IntegrationConfig implements ApplicationContextAware {
 
 	@Bean
 	public Map<String, IntegrationService> integrationServiceMapping() {
-		return ImmutableMap.<String, IntegrationService>builder().put("jira", applicationContext.getBean(JiraIntegrationService.class))
-				.put("rally", applicationContext.getBean(RallyIntegrationService.class))
+		return ImmutableMap.<String, IntegrationService>builder().put("jira", applicationContext.getBean(BtsIntegrationService.class))
+				.put("rally", applicationContext.getBean(BtsIntegrationService.class))
+				.put("Azure DevOps", applicationContext.getBean(AzureIntegrationService.class))
 				.put("email", applicationContext.getBean(EmailServerIntegrationService.class))
 				.put("saucelabs", applicationContext.getBean(SauceLabsIntegrationService.class))
 				.build();

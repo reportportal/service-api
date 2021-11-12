@@ -52,11 +52,7 @@ INSERT INTO public.widget (id, name, description, widget_type, items_count, widg
 (11, 'LAUNCH STATISTICS', null, 'launchStatistics', 10, '{"options": {"timeline": "WEEK"}}');
 
 insert into content_field(id, field)
-values (10, 'statistics$defects$to_investigate$total'),
-       (10, 'statistics$defects$product_bug$total'),
-       (10, 'statistics$defects$automation_bug$total'),
-       (10, 'statistics$defects$system_issue$total'),
-       (10, 'statistics$defects$no_defect$total');
+values (10, 'statistics$executions$failed');
 
 INSERT INTO public.widget_filter (widget_id, filter_id) VALUES
 (6, 1),

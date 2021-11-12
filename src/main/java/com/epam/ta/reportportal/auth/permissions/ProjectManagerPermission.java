@@ -18,6 +18,8 @@ package com.epam.ta.reportportal.auth.permissions;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
+import com.epam.ta.reportportal.util.ProjectExtractor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,6 +31,11 @@ import org.springframework.stereotype.Component;
 @Component
 @LookupPermission({ "projectManagerPermission" })
 public class ProjectManagerPermission extends BaseProjectPermission {
+
+	@Autowired
+	public ProjectManagerPermission(ProjectExtractor projectExtractor) {
+		super(projectExtractor);
+	}
 
 	/**
 	 * Validates this is {@link ProjectRole#PROJECT_MANAGER} or higher authority in the

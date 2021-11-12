@@ -5,6 +5,8 @@ def commonScriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-sc
 def migrationsScriptsUrl = 'https://raw.githubusercontent.com/reportportal/migrations/'
 
 project.ext {
+    publishRepo = "https://maven.pkg.github.com/reportportal/service-api"
+    dependencyRepos = ["commons-dao", "commons-rules", "commons-model", "commons", "commons-fonts", "plugin-api", "commons-bom"]
     limits = [
             'instruction': 70,
             'branch'     : 53,
@@ -16,36 +18,40 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'alter-log-attachment')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
     //TODO refactor with archive download
     testScriptsSrc = [
-            (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
-            (migrationsUrl + '/migrations/1_initialize_schema.up.sql')                 : 'V002__initialize_schema.sql',
-            (migrationsUrl + '/migrations/3_default_data.up.sql')                      : 'V003__default_data.sql',
-            (migrationsUrl + '/migrations/4_size_limitations.up.sql')                  : 'V004__size_limitations.sql',
-            (migrationsUrl + '/migrations/5_test_case_id_type.up.sql')                 : 'V005__test_case_id_type.sql',
-            (migrationsUrl + '/migrations/6_retries_handling.up.sql')                  : 'V006__retries_handling.sql',
-            (migrationsUrl + '/migrations/7_auth_integration.up.sql')                  : 'V007__auth_integration.sql',
-            (migrationsUrl + '/migrations/8_sender_case_enabled_field.up.sql')         : 'V008__sender_case_enabled_field.sql',
-            (migrationsUrl + '/migrations/9_analyzer_params.up.sql')                   : 'V009__analyzer_params.sql',
-            (migrationsUrl + '/migrations/10_attachment_size.up.sql')                  : 'V010__attachment_size.sql',
-            (migrationsUrl + '/migrations/11_password_encoding.up.sql')                : 'V011__password_encoding.sql',
-            (migrationsUrl + '/migrations/12_remove_ticket_duplicates.up.sql')         : 'V012__remove_ticket_duplicates.sql',
-            (migrationsUrl + '/migrations/13_add_allocated_storage_per_project.up.sql'): 'V013__add_allocated_storage_per_project.sql',
-            (migrationsUrl + '/migrations/14_test_case_id_size_increase.up.sql')       : 'V014__test_case_id_size_increase.sql',
-            (migrationsUrl + '/migrations/15_statistics_decreasing.up.sql')            : 'V015__statistics_decreasing.sql',
-            (migrationsUrl + '/migrations/16_remove_unused_indexes.up.sql')            : 'V016__remove_unused_indexes.sql',
-            (migrationsUrl + '/migrations/17_status_enum_extension.up.sql')            : 'V017__status_enum_extension.sql',
-            (migrationsUrl + '/migrations/18_job_attributes.up.sql')                   : 'V018__job_attributes.sql',
-            (migrationsUrl + '/migrations/19_retries_handling_extension.up.sql')       : 'V019__retries_handling_extension.sql',
-            (migrationsUrl + '/migrations/20_deep_merge_statistics_handling.up.sql')   : 'V020__deep_merge_statistics_handling.sql',
-            (migrationsUrl + '/migrations/21_deep_merge_retries_fix.up.sql')           : 'V021__deep_merge_retries_fix.sql',
-            (migrationsUrl + '/migrations/22_deep_merge_nested_steps_fix.up.sql')      : 'V022__deep_merge_nested_steps_fix.sql',
-            (migrationsUrl + '/migrations/23_rerun_item_statistics_fix.up.sql')        : 'V023__rerun_item_statistics_fix.sql',
-            (migrationsUrl + '/migrations/24_widget_views_cleanup.up.sql')             : 'V024__widget_views_cleanup.sql',
-            (migrationsUrl + '/migrations/25_deep_merge_nested_steps_path_fix.up.sql') : 'V025__deep_merge_nested_steps_path_fix.sql',
-            (migrationsUrl + '/migrations/26_retries_lock_fix.up.sql')                 : 'V026__retries_lock_fix.sql',
-            (migrationsUrl + '/migrations/27_alter_log_attachment.up.sql')             : 'V027__alter_log_attachment.sql',
+            (migrationsUrl + '/migrations/0_extensions.up.sql')                          : 'V001__extensions.sql',
+            (migrationsUrl + '/migrations/1_initialize_schema.up.sql')                   : 'V002__initialize_schema.sql',
+            (migrationsUrl + '/migrations/3_default_data.up.sql')                        : 'V003__default_data.sql',
+            (migrationsUrl + '/migrations/4_size_limitations.up.sql')                    : 'V004__size_limitations.sql',
+            (migrationsUrl + '/migrations/5_test_case_id_type.up.sql')                   : 'V005__test_case_id_type.sql',
+            (migrationsUrl + '/migrations/6_retries_handling.up.sql')                    : 'V006__retries_handling.sql',
+            (migrationsUrl + '/migrations/7_auth_integration.up.sql')                    : 'V007__auth_integration.sql',
+            (migrationsUrl + '/migrations/8_sender_case_enabled_field.up.sql')           : 'V008__sender_case_enabled_field.sql',
+            (migrationsUrl + '/migrations/9_analyzer_params.up.sql')                     : 'V009__analyzer_params.sql',
+            (migrationsUrl + '/migrations/10_attachment_size.up.sql')                    : 'V010__attachment_size.sql',
+            (migrationsUrl + '/migrations/11_password_encoding.up.sql')                  : 'V011__password_encoding.sql',
+            (migrationsUrl + '/migrations/12_remove_ticket_duplicates.up.sql')           : 'V012__remove_ticket_duplicates.sql',
+            (migrationsUrl + '/migrations/13_add_allocated_storage_per_project.up.sql')  : 'V013__add_allocated_storage_per_project.sql',
+            (migrationsUrl + '/migrations/14_test_case_id_size_increase.up.sql')         : 'V014__test_case_id_size_increase.sql',
+            (migrationsUrl + '/migrations/15_statistics_decreasing.up.sql')              : 'V015__statistics_decreasing.sql',
+            (migrationsUrl + '/migrations/16_remove_unused_indexes.up.sql')              : 'V016__remove_unused_indexes.sql',
+            (migrationsUrl + '/migrations/17_status_enum_extension.up.sql')              : 'V017__status_enum_extension.sql',
+            (migrationsUrl + '/migrations/18_job_attributes.up.sql')                     : 'V018__job_attributes.sql',
+            (migrationsUrl + '/migrations/19_retries_handling_extension.up.sql')         : 'V019__retries_handling_extension.sql',
+            (migrationsUrl + '/migrations/20_deep_merge_statistics_handling.up.sql')     : 'V020__deep_merge_statistics_handling.sql',
+            (migrationsUrl + '/migrations/21_deep_merge_retries_fix.up.sql')             : 'V021__deep_merge_retries_fix.sql',
+            (migrationsUrl + '/migrations/22_deep_merge_nested_steps_fix.up.sql')        : 'V022__deep_merge_nested_steps_fix.sql',
+            (migrationsUrl + '/migrations/23_rerun_item_statistics_fix.up.sql')          : 'V023__rerun_item_statistics_fix.sql',
+            (migrationsUrl + '/migrations/24_widget_views_cleanup.up.sql')               : 'V024__widget_views_cleanup.sql',
+            (migrationsUrl + '/migrations/25_deep_merge_nested_steps_path_fix.up.sql')   : 'V025__deep_merge_nested_steps_path_fix.sql',
+            (migrationsUrl + '/migrations/26_retries_lock_fix.up.sql')                   : 'V026__retries_lock_fix.sql',
+            (migrationsUrl + '/migrations/42_shedlock_table.up.sql')                     : 'V032__shedlock_table.sql',
+            (migrationsUrl + '/migrations/43_attachment_for_deletion_table.up.sql')      : 'V033__attachment_for_deletion_table.sql',
+            (migrationsUrl + '/migrations/44_remove_triggers.up.sql')                    : 'V034__remove_triggers.sql',
+            (migrationsUrl + '/migrations/48_composite_attribute.up.sql')                : 'V048__composite_attribute.sql',
+            (migrationsUrl + '/migrations/51_cluster.up.sql')                            : 'V051__cluster.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',
@@ -53,7 +59,10 @@ project.ext {
                     '**/configs/**',
                     '**/demodata/**',
                     '**/exception/**',
-                    '**/job/FlushingDataJob**'
+                    '**/job/FlushingDataJob**',
+                    "**/core/analyzer/auto/client/model/**",
+                    '**/core/analyzer/auto/impl/SuggestedItem**',
+                    '**/core/item/impl/provider/impl/mock/**'
     ]
 }
 

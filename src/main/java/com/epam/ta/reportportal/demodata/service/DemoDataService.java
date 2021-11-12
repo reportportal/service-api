@@ -41,7 +41,7 @@ public class DemoDataService {
 
 	public DemoDataRs generate(DemoDataRq demoDataRq, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		DemoDataRs demoDataRs = new DemoDataRs();
-		final List<Long> launchIds = demoDataFacade.generateDemoLaunches(demoDataRq, user, projectDetails);
+		final List<Long> launchIds = demoDataFacade.generateDemoLaunches(user, projectDetails);
 		demoDataRs.setLaunchIds(launchIds);
 		if (demoDataRq.isCreateDashboard()) {
 			demoDashboardsService.generate(user, projectDetails.getProjectId()).ifPresent(it -> demoDataRs.setDashboardId(it.getId()));

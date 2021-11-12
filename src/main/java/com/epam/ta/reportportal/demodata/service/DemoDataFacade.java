@@ -19,7 +19,6 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.demodata.model.DemoDataRq;
 
 import java.util.List;
 
@@ -30,10 +29,9 @@ public interface DemoDataFacade {
 	/**
 	 * Generates demo launches
 	 *
-	 * @param demoDataRq
 	 * @param user
 	 * @param projectDetails
 	 * @return {@link List} of generated launch ids
 	 */
-	List<Long> generateDemoLaunches(DemoDataRq demoDataRq, ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
+	List<Long> generateDemoLaunches(ReportPortalUser user, ReportPortalUser.ProjectDetails projectDetails);
 }

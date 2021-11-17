@@ -92,7 +92,7 @@ class ProjectControllerTest extends BaseMvcTest {
 				.with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isCreated());
 		final Optional<Project> createdProjectOptional = projectRepository.findByName("TestProject".toLowerCase());
 		assertTrue(createdProjectOptional.isPresent());
-		assertEquals(11, createdProjectOptional.get().getProjectAttributes().size());
+		assertEquals(14, createdProjectOptional.get().getProjectAttributes().size());
 		assertEquals(5, createdProjectOptional.get().getProjectIssueTypes().size());
 	}
 
@@ -124,6 +124,9 @@ class ProjectControllerTest extends BaseMvcTest {
 		projectAttributes.put("analyzer.minShouldMatch", "5");
 		projectAttributes.put("analyzer.numberOfLogLines", "5");
 		projectAttributes.put("analyzer.isAutoAnalyzerEnabled", "false");
+		projectAttributes.put("analyzer.searchLogsMinShouldMatch", "60");
+		projectAttributes.put("analyzer.uniqueError.enabled", "true");
+		projectAttributes.put("analyzer.uniqueError.removeNumbers", "true");
 		configuration.setProjectAttributes(projectAttributes);
 		rq.setConfiguration(configuration);
 

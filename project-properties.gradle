@@ -18,7 +18,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'EPMRPP-68775-auto-unique-error-analyzer-attributes')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                          : 'V001__extensions.sql',
@@ -52,6 +52,8 @@ project.ext {
             (migrationsUrl + '/migrations/44_remove_triggers.up.sql')                    : 'V034__remove_triggers.sql',
             (migrationsUrl + '/migrations/48_composite_attribute.up.sql')                : 'V048__composite_attribute.sql',
             (migrationsUrl + '/migrations/51_cluster.up.sql')                            : 'V051__cluster.sql',
+            (migrationsUrl + '/migrations/52_analyzer_search_attribute.up.sql')          : 'V052__analyzer_search_attribute.sql',
+            (migrationsUrl + '/migrations/54_analyzer_unique_error_attribute.up.sql')    : 'V054__analyzer_unique_error_attribute.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

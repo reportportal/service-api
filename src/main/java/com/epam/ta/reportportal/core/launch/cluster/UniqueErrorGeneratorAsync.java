@@ -51,7 +51,6 @@ public class UniqueErrorGeneratorAsync extends UniqueErrorGenerator {
 			logClusterExecutor.execute(() -> super.generateClusters(config));
 		} catch (Exception ex) {
 			LOGGER.error(ex.getMessage(), ex);
-		} finally {
 			cleanCache(config.getEntityContext());
 		}
 	}

@@ -16,29 +16,25 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.pipeline.PipelineConstructor;
 import com.epam.ta.reportportal.pipeline.TransactionalPipeline;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 
 import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class ClusterGeneratorImplTest {
-
-	private final TaskExecutor logClusterExecutor = new SyncTaskExecutor();
+class UniqueErrorGeneratorTest {
 
 	private final AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
@@ -47,8 +43,7 @@ class ClusterGeneratorImplTest {
 
 	private final TransactionalPipeline transactionalPipeline = mock(TransactionalPipeline.class);
 
-	private final ClusterGenerator clusterGenerator = new ClusterGeneratorImpl(logClusterExecutor,
-			analyzerStatusCache,
+	private final UniqueErrorGenerator clusterGenerator = new UniqueErrorGenerator(analyzerStatusCache,
 			pipelineConstructor,
 			transactionalPipeline
 	);
@@ -61,6 +56,50 @@ class ClusterGeneratorImplTest {
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class, () -> clusterGenerator.generate(config));
 		assertEquals("Impossible interact with integration. Clusters creation is in progress.", exception.getMessage());
+
+		final ClusterEntityContext entityContext = config.getEntityContext();
+		verify(analyzerStatusCache, times(0)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+				entityContext.getLaunchId(),
+				entityContext.getProjectId()
+		);
+	}
+
+	@Test
+	void shouldGenerate() {
+		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
+
+		final GenerateClustersConfig config = getConfig(false);
+
+		clusterGenerator.generate(config);
+
+		final ClusterEntityContext entityContext = config.getEntityContext();
+		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+				entityContext.getLaunchId(),
+				entityContext.getProjectId()
+		);
+		verify(pipelineConstructor, times(1)).construct(config);
+		verify(transactionalPipeline, times(1)).run(anyList());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, entityContext.getLaunchId());
+	}
+
+	@Test
+	void shouldCleanCacheWhenExceptionThrown() {
+		when(analyzerStatusCache.containsLaunchId(anyString(), anyLong())).thenReturn(false);
+
+		final GenerateClustersConfig config = getConfig(false);
+
+		doThrow(new RuntimeException("Exception during generation")).when(transactionalPipeline).run(anyList());
+
+		clusterGenerator.generate(config);
+
+		final ClusterEntityContext entityContext = config.getEntityContext();
+		verify(analyzerStatusCache, times(1)).analyzeStarted(AnalyzerStatusCache.CLUSTER_KEY,
+				entityContext.getLaunchId(),
+				entityContext.getProjectId()
+		);
+		verify(pipelineConstructor, times(1)).construct(config);
+		verify(transactionalPipeline, times(1)).run(anyList());
+		verify(analyzerStatusCache, times(1)).analyzeFinished(AnalyzerStatusCache.CLUSTER_KEY, entityContext.getLaunchId());
 	}
 
 }

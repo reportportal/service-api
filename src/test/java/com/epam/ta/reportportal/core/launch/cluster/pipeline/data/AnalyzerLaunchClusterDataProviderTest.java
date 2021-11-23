@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster.pipeline;
+package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -37,12 +36,13 @@ import static org.mockito.Mockito.when;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class AnalyzerClusterDataProviderTest {
-
+class AnalyzerLaunchClusterDataProviderTest {
 	private final LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 	private final AnalyzerServiceClient analyzerServiceClient = mock(AnalyzerServiceClient.class);
 
-	private final AnalyzerClusterDataProvider provider = new AnalyzerClusterDataProvider(launchPreparerService, analyzerServiceClient);
+	private final AnalyzerLaunchClusterDataProvider provider = new AnalyzerLaunchClusterDataProvider(analyzerServiceClient,
+			launchPreparerService
+	);
 
 	@Test
 	void shouldFailWhenNoAnalyzer() {
@@ -54,12 +54,14 @@ class AnalyzerClusterDataProviderTest {
 	}
 
 	@Test
-	void shouldReturnDataWhenNoIndexLaunch() {
+	void shouldReturnDataWhenIndexLaunchExists() {
 		when(analyzerServiceClient.hasClients()).thenReturn(true);
 
 		final GenerateClustersConfig config = getConfig(false);
 
-		when(launchPreparerService.prepare(config.getLaunchId(), config.getAnalyzerConfig())).thenReturn(Optional.of(new IndexLaunch()));
+		when(launchPreparerService.prepare(config.getEntityContext().getLaunchId(),
+				config.getAnalyzerConfig()
+		)).thenReturn(Optional.of(new IndexLaunch()));
 		when(analyzerServiceClient.generateClusters(any(GenerateClustersRq.class))).thenReturn(new ClusterData());
 		final Optional<ClusterData> data = provider.provide(config);
 		assertTrue(data.isPresent());
@@ -71,9 +73,10 @@ class AnalyzerClusterDataProviderTest {
 
 		final GenerateClustersConfig config = getConfig(false);
 
-		when(launchPreparerService.prepare(config.getLaunchId(), config.getAnalyzerConfig())).thenReturn(Optional.empty());
+		when(launchPreparerService.prepare(config.getEntityContext().getLaunchId(),
+				config.getAnalyzerConfig()
+		)).thenReturn(Optional.empty());
 		final Optional<ClusterData> data = provider.provide(config);
 		assertTrue(data.isEmpty());
 	}
-
 }

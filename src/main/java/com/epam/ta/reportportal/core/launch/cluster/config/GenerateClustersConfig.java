@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster;
+package com.epam.ta.reportportal.core.launch.cluster.config;
 
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
@@ -23,8 +23,7 @@ import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
  */
 public class GenerateClustersConfig {
 
-	private Long launchId;
-	private Long project;
+	private ClusterEntityContext entityContext;
 
 	private AnalyzerConfig analyzerConfig;
 
@@ -34,20 +33,12 @@ public class GenerateClustersConfig {
 	public GenerateClustersConfig() {
 	}
 
-	public Long getLaunchId() {
-		return launchId;
+	public ClusterEntityContext getEntityContext() {
+		return entityContext;
 	}
 
-	public void setLaunchId(Long launchId) {
-		this.launchId = launchId;
-	}
-
-	public Long getProject() {
-		return project;
-	}
-
-	public void setProject(Long project) {
-		this.project = project;
+	public void setEntityContext(ClusterEntityContext entityContext) {
+		this.entityContext = entityContext;
 	}
 
 	public AnalyzerConfig getAnalyzerConfig() {

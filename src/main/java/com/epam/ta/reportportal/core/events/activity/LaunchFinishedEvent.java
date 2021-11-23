@@ -17,9 +17,11 @@ package com.epam.ta.reportportal.core.events.activity;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.ActivityEvent;
+import com.epam.ta.reportportal.core.events.ProjectIdAwareEvent;
 import com.epam.ta.reportportal.entity.activity.Activity;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
-import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.LAUNCH;
 import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAUNCH;
@@ -29,41 +31,75 @@ import static com.epam.ta.reportportal.entity.activity.ActivityAction.FINISH_LAU
  *
  * @author Andrei Varabyeu
  */
-public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent {
+public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent, ProjectIdAwareEvent {
 
-	private LaunchActivityResource launchActivityResource;
+	private Long id;
+	private String name;
+	private LaunchModeEnum mode;
+
+	private Long projectId;
 
 	private ReportPortalUser user;
 
 	private String baseUrl;
 
-	public LaunchFinishedEvent() {
+	public LaunchFinishedEvent(Launch launch) {
+		this.id = launch.getId();
+		this.name = launch.getName();
+		this.mode = launch.getMode();
+		this.projectId = launch.getProjectId();
 	}
 
-	public LaunchFinishedEvent(LaunchActivityResource launchActivityResource, Long userId, String userLogin) {
+	public LaunchFinishedEvent(Launch launch, Long userId, String userLogin) {
 		super(userId, userLogin);
-		this.launchActivityResource = launchActivityResource;
+		this.id = launch.getId();
+		this.name = launch.getName();
+		this.mode = launch.getMode();
+		this.projectId = launch.getProjectId();
 	}
 
-	public LaunchFinishedEvent(LaunchActivityResource launchActivityResource, ReportPortalUser user, String baseUrl) {
-		super(user.getUserId(), user.getUsername());
-		this.launchActivityResource = launchActivityResource;
+	public LaunchFinishedEvent(Launch launch, Long userId, String userLogin, String baseUrl) {
+		this(launch, userId, userLogin);
+		this.baseUrl = baseUrl;
+	}
+
+	public LaunchFinishedEvent(Launch launch, ReportPortalUser user, String baseUrl) {
+		this(launch, user.getUserId(), user.getUsername());
 		this.user = user;
 		this.baseUrl = baseUrl;
 	}
 
-	public LaunchFinishedEvent(LaunchActivityResource launchActivityResource, String baseUrl, Long userId, String userLogin) {
-		super(userId, userLogin);
-		this.launchActivityResource = launchActivityResource;
-		this.baseUrl = baseUrl;
+	public Long getId() {
+		return id;
 	}
 
-	public LaunchActivityResource getLaunchActivityResource() {
-		return launchActivityResource;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public void setLaunchActivityResource(LaunchActivityResource launchActivityResource) {
-		this.launchActivityResource = launchActivityResource;
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public LaunchModeEnum getMode() {
+		return mode;
+	}
+
+	public void setMode(LaunchModeEnum mode) {
+		this.mode = mode;
+	}
+
+	@Override
+	public Long getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(Long projectId) {
+		this.projectId = projectId;
 	}
 
 	public String getBaseUrl() {
@@ -89,9 +125,9 @@ public class LaunchFinishedEvent extends AbstractEvent implements ActivityEvent 
 				.addActivityEntityType(LAUNCH)
 				.addUserId(getUserId())
 				.addUserName(getUserLogin())
-				.addObjectId(launchActivityResource.getId())
-				.addObjectName(launchActivityResource.getName())
-				.addProjectId(launchActivityResource.getProjectId())
+				.addObjectId(id)
+				.addObjectName(name)
+				.addProjectId(projectId)
 				.get();
 	}
 }

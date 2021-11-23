@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,69 +14,65 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
+package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
-import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
+import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.handler.subscriber.LaunchFinishedEventSubscriber;
+import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchAutoAnalysisSubscriber implements LaunchFinishedEventSubscriber {
+public class LaunchAutoAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-	private final AnalyzerServiceAsync analyzerServiceAsync;
+	private final GetLaunchHandler getLaunchHandler;
+	private final AnalyzerService analyzerService;
 	private final AnalyzeCollectorFactory analyzeCollectorFactory;
 	private final LogIndexer logIndexer;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public LaunchAutoAnalysisSubscriber(AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory,
+	public LaunchAutoAnalysisRunner(GetLaunchHandler getLaunchHandler, AnalyzerService analyzerService, AnalyzeCollectorFactory analyzeCollectorFactory,
 			LogIndexer logIndexer, ApplicationEventPublisher eventPublisher) {
-		this.analyzerServiceAsync = analyzerServiceAsync;
+		this.getLaunchHandler = getLaunchHandler;
+		this.analyzerService = analyzerService;
 		this.analyzeCollectorFactory = analyzeCollectorFactory;
 		this.logIndexer = logIndexer;
 		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
-	public void handleEvent(LaunchFinishedEvent launchFinishedEvent, Project project, Launch launch) {
-		AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(project);
+	@Transactional
+	public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
+		final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
+
+		final AnalyzerConfig analyzerConfig = AnalyzerUtils.getAnalyzerConfig(projectConfig);
+		logIndexer.indexLaunchLogs(launch, analyzerConfig);
 		if (BooleanUtils.isTrue(analyzerConfig.getIsAutoAnalyzerEnabled())) {
-			List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
-					.collectItems(project.getId(), launch.getId(), launchFinishedEvent.getUser());
-			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig).join();
-			analyzerServiceAsync.analyze(launch, itemIds, analyzerConfig)
-					.thenRunAsync(() -> eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId())))
-					.join();
+			final List<Long> itemIds = analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)
+					.collectItems(launch.getProjectId(), launch.getId(), launchFinishedEvent.getUser());
 
-			//TODO provide executor
-			CompletableFuture.supplyAsync(() -> logIndexer.indexItemsLogs(project.getId(), launch.getId(), itemIds, analyzerConfig));
-		} else {
-			logIndexer.indexLaunchLogs(project.getId(), launch.getId(), analyzerConfig);
-			eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId()));
+			analyzerService.runAnalyzers(launch, itemIds, analyzerConfig);
+			logIndexer.indexItemsLogs(launch.getProjectId(), launch.getId(), itemIds, analyzerConfig);
 		}
-
+		eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launch.getId()));
 	}
 
-	@Override
-	public int getOrder() {
-		return 1;
-	}
 }

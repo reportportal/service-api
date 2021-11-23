@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
+package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.handler.subscriber.LaunchFinishedEventSubscriber;
+import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
+import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.SendCase;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -45,7 +45,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -58,39 +60,44 @@ import static com.epam.ta.reportportal.dao.constant.WidgetContentRepositoryConst
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscriber {
+public class LaunchNotificationRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationSubscriber.class);
+	public static final Logger LOGGER = LoggerFactory.getLogger(LaunchNotificationRunner.class);
 
+	private final GetProjectHandler getProjectHandler;
+	private final GetLaunchHandler getLaunchHandler;
 	private final GetIntegrationHandler getIntegrationHandler;
 	private final MailServiceFactory mailServiceFactory;
-	private final LaunchRepository launchRepository;
 	private final UserRepository userRepository;
 
 	@Autowired
-	public LaunchNotificationSubscriber(GetIntegrationHandler getIntegrationHandler, MailServiceFactory mailServiceFactory,
-			LaunchRepository launchRepository, UserRepository userRepository) {
+	public LaunchNotificationRunner(GetProjectHandler getProjectHandler, GetLaunchHandler getLaunchHandler,
+			GetIntegrationHandler getIntegrationHandler, MailServiceFactory mailServiceFactory, UserRepository userRepository) {
+		this.getProjectHandler = getProjectHandler;
+		this.getLaunchHandler = getLaunchHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
 		this.mailServiceFactory = mailServiceFactory;
-		this.launchRepository = launchRepository;
 		this.userRepository = userRepository;
 	}
 
 	@Override
-	public void handleEvent(LaunchFinishedEvent launchFinishedEvent, Project project, Launch launch) {
+	@Transactional(readOnly = true)
+	public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
 
-		boolean isNotificationsEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
-				.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
+		boolean isNotificationsEnabled = BooleanUtils.toBoolean(projectConfig.get(ProjectAttributeEnum.NOTIFICATIONS_ENABLED.getAttribute()));
 
 		if (isNotificationsEnabled) {
-			Integration emailIntegration = getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
-					IntegrationGroupEnum.NOTIFICATION
-			).orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, "EMAIL"));
-			Optional<EmailService> emailService = mailServiceFactory.getDefaultEmailService(emailIntegration);
-			emailService.ifPresent(it -> {
-				launchRepository.refresh(launch);
-				sendEmail(launch, project, it, launchFinishedEvent.getBaseUrl());
-			});
+			getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(launchFinishedEvent.getProjectId(),
+							IntegrationGroupEnum.NOTIFICATION
+					)
+					.flatMap(mailServiceFactory::getDefaultEmailService)
+					.ifPresentOrElse(emailService -> sendEmail(launchFinishedEvent, emailService),
+							() -> LOGGER.warn("Unable to find {} integration for project {}",
+									IntegrationGroupEnum.NOTIFICATION,
+									launchFinishedEvent.getProjectId()
+							)
+					);
+
 		}
 
 	}
@@ -102,7 +109,10 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 	 * @param project      Project
 	 * @param emailService Mail Service
 	 */
-	private void sendEmail(Launch launch, Project project, EmailService emailService, String baseUrl) {
+	private void sendEmail(LaunchFinishedEvent launchFinishedEvent, EmailService emailService) {
+
+		final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
+		final Project project = getProjectHandler.get(launch.getProjectId());
 
 		project.getSenderCases().stream().filter(SenderCase::isEnabled).forEach(ec -> {
 			SendCase sendCase = ec.getSendCase();
@@ -116,7 +126,7 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 						.orElseThrow(() -> new ReportPortalException(ErrorType.USER_NOT_FOUND, launch.getUserId())), recipients);
 				try {
 					emailService.sendLaunchFinishNotification(recipientsArray,
-							String.format("%s/ui/#%s", baseUrl, project.getName()),
+							String.format("%s/ui/#%s", launchFinishedEvent.getBaseUrl(), project.getName()),
 							project,
 							launch
 					);
@@ -217,8 +227,4 @@ public class LaunchNotificationSubscriber implements LaunchFinishedEventSubscrib
 						.collect(Collectors.toSet()));
 	}
 
-	@Override
-	public int getOrder() {
-		return 2;
-	}
 }

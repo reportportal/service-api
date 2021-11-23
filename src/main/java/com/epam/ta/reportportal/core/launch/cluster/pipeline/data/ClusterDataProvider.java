@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster.pipeline;
+package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 
 import java.util.Optional;
 

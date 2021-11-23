@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.launch.cluster.pipeline;
+package com.epam.ta.reportportal.core.launch.cluster.pipeline.data;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersRq;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -31,15 +33,15 @@ import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class AnalyzerClusterDataProvider implements ClusterDataProvider {
+public abstract class AnalyzerClusterDataProvider implements ClusterDataProvider {
 
-	private final LaunchPreparerService launchPreparerService;
 	private final AnalyzerServiceClient analyzerServiceClient;
 
-	public AnalyzerClusterDataProvider(LaunchPreparerService launchPreparerService, AnalyzerServiceClient analyzerServiceClient) {
-		this.launchPreparerService = launchPreparerService;
+	public AnalyzerClusterDataProvider(AnalyzerServiceClient analyzerServiceClient) {
 		this.analyzerServiceClient = analyzerServiceClient;
 	}
+
+	protected abstract Optional<IndexLaunch> prepareIndexLaunch(GenerateClustersConfig config);
 
 	@Override
 	public Optional<ClusterData> provide(GenerateClustersConfig config) {
@@ -50,14 +52,20 @@ public class AnalyzerClusterDataProvider implements ClusterDataProvider {
 	}
 
 	private Optional<GenerateClustersRq> getGenerateRq(GenerateClustersConfig config) {
-		return launchPreparerService.prepare(config.getLaunchId(), config.getAnalyzerConfig()).map(indexLaunch -> {
+		return prepareIndexLaunch(config).map(indexLaunch -> {
 			final GenerateClustersRq generateClustersRq = new GenerateClustersRq();
 			generateClustersRq.setLaunch(indexLaunch);
-			generateClustersRq.setProject(config.getProject());
 			generateClustersRq.setCleanNumbers(config.isCleanNumbers());
 			generateClustersRq.setForUpdate(config.isForUpdate());
-			generateClustersRq.setNumberOfLogLines(config.getAnalyzerConfig().getNumberOfLogLines());
+
+			final ClusterEntityContext entityContext = config.getEntityContext();
+			generateClustersRq.setProject(entityContext.getProjectId());
+
+			final AnalyzerConfig analyzerConfig = config.getAnalyzerConfig();
+			generateClustersRq.setNumberOfLogLines(analyzerConfig.getNumberOfLogLines());
+
 			return generateClustersRq;
 		});
 	}
+
 }

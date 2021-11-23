@@ -23,7 +23,7 @@ import java.io.Serializable;
 /**
  * @author Andrei Varabyeu
  */
-public interface ActivityEvent extends Serializable {
+public interface ActivityEvent extends Event, Serializable {
 
 	/**
 	 * Converts Object to Activity to be persisted in DB

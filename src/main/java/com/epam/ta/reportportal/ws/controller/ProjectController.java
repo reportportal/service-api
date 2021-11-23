@@ -194,7 +194,7 @@ public class ProjectController {
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation(value = "Get information about project", notes = "Only for users that are assigned to the project")
 	public ProjectResource getProject(@PathVariable String projectName, @AuthenticationPrincipal ReportPortalUser user) {
-		return getProjectHandler.getProject(normalizeId(projectName), user);
+		return getProjectHandler.getResource(normalizeId(projectName), user);
 	}
 
 	@Transactional

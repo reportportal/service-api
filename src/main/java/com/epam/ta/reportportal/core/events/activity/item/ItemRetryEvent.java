@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.item;
+package com.epam.ta.reportportal.core.events.activity.item;
+
+import com.epam.ta.reportportal.core.events.Event;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
  */
-public class ItemRetryEvent {
+public class ItemRetryEvent implements Event {
 
 	private final Long projectId;
 

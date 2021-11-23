@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,48 +14,48 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler.subscriber.impl;
+package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.pattern.PatternAnalyzer;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.handler.subscriber.LaunchFinishedEventSubscriber;
+import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
-import com.epam.ta.reportportal.entity.project.ProjectUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchPatternAnalysisSubscriber implements LaunchFinishedEventSubscriber {
+public class LaunchPatternAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
+	private final GetLaunchHandler getLaunchHandler;
 	private final PatternAnalyzer patternAnalyzer;
 
 	@Autowired
-	public LaunchPatternAnalysisSubscriber(PatternAnalyzer patternAnalyzer) {
+	public LaunchPatternAnalysisRunner(GetLaunchHandler getLaunchHandler, PatternAnalyzer patternAnalyzer) {
+		this.getLaunchHandler = getLaunchHandler;
 		this.patternAnalyzer = patternAnalyzer;
 	}
 
 	@Override
-	public void handleEvent(LaunchFinishedEvent launchFinishedEvent, Project project, Launch launch) {
+	@Transactional
+	public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
 
-		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(ProjectUtils.getConfigParameters(project.getProjectAttributes())
-				.get(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
+		boolean isPatternAnalysisEnabled = BooleanUtils.toBoolean(projectConfig.get(ProjectAttributeEnum.AUTO_PATTERN_ANALYZER_ENABLED.getAttribute()));
 
 		if (isPatternAnalysisEnabled) {
+			final Launch launch = getLaunchHandler.get(launchFinishedEvent.getId());
 			patternAnalyzer.analyzeTestItems(launch, Collections.singleton(AnalyzeItemsMode.TO_INVESTIGATE));
 		}
 	}
 
-	@Override
-	public int getOrder() {
-		return 3;
-	}
 }

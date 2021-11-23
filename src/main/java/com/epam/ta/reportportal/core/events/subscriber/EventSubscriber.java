@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler.subscriber;
+package com.epam.ta.reportportal.core.events.subscriber;
 
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.entity.launch.Launch;
-import com.epam.ta.reportportal.entity.project.Project;
-import org.springframework.core.Ordered;
+import com.epam.ta.reportportal.core.events.Event;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface LaunchFinishedEventSubscriber extends Ordered {
+public interface EventSubscriber<T extends Event> {
 
-	void handleEvent(LaunchFinishedEvent launchFinishedEvent, Project project, Launch launch);
+	void handleEvent(T event);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.item;
+package com.epam.ta.reportportal.core.events;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class ItemFinishedEvent {
+public interface ProjectIdAwareEvent extends Event {
 
-	private final Long itemId;
-
-	private final Long launchId;
-
-	private final Long projectId;
-
-	public ItemFinishedEvent(Long itemId, Long launchId, Long projectId) {
-		this.itemId = itemId;
-		this.launchId = launchId;
-		this.projectId = projectId;
-	}
-
-	public Long getItemId() {
-		return itemId;
-	}
-
-	public Long getLaunchId() {
-		return launchId;
-	}
-
-	public Long getProjectId() {
-		return projectId;
-	}
+	Long getProjectId();
 }

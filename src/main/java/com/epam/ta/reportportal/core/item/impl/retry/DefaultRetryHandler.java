@@ -1,7 +1,7 @@
 package com.epam.ta.reportportal.core.item.impl.retry;
 
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
-import com.epam.ta.reportportal.core.events.item.ItemRetryEvent;
+import com.epam.ta.reportportal.core.events.activity.item.ItemRetryEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;

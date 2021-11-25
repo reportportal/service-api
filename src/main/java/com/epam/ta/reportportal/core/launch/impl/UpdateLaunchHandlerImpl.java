@@ -19,7 +19,8 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
@@ -52,6 +53,7 @@ import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,7 +97,8 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler, GetLaunchHandler getLaunchHandler,
 			LaunchAccessValidator launchAccessValidator, LaunchRepository launchRepository, TestItemRepository testItemRepository,
 			LogIndexer logIndexer, LaunchPreparerService launchPreparerService,
-			Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping, ClusterGenerator clusterGenerator) {
+			Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
+			@Qualifier("uniqueErrorGeneratorAsync") ClusterGenerator clusterGenerator) {
 		this.getProjectHandler = getProjectHandler;
 		this.getLaunchHandler = getLaunchHandler;
 		this.launchAccessValidator = launchAccessValidator;
@@ -110,7 +113,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	@Override
 	public OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateLaunchRQ rq) {
-		Project project = getProjectHandler.getProject(projectDetails);
+		Project project = getProjectHandler.get(projectDetails);
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
@@ -153,21 +156,22 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	public OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 
-		final Launch launch = getLaunchHandler.getLaunch(createClustersRQ.getLaunchId());
+		final Launch launch = getLaunchHandler.get(createClustersRQ.getLaunchId());
 		launchAccessValidator.validate(launch, projectDetails, user);
 		//TODO should be put inside *Validator after validators refactoring
 		expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(INCORRECT_REQUEST, "Cannot analyze launch in progress.");
 
-		final Project project = getProjectHandler.getProject(projectDetails);
-
-		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
+		final Project project = getProjectHandler.get(launch.getProjectId());
 
 		final GenerateClustersConfig config = new GenerateClustersConfig();
-		config.setAnalyzerConfig(analyzerConfig);
-		config.setLaunchId(launch.getId());
-		config.setProject(project.getId());
 		config.setForUpdate(false);
 		config.setCleanNumbers(createClustersRQ.isRemoveNumbers());
+
+		final ClusterEntityContext entityContext = ClusterEntityContext.of(launch.getId(), launch.getProjectId());
+		config.setEntityContext(entityContext);
+
+		final AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
+		config.setAnalyzerConfig(analyzerConfig);
 
 		clusterGenerator.generate(config);
 

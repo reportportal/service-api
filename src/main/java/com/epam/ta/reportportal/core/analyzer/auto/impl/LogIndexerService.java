@@ -100,23 +100,17 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	@Transactional(readOnly = true)
-	//TODO refactor to execute in single Transaction (because of CompletableFuture there is no transaction inside).
-	//TODO Probably we should implement AsyncLogIndexer and use this service as sync delegate with transaction
-	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				indexerStatusCache.indexingStarted(projectId);
-				Launch launch = launchRepository.findById(launchId)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launchId);
-				return batchLogIndexer.index(analyzerConfig, launch, itemIds);
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				throw new ReportPortalException(e.getMessage());
-			} finally {
-				indexerStatusCache.indexingFinished(projectId);
-			}
-		});
+	public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
+		try {
+			indexerStatusCache.indexingStarted(launch.getProjectId());
+			final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launchId);
+			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new ReportPortalException(e.getMessage());
+		} finally {
+			indexerStatusCache.indexingFinished(launch.getProjectId());
+		}
 	}
 
 	@Override

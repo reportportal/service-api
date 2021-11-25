@@ -83,8 +83,8 @@ class SuggestItemServiceTest {
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
 		when(testItemValidator.validate(any(TestItem.class))).thenReturn(true);
 		when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
-		when(getLaunchHandler.getLaunch(testItem.getLaunchId())).thenReturn(launch);
-		when(getProjectHandler.getProject(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+		when(getLaunchHandler.get(testItem.getLaunchId())).thenReturn(launch);
+		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
 		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 				Collections.singletonList(testItem.getItemId()),
 				ERROR_INT
@@ -118,8 +118,8 @@ class SuggestItemServiceTest {
 
 		when(testItemRepository.findById(1L)).thenReturn(Optional.of(testItem));
 		when(testItemValidator.validate(any(TestItem.class))).thenReturn(true);
-		when(getLaunchHandler.getLaunch(testItem.getLaunchId())).thenReturn(launch);
-		when(getProjectHandler.getProject(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+		when(getLaunchHandler.get(testItem.getLaunchId())).thenReturn(launch);
+		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
 		when(testItemRepository.findById(2L)).thenReturn(Optional.empty());
 
 		when(analyzerServiceClient.searchSuggests(any(SuggestRq.class))).thenReturn(Collections.singletonList(suggestInfo));
@@ -191,8 +191,8 @@ class SuggestItemServiceTest {
 
 		when(getClusterHandler.getById(1L)).thenReturn(cluster);
 		when(testItemRepository.findById(2L)).thenReturn(Optional.of(relevantItem));
-		when(getLaunchHandler.getLaunch(cluster.getLaunchId())).thenReturn(launch);
-		when(getProjectHandler.getProject(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
+		when(getLaunchHandler.get(cluster.getLaunchId())).thenReturn(launch);
+		when(getProjectHandler.get(any(ReportPortalUser.ProjectDetails.class))).thenReturn(project);
 		when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsAndLogLevelGte(launch.getId(),
 				Collections.singletonList(relevantItem.getItemId()),
 				ERROR_INT

@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public interface GetLaunchHandler {
 
-	Launch getLaunch(Long id);
+	Launch get(Long id);
 
 	/**
 	 * Get Launch resource by specified UUID

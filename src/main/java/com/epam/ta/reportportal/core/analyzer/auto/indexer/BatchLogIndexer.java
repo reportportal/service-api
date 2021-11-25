@@ -3,11 +3,14 @@ package com.epam.ta.reportportal.core.analyzer.auto.indexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,15 +30,20 @@ public class BatchLogIndexer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchLogIndexer.class);
 
 	private final Integer launchBatchSize;
+	private final Integer itemsBatchSize;
 	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
 	private final LaunchPreparerService launchPreparerService;
 	private final IndexerServiceClient indexerServiceClient;
 
 	@Autowired
 	public BatchLogIndexer(@Value("${rp.environment.variable.log-index.batch-size}") Integer launchBatchSize,
-			LaunchRepository launchRepository, LaunchPreparerService launchPreparerService, IndexerServiceClient indexerServiceClient) {
+			@Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize, LaunchRepository launchRepository,
+			TestItemRepository testItemRepository, LaunchPreparerService launchPreparerService, IndexerServiceClient indexerServiceClient) {
 		this.launchBatchSize = launchBatchSize;
+		this.itemsBatchSize = itemsBatchSize;
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 		this.launchPreparerService = launchPreparerService;
 		this.indexerServiceClient = indexerServiceClient;
 	}
@@ -54,6 +62,23 @@ public class BatchLogIndexer {
 		}
 
 		return totalIndexed.get();
+	}
+
+	@Transactional(readOnly = true)
+	public Long index(AnalyzerConfig analyzerConfig, Launch launch, List<Long> itemIds) {
+		AtomicLong indexedCount = new AtomicLong(0);
+		Iterables.partition(itemIds, itemsBatchSize)
+				.forEach(partition -> indexedCount.addAndGet(indexPartition(partition, analyzerConfig, launch)));
+		return indexedCount.get();
+	}
+
+	private Long indexPartition(List<Long> itemIds, AnalyzerConfig analyzerConfig, Launch launch) {
+		LOGGER.info("Indexing started for {} items.", itemIds.size());
+		final Long indexedLogs = launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
+				.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
+				.orElse(0L);
+		LOGGER.info("Indexing of {} logs is finished for {} items.", indexedLogs, itemIds.size());
+		return indexedLogs;
 	}
 
 	private void index(Long projectId, AnalyzerConfig analyzerConfig, List<Long> launchIds, AtomicLong totalIndexed) {

@@ -36,11 +36,13 @@ import com.epam.ta.reportportal.ws.model.analyzer.AnalyzedItemRs;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,10 +81,14 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
 	private final MessageBus messageBus;
 
+	private final Integer itemsBatchSize;
+
 	@Autowired
-	public AnalyzerServiceImpl(AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
+	public AnalyzerServiceImpl(@Value("${rp.environment.variable.item-analyze.batch-size}") Integer itemsBatchSize,
+			AnalyzerStatusCache analyzerStatusCache, LaunchPreparerService launchPreparerService,
 			AnalyzerServiceClient analyzerServicesClient, IssueTypeHandler issueTypeHandler, TestItemRepository testItemRepository,
 			MessageBus messageBus) {
+		this.itemsBatchSize = itemsBatchSize;
 		this.analyzerStatusCache = analyzerStatusCache;
 		this.launchPreparerService = launchPreparerService;
 		this.analyzerServicesClient = analyzerServicesClient;
@@ -100,9 +106,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	public void runAnalyzers(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
 		try {
 			analyzerStatusCache.analyzeStarted(AUTO_ANALYZER_KEY, launch.getId(), launch.getProjectId());
-			List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
-			Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze, analyzerConfig);
-			rqLaunch.ifPresent(rq -> analyzeLaunch(launch, toAnalyze, rq));
+			Iterables.partition(testItemIds, itemsBatchSize).forEach(partition -> analyzeItemsPartition(launch, partition, analyzerConfig));
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		} finally {
@@ -111,18 +115,22 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	}
 
 	/**
-	 * Run analyzing for a concrete launch
+	 * Prepare and analyze the number of provided test item ids.
 	 *
-	 * @param launch    Launch
-	 * @param toAnalyze Items to analyze
-	 * @param rq        Prepared rq for sending to analyzers
+	 * @param launch         Launch
+	 * @param testItemIds    Item ids for analyzing
+	 * @param analyzerConfig Analyzer config
 	 */
-	private void analyzeLaunch(Launch launch, List<TestItem> toAnalyze, IndexLaunch rq) {
-		LOGGER.info("Start analysis for launch with id '{}'", rq.getLaunchId());
-		Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
-		if (!MapUtils.isEmpty(analyzedMap)) {
-			analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
-		}
+	private void analyzeItemsPartition(Launch launch, List<Long> testItemIds, AnalyzerConfig analyzerConfig) {
+		LOGGER.info("Start analysis of '{}' items for launch with id '{}'", testItemIds.size(), launch.getId());
+		List<TestItem> toAnalyze = testItemRepository.findAllById(testItemIds);
+		Optional<IndexLaunch> rqLaunch = launchPreparerService.prepare(launch, toAnalyze, analyzerConfig);
+		rqLaunch.ifPresent(rq -> {
+			Map<String, List<AnalyzedItemRs>> analyzedMap = analyzerServicesClient.analyze(rq);
+			if (!MapUtils.isEmpty(analyzedMap)) {
+				analyzedMap.forEach((key, value) -> updateTestItems(key, value, toAnalyze, launch.getProjectId()));
+			}
+		});
 	}
 
 	/**
@@ -207,6 +215,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 		return ofNullable(issue.getIssueDescription()).map(description -> String.join("\n",
 				description,
 				nullToEmpty(relevantIssue.getIssueDescription())
-		)).orElseGet(() -> nullToEmpty(relevantIssue.getIssueDescription()));
+		))
+				.orElseGet(() -> nullToEmpty(relevantIssue.getIssueDescription()));
 	}
 }

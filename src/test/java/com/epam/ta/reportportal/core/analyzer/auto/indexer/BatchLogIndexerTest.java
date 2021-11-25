@@ -3,6 +3,7 @@ package com.epam.ta.reportportal.core.analyzer.auto.indexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
@@ -22,10 +23,13 @@ class BatchLogIndexerTest {
 
 	private IndexerServiceClient indexerServiceClient = mock(IndexerServiceClient.class);
 	private LaunchRepository launchRepository = mock(LaunchRepository.class);
+	private TestItemRepository testItemRepository = mock(TestItemRepository.class);
 	private LaunchPreparerService launchPreparerService = mock(LaunchPreparerService.class);
 
 	private final BatchLogIndexer batchLogIndexer = new BatchLogIndexer(batchSize,
+			batchSize,
 			launchRepository,
+			testItemRepository,
 			launchPreparerService,
 			indexerServiceClient
 	);
@@ -34,11 +38,8 @@ class BatchLogIndexerTest {
 	void index() {
 
 		final List<Long> ids = List.of(1L, 2L);
-		when(launchRepository.findIdsByProjectIdAndModeAndStatusNotEq(eq(1L),
-				any(JLaunchModeEnum.class),
-				any(JStatusEnum.class),
-				anyInt()
-		)).thenReturn(ids);
+		when(launchRepository.findIdsByProjectIdAndModeAndStatusNotEq(eq(1L), any(JLaunchModeEnum.class), any(JStatusEnum.class), anyInt()))
+				.thenReturn(ids);
 
 		final IndexLaunch firstIndex = new IndexLaunch();
 		firstIndex.setTestItems(List.of(new IndexTestItem()));

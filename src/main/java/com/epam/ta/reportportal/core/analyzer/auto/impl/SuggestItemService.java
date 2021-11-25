@@ -92,7 +92,7 @@ public class SuggestItemService {
 		validateTestItem(testItem);
 
 		Launch launch = getLaunch(testItem.getLaunchId(), projectDetails, user);
-		Project project = getProjectHandler.getProject(projectDetails);
+		Project project = getProjectHandler.get(projectDetails);
 
 		SuggestRq suggestRq = prepareSuggestRq(testItem, launch, project);
 		return getSuggestedItems(suggestRq);
@@ -110,13 +110,13 @@ public class SuggestItemService {
 	public List<SuggestedItem> suggestClusterItems(Long clusterId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
 		final Cluster cluster = getClusterHandler.getById(clusterId);
 		final Launch launch = getLaunch(cluster.getLaunchId(), projectDetails, user);
-		final Project project = getProjectHandler.getProject(projectDetails);
+		final Project project = getProjectHandler.get(projectDetails);
 		final SuggestRq suggestRq = prepareSuggestRq(cluster, launch, project);
 		return getSuggestedItems(suggestRq);
 	}
 
 	private Launch getLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		Launch launch = getLaunchHandler.getLaunch(launchId);
+		Launch launch = getLaunchHandler.get(launchId);
 		launchAccessValidator.validate(launch, projectDetails, user);
 		return launch;
 	}

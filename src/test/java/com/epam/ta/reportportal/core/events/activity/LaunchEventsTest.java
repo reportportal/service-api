@@ -19,6 +19,8 @@ package com.epam.ta.reportportal.core.events.activity;
 import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.entity.activity.ActivityAction;
 import com.epam.ta.reportportal.entity.activity.ActivityDetails;
+import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +57,12 @@ class LaunchEventsTest {
 	@Test
 	void finished() {
 		final String name = "name";
-		final Activity actual = new LaunchFinishedEvent(getLaunch(name), 1L, "user").toActivity();
+		Launch launch = new Launch();
+		launch.setId(2L);
+		launch.setName(name);
+		launch.setProjectId(3L);
+		launch.setMode(LaunchModeEnum.DEFAULT);
+		final Activity actual = new LaunchFinishedEvent(launch, 1L, "user").toActivity();
 		final Activity expected = getExpectedActivity(ActivityAction.FINISH_LAUNCH, name);
 		checkActivity(expected, actual);
 	}

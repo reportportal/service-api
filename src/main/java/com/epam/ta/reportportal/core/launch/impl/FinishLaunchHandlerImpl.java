@@ -17,7 +17,6 @@
 package com.epam.ta.reportportal.core.launch.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.events.MessageBus;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.hierarchy.FinishHierarchyHandler;
 import com.epam.ta.reportportal.core.launch.FinishLaunchHandler;
@@ -42,7 +41,6 @@ import static com.epam.ta.reportportal.core.launch.util.LaunchValidator.validate
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.generateLaunchLink;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.FAILED;
 import static com.epam.ta.reportportal.entity.enums.StatusEnum.PASSED;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.LAUNCH_NOT_FOUND;
 
 /**
@@ -57,16 +55,14 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 
 	private final LaunchRepository launchRepository;
 	private final FinishHierarchyHandler<Launch> finishHierarchyHandler;
-	private final MessageBus messageBus;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
 	public FinishLaunchHandlerImpl(LaunchRepository launchRepository,
-			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler, MessageBus messageBus,
+			@Qualifier("finishLaunchHierarchyHandler") FinishHierarchyHandler<Launch> finishHierarchyHandler,
 			ApplicationEventPublisher eventPublisher) {
 		this.launchRepository = launchRepository;
 		this.finishHierarchyHandler = finishHierarchyHandler;
-		this.messageBus = messageBus;
 		this.eventPublisher = eventPublisher;
 	}
 
@@ -107,8 +103,7 @@ public class FinishLaunchHandlerImpl implements FinishLaunchHandler {
 				.addEndTime(finishLaunchRQ.getEndTime())
 				.get();
 
-		LaunchFinishedEvent event = new LaunchFinishedEvent(TO_ACTIVITY_RESOURCE.apply(launch), user, baseUrl);
-		messageBus.publishActivity(event);
+		LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, baseUrl);
 		eventPublisher.publishEvent(event);
 
 		FinishLaunchRS response = new FinishLaunchRS();

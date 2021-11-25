@@ -69,9 +69,9 @@ public class LogIndexerService implements LogIndexer {
 	private final IndexerStatusCache indexerStatusCache;
 
 	@Autowired
-	public LogIndexerService(BatchLogIndexer batchLogIndexer, @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
-			IndexerStatusCache indexerStatusCache) {
+	public LogIndexerService(BatchLogIndexer batchLogIndexer, @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor,
+			LaunchRepository launchRepository, TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient,
+			LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
 		this.batchLogIndexer = batchLogIndexer;
 		this.taskExecutor = taskExecutor;
 		this.launchRepository = launchRepository;
@@ -101,36 +101,29 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	@Transactional(readOnly = true)
-	//TODO refactor to execute in single Transaction (because of CompletableFuture there is no transaction inside).
-	//TODO Probably we should implement AsyncLogIndexer and use this service as sync delegate with transaction
-	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				indexerStatusCache.indexingStarted(projectId);
-				Launch launch = launchRepository.findById(launchId)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
-						testItemRepository.findTestItemsByLaunchId(launch.getId()),
-						analyzerConfig
-				);
-				return indexLaunch.map(it -> {
-					LOGGER.info("Start indexing for {} launches", 1);
-					Long indexed = indexerServiceClient.index(Lists.newArrayList(it));
-					LOGGER.info("Indexed {} logs", indexed);
-					return indexed;
-				}).orElse(0L);
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				throw new ReportPortalException(e.getMessage());
-			} finally {
-				indexerStatusCache.indexingFinished(projectId);
-			}
-		});
+	public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
+		try {
+			indexerStatusCache.indexingStarted(launch.getProjectId());
+			Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
+					testItemRepository.findTestItemsByLaunchId(launch.getId()),
+					analyzerConfig
+			);
+			return indexLaunch.map(it -> {
+				LOGGER.info("Start indexing for launch: {}", launch.getId());
+				Long indexed = indexerServiceClient.index(Lists.newArrayList(it));
+				LOGGER.info("Indexed {} logs", indexed);
+				return indexed;
+			}).orElse(0L);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new ReportPortalException(e.getMessage());
+		} finally {
+			indexerStatusCache.indexingFinished(launch.getProjectId());
+		}
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	//TODO same refactoring as for the method above
 	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(projectId);

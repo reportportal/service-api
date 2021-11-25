@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
 import com.epam.ta.reportportal.pipeline.PipelinePartProvider;
@@ -40,11 +41,18 @@ public class SaveLastRunAttributePartProvider implements PipelinePartProvider<Ge
 	public PipelinePart provide(GenerateClustersConfig config) {
 		return () -> {
 			final String lastRunDate = String.valueOf(Instant.now().toEpochMilli());
-			itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, true)
+			final ClusterEntityContext entityContext = config.getEntityContext();
+			itemAttributeRepository.findByLaunchIdAndKeyAndSystem(entityContext.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, true)
 					.ifPresentOrElse(attr -> {
-						attr.setValue(lastRunDate);
-						itemAttributeRepository.save(attr);
-					}, () -> itemAttributeRepository.saveByLaunchId(config.getLaunchId(), RP_CLUSTER_LAST_RUN_KEY, lastRunDate, true));
+								attr.setValue(lastRunDate);
+								itemAttributeRepository.save(attr);
+							},
+							() -> itemAttributeRepository.saveByLaunchId(entityContext.getLaunchId(),
+									RP_CLUSTER_LAST_RUN_KEY,
+									lastRunDate,
+									true
+							)
+					);
 		};
 	}
 }

@@ -118,7 +118,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	}
 
 	@Override
-	public Launch getLaunch(Long id) {
+	public Launch get(Long id) {
 		return launchRepository.findById(id).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, id));
 	}
 
@@ -131,7 +131,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	private Launch findLaunch(String launchId, ReportPortalUser.ProjectDetails projectDetails) {
 		Launch launch;
 		try {
-			launch = getLaunch(Long.parseLong(launchId));
+			launch = get(Long.parseLong(launchId));
 		} catch (NumberFormatException e) {
 			launch = launchRepository.findByUuid(launchId).orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId));
 		}

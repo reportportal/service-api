@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.utils;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 /**
@@ -28,13 +29,13 @@ public class ConfigProvider {
 
 	}
 
-	public static final  GenerateClustersConfig getConfig(boolean forUpdate) {
+	public static final GenerateClustersConfig getConfig(boolean forUpdate) {
 		final GenerateClustersConfig config = new GenerateClustersConfig();
 		final AnalyzerConfig analyzerConfig = new AnalyzerConfig();
 		analyzerConfig.setNumberOfLogLines(1);
 		config.setAnalyzerConfig(analyzerConfig);
-		config.setProject(1L);
-		config.setLaunchId(1L);
+		final ClusterEntityContext entityContext = ClusterEntityContext.of(1L, 1L);
+		config.setEntityContext(entityContext);
 		config.setForUpdate(forUpdate);
 		config.setCleanNumbers(false);
 		return config;

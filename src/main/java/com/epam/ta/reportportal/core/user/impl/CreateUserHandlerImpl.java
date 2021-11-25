@@ -259,7 +259,7 @@ public class CreateUserHandlerImpl implements CreateUserHandler {
 	@Override
 	public CreateUserBidRS createUserBid(CreateUserRQ request, ReportPortalUser loggedInUser, String emailURL) {
 
-		final Project defaultProject = getProjectHandler.getProject(normalizeId(request.getDefaultProject()));
+		final Project defaultProject = getProjectHandler.get(normalizeId(request.getDefaultProject()));
 
 		expect(userRepository.existsById(loggedInUser.getUserId()), BooleanUtils::isTrue).verify(USER_NOT_FOUND,
 				loggedInUser.getUsername()

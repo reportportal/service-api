@@ -16,14 +16,14 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
 import org.junit.jupiter.api.Test;
 
 import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -42,9 +42,10 @@ class DeleteClustersPartProviderTest {
 		final PipelinePart pipelinePart = provider.provide(config);
 		pipelinePart.handle();
 
-		verify(logRepository, times(1)).updateClusterIdSetNullByLaunchId(config.getLaunchId());
-		verify(clusterRepository, times(1)).deleteClusterTestItemsByLaunchId(config.getLaunchId());
-		verify(clusterRepository, times(1)).deleteAllByLaunchId(config.getLaunchId());
+		final ClusterEntityContext entityContext = config.getEntityContext();
+		verify(logRepository, times(1)).updateClusterIdSetNullByLaunchId(entityContext.getLaunchId());
+		verify(clusterRepository, times(1)).deleteClusterTestItemsByLaunchId(entityContext.getLaunchId());
+		verify(clusterRepository, times(1)).deleteAllByLaunchId(entityContext.getLaunchId());
 	}
 
 	@Test
@@ -53,9 +54,10 @@ class DeleteClustersPartProviderTest {
 		final PipelinePart pipelinePart = provider.provide(config);
 		pipelinePart.handle();
 
-		verify(logRepository, times(0)).updateClusterIdSetNullByLaunchId(config.getLaunchId());
-		verify(clusterRepository, times(0)).deleteClusterTestItemsByLaunchId(config.getLaunchId());
-		verify(clusterRepository, times(0)).deleteAllByLaunchId(config.getLaunchId());
+		final ClusterEntityContext entityContext = config.getEntityContext();
+		verify(logRepository, times(0)).updateClusterIdSetNullByLaunchId(entityContext.getLaunchId());
+		verify(clusterRepository, times(0)).deleteClusterTestItemsByLaunchId(entityContext.getLaunchId());
+		verify(clusterRepository, times(0)).deleteAllByLaunchId(entityContext.getLaunchId());
 	}
 
 }

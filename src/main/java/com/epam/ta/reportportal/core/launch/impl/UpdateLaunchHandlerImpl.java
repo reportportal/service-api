@@ -227,7 +227,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
 			logIndexer.indexLaunchesRemove(projectId, Lists.newArrayList(launch.getId()));
 		} else {
-			logIndexer.indexLaunchLogs(projectId, launch.getId(), analyzerConfig);
+			logIndexer.indexLaunchLogs(launch, analyzerConfig);
 		}
 	}
 

@@ -103,7 +103,7 @@ public class LogIndexerService implements LogIndexer {
 	public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(launch.getProjectId());
-			final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launchId);
+			final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launch.getId());
 			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);

@@ -116,7 +116,7 @@ public class MergeLaunchHandlerImpl implements MergeLaunchHandler {
 
 		launchRepository.deleteAll(launchesList);
 
-		logIndexer.indexLaunchLogs(project.getId(), newLaunch.getId(), AnalyzerUtils.getAnalyzerConfig(project));
+		logIndexer.indexLaunchLogs(newLaunch, AnalyzerUtils.getAnalyzerConfig(project));
 
 		return launchConverter.TO_RESOURCE.apply(newLaunch);
 	}

@@ -43,7 +43,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -104,16 +103,8 @@ public class LogIndexerService implements LogIndexer {
 	public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(launch.getProjectId());
-			Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
-					testItemRepository.findTestItemsByLaunchId(launch.getId()),
-					analyzerConfig
-			);
-			return indexLaunch.map(it -> {
-				LOGGER.info("Start indexing for launch: {}", launch.getId());
-				Long indexed = indexerServiceClient.index(Lists.newArrayList(it));
-				LOGGER.info("Indexed {} logs", indexed);
-				return indexed;
-			}).orElse(0L);
+			final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launch.getId());
+			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			throw new ReportPortalException(e.getMessage());
@@ -129,9 +120,7 @@ public class LogIndexerService implements LogIndexer {
 			indexerStatusCache.indexingStarted(projectId);
 			Launch launch = launchRepository.findById(launchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-			return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
-					.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
-					.orElse(0L);
+			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			throw new ReportPortalException(e.getMessage());

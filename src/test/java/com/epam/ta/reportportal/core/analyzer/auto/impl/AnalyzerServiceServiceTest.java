@@ -62,7 +62,7 @@ class AnalyzerServiceServiceTest {
 
 	private AnalyzerStatusCache analyzerStatusCache = mock(AnalyzerStatusCache.class);
 
-	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(analyzerStatusCache,
+	private AnalyzerServiceImpl issuesAnalyzer = new AnalyzerServiceImpl(100, analyzerStatusCache,
 			launchPreparerService,
 			analyzerServiceClient,
 			issueTypeHandler,

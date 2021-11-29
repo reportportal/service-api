@@ -3,11 +3,14 @@ package com.epam.ta.reportportal.core.analyzer.auto.indexer;
 import com.epam.ta.reportportal.core.analyzer.auto.client.IndexerServiceClient;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.jooq.enums.JLaunchModeEnum;
 import com.epam.ta.reportportal.jooq.enums.JStatusEnum;
+import com.epam.ta.reportportal.jooq.enums.JTestItemTypeEnum;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -20,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -86,11 +91,37 @@ public class BatchLogIndexer {
 			return;
 		}
 		LOGGER.debug("Project {}. Found {} ids", projectId, launchIds.size());
+		final List<Long> filteredIds = filterIds(launchIds);
+		if (filteredIds.isEmpty()) {
+			return;
+		}
+		LOGGER.debug("Project {}. Found {} filtered ids", projectId, filteredIds.size());
 		final List<IndexLaunch> preparedLaunches = launchPreparerService.prepare(launchIds, analyzerConfig);
+		if (preparedLaunches.isEmpty()) {
+			return;
+		}
+
 		LOGGER.debug("Project {}. Start indexing for {} launches", projectId, preparedLaunches.size());
-		final Long indexed = indexerServiceClient.index(preparedLaunches);
+		final long indexed = indexByPartition(preparedLaunches);
 		LOGGER.debug("Project {}. Indexed {} logs", projectId, indexed);
 		totalIndexed.addAndGet(indexed);
+	}
+
+	private long indexByPartition(List<IndexLaunch> preparedLaunches) {
+		return preparedLaunches.stream().map(indexLaunch -> {
+			final Iterable<List<IndexTestItem>> lists = Iterables.partition(indexLaunch.getTestItems(), itemsBatchSize);
+			return StreamSupport.stream(lists.spliterator(), false).map(partition -> {
+				indexLaunch.setTestItems(partition);
+				final Long indexed = indexerServiceClient.index(Lists.newArrayList(indexLaunch));
+				return indexed;
+			}).mapToLong(Long::longValue).sum();
+		}).mapToLong(Long::longValue).sum();
+	}
+
+	private List<Long> filterIds(List<Long> launchIds) {
+		return launchIds.stream()
+				.filter(id -> launchRepository.hasItemsWithLogsWithLogLevel(id, List.of(JTestItemTypeEnum.STEP), LogLevel.ERROR_INT))
+				.collect(Collectors.toList());
 	}
 
 	private List<Long> getLaunchIds(Long projectId) {

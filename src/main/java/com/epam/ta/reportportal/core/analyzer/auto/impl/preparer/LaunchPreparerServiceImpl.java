@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl.preparer;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -92,7 +91,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 
 	@Override
 	public List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig) {
-		return launchRepository.findIndexLaunchByIdsAndLogLevel(ids, LogLevel.ERROR.toInt())
+		return launchRepository.findIndexLaunchByIds(ids)
 				.stream()
 				.peek(this::fill)
 				.filter(l -> CollectionUtils.isNotEmpty(l.getTestItems()))

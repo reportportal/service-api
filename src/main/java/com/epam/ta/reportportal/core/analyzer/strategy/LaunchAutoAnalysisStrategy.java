@@ -17,33 +17,26 @@
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
+import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
+import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.events.AnalysisEvent;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.AnalyzeMode;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.function.Predicate;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -51,29 +44,24 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLaunchAnalysisStrategy.class);
-
-	private final AnalyzerServiceAsync analyzerServiceAsync;
-	private final AnalyzeCollectorFactory analyzeCollectorFactory;
-	private final ApplicationEventPublisher eventPublisher;
+	private final LaunchAutoAnalysisStarter manualAnalysisStarter;
 
 	@Autowired
 	public LaunchAutoAnalysisStrategy(ProjectRepository projectRepository, LaunchRepository launchRepository,
-			AnalyzerServiceAsync analyzerServiceAsync, AnalyzeCollectorFactory analyzeCollectorFactory,
-			ApplicationEventPublisher eventPublisher) {
+			LaunchAutoAnalysisStarter manualAnalysisStarter) {
 		super(projectRepository, launchRepository);
-		this.analyzerServiceAsync = analyzerServiceAsync;
-		this.analyzeCollectorFactory = analyzeCollectorFactory;
-		this.eventPublisher = eventPublisher;
+		this.manualAnalysisStarter = manualAnalysisStarter;
 	}
 
 	public void analyze(AnalyzeLaunchRQ analyzeRQ, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user) {
-		expect(analyzerServiceAsync.hasAnalyzers(), Predicate.isEqual(true)).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-				"There are no analyzer services are deployed."
-		);
 
-		AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode())
+		final AnalyzeMode analyzeMode = AnalyzeMode.fromString(analyzeRQ.getAnalyzerHistoryMode())
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, analyzeRQ.getAnalyzerHistoryMode()));
+		final Set<AnalyzeItemsMode> analyzeItemsModes = getAnalyzeItemsModes(analyzeRQ);
+
+		if (analyzeItemsModes.isEmpty()) {
+			return;
+		}
 
 		Launch launch = launchRepository.findById(analyzeRQ.getLaunchId())
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, analyzeRQ.getLaunchId()));
@@ -85,27 +73,21 @@ public class LaunchAutoAnalysisStrategy extends AbstractLaunchAnalysisStrategy {
 		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
 		analyzerConfig.setAnalyzerMode(analyzeMode.getValue());
 
-		List<Long> itemIds = collectItemsByModes(launch.getId(), analyzeRQ.getAnalyzeItemsModes(), project, user);
+		final StartLaunchAutoAnalysisConfig autoAnalysisConfig = StartLaunchAutoAnalysisConfig.of(
+				launch.getId(),
+				analyzerConfig,
+				analyzeItemsModes,
+				user
+		);
 
-		eventPublisher.publishEvent(new AnalysisEvent(launch, itemIds, analyzerConfig));
+		manualAnalysisStarter.start(autoAnalysisConfig);
 	}
 
-	/**
-	 * Collect item ids for analyzer according to provided analyzer configuration.
-	 *
-	 * @param project          Project
-	 * @param launchId         Launch id
-	 * @param analyzeItemsMode {@link AnalyzeItemsMode}
-	 * @return List of ids
-	 * @see AnalyzeItemsMode
-	 * @see AnalyzeCollectorFactory
-	 * @see AnalyzeItemsCollector
-	 */
-	private List<Long> collectItemsByModes(Long launchId, List<String> analyzeItemsMode, Project project, ReportPortalUser user) {
-		return analyzeItemsMode.stream().map(AnalyzeItemsMode::fromString).flatMap(it -> {
-			List<Long> itemIds = analyzeCollectorFactory.getCollector(it).collectItems(project.getId(), launchId, user);
-			LOGGER.debug("Item itemIds collected by '{}' mode: {}", it, itemIds);
-			return itemIds.stream();
-		}).distinct().collect(toList());
+	private LinkedHashSet<AnalyzeItemsMode> getAnalyzeItemsModes(AnalyzeLaunchRQ analyzeRQ) {
+		return analyzeRQ.getAnalyzeItemsModes()
+				.stream()
+				.map(AnalyzeItemsMode::fromString)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
+
 }

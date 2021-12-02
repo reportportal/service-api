@@ -17,13 +17,9 @@
 package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerService;
-import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
+import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
+import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
@@ -31,13 +27,10 @@ import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
@@ -49,21 +42,10 @@ import static org.mockito.Mockito.*;
  */
 class LaunchAutoAnalysisRunnerTest {
 
-	public static final Long INDEXED_LOG_COUNT = 5L;
-
-	private final GetLaunchHandler getLaunchHandler = mock(GetLaunchHandler.class);
-	private final AnalyzerService analyzerService = mock(AnalyzerService.class);
-	private final AnalyzeCollectorFactory analyzeCollectorFactory = mock(AnalyzeCollectorFactory.class);
-	private final AnalyzeItemsCollector analyzeItemsCollector = mock(AnalyzeItemsCollector.class);
-	private final LogIndexer logIndexer = mock(LogIndexer.class);
+	private final LaunchAutoAnalysisStarter starter = mock(LaunchAutoAnalysisStarter.class);
 	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final LaunchAutoAnalysisRunner runner = new LaunchAutoAnalysisRunner(getLaunchHandler,
-			analyzerService,
-			analyzeCollectorFactory,
-			logIndexer,
-			eventPublisher
-	);
+	private final LaunchAutoAnalysisRunner runner = new LaunchAutoAnalysisRunner(starter, eventPublisher);
 
 	@Test
 	void shouldAnalyzeWhenEnabled() {
@@ -76,44 +58,9 @@ class LaunchAutoAnalysisRunnerTest {
 				.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true")
 				.build();
 
-		when(analyzerService.hasAnalyzers()).thenReturn(true);
-
-		when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-		when(logIndexer.indexLaunchLogs(eq(launch), any(AnalyzerConfig.class))).thenReturn(INDEXED_LOG_COUNT);
-
-		when(analyzeCollectorFactory.getCollector(AnalyzeItemsMode.TO_INVESTIGATE)).thenReturn(analyzeItemsCollector);
-		final List<Long> itemIds = Lists.newArrayList(1L, 2L);
-		when(analyzeItemsCollector.collectItems(launch.getProjectId(), launch.getId(), user)).thenReturn(itemIds);
-
 		runner.handle(event, projectConfig);
 
-		verify(analyzerService, times(1)).runAnalyzers(eq(launch), eq(itemIds), any(AnalyzerConfig.class));
-		verify(logIndexer, times(1)).indexItemsLogs(eq(launch.getProjectId()), eq(launch.getId()), eq(itemIds), any(AnalyzerConfig.class));
-		verify(eventPublisher, times(1)).publishEvent(any());
-
-	}
-
-	@Test
-	void shouldNotAnalyzeWhenDisabled() {
-
-		final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, launch.getProjectId());
-		final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
-
-		final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
-				.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "false")
-				.build();
-
-		when(analyzerService.hasAnalyzers()).thenReturn(true);
-
-		when(getLaunchHandler.get(event.getId())).thenReturn(launch);
-		when(logIndexer.indexLaunchLogs(eq(launch), any(AnalyzerConfig.class))).thenReturn(INDEXED_LOG_COUNT);
-
-		runner.handle(event, projectConfig);
-
-		verify(logIndexer, times(1)).indexLaunchLogs(eq(launch), any(AnalyzerConfig.class));
-		verify(analyzerService, times(0)).runAnalyzers(eq(launch), anyList(), any(AnalyzerConfig.class));
-		verify(logIndexer, times(0)).indexItemsLogs(eq(launch.getProjectId()), eq(launch.getId()), anyList(), any(AnalyzerConfig.class));
+		verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class));
 		verify(eventPublisher, times(1)).publishEvent(any());
 
 	}

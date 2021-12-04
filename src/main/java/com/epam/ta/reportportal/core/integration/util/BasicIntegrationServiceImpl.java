@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.integration.util;
 
+import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
@@ -78,35 +79,41 @@ public class BasicIntegrationServiceImpl implements IntegrationService {
 
 	@Override
 	public Map<String, Object> retrieveCreateParams(String integrationType, Map<String, Object> integrationParams) {
-		final Optional<PluginCommand<?>> pluginCommand = getCommandByName(integrationType, RETRIEVE_CREATE_PARAMS);
+		final Optional<CommonPluginCommand<?>> pluginCommand = getCommonCommand(integrationType, RETRIEVE_CREATE_PARAMS);
 		if (pluginCommand.isPresent()) {
-			return (Map<String, Object>) pluginCommand.get().executeCommand(null, integrationParams);
+			return (Map<String, Object>) pluginCommand.get().executeCommand(integrationParams);
 		}
 		return integrationParams;
 	}
 
 	@Override
 	public Map<String, Object> retrieveUpdatedParams(String integrationType, Map<String, Object> integrationParams) {
-		final Optional<PluginCommand<?>> pluginCommand = getCommandByName(integrationType, RETRIEVE_UPDATED_PARAMS);
+		final Optional<CommonPluginCommand<?>> pluginCommand = getCommonCommand(integrationType, RETRIEVE_UPDATED_PARAMS);
 		if (pluginCommand.isPresent()) {
-			return (Map<String, Object>) pluginCommand.get().executeCommand(null, integrationParams);
+			return (Map<String, Object>) pluginCommand.get().executeCommand(integrationParams);
 		}
 		return integrationParams;
 	}
 
 	@Override
 	public boolean checkConnection(Integration integration) {
-		final Optional<PluginCommand<?>> pluginCommand = getCommandByName(integration.getType().getName(), TEST_CONNECTION_COMMAND);
+		final Optional<PluginCommand<?>> pluginCommand = getIntegrationCommand(integration.getType().getName(), TEST_CONNECTION_COMMAND);
 		if (pluginCommand.isPresent()) {
 			return (Boolean) pluginCommand.get().executeCommand(integration, integration.getParams().getParams());
 		}
 		return true;
 	}
 
-	private Optional<PluginCommand<?>> getCommandByName(String integration, String commandName) {
+	private Optional<PluginCommand<?>> getIntegrationCommand(String integration, String commandName) {
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
-		return ofNullable(pluginInstance.getCommandToExecute(commandName));
+		return ofNullable(pluginInstance.getIntegrationCommand(commandName));
+	}
+
+	private Optional<CommonPluginCommand<?>> getCommonCommand(String integration, String commandName) {
+		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(integration, ReportPortalExtensionPoint.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR, "Plugin for {} isn't installed", integration));
+		return ofNullable(pluginInstance.getCommonCommand(commandName));
 	}
 
 	private IntegrationParams getCombinedParams(Integration integration, Map<String, Object> retrievedParams) {

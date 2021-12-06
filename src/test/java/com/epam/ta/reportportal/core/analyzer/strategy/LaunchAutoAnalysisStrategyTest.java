@@ -17,11 +17,9 @@
 package com.epam.ta.reportportal.core.analyzer.strategy;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.auto.AnalyzerServiceAsync;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeCollectorFactory;
-import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsCollector;
+import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
-import com.epam.ta.reportportal.core.events.AnalysisEvent;
+import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -32,14 +30,12 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.epam.ta.reportportal.ws.model.launch.AnalyzeLaunchRQ;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static org.mockito.Mockito.*;
@@ -47,31 +43,20 @@ import static org.mockito.Mockito.*;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-@ExtendWith(MockitoExtension.class)
 class LaunchAutoAnalysisStrategyTest {
 	private final Launch launch = mock(Launch.class);
 	private final Project project = mock(Project.class);
 
-	@Mock
-	private ProjectRepository projectRepository;
-	@Mock
-	private LaunchRepository launchRepository;
-	@Mock
-	private AnalyzerServiceAsync analyzerServiceAsync;
-	@Mock
-	private AnalyzeCollectorFactory analyzeCollectorFactory;
-	@Mock
-	private AnalyzeItemsCollector analyzeItemsCollector;
-	@Mock
-	private ApplicationEventPublisher eventPublisher;
-
-	@InjectMocks
-	private LaunchAutoAnalysisStrategy launchAutoAnalysisStrategy;
+	private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+	private final LaunchRepository launchRepository = mock(LaunchRepository.class);
+	private final LaunchAutoAnalysisStarter autoAnalysisStarter = mock(LaunchAutoAnalysisStarter.class);
+	private final LaunchAutoAnalysisStrategy launchAutoAnalysisStrategy = new LaunchAutoAnalysisStrategy(projectRepository,
+			launchRepository,
+			autoAnalysisStarter
+	);
 
 	@Test
 	void analyzeTest() {
-
-		when(analyzerServiceAsync.hasAnalyzers()).thenReturn(true);
 
 		when(launchRepository.findById(1L)).thenReturn(Optional.of(launch));
 		when(launch.getId()).thenReturn(1L);
@@ -81,9 +66,7 @@ class LaunchAutoAnalysisStrategyTest {
 		when(project.getId()).thenReturn(1L);
 
 		when(project.getProjectAttributes()).thenReturn(Sets.newHashSet());
-		when(analyzeCollectorFactory.getCollector(any(AnalyzeItemsMode.class))).thenReturn(analyzeItemsCollector);
 		ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.PROJECT_MANAGER, 1L);
-		when(analyzeItemsCollector.collectItems(1L, 1L, user)).thenReturn(Lists.newArrayList());
 
 		ReportPortalUser.ProjectDetails projectDetails = new ReportPortalUser.ProjectDetails(1L, "name", ProjectRole.PROJECT_MANAGER);
 		AnalyzeLaunchRQ analyzeLaunchRQ = new AnalyzeLaunchRQ();
@@ -92,6 +75,13 @@ class LaunchAutoAnalysisStrategyTest {
 		analyzeLaunchRQ.setAnalyzeItemsModes(Lists.newArrayList("TO_INVESTIGATE"));
 		analyzeLaunchRQ.setAnalyzerTypeName("patternAnalyzer");
 		launchAutoAnalysisStrategy.analyze(analyzeLaunchRQ, projectDetails, user);
-		verify(eventPublisher, times(1)).publishEvent(any(AnalysisEvent.class));
+
+		final ArgumentCaptor<StartLaunchAutoAnalysisConfig> configArgumentCaptor = ArgumentCaptor.forClass(StartLaunchAutoAnalysisConfig.class);
+		verify(autoAnalysisStarter, times(1)).start(configArgumentCaptor.capture());
+
+		final StartLaunchAutoAnalysisConfig config = configArgumentCaptor.getValue();
+		Assertions.assertEquals(launch.getId(), config.getLaunchId());
+		Assertions.assertEquals(Set.of(AnalyzeItemsMode.TO_INVESTIGATE), config.getAnalyzeItemsModes());
+		Assertions.assertEquals(user, config.getUser());
 	}
 }

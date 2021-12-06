@@ -14,55 +14,58 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler.launch;
+package com.epam.ta.reportportal.core.analyzer.auto.starter.decorator;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
+import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
 import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
+import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
-import com.google.common.collect.ImmutableMap;
+import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.Map;
+import java.util.Set;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class LaunchAutoAnalysisRunnerTest {
+class IndexingAutoAnalysisStarterTest {
 
-	private final LaunchAutoAnalysisStarter starter = mock(LaunchAutoAnalysisStarter.class);
-	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+	private final GetLaunchHandler getLaunchHandler = mock(GetLaunchHandler.class);
+	private final LogIndexer logIndexer = mock(LogIndexer.class);
+	private final LaunchAutoAnalysisStarter delegate = mock(LaunchAutoAnalysisStarter.class);
 
-	private final LaunchAutoAnalysisRunner runner = new LaunchAutoAnalysisRunner(starter, eventPublisher);
+	private final IndexingAutoAnalysisStarter indexingAutoAnalysisStarter = new IndexingAutoAnalysisStarter(getLaunchHandler,
+			logIndexer,
+			delegate
+	);
 
 	@Test
-	void shouldAnalyzeWhenEnabled() {
-
+	void shouldIndex() {
 		final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
-		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, launch.getProjectId());
-		final LaunchFinishedEvent event = new LaunchFinishedEvent(launch, user, "baseUrl");
 
-		final Map<String, String> projectConfig = ImmutableMap.<String, String>builder()
-				.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true")
-				.build();
+		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, 1L);
+		final StartLaunchAutoAnalysisConfig config = StartLaunchAutoAnalysisConfig.of(launch.getId(),
+				new AnalyzerConfig(),
+				Set.of(AnalyzeItemsMode.TO_INVESTIGATE),
+				user
+		);
 
-		runner.handle(event, projectConfig);
+		when(getLaunchHandler.get(config.getLaunchId())).thenReturn(launch);
 
-		verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class));
-		verify(eventPublisher, times(1)).publishEvent(any());
+		indexingAutoAnalysisStarter.start(config);
 
+		verify(logIndexer, times(1)).indexLaunchLogs(launch, config.getAnalyzerConfig());
 	}
 
 }

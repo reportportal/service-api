@@ -19,19 +19,16 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
 import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
@@ -65,8 +62,8 @@ import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -84,30 +81,25 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	private final LaunchAccessValidator launchAccessValidator;
 
 	private final LaunchRepository launchRepository;
-	private final TestItemRepository testItemRepository;
 
 	private final LogIndexer logIndexer;
-	private final LaunchPreparerService launchPreparerService;
 
 	private final Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping;
 
-	private final ClusterGenerator clusterGenerator;
+	private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler, GetLaunchHandler getLaunchHandler,
-			LaunchAccessValidator launchAccessValidator, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			LogIndexer logIndexer, LaunchPreparerService launchPreparerService,
+			LaunchAccessValidator launchAccessValidator, LaunchRepository launchRepository, LogIndexer logIndexer,
 			Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
-			@Qualifier("uniqueErrorGeneratorAsync") ClusterGenerator clusterGenerator) {
+			@Qualifier("uniqueErrorAnalysisStarterAsync") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
 		this.getProjectHandler = getProjectHandler;
 		this.getLaunchHandler = getLaunchHandler;
 		this.launchAccessValidator = launchAccessValidator;
 		this.launchRepository = launchRepository;
-		this.testItemRepository = testItemRepository;
 		this.launchAnalysisStrategyMapping = launchAnalysisStrategyMapping;
 		this.logIndexer = logIndexer;
-		this.launchPreparerService = launchPreparerService;
-		this.clusterGenerator = clusterGenerator;
+		this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
 	}
 
 	@Override
@@ -163,17 +155,9 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 		final Project project = getProjectHandler.get(launch.getProjectId());
 
-		final GenerateClustersConfig config = new GenerateClustersConfig();
-		config.setForUpdate(false);
-		config.setCleanNumbers(createClustersRQ.isRemoveNumbers());
-
-		final ClusterEntityContext entityContext = ClusterEntityContext.of(launch.getId(), launch.getProjectId());
-		config.setEntityContext(entityContext);
-
-		final AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
-		config.setAnalyzerConfig(analyzerConfig);
-
-		clusterGenerator.generate(config);
+		uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launch.getId(), launch.getProjectId()),
+				getConfigParameters(project.getProjectAttributes())
+		);
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Clusters generation for launch with ID='{}' started.", launch.getId())
 				.get());

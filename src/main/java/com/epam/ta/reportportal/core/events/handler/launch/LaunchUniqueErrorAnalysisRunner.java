@@ -16,13 +16,12 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
+import com.epam.reportportal.extension.event.LaunchUniqueErrorAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
-import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,8 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getUniqueErrorConfig;
+import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -39,36 +37,25 @@ import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.get
 @Service
 public class LaunchUniqueErrorAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
-	private final ClusterGenerator clusterGenerator;
+	private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public LaunchUniqueErrorAnalysisRunner(@Qualifier("uniqueErrorGenerator") ClusterGenerator clusterGenerator,
+	public LaunchUniqueErrorAnalysisRunner(@Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
 			ApplicationEventPublisher eventPublisher) {
-		this.clusterGenerator = clusterGenerator;
+		this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
 		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
 	public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
-
-		final UniqueErrorConfig uniqueErrorConfig = getUniqueErrorConfig(projectConfig);
-
-		if (uniqueErrorConfig.isEnabled()) {
-			final GenerateClustersConfig clustersConfig = new GenerateClustersConfig();
-			clustersConfig.setForUpdate(false);
-			clustersConfig.setCleanNumbers(uniqueErrorConfig.isRemoveNumbers());
-
-			final AnalyzerConfig analyzerConfig = getAnalyzerConfig(projectConfig);
-			clustersConfig.setAnalyzerConfig(analyzerConfig);
-
-			final ClusterEntityContext entityContext = ClusterEntityContext.of(launchFinishedEvent.getId(),
-					launchFinishedEvent.getProjectId()
+		final boolean enabled = BooleanUtils.toBoolean(projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()));
+		if (enabled) {
+			uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.getProjectId()),
+					projectConfig
 			);
-			clustersConfig.setEntityContext(entityContext);
-
-			clusterGenerator.generate(clustersConfig);
 		}
-
+		eventPublisher.publishEvent(new LaunchUniqueErrorAnalysisFinishEvent(launchFinishedEvent.getId()));
 	}
+
 }

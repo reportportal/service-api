@@ -23,7 +23,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Optional.ofNullable;
 
@@ -39,8 +38,6 @@ public class DelegatingApplicationEventMulticaster extends SimpleApplicationEven
 	public DelegatingApplicationEventMulticaster(Set<Class<?>> errorHandlingEventTypes) {
 		this.errorHandlingEventTypes = errorHandlingEventTypes;
 	}
-
-	private static final AtomicLong COUNTER = new AtomicLong(0L);
 
 	@Override
 	protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {

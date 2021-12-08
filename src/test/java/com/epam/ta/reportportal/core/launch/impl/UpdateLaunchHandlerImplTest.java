@@ -19,13 +19,12 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
-import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -45,7 +44,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
 import static com.epam.ta.reportportal.util.TestProjectExtractor.extractProjectDetails;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -71,7 +71,7 @@ class UpdateLaunchHandlerImplTest {
 	private TestItemRepository testItemRepository;
 
 	@Mock
-	private ClusterGenerator clusterGenerator;
+	private UniqueErrorAnalysisStarter starter;
 
 	@InjectMocks
 	private UpdateLaunchHandlerImpl handler;
@@ -140,17 +140,12 @@ class UpdateLaunchHandlerImplTest {
 
 		verify(launchAccessValidator, times(1)).validate(any(Launch.class), any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
 
-		final ArgumentCaptor<GenerateClustersConfig> argumentCaptor = ArgumentCaptor.forClass(GenerateClustersConfig.class);
-		verify(clusterGenerator, times(1)).generate(argumentCaptor.capture());
+		final ArgumentCaptor<ClusterEntityContext> argumentCaptor = ArgumentCaptor.forClass(ClusterEntityContext.class);
+		verify(starter, times(1)).start(argumentCaptor.capture(), anyMap());
 
-		final GenerateClustersConfig config = argumentCaptor.getValue();
+		final ClusterEntityContext entityContext = argumentCaptor.getValue();
 
-		assertEquals(1L, config.getEntityContext().getProjectId());
-		assertEquals(1L, config.getEntityContext().getLaunchId());
-		assertEquals(createClustersRQ.isRemoveNumbers(), config.isCleanNumbers());
-		assertFalse(config.isForUpdate());
-		assertEquals(ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue(),
-				String.valueOf(config.getAnalyzerConfig().getNumberOfLogLines())
-		);
+		assertEquals(1L, entityContext.getProjectId());
+		assertEquals(1L, entityContext.getLaunchId());
 	}
 }

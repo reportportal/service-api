@@ -18,8 +18,8 @@ package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
@@ -35,7 +35,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.Map;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -43,13 +43,13 @@ import static org.mockito.Mockito.*;
  */
 class LaunchUniqueErrorAnalysisRunnerTest {
 
-	private final ClusterGenerator clusterGenerator = mock(ClusterGenerator.class);
+	private final UniqueErrorAnalysisStarter starter = mock(UniqueErrorAnalysisStarter.class);
 	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final LaunchUniqueErrorAnalysisRunner runner = new LaunchUniqueErrorAnalysisRunner(clusterGenerator, eventPublisher);
+	private final LaunchUniqueErrorAnalysisRunner runner = new LaunchUniqueErrorAnalysisRunner(starter, eventPublisher);
 
 	@Test
-	void shouldAnalyzeWhenEnabled() {
+	void shouldStartWhenEnabled() {
 
 		final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, launch.getProjectId());
@@ -62,19 +62,17 @@ class LaunchUniqueErrorAnalysisRunnerTest {
 
 		runner.handle(event, projectConfig);
 
-		final ArgumentCaptor<GenerateClustersConfig> configArgumentCaptor = ArgumentCaptor.forClass(GenerateClustersConfig.class);
-		verify(clusterGenerator, times(1)).generate(configArgumentCaptor.capture());
+		final ArgumentCaptor<ClusterEntityContext> entityContextCaptor = ArgumentCaptor.forClass(ClusterEntityContext.class);
+		verify(starter, times(1)).start(entityContextCaptor.capture(), anyMap());
 
-		final GenerateClustersConfig config = configArgumentCaptor.getValue();
+		final ClusterEntityContext entityContext = entityContextCaptor.getValue();
 
-		assertEquals(event.getId(), config.getEntityContext().getLaunchId());
-		assertEquals(event.getProjectId(), config.getEntityContext().getProjectId());
-		assertFalse(config.isForUpdate());
-		assertTrue(config.isCleanNumbers());
+		assertEquals(event.getId(), entityContext.getLaunchId());
+		assertEquals(event.getProjectId(), entityContext.getProjectId());
 	}
 
 	@Test
-	void shouldNotAnalyzeWhenDisabled() {
+	void shouldNotStartWhenDisabled() {
 
 		final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, launch.getProjectId());
@@ -87,7 +85,7 @@ class LaunchUniqueErrorAnalysisRunnerTest {
 
 		runner.handle(event, projectConfig);
 
-		verify(clusterGenerator, times(0)).generate(any(GenerateClustersConfig.class));
+		verify(starter, times(0)).start(any(ClusterEntityContext.class), anyMap());
 
 	}
 

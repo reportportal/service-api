@@ -16,12 +16,17 @@
 
 package com.epam.ta.reportportal.core.configs.event.publisher;
 
+import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
+import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
+import com.epam.reportportal.extension.event.LaunchUniqueErrorAnalysisFinishEvent;
+import com.epam.ta.reportportal.core.events.multicaster.DelegatingApplicationEventMulticaster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
-import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.util.ErrorHandler;
+
+import java.util.Set;
 
 import static org.springframework.context.support.AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
 
@@ -40,7 +45,11 @@ public class EventPublisherConfig {
 
 	@Bean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
 	public ApplicationEventMulticaster applicationEventMulticaster() {
-		final SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
+		final DelegatingApplicationEventMulticaster eventMulticaster = new DelegatingApplicationEventMulticaster(Set.of(
+				LaunchAutoAnalysisFinishEvent.class,
+				LaunchUniqueErrorAnalysisFinishEvent.class,
+				LaunchStartUniqueErrorAnalysisEvent.class
+		));
 		eventMulticaster.setErrorHandler(loggingEventErrorHandler);
 		return eventMulticaster;
 	}

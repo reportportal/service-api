@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.cluster;
 
+import com.epam.reportportal.extension.event.GetClusterResourcesEvent;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
 import com.epam.ta.reportportal.entity.launch.Launch;
@@ -24,6 +25,7 @@ import com.epam.ta.reportportal.ws.converter.PagedResourcesAssembler;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.launch.cluster.ClusterInfoResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,10 +42,12 @@ import static com.epam.ta.reportportal.ws.converter.converters.ClusterConverter.
 public class GetClusterHandlerImpl implements GetClusterHandler {
 
 	private final ClusterRepository clusterRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public GetClusterHandlerImpl(ClusterRepository clusterRepository) {
+	public GetClusterHandlerImpl(ClusterRepository clusterRepository, ApplicationEventPublisher eventPublisher) {
 		this.clusterRepository = clusterRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -57,12 +61,19 @@ public class GetClusterHandlerImpl implements GetClusterHandler {
 		final Pageable pageableWithSort = applySort(pageable);
 		final Page<Cluster> clusters = clusterRepository.findAllByLaunchId(launch.getId(), pageableWithSort);
 
-		return PagedResourcesAssembler.pageConverter(TO_CLUSTER_INFO).apply(clusters);
+		return getClusterResources(clusters, launch.getId());
 	}
 
 	private Pageable applySort(Pageable pageable) {
 		final Sort idSort = Sort.by(Sort.Order.asc(CRITERIA_ID));
 		return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), idSort);
+	}
+
+	private Iterable<ClusterInfoResource> getClusterResources(Page<Cluster> clusters, Long launchId) {
+		final com.epam.ta.reportportal.ws.model.Page<ClusterInfoResource> clustersPage = PagedResourcesAssembler.pageConverter(
+				TO_CLUSTER_INFO).apply(clusters);
+		eventPublisher.publishEvent(new GetClusterResourcesEvent(clustersPage.getContent(), launchId));
+		return clustersPage;
 	}
 
 }

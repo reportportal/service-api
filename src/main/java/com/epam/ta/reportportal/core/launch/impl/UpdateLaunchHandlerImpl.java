@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
@@ -155,9 +156,11 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 
 		final Project project = getProjectHandler.get(launch.getProjectId());
 
-		uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launch.getId(), launch.getProjectId()),
-				getConfigParameters(project.getProjectAttributes())
+		final Map<String, String> configParameters = getConfigParameters(project.getProjectAttributes());
+		configParameters.put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(),
+				String.valueOf(createClustersRQ.isRemoveNumbers())
 		);
+		uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launch.getId(), launch.getProjectId()), configParameters);
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Clusters generation for launch with ID='{}' started.", launch.getId())
 				.get());

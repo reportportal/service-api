@@ -17,8 +17,6 @@
 package com.epam.ta.reportportal.core.events.handler.launch;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
-import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
-import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConfig;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
@@ -29,6 +27,7 @@ import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Map;
 
@@ -39,14 +38,14 @@ import static org.mockito.Mockito.*;
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class LaunchAutoAnalysisRunnerTest {
+class LaunchAnalysisFinishEventPublisherTest {
 
-	private final LaunchAutoAnalysisStarter starter = mock(LaunchAutoAnalysisStarter.class);
+	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final LaunchAutoAnalysisRunner runner = new LaunchAutoAnalysisRunner(starter);
+	private final LaunchAnalysisFinishEventPublisher publisher = new LaunchAnalysisFinishEventPublisher(eventPublisher);
 
 	@Test
-	void shouldAnalyzeWhenEnabled() {
+	void shouldSendEvent() {
 
 		final Launch launch = LaunchTestUtil.getLaunch(StatusEnum.FAILED, LaunchModeEnum.DEFAULT).get();
 		final ReportPortalUser user = getRpUser("user", UserRole.USER, ProjectRole.MEMBER, launch.getProjectId());
@@ -56,9 +55,9 @@ class LaunchAutoAnalysisRunnerTest {
 				.put(ProjectAttributeEnum.AUTO_ANALYZER_ENABLED.getAttribute(), "true")
 				.build();
 
-		runner.handle(event, projectConfig);
+		publisher.handle(event, projectConfig);
 
-		verify(starter, times(1)).start(any(StartLaunchAutoAnalysisConfig.class));
+		verify(eventPublisher, times(1)).publishEvent(any());
 
 	}
 

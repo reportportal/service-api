@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
-import com.epam.reportportal.extension.event.LaunchUniqueErrorAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
@@ -24,7 +23,6 @@ import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -38,13 +36,10 @@ import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UN
 public class LaunchUniqueErrorAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
 	private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
-	private final ApplicationEventPublisher eventPublisher;
 
 	@Autowired
-	public LaunchUniqueErrorAnalysisRunner(@Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter,
-			ApplicationEventPublisher eventPublisher) {
+	public LaunchUniqueErrorAnalysisRunner(@Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
 		this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
-		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -55,7 +50,6 @@ public class LaunchUniqueErrorAnalysisRunner implements ConfigurableEventHandler
 					projectConfig
 			);
 		}
-		eventPublisher.publishEvent(new LaunchUniqueErrorAnalysisFinishEvent(launchFinishedEvent.getId()));
 	}
 
 }

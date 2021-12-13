@@ -16,7 +16,6 @@
 
 package com.epam.ta.reportportal.core.events.handler.launch;
 
-import com.epam.reportportal.extension.event.LaunchAutoAnalysisFinishEvent;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
 import com.epam.ta.reportportal.core.analyzer.auto.starter.LaunchAutoAnalysisStarter;
 import com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze.AnalyzeItemsMode;
@@ -24,7 +23,6 @@ import com.epam.ta.reportportal.core.analyzer.config.StartLaunchAutoAnalysisConf
 import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
 import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -37,11 +35,9 @@ import java.util.Set;
 public class LaunchAutoAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
 
 	private final LaunchAutoAnalysisStarter autoAnalysisStarter;
-	private final ApplicationEventPublisher eventPublisher;
 
-	public LaunchAutoAnalysisRunner(LaunchAutoAnalysisStarter autoAnalysisStarter, ApplicationEventPublisher eventPublisher) {
+	public LaunchAutoAnalysisRunner(LaunchAutoAnalysisStarter autoAnalysisStarter) {
 		this.autoAnalysisStarter = autoAnalysisStarter;
-		this.eventPublisher = eventPublisher;
 	}
 
 	@Override
@@ -53,7 +49,6 @@ public class LaunchAutoAnalysisRunner implements ConfigurableEventHandler<Launch
 				launchFinishedEvent.getUser()
 		);
 		autoAnalysisStarter.start(config);
-		eventPublisher.publishEvent(new LaunchAutoAnalysisFinishEvent(launchFinishedEvent.getId()));
 	}
 
 }

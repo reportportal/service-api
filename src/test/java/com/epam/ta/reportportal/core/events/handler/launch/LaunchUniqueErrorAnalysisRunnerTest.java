@@ -30,7 +30,6 @@ import com.epam.ta.reportportal.entity.user.UserRole;
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Map;
 
@@ -44,9 +43,8 @@ import static org.mockito.Mockito.*;
 class LaunchUniqueErrorAnalysisRunnerTest {
 
 	private final UniqueErrorAnalysisStarter starter = mock(UniqueErrorAnalysisStarter.class);
-	private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
-	private final LaunchUniqueErrorAnalysisRunner runner = new LaunchUniqueErrorAnalysisRunner(starter, eventPublisher);
+	private final LaunchUniqueErrorAnalysisRunner runner = new LaunchUniqueErrorAnalysisRunner(starter);
 
 	@Test
 	void shouldStartWhenEnabled() {

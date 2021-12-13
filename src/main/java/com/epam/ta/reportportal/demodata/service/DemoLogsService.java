@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.demodata.service;
 
 import com.epam.ta.reportportal.binary.AttachmentBinaryDataService;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -54,13 +55,15 @@ public class DemoLogsService {
 	private final LogRepository logRepository;
 	private final LaunchRepository launchRepository;
 	private final TestItemRepository testItemRepository;
+	private final LogService logService;
 
 	private final AttachmentBinaryDataService attachmentBinaryDataService;
 
 	public DemoLogsService(@Value("${rp.environment.variable.demo.attachment.probability}") int attachmentProbability,
-			LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			AttachmentBinaryDataService attachmentBinaryDataService) {
+						   LogRepository logRepository, LaunchRepository launchRepository, TestItemRepository testItemRepository,
+						   LogService logService, AttachmentBinaryDataService attachmentBinaryDataService) {
 		this.attachmentProbability = attachmentProbability;
+		this.logService = logService;
 		this.random = new SplittableRandom();
 		this.logRepository = logRepository;
 		this.launchRepository = launchRepository;
@@ -79,6 +82,8 @@ public class DemoLogsService {
 			logs.addAll(errors.stream().map(msg -> getLog(launch, msg, errorLevel())).collect(toList()));
 		}
 		logRepository.saveAll(logs);
+		logService.saveLogMessageListToElasticSearch(logs);
+
 		return logs;
 	}
 
@@ -104,6 +109,8 @@ public class DemoLogsService {
 			logs.addAll(errors.stream().map(msg -> getLog(projectId, testItem, errorLevel(), msg)).collect(toList()));
 		}
 		logRepository.saveAll(logs);
+		logService.saveLogMessageListToElasticSearch(logs);
+
 		return logs;
 	}
 

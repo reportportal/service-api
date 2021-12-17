@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.core.events.activity.ProjectIndexEvent;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectAttribute;
@@ -37,6 +38,7 @@ import com.rabbitmq.http.client.domain.ExchangeInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -530,6 +532,8 @@ class ProjectControllerTest extends BaseMvcTest {
 		when(rabbitClient.getExchanges(any())).thenReturn(Collections.singletonList(exchangeInfo));
 
 		mockMvc.perform(put("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
+
+		verifyProjectIndexEvent();
 	}
 
 	@Test
@@ -544,6 +548,19 @@ class ProjectControllerTest extends BaseMvcTest {
 
 		mockMvc.perform(delete("/v1/project/default_personal/index").with(token(oAuthHelper.getDefaultToken()))).andExpect(status().isOk());
 
+		verifyProjectIndexEvent();
+
 		verify(rabbitTemplate, times(1)).convertSendAndReceiveAsType(eq(exchangeInfo.getName()), eq("delete"), eq(2L), any());
+	}
+
+	private void verifyProjectIndexEvent() {
+		final ArgumentCaptor<ProjectIndexEvent> eventArgumentCaptor = ArgumentCaptor.forClass(ProjectIndexEvent.class);
+		verify(messageBus, times(1)).publishActivity(eventArgumentCaptor.capture());
+
+		final ProjectIndexEvent event = eventArgumentCaptor.getValue();
+		assertEquals(2L, event.getProjectId());
+		assertEquals("default_personal", event.getProjectName());
+		assertEquals(2L, event.getUserId());
+		assertEquals("default", event.getUserLogin());
 	}
 }

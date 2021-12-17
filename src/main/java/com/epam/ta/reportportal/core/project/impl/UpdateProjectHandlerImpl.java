@@ -279,7 +279,7 @@ public class UpdateProjectHandlerImpl implements UpdateProjectHandler {
 				.thenAcceptAsync(indexedCount -> mailServiceFactory.getDefaultEmailService(true)
 						.sendIndexFinishedEmail("Index generation has been finished", user.getEmail(), indexedCount));
 
-		messageBus.publishActivity(new ProjectIndexEvent(project.getId(), project.getName(), user.getUserId(), user.getUsername(), true));
+		messageBus.publishActivity(new ProjectIndexEvent(user.getUserId(), user.getUsername(), project.getId(), project.getName(), true));
 		return new OperationCompletionRS("Log indexing has been started");
 	}
 

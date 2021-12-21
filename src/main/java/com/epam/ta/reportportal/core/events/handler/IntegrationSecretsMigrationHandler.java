@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -70,7 +71,7 @@ public class IntegrationSecretsMigrationHandler {
 		this.ldapSecretMigrationService = ldapSecretMigrationService;
 	}
 
-
+	@EventListener
 	public void migrate(ApplicationReadyEvent event) throws IOException {
 		final String migrationFilePath = integrationSaltPath + File.separator + migrationFile;
 		try (InputStream load = dataStore.load(migrationFilePath)) {

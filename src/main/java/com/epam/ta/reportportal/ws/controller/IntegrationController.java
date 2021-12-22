@@ -227,7 +227,7 @@ public class IntegrationController {
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Execute command to the plugin instance")
-	public Object executeIntegrationCommand(@PathVariable String projectName, @PathVariable("pluginName") String pluginName,
+	public Object executePluginCommand(@PathVariable String projectName, @PathVariable("pluginName") String pluginName,
 			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,
 			@AuthenticationPrincipal ReportPortalUser user) {
 		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName),

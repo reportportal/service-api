@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_LAUNCH_ID;
 import static org.assertj.core.api.Java6Assertions.assertThat;
@@ -86,6 +87,7 @@ class WidgetConverterTest {
 		assertEquals(widgetObjectModel.getWidgetSize().getHeight(), dashboardWidget.getHeight());
 		assertEquals(widgetObjectModel.getWidgetSize().getWidth(), dashboardWidget.getWidth());
 		assertEquals(dashboardWidget.isShare(), widgetObjectModel.isShare());
+		assertEquals(dashboardWidget.getWidget().getWidgetOptions().getOptions(), widgetObjectModel.getWidgetOptions());
 	}
 
 	@Test
@@ -149,6 +151,7 @@ class WidgetConverterTest {
 		final DashboardWidget dashboardWidget = new DashboardWidget();
 		final Widget widget = new Widget();
 		widget.setId(1L);
+		widget.setWidgetOptions(new WidgetOptions(Map.of("hello", "world")));
 		dashboardWidget.setWidget(widget);
 		final Dashboard dashboard = new Dashboard();
 		dashboard.setId(2L);

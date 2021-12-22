@@ -16,10 +16,7 @@
 
 package com.epam.ta.reportportal.core.item.impl.provider;
 
-import com.epam.ta.reportportal.core.item.impl.provider.impl.CumulativeTestItemDataProviderImpl;
-import com.epam.ta.reportportal.core.item.impl.provider.impl.DelegatingClusterDataProviderHandler;
-import com.epam.ta.reportportal.core.item.impl.provider.impl.LaunchDataProviderHandlerImpl;
-import com.epam.ta.reportportal.core.item.impl.provider.impl.MaterializedWidgetProviderHandlerImpl;
+import com.epam.ta.reportportal.core.item.impl.provider.impl.*;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.BeansException;
@@ -58,6 +55,7 @@ public class ProviderTypeConfig {
 				.put(DataProviderType.LAUNCH_BASED, applicationContext.getBean(LaunchDataProviderHandlerImpl.class))
 				.put(DataProviderType.FILTER_BASED, applicationContext.getBean(FilterDataProviderImpl.class))
 				.put(DataProviderType.CLUSTER_BASED,applicationContext.getBean(DelegatingClusterDataProviderHandler.class))
+				.put(DataProviderType.BASELINE_BASED,applicationContext.getBean(BaselineLaunchDataProvider.class))
 				.build();
 	}
 

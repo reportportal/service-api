@@ -57,6 +57,8 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
 @Service
 public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
+	private static final int DELETE_WIDGET_COUNT_THRESHOLD = 1;
+
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final DashboardRepository dashboardRepository;
 	private final UpdateWidgetHandler updateWidgetHandler;
@@ -144,11 +146,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		Dashboard dashboard = getShareableDashboardHandler.getPermitted(dashboardId, projectDetails);
 		Widget widget = getShareableWidgetHandler.getPermitted(widgetId, projectDetails);
 
-		/*
-		 *	if user is an owner of the widget - remove it from all dashboards
-		 *	should be replaced with copy
-		 */
-		if (user.getUsername().equalsIgnoreCase(widget.getOwner())) {
+		if (shouldDelete(widget)) {
 			OperationCompletionRS result = deleteWidget(widget);
 			messageBus.publishActivity(new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
 					user.getUserId(),
@@ -168,6 +166,10 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		return new OperationCompletionRS(
 				"Widget with ID = '" + widget.getId() + "' was successfully removed from the dashboard with ID = '" + dashboard.getId()
 						+ "'");
+	}
+
+	private boolean shouldDelete(Widget widget) {
+		return dashboardWidgetRepository.countAllByWidgetId(widget.getId()) <= DELETE_WIDGET_COUNT_THRESHOLD;
 	}
 
 	/**

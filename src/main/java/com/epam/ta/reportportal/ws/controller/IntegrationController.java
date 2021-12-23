@@ -223,7 +223,7 @@ public class IntegrationController {
 	}
 
 	@Transactional
-	@PutMapping(value = "{projectName}/{pluginName}/{command}", consumes = { APPLICATION_JSON_VALUE })
+	@PutMapping(value = "{projectName}/{pluginName}/common/{command}", consumes = { APPLICATION_JSON_VALUE })
 	@ResponseStatus(HttpStatus.OK)
 	@PreAuthorize(ASSIGNED_TO_PROJECT)
 	@ApiOperation("Execute command to the plugin instance")

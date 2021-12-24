@@ -82,10 +82,10 @@ dependencies {
     } else {
         compile 'com.github.reportportal:commons-dao:8937db5'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:16359b9'
+        compile 'com.github.reportportal:commons-model:06acecc'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:c3b61ac'
+        compile 'com.github.reportportal:plugin-api:886ac55'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

@@ -51,6 +51,7 @@ public final class IssueConverter {
 		ticket.setBtsUrl(externalSystemIssue.getBtsUrl());
 		ticket.setUrl(externalSystemIssue.getUrl());
 		ticket.setBtsProject(externalSystemIssue.getBtsProject());
+		ticket.setPluginName(externalSystemIssue.getPluginName());
 		return ticket;
 	};
 	/**

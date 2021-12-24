@@ -61,8 +61,8 @@ ext['hibernate-validator.version'] = '6.1.5.Final'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-13692
 ext['postgresql.version'] = '42.2.13'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-9488 and https://nvd.nist.gov/vuln/detail/CVE-2021-44228 and https://nvd.nist.gov/vuln/detail/CVE-2021-45046
-ext['log4j2.version'] = '2.16.0'
-ext['log4j-to-slf4j.version'] = '2.16.0'
+ext['log4j2.version'] = '2.17.0'
+ext['log4j-to-slf4j.version'] = '2.17.0'
 //
 
 dependencyManagement {
@@ -80,12 +80,12 @@ dependencies {
         compile 'com.epam.reportportal:commons-fonts'
         compile 'com.epam.reportportal:plugin-api'
     } else {
-        compile 'com.github.reportportal:commons-dao:428dca6'
+        compile 'com.github.reportportal:commons-dao:8937db5'
         compile 'com.github.reportportal:commons-rules:5.3.0'
-        compile 'com.github.reportportal:commons-model:a9b1958'
+        compile 'com.github.reportportal:commons-model:16359b9'
         compile 'com.github.reportportal:commons:7480d61'
         compile 'com.github.reportportal:commons-fonts:10d1054'
-        compile 'com.github.reportportal:plugin-api:8f85094'
+        compile 'com.github.reportportal:plugin-api:c3b61ac'
     }
 
     compile 'org.springframework.boot:spring-boot-starter-aop'

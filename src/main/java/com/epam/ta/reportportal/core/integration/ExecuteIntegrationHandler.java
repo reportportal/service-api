@@ -29,7 +29,19 @@ import java.util.Map;
 public interface ExecuteIntegrationHandler {
 
 	/**
-	 * Executes provided command
+	 * Executes provided common plugin command
+	 *
+	 * @param projectDetails  Project details
+	 * @param pluginName      Command name
+	 * @param command         Command to be executed
+	 * @param executionParams Parameters for execute
+	 * @return Result of the command execution
+	 */
+	Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, String pluginName, String command,
+			Map<String, Object> executionParams);
+
+	/**
+	 * Executes provided plugin command for existed integration
 	 *
 	 * @param projectDetails  Project details
 	 * @param integrationId   Integration id

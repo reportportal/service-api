@@ -19,8 +19,8 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
-import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -41,6 +41,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
 import static com.epam.ta.reportportal.core.launch.impl.LaunchTestUtil.getLaunch;
@@ -71,7 +73,7 @@ class UpdateLaunchHandlerImplTest {
 	private TestItemRepository testItemRepository;
 
 	@Mock
-	private ClusterGenerator clusterGenerator;
+	private UniqueErrorAnalysisStarter starter;
 
 	@InjectMocks
 	private UpdateLaunchHandlerImpl handler;
@@ -134,23 +136,26 @@ class UpdateLaunchHandlerImplTest {
 
 		final CreateClustersRQ createClustersRQ = new CreateClustersRQ();
 		createClustersRQ.setLaunchId(1L);
-		createClustersRQ.setRemoveNumbers(true);
+		final boolean defaultRemoveNumbers = Boolean.parseBoolean(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue());
+		createClustersRQ.setRemoveNumbers(!defaultRemoveNumbers);
 
 		handler.createClusters(createClustersRQ, extractProjectDetails(rpUser, "test_project"), rpUser);
 
 		verify(launchAccessValidator, times(1)).validate(any(Launch.class), any(ReportPortalUser.ProjectDetails.class), eq(rpUser));
 
-		final ArgumentCaptor<GenerateClustersConfig> argumentCaptor = ArgumentCaptor.forClass(GenerateClustersConfig.class);
-		verify(clusterGenerator, times(1)).generate(argumentCaptor.capture());
+		final ArgumentCaptor<ClusterEntityContext> contextCaptor = ArgumentCaptor.forClass(ClusterEntityContext.class);
+		final ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
+		verify(starter, times(1)).start(contextCaptor.capture(), mapCaptor.capture());
 
-		final GenerateClustersConfig config = argumentCaptor.getValue();
+		final ClusterEntityContext entityContext = contextCaptor.getValue();
 
-		assertEquals(1L, config.getEntityContext().getProjectId());
-		assertEquals(1L, config.getEntityContext().getLaunchId());
-		assertEquals(createClustersRQ.isRemoveNumbers(), config.isCleanNumbers());
-		assertFalse(config.isForUpdate());
-		assertEquals(ProjectAttributeEnum.NUMBER_OF_LOG_LINES.getDefaultValue(),
-				String.valueOf(config.getAnalyzerConfig().getNumberOfLogLines())
-		);
+		assertEquals(1L, entityContext.getProjectId());
+		assertEquals(1L, entityContext.getLaunchId());
+
+		final Map<String, String> providedConfig = mapCaptor.getValue();
+
+		final boolean providedRemoveNumbers = Boolean.parseBoolean(providedConfig.get(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute()));
+		assertNotEquals(providedRemoveNumbers, defaultRemoveNumbers);
+		assertEquals(createClustersRQ.isRemoveNumbers(), providedRemoveNumbers);
 	}
 }

@@ -41,6 +41,7 @@ public class ClusterConverter {
 	public static final Function<Cluster, ClusterInfoResource> TO_CLUSTER_INFO = c -> {
 		final ClusterInfoResource resource = new ClusterInfoResource();
 		resource.setId(c.getId());
+		resource.setIndex(c.getIndexId());
 		resource.setLaunchId(c.getLaunchId());
 		resource.setMessage(c.getMessage());
 		return resource;

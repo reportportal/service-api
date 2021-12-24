@@ -14,42 +14,38 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.events.handler.launch;
+package com.epam.ta.reportportal.core.events.listener;
 
-import com.epam.ta.reportportal.core.events.activity.LaunchFinishedEvent;
-import com.epam.ta.reportportal.core.events.handler.ConfigurableEventHandler;
+import com.epam.reportportal.extension.event.LaunchStartUniqueErrorAnalysisEvent;
 import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
 import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
-import org.apache.commons.lang3.BooleanUtils;
+import com.epam.ta.reportportal.core.project.config.ProjectConfigProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-
-import static com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 @Service
-public class LaunchUniqueErrorAnalysisRunner implements ConfigurableEventHandler<LaunchFinishedEvent, Map<String, String>> {
+public class StartLaunchUniqueErrorAnalysisEventListener {
 
+	private final ProjectConfigProvider projectConfigProvider;
 	private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 
 	@Autowired
-	public LaunchUniqueErrorAnalysisRunner(@Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
+	public StartLaunchUniqueErrorAnalysisEventListener(ProjectConfigProvider projectConfigProvider,
+			@Qualifier("uniqueErrorAnalysisStarter") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
+		this.projectConfigProvider = projectConfigProvider;
 		this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
 	}
 
-	@Override
-	public void handle(LaunchFinishedEvent launchFinishedEvent, Map<String, String> projectConfig) {
-		final boolean enabled = BooleanUtils.toBoolean(projectConfig.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute()));
-		if (enabled) {
-			uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launchFinishedEvent.getId(), launchFinishedEvent.getProjectId()),
-					projectConfig
-			);
-		}
+	@EventListener
+	public void onApplicationEvent(LaunchStartUniqueErrorAnalysisEvent event) {
+		final Map<String, String> projectConfig = projectConfigProvider.provide(event.getProjectId());
+		uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(event.getSource(), event.getProjectId()), projectConfig);
 	}
-
 }

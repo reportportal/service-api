@@ -92,7 +92,7 @@ rp:
           auto-analyze:
             core: 10
             max: 30
-            queue: 200
+            queue: 500
           pattern-analyze:
             core: 20
             max: 30

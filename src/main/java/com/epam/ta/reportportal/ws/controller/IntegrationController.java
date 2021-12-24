@@ -56,8 +56,9 @@ public class IntegrationController {
 	private final ExecuteIntegrationHandler executeIntegrationHandler;
 
 	@Autowired
-	public IntegrationController(ProjectExtractor projectExtractor, DeleteIntegrationHandler deleteIntegrationHandler, GetIntegrationHandler getIntegrationHandler,
-			CreateIntegrationHandler createIntegrationHandler, ExecuteIntegrationHandler executeIntegrationHandler) {
+	public IntegrationController(ProjectExtractor projectExtractor, DeleteIntegrationHandler deleteIntegrationHandler,
+			GetIntegrationHandler getIntegrationHandler, CreateIntegrationHandler createIntegrationHandler,
+			ExecuteIntegrationHandler executeIntegrationHandler) {
 		this.projectExtractor = projectExtractor;
 		this.deleteIntegrationHandler = deleteIntegrationHandler;
 		this.getIntegrationHandler = getIntegrationHandler;
@@ -229,7 +230,11 @@ public class IntegrationController {
 	public Object executeIntegrationCommand(@PathVariable String projectName, @PathVariable("integrationId") Long integrationId,
 			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,
 			@AuthenticationPrincipal ReportPortalUser user) {
-		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName), integrationId, command, executionParams);
+		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName),
+				integrationId,
+				command,
+				executionParams
+		);
 	}
 
 }

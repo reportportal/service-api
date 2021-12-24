@@ -17,10 +17,12 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
+import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
@@ -38,8 +40,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -52,14 +57,19 @@ public class PluginController {
 	private final UpdatePluginHandler updatePluginHandler;
 	private final GetPluginHandler getPluginHandler;
 	private final DeletePluginHandler deletePluginHandler;
+	private final ExecuteIntegrationHandler executeIntegrationHandler;
+	private final ProjectExtractor projectExtractor;
 
 	@Autowired
 	public PluginController(CreatePluginHandler createPluginHandler, UpdatePluginHandler updatePluginHandler,
-			GetPluginHandler getPluginHandler, DeletePluginHandler deletePluginHandler) {
+			GetPluginHandler getPluginHandler, DeletePluginHandler deletePluginHandler, ExecuteIntegrationHandler executeIntegrationHandler,
+			ProjectExtractor projectExtractor) {
 		this.createPluginHandler = createPluginHandler;
 		this.updatePluginHandler = updatePluginHandler;
 		this.getPluginHandler = getPluginHandler;
 		this.deletePluginHandler = deletePluginHandler;
+		this.executeIntegrationHandler = executeIntegrationHandler;
+		this.projectExtractor = projectExtractor;
 	}
 
 	@Transactional
@@ -97,5 +107,20 @@ public class PluginController {
 	@PreAuthorize(ADMIN_ONLY)
 	public OperationCompletionRS deletePlugin(@PathVariable(value = "pluginId") Long id, @AuthenticationPrincipal ReportPortalUser user) {
 		return deletePluginHandler.deleteById(id);
+	}
+
+	@Transactional
+	@PutMapping(value = "{projectName}/{pluginName}/common/{command}", consumes = { APPLICATION_JSON_VALUE })
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(ASSIGNED_TO_PROJECT)
+	@ApiOperation("Execute command to the plugin instance")
+	public Object executePluginCommand(@PathVariable String projectName, @PathVariable("pluginName") String pluginName,
+			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams,
+			@AuthenticationPrincipal ReportPortalUser user) {
+		return executeIntegrationHandler.executeCommand(projectExtractor.extractProjectDetails(user, projectName),
+				pluginName,
+				command,
+				executionParams
+		);
 	}
 }

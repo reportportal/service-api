@@ -38,6 +38,7 @@ public final class TicketConverter {
 		ticket.setBtsProject(issue.getBtsProject());
 		ticket.setTicketId(issue.getTicketId());
 		ticket.setUrl(issue.getUrl());
+		ticket.setPluginName(issue.getPluginName());
 		return ticket;
 	};
 }

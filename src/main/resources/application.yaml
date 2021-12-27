@@ -175,3 +175,9 @@ rp:
       avatar:
         width: 40
         height: 50
+
+  elasticsearchLogmessage:
+    host:
+    port:
+    username:
+    password:

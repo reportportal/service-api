@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_NAME;
-import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_ITEM_ATTRIBUTE_VALUE;
+import static com.epam.ta.reportportal.commons.querygen.constant.ItemAttributeConstant.CRITERIA_COMPOSITE_ATTRIBUTE;
 import static com.epam.ta.reportportal.ws.model.ErrorType.PROJECT_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 
@@ -155,7 +155,7 @@ class DemoDashboardsService {
 		userFilter.setTargetClass(ObjectType.Launch);
 		userFilter.setProject(project);
 		userFilter.setFilterCondition(Sets.newHashSet(FilterCondition.builder()
-				.withSearchCriteria(CRITERIA_ITEM_ATTRIBUTE_VALUE)
+				.withSearchCriteria(CRITERIA_COMPOSITE_ATTRIBUTE)
 				.withCondition(Condition.HAS)
 				.withValue("demo")
 				.build()));

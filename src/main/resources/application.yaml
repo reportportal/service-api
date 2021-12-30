@@ -177,7 +177,7 @@ rp:
         height: 50
 
   elasticsearchLogmessage:
-    host:
-    port:
+    host: elasticsearch
+    port: 9200
     username:
     password:

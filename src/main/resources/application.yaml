@@ -175,9 +175,3 @@ rp:
       avatar:
         width: 40
         height: 50
-
-  elasticsearchLogmessage:
-    host: elasticsearch
-    port: 9200
-    username:
-    password:

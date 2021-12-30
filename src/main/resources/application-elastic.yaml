@@ -1,0 +1,6 @@
+rp:
+  elasticsearchLogmessage:
+    host: elasticsearch
+    port: 9200
+    username:
+    password:

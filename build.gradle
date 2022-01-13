@@ -61,10 +61,11 @@ ext['hibernate-validator.version'] = '6.1.5.Final'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-13692
 ext['postgresql.version'] = '42.2.13'
 //https://nvd.nist.gov/vuln/detail/CVE-2020-9488 and https://nvd.nist.gov/vuln/detail/CVE-2021-44228 and https://nvd.nist.gov/vuln/detail/CVE-2021-45046 and
-//https://nvd.nist.gov/vuln/detail/CVE-2021-45105
-ext['log4j2.version'] = '2.17.0'
-ext['log4j-to-slf4j.version'] = '2.17.0'
+//https://nvd.nist.gov/vuln/detail/CVE-2021-45105 and https://nvd.nist.gov/vuln/detail/CVE-2021-44832
+ext['log4j2.version'] = '2.17.1'
+ext['log4j-to-slf4j.version'] = '2.17.1'
 //
+ext['logback.version'] = '1.2.10'
 
 dependencyManagement {
     imports {

@@ -4,8 +4,8 @@ import com.epam.ta.reportportal.commons.querygen.Filter;
 import com.epam.ta.reportportal.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
+import com.epam.ta.reportportal.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.ta.reportportal.dao.WidgetRepository;
-import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
@@ -34,21 +34,20 @@ import static java.util.Optional.ofNullable;
 @Service
 public class GenerateWidgetViewEventHandler {
 
-	private static final String VIEW_PREFIX = "widget";
-	private static final String NAME_SEPARATOR = "_";
-
 	private final WidgetRepository widgetRepository;
 	private final Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping;
+	private final MaterializedViewNameGenerator materializedViewNameGenerator;
 	private final TaskExecutor widgetViewExecutor;
 	private final Map<WidgetType, ViewGenerator> viewGeneratorMapping;
 
 	@Autowired
 	public GenerateWidgetViewEventHandler(WidgetRepository widgetRepository,
 			@Qualifier("buildFilterStrategy") Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping,
-			@Qualifier("widgetViewExecutor") TaskExecutor widgetViewExecutor,
+			MaterializedViewNameGenerator materializedViewNameGenerator, @Qualifier("widgetViewExecutor") TaskExecutor widgetViewExecutor,
 			@Qualifier("viewGeneratorMapping") Map<WidgetType, ViewGenerator> viewGeneratorMapping) {
 		this.widgetRepository = widgetRepository;
 		this.buildFilterStrategyMapping = buildFilterStrategyMapping;
+		this.materializedViewNameGenerator = materializedViewNameGenerator;
 		this.widgetViewExecutor = widgetViewExecutor;
 		this.viewGeneratorMapping = viewGeneratorMapping;
 	}
@@ -69,7 +68,7 @@ public class GenerateWidgetViewEventHandler {
 
 			ofNullable(viewGeneratorMapping.get(widgetType)).ifPresent(viewGenerator -> widgetViewExecutor.execute(() -> viewGenerator.generate(
 					BooleanUtils.toBoolean(event.getParams().getFirst(REFRESH)),
-					generateViewName(widget),
+					materializedViewNameGenerator.generate(widget),
 					widget,
 					launchesFilter,
 					launchesSort,
@@ -77,10 +76,6 @@ public class GenerateWidgetViewEventHandler {
 			)));
 
 		});
-	}
-
-	private String generateViewName(Widget widget) {
-		return String.join(NAME_SEPARATOR, VIEW_PREFIX, String.valueOf(widget.getProject().getId()), String.valueOf(widget.getId()));
 	}
 
 }

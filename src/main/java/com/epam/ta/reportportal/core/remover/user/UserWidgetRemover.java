@@ -22,6 +22,7 @@ import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.user.User;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -34,11 +35,12 @@ import java.util.List;
 public class UserWidgetRemover implements ContentRemover<User> {
 
 	private final WidgetRepository widgetRepository;
-	private final List<WidgetContentRemover> widgetContentRemovers;
+	private final WidgetContentRemover widgetContentRemover;
 
-	public UserWidgetRemover(WidgetRepository widgetRepository, List<WidgetContentRemover> widgetContentRemovers) {
+	public UserWidgetRemover(WidgetRepository widgetRepository,
+			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover) {
 		this.widgetRepository = widgetRepository;
-		this.widgetContentRemovers = widgetContentRemovers;
+		this.widgetContentRemover = widgetContentRemover;
 	}
 
 	@Override
@@ -46,6 +48,6 @@ public class UserWidgetRemover implements ContentRemover<User> {
 		List<Widget> widgets = widgetRepository.findAllByOwnerAndWidgetTypeIn(user.getLogin(),
 				Collections.singletonList(WidgetType.COMPONENT_HEALTH_CHECK_TABLE.getType())
 		);
-		widgets.forEach(w -> widgetContentRemovers.forEach(remover -> remover.removeContent(w)));
+		widgets.forEach(widgetContentRemover::removeContent);
 	}
 }

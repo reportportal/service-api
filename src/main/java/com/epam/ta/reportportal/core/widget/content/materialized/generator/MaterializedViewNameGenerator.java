@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package com.epam.ta.reportportal.core.widget.content.remover;
+package com.epam.ta.reportportal.core.widget.content.materialized.generator;
 
 import com.epam.ta.reportportal.entity.widget.Widget;
+import org.springframework.stereotype.Component;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public interface WidgetContentRemover {
+@Component
+public class MaterializedViewNameGenerator {
 
-	void removeContent(Widget widget);
+	private static final String VIEW_PREFIX = "widget";
+	private static final String NAME_SEPARATOR = "_";
 
+	public String generate(Widget widget) {
+		return String.join(NAME_SEPARATOR, VIEW_PREFIX, String.valueOf(widget.getProject().getId()), String.valueOf(widget.getId()));
+	}
 }

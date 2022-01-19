@@ -29,6 +29,9 @@ import com.epam.ta.reportportal.core.widget.content.loader.materialized.generato
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
+import com.epam.ta.reportportal.core.widget.content.remover.MaterializedViewRemover;
+import com.epam.ta.reportportal.core.widget.content.remover.StaleMaterializedViewRemover;
+import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
@@ -194,6 +197,14 @@ public class WidgetConfig implements ApplicationContextAware {
 				applicationContext.getBean(HealthCheckTableGenerator.class)
 		)
 				.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartViewGenerator.class))
+				.build();
+	}
+
+	@Bean("widgetContentRemoverMapping")
+	public Map<WidgetState, WidgetContentRemover> widgetContentRemoverMapping() {
+		return ImmutableMap.<WidgetState, WidgetContentRemover>builder()
+				.put(WidgetState.READY, applicationContext.getBean(MaterializedViewRemover.class))
+				.put(WidgetState.RENDERING, applicationContext.getBean(StaleMaterializedViewRemover.class))
 				.build();
 	}
 

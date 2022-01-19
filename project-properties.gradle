@@ -18,7 +18,7 @@ project.ext {
     isDebugMode = System.getProperty("DEBUG", "false") == "true"
     releaseMode = project.hasProperty("releaseMode")
     scriptsUrl = commonScriptsUrl + (releaseMode ? getProperty('scripts.version') : 'develop')
-    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'develop')
+    migrationsUrl = migrationsScriptsUrl + (releaseMode ? getProperty('migrations.version') : 'EPMRPP-73239-stale-materialized-view-table')
     //TODO refactor with archive download
     testScriptsSrc = [
             (migrationsUrl + '/migrations/0_extensions.up.sql')                        : 'V001__extensions.sql',
@@ -55,6 +55,7 @@ project.ext {
             (migrationsUrl + '/migrations/52_analyzer_search_attribute.up.sql')        : 'V052__analyzer_search_attribute.sql',
             (migrationsUrl + '/migrations/54_analyzer_unique_error_attribute.up.sql')  : 'V054__analyzer_unique_error_attribute.sql',
             (migrationsUrl + '/migrations/58_alter_ticket.up.sql')                     : 'V058__alter_ticket.sql',
+            (migrationsUrl + '/migrations/59_stale_materialized_view.up.sql')          : 'V059__stale_materialized_view.sql',
     ]
     excludeTests = ['**/entity/**',
                     '**/aop/**',

@@ -43,7 +43,7 @@ public class StaleMaterializedViewRemover implements WidgetContentRemover {
 	@Override
 	public void removeContent(Widget widget) {
 		final StaleMaterializedView staleView = getStaleView(widget);
-		staleMaterializedViewRepository.save(staleView);
+		staleMaterializedViewRepository.insert(staleView);
 	}
 
 	private StaleMaterializedView getStaleView(Widget widget) {

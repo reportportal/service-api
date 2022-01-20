@@ -47,7 +47,7 @@ class StaleMaterializedViewRemoverTest {
 		staleMaterializedViewRemover.removeContent(widget);
 
 		final ArgumentCaptor<StaleMaterializedView> viewArgumentCaptor = ArgumentCaptor.forClass(StaleMaterializedView.class);
-		verify(staleMaterializedViewRepository, times(1)).save(viewArgumentCaptor.capture());
+		verify(staleMaterializedViewRepository, times(1)).insert(viewArgumentCaptor.capture());
 
 		final StaleMaterializedView view = viewArgumentCaptor.getValue();
 

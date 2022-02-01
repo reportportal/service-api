@@ -52,8 +52,6 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerStatusCache.AUTO_ANALYZER_KEY;
 import static com.epam.ta.reportportal.ws.converter.converters.TestItemConverter.TO_ACTIVITY_RESOURCE;
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.nullToEmpty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -203,19 +201,11 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 	 */
 	private RelevantItemInfo updateIssueFromRelevantItem(IssueEntity issue, TestItem relevantItem) {
 		ofNullable(relevantItem.getItemResults().getIssue()).ifPresent(relevantIssue -> {
-			final String issueDescription = resolveDescription(issue, relevantIssue);
-			issue.setIssueDescription(emptyToNull(issueDescription));
+			issue.setIssueDescription(relevantIssue.getIssueDescription());
 			issue.setTickets(Sets.newHashSet(relevantIssue.getTickets()));
 		});
 
 		return AnalyzerUtils.TO_RELEVANT_ITEM_INFO.apply(relevantItem);
 	}
 
-	private String resolveDescription(IssueEntity issue, IssueEntity relevantIssue) {
-		return ofNullable(issue.getIssueDescription()).map(description -> String.join("\n",
-				description,
-				nullToEmpty(relevantIssue.getIssueDescription())
-		))
-				.orElseGet(() -> nullToEmpty(relevantIssue.getIssueDescription()));
-	}
 }

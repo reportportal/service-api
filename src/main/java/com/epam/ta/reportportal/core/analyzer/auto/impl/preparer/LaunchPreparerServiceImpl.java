@@ -30,6 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,6 +65,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 				return Optional.of(createIndexLaunch(launch.getProjectId(),
 						launch.getId(),
 						launch.getName(),
+						launch.getStartTime(),
 						analyzerConfig,
 						preparedItems
 				));
@@ -72,11 +74,12 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 		return Optional.empty();
 	}
 
-	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, AnalyzerConfig analyzerConfig,
+	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, LocalDateTime startLaunchTime, AnalyzerConfig analyzerConfig,
 			List<IndexTestItem> rqTestItems) {
 		IndexLaunch rqLaunch = new IndexLaunch();
 		rqLaunch.setLaunchId(launchId);
 		rqLaunch.setLaunchName(name);
+		rqLaunch.setLaunchStartTime(startLaunchTime);
 		rqLaunch.setProjectId(projectId);
 		rqLaunch.setAnalyzerConfig(analyzerConfig);
 		rqLaunch.setTestItems(rqTestItems);

@@ -62,7 +62,7 @@ public class TestItemPreparerServiceImpl implements TestItemPreparerService {
 	@Override
 	public List<IndexTestItem> prepare(Long launchId) {
 		final List<IndexTestItem> indexTestItems = testItemRepository.findIndexTestItemByLaunchId(launchId,
-				List.of(JTestItemTypeEnum.STEP)
+				List.of(JTestItemTypeEnum.STEP, JTestItemTypeEnum.BEFORE_METHOD, JTestItemTypeEnum.AFTER_METHOD)
 		);
 		return prepare(launchId, indexTestItems);
 	}

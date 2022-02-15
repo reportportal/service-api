@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,21 +126,6 @@ public class LogIndexerService implements LogIndexer {
 		} finally {
 			indexerStatusCache.indexingFinished(projectId);
 		}
-	}
-
-	@Override
-	public CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				indexerStatusCache.indexingStarted(projectId);
-				return indexerServiceClient.index(Lists.newArrayList(indexLaunch));
-			} catch (Exception ex) {
-				LOGGER.error(ex.getMessage(), ex);
-				throw new ReportPortalException(ex.getMessage());
-			} finally {
-				indexerStatusCache.indexingFinished(projectId);
-			}
-		});
 	}
 
 	@Override

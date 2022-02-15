@@ -167,4 +167,6 @@ public interface GetLaunchHandler {
 	 * @return {@link ClusterInfoResource}
 	 */
 	Iterable<ClusterInfoResource> getClusters(String launchId, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
+
+	boolean hasItemsWithIssues(Launch launch);
 }

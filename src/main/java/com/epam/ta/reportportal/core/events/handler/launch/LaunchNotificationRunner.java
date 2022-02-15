@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.dao.UserRepository;
 import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
 import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.SendCase;
-import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
@@ -168,12 +167,12 @@ public class LaunchNotificationRunner implements ConfigurableEventHandler<Launch
 	 * @param option SendCase option
 	 * @return TRUE of success rate is enough for notification
 	 */
-	private static boolean isSuccessRateEnough(Launch launch, SendCase option) {
+	private boolean isSuccessRateEnough(Launch launch, SendCase option) {
 		switch (option) {
 			case ALWAYS:
 				return true;
 			case FAILED:
-				return launch.getStatus().equals(StatusEnum.FAILED);
+				return getLaunchHandler.hasItemsWithIssues(launch);
 			case TO_INVESTIGATE:
 				return extractStatisticsCount(DEFECTS_TO_INVESTIGATE_TOTAL, launch.getStatistics()) > 0;
 			case MORE_10:

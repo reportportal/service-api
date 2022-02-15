@@ -111,6 +111,7 @@ class LaunchNotificationRunnerTest {
 
 		when(getLaunchHandler.get(event.getId())).thenReturn(launch);
 		when(getProjectHandler.get(event.getProjectId())).thenReturn(project);
+		when(getLaunchHandler.hasItemsWithIssues(launch)).thenReturn(Boolean.TRUE);
 
 		runner.handle(event, mapping);
 		verify(emailService, times(2)).sendLaunchFinishNotification(any(), any(), any(), any());

@@ -142,7 +142,7 @@ public class DeleteIntegrationHandlerTest {
 
 		when(projectRepository.findByName(TEST_PROJECT_NAME)).thenReturn(Optional.of(project));
 
-		when(integrationRepository.findAllByProjectId(projectId)).thenReturn(Lists.newArrayList(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId,
+		when(integrationRepository.findAllByProjectIdOrderByCreationDateDesc(projectId)).thenReturn(Lists.newArrayList(IntegrationTestUtil.getProjectEmailIntegration(emailIntegrationId,
 				projectId
 		)));
 

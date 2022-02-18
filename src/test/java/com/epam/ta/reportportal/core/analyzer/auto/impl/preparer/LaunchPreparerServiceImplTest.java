@@ -26,8 +26,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +53,7 @@ class LaunchPreparerServiceImplTest {
 		indexLaunch.setLaunchName("name");
 		indexLaunch.setProjectId(1L);
 
-		when(launchRepository.findIndexLaunchByIdsAndLogLevel(eq(List.of(launchId)), anyInt())).thenReturn(List.of(indexLaunch));
+		when(launchRepository.findIndexLaunchByIds(List.of(launchId))).thenReturn(List.of(indexLaunch));
 
 		final IndexTestItem indexTestItem = new IndexTestItem();
 		when(testItemPreparerService.prepare(indexLaunch.getLaunchId())).thenReturn(List.of(indexTestItem));

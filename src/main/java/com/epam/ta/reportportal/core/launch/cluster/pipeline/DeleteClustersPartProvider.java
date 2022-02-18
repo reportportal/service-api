@@ -16,7 +16,8 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
@@ -38,10 +39,14 @@ public class DeleteClustersPartProvider implements PipelinePartProvider<Generate
 	@Override
 	public PipelinePart provide(GenerateClustersConfig config) {
 		return () -> {
-			if (!config.isForUpdate()) {
-				logRepository.updateClusterIdSetNullByLaunchId(config.getLaunchId());
-				clusterRepository.deleteClusterTestItemsByLaunchId(config.getLaunchId());
-				clusterRepository.deleteAllByLaunchId(config.getLaunchId());
+			final ClusterEntityContext entityContext = config.getEntityContext();
+			if (config.isForUpdate()) {
+				logRepository.updateClusterIdSetNullByItemIds(entityContext.getItemIds());
+				clusterRepository.deleteClusterTestItemsByItemIds(entityContext.getItemIds());
+			} else {
+				logRepository.updateClusterIdSetNullByLaunchId(entityContext.getLaunchId());
+				clusterRepository.deleteClusterTestItemsByLaunchId(entityContext.getLaunchId());
+				clusterRepository.deleteAllByLaunchId(entityContext.getLaunchId());
 			}
 		};
 	}

@@ -173,7 +173,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 	public List<IntegrationResource> getProjectIntegrations(String projectName) {
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
-		return integrationRepository.findAllByProjectId(project.getId()).stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
+		return integrationRepository.findAllByProjectIdOrderByCreationDateDesc(project.getId()).stream().map(TO_INTEGRATION_RESOURCE).collect(Collectors.toList());
 	}
 
 	@Override
@@ -182,7 +182,7 @@ public class GetIntegrationHandlerImpl implements GetIntegrationHandler {
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));
 		IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
-		return integrationRepository.findAllByProjectIdAndType(project.getId(), integrationType)
+		return integrationRepository.findAllByProjectIdAndTypeOrderByCreationDateDesc(project.getId(), integrationType)
 				.stream()
 				.map(TO_INTEGRATION_RESOURCE)
 				.collect(Collectors.toList());

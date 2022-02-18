@@ -31,6 +31,7 @@ import com.epam.ta.reportportal.entity.dashboard.DashboardWidget;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,19 +52,20 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final WidgetRepository widgetRepository;
 	private final ShareableObjectsHandler aclHandler;
-	private final List<WidgetContentRemover> widgetContentRemovers;
+	private final WidgetContentRemover widgetContentRemover;
 	private final MessageBus messageBus;
 
 	@Autowired
 	public DeleteDashboardHandlerImpl(GetShareableEntityHandler<Dashboard> getShareableEntityHandler,
 			DashboardRepository dashboardRepository, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository,
-			ShareableObjectsHandler aclHandler, List<WidgetContentRemover> widgetContentRemovers, MessageBus messageBus) {
+			ShareableObjectsHandler aclHandler, @Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover,
+			MessageBus messageBus) {
 		this.getShareableEntityHandler = getShareableEntityHandler;
 		this.dashboardRepository = dashboardRepository;
 		this.dashboardWidgetRepository = dashboardWidgetRepository;
 		this.widgetRepository = widgetRepository;
 		this.aclHandler = aclHandler;
-		this.widgetContentRemovers = widgetContentRemovers;
+		this.widgetContentRemover = widgetContentRemover;
 		this.messageBus = messageBus;
 	}
 
@@ -76,7 +78,7 @@ public class DeleteDashboardHandlerImpl implements DeleteDashboardHandler {
 				.filter(DashboardWidget::isCreatedOn)
 				.map(DashboardWidget::getWidget)
 				.peek(aclHandler::deleteAclForObject)
-				.peek(widget -> widgetContentRemovers.forEach(remover -> remover.removeContent(widget)))
+				.peek(widgetContentRemover::removeContent)
 				.collect(Collectors.toList());
 		dashboardWidgets.addAll(widgets.stream().flatMap(w -> w.getDashboardWidgets().stream()).collect(toSet()));
 

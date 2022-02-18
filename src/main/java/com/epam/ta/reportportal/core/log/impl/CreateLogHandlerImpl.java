@@ -19,6 +19,7 @@ package com.epam.ta.reportportal.core.log.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.item.TestItemService;
 import com.epam.ta.reportportal.core.log.CreateLogHandler;
+import com.epam.ta.reportportal.core.log.LogService;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
@@ -79,6 +80,9 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 	private Provider<SaveLogBinaryDataTask> saveLogBinaryDataTask;
 
 	@Autowired
+	private LogService logService;
+
+	@Autowired
 	@Qualifier("saveLogsTaskExecutor")
 	private TaskExecutor taskExecutor;
 
@@ -100,6 +104,7 @@ public class CreateLogHandlerImpl implements CreateLogHandler {
 
 		final Log log = logBuilder.get();
 		logRepository.save(log);
+		logService.saveLogMessageToElasticSearch(log);
 
 		ofNullable(file).ifPresent(f -> saveBinaryData(f, launch, log));
 

@@ -19,23 +19,20 @@ package com.epam.ta.reportportal.core.launch.impl;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.commons.validation.Suppliers;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.analyzer.config.AnalyzerType;
 import com.epam.ta.reportportal.core.analyzer.strategy.LaunchAnalysisStrategy;
 import com.epam.ta.reportportal.core.item.impl.LaunchAccessValidator;
 import com.epam.ta.reportportal.core.launch.GetLaunchHandler;
 import com.epam.ta.reportportal.core.launch.UpdateLaunchHandler;
-import com.epam.ta.reportportal.core.launch.cluster.ClusterGenerator;
+import com.epam.ta.reportportal.core.launch.cluster.UniqueErrorAnalysisStarter;
+import com.epam.ta.reportportal.core.launch.cluster.config.ClusterEntityContext;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.entity.enums.LaunchModeEnum;
+import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
-import com.epam.ta.reportportal.entity.enums.TestItemIssueGroup;
-import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
@@ -54,6 +51,7 @@ import com.epam.ta.reportportal.ws.model.launch.cluster.CreateClustersRQ;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,8 +63,8 @@ import static com.epam.ta.reportportal.commons.Preconditions.statusIn;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.not;
 import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.getAnalyzerConfig;
 import static com.epam.ta.reportportal.entity.project.ProjectRole.PROJECT_MANAGER;
+import static com.epam.ta.reportportal.entity.project.ProjectUtils.getConfigParameters;
 import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.stream.Collectors.toList;
 
@@ -84,35 +82,31 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	private final LaunchAccessValidator launchAccessValidator;
 
 	private final LaunchRepository launchRepository;
-	private final TestItemRepository testItemRepository;
 
 	private final LogIndexer logIndexer;
-	private final LaunchPreparerService launchPreparerService;
 
 	private final Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping;
 
-	private final ClusterGenerator clusterGenerator;
+	private final UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter;
 
 	@Autowired
 	public UpdateLaunchHandlerImpl(GetProjectHandler getProjectHandler, GetLaunchHandler getLaunchHandler,
-			LaunchAccessValidator launchAccessValidator, LaunchRepository launchRepository, TestItemRepository testItemRepository,
-			LogIndexer logIndexer, LaunchPreparerService launchPreparerService,
-			Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping, ClusterGenerator clusterGenerator) {
+			LaunchAccessValidator launchAccessValidator, LaunchRepository launchRepository, LogIndexer logIndexer,
+			Map<AnalyzerType, LaunchAnalysisStrategy> launchAnalysisStrategyMapping,
+			@Qualifier("uniqueErrorAnalysisStarterAsync") UniqueErrorAnalysisStarter uniqueErrorAnalysisStarter) {
 		this.getProjectHandler = getProjectHandler;
 		this.getLaunchHandler = getLaunchHandler;
 		this.launchAccessValidator = launchAccessValidator;
 		this.launchRepository = launchRepository;
-		this.testItemRepository = testItemRepository;
 		this.launchAnalysisStrategyMapping = launchAnalysisStrategyMapping;
 		this.logIndexer = logIndexer;
-		this.launchPreparerService = launchPreparerService;
-		this.clusterGenerator = clusterGenerator;
+		this.uniqueErrorAnalysisStarter = uniqueErrorAnalysisStarter;
 	}
 
 	@Override
 	public OperationCompletionRS updateLaunch(Long launchId, ReportPortalUser.ProjectDetails projectDetails, ReportPortalUser user,
 			UpdateLaunchRQ rq) {
-		Project project = getProjectHandler.getProject(projectDetails);
+		Project project = getProjectHandler.get(projectDetails);
 		Launch launch = launchRepository.findById(launchId)
 				.orElseThrow(() -> new ReportPortalException(LAUNCH_NOT_FOUND, launchId.toString()));
 		validate(launch, user, projectDetails, rq.getMode());
@@ -155,23 +149,18 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 	public OperationCompletionRS createClusters(CreateClustersRQ createClustersRQ, ReportPortalUser.ProjectDetails projectDetails,
 			ReportPortalUser user) {
 
-		final Launch launch = getLaunchHandler.getLaunch(createClustersRQ.getLaunchId());
+		final Launch launch = getLaunchHandler.get(createClustersRQ.getLaunchId());
 		launchAccessValidator.validate(launch, projectDetails, user);
 		//TODO should be put inside *Validator after validators refactoring
 		expect(launch.getStatus(), not(statusIn(StatusEnum.IN_PROGRESS))).verify(INCORRECT_REQUEST, "Cannot analyze launch in progress.");
 
-		final Project project = getProjectHandler.getProject(projectDetails);
+		final Project project = getProjectHandler.get(launch.getProjectId());
 
-		AnalyzerConfig analyzerConfig = getAnalyzerConfig(project);
-
-		final GenerateClustersConfig config = new GenerateClustersConfig();
-		config.setAnalyzerConfig(analyzerConfig);
-		config.setLaunchId(launch.getId());
-		config.setProject(project.getId());
-		config.setForUpdate(false);
-		config.setCleanNumbers(createClustersRQ.isRemoveNumbers());
-
-		clusterGenerator.generate(config);
+		final Map<String, String> configParameters = getConfigParameters(project.getProjectAttributes());
+		configParameters.put(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute(),
+				String.valueOf(createClustersRQ.isRemoveNumbers())
+		);
+		uniqueErrorAnalysisStarter.start(ClusterEntityContext.of(launch.getId(), launch.getProjectId()), configParameters);
 
 		return new OperationCompletionRS(Suppliers.formattedSupplier("Clusters generation for launch with ID='{}' started.", launch.getId())
 				.get());
@@ -225,8 +214,7 @@ public class UpdateLaunchHandlerImpl implements UpdateLaunchHandler {
 		if (LaunchModeEnum.DEBUG.equals(launch.getMode())) {
 			logIndexer.indexLaunchesRemove(projectId, Lists.newArrayList(launch.getId()));
 		} else {
-			List<TestItem> items = testItemRepository.findAllNotInIssueGroupByLaunch(launch.getId(), TestItemIssueGroup.TO_INVESTIGATE);
-			launchPreparerService.prepare(launch, items, analyzerConfig).ifPresent(it -> logIndexer.indexPreparedLogs(projectId, it));
+			logIndexer.indexLaunchLogs(launch, analyzerConfig);
 		}
 	}
 

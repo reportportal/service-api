@@ -25,7 +25,6 @@ import com.epam.ta.reportportal.entity.enums.ProjectAttributeEnum;
 import com.epam.ta.reportportal.entity.enums.StatusEnum;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.entity.project.ProjectUtils;
-import com.epam.ta.reportportal.ws.model.activity.LaunchActivityResource;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -44,7 +43,6 @@ import java.util.stream.Stream;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_ID;
 import static com.epam.ta.reportportal.job.PageUtil.iterateOverPages;
-import static com.epam.ta.reportportal.ws.converter.converters.LaunchConverter.TO_ACTIVITY_RESOURCE;
 import static java.time.Duration.ofSeconds;
 
 /**
@@ -146,9 +144,7 @@ public class InterruptBrokenLaunchesJob implements Job {
 	}
 
 	private void publishFinishEvent(Launch launch) {
-		final LaunchActivityResource eventResource = TO_ACTIVITY_RESOURCE.apply(launch);
-		final LaunchFinishedEvent event = new LaunchFinishedEvent();
-		event.setLaunchActivityResource(eventResource);
+		final LaunchFinishedEvent event = new LaunchFinishedEvent(launch);
 		eventPublisher.publishEvent(event);
 	}
 

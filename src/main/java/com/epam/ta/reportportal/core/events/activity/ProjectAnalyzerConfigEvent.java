@@ -21,6 +21,9 @@ import com.epam.ta.reportportal.entity.activity.Activity;
 import com.epam.ta.reportportal.ws.converter.builders.ActivityBuilder;
 import com.epam.ta.reportportal.ws.model.activity.ProjectAttributesActivityResource;
 
+import java.util.Map;
+import java.util.stream.Stream;
+
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.configEquals;
 import static com.epam.ta.reportportal.core.events.activity.util.ActivityDetailsUtil.processParameter;
 import static com.epam.ta.reportportal.entity.activity.Activity.ActivityEntityType.PROJECT;
@@ -42,31 +45,35 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 
 	@Override
 	public Activity toActivity() {
-		return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.ANALYZER) ?
-				null :
-				new ActivityBuilder().addCreatedNow()
-						.addAction(UPDATE_ANALYZER)
-						.addActivityEntityType(PROJECT)
-						.addUserId(getUserId())
-						.addUserName(getUserLogin())
-						.addObjectId(getBefore().getProjectId())
-						.addObjectName(getBefore().getProjectName())
-						.addProjectId(getBefore().getProjectId())
-						.addHistoryField(processParameter(getBefore().getConfig(),
-								getAfter().getConfig(),
-								AUTO_ANALYZER_MODE.getAttribute()
-						))
-						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), MIN_SHOULD_MATCH.getAttribute()))
-						.addHistoryField(processParameter(getBefore().getConfig(), getAfter().getConfig(), SEARCH_LOGS_MIN_SHOULD_MATCH.getAttribute()))
-						.addHistoryField(processParameter(getBefore().getConfig(),
-								getAfter().getConfig(),
-								NUMBER_OF_LOG_LINES.getAttribute()
-						))
-						.addHistoryField(processParameter(getBefore().getConfig(),
-								getAfter().getConfig(),
-								AUTO_ANALYZER_ENABLED.getAttribute()
-						))
-						.get();
+		return configEquals(getBefore().getConfig(), getAfter().getConfig(), Prefix.ANALYZER) ? null : convert();
+	}
+
+	private Activity convert() {
+		final ProjectAttributesActivityResource before = getBefore();
+		final ProjectAttributesActivityResource after = getAfter();
+
+		final Map<String, String> oldConfig = before.getConfig();
+		final Map<String, String> newConfig = after.getConfig();
+
+		final ActivityBuilder activityBuilder = new ActivityBuilder().addCreatedNow()
+				.addAction(UPDATE_ANALYZER)
+				.addActivityEntityType(PROJECT)
+				.addUserId(getUserId())
+				.addUserName(getUserLogin())
+				.addObjectId(before.getProjectId())
+				.addObjectName(before.getProjectName())
+				.addProjectId(before.getProjectId());
+
+		Stream.of(AUTO_ANALYZER_MODE,
+				MIN_SHOULD_MATCH,
+				SEARCH_LOGS_MIN_SHOULD_MATCH,
+				NUMBER_OF_LOG_LINES,
+				AUTO_ANALYZER_ENABLED,
+				AUTO_UNIQUE_ERROR_ANALYZER_ENABLED,
+				UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS
+		).map(type -> processParameter(oldConfig, newConfig, type.getAttribute())).forEach(activityBuilder::addHistoryField);
+
+		return activityBuilder.get();
 	}
 
 }

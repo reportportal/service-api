@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.impl.preparer;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.entity.cluster.Cluster;
-import com.epam.ta.reportportal.entity.enums.LogLevel;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.exception.ReportPortalException;
@@ -31,6 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,6 +65,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 				return Optional.of(createIndexLaunch(launch.getProjectId(),
 						launch.getId(),
 						launch.getName(),
+						launch.getStartTime(),
 						analyzerConfig,
 						preparedItems
 				));
@@ -73,11 +74,12 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 		return Optional.empty();
 	}
 
-	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, AnalyzerConfig analyzerConfig,
+	private IndexLaunch createIndexLaunch(Long projectId, Long launchId, String name, LocalDateTime startLaunchTime, AnalyzerConfig analyzerConfig,
 			List<IndexTestItem> rqTestItems) {
 		IndexLaunch rqLaunch = new IndexLaunch();
 		rqLaunch.setLaunchId(launchId);
 		rqLaunch.setLaunchName(name);
+		rqLaunch.setLaunchStartTime(startLaunchTime);
 		rqLaunch.setProjectId(projectId);
 		rqLaunch.setAnalyzerConfig(analyzerConfig);
 		rqLaunch.setTestItems(rqTestItems);
@@ -92,7 +94,7 @@ public class LaunchPreparerServiceImpl implements LaunchPreparerService {
 
 	@Override
 	public List<IndexLaunch> prepare(List<Long> ids, AnalyzerConfig analyzerConfig) {
-		return launchRepository.findIndexLaunchByIdsAndLogLevel(ids, LogLevel.ERROR.toInt())
+		return launchRepository.findIndexLaunchByIds(ids)
 				.stream()
 				.peek(this::fill)
 				.filter(l -> CollectionUtils.isNotEmpty(l.getTestItems()))

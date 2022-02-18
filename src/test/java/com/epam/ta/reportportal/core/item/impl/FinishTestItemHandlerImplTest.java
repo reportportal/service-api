@@ -18,7 +18,7 @@ package com.epam.ta.reportportal.core.item.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.events.MessageBus;
-import com.epam.ta.reportportal.core.events.item.ItemFinishedEvent;
+import com.epam.ta.reportportal.core.events.activity.item.ItemFinishedEvent;
 import com.epam.ta.reportportal.core.item.impl.status.StatusChangingStrategy;
 import com.epam.ta.reportportal.dao.IssueEntityRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;

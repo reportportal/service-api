@@ -44,9 +44,9 @@ import com.epam.ta.reportportal.ws.model.dashboard.UpdateDashboardRQ;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverter.TO_ACTIVITY_RESOURCE;
@@ -57,10 +57,12 @@ import static com.epam.ta.reportportal.ws.converter.converters.DashboardConverte
 @Service
 public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
+	private static final int DELETE_WIDGET_COUNT_THRESHOLD = 1;
+
 	private final DashboardWidgetRepository dashboardWidgetRepository;
 	private final DashboardRepository dashboardRepository;
 	private final UpdateWidgetHandler updateWidgetHandler;
-	private final List<WidgetContentRemover> widgetContentRemovers;
+	private final WidgetContentRemover widgetContentRemover;
 	private final WidgetRepository widgetRepository;
 	private final MessageBus messageBus;
 	private final GetShareableEntityHandler<Dashboard> getShareableDashboardHandler;
@@ -69,12 +71,12 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 
 	@Autowired
 	public UpdateDashboardHandlerImpl(DashboardRepository dashboardRepository, UpdateWidgetHandler updateWidgetHandler,
-			List<WidgetContentRemover> widgetContentRemovers, MessageBus messageBus,
+			@Qualifier("delegatingStateContentRemover") WidgetContentRemover widgetContentRemover, MessageBus messageBus,
 			GetShareableEntityHandler<Dashboard> getShareableDashboardHandler, GetShareableEntityHandler<Widget> getShareableWidgetHandler,
 			ShareableObjectsHandler aclHandler, DashboardWidgetRepository dashboardWidgetRepository, WidgetRepository widgetRepository) {
 		this.dashboardRepository = dashboardRepository;
 		this.updateWidgetHandler = updateWidgetHandler;
-		this.widgetContentRemovers = widgetContentRemovers;
+		this.widgetContentRemover = widgetContentRemover;
 		this.messageBus = messageBus;
 		this.getShareableDashboardHandler = getShareableDashboardHandler;
 		this.getShareableWidgetHandler = getShareableWidgetHandler;
@@ -144,11 +146,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 		Dashboard dashboard = getShareableDashboardHandler.getPermitted(dashboardId, projectDetails);
 		Widget widget = getShareableWidgetHandler.getPermitted(widgetId, projectDetails);
 
-		/*
-		 *	if user is an owner of the widget - remove it from all dashboards
-		 *	should be replaced with copy
-		 */
-		if (user.getUsername().equalsIgnoreCase(widget.getOwner())) {
+		if (shouldDelete(widget)) {
 			OperationCompletionRS result = deleteWidget(widget);
 			messageBus.publishActivity(new WidgetDeletedEvent(WidgetConverter.TO_ACTIVITY_RESOURCE.apply(widget),
 					user.getUserId(),
@@ -170,6 +168,10 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 						+ "'");
 	}
 
+	private boolean shouldDelete(Widget widget) {
+		return dashboardWidgetRepository.countAllByWidgetId(widget.getId()) <= DELETE_WIDGET_COUNT_THRESHOLD;
+	}
+
 	/**
 	 * Totally remove the widget from all dashboards
 	 *
@@ -177,7 +179,7 @@ public class UpdateDashboardHandlerImpl implements UpdateDashboardHandler {
 	 * @return OperationCompletionRS
 	 */
 	private OperationCompletionRS deleteWidget(Widget widget) {
-		widgetContentRemovers.forEach(remover -> remover.removeContent(widget));
+		widgetContentRemover.removeContent(widget);
 		dashboardWidgetRepository.deleteAll(widget.getDashboardWidgets());
 		widgetRepository.delete(widget);
 		aclHandler.deleteAclForObject(widget);

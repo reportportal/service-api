@@ -16,14 +16,12 @@
 
 package com.epam.ta.reportportal.core.configs.cluster;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.AnalyzerServiceClient;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
-import com.epam.ta.reportportal.core.analyzer.auto.impl.preparer.LaunchPreparerService;
 import com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandler;
-import com.epam.ta.reportportal.core.launch.cluster.pipeline.AnalyzerClusterDataProvider;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.DeleteClustersPartProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveClusterDataPartProvider;
 import com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider;
+import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.ClusterDataProviderResolver;
 import com.epam.ta.reportportal.dao.ClusterRepository;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.dao.LogRepository;
@@ -42,20 +40,17 @@ public class GenerateClusterPipelineConfig {
 
 	private final CreateClusterHandler createClusterHandler;
 
-	private final LaunchPreparerService launchPreparerService;
-	private final AnalyzerServiceClient analyzerServiceClient;
+	private final ClusterDataProviderResolver clusterDataProviderResolver;
 
 	private final ClusterRepository clusterRepository;
 	private final LogRepository logRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 
 	@Autowired
-	public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler, LaunchPreparerService launchPreparerService,
-			AnalyzerServiceClient analyzerServiceClient, ClusterRepository clusterRepository, LogRepository logRepository,
-			ItemAttributeRepository itemAttributeRepository) {
+	public GenerateClusterPipelineConfig(CreateClusterHandler createClusterHandler, ClusterDataProviderResolver clusterDataProviderResolver,
+			ClusterRepository clusterRepository, LogRepository logRepository, ItemAttributeRepository itemAttributeRepository) {
 		this.createClusterHandler = createClusterHandler;
-		this.launchPreparerService = launchPreparerService;
-		this.analyzerServiceClient = analyzerServiceClient;
+		this.clusterDataProviderResolver = clusterDataProviderResolver;
 		this.clusterRepository = clusterRepository;
 		this.logRepository = logRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
@@ -75,13 +70,8 @@ public class GenerateClusterPipelineConfig {
 	}
 
 	@Bean
-	public AnalyzerClusterDataProvider analyzerClusterDataProvider() {
-		return new AnalyzerClusterDataProvider(launchPreparerService, analyzerServiceClient);
-	}
-
-	@Bean
 	public SaveClusterDataPartProvider saveClusterDataPartProvider() {
-		return new SaveClusterDataPartProvider(analyzerClusterDataProvider(), createClusterHandler);
+		return new SaveClusterDataPartProvider(clusterDataProviderResolver, createClusterHandler);
 	}
 
 	@Bean

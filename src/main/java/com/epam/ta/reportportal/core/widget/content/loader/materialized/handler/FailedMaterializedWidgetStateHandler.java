@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.core.widget.content.loader.materialized.handler;
 
 import com.epam.ta.reportportal.entity.widget.Widget;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import java.util.Map;
 @Service
 public class FailedMaterializedWidgetStateHandler implements MaterializedWidgetStateHandler {
 
-	private MaterializedWidgetStateHandler refreshWidgetStateHandler;
+	private final MaterializedWidgetStateHandler refreshWidgetStateHandler;
 
 	@Autowired
 	public FailedMaterializedWidgetStateHandler(
@@ -25,7 +26,9 @@ public class FailedMaterializedWidgetStateHandler implements MaterializedWidgetS
 
 	@Override
 	public Map<String, Object> handleWidgetState(Widget widget, MultiValueMap<String, String> params) {
-		params.put(REFRESH, Collections.singletonList(Boolean.TRUE.toString()));
-		return refreshWidgetStateHandler.handleWidgetState(widget, params);
+		if (BooleanUtils.toBoolean(params.getFirst(REFRESH))) {
+			return refreshWidgetStateHandler.handleWidgetState(widget, params);
+		}
+		return Collections.emptyMap();
 	}
 }

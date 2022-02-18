@@ -110,6 +110,7 @@ public class ExternalTicketHandlerImpl implements ExternalTicketHandler {
 				ticket.setUrl(it.getUrl());
 				ticket.setBtsProject(it.getBtsProject());
 				ticket.setBtsUrl(it.getBtsUrl());
+				ticket.setPluginName(it.getPluginName());
 			} else {
 				ticket = TicketConverter.TO_TICKET.apply(it);
 			}

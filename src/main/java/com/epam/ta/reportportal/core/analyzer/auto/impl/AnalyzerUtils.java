@@ -24,6 +24,7 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -90,6 +91,10 @@ public class AnalyzerUtils {
 
 	public static AnalyzerConfig getAnalyzerConfig(Project project) {
 		Map<String, String> configParameters = ProjectUtils.getConfigParameters(project.getProjectAttributes());
+		return getAnalyzerConfig(configParameters);
+	}
+
+	public static AnalyzerConfig getAnalyzerConfig(Map<String, String> configParameters) {
 		AnalyzerConfig analyzerConfig = new AnalyzerConfig();
 		analyzerConfig.setIsAutoAnalyzerEnabled(BooleanUtils.toBoolean(configParameters.get(AUTO_ANALYZER_ENABLED.getAttribute())));
 		analyzerConfig.setMinShouldMatch(Integer.valueOf(ofNullable(configParameters.get(MIN_SHOULD_MATCH.getAttribute())).orElse(
@@ -102,6 +107,13 @@ public class AnalyzerUtils {
 		analyzerConfig.setAnalyzerMode(configParameters.get(AUTO_ANALYZER_MODE.getAttribute()));
 		analyzerConfig.setAllMessagesShouldMatch(BooleanUtils.toBoolean(configParameters.get(ALL_MESSAGES_SHOULD_MATCH.getAttribute())));
 		return analyzerConfig;
+	}
+
+	public static UniqueErrorConfig getUniqueErrorConfig(Map<String, String> configParameters) {
+		final UniqueErrorConfig uniqueErrorConfig = new UniqueErrorConfig();
+		uniqueErrorConfig.setEnabled(BooleanUtils.toBoolean(configParameters.get(AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getAttribute())));
+		uniqueErrorConfig.setRemoveNumbers(BooleanUtils.toBoolean(configParameters.get(UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getAttribute())));
+		return uniqueErrorConfig;
 	}
 
 	public static final Function<TestItem, RelevantItemInfo> TO_RELEVANT_ITEM_INFO = item -> {

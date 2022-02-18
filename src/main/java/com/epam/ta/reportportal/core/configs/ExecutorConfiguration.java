@@ -163,4 +163,17 @@ public class ExecutorConfiguration {
 		return threadPoolTaskExecutor;
 	}
 
+	@Bean(name = "eventListenerExecutor")
+	public TaskExecutor eventListenerExecutor(@Value("${rp.environment.variable.executor.pool.event-listener.core}") Integer corePoolSize,
+			@Value("${rp.environment.variable.executor.pool.event-listener.max}") Integer maxPoolSize,
+			@Value("${rp.environment.variable.executor.pool.event-listener.queue}") Integer queueCapacity) {
+		final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+		threadPoolTaskExecutor.setCorePoolSize(corePoolSize);
+		threadPoolTaskExecutor.setMaxPoolSize(maxPoolSize);
+		threadPoolTaskExecutor.setQueueCapacity(queueCapacity);
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setThreadNamePrefix("event-listener-exec");
+		return threadPoolTaskExecutor;
+	}
+
 }

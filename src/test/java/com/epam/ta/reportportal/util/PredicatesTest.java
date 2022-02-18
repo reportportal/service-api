@@ -26,6 +26,8 @@ import com.epam.ta.reportportal.entity.item.issue.IssueGroup;
 import com.epam.ta.reportportal.entity.item.issue.IssueType;
 import com.epam.ta.reportportal.entity.launch.Launch;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.epam.ta.reportportal.util.Predicates.ITEM_CAN_BE_INDEXED;
 import static com.epam.ta.reportportal.util.Predicates.LAUNCH_CAN_BE_INDEXED;
@@ -44,10 +46,11 @@ class PredicatesTest {
 		assertFalse(Predicates.SPECIAL_CHARS_ONLY.test("_a"), "Incorrect predicate behavior: spec chars before ASCII");
 	}
 
-	@Test
-	void checkCanBeIndexed() {
+	@ParameterizedTest
+	@ValueSource(strings = { "STEP", "BEFORE_METHOD", "AFTER_METHOD" })
+	void checkCanBeIndexed(String type) {
 		TestItem testItem = new TestItem();
-		testItem.setType(TestItemTypeEnum.STEP);
+		testItem.setType(TestItemTypeEnum.fromValue(type).get());
 		final TestItemResults itemResults = new TestItemResults();
 		final IssueEntity issueEntity = new IssueEntity();
 		issueEntity.setIgnoreAnalyzer(false);

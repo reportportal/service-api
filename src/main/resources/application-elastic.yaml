@@ -1,0 +1,10 @@
+rp:
+  elasticsearchLogmessage:
+    host: elasticsearch
+    port: 9200
+    username:
+    password:
+
+logging:
+  level:
+    org.elasticsearch.client.RestClient: error

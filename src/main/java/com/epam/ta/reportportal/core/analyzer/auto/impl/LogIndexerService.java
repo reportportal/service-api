@@ -29,7 +29,6 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -69,9 +67,9 @@ public class LogIndexerService implements LogIndexer {
 	private final IndexerStatusCache indexerStatusCache;
 
 	@Autowired
-	public LogIndexerService(BatchLogIndexer batchLogIndexer, @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor, LaunchRepository launchRepository,
-			TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient, LaunchPreparerService launchPreparerService,
-			IndexerStatusCache indexerStatusCache) {
+	public LogIndexerService(BatchLogIndexer batchLogIndexer, @Qualifier("logIndexTaskExecutor") TaskExecutor taskExecutor,
+			LaunchRepository launchRepository, TestItemRepository testItemRepository, IndexerServiceClient indexerServiceClient,
+			LaunchPreparerService launchPreparerService, IndexerStatusCache indexerStatusCache) {
 		this.batchLogIndexer = batchLogIndexer;
 		this.taskExecutor = taskExecutor;
 		this.launchRepository = launchRepository;
@@ -101,65 +99,33 @@ public class LogIndexerService implements LogIndexer {
 
 	@Override
 	@Transactional(readOnly = true)
-	//TODO refactor to execute in single Transaction (because of CompletableFuture there is no transaction inside).
-	//TODO Probably we should implement AsyncLogIndexer and use this service as sync delegate with transaction
-	public CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				indexerStatusCache.indexingStarted(projectId);
-				Launch launch = launchRepository.findById(launchId)
-						.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-				Optional<IndexLaunch> indexLaunch = launchPreparerService.prepare(launch,
-						testItemRepository.findTestItemsByLaunchId(launch.getId()),
-						analyzerConfig
-				);
-				return indexLaunch.map(it -> {
-					LOGGER.info("Start indexing for {} launches", 1);
-					Long indexed = indexerServiceClient.index(Lists.newArrayList(it));
-					LOGGER.info("Indexed {} logs", indexed);
-					return indexed;
-				}).orElse(0L);
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				throw new ReportPortalException(e.getMessage());
-			} finally {
-				indexerStatusCache.indexingFinished(projectId);
-			}
-		});
+	public Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig) {
+		try {
+			indexerStatusCache.indexingStarted(launch.getProjectId());
+			final List<Long> itemIds = testItemRepository.selectIdsWithIssueByLaunch(launch.getId());
+			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new ReportPortalException(e.getMessage());
+		} finally {
+			indexerStatusCache.indexingFinished(launch.getProjectId());
+		}
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	//TODO same refactoring as for the method above
 	public Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig) {
 		try {
 			indexerStatusCache.indexingStarted(projectId);
 			Launch launch = launchRepository.findById(launchId)
 					.orElseThrow(() -> new ReportPortalException(ErrorType.LAUNCH_NOT_FOUND, launchId));
-			return launchPreparerService.prepare(launch, testItemRepository.findAllById(itemIds), analyzerConfig)
-					.map(it -> indexerServiceClient.index(Lists.newArrayList(it)))
-					.orElse(0L);
+			return batchLogIndexer.index(analyzerConfig, launch, itemIds);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			throw new ReportPortalException(e.getMessage());
 		} finally {
 			indexerStatusCache.indexingFinished(projectId);
 		}
-	}
-
-	@Override
-	public CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch) {
-		return CompletableFuture.supplyAsync(() -> {
-			try {
-				indexerStatusCache.indexingStarted(projectId);
-				return indexerServiceClient.index(Lists.newArrayList(indexLaunch));
-			} catch (Exception ex) {
-				LOGGER.error(ex.getMessage(), ex);
-				throw new ReportPortalException(ex.getMessage());
-			} finally {
-				indexerStatusCache.indexingFinished(projectId);
-			}
-		});
 	}
 
 	@Override

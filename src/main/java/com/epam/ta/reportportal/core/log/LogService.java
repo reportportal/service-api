@@ -7,7 +7,6 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,14 +23,17 @@ public class LogService {
 
     public void saveLogMessageToElasticSearch(Log log) {
         if (Objects.isNull(log)) return;
-        amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY, List.of(convertLogToLogMessage(log)));
+        amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY, convertLogToLogMessage(log));
     }
 
+    /**
+     * Used only for generation demo data, that send all per message to avoid some object/collection wrapping
+     * during reporting.
+     * @param logList
+     */
     public void saveLogMessageListToElasticSearch(List<Log> logList) {
         if (CollectionUtils.isEmpty(logList)) return;
-        List<LogMessage> logMessageList = new ArrayList<>(logList.size());
-        logList.stream().filter(Objects::nonNull).forEach(log -> logMessageList.add(convertLogToLogMessage(log)));
-        amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY, logMessageList);
+        logList.stream().filter(Objects::nonNull).forEach(this::saveLogMessageToElasticSearch);
     }
 
     private LogMessage convertLogToLogMessage(Log log) {

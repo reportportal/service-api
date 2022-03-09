@@ -1,34 +1,39 @@
 package com.epam.ta.reportportal.core.log;
 
-import com.epam.ta.reportportal.elastic.dao.LogMessageRepository;
 import com.epam.ta.reportportal.entity.log.Log;
 import com.epam.ta.reportportal.entity.log.LogMessage;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingConfiguration.LOG_MESSAGE_SAVING_ROUTING_KEY;
+import static com.epam.ta.reportportal.core.configs.rabbit.BackgroundProcessingConfiguration.PROCESSING_EXCHANGE_NAME;
+
 @Service
 public class LogService {
+    private final AmqpTemplate amqpTemplate;
 
-    private final LogMessageRepository logMessageRepository;
-
-    public LogService(LogMessageRepository logMessageRepository) {
-        this.logMessageRepository = logMessageRepository;
+    public LogService(@Qualifier(value = "rabbitTemplate") AmqpTemplate amqpTemplate) {
+        this.amqpTemplate = amqpTemplate;
     }
 
-    public LogMessage saveLogMessageToElasticSearch(Log log) {
-        if (Objects.isNull(log)) return null;
-        return logMessageRepository.save(convertLogToLogMessage(log));
+    public void saveLogMessageToElasticSearch(Log log) {
+        if (Objects.isNull(log)) return;
+        amqpTemplate.convertAndSend(PROCESSING_EXCHANGE_NAME, LOG_MESSAGE_SAVING_ROUTING_KEY, convertLogToLogMessage(log));
     }
 
-    public Iterable<LogMessage> saveLogMessageListToElasticSearch(List<Log> logList) {
-        if (CollectionUtils.isEmpty(logList)) return null;
-        List<LogMessage> logMessageList = new ArrayList<>(logList.size());
-        logList.stream().filter(Objects::nonNull).forEach(log -> logMessageList.add(convertLogToLogMessage(log)));
-        return logMessageRepository.saveAll(logMessageList);
+    /**
+     * Used only for generation demo data, that send all per message to avoid some object/collection wrapping
+     * during reporting.
+     * @param logList
+     */
+    public void saveLogMessageListToElasticSearch(List<Log> logList) {
+        if (CollectionUtils.isEmpty(logList)) return;
+        logList.stream().filter(Objects::nonNull).forEach(this::saveLogMessageToElasticSearch);
     }
 
     private LogMessage convertLogToLogMessage(Log log) {

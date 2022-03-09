@@ -90,6 +90,7 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 	private final GetClusterHandler getClusterHandler;
 	private final LaunchRepository launchRepository;
+	private final TestItemRepository testItemRepository;
 	private final ItemAttributeRepository itemAttributeRepository;
 	private final ProjectRepository projectRepository;
 	private final WidgetContentRepository widgetContentRepository;
@@ -101,12 +102,13 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 
 	@Autowired
 	public GetLaunchHandlerImpl(GetClusterHandler getClusterHandler, LaunchRepository launchRepository,
-			ItemAttributeRepository itemAttributeRepository, ProjectRepository projectRepository,
+			TestItemRepository testItemRepository, ItemAttributeRepository itemAttributeRepository, ProjectRepository projectRepository,
 			WidgetContentRepository widgetContentRepository, UserRepository userRepository, JasperDataProvider dataProvider,
 			@Qualifier("launchJasperReportHandler") GetJasperReportHandler<Launch> jasperReportHandler, LaunchConverter launchConverter,
 			ApplicationEventPublisher applicationEventPublisher) {
 		this.getClusterHandler = getClusterHandler;
 		this.launchRepository = launchRepository;
+		this.testItemRepository = testItemRepository;
 		this.itemAttributeRepository = itemAttributeRepository;
 		this.projectRepository = projectRepository;
 		this.widgetContentRepository = widgetContentRepository;
@@ -208,6 +210,11 @@ public class GetLaunchHandlerImpl implements GetLaunchHandler {
 	public Iterable<ClusterInfoResource> getClusters(String launchId, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable) {
 		final Launch launch = findLaunch(launchId, projectDetails);
 		return getClusterHandler.getResources(launch, pageable);
+	}
+
+	@Override
+	public boolean hasItemsWithIssues(Launch launch) {
+		return testItemRepository.hasItemsWithIssueByLaunch(launch.getId());
 	}
 
 	private Iterable<LaunchResource> getLaunchResources(Page<Launch> launches) {

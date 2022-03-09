@@ -25,6 +25,7 @@ import com.epam.ta.reportportal.ws.model.attribute.ItemAttributeResource;
 import com.google.common.base.CharMatcher;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
@@ -35,11 +36,16 @@ import java.util.function.Predicate;
  */
 public class Predicates {
 
+	private static final Set<TestItemTypeEnum> INDEXED_ITEM_TYPES = Set.of(TestItemTypeEnum.STEP,
+			TestItemTypeEnum.BEFORE_METHOD,
+			TestItemTypeEnum.AFTER_METHOD
+	);
+
 	/**
 	 * Checks if the test item is suitable for indexing in analyzer.
 	 */
-	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null && testItem.getType()
-			.equals(TestItemTypeEnum.STEP) && testItem.getItemResults().getIssue() != null && !testItem.getItemResults()
+	public static final Predicate<TestItem> ITEM_CAN_BE_INDEXED = testItem -> testItem != null
+			&& INDEXED_ITEM_TYPES.contains(testItem.getType()) && testItem.getItemResults().getIssue() != null && !testItem.getItemResults()
 			.getIssue()
 			.getIgnoreAnalyzer();
 	/**

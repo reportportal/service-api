@@ -187,6 +187,7 @@ class SecurityConfiguration {
 							"/**/user/password/reset/*",
 							"/**/user/password/reset**",
 							"/**/user/password/restore**",
+							"/**/plugin/public/**",
 							"/documentation.html",
 							"/health",
 							"/info"

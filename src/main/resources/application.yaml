@@ -157,6 +157,7 @@ rp:
     path: ${rp.plugins.rootDir}/resolved
     resources:
       path: ${rp.plugins.rootDir}/resources
+      public: public
     temp:
       path: ${rp.plugins.rootDir}/temp
   binarystore:

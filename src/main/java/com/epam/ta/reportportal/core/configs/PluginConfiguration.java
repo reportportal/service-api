@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
@@ -59,6 +60,9 @@ public class PluginConfiguration {
 
 	@Value("${rp.plugins.resources.path}")
 	private String pluginsResourcesPath;
+
+	@Value("${rp.plugins.resources.public}")
+	private String publicFolderQualifier;
 
 	@Bean
 	public Pf4jPluginBox pf4jPluginBox() throws IOException {
@@ -115,6 +119,11 @@ public class PluginConfiguration {
 	@Bean
 	public PluginDescriptorFinder pluginDescriptorFinder() {
 		return new ManifestPluginDescriptorFinder();
+	}
+
+	@Bean
+	public PluginFilesProvider pluginPublicFilesProvider() {
+		return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, integrationTypeRepository);
 	}
 
 }

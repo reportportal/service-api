@@ -43,6 +43,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
 import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -112,6 +114,9 @@ class SecurityConfiguration {
 		@Autowired
 		private ServerSettingsRepository serverSettingsRepository;
 
+		@Autowired
+		private TokenExtractor delegatingTokenExtractor;
+
 		@Bean
 		public static PermissionEvaluatorFactoryBean permissionEvaluatorFactoryBean() {
 			return new PermissionEvaluatorFactoryBean();
@@ -179,6 +184,11 @@ class SecurityConfiguration {
 		}
 
 		@Override
+		public void configure(ResourceServerSecurityConfigurer resources) {
+			resources.tokenExtractor(delegatingTokenExtractor);
+		}
+
+		@Override
 		public void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
 					.accessDecisionManager(webAccessDecisionManager())
@@ -193,8 +203,7 @@ class SecurityConfiguration {
 							"/info"
 					)
 					.permitAll()
-					/* set of special endpoints for another microservices from RP ecosystem */
-					.antMatchers("/api-internal/**")
+					/* set of special endpoints for another microservices from RP ecosystem */.antMatchers("/api-internal/**")
 					.hasRole("COMPONENT")
 					.antMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**")
 					.hasRole("USER")

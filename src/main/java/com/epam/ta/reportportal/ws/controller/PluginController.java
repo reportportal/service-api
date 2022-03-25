@@ -22,6 +22,9 @@ import com.epam.ta.reportportal.core.integration.plugin.CreatePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.DeletePluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.UpdatePluginHandler;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
+import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.util.ProjectExtractor;
 import com.epam.ta.reportportal.ws.model.EntryCreatedRS;
 import com.epam.ta.reportportal.ws.model.OperationCompletionRS;
@@ -37,13 +40,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
-import static com.epam.ta.reportportal.auth.permissions.Permissions.ASSIGNED_TO_PROJECT;
+import static com.epam.ta.reportportal.auth.permissions.Permissions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
@@ -59,17 +62,22 @@ public class PluginController {
 	private final DeletePluginHandler deletePluginHandler;
 	private final ExecuteIntegrationHandler executeIntegrationHandler;
 	private final ProjectExtractor projectExtractor;
+	private final PluginFilesProvider pluginFilesProvider;
+	private final BinaryDataResponseWriter binaryDataResponseWriter;
 
 	@Autowired
 	public PluginController(CreatePluginHandler createPluginHandler, UpdatePluginHandler updatePluginHandler,
 			GetPluginHandler getPluginHandler, DeletePluginHandler deletePluginHandler, ExecuteIntegrationHandler executeIntegrationHandler,
-			ProjectExtractor projectExtractor) {
+			ProjectExtractor projectExtractor, PluginFilesProvider pluginFilesProvider,
+			BinaryDataResponseWriter binaryDataResponseWriter) {
 		this.createPluginHandler = createPluginHandler;
 		this.updatePluginHandler = updatePluginHandler;
 		this.getPluginHandler = getPluginHandler;
 		this.deletePluginHandler = deletePluginHandler;
 		this.executeIntegrationHandler = executeIntegrationHandler;
 		this.projectExtractor = projectExtractor;
+		this.pluginFilesProvider = pluginFilesProvider;
+		this.binaryDataResponseWriter = binaryDataResponseWriter;
 	}
 
 	@Transactional
@@ -98,6 +106,16 @@ public class PluginController {
 	@ApiOperation("Get all available plugins")
 	public List<IntegrationTypeResource> getPlugins(@AuthenticationPrincipal ReportPortalUser user) {
 		return getPluginHandler.getPlugins();
+	}
+
+	@GetMapping(value = "/{pluginName}/file/{name}")
+	@ResponseStatus(HttpStatus.OK)
+	@PreAuthorize(AUTHENTICATED)
+	@ApiOperation("Get plugin file by authorized user")
+	public void getFile(@PathVariable(value = "pluginName") String pluginName, @PathVariable(value = "name") String fileName,
+			HttpServletResponse response) {
+		final BinaryData binaryData = pluginFilesProvider.load(pluginName, fileName);
+		binaryDataResponseWriter.write(binaryData, response);
 	}
 
 	@Transactional

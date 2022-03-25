@@ -27,6 +27,8 @@ public final class Permissions {
 		// constants holder
 	}
 
+	public static final String AUTHENTICATED = "authentication.isAuthenticated()";
+
 	public static final String ALLOWED_TO_EDIT_USER = "(#login.toLowerCase() == authentication.name) || hasRole('ADMINISTRATOR')";
 
 	public static final String ADMIN_ONLY = "hasRole('ADMINISTRATOR')";

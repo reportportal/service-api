@@ -29,7 +29,9 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 
+import javax.activation.FileTypeMap;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -122,8 +124,13 @@ public class PluginConfiguration {
 	}
 
 	@Bean
+	public FileTypeMap fileTypeMap() {
+		return new ConfigurableMimeFileTypeMap();
+	}
+
+	@Bean
 	public PluginFilesProvider pluginPublicFilesProvider() {
-		return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, integrationTypeRepository);
+		return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, fileTypeMap(), integrationTypeRepository);
 	}
 
 }

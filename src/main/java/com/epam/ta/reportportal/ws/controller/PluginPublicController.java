@@ -1,6 +1,7 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.apache.commons.io.IOUtils;
@@ -29,19 +30,20 @@ public class PluginPublicController {
 	@GetMapping(value = "/{pluginName}/file/{name}")
 	public void getPublicFile(@PathVariable(value = "pluginName") String pluginName, @PathVariable(value = "name") String fileName,
 			HttpServletResponse response) {
-		final InputStream fileStream = pluginPublicFilesProvider.load(pluginName, fileName);
-		toResponse(fileStream, response);
+		final BinaryData binaryData = pluginPublicFilesProvider.load(pluginName, fileName);
+		toResponse(binaryData, response);
 	}
 
 	/**
 	 * Copies data from provided {@link InputStream} to Response
 	 *
-	 * @param fileStream File content
+	 * @param binaryData File data
 	 * @param response   Response object
 	 */
-	private void toResponse(InputStream fileStream, HttpServletResponse response) {
+	private void toResponse(BinaryData binaryData, HttpServletResponse response) {
 		try {
-			IOUtils.copy(fileStream, response.getOutputStream());
+			response.setContentType(binaryData.getContentType());
+			IOUtils.copy(binaryData.getInputStream(), response.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());

@@ -1,14 +1,16 @@
 package com.epam.ta.reportportal.core.integration.plugin.binary;
 
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.entity.integration.IntegrationType;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
+import org.apache.commons.io.FileUtils;
 
+import javax.activation.FileTypeMap;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -18,31 +20,38 @@ public class PluginFilesProvider {
 
 	private final String baseDirectory;
 	private final String folderQualifier;
+
+	private final FileTypeMap fileTypeResolver;
+
 	private final IntegrationTypeRepository integrationTypeRepository;
 
-	public PluginFilesProvider(String baseDirectory, String folderQualifier, IntegrationTypeRepository integrationTypeRepository) {
+	public PluginFilesProvider(String baseDirectory, String folderQualifier, FileTypeMap fileTypeResolver,
+			IntegrationTypeRepository integrationTypeRepository) {
 		this.baseDirectory = baseDirectory;
 		this.folderQualifier = folderQualifier;
+		this.fileTypeResolver = fileTypeResolver;
 		this.integrationTypeRepository = integrationTypeRepository;
 	}
 
-	public InputStream load(String pluginName, String fileName) {
+	public BinaryData load(String pluginName, String fileName) {
 		final IntegrationType integrationType = integrationTypeRepository.findByName(pluginName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.INTEGRATION_NOT_FOUND, pluginName));
 
-		final Path filePath = Paths.get(baseDirectory, integrationType.getName(), folderQualifier, fileName);
+		final File file = Paths.get(baseDirectory, integrationType.getName(), folderQualifier, fileName).toFile();
 
-		if (Files.notExists(filePath)) {
+		if (!file.exists() || file.isDirectory()) {
 			throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, fileName);
 		}
 
-		return getFileStream(filePath);
+		return getBinaryData(file);
 
 	}
 
-	private InputStream getFileStream(Path filePath) {
+	private BinaryData getBinaryData(File file) {
 		try {
-			return Files.newInputStream(filePath);
+			final InputStream fileStream = FileUtils.openInputStream(file);
+			final String contentType = fileTypeResolver.getContentType(file.getName());
+			return new BinaryData(contentType, (long) fileStream.available(), fileStream);
 		} catch (IOException e) {
 			throw new ReportPortalException(ErrorType.UNABLE_TO_LOAD_BINARY_DATA, e.getMessage());
 		}

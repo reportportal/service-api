@@ -110,7 +110,6 @@ public class PluginController {
 
 	@GetMapping(value = "/{pluginName}/file/{name}")
 	@ResponseStatus(HttpStatus.OK)
-	@PreAuthorize(AUTHENTICATED)
 	@ApiOperation("Get plugin file by authorized user")
 	public void getFile(@PathVariable(value = "pluginName") String pluginName, @PathVariable(value = "name") String fileName,
 			HttpServletResponse response) {

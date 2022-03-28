@@ -16,13 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletResponse;
@@ -36,13 +32,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class PluginControllerTest extends BaseMvcTest {
-
-	@MockBean
-	@Qualifier("pluginFilesProvider")
-	private PluginFilesProvider pluginFilesProvider;
-
-	@MockBean
-	private BinaryDataResponseWriter binaryDataResponseWriter;
 
 	@Test
 	void getLaunchPositive() throws Exception {

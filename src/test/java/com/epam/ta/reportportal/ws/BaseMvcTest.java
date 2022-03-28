@@ -20,7 +20,9 @@ import com.epam.reportportal.extension.bugtracking.BtsExtension;
 import com.epam.ta.reportportal.TestConfig;
 import com.epam.ta.reportportal.auth.OAuthHelper;
 import com.epam.ta.reportportal.core.events.MessageBus;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
+import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.util.email.EmailService;
 import com.epam.ta.reportportal.util.email.MailServiceFactory;
 import org.flywaydb.test.FlywayTestExecutionListener;
@@ -69,6 +71,15 @@ public abstract class BaseMvcTest {
 
 	@MockBean
 	protected Pf4jPluginBox pluginBox;
+
+	@MockBean(name = "pluginFilesProvider")
+	protected PluginFilesProvider pluginFilesProvider;
+
+	@MockBean(name = "pluginPublicFilesProvider")
+	protected PluginFilesProvider pluginPublicFilesProvider;
+
+	@MockBean
+	protected BinaryDataResponseWriter binaryDataResponseWriter;
 
 	@Mock
 	protected BtsExtension extension;

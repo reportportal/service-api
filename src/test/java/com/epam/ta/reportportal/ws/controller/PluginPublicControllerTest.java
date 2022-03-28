@@ -16,13 +16,9 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
-import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletResponse;
@@ -39,13 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class PluginPublicControllerTest extends BaseMvcTest {
 
-	@MockBean
-	@Qualifier("pluginPublicFilesProvider")
-	private PluginFilesProvider pluginFilesProvider;
-
-	@MockBean
-	private BinaryDataResponseWriter binaryDataResponseWriter;
-
 	@Test
 	void shouldGetFileWhenAuthenticated() throws Exception {
 
@@ -53,7 +42,7 @@ class PluginPublicControllerTest extends BaseMvcTest {
 		final String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType("image.png");
 
 		final BinaryData binaryData = new BinaryData(contentType, (long) inputStream.available(), inputStream);
-		when(pluginFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
+		when(pluginPublicFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
 
 		mockMvc.perform(get("/v1/plugin/public/pluginName/file/image.png").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
@@ -67,7 +56,7 @@ class PluginPublicControllerTest extends BaseMvcTest {
 		final String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType("image.png");
 
 		final BinaryData binaryData = new BinaryData(contentType, (long) inputStream.available(), inputStream);
-		when(pluginFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
+		when(pluginPublicFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
 
 		mockMvc.perform(get("/v1/plugin/public/pluginName/file/image.png")).andExpect(status().isOk());
 

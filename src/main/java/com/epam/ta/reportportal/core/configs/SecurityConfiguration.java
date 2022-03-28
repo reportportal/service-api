@@ -203,7 +203,8 @@ class SecurityConfiguration {
 							"/info"
 					)
 					.permitAll()
-					/* set of special endpoints for another microservices from RP ecosystem */.antMatchers("/api-internal/**")
+					/* set of special endpoints for another microservices from RP ecosystem */
+					.antMatchers("/api-internal/**")
 					.hasRole("COMPONENT")
 					.antMatchers("/v2/**", "/swagger-resources", "/certificate/**", "/api/**", "/**")
 					.hasRole("USER")

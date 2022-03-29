@@ -17,6 +17,7 @@
 package com.epam.ta.reportportal.core.configs;
 
 import com.epam.ta.reportportal.core.integration.plugin.PluginLoader;
+import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.core.plugin.Pf4jPluginBox;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.plugin.Pf4jPluginManager;
@@ -28,7 +29,9 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 
+import javax.activation.FileTypeMap;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -59,6 +62,9 @@ public class PluginConfiguration {
 
 	@Value("${rp.plugins.resources.path}")
 	private String pluginsResourcesPath;
+
+	@Value("${rp.plugins.resources.public}")
+	private String publicFolderQualifier;
 
 	@Bean
 	public Pf4jPluginBox pf4jPluginBox() throws IOException {
@@ -115,6 +121,21 @@ public class PluginConfiguration {
 	@Bean
 	public PluginDescriptorFinder pluginDescriptorFinder() {
 		return new ManifestPluginDescriptorFinder();
+	}
+
+	@Bean
+	public FileTypeMap fileTypeMap() {
+		return new ConfigurableMimeFileTypeMap();
+	}
+
+	@Bean
+	public PluginFilesProvider pluginPublicFilesProvider() {
+		return new PluginFilesProvider(pluginsResourcesPath, publicFolderQualifier, fileTypeMap(), integrationTypeRepository);
+	}
+
+	@Bean
+	public PluginFilesProvider pluginFilesProvider() {
+		return new PluginFilesProvider(pluginsResourcesPath, "", fileTypeMap(), integrationTypeRepository);
 	}
 
 }

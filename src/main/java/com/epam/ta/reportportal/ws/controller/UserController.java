@@ -39,12 +39,16 @@ import com.epam.ta.reportportal.ws.resolver.SortFor;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.tomcat.util.http.SameSiteCookies;
 import org.jooq.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -61,8 +65,10 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ADMIN_ONLY;
 import static com.epam.ta.reportportal.auth.permissions.Permissions.ALLOWED_TO_EDIT_USER;
+import static com.epam.ta.reportportal.auth.token.extractor.CookieTokenExtractor.TOKEN;
 import static com.epam.ta.reportportal.core.launch.util.LinkGenerator.composeBaseUrl;
 import static com.epam.ta.reportportal.ws.converter.converters.ExceptionConverter.TO_ERROR_RS;
+import static java.util.Optional.ofNullable;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -170,8 +176,13 @@ public class UserController {
 	@Transactional(readOnly = true)
 	@GetMapping(value = { "", "/" })
 	@ApiOperation("Return information about current logged-in user")
-	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser) {
-		return getUserHandler.getUser(currentUser);
+	public UserResource getMyself(@AuthenticationPrincipal ReportPortalUser currentUser, HttpServletRequest request,
+			HttpServletResponse response) {
+		final UserResource user = getUserHandler.getUser(currentUser);
+		ofNullable(request.getAttribute(OAuth2AuthenticationDetails.ACCESS_TOKEN_VALUE)).map(String::valueOf)
+				.map(token -> ResponseCookie.from(TOKEN, token).sameSite(SameSiteCookies.STRICT.getValue()).build())
+				.ifPresent(cookie -> response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString()));
+		return user;
 	}
 
 	@Transactional(readOnly = true)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2022 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,12 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-class PluginControllerTest extends BaseMvcTest {
-
-	@Test
-	void getLaunchPositive() throws Exception {
-		mockMvc.perform(get("/v1/plugin").with(token(oAuthHelper.getSuperadminToken()))).andExpect(status().isOk());
-	}
+class PluginPublicControllerTest extends BaseMvcTest {
 
 	@Test
 	void shouldGetFileWhenAuthenticated() throws Exception {
@@ -45,17 +42,25 @@ class PluginControllerTest extends BaseMvcTest {
 		final String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType("image.png");
 
 		final BinaryData binaryData = new BinaryData(contentType, (long) inputStream.available(), inputStream);
-		when(pluginFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
+		when(pluginPublicFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
 
-		mockMvc.perform(get("/v1/plugin/pluginName/file/image.png").with(token(oAuthHelper.getSuperadminToken())))
+		mockMvc.perform(get("/v1/plugin/public/pluginName/file/image.png").with(token(oAuthHelper.getSuperadminToken())))
 				.andExpect(status().isOk());
 
 		verify(binaryDataResponseWriter, times(1)).write(eq(binaryData), any(HttpServletResponse.class));
 	}
 
 	@Test
-	void shouldNotGetFileWhenNotAuthenticated() throws Exception {
-		mockMvc.perform(get("/v1/plugin/pluginName/file/image.png")).andExpect(status().isUnauthorized());
+	void shouldGetFileWhenNotAuthenticated() throws Exception {
+		final ByteArrayInputStream inputStream = new ByteArrayInputStream(new byte[] {});
+		final String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType("image.png");
+
+		final BinaryData binaryData = new BinaryData(contentType, (long) inputStream.available(), inputStream);
+		when(pluginPublicFilesProvider.load("pluginName", "image.png")).thenReturn(binaryData);
+
+		mockMvc.perform(get("/v1/plugin/public/pluginName/file/image.png")).andExpect(status().isOk());
+
+		verify(binaryDataResponseWriter, times(1)).write(eq(binaryData), any(HttpServletResponse.class));
 	}
 
 }

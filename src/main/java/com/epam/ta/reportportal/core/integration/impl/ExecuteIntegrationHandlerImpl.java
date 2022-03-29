@@ -70,6 +70,18 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 	}
 
 	@Override
+	public Object executePublicCommand(String pluginName, String command, Map<String, Object> executionParams) {
+		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
+				));
+		return ofNullable(pluginInstance.getCommonCommand(command)).map(it -> it.executeCommand(executionParams))
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
+				));
+	}
+
+	@Override
 	public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId, String command,
 			Map<String, Object> executionParams) {
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())

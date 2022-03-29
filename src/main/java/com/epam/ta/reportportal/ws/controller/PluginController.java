@@ -140,4 +140,17 @@ public class PluginController {
 				executionParams
 		);
 	}
+
+	@Transactional
+	@PutMapping(value = "public/{pluginName}/{command}", consumes = { APPLICATION_JSON_VALUE })
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Execute public command to the plugin instance")
+	public Object executePublicPluginCommand(@PathVariable("pluginName") String pluginName,
+			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams) {
+		return executeIntegrationHandler.executePublicCommand(
+				pluginName,
+				command,
+				executionParams
+		);
+	}
 }

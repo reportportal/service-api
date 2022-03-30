@@ -24,6 +24,7 @@ import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 
+import java.io.File;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,7 +73,7 @@ class ReportPortalExtensionFactoryTest {
 
 		DummyPluginBean pluginBean = (DummyPluginBean) reportPortalExtensionFactory.create(DummyPluginBean.class);
 
-		assertEquals("resources/testId",
+		assertEquals("resources" + File.separator + "testId",
 				String.valueOf(pluginBean.getInitParams().get(IntegrationTypeProperties.RESOURCES_DIRECTORY.getAttribute()))
 		);
 

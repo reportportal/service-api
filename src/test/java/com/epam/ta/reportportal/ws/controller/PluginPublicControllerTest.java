@@ -16,12 +16,10 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
-import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -42,9 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 class PluginPublicControllerTest extends BaseMvcTest {
-
-	@MockBean(name = "executeIntegrationHandler")
-	private ExecuteIntegrationHandler executeIntegrationHandler;
 
 	@Test
 	void shouldGetFileWhenAuthenticated() throws Exception {

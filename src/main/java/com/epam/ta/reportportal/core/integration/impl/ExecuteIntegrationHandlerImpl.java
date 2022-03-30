@@ -45,6 +45,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 	//Required field for user authorization in plugin
 	private static final String PROJECT_ID = "projectId";
+	private static final String PUBLIC_COMMAND_PREFIX = "public_";
 
 	private final IntegrationRepository integrationRepository;
 
@@ -71,13 +72,14 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 	@Override
 	public Object executePublicCommand(String pluginName, String command, Map<String, Object> executionParams) {
+		final String publicCommand = PUBLIC_COMMAND_PREFIX + command;
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 						formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
 				));
-		return ofNullable(pluginInstance.getCommonCommand(command)).map(it -> it.executeCommand(executionParams))
+		return ofNullable(pluginInstance.getCommonCommand(publicCommand)).map(it -> it.executeCommand(executionParams))
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
-						formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
+						formattedSupplier("Public command '{}' is not found in plugin {}.", command, pluginName).get()
 				));
 	}
 

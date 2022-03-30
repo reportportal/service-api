@@ -16,6 +16,7 @@
 
 package com.epam.ta.reportportal.ws.controller;
 
+import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
@@ -24,6 +25,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -34,10 +38,13 @@ public class PluginPublicController {
 
 	private final PluginFilesProvider pluginPublicFilesProvider;
 	private final BinaryDataResponseWriter binaryDataResponseWriter;
+	private final ExecuteIntegrationHandler executeIntegrationHandler;
 
-	public PluginPublicController(PluginFilesProvider pluginPublicFilesProvider, BinaryDataResponseWriter binaryDataResponseWriter) {
+	public PluginPublicController(PluginFilesProvider pluginPublicFilesProvider, BinaryDataResponseWriter binaryDataResponseWriter,
+			ExecuteIntegrationHandler executeIntegrationHandler) {
 		this.pluginPublicFilesProvider = pluginPublicFilesProvider;
 		this.binaryDataResponseWriter = binaryDataResponseWriter;
+		this.executeIntegrationHandler = executeIntegrationHandler;
 	}
 
 	@GetMapping(value = "/{pluginName}/file/{name}")
@@ -47,5 +54,13 @@ public class PluginPublicController {
 			HttpServletResponse response) {
 		final BinaryData binaryData = pluginPublicFilesProvider.load(pluginName, fileName);
 		binaryDataResponseWriter.write(binaryData, response);
+	}
+
+	@PutMapping(value = "/{pluginName}/{command}", consumes = { APPLICATION_JSON_VALUE })
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Execute public command without authentication")
+	public Object executePublicPluginCommand(@PathVariable("pluginName") String pluginName,
+			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams) {
+		return executeIntegrationHandler.executePublicCommand(pluginName, command, executionParams);
 	}
 }

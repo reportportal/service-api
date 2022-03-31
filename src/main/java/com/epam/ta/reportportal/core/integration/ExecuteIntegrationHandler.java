@@ -41,6 +41,17 @@ public interface ExecuteIntegrationHandler {
 			Map<String, Object> executionParams);
 
 	/**
+	 * Executes provided plugin public command
+	 *
+	 * @param pluginName      Command name
+	 * @param command         Command to be executed
+	 * @param executionParams Parameters for execute
+	 * @return Result of the command execution
+	 */
+	Object executePublicCommand(String pluginName, String command,
+			Map<String, Object> executionParams);
+
+	/**
 	 * Executes provided plugin command for existed integration
 	 *
 	 * @param projectDetails  Project details

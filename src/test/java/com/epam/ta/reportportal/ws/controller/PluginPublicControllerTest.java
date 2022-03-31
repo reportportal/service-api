@@ -18,16 +18,22 @@ package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.ws.BaseMvcTest;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -61,6 +67,41 @@ class PluginPublicControllerTest extends BaseMvcTest {
 		mockMvc.perform(get("/v1/plugin/public/pluginName/file/image.png")).andExpect(status().isOk());
 
 		verify(binaryDataResponseWriter, times(1)).write(eq(binaryData), any(HttpServletResponse.class));
+	}
+
+	@Test
+	void shouldExecutePublicCommandWhenAuthenticated() throws Exception {
+		final String plugin = "signup";
+		final String command = "testCommand";
+		final Map<String, Object> params = Collections.emptyMap();
+		final String ok = "{'result': 'ok'}";
+		when(executeIntegrationHandler.executePublicCommand(plugin, command, params)).thenReturn(ok);
+
+		mockMvc.perform(put("/v1/plugin/public/{plugin}/{command}", plugin, command)
+						.with(token(oAuthHelper.getSuperadminToken()))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{}"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(Matchers.containsString(ok)));
+
+		verify(executeIntegrationHandler).executePublicCommand(eq(plugin), eq(command), eq(params));
+	}
+
+	@Test
+	void shouldExecutePublicCommandWhenNotAuthenticated() throws Exception {
+		final String plugin = "signup";
+		final String command = "testCommand";
+		final Map<String, Object> params = Collections.emptyMap();
+		final String ok = "{'result': 'ok'}";
+		when(executeIntegrationHandler.executePublicCommand(plugin, command, params)).thenReturn(ok);
+
+		mockMvc.perform(put("/v1/plugin/public/{plugin}/{command}", plugin, command)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{}"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(Matchers.containsString(ok)));
+
+		verify(executeIntegrationHandler).executePublicCommand(eq(plugin), eq(command), eq(params));
 	}
 
 }

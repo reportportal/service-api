@@ -18,6 +18,7 @@ package com.epam.ta.reportportal.core.integration.impl;
 
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
 import com.epam.ta.reportportal.core.plugin.PluginBox;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
@@ -31,8 +32,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.model.ErrorType.BAD_REQUEST_ERROR;
-import static com.epam.ta.reportportal.ws.model.ErrorType.INTEGRATION_NOT_FOUND;
+import static com.epam.ta.reportportal.ws.model.ErrorType.*;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -72,12 +72,13 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 	@Override
 	public Object executePublicCommand(String pluginName, String command, Map<String, Object> executionParams) {
-		final String publicCommand = PUBLIC_COMMAND_PREFIX + command;
+		BusinessRule.expect(command, c -> c.startsWith(PUBLIC_COMMAND_PREFIX))
+				.verify(ACCESS_DENIED, formattedSupplier("Command '{}' is not public.", command).get());
 		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 						formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
 				));
-		return ofNullable(pluginInstance.getCommonCommand(publicCommand)).map(it -> it.executeCommand(executionParams))
+		return ofNullable(pluginInstance.getCommonCommand(command)).map(it -> it.executeCommand(executionParams))
 				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
 						formattedSupplier("Public command '{}' is not found in plugin {}.", command, pluginName).get()
 				));

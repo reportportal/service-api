@@ -32,4 +32,11 @@ public interface GetPluginHandler {
 	 */
 	List<IntegrationTypeResource> getPlugins();
 
+	/**
+	 * Get a list of all existing public plugins
+	 *
+	 * @return {@link List} of the {@link IntegrationTypeResource}
+	 */
+	List<IntegrationTypeResource> getPublicPlugins();
+
 }

@@ -17,14 +17,17 @@
 package com.epam.ta.reportportal.ws.controller;
 
 import com.epam.ta.reportportal.core.integration.ExecuteIntegrationHandler;
+import com.epam.ta.reportportal.core.integration.plugin.GetPluginHandler;
 import com.epam.ta.reportportal.core.integration.plugin.binary.PluginFilesProvider;
 import com.epam.ta.reportportal.entity.attachment.BinaryData;
 import com.epam.ta.reportportal.util.BinaryDataResponseWriter;
+import com.epam.ta.reportportal.ws.model.integration.IntegrationTypeResource;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -39,12 +42,14 @@ public class PluginPublicController {
 	private final PluginFilesProvider pluginPublicFilesProvider;
 	private final BinaryDataResponseWriter binaryDataResponseWriter;
 	private final ExecuteIntegrationHandler executeIntegrationHandler;
+	private final GetPluginHandler getPluginHandler;
 
 	public PluginPublicController(PluginFilesProvider pluginPublicFilesProvider, BinaryDataResponseWriter binaryDataResponseWriter,
-			ExecuteIntegrationHandler executeIntegrationHandler) {
+			ExecuteIntegrationHandler executeIntegrationHandler, GetPluginHandler getPluginHandler) {
 		this.pluginPublicFilesProvider = pluginPublicFilesProvider;
 		this.binaryDataResponseWriter = binaryDataResponseWriter;
 		this.executeIntegrationHandler = executeIntegrationHandler;
+		this.getPluginHandler = getPluginHandler;
 	}
 
 	@GetMapping(value = "/{pluginName}/file/{name}")
@@ -62,5 +67,12 @@ public class PluginPublicController {
 	public Object executePublicPluginCommand(@PathVariable("pluginName") String pluginName,
 			@PathVariable("command") String command, @RequestBody Map<String, Object> executionParams) {
 		return executeIntegrationHandler.executePublicCommand(pluginName, command, executionParams);
+	}
+
+	@GetMapping
+	@ResponseStatus(HttpStatus.OK)
+	@ApiOperation("Get all available public plugins")
+	public List<IntegrationTypeResource> getPlugins() {
+		return getPluginHandler.getPublicPlugins();
 	}
 }

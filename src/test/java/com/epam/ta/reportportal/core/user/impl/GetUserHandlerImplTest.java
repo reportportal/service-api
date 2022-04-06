@@ -33,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -75,7 +76,7 @@ class GetUserHandlerImplTest {
 	void getEmptyBidInfo() {
 		String uuid = "uuid";
 
-		when(userCreationBidRepository.findById(uuid)).thenReturn(Optional.empty());
+		when(userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE)).thenReturn(Optional.empty());
 
 		UserBidRS bidInformation = handler.getBidInformation(uuid);
 		assertFalse(bidInformation.getIsActive());

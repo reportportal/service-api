@@ -50,6 +50,6 @@ class UserCreationBidConverterTest {
 		assertNotNull(bid.getUuid());
 		assertEquals(bid.getEmail(), email);
 		assertEquals(bid.getRole(), role);
-		assertEquals(bid.getDefaultProject(), project);
+		assertEquals(bid.getProjectName(), project.getName());
 	}
 }

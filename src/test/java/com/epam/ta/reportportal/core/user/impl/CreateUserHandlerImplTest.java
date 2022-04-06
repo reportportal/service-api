@@ -17,9 +17,12 @@
 package com.epam.ta.reportportal.core.user.impl;
 
 import com.epam.ta.reportportal.commons.ReportPortalUser;
+import com.epam.ta.reportportal.core.integration.GetIntegrationHandler;
 import com.epam.ta.reportportal.core.project.GetProjectHandler;
 import com.epam.ta.reportportal.dao.UserCreationBidRepository;
 import com.epam.ta.reportportal.dao.UserRepository;
+import com.epam.ta.reportportal.entity.enums.IntegrationGroupEnum;
+import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.project.Project;
 import com.epam.ta.reportportal.entity.project.ProjectRole;
 import com.epam.ta.reportportal.entity.user.User;
@@ -32,17 +35,19 @@ import com.epam.ta.reportportal.ws.model.user.CreateUserRQConfirm;
 import com.epam.ta.reportportal.ws.model.user.CreateUserRQFull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Optional;
 
 import static com.epam.ta.reportportal.ReportPortalUserUtil.getRpUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.BID_TYPE;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author <a href="mailto:ihar_kahadouski@epam.com">Ihar Kahadouski</a>
@@ -58,6 +63,12 @@ class CreateUserHandlerImplTest {
 
 	@Mock
 	private UserCreationBidRepository userCreationBidRepository;
+
+	@Mock
+	private GetIntegrationHandler getIntegrationHandler;
+
+	@Mock
+	private ThreadPoolTaskExecutor emailExecutorService;
 
 	@InjectMocks
 	private CreateUserHandlerImpl handler;
@@ -176,6 +187,45 @@ class CreateUserHandlerImplTest {
 	}
 
 	@Test
+	void createUserBid() {
+		final ReportPortalUser rpUser = getRpUser("admin", UserRole.ADMINISTRATOR, ProjectRole.MEMBER, 1L);
+		final String projectName = "test_project";
+		final String email = "email@mail.com";
+		final String role = ProjectRole.MEMBER.name();
+
+		final Project project = new Project();
+		project.setId(1L);
+		project.setName(projectName);
+
+		when(getProjectHandler.get(projectName)).thenReturn(project);
+		when(userRepository.existsById(rpUser.getUserId())).thenReturn(true);
+		when(getIntegrationHandler.getEnabledByProjectIdOrGlobalAndIntegrationGroup(project.getId(),
+				IntegrationGroupEnum.NOTIFICATION
+		)).thenReturn(Optional.of(new Integration()));
+		doNothing().when(emailExecutorService).execute(any());
+
+		CreateUserRQ request = new CreateUserRQ();
+		request.setDefaultProject(projectName);
+		request.setEmail(email);
+		request.setRole(role);
+
+		handler.createUserBid(request, rpUser, "emailUrl");
+
+		final ArgumentCaptor<UserCreationBid> bidCaptor = ArgumentCaptor.forClass(UserCreationBid.class);
+		verify(userCreationBidRepository, times(1)).save(bidCaptor.capture());
+
+		final UserCreationBid bid = bidCaptor.getValue();
+
+		assertEquals(projectName, bid.getProjectName());
+		assertEquals(email, bid.getEmail());
+		assertEquals(role, bid.getRole());
+		assertNotNull(bid.getMetadata());
+
+		assertEquals(INTERNAL_BID_TYPE, String.valueOf(bid.getMetadata().getMetadata().get(BID_TYPE)));
+
+	}
+
+	@Test
 	void CreateUserBidOnNotExistedProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
@@ -191,7 +241,7 @@ class CreateUserHandlerImplTest {
 
 	@Test
 	void createUserWithoutBid() {
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.empty());
+		when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(Optional.empty());
 
 		final ReportPortalException exception = assertThrows(ReportPortalException.class,
 				() -> handler.createUser(new CreateUserRQConfirm(), "uuid")
@@ -202,8 +252,8 @@ class CreateUserHandlerImplTest {
 	@Test
 	void createAlreadyExistedUser() {
 		final UserCreationBid creationBid = new UserCreationBid();
-		creationBid.setDefaultProject(new Project());
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(creationBid));
+		creationBid.setProjectName("project");
+		when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(Optional.of(creationBid));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.of(new User()));
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
@@ -215,8 +265,8 @@ class CreateUserHandlerImplTest {
 	@Test
 	public void createUserWithIncorrectLogin() {
 		final UserCreationBid creationBid = new UserCreationBid();
-		creationBid.setDefaultProject(new Project());
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(creationBid));
+		creationBid.setProjectName("project");
+		when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(Optional.of(creationBid));
 		when(userRepository.findByLogin("##$%/")).thenReturn(Optional.empty());
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
@@ -228,10 +278,8 @@ class CreateUserHandlerImplTest {
 	@Test
 	void createUserWithIncorrectEmail() {
 		final UserCreationBid bid = new UserCreationBid();
-		Project project = new Project();
-		project.setName("test_project");
-		bid.setDefaultProject(project);
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(bid));
+		bid.setProjectName("test_project");
+		when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(Optional.of(bid));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.empty());
 
 		final CreateUserRQConfirm request = new CreateUserRQConfirm();
@@ -244,10 +292,8 @@ class CreateUserHandlerImplTest {
 	@Test
 	void createUserWithExistedEmail() {
 		final UserCreationBid bid = new UserCreationBid();
-		Project project = new Project();
-		project.setName("test_project");
-		bid.setDefaultProject(project);
-		when(userCreationBidRepository.findById("uuid")).thenReturn(Optional.of(bid));
+		bid.setProjectName("test_project");
+		when(userCreationBidRepository.findByUuidAndType("uuid", INTERNAL_BID_TYPE)).thenReturn(Optional.of(bid));
 		when(userRepository.findByLogin("test")).thenReturn(Optional.empty());
 		when(userRepository.findByEmail("email@domain.com")).thenReturn(Optional.of(new User()));
 

@@ -60,6 +60,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.commons.querygen.constant.GeneralCriteriaConstant.CRITERIA_PROJECT_ID;
 import static com.epam.ta.reportportal.commons.querygen.constant.UserCriteriaConstant.*;
+import static com.epam.ta.reportportal.core.user.impl.CreateUserHandlerImpl.INTERNAL_BID_TYPE;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toMap;
 
@@ -123,7 +124,7 @@ public class GetUserHandlerImpl implements GetUserHandler {
 
 	@Override
 	public UserBidRS getBidInformation(String uuid) {
-		Optional<UserCreationBid> bid = userCreationBidRepository.findById(uuid);
+		Optional<UserCreationBid> bid = userCreationBidRepository.findByUuidAndType(uuid, INTERNAL_BID_TYPE);
 		return bid.map(b -> {
 			UserBidRS rs = new UserBidRS();
 			rs.setIsActive(true);

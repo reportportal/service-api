@@ -1,13 +1,11 @@
 package com.epam.ta.reportportal.core.log;
 
 import com.epam.ta.reportportal.entity.log.Log;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Configuration
-@ConditionalOnProperty(prefix = "rp.elasticsearchLogmessage", name = "host", matchIfMissing = true)
+@Service
 public class LogServiceEmptyElastic implements LogService {
 
     public LogServiceEmptyElastic() {

@@ -70,7 +70,8 @@ public class ProjectAnalyzerConfigEvent extends AroundEvent<ProjectAttributesAct
 				NUMBER_OF_LOG_LINES,
 				AUTO_ANALYZER_ENABLED,
 				AUTO_UNIQUE_ERROR_ANALYZER_ENABLED,
-				UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS
+				UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS,
+				ALL_MESSAGES_SHOULD_MATCH
 		).map(type -> processParameter(oldConfig, newConfig, type.getAttribute())).forEach(activityBuilder::addHistoryField);
 
 		return activityBuilder.get();

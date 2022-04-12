@@ -314,8 +314,7 @@ public class EmailService extends JavaMailSenderImpl {
 	 * If username is email, format will be "from \<email\>"
 	 */
 	private void setFrom(MimeMessageHelper message) throws MessagingException, UnsupportedEncodingException {
-		final boolean fromValid = isFromValid();
-		if (fromValid) {
+		if (isFromValid()) {
 			if (StringUtils.isNotBlank(fromAlias)) {
 				message.setFrom(new InternetAddress(from, fromAlias));
 			} else {

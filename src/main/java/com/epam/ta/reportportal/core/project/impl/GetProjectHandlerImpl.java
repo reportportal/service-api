@@ -102,25 +102,28 @@ public class GetProjectHandlerImpl implements GetProjectHandler {
 	}
 
 	@Override
-	public Project getProject(ReportPortalUser.ProjectDetails projectDetails) {
+	public Project get(ReportPortalUser.ProjectDetails projectDetails) {
 		return projectRepository.findById(projectDetails.getProjectId())
 				.orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, projectDetails.getProjectName()));
 	}
 
 	@Override
-	public Project getProject(String name) {
-		return projectRepository.findByName(name)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+	public Project get(Long id) {
+		return projectRepository.findById(id).orElseThrow(() -> new ReportPortalException(PROJECT_NOT_FOUND, id));
+	}
+
+	@Override
+	public Project get(String name) {
+		return projectRepository.findByName(name).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
 	}
 
 	@Override
 	public Project getRaw(String name) {
-		return projectRepository.findRawByName(name)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
+		return projectRepository.findRawByName(name).orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, name));
 	}
 
 	@Override
-	public ProjectResource getProject(String projectName, ReportPortalUser user) {
+	public ProjectResource getResource(String projectName, ReportPortalUser user) {
 
 		Project project = projectRepository.findByName(projectName)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, projectName));

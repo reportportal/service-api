@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.ta.reportportal.core.widget.content.loader.materialized.generator;
 
 import com.epam.ta.reportportal.commons.querygen.Filter;
@@ -40,29 +56,18 @@ public abstract class AbstractViewGenerator implements ViewGenerator {
 	@Transactional
 	public void generate(boolean refresh, String viewName, Widget widget, Filter launchesFilter, Sort launchesSort,
 			MultiValueMap<String, String> params) {
-		try {
-			LOGGER.debug("Widget {} - {}. Generation started", widget.getWidgetType(), widget.getId());
-			generateView(refresh, viewName, widget, launchesFilter, launchesSort, params);
-			LOGGER.debug("Widget {} - {}. Generation finished", widget.getWidgetType(), widget.getId());
-			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.READY.getValue())
-					.addOption(VIEW_NAME, viewName)
-					.addOption(LAST_REFRESH, Date.from(LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant()))
-					.get());
-			LOGGER.debug("Widget {} - {}. State updated to: {}",
-					widget.getWidgetType(),
-					widget.getId(),
-					WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
-			);
-		} catch (Exception exc) {
-			LOGGER.error("Error during view creation: " + exc.getMessage());
-			widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.FAILED.getValue()).get());
-			LOGGER.error("Generation failed. Widget {} - {}. State updated to: {}",
-					widget.getWidgetType(),
-					widget.getId(),
-					WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
-			);
-		}
-
+		LOGGER.debug("Widget {} - {}. Generation started", widget.getWidgetType(), widget.getId());
+		generateView(refresh, viewName, widget, launchesFilter, launchesSort, params);
+		LOGGER.debug("Widget {} - {}. Generation finished", widget.getWidgetType(), widget.getId());
+		widgetRepository.save(new WidgetBuilder(widget).addOption(STATE, WidgetState.READY.getValue())
+				.addOption(VIEW_NAME, viewName)
+				.addOption(LAST_REFRESH, Date.from(LocalDateTime.now().atZone(ZoneOffset.UTC).toInstant()))
+				.get());
+		LOGGER.debug("Widget {} - {}. State updated to: {}",
+				widget.getWidgetType(),
+				widget.getId(),
+				WidgetOptionUtil.getValueByKey(STATE, widget.getWidgetOptions())
+		);
 	}
 
 }

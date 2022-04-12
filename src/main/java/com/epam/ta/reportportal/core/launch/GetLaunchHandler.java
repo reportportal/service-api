@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public interface GetLaunchHandler {
 
-	Launch getLaunch(Long id);
+	Launch get(Long id);
 
 	/**
 	 * Get Launch resource by specified UUID
@@ -167,4 +167,6 @@ public interface GetLaunchHandler {
 	 * @return {@link ClusterInfoResource}
 	 */
 	Iterable<ClusterInfoResource> getClusters(String launchId, ReportPortalUser.ProjectDetails projectDetails, Pageable pageable);
+
+	boolean hasItemsWithIssues(Launch launch);
 }

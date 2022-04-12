@@ -16,7 +16,7 @@
 
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
 import com.epam.ta.reportportal.dao.ItemAttributeRepository;
 import com.epam.ta.reportportal.entity.ItemAttribute;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
@@ -26,7 +26,6 @@ import java.util.Optional;
 
 import static com.epam.ta.reportportal.core.launch.cluster.pipeline.SaveLastRunAttributePartProvider.RP_CLUSTER_LAST_RUN_KEY;
 import static com.epam.ta.reportportal.core.launch.cluster.utils.ConfigProvider.getConfig;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -41,7 +40,7 @@ class SaveLastRunAttributePartProviderTest {
 	@Test
 	void shouldSaveWhenNotExists() {
 		final GenerateClustersConfig config = getConfig(false);
-		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(),
+		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getEntityContext().getLaunchId(),
 				RP_CLUSTER_LAST_RUN_KEY,
 				true
 		)).thenReturn(Optional.empty());
@@ -50,7 +49,7 @@ class SaveLastRunAttributePartProviderTest {
 
 		pipelinePart.handle();
 
-		verify(itemAttributeRepository, times(1)).saveByLaunchId(eq(config.getLaunchId()),
+		verify(itemAttributeRepository, times(1)).saveByLaunchId(eq(config.getEntityContext().getLaunchId()),
 				eq(RP_CLUSTER_LAST_RUN_KEY),
 				anyString(),
 				eq(true)
@@ -61,7 +60,7 @@ class SaveLastRunAttributePartProviderTest {
 	void shouldUpdateWhenExists() {
 		final GenerateClustersConfig config = getConfig(false);
 		final ItemAttribute itemAttribute = new ItemAttribute();
-		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getLaunchId(),
+		when(itemAttributeRepository.findByLaunchIdAndKeyAndSystem(config.getEntityContext().getLaunchId(),
 				RP_CLUSTER_LAST_RUN_KEY,
 				true
 		)).thenReturn(Optional.of(itemAttribute));

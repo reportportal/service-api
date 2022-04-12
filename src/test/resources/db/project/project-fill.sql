@@ -12,7 +12,10 @@ VALUES (1, '1 day', 3),
        (10, FALSE, 3),
        (11, 'LAUNCH_NAME', 3),
        (12, 'true', 3),
-       (13, 'reportportal@example.com', 3);
+       (13, 'reportportal@example.com', 3),
+       (17, '95', 3),
+       (18, 'true', 3),
+       (19, 'true', 3);
 
 insert into users(id, login, password, email, attachment, attachment_thumbnail, role, type, expired, full_name, metadata)
 values (3, 'test_user', '179AD45C6CE2CB97CF1029E212046E81', 'test@domain.com', null, null, 'USER', 'INTERNAL', false, 'test full name',

@@ -30,14 +30,12 @@ import com.epam.ta.reportportal.ws.model.analyzer.IndexLog;
 import com.epam.ta.reportportal.ws.model.analyzer.IndexTestItem;
 import com.epam.ta.reportportal.ws.model.analyzer.RelevantItemInfo;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
+import com.epam.ta.reportportal.ws.model.project.UniqueErrorConfig;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ta.reportportal.core.analyzer.auto.impl.AnalyzerUtils.fromTestItem;
@@ -82,6 +80,14 @@ class AnalyzerUtilsTest {
         assertEquals(String.valueOf(config.isIndexingRunning()), ProjectAttributeEnum.INDEXING_RUNNING.getDefaultValue());
         assertEquals(String.valueOf(config.isAllMessagesShouldMatch()), ProjectAttributeEnum.ALL_MESSAGES_SHOULD_MATCH.getDefaultValue());
     }
+
+	@Test
+	void testUniqueErrorConfig() {
+		final Map<String, String> configParameters = ProjectUtils.getConfigParameters(project().getProjectAttributes());
+		final UniqueErrorConfig config = AnalyzerUtils.getUniqueErrorConfig(configParameters);
+		assertEquals(ProjectAttributeEnum.AUTO_UNIQUE_ERROR_ANALYZER_ENABLED.getDefaultValue(), String.valueOf(config.isEnabled()));
+		assertEquals(ProjectAttributeEnum.UNIQUE_ERROR_ANALYZER_REMOVE_NUMBERS.getDefaultValue(), String.valueOf(config.isRemoveNumbers()));
+	}
 
 	@Test
 	void testFromLogs() {

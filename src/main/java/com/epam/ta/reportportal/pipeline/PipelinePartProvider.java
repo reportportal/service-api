@@ -16,8 +16,6 @@
 
 package com.epam.ta.reportportal.pipeline;
 
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
-
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */

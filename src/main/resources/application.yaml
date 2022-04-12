@@ -39,6 +39,7 @@ logging:
     org.springframework.web.bind: fatal
     com.epam.ta.reportportal.ws.controller: debug
     com.epam.ta.reportportal.ws.rabbit: debug
+    org.elasticsearch.client.RestClient: error
 
 
 springfox:
@@ -63,6 +64,8 @@ rp:
       cluster:
         item:
           page-size: 20
+      item-analyze:
+        batch-size: 100
       log-index:
         batch-size: 20
       pattern-analysis:
@@ -90,7 +93,7 @@ rp:
           auto-analyze:
             core: 10
             max: 30
-            queue: 200
+            queue: 500
           pattern-analyze:
             core: 20
             max: 30
@@ -103,6 +106,10 @@ rp:
             core: 3
             max: 5
             queue: 100
+          event-listener:
+            core: 10
+            max: 20
+            queue: 1000
 
   amqp:
     addresses: amqp://${rp.amqp.user}:${rp.amqp.pass}@${rp.amqp.host}:${rp.amqp.port}

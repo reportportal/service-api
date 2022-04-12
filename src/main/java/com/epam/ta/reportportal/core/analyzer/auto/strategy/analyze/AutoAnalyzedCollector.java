@@ -19,7 +19,6 @@ package com.epam.ta.reportportal.core.analyzer.auto.strategy.analyze;
 import com.epam.ta.reportportal.commons.ReportPortalUser;
 import com.epam.ta.reportportal.core.analyzer.auto.LogIndexer;
 import com.epam.ta.reportportal.core.item.UpdateTestItemHandler;
-import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.enums.LogLevel;
 import org.slf4j.Logger;
@@ -39,24 +38,21 @@ public class AutoAnalyzedCollector implements AnalyzeItemsCollector {
 
 	private final TestItemRepository testItemRepository;
 
-	private final LogRepository logRepository;
-
 	private final LogIndexer logIndexer;
 
 	private final UpdateTestItemHandler updateTestItemHandler;
 
 	@Autowired
-	public AutoAnalyzedCollector(TestItemRepository testItemRepository, LogRepository logRepository, LogIndexer logIndexer,
+	public AutoAnalyzedCollector(TestItemRepository testItemRepository, LogIndexer logIndexer,
 			UpdateTestItemHandler updateTestItemHandler) {
 		this.testItemRepository = testItemRepository;
-		this.logRepository = logRepository;
 		this.logIndexer = logIndexer;
 		this.updateTestItemHandler = updateTestItemHandler;
 	}
 
 	@Override
 	public List<Long> collectItems(Long projectId, Long launchId, ReportPortalUser user) {
-		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, launchId, LogLevel.ERROR.toInt());
+		List<Long> itemIds = testItemRepository.selectIdsByAnalyzedWithLevelGte(true, false, launchId, LogLevel.ERROR.toInt());
 		int deletedLogsCount = logIndexer.indexItemsRemove(projectId, itemIds);
 		LOGGER.debug("{} logs deleted from analyzer", deletedLogsCount);
 		updateTestItemHandler.resetItemsIssue(itemIds, projectId, user);

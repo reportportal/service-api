@@ -100,7 +100,7 @@ class GetProjectHandlerImplTest {
 
 		when(projectRepository.findByName(projectName)).thenReturn(Optional.empty());
 
-		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getProject(projectName, user));
+		ReportPortalException exception = assertThrows(ReportPortalException.class, () -> handler.getResource(projectName, user));
 
 		assertEquals("Project '" + projectName + "' not found. Did you use correct project name?", exception.getMessage());
 	}

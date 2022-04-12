@@ -56,6 +56,20 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 	}
 
 	@Override
+	public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, String pluginName, String command,
+			Map<String, Object> executionParams) {
+		ReportPortalExtensionPoint pluginInstance = pluginBox.getInstance(pluginName, ReportPortalExtensionPoint.class)
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						formattedSupplier("Plugin for '{}' isn't installed", pluginName).get()
+				));
+		executionParams.put(PROJECT_ID, projectDetails.getProjectId());
+		return ofNullable(pluginInstance.getCommonCommand(command)).map(it -> it.executeCommand(executionParams))
+				.orElseThrow(() -> new ReportPortalException(BAD_REQUEST_ERROR,
+						formattedSupplier("Command '{}' is not found in plugin {}.", command, pluginName).get()
+				));
+	}
+
+	@Override
 	public Object executeCommand(ReportPortalUser.ProjectDetails projectDetails, Long integrationId, String command,
 			Map<String, Object> executionParams) {
 		Integration integration = integrationRepository.findByIdAndProjectId(integrationId, projectDetails.getProjectId())
@@ -71,7 +85,7 @@ public class ExecuteIntegrationHandlerImpl implements ExecuteIntegrationHandler 
 
 		executionParams.put(PROJECT_ID, projectDetails.getProjectId());
 
-		return ofNullable(pluginInstance.getCommandToExecute(command)).map(it -> {
+		return ofNullable(pluginInstance.getIntegrationCommand(command)).map(it -> {
 			if (asyncMode) {
 				supplyAsync(() -> it.executeCommand(integration, executionParams));
 				return new OperationCompletionRS(formattedSupplier("Command '{}' accepted for processing in plugin",

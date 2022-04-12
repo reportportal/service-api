@@ -17,7 +17,7 @@
 package com.epam.ta.reportportal.core.analyzer.auto;
 
 import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.ws.model.analyzer.IndexLaunch;
+import com.epam.ta.reportportal.entity.launch.Launch;
 import com.epam.ta.reportportal.ws.model.project.AnalyzerConfig;
 
 import java.util.Collection;
@@ -42,11 +42,9 @@ public interface LogIndexer {
 	 */
 	CompletableFuture<Long> index(Long projectId, AnalyzerConfig analyzerConfig);
 
-	CompletableFuture<Long> indexLaunchLogs(Long projectId, Long launchId, AnalyzerConfig analyzerConfig);
+	Long indexLaunchLogs(Launch launch, AnalyzerConfig analyzerConfig);
 
 	Long indexItemsLogs(Long projectId, Long launchId, List<Long> itemIds, AnalyzerConfig analyzerConfig);
-
-	CompletableFuture<Long> indexPreparedLogs(Long projectId, IndexLaunch indexLaunch);
 
 	/**
 	 * Delete index of specified project

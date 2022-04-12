@@ -17,8 +17,9 @@
 package com.epam.ta.reportportal.core.launch.cluster.pipeline;
 
 import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.ClusterData;
-import com.epam.ta.reportportal.core.analyzer.auto.client.model.cluster.GenerateClustersConfig;
 import com.epam.ta.reportportal.core.launch.cluster.CreateClusterHandler;
+import com.epam.ta.reportportal.core.launch.cluster.config.GenerateClustersConfig;
+import com.epam.ta.reportportal.core.launch.cluster.pipeline.data.resolver.ClusterDataProviderResolver;
 import com.epam.ta.reportportal.pipeline.PipelinePart;
 import com.epam.ta.reportportal.pipeline.PipelinePartProvider;
 
@@ -29,17 +30,17 @@ import java.util.Optional;
  */
 public class SaveClusterDataPartProvider implements PipelinePartProvider<GenerateClustersConfig> {
 
-	private final ClusterDataProvider clusterDataProvider;
+	private final ClusterDataProviderResolver clusterDataProviderResolver;
 	private final CreateClusterHandler createClusterHandler;
 
-	public SaveClusterDataPartProvider(ClusterDataProvider clusterDataProvider, CreateClusterHandler createClusterHandler) {
-		this.clusterDataProvider = clusterDataProvider;
+	public SaveClusterDataPartProvider(ClusterDataProviderResolver clusterDataProviderResolver, CreateClusterHandler createClusterHandler) {
+		this.clusterDataProviderResolver = clusterDataProviderResolver;
 		this.createClusterHandler = createClusterHandler;
 	}
 
 	@Override
 	public PipelinePart provide(GenerateClustersConfig config) {
-		final Optional<ClusterData> clusterData = clusterDataProvider.provide(config);
+		final Optional<ClusterData> clusterData = clusterDataProviderResolver.resolve(config).flatMap(p -> p.provide(config));
 		return () -> clusterData.ifPresent(createClusterHandler::create);
 	}
 

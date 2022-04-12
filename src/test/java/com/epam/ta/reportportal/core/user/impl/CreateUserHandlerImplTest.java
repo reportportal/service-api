@@ -179,7 +179,7 @@ class CreateUserHandlerImplTest {
 	void CreateUserBidOnNotExistedProject() {
 		final ReportPortalUser rpUser = getRpUser("test", UserRole.USER, ProjectRole.MEMBER, 1L);
 
-		when(getProjectHandler.getProject("not_exists")).thenThrow(new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "not_exists"));
+		when(getProjectHandler.get("not_exists")).thenThrow(new ReportPortalException(ErrorType.PROJECT_NOT_FOUND, "not_exists"));
 
 		CreateUserRQ request = new CreateUserRQ();
 		request.setDefaultProject("not_exists");

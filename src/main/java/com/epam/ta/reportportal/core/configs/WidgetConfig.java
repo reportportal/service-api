@@ -25,10 +25,15 @@ import com.epam.ta.reportportal.core.widget.content.loader.materialized.Cumulati
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.HealthCheckTableReadyContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.MaterializedWidgetContentLoader;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.CumulativeTrendChartViewGenerator;
+import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.FailedViewStateGenerator;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.HealthCheckTableGenerator;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.handler.*;
 import com.epam.ta.reportportal.core.widget.content.loader.util.ProductStatusContentLoaderManager;
+import com.epam.ta.reportportal.core.widget.content.remover.MaterializedViewRemover;
+import com.epam.ta.reportportal.core.widget.content.remover.StaleMaterializedViewRemover;
+import com.epam.ta.reportportal.core.widget.content.remover.WidgetContentRemover;
+import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.enums.InfoInterval;
 import com.epam.ta.reportportal.entity.widget.WidgetState;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
@@ -188,12 +193,33 @@ public class WidgetConfig implements ApplicationContextAware {
 				.build();
 	}
 
+	@Bean("cumulativeFailedViewStateGenerator")
+	public FailedViewStateGenerator cumulativeFailedViewStateGenerator() {
+		return new FailedViewStateGenerator(applicationContext.getBean(CumulativeTrendChartViewGenerator.class),
+				applicationContext.getBean(WidgetRepository.class)
+		);
+	}
+
+	@Bean("healthCheckTableFailedViewStateGenerator")
+	public FailedViewStateGenerator healthCheckTableFailedViewStateGenerator() {
+		return new FailedViewStateGenerator(applicationContext.getBean(HealthCheckTableGenerator.class),
+				applicationContext.getBean(WidgetRepository.class)
+		);
+	}
+
 	@Bean("viewGeneratorMapping")
 	public Map<WidgetType, ViewGenerator> viewGeneratorMapping() {
-		return ImmutableMap.<WidgetType, ViewGenerator>builder().put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
-				applicationContext.getBean(HealthCheckTableGenerator.class)
-		)
-				.put(WidgetType.CUMULATIVE, applicationContext.getBean(CumulativeTrendChartViewGenerator.class))
+		return ImmutableMap.<WidgetType, ViewGenerator>builder()
+				.put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE, healthCheckTableFailedViewStateGenerator())
+				.put(WidgetType.CUMULATIVE, cumulativeFailedViewStateGenerator())
+				.build();
+	}
+
+	@Bean("widgetContentRemoverMapping")
+	public Map<WidgetState, WidgetContentRemover> widgetContentRemoverMapping() {
+		return ImmutableMap.<WidgetState, WidgetContentRemover>builder()
+				.put(WidgetState.READY, applicationContext.getBean(MaterializedViewRemover.class))
+				.put(WidgetState.RENDERING, applicationContext.getBean(StaleMaterializedViewRemover.class))
 				.build();
 	}
 

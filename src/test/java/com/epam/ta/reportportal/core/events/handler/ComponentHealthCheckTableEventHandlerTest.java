@@ -6,6 +6,7 @@ import com.epam.ta.reportportal.core.events.widget.GenerateWidgetViewEvent;
 import com.epam.ta.reportportal.core.widget.content.BuildFilterStrategy;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.HealthCheckTableGenerator;
 import com.epam.ta.reportportal.core.widget.content.loader.materialized.generator.ViewGenerator;
+import com.epam.ta.reportportal.core.widget.content.materialized.generator.MaterializedViewNameGenerator;
 import com.epam.ta.reportportal.dao.WidgetRepository;
 import com.epam.ta.reportportal.entity.widget.Widget;
 import com.epam.ta.reportportal.entity.widget.WidgetType;
@@ -34,10 +35,10 @@ class ComponentHealthCheckTableEventHandlerTest {
 
 	private final WidgetRepository widgetRepository = mock(WidgetRepository.class);
 	private final BuildFilterStrategy buildFilterStrategy = mock(BuildFilterStrategy.class);
-	private final Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping = ImmutableMap.<WidgetType, BuildFilterStrategy>builder().put(
-			WidgetType.COMPONENT_HEALTH_CHECK_TABLE,
-			buildFilterStrategy
-	).build();
+	private final MaterializedViewNameGenerator materializedViewNameGenerator = mock(MaterializedViewNameGenerator.class);
+	private final Map<WidgetType, BuildFilterStrategy> buildFilterStrategyMapping = ImmutableMap.<WidgetType, BuildFilterStrategy>builder()
+			.put(WidgetType.COMPONENT_HEALTH_CHECK_TABLE, buildFilterStrategy)
+			.build();
 	private ThreadPoolTaskExecutor healthCheckTableExecutor = new ThreadPoolTaskExecutor();
 
 	private final HealthCheckTableGenerator healthCheckTableGenerator = mock(HealthCheckTableGenerator.class);
@@ -54,6 +55,7 @@ class ComponentHealthCheckTableEventHandlerTest {
 		healthCheckTableExecutor.setAwaitTerminationSeconds(2);
 		generateWidgetViewEventHandler = new GenerateWidgetViewEventHandler(widgetRepository,
 				buildFilterStrategyMapping,
+				materializedViewNameGenerator,
 				healthCheckTableExecutor,
 				viewGeneratorMapping
 		);
@@ -76,6 +78,7 @@ class ComponentHealthCheckTableEventHandlerTest {
 		filterSortMap.put(filter, sort);
 
 		when(buildFilterStrategy.buildFilter(widget)).thenReturn(filterSortMap);
+		when(materializedViewNameGenerator.generate(widget)).thenReturn("widget_1_1");
 
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.put(REFRESH, Collections.singletonList(Boolean.FALSE.toString()));

@@ -118,7 +118,8 @@ public class MailServiceFactory {
 			service.setPort(ofNullable(config.get(EmailSettingsEnum.PORT.getAttribute())).map(p -> NumberUtils.toInt(String.valueOf(p), 25))
 					.orElse(25));
 			EmailSettingsEnum.PROTOCOL.getAttribute(config).ifPresent(service::setProtocol);
-			EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFrom);
+			EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setFrom);
+			EmailSettingsEnum.FROM.getAttribute(config).ifPresent(service::setFromAlias);
 			if (authRequired) {
 				EmailSettingsEnum.USERNAME.getAttribute(config).ifPresent(service::setUsername);
 				EmailSettingsEnum.PASSWORD.getAttribute(config).ifPresent(password -> service.setPassword(encryptor.decrypt(password)));

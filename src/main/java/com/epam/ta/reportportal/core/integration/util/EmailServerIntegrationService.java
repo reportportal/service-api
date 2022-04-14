@@ -86,18 +86,18 @@ public class EmailServerIntegrationService extends BasicIntegrationServiceImpl {
 		EmailSettingsEnum.PROTOCOL.getAttribute(integrationParams)
 				.ifPresent(protocol -> resultParams.put(EmailSettingsEnum.PROTOCOL.getAttribute(), protocol));
 
+		EmailSettingsEnum.USERNAME.getAttribute(integrationParams)
+				.ifPresent(username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
+
 		ofNullable(integrationParams.get(EmailSettingsEnum.AUTH_ENABLED.getAttribute())).ifPresent(authEnabledAttribute -> {
 			boolean isAuthEnabled = BooleanUtils.toBoolean(String.valueOf(authEnabledAttribute));
 			if (isAuthEnabled) {
-				EmailSettingsEnum.USERNAME.getAttribute(integrationParams)
-						.ifPresent(username -> resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), username));
 				EmailSettingsEnum.PASSWORD.getAttribute(integrationParams)
 						.ifPresent(password -> resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(),
 								basicTextEncryptor.encrypt(password)
 						));
 			} else {
 				/* Auto-drop values on switched-off authentication */
-				resultParams.put(EmailSettingsEnum.USERNAME.getAttribute(), null);
 				resultParams.put(EmailSettingsEnum.PASSWORD.getAttribute(), null);
 			}
 			resultParams.put(EmailSettingsEnum.AUTH_ENABLED.getAttribute(), isAuthEnabled);

@@ -117,6 +117,18 @@ public class ShareableObjectsHandler {
 	}
 
 	/**
+	 * Update shared objects permission for concrete user
+	 *
+	 * @param projectId Project
+	 * @param userName  Username
+	 * @param permission {@link Permission}
+	 */
+	public void updateSharedObjectsPermission(Long projectId, String userName, Permission permission) {
+		List<ShareableEntity> shareableEntities = shareableEntityRepository.findAllByProjectIdAndShared(projectId, true);
+		shareableEntities.forEach(entity -> aclService.updatePermission(entity, userName, permission));
+	}
+
+	/**
 	 * Remove ACL for object.
 	 *
 	 * @param object Object to be removed
